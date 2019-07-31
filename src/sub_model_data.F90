@@ -11,6 +11,7 @@
 !! current model state for use by reactions.
 !!
 !! The available sub-models are:
+!!  - \subpage phlex_sub_model_PDFiTE "PDFiTE Activity Coefficients"
 !!  - \subpage phlex_sub_model_UNIFAC "UNIFAC Activity Coefficients"
 !!  - \subpage phlex_sub_model_ZSR_aerosol_water "ZSR Aerosol Water"
 !!
@@ -188,6 +189,7 @@ contains
   !! Sub-models must have a unique \b type that corresponds to a valid
   !! sub-model type. These include:
   !!
+  !!   - \subpage phlex_sub_model_PDFiTE "SUB_MODEL_PDFITE"
   !!   - \subpage phlex_sub_model_UNIFAC "SUB_MODEL_UNIFAC"
   !!   - \subpage phlex_sub_model_ZSR_aerosol_water "SUB_MODEL_ZSR_AEROSOL_WATER"
   !!

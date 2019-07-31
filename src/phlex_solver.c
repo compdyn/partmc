@@ -363,12 +363,12 @@ void solver_initialize(void *solver_data, double *abs_tol, double rel_tol,
 #endif
 }
 
+#ifdef PMC_DEBUG
 /** \brief Set the flag indicating whether to output debugging information
  *
  * \param solver_data A pointer to the solver data
  * \param do_output Whether to output debugging information during solving
  */
-#ifdef PMC_DEBUG
 int solver_set_debug_out(void *solver_data, bool do_output)
 {
 #ifdef PMC_USE_SUNDIALS
@@ -380,13 +380,14 @@ int solver_set_debug_out(void *solver_data, bool do_output)
 }
 #endif
 
+#ifdef PMC_DEBUG
 /** \brief Set the flag indicating whether to evalute the Jacobian during
  **        solving
  *
  * \param solver_data A pointer to the solver data
- * \param do_output Whether to evaluate the Jacobian during solving
+ * \param eval_Jac Flag indicating whether to evaluate the Jacobian during
+ *                 solving
  */
-#ifdef PMC_DEBUG
 int solver_set_eval_jac(void *solver_data, bool eval_Jac)
 {
 #ifdef PMC_USE_SUNDIALS

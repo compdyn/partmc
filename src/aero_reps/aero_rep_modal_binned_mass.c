@@ -317,7 +317,7 @@ void * aero_rep_modal_binned_mass_get_effective_radius(ModelData *model_data,
  *      n = N_0 = \frac{6V_0}{\pi}\tilde{D}_n^{-3}e^{-9\tilde{\sigma}_g^2/2}
  * \f]
  * \f[
- *      V_0 = \sum_i{\m_i/rho_i}
+ *      V_0 = \sum_i{\frac{m_i}{\rho_i}}
  * \f]
  * where \f$\rho_i\f$ and \f$m_i\f$ are the density and total mass of species
  * \f$i\f$ in the specified mode.

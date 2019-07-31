@@ -195,27 +195,6 @@ void * rxn_HL_phase_transfer_calc_jac_contrib(
           ModelData *model_data, realtype *J, void *rxn_data, realtype time_step);
 #endif
 
-// PD-FiTE activity
-void * rxn_PDFiTE_activity_get_used_jac_elem(
-          void *rxn_data, bool **jac_struct);
-void * rxn_PDFiTE_activity_update_ids(
-          ModelData *model_data, int *deriv_ids, int **jac_ids, void *rxn_data);
-void * rxn_PDFiTE_activity_update_env_state(double *env_data,
-          void *rxn_data);
-void * rxn_PDFiTE_activity_pre_calc(
-          ModelData *model_data, void *rxn_data);
-void * rxn_PDFiTE_activity_skip(
-          void *rxn_data);
-void * rxn_PDFiTE_activity_print(
-          void *rxn_data);
-#ifdef PMC_USE_SUNDIALS
-void * rxn_PDFiTE_activity_calc_deriv_contrib(
-          ModelData *model_data, realtype *deriv, void *rxn_data,
-          realtype time_step);
-void * rxn_PDFiTE_activity_calc_jac_contrib(
-          ModelData *model_data, realtype *J, void *rxn_data, realtype time_step);
-#endif
-
 // photolysis
 void * rxn_photolysis_get_used_jac_elem(
           void *rxn_data, bool **jac_struct);

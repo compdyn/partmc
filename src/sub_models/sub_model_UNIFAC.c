@@ -59,8 +59,8 @@
 /** \brief Get the Jacobian elements used for a particular row of the matrix
  *
  * \param sub_model_data Pointer to the sub-model data
- * \param jac_row Array of flags indicating whether an element in the rown is
- *                used
+ * \param jac_row Array of flags indicating whether an element in the Jacobian
+ *                is used
  * \return The sub_model_data pointer advanced by the size of the sub model
  */
 void * sub_model_UNIFAC_get_used_jac_elem(void *sub_model_data, bool *jac_row)

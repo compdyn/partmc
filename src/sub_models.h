@@ -11,6 +11,17 @@
 #define SUB_MODELS_H
 #include "phlex_common.h"
 
+// PD-FiTE activity
+void *sub_model_PDFiTE_get_used_jac_elem(void *sub_model_data, bool *jac_row);
+void *sub_model_PDFiTE_update_ids(void *sub_model_data, int *jac_row);
+void *sub_model_PDFiTE_update_env_state(void *sub_model_data, double *env_data);
+void *sub_model_PDFiTE_get_parameter_id(void *sub_model_data, void *identifiers,
+                                        int *parameter_id);
+void *sub_model_PDFiTE_calculate(void *sub_model_data, ModelData *model_data);
+void *sub_model_PDFiTE_get_jac_contrib(void *sub_model_data, double *jac_row);
+void *sub_model_PDFiTE_skip(void *sub_model_data);
+void *sub_model_PDFiTE_print(void *sub_model_data);
+
 // UNIFAC
 void *sub_model_UNIFAC_get_used_jac_elem(void *sub_model_data, bool *jac_row);
 void *sub_model_UNIFAC_update_ids(void *sub_model_data, int *jac_row);

@@ -17,6 +17,7 @@
 // Sub model types (Must match parameters in pmc_sub_model_factory)
 #define SUB_MODEL_UNIFAC 1
 #define SUB_MODEL_ZSR_AEROSOL_WATER 2
+#define SUB_MODEL_PDFITE 3
 
 
 /** \brief Get a pointer to a calcualted sub model parameter
@@ -68,6 +69,10 @@ int sub_model_get_parameter_id(ModelData *model_data, int type,
     // Check if this is the requested type of sub model
     if (type==sub_model_type) {
       switch (sub_model_type) {
+        case SUB_MODEL_PDFITE :
+          sub_model_data = (int*) sub_model_PDFiTE_get_parameter_id(
+              (void*) sub_model_data, identifiers, &parameter_id);
+          break;
         case SUB_MODEL_UNIFAC :
           sub_model_data = (int*) sub_model_UNIFAC_get_parameter_id(
               (void*) sub_model_data, identifiers, &parameter_id);
@@ -80,6 +85,9 @@ int sub_model_get_parameter_id(ModelData *model_data, int type,
       // ... otherwise skip past it
     } else {
       switch (sub_model_type) {
+        case SUB_MODEL_PDFITE :
+          sub_model_data = (int*) sub_model_PDFiTE_skip((void*) sub_model_data);
+          break;
         case SUB_MODEL_UNIFAC :
           sub_model_data = (int*) sub_model_UNIFAC_skip((void*) sub_model_data);
           break;
@@ -145,6 +153,10 @@ void sub_model_update_env_state(ModelData *model_data, double *env)
 
     // Call the appropriate function
     switch (sub_model_type) {
+      case SUB_MODEL_PDFITE :
+        sub_model_data = (int*) sub_model_PDFiTE_update_env_state(
+                  (void*) sub_model_data, env);
+        break;
       case SUB_MODEL_UNIFAC :
         sub_model_data = (int*) sub_model_UNIFAC_update_env_state(
                   (void*) sub_model_data, env);
@@ -176,6 +188,10 @@ void sub_model_calculate(ModelData *model_data)
 
     // Call the appropriate function
     switch (sub_model_type) {
+      case SUB_MODEL_PDFITE :
+        sub_model_data = (int*) sub_model_PDFiTE_calculate(
+                  (void*) sub_model_data, model_data);
+        break;
       case SUB_MODEL_UNIFAC :
         sub_model_data = (int*) sub_model_UNIFAC_calculate(
                   (void*) sub_model_data, model_data);
@@ -250,6 +266,9 @@ void sub_model_update_data(int update_sub_model_type, void *update_data,
     // Skip sub-models of other types
     if (sub_model_type!=update_sub_model_type) {
       switch (sub_model_type) {
+        case SUB_MODEL_PDFITE :
+          sub_model_data = (int*) sub_model_PDFiTE_skip((void*) sub_model_data);
+          break;
         case SUB_MODEL_UNIFAC :
           sub_model_data = (int*) sub_model_UNIFAC_skip((void*) sub_model_data);
           break;
@@ -263,6 +282,9 @@ void sub_model_update_data(int update_sub_model_type, void *update_data,
     // then
     } else {
       switch (sub_model_type) {
+        case SUB_MODEL_PDFITE :
+          sub_model_data = (int*) sub_model_PDFiTE_skip((void*) sub_model_data);
+          break;
         case SUB_MODEL_UNIFAC :
           sub_model_data = (int*) sub_model_UNIFAC_skip((void*) sub_model_data);
           break;
@@ -296,6 +318,9 @@ void sub_model_print_data(void *solver_data)
 
     // Call the appropriate function
     switch (sub_model_type) {
+      case SUB_MODEL_PDFITE :
+        sub_model_data = (int*) sub_model_PDFiTE_print((void*) sub_model_data);
+        break;
       case SUB_MODEL_UNIFAC :
         sub_model_data = (int*) sub_model_UNIFAC_print((void*) sub_model_data);
         break;

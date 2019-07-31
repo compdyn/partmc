@@ -15,9 +15,9 @@ do
   echo Attempt $counter
 
 if [[ $1 = "MPI" ]]; then
-  exec_str="mpirun -v -np 2 ../../test_rxn_PDFiTE_activity"
+  exec_str="mpirun -v -np 2 ../../test_sub_model_PDFiTE"
 else
-  exec_str="../../test_rxn_PDFiTE_activity"
+  exec_str="../../test_sub_model_PDFiTE"
 fi
 
 if ! $exec_str; then 

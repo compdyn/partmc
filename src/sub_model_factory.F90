@@ -26,6 +26,7 @@ module pmc_sub_model_factory
                                                warn_msg
 
   ! Use all sub-models
+  use pmc_sub_model_PDFiTE
   use pmc_sub_model_UNIFAC
   use pmc_sub_model_ZSR_aerosol_water
 
@@ -37,6 +38,7 @@ module pmc_sub_model_factory
   !> Identifiers for sub-models - used by binary packing/unpacking functions
   integer(kind=i_kind), parameter, public :: SUB_MODEL_UNIFAC = 1
   integer(kind=i_kind), parameter, public :: SUB_MODEL_ZSR_AEROSOL_WATER = 2
+  integer(kind=i_kind), parameter, public :: SUB_MODEL_PDFITE = 3
 
   !> Factory type for sub-models
   !!
@@ -77,6 +79,8 @@ contains
     new_obj => null()
 
     select case (type_name)
+      case ("SUB_MODEL_PDFITE")
+        new_obj => sub_model_PDFiTE_t()
       case ("SUB_MODEL_UNIFAC")
         new_obj => sub_model_UNIFAC_t()
       case ("SUB_MODEL_ZSR_AEROSOL_WATER")
@@ -146,6 +150,8 @@ contains
     class(sub_model_data_t), intent(in) :: sub_model
 
     select type (sub_model)
+      type is (sub_model_PDFiTE_t)
+        sub_model_data_type = SUB_MODEL_PDFITE
       type is (sub_model_UNIFAC_t)
         sub_model_data_type = SUB_MODEL_UNIFAC
       type is (sub_model_ZSR_aerosol_water_t)
@@ -211,6 +217,8 @@ contains
 
     prev_position = pos
     select type (sub_model)
+      type is (sub_model_PDFiTE_t)
+        sub_model_data_type = SUB_MODEL_PDFITE
       type is (sub_model_UNIFAC_t)
         sub_model_data_type = SUB_MODEL_UNIFAC
       type is (sub_model_ZSR_aerosol_water_t)
@@ -248,6 +256,8 @@ contains
     prev_position = pos
     call pmc_mpi_unpack_integer(buffer, pos, sub_model_data_type, comm)
     select case (sub_model_data_type)
+      case (SUB_MODEL_PDFITE)
+        sub_model => sub_model_PDFiTE_t()
       case (SUB_MODEL_UNIFAC)
         sub_model => sub_model_UNIFAC_t()
       case (SUB_MODEL_ZSR_AEROSOL_WATER)

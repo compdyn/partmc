@@ -14,6 +14,7 @@
 !! \code{.json}
 !!  { "pmc-data" : [
 !!    {
+!!      "name" : "my UNIFAC activity",
 !!      "type" : "SUB_MODEL_UNIFAC",
 !!      "phases" : [
 !!        "some phase",

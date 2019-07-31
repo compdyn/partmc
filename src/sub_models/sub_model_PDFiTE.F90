@@ -3,13 +3,13 @@
 ! option) any later version. See the file COPYING for details.
 
 !> \file
-!> The pmc_rxn_PDFiTE_activity module.
+!> The pmc_sub_model_PDFiTE module.
 
 ! FIXME Move to a sub model
 
-!> \page phlex_rxn_PDFiTE_activity Phlexible Module for Chemistry: PD-FiTE Activity Reaction
+!> \page phlex_sub_model_PDFiTE Phlexible Module for Chemistry: PD-FiTE Activity
 !!
-!! PD-FiTE activity reactions calculate aerosol-phase species activities using
+!! PD-FiTE activity calculates aerosol-phase species activities using
 !! Taylor series to describe partial derivatives of mean activity coefficients
 !! for ternary solutions, as described in Topping et al. (2009)
 !! \cite Topping2009 . The mean binary activity coefficients for ion pairs are
@@ -18,8 +18,10 @@
 !!
 !! Input data for PDFiTE activity equations have the following format :
 !! \code{.json}
+!!  { "pmc-data" : [
 !!   {
-!!     "type" : "PDFITE_ACTIVITY",
+!!     "name" : "my PDFiTE activity",
+!!     "type" : "SUB_MODEL_PDFITE",
 !!     "gas-phase water" : "H2O",
 !!     "aerosol-phase water" : "H2O_aq",
 !!     "aerosol phase" : "my aero phase",
@@ -73,6 +75,7 @@
 !!       ...
 !!     }
 !!   }
+!!  ]}
 !! \endcode
 !! The key-value pair \b aerosol \b phase is required to specify the aerosol
 !! phase for which to calculate activity coefficients. The key-value pairs
@@ -164,8 +167,8 @@
 !!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-!> The rxn_PDFiTE_activity_t type and associated functions.
-module pmc_rxn_PDFiTE_activity
+!> The sub_model_PDFiTE_t type and associated functions.
+module pmc_sub_model_PDFiTE
 
   use pmc_aero_phase_data
   use pmc_aero_rep_data
@@ -173,7 +176,7 @@ module pmc_rxn_PDFiTE_activity
   use pmc_constants,                        only: const
   use pmc_phlex_state
   use pmc_property
-  use pmc_rxn_data
+  use pmc_sub_model_data
   use pmc_util,                             only: i_kind, dp, to_string, &
                                                   assert, assert_msg, &
                                                   die_msg, string_t, &
@@ -210,21 +213,24 @@ module pmc_rxn_PDFiTE_activity
 #define MAX_RH_(x,y) this%condensed_data_real(INTER_SPEC_LOC_(x,y)+1)
 #define B_Z_(x,y,z) this%condensed_data_real(INTER_SPEC_LOC_(x,y)+1+z)
 
-  public :: rxn_PDFiTE_activity_t
+  ! Update types (These must match values in sub_model_UNIFAC.c)
+  ! (none for now)
+
+  public :: sub_model_PDFiTE_t
 
   !> Generic test reaction data type
-  type, extends(rxn_data_t) :: rxn_PDFiTE_activity_t
+  type, extends(sub_model_data_t) :: sub_model_PDFiTE_t
   contains
     !> Reaction initialization
     procedure :: initialize
     !> Finalize the reaction
     final :: finalize
-  end type rxn_PDFiTE_activity_t
+  end type sub_model_PDFiTE_t
 
-  !> Constructor for rxn_PDFiTE_activity_t
-  interface rxn_PDFiTE_activity_t
+  !> Constructor for sub_model_PDFiTE_t
+  interface sub_model_PDFiTE_t
     procedure :: constructor
-  end interface rxn_PDFiTE_activity_t
+  end interface sub_model_PDFiTE_t
 
 contains
 
@@ -234,10 +240,9 @@ contains
   function constructor() result(new_obj)
 
     !> A new reaction instance
-    type(rxn_PDFiTE_activity_t), pointer :: new_obj
+    type(sub_model_PDFiTE_t), pointer :: new_obj
 
     allocate(new_obj)
-    new_obj%rxn_phase = AERO_RXN
 
   end function constructor
 
@@ -246,14 +251,16 @@ contains
   !> Initialize the reaction data, validating component data and loading
   !! any required information into the condensed data arrays for use during
   !! solving
-  subroutine initialize(this, chem_spec_data, aero_rep)
+  subroutine initialize(this, aero_rep_set, aero_phase_set, chem_spec_data)
 
     !> Reaction data
-    class(rxn_PDFiTE_activity_t), intent(inout) :: this
+    class(sub_model_PDFiTE_t), intent(inout) :: this
+    !> The set of aerosol representations
+    type(aero_rep_data_ptr), pointer, intent(in) :: aero_rep_set(:)
+    !> The set of aerosol phases
+    type(aero_phase_data_ptr), pointer, intent(in) :: aero_phase_set(:)
     !> Chemical species data
     type(chem_spec_data_t), intent(in) :: chem_spec_data
-    !> Aerosol representations
-    type(aero_rep_data_ptr), pointer, intent(in) :: aero_rep(:)
 
     type(property_t), pointer :: spec_props, ion_pairs, ion_pair, &
             sub_props, ions, interactions, interaction, poly_coeffs
@@ -283,11 +290,11 @@ contains
 
     ! Count the instances of the aerosol phase
     n_phase = 0
-    do i_aero_rep = 1, size(aero_rep)
+    do i_aero_rep = 1, size(aero_rep_set)
 
       ! Get the number of instances of the phase in this representation
       n_phase = n_phase + &
-              aero_rep(i_aero_rep)%val%num_phase_instances(phase_name)
+              aero_rep_set(i_aero_rep)%val%num_phase_instances(phase_name)
 
     end do
 
@@ -460,12 +467,12 @@ contains
     ! phase instance. Then the aerosol water id is 1, and the ion
     ! ids will be relative to the water id in each phase.
     i_phase = 1
-    do i_aero_rep = 1, size(aero_rep)
-      unique_spec_names = aero_rep(i_aero_rep)%val%unique_names( &
+    do i_aero_rep = 1, size(aero_rep_set)
+      unique_spec_names = aero_rep_set(i_aero_rep)%val%unique_names( &
               phase_name = phase_name, spec_name = spec_name)
       if (.not.allocated(unique_spec_names)) cycle
       do i_spec = 1, size(unique_spec_names)
-        PHASE_ID_(i_phase) = aero_rep(i_aero_rep)%val%spec_state_id( &
+        PHASE_ID_(i_phase) = aero_rep_set(i_aero_rep)%val%spec_state_id( &
                 unique_spec_names(i_spec)%string)
         call assert(658622226, PHASE_ID_(i_phase).gt.0)
         i_phase = i_phase + 1
@@ -494,19 +501,19 @@ contains
 
       ! Get the activity coefficient state ids for this ion_pair
       i_phase = 1
-      do i_aero_rep = 1, size(aero_rep)
-        unique_spec_names = aero_rep(i_aero_rep)%val%unique_names( &
+      do i_aero_rep = 1, size(aero_rep_set)
+        unique_spec_names = aero_rep_set(i_aero_rep)%val%unique_names( &
                 phase_name = phase_name, spec_name = ion_pair_name)
         if (.not.allocated(unique_spec_names)) cycle
         do i_spec = 1, size(unique_spec_names)
           if (i_phase.eq.1) then
             ION_PAIR_ACT_ID_(i_ion_pair) = &
-                    aero_rep(i_aero_rep)%val%spec_state_id( &
+                    aero_rep_set(i_aero_rep)%val%spec_state_id( &
                     unique_spec_names(i_spec)%string) - &
                     PHASE_ID_(i_phase)
           else
             call assert(142173386, ION_PAIR_ACT_ID_(i_ion_pair).eq. &
-                    aero_rep(i_aero_rep)%val%spec_state_id( &
+                    aero_rep_set(i_aero_rep)%val%spec_state_id( &
                     unique_spec_names(i_spec)%string) - &
                     PHASE_ID_(i_phase))
           end if
@@ -596,32 +603,32 @@ contains
 
         ! Get the state ids for this species
         i_phase = 1
-        do i_aero_rep = 1, size(aero_rep)
-          unique_spec_names = aero_rep(i_aero_rep)%val%unique_names( &
+        do i_aero_rep = 1, size(aero_rep_set)
+          unique_spec_names = aero_rep_set(i_aero_rep)%val%unique_names( &
                   phase_name = phase_name, spec_name = ion_name)
           if (.not.allocated(unique_spec_names)) cycle
           do i_spec = 1, size(unique_spec_names)
             if (charge.gt.0) then
               if (i_phase.eq.1) then
                 CATION_ID_(i_ion_pair) = &
-                        aero_rep(i_aero_rep)%val%spec_state_id( &
+                        aero_rep_set(i_aero_rep)%val%spec_state_id( &
                         unique_spec_names(i_spec)%string) - &
                         PHASE_ID_(i_phase)
               else
                 call assert(425726370, CATION_ID_(i_ion_pair).eq. &
-                        aero_rep(i_aero_rep)%val%spec_state_id( &
+                        aero_rep_set(i_aero_rep)%val%spec_state_id( &
                         unique_spec_names(i_spec)%string) - &
                         PHASE_ID_(i_phase))
               end if
             else
               if (i_phase.eq.1) then
                 ANION_ID_(i_ion_pair) = &
-                        aero_rep(i_aero_rep)%val%spec_state_id( &
+                        aero_rep_set(i_aero_rep)%val%spec_state_id( &
                         unique_spec_names(i_spec)%string) - &
                         PHASE_ID_(i_phase)
               else
                 call assert(192466600, ANION_ID_(i_ion_pair).eq. &
-                        aero_rep(i_aero_rep)%val%spec_state_id( &
+                        aero_rep_set(i_aero_rep)%val%spec_state_id( &
                         unique_spec_names(i_spec)%string) - &
                         PHASE_ID_(i_phase))
               end if
@@ -826,7 +833,7 @@ contains
   elemental subroutine finalize(this)
 
     !> Reaction data
-    type(rxn_PDFiTE_activity_t), intent(inout) :: this
+    type(sub_model_PDFiTE_t), intent(inout) :: this
 
     if (associated(this%property_set)) &
             deallocate(this%property_set)
@@ -867,4 +874,4 @@ contains
 #undef MAX_RH_
 #undef B_Z_
 
-end module pmc_rxn_PDFiTE_activity
+end module pmc_sub_model_PDFiTE

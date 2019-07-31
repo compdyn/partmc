@@ -2,11 +2,11 @@
  * Licensed under the GNU General Public License version 2 or (at your
  * option) any later version. See the file COPYING for details.
  *
- * ZSR Aerosol Water reaction solver functions
+ * ZSR Aerosol Water sub model solver functions
  *
 */
 /** \file
- * \brief ZSR Aerosol Water reaction solver functions
+ * \brief ZSR Aerosol Water sub model solver functions
 */
 #include <math.h>
 #include <stdio.h>
@@ -53,14 +53,14 @@
 // Update types (These must match values in sub_model_UNIFAC.F90)
 // (none right now)
 
-/** \brief Flag Jacobian elements used by this reaction
+/** \brief Flag Jacobian elements used by this sub model
  *
- * ZSR aerosol water reactions are assumed to be at equilibrium
+ * ZSR aerosol water sub models are assumed to be at equilibrium
  *
- * \param sub_model_data A pointer to the reaction data
- * \param jac_struct 2D array of flags indicating potentially non-zero
- *                   Jacobian elements
- * \return The sub_model_data pointer advanced by the size of the reaction data
+ * \param sub_model_data A pointer to the sub model data
+ * \param jac_row Array of flags indicating whether an element in the Jacobian
+ *                is used
+ * \return The sub_model_data pointer advanced by the size of the sub model data
  */
 void * sub_model_ZSR_aerosol_water_get_used_jac_elem(void *sub_model_data,
           bool *jac_row)
@@ -73,13 +73,11 @@ void * sub_model_ZSR_aerosol_water_get_used_jac_elem(void *sub_model_data,
 
 /** \brief Update the time derivative and Jacbobian array indices
  *
- * ZSR aerosol water reactions are assumed to be at equilibrium
+ * ZSR aerosol water sub models are assumed to be at equilibrium
  *
- * \param model_data Pointer to the model data
- * \param deriv_ids Id of each state variable in the derivative array
- * \param jac_ids Id of each state variable combo in the Jacobian array
- * \param sub_model_data Pointer to the reaction data
- * \return The sub_model_data pointer advanced by the size of the reaction data
+ * \param sub_model_data Pointer to the sub model data
+ * \param jac_row An array of new ids for one row of the Jacobian matrix
+ * \return The sub_model_data pointer advanced by the size of the sub model data
  */
 void * sub_model_ZSR_aerosol_water_update_ids(void *sub_model_data,
           int *jac_row)
@@ -114,11 +112,11 @@ void * sub_model_ZSR_aerosol_water_get_parameter_id(void *sub_model_data,
   }
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
-/** \brief Update reaction data for new environmental conditions
+/** \brief Update sub model data for new environmental conditions
  *
- * \param env_data Pointer to the environmental state array
- * \param sub_model_data Pointer to the reaction data
- * \return The sub_model_data pointer advanced by the size of the reaction data
+ * \param sub_model_data Pointer to the sub model data
+ * \param env_state Pointer to the environmental state array
+ * \return The sub_model_data pointer advanced by the size of the sub model data
  */
 void * sub_model_ZSR_aerosol_water_update_env_state(void *sub_model_data,
           double *env_state)
@@ -142,9 +140,9 @@ void * sub_model_ZSR_aerosol_water_update_env_state(void *sub_model_data,
 
 /** \brief Do pre-derivative calculations
  *
+ * \param sub_model_data Pointer to the sub model data
  * \param model_data Pointer to the model data, including the state array
- * \param sub_model_data Pointer to the reaction data
- * \return The sub_model_data pointer advanced by the size of the reaction data
+ * \return The sub_model_data pointer advanced by the size of the sub model data
  */
 void * sub_model_ZSR_aerosol_water_calculate(void *sub_model_data,
           ModelData *model_data)
@@ -244,10 +242,10 @@ void * sub_model_ZSR_aerosol_water_get_jac_contrib(void *sub_model_data,
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
 
-/** \brief Advance the reaction data pointer to the next reaction
+/** \brief Advance the sub model data pointer to the next sub model
  *
- * \param sub_model_data Pointer to the reaction data
- * \return The sub_model_data pointer advanced by the size of the reaction data
+ * \param sub_model_data Pointer to the sub model data
+ * \return The sub_model_data pointer advanced by the size of the sub model data
  */
 void * sub_model_ZSR_aerosol_water_skip(void *sub_model_data)
 {
@@ -257,10 +255,10 @@ void * sub_model_ZSR_aerosol_water_skip(void *sub_model_data)
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
 
-/** \brief Print the ZSR Aerosol Water reaction parameters
+/** \brief Print the ZSR Aerosol Water sub model parameters
  *
- * \param sub_model_data Pointer to the reaction data
- * \return The sub_model_data pointer advanced by the size of the reaction data
+ * \param sub_model_data Pointer to the sub model data
+ * \return The sub_model_data pointer advanced by the size of the sub model data
  */
 void * sub_model_ZSR_aerosol_water_print(void *sub_model_data)
 {

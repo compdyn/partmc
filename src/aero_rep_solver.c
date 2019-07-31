@@ -188,9 +188,9 @@ void aero_rep_update_state(ModelData *model_data)
  * \param aero_phase_idx Index of the aerosol phase within the aerosol
  *                       representation
  * \param radius Pointer to hold effective particle radius (m)
- * \param Pointer to the set of partial derivatives to be calculated
- *         \f$\frac{\partial r_{eff}}{\partial y}\f$, or a NULL pointer if no
- *         partial derivatives are needed
+ * \param partial_deriv Pointer to the set of partial derivatives to be
+ *                      calculated \f$\frac{\partial r_{eff}}{\partial y}\f$,
+ *                      or a NULL pointer if no partial derivatives are needed
  */
 void aero_rep_get_effective_radius(ModelData *model_data, int aero_rep_idx,
          int aero_phase_idx, double *radius, double *partial_deriv)
@@ -251,9 +251,9 @@ void aero_rep_get_effective_radius(ModelData *model_data, int aero_rep_idx,
  *                       representation
  * \param number_conc Pointer to hold calculated number concentration, \f$n\f$
  *                    (\f$\mbox{\si{\#\per\cubic\centi\metre}}\f$)
- * \param Pointer to the set of calculated partial derivatives
- *         \f$\frac{\partial n}{\partial y}\f$, or a NULL pointer if no partial
- *         derivatives are required
+ * \param partial_deriv Pointer to the set of partial derivatives to be
+ *                      calculated \f$\frac{\partial n}{\partial y}\f$, or a
+ *                      NULL pointer if no partial derivatives are required
  */
 void aero_rep_get_number_conc(ModelData *model_data, int aero_rep_idx,
           int aero_phase_idx, double *number_conc, double *partial_deriv)
@@ -371,9 +371,9 @@ int aero_rep_get_aero_conc_type(ModelData *model_data, int aero_rep_idx,
  * \param aero_phase_mass Pointer to hold calculated aerosol-phase mass,
  *                        \f$m\f$
  *                        (\f$\mbox{\si{\micro\gram\per\cubic\metre}}\f$)
- * \param Pointer to the set of partial derivatives to be calculated
- *         \f$\frac{\partial m}{\partial y}\f$, or a NULL pointer if no partial
- *         derivatives are needed
+ * \param partial_deriv Pointer to the set of partial derivatives to be
+ *                      calculated \f$\frac{\partial m}{\partial y}\f$, or a
+ *                      NULL pointer if no partial derivatives are needed
  */
 void aero_rep_get_aero_phase_mass(ModelData *model_data, int aero_rep_idx,
           int aero_phase_idx, double *aero_phase_mass, double *partial_deriv)
@@ -434,9 +434,9 @@ void aero_rep_get_aero_phase_mass(ModelData *model_data, int aero_rep_idx,
  *                       representation
  * \param aero_phase_avg_MW Pointer to hold calculated average MW in the
  *                          aerosol phase (\f$\mbox{\si{\kilogram\per\mole}}\f$)
- * \param Pointer to the set of partial derivatives to be calculated
- *         \f$\frac{\partial m}{\partial y}\f$, or a NULL pointer if no partial
- *         derivatives are needed
+ * \param partial_deriv Pointer to the set of partial derivatives to be
+ *                      calculated \f$\frac{\partial m}{\partial y}\f$, or a
+ *                      NULL pointer if no partial derivatives are needed
  */
 void aero_rep_get_aero_phase_avg_MW(ModelData *model_data, int aero_rep_idx,
           int aero_phase_idx, double *aero_phase_avg_MW, double *partial_deriv)

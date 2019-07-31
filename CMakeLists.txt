@@ -212,11 +212,11 @@ if (ENABLE_JSON AND ENABLE_SUNDIALS)
   add_test(test_rxn_emission ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_emission.sh ${MPI_TEST_FLAG})
   add_test(test_rxn_first_order_loss ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_first_order_loss.sh ${MPI_TEST_FLAG})
   add_test(test_rxn_HL_phase_transfer ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_HL_phase_transfer.sh ${MPI_TEST_FLAG})
-  add_test(test_rxn_PDFiTE_activity ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_PDFiTE_activity.sh ${MPI_TEST_FLAG})
   add_test(test_rxn_photolysis ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_photolysis.sh ${MPI_TEST_FLAG})
   add_test(test_rxn_SIMPOL_phase_transfer ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_SIMPOL_phase_transfer.sh ${MPI_TEST_FLAG})
   add_test(test_rxn_troe ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_troe.sh ${MPI_TEST_FLAG})
   add_test(test_rxn_wet_deposition ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_wet_deposition.sh ${MPI_TEST_FLAG})
+  add_test(test_sub_model_PDFiTE ${CMAKE_BINARY_DIR}/test_run/unit_sub_model_data/test_PDFiTE.sh ${MPI_TEST_FLAG})
   add_test(test_sub_model_UNIFAC ${CMAKE_BINARY_DIR}/test_run/unit_sub_model_data/test_UNIFAC.sh ${MPI_TEST_FLAG})
   add_test(test_sub_model_ZSR_aerosol_water ${CMAKE_BINARY_DIR}/test_run/unit_sub_model_data/test_ZSR_aerosol_water.sh ${MPI_TEST_FLAG})
   add_test(test_chem_mech_solver ${CMAKE_BINARY_DIR}/test_run/chemistry/test_chemistry_1.sh ${MPI_TEST_FLAG})
@@ -390,7 +390,6 @@ set(REACTIONS_F_SRC
 	src/rxns/rxn_emission.F90
 	src/rxns/rxn_first_order_loss.F90
 	src/rxns/rxn_HL_phase_transfer.F90
-	src/rxns/rxn_PDFiTE_activity.F90
 	src/rxns/rxn_photolysis.F90
         src/rxns/rxn_SIMPOL_phase_transfer.F90
 	src/rxns/rxn_troe.F90
@@ -405,7 +404,6 @@ set(REACTIONS_C_SRC
 	src/rxns/rxn_emission.c
 	src/rxns/rxn_first_order_loss.c
 	src/rxns/rxn_HL_phase_transfer.c
-	src/rxns/rxn_PDFiTE_activity.c
 	src/rxns/rxn_photolysis.c
         src/rxns/rxn_SIMPOL_phase_transfer.c
 	src/rxns/rxn_troe.c
@@ -436,10 +434,12 @@ set_source_files_properties(${AEROSOL_REPS_C_SRC} PROPERTIES COMPILE_FLAGS
 set(AEROSOL_REPS_SRC ${AEROSOL_REPS_F_SRC} ${AEROSOL_REPS_C_SRC})
 
 set(SUB_MODELS_F_SRC
+  src/sub_models/sub_model_PDFiTE.F90
         src/sub_models/sub_model_UNIFAC.F90
         src/sub_models/sub_model_ZSR_aerosol_water.F90)
 
 set(SUB_MODELS_C_SRC
+  src/sub_models/sub_model_PDFiTE.c
         src/sub_models/sub_model_UNIFAC.c
         src/sub_models/sub_model_ZSR_aerosol_water.c)
 
@@ -605,8 +605,6 @@ add_executable(test_rxn_first_order_loss test/unit_rxn_data/test_rxn_first_order
 target_link_libraries(test_rxn_first_order_loss partmclib)
 add_executable(test_rxn_HL_phase_transfer test/unit_rxn_data/test_rxn_HL_phase_transfer.F90)
 target_link_libraries(test_rxn_HL_phase_transfer partmclib)
-add_executable(test_rxn_PDFiTE_activity test/unit_rxn_data/test_rxn_PDFiTE_activity.F90)
-target_link_libraries(test_rxn_PDFiTE_activity partmclib)
 add_executable(test_rxn_photolysis test/unit_rxn_data/test_rxn_photolysis.F90)
 target_link_libraries(test_rxn_photolysis partmclib)
 add_executable(test_rxn_SIMPOL_phase_transfer test/unit_rxn_data/test_rxn_SIMPOL_phase_transfer.F90)
@@ -619,6 +617,8 @@ target_link_libraries(test_rxn_wet_deposition partmclib)
 ######################################################################
 # test_sub_model_data
 
+add_executable(test_sub_model_PDFiTE test/unit_sub_model_data/test_sub_model_PDFiTE.F90)
+target_link_libraries(test_sub_model_PDFiTE partmclib)
 add_executable(test_sub_model_UNIFAC test/unit_sub_model_data/test_sub_model_UNIFAC.F90)
 target_link_libraries(test_sub_model_UNIFAC partmclib)
 add_executable(test_sub_model_ZSR_aerosol_water test/unit_sub_model_data/test_sub_model_ZSR_aerosol_water.F90)

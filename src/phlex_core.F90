@@ -897,6 +897,7 @@ contains
     type(phlex_state_t), pointer :: new_state
     !> Chemical model
     class(phlex_core_t), intent(in) :: this
+    !> Environmental state
     type(env_state_t), optional, target, intent(in) :: env_state
 
     new_state => phlex_state_t(env_state)

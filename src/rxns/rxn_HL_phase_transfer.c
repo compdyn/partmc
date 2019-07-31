@@ -225,10 +225,11 @@ void * rxn_HL_phase_transfer_update_env_state(double *env_data,
 
 }
 
-/** \brief Calculate the overall reaction rate ([ppm]/s)
+/** \brief Calculate the overall per-particle reaction rate ([ppm]/s)
  *
  * This function is called by the deriv and Jac functions to get the overall
- * reaction rate, trying to avoid floating-point subtraction errors.
+ * reaction rate on a per-particle basis, trying to avoid floating-point
+ * subtraction errors.
  *
  * \param rxn_data Pointer to the reaction data
  * \param state State array
@@ -483,8 +484,9 @@ void * rxn_HL_phase_transfer_calc_jac_contrib(ModelData *model_data,
     evap_scaling *= evap_scaling;
 
     // Get the overall rate for certain Jac elements
-    realtype rate = calculate_overall_rate(rxn_data, state, cond_rate,
-                                           evap_rate, i_phase);
+    realtype rate = calculate_overall_rate(rxn_data, state,
+        cond_rate * cond_scaling * water_scaling,
+        evap_rate * evap_scaling * water_scaling, i_phase);
 
     // Update evap rate to be for aerosol species concentrations
     evap_rate /= UGM3_TO_PPM_ * state[AERO_WATER_(i_phase)];
@@ -516,6 +518,46 @@ void * rxn_HL_phase_transfer_calc_jac_contrib(ModelData *model_data,
 	    state[AERO_SPEC_(i_phase)] *
             ( water_scaling / state[AERO_WATER_(i_phase)] +
               water_scaling_deriv );
+
+    // Add contributions from species used in aerosol property calculations
+
+    // Calculate d_rate/d_effecive_radius and d_rate/d_number_concentration
+    realtype d_rate_d_radius = rate *
+        -(2.0*radius/(3.0*DIFF_COEFF_) + 4.0/(3.0*C_AVG_ALPHA_)) /
+        (2.0*radius*radius/(3.0*DIFF_COEFF_) + 4.0*radius/(3.0*C_AVG_ALPHA_));
+    realtype d_rate_d_number = rate / number_conc;
+
+    // Loop through Jac elements and update
+    for (int i_elem=0; i_elem<NUM_AERO_PHASE_JAC_ELEM_(i_phase); ++i_elem) {
+
+      // Gas-phase species dependencies
+      if (PHASE_JAC_ID_(i_phase, JAC_GAS, i_elem) > 0) {
+
+        // species involved in effective radius calculation
+        J[PHASE_JAC_ID_(i_phase, JAC_GAS, i_elem)] += number_conc *
+            d_rate_d_radius * EFF_RAD_JAC_ELEM_(i_phase, i_elem);
+
+        // species involved in numer concentration
+        J[PHASE_JAC_ID_(i_phase, JAC_GAS, i_elem)] += number_conc *
+            d_rate_d_number * NUM_CONC_JAC_ELEM_(i_phase, i_elem);
+
+      }
+
+      // Aerosol-phase species dependencies
+      if (PHASE_JAC_ID_(i_phase, JAC_AERO, i_elem) > 0) {
+
+        // species involved in effective radius calculation
+        J[PHASE_JAC_ID_(i_phase, JAC_AERO, i_elem)] -= d_rate_d_radius /
+            UGM3_TO_PPM_ * EFF_RAD_JAC_ELEM_(i_phase, i_elem);
+
+        // species involved in numer concentration
+        J[PHASE_JAC_ID_(i_phase, JAC_AERO, i_elem)] -= d_rate_d_number /
+            UGM3_TO_PPM_ * NUM_CONC_JAC_ELEM_(i_phase, i_elem);
+
+      }
+
+    }
+
   }
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);

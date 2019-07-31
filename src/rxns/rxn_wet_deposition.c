@@ -127,22 +127,6 @@ void * rxn_wet_deposition_update_env_state(double *env_data, void *rxn_data)
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
 
-/** \brief Do pre-derivative calculations
- *
- * Nothing to do for wet deposition reactions
- *
- * \param model_data Pointer to the model data, including the state array
- * \param rxn_data Pointer to the reaction data
- * \return The rxn_data pointer advanced by the size of the reaction data
- */
-void * rxn_wet_deposition_pre_calc(ModelData *model_data, void *rxn_data)
-{
-  int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
-
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
-}
-
 /** \brief Calculate contributions to the time derivative \f$f(t,y)\f$ from
  * this reaction.
  *

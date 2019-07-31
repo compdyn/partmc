@@ -504,7 +504,6 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   // Re-run the pre-derivative calculations to update equilibrium species
   // and apply adjustments to final state
   sub_model_calculate(&(sd->model_data));
-  rxn_pre_calc(&(sd->model_data), 0.0);
 
   return PHLEX_SOLVER_SUCCESS;
 #else
@@ -662,9 +661,6 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data)
   // Run the sub models
   sub_model_calculate(md);
 
-  // Run pre-derivative calculations
-  rxn_pre_calc(md, (double) time_step);
-
   // Calculate the time derivative f(t,y)
   rxn_calc_deriv(md, deriv, (double) time_step);
 
@@ -728,9 +724,6 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
 
   // Get the current integrator time step (s)
   CVodeGetCurrentStep(sd->cvode_mem, &time_step);
-
-  // Run pre-Jacobian calculations
-  rxn_pre_calc(md, (double) time_step);
 
   // Calculate the Jacobian
   rxn_calc_jac(md, J, time_step);

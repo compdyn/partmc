@@ -22,8 +22,6 @@ void * rxn_aqueous_equilibrium_update_ids(
           ModelData *model_data, int *deriv_ids, int **jac_ids, void *rxn_data);
 void * rxn_aqueous_equilibrium_update_env_state(
           double *env_data, void *rxn_data);
-void * rxn_aqueous_equilibrium_pre_calc(
-          ModelData *model_data, void *rxn_data);
 void * rxn_aqueous_equilibrium_skip(
           void *rxn_data);
 void * rxn_aqueous_equilibrium_print(
@@ -43,8 +41,6 @@ void * rxn_arrhenius_update_ids(
           ModelData *model_data, int *deriv_ids, int **jac_ids, void *rxn_data);
 void * rxn_arrhenius_update_env_state(
           double *env_data, void *rxn_data);
-void * rxn_arrhenius_pre_calc(
-          ModelData *model_data, void *rxn_data);
 void * rxn_arrhenius_skip(
           void *rxn_data);
 void * rxn_arrhenius_print(
@@ -64,8 +60,6 @@ void * rxn_CMAQ_H2O2_update_ids(
           ModelData *model_data, int *deriv_ids, int **jac_ids, void *rxn_data);
 void * rxn_CMAQ_H2O2_update_env_state(
           double *env_data, void *rxn_data);
-void * rxn_CMAQ_H2O2_pre_calc(
-          ModelData *model_data, void *rxn_data);
 void * rxn_CMAQ_H2O2_skip(
           void *rxn_data);
 void * rxn_CMAQ_H2O2_print(
@@ -85,8 +79,6 @@ void * rxn_CMAQ_OH_HNO3_update_ids(
           ModelData *model_data, int *deriv_ids, int **jac_ids, void *rxn_data);
 void * rxn_CMAQ_OH_HNO3_update_env_state(
           double *env_data, void *rxn_data);
-void * rxn_CMAQ_OH_HNO3_pre_calc(
-          ModelData *model_data, void *rxn_data);
 void * rxn_CMAQ_OH_HNO3_skip(
           void *rxn_data);
 void * rxn_CMAQ_OH_HNO3_print(
@@ -106,8 +98,6 @@ void * rxn_condensed_phase_arrhenius_update_ids(
           ModelData *model_data, int *deriv_ids, int **jac_ids, void *rxn_data);
 void * rxn_condensed_phase_arrhenius_update_env_state(
           double *env_data, void *rxn_data);
-void * rxn_condensed_phase_arrhenius_pre_calc(
-          ModelData *model_data, void *rxn_data);
 void * rxn_condensed_phase_arrhenius_skip(
           void *rxn_data);
 void * rxn_condensed_phase_arrhenius_print(
@@ -127,8 +117,6 @@ void * rxn_emission_update_ids(
           ModelData *model_data, int *deriv_ids, int **jac_ids, void *rxn_data);
 void * rxn_emission_update_env_state(
           double *env_data, void *rxn_data);
-void * rxn_emission_pre_calc(
-          ModelData *model_data, void *rxn_data);
 void * rxn_emission_update_data(
           void *update_data, void *rxn_data);
 void * rxn_emission_skip(
@@ -153,8 +141,6 @@ void * rxn_first_order_loss_update_ids(
           ModelData *model_data, int *deriv_ids, int **jac_ids, void *rxn_data);
 void * rxn_first_order_loss_update_env_state(
           double *env_data, void *rxn_data);
-void * rxn_first_order_loss_pre_calc(
-          ModelData *model_data, void *rxn_data);
 void * rxn_first_order_loss_update_data(
           void *update_data, void *rxn_data);
 void * rxn_first_order_loss_skip(
@@ -179,10 +165,6 @@ void * rxn_HL_phase_transfer_update_ids(
           ModelData *model_data, int *deriv_ids, int **jac_ids, void *rxn_data);
 void * rxn_HL_phase_transfer_update_env_state(
           double *env_data, void *rxn_data);
-void * rxn_HL_phase_transfer_pre_calc(
-          ModelData *model_data, void *rxn_data, double time_step);
-void * rxn_HL_phase_transfer_scale_adj(
-          ModelData *model_data, void *rxn_data);
 void * rxn_HL_phase_transfer_skip(
           void *rxn_data);
 void * rxn_HL_phase_transfer_print(
@@ -202,8 +184,6 @@ void * rxn_photolysis_update_ids(
           ModelData *model_data, int *deriv_ids, int **jac_ids, void *rxn_data);
 void * rxn_photolysis_update_env_state(
           double *env_data, void *rxn_data);
-void * rxn_photolysis_pre_calc(
-          ModelData *model_data, void *rxn_data);
 void * rxn_photolysis_update_data(
           void *update_data, void *rxn_data);
 void * rxn_photolysis_skip(
@@ -229,10 +209,6 @@ void * rxn_SIMPOL_phase_transfer_update_ids(
           ModelData *model_data, int *deriv_ids, int **jac_ids, void *rxn_data);
 void * rxn_SIMPOL_phase_transfer_update_env_state(double *env_data,
           void *rxn_data);
-void * rxn_SIMPOL_phase_transfer_pre_calc(
-          ModelData *model_data, void *rxn_data, double time_step);
-void * rxn_SIMPOL_phase_transfer_scale_adj(
-          ModelData *model_data, void *rxn_data);
 void * rxn_SIMPOL_phase_transfer_skip(
           void *rxn_data);
 void * rxn_SIMPOL_phase_transfer_print(
@@ -252,7 +228,6 @@ void * rxn_troe_update_ids(
           ModelData *model_data, int *deriv_ids, int **jac_ids, void *rxn_data);
 void * rxn_troe_update_env_state(
           double *env_data, void *rxn_data);
-void * rxn_troe_pre_calc(ModelData *model_data, void *rxn_data);
 void * rxn_troe_skip(
           void *rxn_data);
 void * rxn_troe_print(
@@ -272,8 +247,6 @@ void * rxn_wet_deposition_update_ids(
           ModelData *model_data, int *deriv_ids, int **jac_ids, void *rxn_data);
 void * rxn_wet_deposition_update_env_state(
           double *env_data, void *rxn_data);
-void * rxn_wet_deposition_pre_calc(
-          ModelData *model_data, void *rxn_data);
 void * rxn_wet_deposition_update_data(
           void *update_data, void *rxn_data);
 void * rxn_wet_deposition_skip(

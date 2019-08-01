@@ -499,7 +499,7 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
 
 #ifdef PMC_USE_GPU
   //Set gpu rxn values only 1 time
-  //TODO: this should be reordering setting after initializations and before the run
+  //TODO: this should be reordered by setting after initializations and before the run
   solver_set_data_gpu(&(sd->model_data));
 
  // Update data for new environmental state on gpu
@@ -569,6 +569,14 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   // and apply adjustments to final state
   sub_model_calculate(&(sd->model_data));
   rxn_pre_calc(&(sd->model_data), 0.0);
+
+/*
+  printf ("Total Time Derivgpu= %f",timeDerivgpu / CLOCKS_PER_SEC);
+  printf (", Total Time Deriv= %f",timeDeriv / CLOCKS_PER_SEC);
+  printf (", Total Time Jac= %f\n",timeJac / CLOCKS_PER_SEC);
+  printf ("counterDeriv: %d ", counterDeriv);
+  printf ("counterJac: %d ", counterJac);
+*/
 
   return PHLEX_SOLVER_SUCCESS;
 #else
@@ -696,33 +704,6 @@ int phlex_solver_update_model_state(N_Vector solver_state,
   return PHLEX_SOLVER_SUCCESS;
 }
 
-int phlex_solver_update_model_deriv(N_Vector solver_state,
-          ModelData *model_data, realtype threshhold,
-          realtype replacement_value)
-{
-  int i_dep_var=0;
-  int n_state_var = model_data->n_state_var;
-  int n_cells = model_data->n_cells;
-  for (int i_cell=0; i_cell<n_cells; ++i_cell) {
-    for (int i_spec=0; i_spec<n_state_var; ++i_spec) {
-      if (model_data->var_type[i_spec]==CHEM_SPEC_VARIABLE) {
-        if (NV_DATA_S(solver_state)[i_dep_var] < -SMALL_NUMBER) {
-#ifdef FAILURE_DETAIL
-          printf("\nFailed model state update: [spec %d] = %le", i_spec,
-              NV_DATA_S(solver_state)[i_dep_var]);
-#endif
-          return PHLEX_SOLVER_FAIL;
-        }
-        model_data->state[i_spec+i_cell*n_state_var] =
-          NV_DATA_S(solver_state)[i_dep_var] > threshhold ?
-          NV_DATA_S(solver_state)[i_dep_var] : replacement_value;
-        ++i_dep_var;
-      }
-    }
-  }
-  return PHLEX_SOLVER_SUCCESS;
-}
-
 /** \brief Compute the time derivative f(t,y)
  *
  * \param t Current model time (s)
@@ -770,35 +751,36 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data)
   clock_t start = clock();
 
   // Calculate the time derivative f(t,y)
-  rxn_calc_deriv(md, deriv, (double) time_step);
+  //rxn_calc_deriv(md, derivtest, (double) time_step);
 
-  #ifdef PMC_DEBUG_PRINT
+  //#ifdef PMC_DEBUG_PRINT
   clock_t end = clock();
   timeDeriv+= ((double) (end - start));
-  #endif
+  //#endif
 
 //#endif
 
 #ifdef PMC_USE_GPU
   clock_t start2 = clock();
 
-  //rxn_calc_deriv_gpu(md, deriv, (double) time_step);
+  rxn_calc_deriv_gpu(md, deriv, (double) time_step);
 
   #ifdef PMC_DEBUG_PRINT
   clock_t end2 = clock();
   timeDerivgpu+= ((double) (end2 - start2));
   counterDeriv++;
-  #endif
+  /#endif
 #endif
 
 #ifdef PMC_DEBUG
   if(counterDeriv==30){
     int n_cells = md->n_cells;
     //printf(" deriv length: %d\n", NV_LENGTH_S(deriv));
-    for (int i=0; i<NV_LENGTH_S(deriv); i++) {//NV_LENGTH_S(deriv)
-      //printf(" deriv test: %le  ", NV_DATA_S(derivtest)[i]);
+    for (int i=0; i<908; i++) {//NV_LENGTH_S(deriv)
+      printf(" deriv test: %le  ", NV_DATA_S(derivtest)[i]);
       //printf(" deriv test: %le  ", NV_DATA_S(deriv)[NV_LENGTH_S(deriv)/n_cells+i]);
-      //printf(" deriv: % -le", NV_DATA_S(deriv)[i]);
+      printf(" deriv: % -le", NV_DATA_S(deriv)[i]);
+      printf(" index: %d \n", i);
 
       double *state = md->state;
       //printf(" state: %f \n", state[i]);
@@ -1431,12 +1413,9 @@ void error_handler(int error_code, const char *module,
 void model_free(ModelData model_data)
 {
 #ifdef PMC_DEBUG_PRINT
-  timeDerivgpu= timeDerivgpu / CLOCKS_PER_SEC;
-  timeDeriv= timeDeriv / CLOCKS_PER_SEC;
-  timeJac= timeJac / CLOCKS_PER_SEC;
-  printf ("Total Time Derivgpu= %f",timeDerivgpu);
-  printf (", Total Time Deriv= %f",timeDeriv);
-  printf (", Total Time Jac= %f\n",timeJac);
+  printf ("Total Time Derivgpu= %f",timeDerivgpu / CLOCKS_PER_SEC);
+  printf (", Total Time Deriv= %f",timeDeriv / CLOCKS_PER_SEC);
+  printf (", Total Time Jac= %f\n",timeJac / CLOCKS_PER_SEC);
   printf ("counterDeriv: %d ", counterDeriv);
   printf ("counterJac: %d ", counterJac);
 #endif

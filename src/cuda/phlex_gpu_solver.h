@@ -41,7 +41,7 @@
 //instead of default 48kb
 
 //Value to consider data size too big -> Memory optimization will change below and under the limit
-#define DATA_SIZE_LIMIT_OPT 1000
+#define DATA_SIZE_LIMIT_OPT 2000
 
 //Knowed bug: Don't increase threads to 1024 or it crash with rxn_data flipped
 //Knowed bug: With some 2^n values (like 256) shared memory crash (However with 124 or 512 works fine)

@@ -28,20 +28,18 @@ program mock_monarch
   ! Parameters for mock MONARCH model !
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Check multiple cells results are correct?
-  logical :: check_multiple_cells = .true.
   !> Number of total species in mock MONARCH
   integer, parameter :: NUM_MONARCH_SPEC = 800
   !> Number of vertical cells in mock MONARCH
-  integer, parameter :: NUM_VERT_CELLS = 5
+  integer, parameter :: NUM_VERT_CELLS = 2
   !> Starting W-E cell for phlex-chem call
   integer, parameter :: I_W = 1!9
   !> Ending W-E cell for phlex-chem call
-  integer, parameter :: I_E = 10!15!11
+  integer, parameter :: I_E = 15!15!11
   !> Starting S-N cell for phlex-chem call
   integer, parameter :: I_S = 1!14
   !> Ending S-N cell for phlex-chem call
-  integer, parameter :: I_N = 10!15!16
+  integer, parameter :: I_N = 15!15!16
   !> Number of W-E cells in mock MONARCH
   integer, parameter :: NUM_WE_CELLS = I_E-I_W+1 !20
   !> Number of S-N cells in mock MONARCH
@@ -53,11 +51,9 @@ program mock_monarch
   !> Time step (min)
   real, parameter :: TIME_STEP = 1.6
   !> Number of time steps to integrate over
-  integer, parameter :: NUM_TIME_STEP = 10!100
+  integer, parameter :: NUM_TIME_STEP = 5!100
   !> Index for water vapor in water_conc()
   integer, parameter :: WATER_VAPOR_ID = 5
-  !> Number of cells to compute simultaneously
-  integer :: n_cells = 1
   !> Start time
   real, parameter :: START_TIME = 360.0
 
@@ -107,7 +103,13 @@ program mock_monarch
   character(len=:), allocatable :: output_file_prefix
 
   character(len=500) :: arg
-  integer :: status_code, i_time, i_spec, i, j, k, pmc_cases
+  integer :: status_code, i_time, i_spec, i, j, k
+  !> Partmc nº of cases to test
+  integer :: pmc_cases = 1
+  !> Number of cells to compute simultaneously
+  integer :: n_cells = 1
+  !> Check multiple cells results are correct?
+  logical :: check_multiple_cells = .true. !.true. .false.
 
   ! Check the command line arguments
   call assert_msg(129432506, command_argument_count().eq.3, "Usage: "// &
@@ -170,7 +172,7 @@ program mock_monarch
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
-      !call output_results(curr_time)
+      call output_results(curr_time)
       call pmc_interface%integrate(curr_time,         & ! Starting time (min)
                                    TIME_STEP,         & ! Time step (min)
                                    I_W,               & ! Starting W->E grid cell
@@ -203,23 +205,26 @@ program mock_monarch
 
   end do
 
-  !Compare results
-  do i = I_W, I_E
-    do j = I_S, I_N
-      do k = 1, NUM_VERT_CELLS
-        do i_spec = START_PHLEX_ID, END_PHLEX_ID
-          call assert_msg( 394742768, &
-            almost_equal( real( species_conc(i,j,k,i_spec), kind=dp ), &
-                real( species_conc_copy(i,j,k,i_spec), kind=dp ), &
-                1.d-5, 1d-4 ), &
-            "Concentration species mismatch for species "// &
-                trim( to_string( i_spec ) )//". Expected: "// &
-                trim( to_string( species_conc_copy(i,j,k,i_spec) ) )//", got: "// &
-                trim( to_string( species_conc(i,j,k,i_spec) ) ) )
+  !If something to compare
+  if(pmc_cases.gt.1) then
+    !Compare results
+    do i = I_W, I_E
+      do j = I_S, I_N
+        do k = 1, NUM_VERT_CELLS
+          do i_spec = START_PHLEX_ID, END_PHLEX_ID
+            call assert_msg( 394742768, &
+              almost_equal( real( species_conc(i,j,k,i_spec), kind=dp ), &
+                  real( species_conc_copy(i,j,k,i_spec), kind=dp ), &
+                  1.d-5, 1d-4 ), &
+              "Concentration species mismatch for species "// &
+                  trim( to_string( i_spec ) )//". Expected: "// &
+                  trim( to_string( species_conc_copy(i,j,k,i_spec) ) )//", got: "// &
+                  trim( to_string( species_conc(i,j,k,i_spec) ) ) )
+          end do
         end do
       end do
     end do
-  end do
+  end if
 
   write(*,*) "MONARCH interface tests - PASS"
 
@@ -251,8 +256,8 @@ program mock_monarch
 
 
   !#ifdef DEBUG
-  !print*, "SPECIES CONC", species_conc(:,1,1,100)
-  !print*, "SPECIES CONC COPY", species_conc_copy(:,1,1,100)
+  print*, "SPECIES CONC", species_conc(:,1,1,100)
+  print*, "SPECIES CONC COPY", species_conc_copy(:,1,1,100)
   !#endif
 
   !Deallocation

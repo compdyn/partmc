@@ -18,6 +18,7 @@ program pmc_test_HL_phase_transfer
   use pmc_chem_spec_data
   use pmc_aero_rep_data
   use pmc_aero_rep_factory
+  use pmc_aero_rep_modal_binned_mass
   use pmc_aero_rep_single_particle
   use pmc_solver_stats
 #ifdef PMC_USE_JSON
@@ -56,7 +57,8 @@ contains
     phlex_solver_data => phlex_solver_data_t()
 
     if (phlex_solver_data%is_solver_available()) then
-      passed = run_HL_phase_transfer_test()
+      passed = run_HL_phase_transfer_test(1)
+      passed = passed .and. run_HL_phase_transfer_test(2)
     else
       call warn_msg(713064651, "No solver available")
       passed = .true.
@@ -75,9 +77,16 @@ contains
   !! (Ervens, B., et al., 2003. "CAPRAM 2.4 (MODAC mechanism) : An extended
   !! and condensed tropospheric aqueous phase mechanism and its
   !! application." J. Geophys. Res. 108, 4426. doi:10.1029/2002JD002202
-  logical function run_HL_phase_transfer_test()
+  !!
+  !! One of two scenarios is tested, depending on the passed integer:
+  !! one with a single-particle aerosol representation (1)
+  !! and one with a modal aerosol representation (2)
+  logical function run_HL_phase_transfer_test(scenario)
 
     use pmc_constants
+
+    !> Scenario flag
+    integer, intent(in) :: scenario
 
     type(phlex_core_t), pointer :: phlex_core
     type(phlex_state_t), pointer :: phlex_state
@@ -86,10 +95,10 @@ contains
 
     type(chem_spec_data_t), pointer :: chem_spec_data
     class(aero_rep_data_t), pointer :: aero_rep_ptr
-    real(kind=dp), dimension(0:NUM_TIME_STEP, 11) :: model_conc, true_conc
+    real(kind=dp), allocatable, dimension(:,:) :: model_conc, true_conc
     integer(kind=i_kind) :: idx_phase, idx_aero_rep, idx_O3, idx_O3_aq, &
             idx_H2O2, idx_H2O2_aq, idx_H2O_aq, i_time, i_spec
-    character(len=:), allocatable :: key
+    character(len=:), allocatable :: key, idx_prefix
     real(kind=dp) :: time_step, time, n_star, del_H, del_S, del_G, alpha, &
             crms, M_to_ppm, ugm3_to_ppm, K_eq_O3, K_eq_H2O2, k_O3_forward, &
             k_O3_backward, k_H2O2_forward, k_H2O2_backward, equil_O3, &
@@ -108,13 +117,23 @@ contains
     type(aero_rep_update_data_single_particle_number_t) :: number_update
     integer(kind=i_kind), parameter :: aero_rep_external_id = 12
 
+    call assert_msg(144071521, scenario.ge.1 .and. scenario.le.2, &
+                    "Invalid scenario specified: "//to_string( scenario ) )
+
     run_HL_phase_transfer_test = .true.
 
-    ! Set the environmental and aerosol test conditions
+    ! Allocate space for the results
+    if (scenario.eq.1) then
+      allocate(model_conc(0:NUM_TIME_STEP, 11))
+      allocate(true_conc(0:NUM_TIME_STEP, 11))
+    else if (scenario.eq.2) then
+      allocate(model_conc(0:NUM_TIME_STEP, 6))
+      allocate(true_conc(0:NUM_TIME_STEP, 6))
+    endif
+
+    ! Set the environmental conditions
     temp = 272.5d0              ! temperature (K)
     pressure = 101253.3d0       ! pressure (Pa)
-    radius = 1.5e-5             ! radius (m)
-    number_conc = 1.3e6         ! particle number concentration (#/cc)
 
     ! Henry's Law equilibrium constants (M/ppm)
     ! O3 HLC Equil Const (M/ppm)
@@ -131,7 +150,11 @@ contains
 #endif
 
       ! Get the HL_phase_transfer reaction mechanism json file
-      input_file_path = 'test_HL_phase_transfer_config.json'
+      if (scenario.eq.1) then
+        input_file_path = 'test_HL_phase_transfer_config.json'
+      else if (scenario.eq.2) then
+        input_file_path = 'test_HL_phase_transfer_config_2.json'
+      end if
 
       ! Construct a phlex_core variable
       phlex_core => phlex_core_t(input_file_path)
@@ -144,26 +167,40 @@ contains
       ! Find the aerosol representation
       key = "my aero rep 2"
       call assert(116793129, phlex_core%get_aero_rep(key, aero_rep_ptr))
-      select type (aero_rep_ptr)
-        type is (aero_rep_single_particle_t)
-          call aero_rep_ptr%set_id(aero_rep_external_id)
-        class default
-          call die_msg(866102326, "Incorrect aerosol representation type")
-      end select
+      if (scenario.eq.1) then
+        select type (aero_rep_ptr)
+          type is (aero_rep_single_particle_t)
+            call aero_rep_ptr%set_id(aero_rep_external_id)
+          class default
+            call die_msg(866102326, "Incorrect aerosol representation type")
+        end select
+      else if (scenario.eq.2) then
+        select type (aero_rep_ptr)
+          type is (aero_rep_modal_binned_mass_t)
+            call aero_rep_ptr%set_id(aero_rep_external_id)
+          class default
+            call die_msg(290304323, "Incorrect aerosol representation type")
+        end select
+      end if
 
       ! Get the chemical species data
       call assert(191714381, phlex_core%get_chem_spec_data(chem_spec_data))
 
       ! Get species indices
+      if (scenario.eq.1) then
+        idx_prefix = ""
+      else if (scenario.eq.2) then
+        idx_prefix = "the mode."
+      end if
       key = "O3"
       idx_O3 = chem_spec_data%gas_state_id(key);
-      key = "aqueous aerosol.O3_aq"
+      key = idx_prefix//"aqueous aerosol.O3_aq"
       idx_O3_aq = aero_rep_ptr%spec_state_id(key);
       key = "H2O2"
       idx_H2O2 = chem_spec_data%gas_state_id(key);
-      key = "aqueous aerosol.H2O2_aq"
+      key = idx_prefix//"aqueous aerosol.H2O2_aq"
       idx_H2O2_aq = aero_rep_ptr%spec_state_id(key);
-      key = "aqueous aerosol.H2O_aq"
+      key = idx_prefix//"aqueous aerosol.H2O_aq"
       idx_H2O_aq = aero_rep_ptr%spec_state_id(key);
 
       ! Make sure the expected species are in the model
@@ -229,14 +266,6 @@ contains
       phlex_state%env_state%pressure = pressure
       call phlex_state%update_env_state()
 
-      ! Update the aerosol representation
-      call aero_rep_factory%initialize_update_data(radius_update)
-      call aero_rep_factory%initialize_update_data(number_update)
-      call radius_update%set_radius(aero_rep_external_id, radius)
-      call number_update%set_number(aero_rep_external_id, number_conc)
-      call phlex_core%update_aero_rep_data(radius_update)
-      call phlex_core%update_aero_rep_data(number_update)
-
       ! Save the initial concentrations
       true_conc(:,:) = 0.0
       true_conc(0,idx_O3) = 0.0
@@ -245,6 +274,32 @@ contains
       true_conc(0,idx_H2O2_aq) = 0.0
       true_conc(0,idx_H2O_aq) = 1.4e-2
       model_conc(0,:) = true_conc(0,:)
+
+      ! Calculate the radius and number concentration to use
+      ! ( the real values for the modal representation cannot be calculated
+      !   because the number concentrations change sligthly during the run
+      !   but the Jacobian checker can be run as a check. )
+      if (scenario.eq.1) then
+        radius = 1.5e-5             ! radius (m)
+        number_conc = 1.3e6         ! particle number concentration (#/cc)
+      else if (scenario.eq.2) then
+        ! radius (m)
+        radius = 9.37e-7 / 2.0 * exp(9.0/2.0 * 0.9 * 0.9)
+        ! number conc
+        number_conc = 1.0 / (const%pi/6.0 * (9.37e-7)**3.0 * &
+                             exp(9.0/2.0 * 0.9 * 0.9))
+        number_conc = number_conc * 1.0e-9 * (1.0e-3 + 1.4e-2)
+      end if
+
+      ! Update the aerosol representation (single-particle only)
+      if (scenario.eq.1) then
+        call aero_rep_factory%initialize_update_data(radius_update)
+        call aero_rep_factory%initialize_update_data(number_update)
+        call radius_update%set_radius(aero_rep_external_id, radius)
+        call number_update%set_number(aero_rep_external_id, number_conc)
+        call phlex_core%update_aero_rep_data(radius_update)
+        call phlex_core%update_aero_rep_data(number_update)
+      end if
 
       ! Determine the M -> ppm conversion using the total aerosol water
       M_to_ppm = number_conc * 1.0d-3 * true_conc(0,idx_H2O_aq) * &
@@ -344,8 +399,13 @@ contains
       end do
 
       ! Save the results
-      open(unit=7, file="out/HL_phase_transfer_results.txt", status="replace", &
+      if (scenario.eq.1) then
+        open(unit=7, file="out/HL_phase_transfer_results.txt", status="replace", &
               action="write")
+      else if (scenario.eq.2) then
+        open(unit=7, file="out/HL_phase_transfer_results_2.txt", status="replace", &
+              action="write")
+      end if
       do i_time = 0, NUM_TIME_STEP
         write(7,*) i_time*time_step, &
               ' ', true_conc(i_time, idx_O3), &
@@ -361,21 +421,23 @@ contains
       end do
       close(7)
 
-      ! Analyze the results
-      do i_time = 1, NUM_TIME_STEP
-        do i_spec = 1, size(model_conc, 2)
-          if (i_spec.ge.2.and.i_spec.le.8) cycle
-          call assert_msg(411096108, &
-            almost_equal(model_conc(i_time, i_spec), &
-            true_conc(i_time, i_spec), real(1.0e-2, kind=dp)).or. &
-            (model_conc(i_time, i_spec).lt.1e-5*model_conc(1, i_spec).and. &
-            true_conc(i_time, i_spec).lt.1e-5*true_conc(1, i_spec)), &
-            "time: "//trim(to_string(i_time))//"; species: "// &
-            trim(to_string(i_spec))//"; mod: "// &
-            trim(to_string(model_conc(i_time, i_spec)))//"; true: "// &
-            trim(to_string(true_conc(i_time, i_spec))))
+      ! Analyze the results (single-particle only)
+      if (scenario.eq.1) then
+        do i_time = 1, NUM_TIME_STEP
+          do i_spec = 1, size(model_conc, 2)
+            if (i_spec.ge.2.and.i_spec.le.8) cycle
+            call assert_msg(411096108, &
+              almost_equal(model_conc(i_time, i_spec), &
+              true_conc(i_time, i_spec), real(1.0e-2, kind=dp)).or. &
+              (model_conc(i_time, i_spec).lt.1e-5*model_conc(1, i_spec).and. &
+              true_conc(i_time, i_spec).lt.1e-5*true_conc(1, i_spec)), &
+              "time: "//trim(to_string(i_time))//"; species: "// &
+              trim(to_string(i_spec))//"; mod: "// &
+              trim(to_string(model_conc(i_time, i_spec)))//"; true: "// &
+              trim(to_string(true_conc(i_time, i_spec))))
+          end do
         end do
-      end do
+      endif
 
       deallocate(phlex_state)
 
@@ -404,6 +466,8 @@ contains
 #endif
 
     deallocate(phlex_core)
+    deallocate(model_conc)
+    deallocate(true_conc)
 
   end function run_HL_phase_transfer_test
 

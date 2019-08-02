@@ -48,8 +48,16 @@
 #define AERO_REP_ID_(x) (int_data[NUM_INT_PROP_ + 3*(NUM_AERO_PHASE_) + x]-1)
 #define DERIV_ID_(x) (int_data[NUM_INT_PROP_ + 4*(NUM_AERO_PHASE_) + x])
 #define JAC_ID_(x) (int_data[NUM_INT_PROP_ + 1 + 5*(NUM_AERO_PHASE_) + x])
-#define INT_DATA_SIZE_ (NUM_INT_PROP_+2+8*(NUM_AERO_PHASE_))
-#define FLOAT_DATA_SIZE_ (NUM_FLOAT_PROP_)
+#define PHASE_INT_LOC_(x) (int_data[NUM_INT_PROP_ + 2 + 8*(NUM_AERO_PHASE_) + x]-1)
+#define PHASE_FLOAT_LOC_(x) (int_data[NUM_INT_PROP_ + 2 + 9*(NUM_AERO_PHASE_) + x]-1)
+#define NUM_AERO_PHASE_JAC_ELEM_(x) (int_data[PHASE_INT_LOC_(x)])
+#define PHASE_JAC_ID_(x,s,e) int_data[PHASE_INT_LOC_(x)+1+s*NUM_AERO_PHASE_JAC_ELEM_(x)+e]
+#define EFF_RAD_JAC_ELEM_(x,e) float_data[PHASE_FLOAT_LOC_(x)+e]
+#define NUM_CONC_JAC_ELEM_(x,e) float_data[PHASE_FLOAT_LOC_(x)+NUM_AERO_PHASE_JAC_ELEM_(x)+e]
+#define MASS_JAC_ELEM_(x,e) float_data[PHASE_FLOAT_LOC_(x)+2*NUM_AERO_PHASE_JAC_ELEM_(x)+e]
+#define MW_JAC_ELEM_(x,e) float_data[PHASE_FLOAT_LOC_(x)+3*NUM_AERO_PHASE_JAC_ELEM_(x)+e]
+#define INT_DATA_SIZE_ (PHASE_INT_LOC_(NUM_AERO_PHASE_-1)+1+2*NUM_AERO_PHASE_JAC_ELEM_(NUM_AERO_PHASE_-1))
+#define FLOAT_DATA_SIZE_ (PHASE_FLOAT_LOC_(NUM_AERO_PHASE_-1)+4*NUM_AERO_PHASE_JAC_ELEM_(NUM_AERO_PHASE_-1))
 
 /** \brief Flag Jacobian elements used by this reaction
  *

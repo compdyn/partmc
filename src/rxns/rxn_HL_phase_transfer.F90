@@ -125,7 +125,7 @@ module pmc_rxn_HL_phase_transfer
 #define PHASE_JAC_ID_(x,s,e) this%condensed_data_int(PHASE_INT_LOC_(x)+4+(s-1)*NUM_AERO_PHASE_JAC_ELEM_(x)+e)
 #define SMALL_WATER_CONC_(x) this%condensed_data_real(PHASE_REAL_LOC_(x))
 #define EFF_RAD_JAC_ELEM_(x,e) this%condensed_data_real(PHASE_REAL_LOC_(x)+e)
-#define NUM_CONC_JAC_ELEM_(x,e) this%condensed_data_real(PHASE_REAL_LOC_(x)+NUM_AERO_PHASE_JAC_ELEM_(x,e)+e)
+#define NUM_CONC_JAC_ELEM_(x,e) this%condensed_data_real(PHASE_REAL_LOC_(x)+NUM_AERO_PHASE_JAC_ELEM_(x)+e)
 
   public :: rxn_HL_phase_transfer_t
 

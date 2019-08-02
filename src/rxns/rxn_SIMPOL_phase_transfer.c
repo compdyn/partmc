@@ -24,6 +24,10 @@
 // Small number for ignoring low concentrations
 #define VERY_SMALL_NUMBER_ 1.0e-30
 
+// Jacobian set indices
+#define JAC_GAS 0
+#define JAC_AERO 1
+
 #define DELTA_H_ float_data[0]
 #define DELTA_S_ float_data[1]
 #define DIFF_COEFF_ float_data[2]
@@ -66,18 +70,57 @@
  *                   Jacobian elements
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_SIMPOL_phase_transfer_get_used_jac_elem(void *rxn_data,
-          bool **jac_struct)
+void * rxn_SIMPOL_phase_transfer_get_used_jac_elem(ModelData *model_data,
+          void *rxn_data, bool **jac_struct)
 {
   int *int_data = (int*) rxn_data;
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+
+  bool *aero_jac_elem = (bool*) malloc(sizeof(bool) * model_data->n_state_var);
+  if (aero_jac_elem==NULL) {
+    printf("\n\nERROR allocating space for 1D Jacobian structure array for "
+           "SIMPOL phase transfer reaction\n\n");
+    exit(1);
+  }
 
   jac_struct[GAS_SPEC_][GAS_SPEC_] = true;
   for (int i_aero_phase = 0; i_aero_phase < NUM_AERO_PHASE_; i_aero_phase++) {
     jac_struct[AERO_SPEC_(i_aero_phase)][GAS_SPEC_] = true;
     jac_struct[GAS_SPEC_][AERO_SPEC_(i_aero_phase)] = true;
     jac_struct[AERO_SPEC_(i_aero_phase)][AERO_SPEC_(i_aero_phase)] = true;
+
+    for (int i_elem = 0; i_elem < model_data->n_state_var; ++i_elem)
+      aero_jac_elem[i_elem] = false;
+
+    int n_jac_elem = aero_rep_get_used_jac_elem( model_data,
+                                                 AERO_REP_ID_(i_aero_phase),
+                                                 AERO_PHASE_ID_(i_aero_phase),
+                                                 aero_jac_elem );
+    int i_used_elem = 0;
+    for (int i_elem = 0; i_elem < model_data->n_state_var; ++i_elem) {
+      if (aero_jac_elem[i_elem] == true ) {
+        jac_struct[GAS_SPEC_][i_elem] = true;
+        jac_struct[AERO_SPEC_(i_aero_phase)][i_elem] = true;
+        PHASE_JAC_ID_(i_aero_phase,JAC_GAS,i_used_elem) = i_elem;
+        PHASE_JAC_ID_(i_aero_phase,JAC_AERO,i_used_elem) = i_elem;
+        ++i_used_elem;
+      }
+    }
+    for (; i_used_elem<NUM_AERO_PHASE_JAC_ELEM_(i_aero_phase);
+         ++i_used_elem) {
+      PHASE_JAC_ID_(i_aero_phase,JAC_GAS,i_used_elem) = -1;
+      PHASE_JAC_ID_(i_aero_phase,JAC_AERO,i_used_elem) = -1;
+    }
+    if (i_used_elem != n_jac_elem) {
+      printf("\n\nERROR setting used Jacobian elements in SIMPOL phase "
+             "transfer reaction %d %d\n\n", i_used_elem, n_jac_elem);
+      rxn_SIMPOL_phase_transfer_print(rxn_data);
+      exit(1);
+    }
+
   }
+
+  free(aero_jac_elem);
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
@@ -109,7 +152,19 @@ void * rxn_SIMPOL_phase_transfer_update_ids(ModelData *model_data,
       JAC_ID_(i_jac++) = jac_ids[GAS_SPEC_][AERO_SPEC_(i_aero_phase)];
       JAC_ID_(i_jac++) =
               jac_ids[AERO_SPEC_(i_aero_phase)][AERO_SPEC_(i_aero_phase)];
+    for (int i_elem = 0; i_elem < NUM_AERO_PHASE_JAC_ELEM_(i_aero_phase);
+         ++i_elem) {
+      if (PHASE_JAC_ID_(i_aero_phase,JAC_GAS,i_elem) > 0) {
+        PHASE_JAC_ID_(i_aero_phase,JAC_GAS,i_elem) =
+              jac_ids[GAS_SPEC_][PHASE_JAC_ID_(i_aero_phase,JAC_GAS,i_elem)];
+      }
+      if (PHASE_JAC_ID_(i_aero_phase,JAC_AERO,i_elem) > 0) {
+        PHASE_JAC_ID_(i_aero_phase,JAC_AERO,i_elem) =
+              jac_ids[AERO_SPEC_(i_aero_phase)]
+                     [PHASE_JAC_ID_(i_aero_phase,JAC_AERO,i_elem)];
+      }
     }
+  }
 
   // Find activity coefficient ids, if they exist
   // FIXME Don't hard-code sub model ids

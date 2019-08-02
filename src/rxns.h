@@ -212,8 +212,9 @@ void rxn_photolysis_set_rate_update_data(
 
 
 // SIMPOL_phase_transfer
-void * rxn_SIMPOL_phase_transfer_get_used_jac_elem(
-          void *rxn_data, bool **jac_struct);
+void *rxn_SIMPOL_phase_transfer_get_used_jac_elem(ModelData *model_data,
+                                                  void *rxn_data,
+                                                  bool **jac_struct);
 void * rxn_SIMPOL_phase_transfer_update_ids(
           ModelData *model_data, int *deriv_ids, int **jac_ids, void *rxn_data);
 void * rxn_SIMPOL_phase_transfer_update_env_state(double *env_data,

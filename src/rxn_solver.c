@@ -90,7 +90,7 @@ void * rxn_get_used_jac_elem(ModelData *model_data, bool **jac_struct)
         break;
       case RXN_SIMPOL_PHASE_TRANSFER :
         rxn_data = (int*) rxn_SIMPOL_phase_transfer_get_used_jac_elem(
-                  (void*) rxn_data, jac_struct);
+                  model_data, (void*) rxn_data, jac_struct);
         break;
       case RXN_TROE :
         rxn_data = (int*) rxn_troe_get_used_jac_elem(

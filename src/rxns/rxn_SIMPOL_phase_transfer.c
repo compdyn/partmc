@@ -307,21 +307,24 @@ void * rxn_SIMPOL_phase_transfer_calc_deriv_contrib(ModelData *model_data,
 		  &radius,                      // particle effective radius (m)
                   NULL);                        // partial derivative
 
-    // Get the particle number concentration (#/cc)
-    realtype number_conc;
-    aero_rep_get_number_conc(
-		  model_data,			// model data
-		  AERO_REP_ID_(i_phase),	// aerosol representation index
-		  AERO_PHASE_ID_(i_phase),	// aerosol phase index
-		  &number_conc, 		// particle number conc (#/cc)
-                  NULL);                        // partial derivative
-
     // Check the aerosol concentration type (per-particle or total per-phase
     // mass)
     int aero_conc_type = aero_rep_get_aero_conc_type(
 		  model_data,			// model data
 		  AERO_REP_ID_(i_phase),	// aerosol representation index
 		  AERO_PHASE_ID_(i_phase));	// aerosol phase index
+
+    // Get the particle number concentration (#/cc) for per-particle mass
+    // concentrations; otherwise set to 1
+    realtype number_conc = ONE;
+    if (aero_conc_type == 0) {
+      aero_rep_get_number_conc(
+  		  model_data,			// model data
+		  AERO_REP_ID_(i_phase),	// aerosol representation index
+		  AERO_PHASE_ID_(i_phase),	// aerosol phase index
+		  &number_conc, 		// particle number conc (#/cc)
+                  NULL);                        // partial derivative
+    }
 
     // Get the total mass of the aerosol phase
     realtype aero_phase_mass;
@@ -347,7 +350,7 @@ void * rxn_SIMPOL_phase_transfer_calc_deriv_contrib(ModelData *model_data,
 
     // Calculate the rate constant for diffusion limited mass transfer to the
     // aerosol phase (1/s)
-    realtype cond_rate = number_conc/(radius*radius/(3.0*DIFF_COEFF_) +
+    realtype cond_rate = 1.0/(radius*radius/(3.0*DIFF_COEFF_) +
               4.0*radius/(3.0*C_AVG_ALHPA_));
 
     // Calculate the evaporation rate constant (ppm_x*m^3/ug_x/s)
@@ -394,18 +397,12 @@ void * rxn_SIMPOL_phase_transfer_calc_deriv_contrib(ModelData *model_data,
                         state, cond_rate, evap_rate, i_phase);
 
     // Change in the gas-phase is evaporation - condensation (ppm/s)
-    if (DERIV_ID_(0)>=0) deriv[DERIV_ID_(0)] += rate;
+    if (DERIV_ID_(0)>=0) deriv[DERIV_ID_(0)] += number_conc * rate;
 
     // Change in the aerosol-phase species is condensation - evaporation
     // (ug/m^3/s)
     if (DERIV_ID_(1+i_phase)>=0) {
-      if (aero_conc_type==0) {
-        // Per-particle condensation
-        deriv[DERIV_ID_(1+i_phase)] -= rate / UGM3_TO_PPM_ / number_conc;
-      } else {
-        // Total aerosol mass condensation
-        deriv[DERIV_ID_(1+i_phase)] -= rate / UGM3_TO_PPM_;
-      }
+      deriv[DERIV_ID_(1+i_phase)] -= rate / UGM3_TO_PPM_;
     }
   }
 
@@ -443,20 +440,25 @@ void * rxn_SIMPOL_phase_transfer_calc_jac_contrib(ModelData *model_data,
 		  &radius,                           // particle effective radius (m)
                   &(EFF_RAD_JAC_ELEM_(i_phase,0)));  // partial derivative
 
-    // Get the particle number concentration (#/cc)
-    realtype number_conc;
-    aero_rep_get_number_conc(
-		  model_data,			     // model data
-		  AERO_REP_ID_(i_phase),             // aerosol representation index
-		  AERO_PHASE_ID_(i_phase),	     // aerosol phase index
-		  &number_conc, 		     // particle number conc (#/cc)
-                  &(NUM_CONC_JAC_ELEM_(i_phase,0))); // partial derivative
-
     // Check the aerosol concentration type (per-particle or total per-phase mass)
     int aero_conc_type = aero_rep_get_aero_conc_type(
 		  model_data,			     // model data
 		  AERO_REP_ID_(i_phase),	     // aerosol representation index
 		  AERO_PHASE_ID_(i_phase));	     // aerosol phase index
+
+    // Get the particle number concentration (#/cc)
+    realtype number_conc = ONE;
+    if (aero_conc_type == 0) {
+      aero_rep_get_number_conc(
+		  model_data,			     // model data
+		  AERO_REP_ID_(i_phase),             // aerosol representation index
+		  AERO_PHASE_ID_(i_phase),	     // aerosol phase index
+		  &number_conc, 		     // particle number conc (#/cc)
+                  &(NUM_CONC_JAC_ELEM_(i_phase,0))); // partial derivative
+    } else {
+      for (int i_elem=0; i_elem<NUM_AERO_PHASE_JAC_ELEM_(i_phase); ++i_elem)
+        NUM_CONC_JAC_ELEM_(i_phase, i_elem) = ZERO;
+    }
 
     // Get the total mass of the aerosol phase
     realtype aero_phase_mass;
@@ -482,7 +484,7 @@ void * rxn_SIMPOL_phase_transfer_calc_jac_contrib(ModelData *model_data,
 
     // Calculate the rate constant for diffusion limited mass transfer to the
     // aerosol phase (1/s)
-    realtype cond_rate = number_conc/(radius*radius/(3.0*DIFF_COEFF_) +
+    realtype cond_rate = 1.0/(radius*radius/(3.0*DIFF_COEFF_) +
               4.0*radius/(3.0*C_AVG_ALHPA_));
 
     // Calculate the evaporation rate constant (ppm_x*m^3/ug_x/s)
@@ -529,34 +531,23 @@ void * rxn_SIMPOL_phase_transfer_calc_jac_contrib(ModelData *model_data,
 
     // Change in the gas-phase is evaporation - condensation (ppm/s)
       if (JAC_ID_(1+i_phase*3+1)>=0)
-          J[JAC_ID_(1+i_phase*3+1)] += evap_rate * act_coeff *
+          J[JAC_ID_(1+i_phase*3+1)] += number_conc * evap_rate * act_coeff *
                                        ( evap_scaling +
                                          state[AERO_SPEC_(i_phase)] *
                                          evap_scaling_deriv );
-      if (JAC_ID_(0)>=0) J[JAC_ID_(0)] -= cond_rate *
+      if (JAC_ID_(0)>=0) J[JAC_ID_(0)] -= number_conc * cond_rate *
                                           ( cond_scaling +
                                             state[GAS_SPEC_] *
                                             cond_scaling_deriv );
 
     // Change in the aerosol-phase species is condensation - evaporation
     // (ug/m^3/s)
-    if (aero_conc_type==0) {
-      // Per-particle condensation
-      if (JAC_ID_(1+i_phase*3)>=0) J[JAC_ID_(1+i_phase*3)] +=
-          cond_rate / number_conc / UGM3_TO_PPM_ *
-          ( cond_scaling + state[GAS_SPEC_] * cond_scaling_deriv );
-      if (JAC_ID_(1+i_phase*3+2)>=0) J[JAC_ID_(1+i_phase*3+2)] -=
-          evap_rate * act_coeff / number_conc / UGM3_TO_PPM_ *
-          ( evap_scaling + state[AERO_SPEC_(i_phase)] * evap_scaling_deriv );
-    } else {
-      // Total aerosol mass condensation
-      if (JAC_ID_(1+i_phase*3)>=0) J[JAC_ID_(1+i_phase*3)] +=
+    if (JAC_ID_(1+i_phase*3)>=0) J[JAC_ID_(1+i_phase*3)] +=
           cond_rate / UGM3_TO_PPM_ *
           ( cond_scaling + state[GAS_SPEC_] * cond_scaling_deriv );
-      if (JAC_ID_(1+i_phase*3+2)>=0) J[JAC_ID_(1+i_phase*3+2)] -=
+    if (JAC_ID_(1+i_phase*3+2)>=0) J[JAC_ID_(1+i_phase*3+2)] -=
           evap_rate * act_coeff / UGM3_TO_PPM_ *
           ( evap_scaling + state[AERO_SPEC_(i_phase)] * evap_scaling_deriv );
-    }
 
   }
 

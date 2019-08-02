@@ -243,7 +243,7 @@ realtype rxn_aqueous_equilibrium_calc_overall_rate(void *rxn_data,
   realtype prod_fact_l  = prod_fact;
   realtype water_l      = water;
 
-  /// \todo{explore higher precision variables to reduce Jac errors}
+  /// \todo explore higher precision variables to reduce Jac errors
 
   // Calculate the overall rate
   // These equations are set up to try to avoid loss of accuracy from

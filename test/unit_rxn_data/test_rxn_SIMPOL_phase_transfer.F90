@@ -284,11 +284,9 @@ contains
       ! Set the initial state in the model
       phlex_state%state_var(:) = model_conc(0,:)
 
-#if 0
 #ifdef PMC_DEBUG
       ! Evaluate the Jacobian during solving
       solver_stats%eval_Jac = .true.
-#endif
 #endif
 
       ! Integrate the mechanism
@@ -300,14 +298,12 @@ contains
         model_conc(i_time,:) = phlex_state%state_var(:)
 
         ! FIXME Finish debugging Jacobian calculations
-#if 0
 #ifdef PMC_DEBUG
         ! Check the Jacobian evaluations
         call assert_msg(173108608, solver_stats%Jac_eval_fails.eq.0, &
                         trim( to_string( solver_stats%Jac_eval_fails ) )// &
                         " Jacobian evaluation failures at time step "// &
                         trim( to_string( i_time ) ) )
-#endif
 #endif
 
         ! Get the analytic conc

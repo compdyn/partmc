@@ -578,10 +578,6 @@ void * rxn_HL_phase_transfer_calc_jac_contrib(ModelData *model_data,
         J[PHASE_JAC_ID_(i_phase, JAC_AERO, i_elem)] -= d_rate_d_radius /
             UGM3_TO_PPM_ * EFF_RAD_JAC_ELEM_(i_phase, i_elem);
 
-        // species involved in numer concentration
-        J[PHASE_JAC_ID_(i_phase, JAC_AERO, i_elem)] -= d_rate_d_number /
-            UGM3_TO_PPM_ * NUM_CONC_JAC_ELEM_(i_phase, i_elem);
-
       }
 
     }

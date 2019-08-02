@@ -244,8 +244,8 @@ void * rxn_HL_phase_transfer_update_env_state(double *env_data,
  * \return The calculated overall rate ([ppm]/s)
  */
 #ifdef PMC_USE_SUNDIALS
-realtype calculate_overall_rate(void *rxn_data, realtype *state,
-          realtype cond_rc, realtype evap_rc, int i_phase)
+realtype rxn_HL_phase_transfer_calc_overall_rate(void *rxn_data,
+          realtype *state, realtype cond_rc, realtype evap_rc, int i_phase)
 {
   int *int_data = (int*) rxn_data;
   realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
@@ -378,8 +378,8 @@ void * rxn_HL_phase_transfer_calc_deriv_contrib(ModelData *model_data,
     evap_rate *= evap_scaling * water_scaling;
 
     // Get the overall rate
-    realtype rate = calculate_overall_rate(rxn_data, state, cond_rate,
-                                           evap_rate, i_phase);
+    realtype rate = rxn_HL_phase_transfer_calc_overall_rate(rxn_data, state,
+                        cond_rate, evap_rate, i_phase);
 
     // Change in the gas-phase is evaporation - condensation (ppm/s)
     if (DERIV_ID_(0)>=0) {
@@ -512,7 +512,7 @@ void * rxn_HL_phase_transfer_calc_jac_contrib(ModelData *model_data,
     realtype evap_scaling_deriv = ZERO;
 
     // Get the overall rate for certain Jac elements
-    realtype rate = calculate_overall_rate(rxn_data, state,
+    realtype rate = rxn_HL_phase_transfer_calc_overall_rate(rxn_data, state,
         cond_rate * cond_scaling * water_scaling,
         evap_rate * evap_scaling * water_scaling, i_phase);
 

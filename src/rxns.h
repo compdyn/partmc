@@ -27,6 +27,11 @@ void * rxn_aqueous_equilibrium_skip(
 void * rxn_aqueous_equilibrium_print(
           void *rxn_data);
 #ifdef PMC_USE_SUNDIALS
+realtype rxn_aqueous_equilibrium_calc_overall_rate(void *rxn_data,
+                                                   realtype *state,
+                                                   realtype react_fact,
+                                                   realtype prod_fact,
+                                                   realtype water, int i_phase);
 void * rxn_aqueous_equilibrium_calc_deriv_contrib(
           ModelData *model_data, realtype *deriv, void *rxn_data,
           realtype time_step);
@@ -170,6 +175,10 @@ void * rxn_HL_phase_transfer_skip(
 void * rxn_HL_phase_transfer_print(
           void *rxn_data);
 #ifdef PMC_USE_SUNDIALS
+realtype rxn_HL_phase_transfer_calc_overall_rate(void *rxn_data,
+                                                 realtype *state,
+                                                 realtype cond_rc,
+                                                 realtype evap_rc, int i_phase);
 void * rxn_HL_phase_transfer_calc_deriv_contrib(
           ModelData *model_data, realtype *deriv, void *rxn_data,
           realtype time_step);

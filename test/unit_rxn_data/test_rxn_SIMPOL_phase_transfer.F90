@@ -73,15 +73,15 @@ contains
   !> Solve a mechanism consisting of one phase transfer reaction
   !!
   !! Ethanol partitioning based on parameters and equations from SIMPOL.1
-  !! model (Pankow and Asher, 2008. "SIMPOL.1: a simple group contribution 
+  !! model (Pankow and Asher, 2008. "SIMPOL.1: a simple group contribution
   !! method for predicting vapor pressures and enthalpies of vaporization of
   !! multifunctional organic compounds." Atmos. Chem. Phys. 8(10), 2773-2796.
   !! doi:10.5194/acp-8-2773-2008.i)
-  !! 
-  !! Condensation rates are based on parameters and equations from the 
-  !! CAPRAM 2.4 reduced mechanism. (Ervens, B., et al., 2003. "CAPRAM 2.4 
-  !! (MODAC mechanism) : An extended and condensed tropospheric aqueous phase 
-  !! mechanism and its application." J. Geophys. Res. 108, 4426. 
+  !!
+  !! Condensation rates are based on parameters and equations from the
+  !! CAPRAM 2.4 reduced mechanism. (Ervens, B., et al., 2003. "CAPRAM 2.4
+  !! (MODAC mechanism) : An extended and condensed tropospheric aqueous phase
+  !! mechanism and its application." J. Geophys. Res. 108, 4426.
   !! doi:10.1029/2002JD002202.)
   !!
   logical function run_SIMPOL_phase_transfer_test()
@@ -110,7 +110,7 @@ contains
 #endif
 
     ! Parameters for calculating true concentrations
-    real(kind=dp) :: temperature, pressure 
+    real(kind=dp) :: temperature, pressure
     real(kind=dp), target :: radius, number_conc
     real(kind=dp), parameter :: MW_ethanol = 0.04607
     real(kind=dp), parameter :: MW_H2O = 0.01801
@@ -315,14 +315,14 @@ contains
         ! x0 = [A_init_gas] - [A_eq_gas]
         ! [A_gas] = x + [A_eq_gas] = x0exp(-t/tau) + [A_eq_gas]
         ! 1/tau = k_f + k_b
-        ! [A_gas] = ([A_init_gas] - [A_eq_gas]) * exp(-t *(k_f + k_b)) + 
+        ! [A_gas] = ([A_init_gas] - [A_eq_gas]) * exp(-t *(k_f + k_b)) +
         !                 [A_eq_gas]
         ! [A_aero] = ([A_init_aero] - [A_eq_aero]) * exp(-t * (k_f + k_b)) +
         !                 [A_eq_aero]
         time = i_time * time_step
         true_conc(i_time,idx_ethanol) = &
                 (true_conc(0,idx_ethanol) - equil_ethanol) * &
-                exp(-time * (k_forward + k_backward)) + equil_ethanol 
+                exp(-time * (k_forward + k_backward)) + equil_ethanol
         true_conc(i_time,idx_ethanol_aq) = &
                 (true_conc(0,idx_ethanol_aq) - equil_ethanol_aq) * &
                 exp(-time * (k_forward + k_backward)) + equil_ethanol_aq
@@ -370,7 +370,7 @@ contains
         results = 1
       end if
     end if
-    
+
     ! Send the results back to the primary process
     call pmc_mpi_transfer_integer(results, results, 1, 0)
 

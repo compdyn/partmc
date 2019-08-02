@@ -233,6 +233,50 @@ void * rxn_SIMPOL_phase_transfer_update_env_state(double *env_data,
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
 
+/** \brief Calculate the overall per-particle reaction rate ([ppm]/s)
+ *
+ * This function is called by the deriv and Jac functions to get the overall
+ * reaction rate on a per-particle basis, trying to avoid floating-point
+ * subtraction errors.
+ *
+ * \param rxn_data Pointer to the reaction data
+ * \param state State array
+ * \param cond_rc Condensation rate constant ([ppm]^(-n_react+1)s^-1)
+ * \param evap_rc Evaporation rate constant ([ppm]^(-n_prod+1)s^-1)
+ * \param i_phase Index for the aerosol phase being calculated
+ * \return The calculated overall rate ([ppm]/s)
+ */
+#ifdef PMC_USE_SUNDIALS
+realtype rxn_SIMPOL_phase_transfer_calc_overall_rate(void *rxn_data,
+          realtype *state, realtype cond_rc, realtype evap_rc, int i_phase)
+{
+  int *int_data = (int*) rxn_data;
+  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+
+  // Calculate the overall rate.
+  // These equations are set up to try to avoid loss of accuracy from
+  // subtracting two almost-equal numbers when rate_cond ~ rate_evap.
+  // When modifying these calculations, be sure to use the Jacobian checker
+  // during unit testing.
+  long double rate      = ZERO;
+  long double aero_conc = state[AERO_SPEC_(i_phase)];
+  long double gas_conc  = state[GAS_SPEC_];
+  long double l_cond_rc  = cond_rc;
+  long double l_evap_rc  = evap_rc;
+  if (l_evap_rc == ZERO || l_cond_rc == ZERO) {
+    rate = l_evap_rc * aero_conc - l_cond_rc * gas_conc;
+  } else if (l_evap_rc * aero_conc < l_cond_rc * gas_conc) {
+    long double gas_eq = aero_conc * ( l_evap_rc / l_cond_rc );
+    rate = ( gas_eq - gas_conc ) * l_cond_rc;
+  } else {
+    long double aero_eq = gas_conc * ( l_cond_rc / l_evap_rc );
+    rate = ( aero_conc - aero_eq ) * l_evap_rc;
+  }
+
+  return (realtype) rate;
+}
+#endif
+
 /** \brief Calculate contributions to the time derivative \f$f(t,y)\f$ from
  * this reaction.
  *
@@ -310,12 +354,15 @@ void * rxn_SIMPOL_phase_transfer_calc_deriv_contrib(ModelData *model_data,
     realtype evap_rate = cond_rate * (EQUIL_CONST_ * aero_phase_avg_MW /
               aero_phase_mass);
 
+#if 0
     // Slow down condensation rate as gas-phase concentrations become small
     realtype gas_adj = state[GAS_SPEC_] - VERY_SMALL_NUMBER_;
     gas_adj = ( gas_adj > ZERO ) ? gas_adj : ZERO;
     realtype cond_scaling =
       2.0 / ( 1.0 + exp( -gas_adj / SMALL_NUMBER_ ) ) - 1.0;
     cond_scaling *= cond_scaling;
+#endif
+    realtype cond_scaling = ONE;
 
     // Calculate gas-phase condensation rate (ppm/s)
     cond_rate *= cond_scaling;
@@ -327,6 +374,7 @@ void * rxn_SIMPOL_phase_transfer_calc_deriv_contrib(ModelData *model_data,
                 AERO_ACT_ID_(i_phase));
     }
 
+#if 0
     // Slow down evaporation as aerosol-phase activity becomes small
     realtype aero_adj = state[AERO_SPEC_(i_phase)] * act_coeff -
                         VERY_SMALL_NUMBER_;
@@ -334,29 +382,16 @@ void * rxn_SIMPOL_phase_transfer_calc_deriv_contrib(ModelData *model_data,
     realtype evap_scaling =
       2.0 / ( 1.0 + exp( -aero_adj / SMALL_NUMBER_ ) ) - 1.0;
     evap_scaling *= evap_scaling;
+#endif
+    realtype evap_scaling = ONE;
 
     // Calculate aerosol-phase evaporation rate (ppm/s)
     // (Slow down evaporation as aerosol-phase concentrations approach zero
     //  to help out the solver.)
     evap_rate *= act_coeff * evap_scaling;
 
-    // Calculate the overall rate.
-    // These equations are set up to try to avoid loss of accuracy from
-    // subtracting two almost-equal numbers when rate_cond ~ rate_evap.
-    // When modifying these calculations, be sure to use the Jacobian checker
-    // during unit testing.
-    realtype rate      = ZERO;
-    realtype aero_conc = state[AERO_SPEC_(i_phase)];
-    realtype gas_conc  = state[GAS_SPEC_];
-    if (evap_rate == ZERO || cond_rate == ZERO) {
-      rate = evap_rate * aero_conc - cond_rate * gas_conc;
-    } else if (evap_rate * aero_conc < cond_rate * gas_conc) {
-      realtype gas_eq = aero_conc * ( evap_rate / cond_rate );
-      rate = ( gas_eq - gas_conc ) * cond_rate;
-    } else {
-      realtype aero_eq = gas_conc * ( cond_rate / evap_rate );
-      rate = ( aero_conc - aero_eq ) * evap_rate;
-    }
+    realtype rate = rxn_SIMPOL_phase_transfer_calc_overall_rate(rxn_data,
+                        state, cond_rate, evap_rate, i_phase);
 
     // Change in the gas-phase is evaporation - condensation (ppm/s)
     if (DERIV_ID_(0)>=0) deriv[DERIV_ID_(0)] += rate;
@@ -454,6 +489,7 @@ void * rxn_SIMPOL_phase_transfer_calc_jac_contrib(ModelData *model_data,
     realtype evap_rate = cond_rate * (EQUIL_CONST_ * aero_phase_avg_MW /
               aero_phase_mass);
 
+#if 0
     // Slow down condensation rate as gas-phase concentrations become small
     realtype gas_adj = state[GAS_SPEC_] - VERY_SMALL_NUMBER_;
     gas_adj = ( gas_adj > ZERO ) ? gas_adj : ZERO;
@@ -464,6 +500,9 @@ void * rxn_SIMPOL_phase_transfer_calc_jac_contrib(ModelData *model_data,
                                 exp( -gas_adj / SMALL_NUMBER_ ) ) );
     cond_scaling_deriv *= 2.0 * cond_scaling;
     cond_scaling *= cond_scaling;
+#endif
+    realtype cond_scaling = ONE;
+    realtype cond_scaling_deriv = ZERO;
 
     // Get the activity coefficient (if one exists)
     realtype act_coeff = 1.0;
@@ -472,6 +511,7 @@ void * rxn_SIMPOL_phase_transfer_calc_jac_contrib(ModelData *model_data,
                 AERO_ACT_ID_(i_phase));
     }
 
+#if 0
     // Slow down evaporation as aerosol-phase activity becomes small
     realtype aero_adj = state[AERO_SPEC_(i_phase)] * act_coeff -
                         VERY_SMALL_NUMBER_;
@@ -483,6 +523,9 @@ void * rxn_SIMPOL_phase_transfer_calc_jac_contrib(ModelData *model_data,
                                 exp( -aero_adj / SMALL_NUMBER_ ) ) );
     evap_scaling_deriv *= 2.0 * evap_scaling;
     evap_scaling *= evap_scaling;
+#endif
+    realtype evap_scaling = ONE;
+    realtype evap_scaling_deriv = ZERO;
 
     // Change in the gas-phase is evaporation - condensation (ppm/s)
       if (JAC_ID_(1+i_phase*3+1)>=0)

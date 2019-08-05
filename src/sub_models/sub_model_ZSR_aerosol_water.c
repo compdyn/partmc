@@ -60,15 +60,12 @@
  * \param sub_model_data A pointer to the sub model data
  * \param jac_row Array of flags indicating whether an element in the Jacobian
  *                is used
- * \return The sub_model_data pointer advanced by the size of the sub model data
  */
-void * sub_model_ZSR_aerosol_water_get_used_jac_elem(void *sub_model_data,
-          bool *jac_row)
+void sub_model_ZSR_aerosol_water_get_used_jac_elem(int *sub_model_int_data,
+    double *sub_model_float_data, bool *jac_row)
 {
-  int *int_data = (int*) sub_model_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
-
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
+  int *int_data = sub_model_int_data;
+  double *float_data = sub_model_float_data;
 }
 
 /** \brief Update the time derivative and Jacbobian array indices
@@ -77,15 +74,12 @@ void * sub_model_ZSR_aerosol_water_get_used_jac_elem(void *sub_model_data,
  *
  * \param sub_model_data Pointer to the sub model data
  * \param jac_row An array of new ids for one row of the Jacobian matrix
- * \return The sub_model_data pointer advanced by the size of the sub model data
  */
-void * sub_model_ZSR_aerosol_water_update_ids(void *sub_model_data,
-          int *jac_row)
+void sub_model_ZSR_aerosol_water_update_ids(int *sub_model_int_data,
+    double *sub_model_float_data, int *jac_row)
 {
-  int *int_data = (int*) sub_model_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
-
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
+  int *int_data = sub_model_int_data;
+  double *float_data = sub_model_float_data;
 }
 
 /** \brief Get the id of a parameter in the condensed data block
@@ -97,32 +91,23 @@ void * sub_model_ZSR_aerosol_water_update_ids(void *sub_model_data,
  *                    species).
  * \param parameter_id Parameter id for the requested aerosol-phase water if
  *                     found
- * \return The sub_model_data pointer advanced by the size of the sub model
  */
-void * sub_model_ZSR_aerosol_water_get_parameter_id(void *sub_model_data,
-          void *identifiers, int *parameter_id)
+void sub_model_ZSR_aerosol_water_get_parameter_id(int *sub_model_int_data,
+    double *sub_model_float_data, void *identifiers, int *parameter_id)
 {
-  int *int_data = (int*) sub_model_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
-
-  for (int i_phase=0; i_phase<NUM_PHASE_; ++i_phase) {
-    if (*((int*)identifiers) == PHASE_ID_(i_phase)) {
-      *parameter_id = i_phase;
-    }
-  }
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
+  int *int_data = sub_model_int_data;
+  double *float_data = sub_model_float_data;
 }
 /** \brief Update sub model data for new environmental conditions
  *
  * \param sub_model_data Pointer to the sub model data
  * \param env_state Pointer to the environmental state array
- * \return The sub_model_data pointer advanced by the size of the sub model data
  */
-void * sub_model_ZSR_aerosol_water_update_env_state(void *sub_model_data,
-          double *env_state)
+void sub_model_ZSR_aerosol_water_update_env_state(int *sub_model_int_data,
+    double *sub_model_float_data, double *env_state)
 {
-  int *int_data = (int*) sub_model_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  int *int_data = sub_model_int_data;
+  double *float_data = sub_model_float_data;
 
   // Calculate PPM_TO_RH_
   // From MOSAIC code - reference to Seinfeld & Pandis page 181
@@ -134,22 +119,19 @@ void * sub_model_ZSR_aerosol_water_update_env_state(void *sub_model_data,
   double water_vp = 101325.0 * exp(a); 		// (Pa)
 
   PPM_TO_RH_ = PRESSURE_PA_ / water_vp / 1.0e6;	// (1/ppm)
-
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
 
 /** \brief Do pre-derivative calculations
  *
  * \param sub_model_data Pointer to the sub model data
  * \param model_data Pointer to the model data, including the state array
- * \return The sub_model_data pointer advanced by the size of the sub model data
  */
-void * sub_model_ZSR_aerosol_water_calculate(void *sub_model_data,
-          ModelData *model_data)
+void sub_model_ZSR_aerosol_water_calculate(int *sub_model_int_data,
+    double *sub_model_float_data, ModelData *model_data)
 {
   double *state = model_data->state;
-  int *int_data = (int*) sub_model_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  int *int_data = sub_model_int_data;
+  double *float_data = sub_model_float_data;
 
   // Calculate the water activity---i.e., relative humidity (0-1)
   double a_w = PPM_TO_RH_ * state[GAS_WATER_ID_];
@@ -223,8 +205,6 @@ void * sub_model_ZSR_aerosol_water_calculate(void *sub_model_data,
     }
     *water = (*water > SMALL_NUMBER_) ? *water : 0.0;
   }
-
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
 
 // TODO finish adding J contributions
@@ -233,45 +213,28 @@ void * sub_model_ZSR_aerosol_water_calculate(void *sub_model_data,
  * \param sub_model_data Pointer to the sub-model data
  * \param jac_row Pointer to the Jacobian row to modify
  */
-void * sub_model_ZSR_aerosol_water_get_jac_contrib(void *sub_model_data,
-          double *jac_row)
+void sub_model_ZSR_aerosol_water_get_jac_contrib(int *sub_model_int_data,
+    double *sub_model_float_data, double *jac_row)
 {
-  int *int_data = (int*) sub_model_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
-
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
-}
-
-/** \brief Advance the sub model data pointer to the next sub model
- *
- * \param sub_model_data Pointer to the sub model data
- * \return The sub_model_data pointer advanced by the size of the sub model data
- */
-void * sub_model_ZSR_aerosol_water_skip(void *sub_model_data)
-{
-  int *int_data = (int*) sub_model_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
-
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
+  int *int_data = sub_model_int_data;
+  double *float_data = sub_model_float_data;
 }
 
 /** \brief Print the ZSR Aerosol Water sub model parameters
  *
  * \param sub_model_data Pointer to the sub model data
- * \return The sub_model_data pointer advanced by the size of the sub model data
  */
-void * sub_model_ZSR_aerosol_water_print(void *sub_model_data)
+void sub_model_ZSR_aerosol_water_print(int *sub_model_int_data,
+    double *sub_model_float_data)
 {
-  int *int_data = (int*) sub_model_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  int *int_data = sub_model_int_data;
+  double *float_data = sub_model_float_data;
 
   printf("\n\nZSR aerosol water sub model\n");
   for (int i=0; i<INT_DATA_SIZE_; i++)
     printf("  int param %d = %d\n", i, int_data[i]);
   for (int i=0; i<FLOAT_DATA_SIZE_; i++)
     printf("  float param %d = %le\n", i, float_data[i]);
-
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
 
 #undef TEMPERATURE_K_

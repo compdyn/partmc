@@ -239,16 +239,38 @@ void * solver_new(int n_state_var, int *var_type, int n_rxn,
   // Allocate space for the sub model data and set the number of sub models
   // (including one int for the number of sub models and one int per sub
   // model to store the sub model type)
-  sd->model_data.sub_model_data = (void*) malloc(
-                  (n_sub_model_int_param + 1 + n_sub_model) * sizeof(int)
-                  + n_sub_model_float_param * sizeof(double));
-  if (sd->model_data.sub_model_data==NULL) {
-    printf("\n\nERROR allocating space for sub model data\n\n");
+  sd->model_data.sub_model_int_data= (int*) malloc(
+                  (n_sub_model_int_param + 1 + n_sub_model) * sizeof(int));
+  if (sd->model_data.sub_model_int_data==NULL) {
+    printf("\n\nERROR allocating space for sub model integer data\n\n");
     exit(1);
   }
-  ptr = sd->model_data.sub_model_data;
+  sd->model_data.sub_model_float_data= (double*) malloc(
+                  n_sub_model_float_param * sizeof(double));
+  if (sd->model_data.sub_model_float_data==NULL) {
+    printf("\n\nERROR allocating space for sub model floating-point data\n\n");
+    exit(1);
+  }
+  ptr = sd->model_data.sub_model_int_data;
   ptr[0] = n_sub_model;
-  sd->model_data.nxt_sub_model = (void*) &(ptr[1]);
+  sd->model_data.n_added_sub_models = 0;
+  sd->model_data.nxt_sub_model_int = (int*) &(ptr[1]);
+  sd->model_data.nxt_sub_model_float = sd->model_data.sub_model_float_data;
+
+  // Allocate space for the sub-model data pointers
+  sd->model_data.sub_model_int_ptrs = (int**) malloc(
+                  n_sub_model * sizeof(int**));
+  if (sd->model_data.sub_model_int_ptrs==NULL) {
+    printf("\n\nERROR allocating space for sub model integer pointers\n\n");
+    exit(1);
+  }
+  sd->model_data.sub_model_float_ptrs = (double**) malloc(
+                  n_sub_model * sizeof(double**));
+  if (sd->model_data.sub_model_float_ptrs==NULL) {
+    printf("\n\nERROR allocating space for sub model float pointers\n\n");
+    exit(1);
+  }
+
 
   // Return a pointer to the new SolverData object
   return (void*) sd;
@@ -1340,8 +1362,10 @@ void model_free(ModelData model_data)
   free(model_data.rxn_data);
   free(model_data.aero_phase_data);
   free(model_data.aero_rep_data);
-  free(model_data.sub_model_data);
-
+  free(model_data.sub_model_int_data);
+  free(model_data.sub_model_float_data);
+  free(model_data.sub_model_int_ptrs);
+  free(model_data.sub_model_float_ptrs);
 }
 
 /** \brief Free update data

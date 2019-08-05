@@ -61,28 +61,24 @@
  * \param sub_model_data Pointer to the sub-model data
  * \param jac_row Array of flags indicating whether an element in the Jacobian
  *                is used
- * \return The sub_model_data pointer advanced by the size of the sub model
  */
-void * sub_model_UNIFAC_get_used_jac_elem(void *sub_model_data, bool *jac_row)
+void sub_model_UNIFAC_get_used_jac_elem(int *sub_model_int_data,
+    double *sub_model_float_data, bool *jac_row)
 {
-  int *int_data = (int*) sub_model_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
-
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
+  int *int_data = sub_model_int_data;
+  double *float_data = sub_model_float_data;
 }
 
 /** \brief Update stored ids for elements used within a row of the Jacobian matrix
  *
  * \param sub_model_data Pointer to the sub-model data
  * \param jac_row An array of new ids for one row of the Jacobian matrix
- * \return The sub_model_data pointer advanced by the size of the sub model
  */
-void * sub_model_UNIFAC_update_ids(void *sub_model_data, int *jac_row)
+void sub_model_UNIFAC_update_ids(int *sub_model_int_data,
+    double *sub_model_float_data, int *jac_row)
 {
-  int *int_data = (int*) sub_model_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
-
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
+  int *int_data = sub_model_int_data;
+  double *float_data = sub_model_float_data;
 }
 
 /** \brief Get the id of a parameter in the condensed data block
@@ -93,13 +89,12 @@ void * sub_model_UNIFAC_update_ids(void *sub_model_data, int *jac_row)
  *                    which the acitivty is needed.
  * \param parameter_id Parameter id for the requested activity coefficient if
  *                     found
- * \return The sub_model_data pointer advanced by the size of the sub model
  */
-void * sub_model_UNIFAC_get_parameter_id(void *sub_model_data,
-          void *identifiers, int *parameter_id)
+void sub_model_UNIFAC_get_parameter_id(int *sub_model_int_data,
+    double *sub_model_float_data, void *identifiers, int *parameter_id)
 {
-  int *int_data = (int*) sub_model_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  int *int_data = sub_model_int_data;
+  double *float_data = sub_model_float_data;
 
   for (int i_phase=0; i_phase<NUM_UNIQUE_PHASE_; i_phase++) {
     for (int i_instance=0; i_instance<NUM_PHASE_INSTANCE_(i_phase);
@@ -107,27 +102,25 @@ void * sub_model_UNIFAC_get_parameter_id(void *sub_model_data,
       for (int i_spec=0; i_spec<NUM_SPEC_(i_phase); i_spec++) {
         if (*((int*)identifiers) == SPEC_ID_(i_phase, i_spec)
             + PHASE_INST_ID_(i_phase, i_instance)) {
-          *parameter_id = (int) (((int*)
-                (&(GAMMA_I_(i_phase, i_instance, i_spec)))) - int_data);
-          return (void*) &(float_data[FLOAT_DATA_SIZE_]);
+          *parameter_id = (int) (
+                (&(GAMMA_I_(i_phase, i_instance, i_spec))) - float_data);
+          return;
         }
       }
     }
   }
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
 
 /** \brief Update sub-model data for new environmental conditions
  *
  * \param sub_model_data Pointer to the sub-model data
  * \param env_data Pointer to the environmental state array
- * \return The sub_model_data pointer advanced by the size of the sub model
  */
-void * sub_model_UNIFAC_update_env_state(void *sub_model_data,
-          double *env_data)
+void sub_model_UNIFAC_update_env_state(int *sub_model_int_data,
+    double *sub_model_float_data, double *env_data)
 {
-  int *int_data = (int*) sub_model_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  int *int_data = sub_model_int_data;
+  double *float_data = sub_model_float_data;
 
   // Update the interaction parameters
   for (int m=0; m<NUM_GROUP_; m++)
@@ -165,8 +158,6 @@ void * sub_model_UNIFAC_update_env_state(void *sub_model_data,
       }
     }
   }
-
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
 
 /** \brief Perform the sub-model calculations for the current model state
@@ -174,12 +165,12 @@ void * sub_model_UNIFAC_update_env_state(void *sub_model_data,
  * \param sub_model_data Pointer to the sub-model data
  * \param model_data Pointer to the model data including the current state and
  *                   environmental conditions
- * \return The sub_model_data pointer advanced by the size of the sub model
  */
-void * sub_model_UNIFAC_calculate(void *sub_model_data, ModelData *model_data)
+void sub_model_UNIFAC_calculate(int *sub_model_int_data,
+    double *sub_model_float_data, ModelData *model_data)
 {
-  int *int_data = (int*) sub_model_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  int *int_data = sub_model_int_data;
+  double *float_data = sub_model_float_data;
 
   // Loop through each instance of each phase to calculate activity
   for (int i_phase=0; i_phase<NUM_UNIQUE_PHASE_; i_phase++) {
@@ -280,8 +271,6 @@ void * sub_model_UNIFAC_calculate(void *sub_model_data, ModelData *model_data)
       }
     }
   }
-
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
 
 // TODO finish adding J contributions
@@ -290,44 +279,28 @@ void * sub_model_UNIFAC_calculate(void *sub_model_data, ModelData *model_data)
  * \param sub_model_data Pointer to the sub-model data
  * \param jac_row Pointer to the Jacobian row to modify
  */
-void * sub_model_UNIFAC_get_jac_contrib(void *sub_model_data, double *jac_row)
+void sub_model_UNIFAC_get_jac_contrib(int *sub_model_int_data,
+    double *sub_model_float_data, double *jac_row)
 {
-  int *int_data = (int*) sub_model_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
-
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
-}
-
-/** \brief Skip through the sub model, only advancing the data pointer
- *
- * \param sub_model_data Pointer to the sub model data
- * \return The sub_model_data pointer advanced by the size of the sub-model
- */
-void * sub_model_UNIFAC_skip(void *sub_model_data)
-{
-  int *int_data = (int*) sub_model_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
-
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
+  int *int_data = sub_model_int_data;
+  double *float_data = sub_model_float_data;
 }
 
 /** \brief Print the sub model data
  *
  * \param sub_model_data Pointer to the sub model data
- * \return The sub_model_data pointer advanced by the size of the sub-model
  */
-void * sub_model_UNIFAC_print(void *sub_model_data)
+void sub_model_UNIFAC_print(int *sub_model_int_data,
+    double *sub_model_float_data)
 {
-  int *int_data = (int*) sub_model_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  int *int_data = sub_model_int_data;
+  double *float_data = sub_model_float_data;
 
   printf("\n\nUNIFAC sub model\n\n");
   printf("\nint_data");
   for (int i=0; i<INT_DATA_SIZE_; i++) printf(" %d", int_data[i]);
   printf("\nfloat_data");
   for (int i=0; i<FLOAT_DATA_SIZE_; i++) printf(" %le", float_data[i]);
-
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
 
 #undef TEMPERATURE_K_

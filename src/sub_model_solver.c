@@ -50,62 +50,45 @@ int sub_model_get_parameter_id(ModelData *model_data, int type,
 {
 
   // Get the number of sub models
-  int *sub_model_data = (int*) (model_data->sub_model_data);
-  int n_sub_model = *(sub_model_data++);
+  int n_sub_model = model_data->sub_model_int_data[0];
 
   // Initialize the parameter id
   int parameter_id = -1;
-  int curr_id = 1;
 
-  // Loop through the sub models to find the requested parameter advancing the
-  // sub_model_data pointer each time. The first model found to provide the
-  // parameter will be selected.
+  // Loop through the sub models to find the requested parameter.
+  // The first model found to provide the parameter will be selected.
   for (int i_sub_model=0; i_sub_model<n_sub_model; i_sub_model++) {
 
+    int *sub_model_int_data = model_data->sub_model_int_ptrs[i_sub_model];
+    double *sub_model_float_data = model_data->sub_model_float_ptrs[i_sub_model];
+
     // Get the sub model type
-    int sub_model_type = *(sub_model_data++);
-    curr_id++;
+    int sub_model_type = *(sub_model_int_data++);
 
     // Check if this is the requested type of sub model
     if (type==sub_model_type) {
       switch (sub_model_type) {
         case SUB_MODEL_PDFITE :
-          sub_model_data = (int*) sub_model_PDFiTE_get_parameter_id(
-              (void*) sub_model_data, identifiers, &parameter_id);
+          sub_model_PDFiTE_get_parameter_id(
+              sub_model_int_data, sub_model_float_data, identifiers, &parameter_id);
           break;
         case SUB_MODEL_UNIFAC :
-          sub_model_data = (int*) sub_model_UNIFAC_get_parameter_id(
-              (void*) sub_model_data, identifiers, &parameter_id);
+          sub_model_UNIFAC_get_parameter_id(
+              sub_model_int_data, sub_model_float_data, identifiers, &parameter_id);
           break;
         case SUB_MODEL_ZSR_AEROSOL_WATER :
-          sub_model_data = (int*) sub_model_ZSR_aerosol_water_get_parameter_id(
-              (void*) sub_model_data, identifiers, &parameter_id);
-          break;
-      }
-      // ... otherwise skip past it
-    } else {
-      switch (sub_model_type) {
-        case SUB_MODEL_PDFITE :
-          sub_model_data = (int*) sub_model_PDFiTE_skip((void*) sub_model_data);
-          break;
-        case SUB_MODEL_UNIFAC :
-          sub_model_data = (int*) sub_model_UNIFAC_skip((void*) sub_model_data);
-          break;
-        case SUB_MODEL_ZSR_AEROSOL_WATER :
-          sub_model_data = (int*) sub_model_ZSR_aerosol_water_skip(
-                    (void*) sub_model_data);
+          sub_model_ZSR_aerosol_water_get_parameter_id(
+              sub_model_int_data, sub_model_float_data, identifiers, &parameter_id);
           break;
       }
     }
 
     // Check if the parameter was found
     if (parameter_id>=0) {
-      parameter_id += curr_id;
+      parameter_id += (sub_model_float_data - model_data->sub_model_float_data);
       return parameter_id;
-    // ... if not, advance the index to the next sub model
-    } else {
-      curr_id += (int) (sub_model_data - (int*) (model_data->sub_model_data));
     }
+
   }
   return -1;
 }
@@ -128,9 +111,9 @@ double sub_model_get_parameter_value_sd(void *solver_data, int parameter_id)
  */
 double sub_model_get_parameter_value(ModelData *model_data, int parameter_id)
 {
-  int *sub_model_data = (int*) (model_data->sub_model_data);
-  sub_model_data += parameter_id;
-  return *((double*) sub_model_data);
+  double *param = model_data->sub_model_float_data;
+  param += parameter_id;
+  return *param;
 }
 
 /** \brief Update sub model data for a new environmental state
@@ -141,29 +124,31 @@ void sub_model_update_env_state(ModelData *model_data, double *env)
 {
 
   // Get the number of sub models
-  int *sub_model_data = (int*) (model_data->sub_model_data);
-  int n_sub_model = *(sub_model_data++);
+  int n_sub_model = model_data->sub_model_int_data[0];
 
   // Loop through the sub models to update the environmental conditions
   // advancing the sub_model_data pointer each time
   for (int i_sub_model=0; i_sub_model<n_sub_model; i_sub_model++) {
 
+    int *sub_model_int_data = model_data->sub_model_int_ptrs[i_sub_model];
+    double *sub_model_float_data = model_data->sub_model_float_ptrs[i_sub_model];
+
     // Get the sub model type
-    int sub_model_type = *(sub_model_data++);
+    int sub_model_type = *(sub_model_int_data++);
 
     // Call the appropriate function
     switch (sub_model_type) {
       case SUB_MODEL_PDFITE :
-        sub_model_data = (int*) sub_model_PDFiTE_update_env_state(
-                  (void*) sub_model_data, env);
+        sub_model_PDFiTE_update_env_state(
+                  sub_model_int_data, sub_model_float_data, env);
         break;
       case SUB_MODEL_UNIFAC :
-        sub_model_data = (int*) sub_model_UNIFAC_update_env_state(
-                  (void*) sub_model_data, env);
+        sub_model_UNIFAC_update_env_state(
+                  sub_model_int_data, sub_model_float_data, env);
         break;
       case SUB_MODEL_ZSR_AEROSOL_WATER :
-        sub_model_data = (int*) sub_model_ZSR_aerosol_water_update_env_state(
-                  (void*) sub_model_data, env);
+        sub_model_ZSR_aerosol_water_update_env_state(
+                  sub_model_int_data, sub_model_float_data, env);
         break;
     }
   }
@@ -176,29 +161,31 @@ void sub_model_calculate(ModelData *model_data)
 {
 
   // Get the number of sub models
-  int *sub_model_data = (int*) (model_data->sub_model_data);
-  int n_sub_model = *(sub_model_data++);
+  int n_sub_model = model_data->sub_model_int_data[0];
 
   // Loop through the sub models to trigger their calculation
   // advancing the sub_model_data pointer each time
   for (int i_sub_model=0; i_sub_model<n_sub_model; i_sub_model++) {
 
+    int *sub_model_int_data = model_data->sub_model_int_ptrs[i_sub_model];
+    double *sub_model_float_data = model_data->sub_model_float_ptrs[i_sub_model];
+
     // Get the sub model type
-    int sub_model_type = *(sub_model_data++);
+    int sub_model_type = *(sub_model_int_data++);
 
     // Call the appropriate function
     switch (sub_model_type) {
       case SUB_MODEL_PDFITE :
-        sub_model_data = (int*) sub_model_PDFiTE_calculate(
-                  (void*) sub_model_data, model_data);
+        sub_model_PDFiTE_calculate(
+                  sub_model_int_data, sub_model_float_data, model_data);
         break;
       case SUB_MODEL_UNIFAC :
-        sub_model_data = (int*) sub_model_UNIFAC_calculate(
-                  (void*) sub_model_data, model_data);
+        sub_model_UNIFAC_calculate(
+                  sub_model_int_data, sub_model_float_data, model_data);
         break;
       case SUB_MODEL_ZSR_AEROSOL_WATER :
-        sub_model_data = (int*) sub_model_ZSR_aerosol_water_calculate(
-                  (void*) sub_model_data, model_data);
+        sub_model_ZSR_aerosol_water_calculate(
+                  sub_model_int_data, sub_model_float_data, model_data);
         break;
     }
   }
@@ -219,21 +206,27 @@ void sub_model_add_condensed_data(int sub_model_type, int n_int_param,
 {
   ModelData *model_data =
           (ModelData*) &(((SolverData*)solver_data)->model_data);
-  int *sub_model_data = (int*) (model_data->nxt_sub_model);
+  int *sub_model_int_data      = model_data->nxt_sub_model_int;
+  double *sub_model_float_data = model_data->nxt_sub_model_float;
+
+  // Save the pointers to this sub model's data
+  model_data->sub_model_int_ptrs[model_data->n_added_sub_models] = sub_model_int_data;
+  model_data->sub_model_float_ptrs[model_data->n_added_sub_models] = sub_model_float_data;
+  ++(model_data->n_added_sub_models);
 
   // Add the sub model type
-  *(sub_model_data++) = sub_model_type;
+  *(sub_model_int_data++) = sub_model_type;
 
   // Add integer parameters
-  for (; n_int_param>0; n_int_param--) *(sub_model_data++) = *(int_param++);
+  for (; n_int_param>0; --n_int_param) *(sub_model_int_data++) = *(int_param++);
 
   // Add floating-point parameters
-  double *flt_ptr = (double*) sub_model_data;
-  for (; n_float_param>0; n_float_param--)
-          *(flt_ptr++) = (double) *(float_param++);
+  for (; n_float_param>0; --n_float_param)
+          *(sub_model_float_data++) = *(float_param++);
 
-  // Set the pointer for the next free space in sub_model_data
-  model_data->nxt_sub_model = (void*) flt_ptr;
+  // Set the pointers for the next free space in the sub model data arrays
+  model_data->nxt_sub_model_int   = sub_model_int_data;
+  model_data->nxt_sub_model_float = sub_model_float_data;
 }
 
 /** \brief Update sub-model data
@@ -254,45 +247,29 @@ void sub_model_update_data(int update_sub_model_type, void *update_data,
           (ModelData*) &(((SolverData*)solver_data)->model_data);
 
   // Get the number of sub models
-  int *sub_model_data = (int*) (model_data->sub_model_data);
-  int n_sub_model = *(sub_model_data++);
+  int n_sub_model = model_data->sub_model_int_data[0];
 
   // Loop through the sub models advancing the sub_model_data pointer each time
   for (int i_sub_model=0; i_sub_model<n_sub_model; i_sub_model++) {
 
+    int *sub_model_int_data = model_data->sub_model_int_ptrs[i_sub_model];
+    double *sub_model_float_data = model_data->sub_model_float_ptrs[i_sub_model];
+
     // Get the sub model type
-    int sub_model_type = *(sub_model_data++);
+    int sub_model_type = *(sub_model_int_data++);
 
     // Skip sub-models of other types
-    if (sub_model_type!=update_sub_model_type) {
-      switch (sub_model_type) {
-        case SUB_MODEL_PDFITE :
-          sub_model_data = (int*) sub_model_PDFiTE_skip((void*) sub_model_data);
-          break;
-        case SUB_MODEL_UNIFAC :
-          sub_model_data = (int*) sub_model_UNIFAC_skip((void*) sub_model_data);
-          break;
-        case SUB_MODEL_ZSR_AEROSOL_WATER :
-          sub_model_data = (int*) sub_model_ZSR_aerosol_water_skip(
-                    (void*) sub_model_data);
-          break;
-      }
+    if (sub_model_type!=update_sub_model_type) continue;
 
     // ... otherwise, call the update function for sub-model types that have
     // then
-    } else {
-      switch (sub_model_type) {
-        case SUB_MODEL_PDFITE :
-          sub_model_data = (int*) sub_model_PDFiTE_skip((void*) sub_model_data);
-          break;
-        case SUB_MODEL_UNIFAC :
-          sub_model_data = (int*) sub_model_UNIFAC_skip((void*) sub_model_data);
-          break;
-        case SUB_MODEL_ZSR_AEROSOL_WATER :
-          sub_model_data = (int*) sub_model_ZSR_aerosol_water_skip(
-                    (void*) sub_model_data);
-          break;
-      }
+    switch (sub_model_type) {
+      case SUB_MODEL_PDFITE :
+        break;
+      case SUB_MODEL_UNIFAC :
+        break;
+      case SUB_MODEL_ZSR_AEROSOL_WATER :
+        break;
     }
   }
 }
@@ -306,27 +283,31 @@ void sub_model_print_data(void *solver_data)
           &(((SolverData*)solver_data)->model_data);
 
   // Get the number of sub models
-  int *sub_model_data = (int*) (model_data->sub_model_data);
-  int n_sub_model = *(sub_model_data++);
+  int n_sub_model = model_data->sub_model_int_data[0];
 
   // Loop through the sub models to print their data
   // advancing the sub_model_data pointer each time
   for (int i_sub_model=0; i_sub_model<n_sub_model; i_sub_model++) {
 
+    int *sub_model_int_data = model_data->sub_model_int_ptrs[i_sub_model];
+    double *sub_model_float_data = model_data->sub_model_float_ptrs[i_sub_model];
+
     // Get the sub model type
-    int sub_model_type = *(sub_model_data++);
+    int sub_model_type = *(sub_model_int_data++);
 
     // Call the appropriate function
     switch (sub_model_type) {
       case SUB_MODEL_PDFITE :
-        sub_model_data = (int*) sub_model_PDFiTE_print((void*) sub_model_data);
+        sub_model_PDFiTE_print(sub_model_int_data,
+            sub_model_float_data);
         break;
       case SUB_MODEL_UNIFAC :
-        sub_model_data = (int*) sub_model_UNIFAC_print((void*) sub_model_data);
+        sub_model_UNIFAC_print(sub_model_int_data,
+            sub_model_float_data);
         break;
       case SUB_MODEL_ZSR_AEROSOL_WATER :
-        sub_model_data = (int*) sub_model_ZSR_aerosol_water_print(
-                  (void*) sub_model_data);
+        sub_model_ZSR_aerosol_water_print(
+                  sub_model_int_data, sub_model_float_data);
         break;
     }
   }

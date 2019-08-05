@@ -58,9 +58,19 @@ typedef struct {
   void *aero_rep_data;	// Pointer to aerosol representation parameters
   void *nxt_aero_rep;	// Pointer to element of aero_rep_data in which to store
   			// the next set of aerosol representation data
-  void *sub_model_data; // Pointer to the sub model parameters
-  void *nxt_sub_model;  // Pointer to the element of sub_model_data in which to
-                        // store the next set of sub model data
+  int n_added_sub_models;  // The number of sub models whose data has been
+                           // added to the sub model data arrays
+  int *sub_model_int_data; // Pointer to sub model integer parameters
+  double
+      *sub_model_float_data;   // Pointer to sub model floating-point parameters
+  int *nxt_sub_model_int;      // Pointer to the next available integer in
+                               // sub_model_int_data
+  double *nxt_sub_model_float; // Pointer to the next available floating-point
+                               // number in sub_model_float_data
+  int **sub_model_int_ptrs;    // Array of pointers to integer data for each
+                               // sub model
+  double **sub_model_float_ptrs; // Array of pointers to floating-point data for
+                                 // each sub model
 } ModelData;
 
 /* Solver data structure */

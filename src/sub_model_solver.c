@@ -19,6 +19,81 @@
 #define SUB_MODEL_ZSR_AEROSOL_WATER 2
 #define SUB_MODEL_PDFITE 3
 
+/** \brief Get the Jacobian elements used by a particular sub model
+ *
+ * \param model_data A pointer to the model data
+ * \param jac_struct A 2D array of flags indicating which Jacobian elements
+ *                   may be used
+ */
+void sub_model_get_used_jac_elem(ModelData *model_data, bool **jac_struct)
+{
+
+  // Get the number of sub models
+  int n_sub_model = model_data->sub_model_int_data[0];
+
+  // Loop through the sub models and get their Jacobian elements
+  for (int i_sub_model=0; i_sub_model<n_sub_model; i_sub_model++) {
+
+    int *sub_model_int_data = model_data->sub_model_int_ptrs[i_sub_model];
+    double *sub_model_float_data = model_data->sub_model_float_ptrs[i_sub_model];
+
+    // Get the sub model type
+    int sub_model_type = *(sub_model_int_data++);
+
+    switch (sub_model_type) {
+      case SUB_MODEL_PDFITE :
+        sub_model_PDFiTE_get_used_jac_elem(
+            sub_model_int_data, sub_model_float_data, jac_struct);
+        break;
+      case SUB_MODEL_UNIFAC :
+        sub_model_UNIFAC_get_used_jac_elem(
+            sub_model_int_data, sub_model_float_data, jac_struct);
+        break;
+      case SUB_MODEL_ZSR_AEROSOL_WATER :
+        sub_model_ZSR_aerosol_water_get_used_jac_elem(
+            sub_model_int_data, sub_model_float_data, jac_struct);
+        break;
+    }
+  }
+}
+
+/** \brief Update the time derivative and Jacobian array ids
+ *
+ * \param model_data Pointer to the model data
+ * \param deriv_ids Ids for state variables on the time derivative array
+ * \param jac_ids Ids for the state variables on the Jacobian array
+ */
+void sub_model_update_ids(ModelData *model_data, int *deriv_ids, int **jac_ids)
+{
+
+  // Get the number of sub models
+  int n_sub_model = model_data->sub_model_int_data[0];
+
+  // Loop through the sub models and get their Jacobian elements
+  for (int i_sub_model=0; i_sub_model<n_sub_model; i_sub_model++) {
+
+    int *sub_model_int_data = model_data->sub_model_int_ptrs[i_sub_model];
+    double *sub_model_float_data = model_data->sub_model_float_ptrs[i_sub_model];
+
+    // Get the sub model type
+    int sub_model_type = *(sub_model_int_data++);
+
+    switch (sub_model_type) {
+      case SUB_MODEL_PDFITE :
+        sub_model_PDFiTE_update_ids(
+            sub_model_int_data, sub_model_float_data, deriv_ids, jac_ids);
+        break;
+      case SUB_MODEL_UNIFAC :
+        sub_model_UNIFAC_update_ids(
+            sub_model_int_data, sub_model_float_data, deriv_ids, jac_ids);
+        break;
+      case SUB_MODEL_ZSR_AEROSOL_WATER :
+        sub_model_ZSR_aerosol_water_update_ids(
+            sub_model_int_data, sub_model_float_data, deriv_ids, jac_ids);
+        break;
+    }
+  }
+}
 
 /** \brief Get a pointer to a calcualted sub model parameter
  * \param solver_data Pointer to the solver data

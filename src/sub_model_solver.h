@@ -15,6 +15,8 @@
 /** Public sub model functions **/
 
 /* Solver functions */
+void sub_model_get_used_jac_elem(ModelData *model_data, bool **jac_struct);
+void sub_model_update_ids(ModelData *model_data, int *deriv_ids, int **jac_ids);
 void sub_model_update_env_state(ModelData *model_data, double *env);
 int sub_model_get_parameter_id(ModelData *model_data, int type,
           void *identifiers);

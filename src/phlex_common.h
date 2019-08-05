@@ -38,39 +38,40 @@ typedef enum {false, true} bool;
 
 /* Model data structure */
 typedef struct {
-  int n_state_var;	// number of state variables (>=NV_LENGTH_S(y))
-  double *abs_tol;      // pointer to array of state variable absolute
-                        // integration tolerances
-  int *var_type;	// pointer to array of state variable types (solver,
-                        // constant, PSSA)
+  int n_state_var;	        // number of state variables (>=NV_LENGTH_S(y))
+  double *abs_tol;              // pointer to array of state variable absolute
+                                // integration tolerances
+  int *var_type;	        // pointer to array of state variable types (solver,
+                                // constant, PSSA)
 #ifdef PMC_USE_SUNDIALS
-  SUNMatrix J_init;	// sparse Jacobian matrix with used elements
-                        // initialized to 1.0
+  SUNMatrix J_init;	        // sparse Jacobian matrix with used elements
+                                // initialized to 1.0
+  SUNMatrix J_params;           // Matrix for Jacobian contributions from sub model
+                                // parameter calculations
 #endif
-  double *state;	// Pointer to the state array
-  double *env;		// Pointer to the environmental state array
-  void *rxn_data;	// Pointer to reaction parameters
-  void *nxt_rxn;	// Pointer to element of rxn_data in which to store next
- 			// set of reaction data
-  void *aero_phase_data;// Pointer to aerosol phase parameters
-  void *nxt_aero_phase; // Pointer to element of aero_phase_data in which to store
-                        // the next set of aerosol phase data
-  void *aero_rep_data;	// Pointer to aerosol representation parameters
-  void *nxt_aero_rep;	// Pointer to element of aero_rep_data in which to store
-  			// the next set of aerosol representation data
-  int n_added_sub_models;  // The number of sub models whose data has been
-                           // added to the sub model data arrays
-  int *sub_model_int_data; // Pointer to sub model integer parameters
-  double
-      *sub_model_float_data;   // Pointer to sub model floating-point parameters
-  int *nxt_sub_model_int;      // Pointer to the next available integer in
-                               // sub_model_int_data
-  double *nxt_sub_model_float; // Pointer to the next available floating-point
-                               // number in sub_model_float_data
-  int **sub_model_int_ptrs;    // Array of pointers to integer data for each
-                               // sub model
-  double **sub_model_float_ptrs; // Array of pointers to floating-point data for
-                                 // each sub model
+   double *state;	        // Pointer to the state array
+   double *env;		        // Pointer to the environmental state array
+   void *rxn_data;	        // Pointer to reaction parameters
+   void *nxt_rxn;	        // Pointer to element of rxn_data in which to store
+  			        // next set of reaction data
+   void *aero_phase_data;       // Pointer to aerosol phase parameters
+   void *nxt_aero_phase;        // Pointer to element of aero_phase_data in which
+                                // to store the next set of aerosol phase data
+   void *aero_rep_data;	        // Pointer to aerosol representation parameters
+   void *nxt_aero_rep;	        // Pointer to element of aero_rep_data in which to
+   			        // store the next set of aerosol representation data
+   int n_added_sub_models;      // The number of sub models whose data has been
+                                // added to the sub model data arrays
+   int *sub_model_int_data;     // Pointer to sub model integer parameters
+   double *sub_model_float_data;// Pointer to sub model floating-point parameters
+   int *nxt_sub_model_int;      // Pointer to the next available integer in
+                                // sub_model_int_data
+   double *nxt_sub_model_float; // Pointer to the next available floating-point
+                                // number in sub_model_float_data
+   int **sub_model_int_ptrs;    // Array of pointers to integer data for each
+                                // sub model
+   double **sub_model_float_ptrs; // Array of pointers to floating-point data for
+                                  // each sub model
 } ModelData;
 
 /* Solver data structure */

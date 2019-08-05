@@ -50,12 +50,12 @@
  *
  * activity sub models are assumed to be at equilibrium
  *
- * \param sub_model_data A pointer to the sub model data
- * \param jac_row 2D array of flags indicating potentially non-zero
- *                   Jacobian elements
+ * \param sub_model_int_data Pointer to the sub model integer data
+ * \param sub_model_float_data Pointer to the sub model floating-point data
+ * \param jac_struct A matrix of flags for needed Jac elements
  */
 void sub_model_PDFiTE_get_used_jac_elem(int *sub_model_int_data,
-    double *sub_model_float_data, bool *jac_row)
+    double *sub_model_float_data, bool **jac_struct)
 {
   int *int_data = sub_model_int_data;
   double *float_data = sub_model_float_data;
@@ -65,11 +65,13 @@ void sub_model_PDFiTE_get_used_jac_elem(int *sub_model_int_data,
  *
  * activity sub models are assumed to be at equilibrium
  *
- * \param sub_model_data Pointer to the sub model data
- * \param jac_row An array of new ids for one row of the Jacobian
+ * \param sub_model_int_data Pointer to the sub model integer data
+ * \param sub_model_float_data Pointer to the sub model floating-point data
+ * \param deriv_ids Indices for state array variables on the solver state array
+ * \param jac_ids Indices for Jacobian elements in the sparse data array
  */
 void sub_model_PDFiTE_update_ids(int *sub_model_int_data,
-    double *sub_model_float_data, int *jac_row)
+    double *sub_model_float_data, int *deriv_ids, int **jac_ids)
 {
   int *int_data = sub_model_int_data;
   double *float_data = sub_model_float_data;
@@ -77,7 +79,8 @@ void sub_model_PDFiTE_update_ids(int *sub_model_int_data,
 
 /** \brief Get the id of a parameter in the condensed data block
  *
- * \param sub_model_data Pointer to the sub-model data
+ * \param sub_model_int_data Pointer to the sub model integer data
+ * \param sub_model_float_data Pointer to the sub model floating-point data
  * \param identifiers For the PDFiTE model, the identifer is the index of the
  *                    ion pair for which the activity coefficient is needed
  *                    ( id = i_phase*num_ion_pair+i_ion_pair )
@@ -93,7 +96,8 @@ void sub_model_PDFiTE_get_parameter_id(int *sub_model_int_data,
 
 /** \brief Update sub model data for new environmental conditions
  *
- * \param sub_model_data Pointer to the sub model data
+ * \param sub_model_int_data Pointer to the sub model integer data
+ * \param sub_model_float_data Pointer to the sub model floating-point data
  * \param env_data Pointer to the environmental state array
  */
 void sub_model_PDFiTE_update_env_state(int *sub_model_int_data,
@@ -116,7 +120,8 @@ void sub_model_PDFiTE_update_env_state(int *sub_model_int_data,
 
 /** \brief Perform the sub-model calculations for the current model state
  *
- * \param sub_model_data Pointer to the sub-model data
+ * \param sub_model_int_data Pointer to the sub model integer data
+ * \param sub_model_float_data Pointer to the sub model floating-point data
  * \param model_data Pointer to the model data including the current state and
  *                   environmental conditions
  */
@@ -237,7 +242,8 @@ void sub_model_PDFiTE_calculate(int *sub_model_int_data,
 // TODO finish adding J contributions
 /** \brief Add contributions to the Jacobian from derivates calculated using the output of this sub model
  *
- * \param sub_model_data Pointer to the sub-model data
+ * \param sub_model_int_data Pointer to the sub model integer data
+ * \param sub_model_float_data Pointer to the sub model floating-point data
  * \param jac_row Pointer to the Jacobian row to modify
  */
 void sub_model_PDFiTE_get_jac_contrib(int *sub_model_int_data,
@@ -249,7 +255,8 @@ void sub_model_PDFiTE_get_jac_contrib(int *sub_model_int_data,
 
 /** \brief Print the PDFiTE Activity sub model parameters
  *
- * \param sub_model_data Pointer to the sub model data
+ * \param sub_model_int_data Pointer to the sub model integer data
+ * \param sub_model_float_data Pointer to the sub model floating-point data
  */
 void sub_model_PDFiTE_print(int *sub_model_int_data,
     double *sub_model_float_data)

@@ -14,9 +14,11 @@
 // PD-FiTE activity
 void sub_model_PDFiTE_get_used_jac_elem(int *sub_model_int_data,
                                         double *sub_model_float_data,
-                                        bool *jac_row);
+                                        bool **jac_struct);
 void sub_model_PDFiTE_update_ids(int *sub_model_int_data,
-                                 double *sub_model_float_data, int *jac_row);
+                                 double *sub_model_float_data,
+                                 int *deriv_ids,
+                                 int **jac_ids);
 void sub_model_PDFiTE_update_env_state(int *sub_model_int_data,
                                        double *sub_model_float_data,
                                        double *env_data);
@@ -35,9 +37,11 @@ void sub_model_PDFiTE_print(int *sub_model_int_data,
 // UNIFAC
 void sub_model_UNIFAC_get_used_jac_elem(int *sub_model_int_data,
                                         double *sub_model_float_data,
-                                        bool *jac_row);
+                                        bool **jac_struct);
 void sub_model_UNIFAC_update_ids(int *sub_model_int_data,
-                                 double *sub_model_float_data, int *jac_row);
+                                 double *sub_model_float_data,
+                                 int *deriv_ids,
+                                 int **jac_ids);
 void sub_model_UNIFAC_get_parameter_id(int *sub_model_int_data,
                                        double *sub_model_float_data,
                                        void *identifiers, int *parameter_id);
@@ -56,10 +60,11 @@ void sub_model_UNIFAC_print(int *sub_model_int_data,
 // ZSR_aerosol_water
 void sub_model_ZSR_aerosol_water_get_used_jac_elem(int *sub_model_int_data,
                                                    double *sub_model_float_data,
-                                                   bool *jac_row);
+                                                   bool **jac_struct);
 void sub_model_ZSR_aerosol_water_update_ids(int *sub_model_int_data,
                                             double *sub_model_float_data,
-                                            int *jac_row);
+                                            int *deriv_ids,
+                                            int **jac_ids);
 void sub_model_ZSR_aerosol_water_get_parameter_id(int *sub_model_int_data,
                                                   double *sub_model_float_data,
                                                   void *identifiers,

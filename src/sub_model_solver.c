@@ -266,6 +266,44 @@ void sub_model_calculate(ModelData *model_data)
   }
 }
 
+/** \brief Calculate the Jacobian constributions from sub model calculations
+ *
+ * \param mode_data Pointer to the model data
+ */
+void sub_model_get_jac_contrib(ModelData *model_data)
+{
+
+  // Get the number of sub models
+  int n_sub_model = model_data->sub_model_int_data[0];
+
+  // Loop through the sub models to trigger their Jacobian calculation
+  // advancing the sub_model_data pointer each time
+  for (int i_sub_model=0; i_sub_model<n_sub_model; i_sub_model++) {
+
+    int *sub_model_int_data = model_data->sub_model_int_ptrs[i_sub_model];
+    double *sub_model_float_data = model_data->sub_model_float_ptrs[i_sub_model];
+
+    // Get the sub model type
+    int sub_model_type = *(sub_model_int_data++);
+
+    // Call the appropriate function
+    switch (sub_model_type) {
+      case SUB_MODEL_PDFITE :
+        sub_model_PDFiTE_get_jac_contrib(
+                  sub_model_int_data, sub_model_float_data, model_data);
+        break;
+      case SUB_MODEL_UNIFAC :
+        sub_model_UNIFAC_get_jac_contrib(
+                  sub_model_int_data, sub_model_float_data, model_data);
+        break;
+      case SUB_MODEL_ZSR_AEROSOL_WATER :
+        sub_model_ZSR_aerosol_water_get_jac_contrib(
+                  sub_model_int_data, sub_model_float_data, model_data);
+        break;
+    }
+  }
+}
+
 /** \brief Add condensed data to the condensed data block for sub models
  *
  * \param sub_model_type Sub model type

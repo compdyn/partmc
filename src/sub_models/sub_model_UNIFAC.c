@@ -283,10 +283,10 @@ void sub_model_UNIFAC_calculate(int *sub_model_int_data,
  *
  * \param sub_model_int_data Pointer to the sub model integer data
  * \param sub_model_float_data Pointer to the sub model floating-point data
- * \param jac_row Pointer to the Jacobian row to modify
+ * \param model_data Pointer to the model data
  */
 void sub_model_UNIFAC_get_jac_contrib(int *sub_model_int_data,
-    double *sub_model_float_data, double *jac_row)
+    double *sub_model_float_data, ModelData *model_data)
 {
   int *int_data = sub_model_int_data;
   double *float_data = sub_model_float_data;

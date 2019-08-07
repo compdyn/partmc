@@ -727,7 +727,12 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
     }
   }
 
-  // Reset the Jacobian
+  // Reset the sub-model Jacobian
+  SUNMatZero(md->J_params);
+
+  // Reset the primary Jacobian
+  /// \todo #83 Figure out how to stop CVODE from resizing the Jacobian
+  ///       during solving
   SM_NNZ_S(J) = SM_NNZ_S(md->J_init);
   for (int i=0; i<SM_NNZ_S(J); i++) {
     (SM_DATA_S(J))[i] = (realtype)0.0;
@@ -737,15 +742,15 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
     (SM_INDEXPTRS_S(J))[i] = (SM_INDEXPTRS_S(md->J_init))[i];
   }
 
+  // Get the current integrator time step (s)
+  CVodeGetCurrentStep(sd->cvode_mem, &time_step);
 
   // Update the aerosol representations
   aero_rep_update_state(md);
 
   // Run the sub models
   sub_model_calculate(md);
-
-  // Get the current integrator time step (s)
-  CVodeGetCurrentStep(sd->cvode_mem, &time_step);
+  sub_model_get_jac_contrib(md);
 
   // Calculate the Jacobian
   rxn_calc_jac(md, J, time_step);

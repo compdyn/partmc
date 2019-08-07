@@ -88,7 +88,7 @@ void sub_model_ZSR_aerosol_water_get_used_jac_elem(int *sub_model_int_data,
 	// Jacobson et al. (1996)
 	case ACT_TYPE_JACOBSON :
 
-          // Save the ion pair Jacobian elements
+          // Flag the anion and cation Jacobian elements
           jac_struct[PHASE_ID_(i_phase)]
                     [PHASE_ID_(i_phase)+JACOB_CATION_ID_(i_ion_pair)] = true;
           jac_struct[PHASE_ID_(i_phase)]
@@ -98,6 +98,7 @@ void sub_model_ZSR_aerosol_water_get_used_jac_elem(int *sub_model_int_data,
 	// EQSAM (Metger et al., 2002)
 	case ACT_TYPE_EQSAM :
 
+          // Flag the ion Jacobian elements
 	  for (int i_ion=0; i_ion<EQSAM_NUM_ION_(i_ion_pair); i_ion++) {
             jac_struct[PHASE_ID_(i_phase)]
                       [PHASE_ID_(i_phase)+
@@ -123,6 +124,50 @@ void sub_model_ZSR_aerosol_water_update_ids(int *sub_model_int_data,
 {
   int *int_data = sub_model_int_data;
   double *float_data = sub_model_float_data;
+
+  // Loop through the dependent species - aerosol water and set all Jacobian
+  // elements for each
+  for (int i_phase=0; i_phase < NUM_PHASE_; ++i_phase) {
+
+    // Flag elements for each ion pair
+    for (int i_ion_pair=0; i_ion_pair<NUM_ION_PAIR_; ++i_ion_pair) {
+
+      // Flag aerosol elements by calculation type
+      switch (TYPE_(i_ion_pair)) {
+
+	// Jacobson et al. (1996)
+	case ACT_TYPE_JACOBSON :
+
+          // Save the gas-phase water species
+          JACOB_GAS_WATER_JAC_ID_(i_phase,i_ion_pair) =
+              jac_ids[PHASE_ID_(i_phase)][GAS_WATER_ID_];
+
+          // Save the cation and anion Jacobian elements
+          JACOB_CATION_JAC_ID_(i_phase,i_ion_pair) =
+              jac_ids[PHASE_ID_(i_phase)]
+                     [PHASE_ID_(i_phase)+JACOB_CATION_ID_(i_ion_pair)];
+          JACOB_ANION_JAC_ID_(i_phase,i_ion_pair) =
+              jac_ids[PHASE_ID_(i_phase)]
+                     [PHASE_ID_(i_phase)+JACOB_ANION_ID_(i_ion_pair)];
+          break;
+
+	// EQSAM (Metger et al., 2002)
+	case ACT_TYPE_EQSAM :
+
+          // Save the gas-phase water species
+          EQSAM_GAS_WATER_JAC_ID_(i_phase,i_ion_pair) =
+              jac_ids[PHASE_ID_(i_phase)][GAS_WATER_ID_];
+
+          // Save the ion Jacobian elements
+	  for (int i_ion=0; i_ion<EQSAM_NUM_ION_(i_ion_pair); i_ion++) {
+            EQSAM_ION_JAC_ID_(i_phase,i_ion_pair,i_ion) =
+                jac_ids[PHASE_ID_(i_phase)]
+                       [PHASE_ID_(i_phase)+EQSAM_ION_ID_(i_ion_pair,i_ion)];
+          }
+          break;
+      }
+    }
+  }
 }
 
 /** \brief Get the id of a parameter in the condensed data block

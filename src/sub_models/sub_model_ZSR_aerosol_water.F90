@@ -172,7 +172,7 @@ module pmc_sub_model_ZSR_aerosol_water
 #define PPM_TO_RH_ this%condensed_data_real(1)
 #define NUM_INT_PROP_ 5
 #define NUM_REAL_PROP_ 1
-#define PHASE_ID_(x) this%condensed_data_int(NUM_INT_PROP_+x)
+#define PHASE_ID_(p) this%condensed_data_int(NUM_INT_PROP_+p)
 #define PAIR_INT_PARAM_LOC_(x) this%condensed_data_int(NUM_INT_PROP_+NUM_PHASE_+x)
 #define PAIR_FLOAT_PARAM_LOC_(x) this%condensed_data_int(NUM_INT_PROP_+NUM_PHASE_+NUM_ION_PAIR_+x)
 #define TYPE_(x) this%condensed_data_int(PAIR_INT_PARAM_LOC_(x))
@@ -181,11 +181,13 @@ module pmc_sub_model_ZSR_aerosol_water
 #define JACOB_CATION_ID_(x) this%condensed_data_int(PAIR_INT_PARAM_LOC_(x)+3)
 #define JACOB_ANION_ID_(x) this%condensed_data_int(PAIR_INT_PARAM_LOC_(x)+4)
 #define JACOB_NUM_Y_(x) this%condensed_data_int(PAIR_INT_PARAM_LOC_(x)+5)
-#define JACOB_CATION_JAC_ID_(x) this%condensed_data_int(PAIR_INT_PARAM_LOC_(x)+6)
-#define JACOB_ANION_JAC_ID_(x) this%condensed_data_int(PAIR_INT_PARAM_LOC_(x)+7)
+#define JACOB_GAS_WATER_JAC_ID_(p,x) this%condensed_data_int(PAIR_INT_PARAM_LOC_(x)+5+p)
+#define JACOB_CATION_JAC_ID_(p,x) this%condensed_data_int(PAIR_INT_PARAM_LOC_(x)+5+NUM_PHASE_+p)
+#define JACOB_ANION_JAC_ID_(p,x) this%condensed_data_int(PAIR_INT_PARAM_LOC_(x)+5+2*NUM_PHASE_+p)
 #define EQSAM_NUM_ION_(x) this%condensed_data_int(PAIR_INT_PARAM_LOC_(x)+1)
-#define EQSAM_ION_ID_(x,y) this%condensed_data_int(PAIR_INT_PARAM_LOC_(x)+1+y)
-#define EQSAM_ION_JAC_ID_(x,y) this%condensed_data_int(PAIR_INT_PARAM_LOC_(x)+EQSAM_NUM_ION_(x)+1+y)
+#define EQSAM_GAS_WATER_JAC_ID_(p,x) this%condensed_data_int(PAIR_INT_PARAM_LOC_(x)+1+p)
+#define EQSAM_ION_ID_(x,y) this%condensed_data_int(PAIR_INT_PARAM_LOC_(x)+1+NUM_PHASE_+y)
+#define EQSAM_ION_JAC_ID_(p,x,y) this%condensed_data_int(PAIR_INT_PARAM_LOC_(x)+1+NUM_PHASE_+EQSAM_NUM_ION_(x)+(y-1)*NUM_PHASE_+p)
 #define JACOB_low_RH_(x) this%condensed_data_real(PAIR_FLOAT_PARAM_LOC_(x))
 #define JACOB_CATION_MW_(x) this%condensed_data_real(PAIR_FLOAT_PARAM_LOC_(x)+1)
 #define JACOB_ANION_MW_(x) this%condensed_data_real(PAIR_FLOAT_PARAM_LOC_(x)+2)
@@ -323,7 +325,7 @@ contains
                 "ZSR aerosol water reaction.")
 
         n_float_param = n_float_param + 3 + sub_props%size()
-        n_int_param = n_int_param + 8
+        n_int_param = n_int_param + 6 + 3*n_phase
 
       else if (str_type.eq."EQSAM") then
 
@@ -341,7 +343,7 @@ contains
                 "' in ZSR aerosol water reaction.")
 
         n_float_param = n_float_param + 3 + sub_props%size()
-        n_int_param = n_int_param + 2 + 2*sub_props%size()
+        n_int_param = n_int_param + 2 + (2+n_phase)*sub_props%size()
 
       else
         call die_msg(704759248, "Invalid activity type specified for ZSR "// &
@@ -566,7 +568,7 @@ contains
                 trim(to_string(total_charge)))
 
         n_float_param = n_float_param + 3 + JACOB_NUM_Y_(i_ion_pair)
-        n_int_param = n_int_param + 8
+        n_int_param = n_int_param + 6 + 3*n_phase
 
       else if (str_type.eq."EQSAM") then
 
@@ -651,7 +653,7 @@ contains
         end do
 
         n_float_param = n_float_param + 3 + EQSAM_NUM_ION_(i_ion_pair)
-        n_int_param = n_int_param + 2 + 2*EQSAM_NUM_ION_(i_ion_pair)
+        n_int_param = n_int_param + 2 + (2+NUM_PHASE_)*EQSAM_NUM_ION_(i_ion_pair)
 
       else
         call die_msg(186680407, "Internal error.")

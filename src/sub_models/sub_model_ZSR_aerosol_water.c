@@ -30,7 +30,7 @@
 #define PPM_TO_RH_ (float_data[0])
 #define NUM_INT_PROP_ 5
 #define NUM_REAL_PROP_ 1
-#define PHASE_ID_(x) (int_data[NUM_INT_PROP_+x]-1)
+#define PHASE_ID_(p) (int_data[NUM_INT_PROP_+p]-1)
 #define PAIR_INT_PARAM_LOC_(x) (int_data[NUM_INT_PROP_+NUM_PHASE_+x]-1)
 #define PAIR_FLOAT_PARAM_LOC_(x) (int_data[NUM_INT_PROP_+NUM_PHASE_+NUM_ION_PAIR_+x]-1)
 #define TYPE_(x) (int_data[PAIR_INT_PARAM_LOC_(x)])
@@ -39,11 +39,13 @@
 #define JACOB_CATION_ID_(x) (int_data[PAIR_INT_PARAM_LOC_(x)+3])
 #define JACOB_ANION_ID_(x) (int_data[PAIR_INT_PARAM_LOC_(x)+4])
 #define JACOB_NUM_Y_(x) (int_data[PAIR_INT_PARAM_LOC_(x)+5])
-#define JACOB_CATION_JAC_ID_(x) int_data[PAIR_INT_PARAM_LOC_(x)+6]
-#define JACOB_ANION_JAC_ID_(x) int_data[PAIR_INT_PARAM_LOC_(x)+7]
+#define JACOB_GAS_WATER_JAC_ID_(p,x) int_data[PAIR_INT_PARAM_LOC_(x)+6+p]
+#define JACOB_CATION_JAC_ID_(p,x) int_data[PAIR_INT_PARAM_LOC_(x)+6+NUM_PHASE_+p]
+#define JACOB_ANION_JAC_ID_(p,x) int_data[PAIR_INT_PARAM_LOC_(x)+6+2*NUM_PHASE_+p]
 #define EQSAM_NUM_ION_(x) (int_data[PAIR_INT_PARAM_LOC_(x)+1])
-#define EQSAM_ION_ID_(x,y) (int_data[PAIR_INT_PARAM_LOC_(x)+2+y])
-#define EQSAM_ION_JAC_ID_(x,y) int_data[PAIR_INT_PARAM_LOC_(x)+EQSAM_NUM_ION_(x)+2+y]
+#define EQSAM_GAS_WATER_JAC_ID_(p,x) (int_data[PAIR_INT_PARAM_LOC_(x)+2+p])
+#define EQSAM_ION_ID_(x,y) (int_data[PAIR_INT_PARAM_LOC_(x)+2+NUM_PHASE_+y])
+#define EQSAM_ION_JAC_ID_(p,x,y) int_data[PAIR_INT_PARAM_LOC_(x)+2+NUM_PHASE_+EQSAM_NUM_ION_(x)+y*NUM_PHASE_+p]
 #define JACOB_low_RH_(x) (float_data[PAIR_FLOAT_PARAM_LOC_(x)])
 #define JACOB_CATION_MW_(x) (float_data[PAIR_FLOAT_PARAM_LOC_(x)+1])
 #define JACOB_ANION_MW_(x) (float_data[PAIR_FLOAT_PARAM_LOC_(x)+2])
@@ -69,6 +71,42 @@ void sub_model_ZSR_aerosol_water_get_used_jac_elem(int *sub_model_int_data,
 {
   int *int_data = sub_model_int_data;
   double *float_data = sub_model_float_data;
+
+  // Loop through the dependent species - aerosol water and set all Jacobian
+  // elements for each
+  for (int i_phase=0; i_phase < NUM_PHASE_; ++i_phase) {
+
+    // Flag the gas-phase water species
+    jac_struct[PHASE_ID_(i_phase)][GAS_WATER_ID_] = true;
+
+    // Flag elements for each ion pair
+    for (int i_ion_pair=0; i_ion_pair<NUM_ION_PAIR_; ++i_ion_pair) {
+
+      // Flag aerosol elements by calculation type
+      switch (TYPE_(i_ion_pair)) {
+
+	// Jacobson et al. (1996)
+	case ACT_TYPE_JACOBSON :
+
+          // Save the ion pair Jacobian elements
+          jac_struct[PHASE_ID_(i_phase)]
+                    [PHASE_ID_(i_phase)+JACOB_CATION_ID_(i_ion_pair)] = true;
+          jac_struct[PHASE_ID_(i_phase)]
+                    [PHASE_ID_(i_phase)+JACOB_ANION_ID_(i_ion_pair)] = true;
+          break;
+
+	// EQSAM (Metger et al., 2002)
+	case ACT_TYPE_EQSAM :
+
+	  for (int i_ion=0; i_ion<EQSAM_NUM_ION_(i_ion_pair); i_ion++) {
+            jac_struct[PHASE_ID_(i_phase)]
+                      [PHASE_ID_(i_phase)+
+                          EQSAM_ION_ID_(i_ion_pair,i_ion)] = true;
+          }
+          break;
+      }
+    }
+  }
 }
 
 /** \brief Update the time derivative and Jacbobian array indices

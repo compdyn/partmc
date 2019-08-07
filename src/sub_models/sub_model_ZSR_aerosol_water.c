@@ -39,8 +39,11 @@
 #define JACOB_CATION_ID_(x) (int_data[PAIR_INT_PARAM_LOC_(x)+3])
 #define JACOB_ANION_ID_(x) (int_data[PAIR_INT_PARAM_LOC_(x)+4])
 #define JACOB_NUM_Y_(x) (int_data[PAIR_INT_PARAM_LOC_(x)+5])
+#define JACOB_CATION_JAC_ID_(x) int_data[PAIR_INT_PARAM_LOC_(x)+6]
+#define JACOB_ANION_JAC_ID_(x) int_data[PAIR_INT_PARAM_LOC_(x)+7]
 #define EQSAM_NUM_ION_(x) (int_data[PAIR_INT_PARAM_LOC_(x)+1])
 #define EQSAM_ION_ID_(x,y) (int_data[PAIR_INT_PARAM_LOC_(x)+2+y])
+#define EQSAM_ION_JAC_ID_(x,y) int_data[PAIR_INT_PARAM_LOC_(x)+EQSAM_NUM_ION_(x)+2+y]
 #define JACOB_low_RH_(x) (float_data[PAIR_FLOAT_PARAM_LOC_(x)])
 #define JACOB_CATION_MW_(x) (float_data[PAIR_FLOAT_PARAM_LOC_(x)+1])
 #define JACOB_ANION_MW_(x) (float_data[PAIR_FLOAT_PARAM_LOC_(x)+2])
@@ -243,39 +246,3 @@ void sub_model_ZSR_aerosol_water_print(int *sub_model_int_data,
   for (int i=0; i<FLOAT_DATA_SIZE_; i++)
     printf("  float param %d = %le\n", i, float_data[i]);
 }
-
-#undef TEMPERATURE_K_
-#undef PRESSURE_PA_
-
-#undef SMALL_NUMBER_
-
-#undef ACT_TYPE_JACOBSON
-#undef ACT_TYPE_EQSAM
-
-#undef NUM_PHASE_
-#undef GAS_WATER_ID_
-#undef NUM_ION_PAIR_
-#undef INT_DATA_SIZE_
-#undef FLOAT_DATA_SIZE_
-#undef PPM_TO_RH_
-#undef NUM_INT_PROP_
-#undef NUM_REAL_PROP_
-#undef PHASE_ID_
-#undef PAIR_INT_PARAM_LOC_
-#undef PAIR_FLOAT_PARAM_LOC_
-#undef TYPE_
-#undef JACOB_NUM_CATION_
-#undef JACOB_NUM_ANION_
-#undef JACOB_CATION_ID_
-#undef JACOB_ANION_ID_
-#undef JACOB_NUM_Y_
-#undef EQSAM_NUM_ION_
-#undef EQSAM_ION_ID_
-#undef JACOB_low_RH_
-#undef JACOB_CATION_MW_
-#undef JACOB_ANION_MW_
-#undef JACOB_Y_
-#undef EQSAM_NW_
-#undef EQSAM_ZW_
-#undef EQSAM_ION_PAIR_MW_
-#undef EQSAM_ION_MW_

@@ -181,8 +181,11 @@ module pmc_sub_model_ZSR_aerosol_water
 #define JACOB_CATION_ID_(x) this%condensed_data_int(PAIR_INT_PARAM_LOC_(x)+3)
 #define JACOB_ANION_ID_(x) this%condensed_data_int(PAIR_INT_PARAM_LOC_(x)+4)
 #define JACOB_NUM_Y_(x) this%condensed_data_int(PAIR_INT_PARAM_LOC_(x)+5)
+#define JACOB_CATION_JAC_ID_(x) this%condensed_data_int(PAIR_INT_PARAM_LOC_(x)+6)
+#define JACOB_ANION_JAC_ID_(x) this%condensed_data_int(PAIR_INT_PARAM_LOC_(x)+7)
 #define EQSAM_NUM_ION_(x) this%condensed_data_int(PAIR_INT_PARAM_LOC_(x)+1)
 #define EQSAM_ION_ID_(x,y) this%condensed_data_int(PAIR_INT_PARAM_LOC_(x)+1+y)
+#define EQSAM_ION_JAC_ID_(x,y) this%condensed_data_int(PAIR_INT_PARAM_LOC_(x)+EQSAM_NUM_ION_(x)+1+y)
 #define JACOB_low_RH_(x) this%condensed_data_real(PAIR_FLOAT_PARAM_LOC_(x))
 #define JACOB_CATION_MW_(x) this%condensed_data_real(PAIR_FLOAT_PARAM_LOC_(x)+1)
 #define JACOB_ANION_MW_(x) this%condensed_data_real(PAIR_FLOAT_PARAM_LOC_(x)+2)
@@ -320,7 +323,7 @@ contains
                 "ZSR aerosol water reaction.")
 
         n_float_param = n_float_param + 3 + sub_props%size()
-        n_int_param = n_int_param + 6
+        n_int_param = n_int_param + 8
 
       else if (str_type.eq."EQSAM") then
 
@@ -338,7 +341,7 @@ contains
                 "' in ZSR aerosol water reaction.")
 
         n_float_param = n_float_param + 3 + sub_props%size()
-        n_int_param = n_int_param + 2 + sub_props%size()
+        n_int_param = n_int_param + 2 + 2*sub_props%size()
 
       else
         call die_msg(704759248, "Invalid activity type specified for ZSR "// &
@@ -563,7 +566,7 @@ contains
                 trim(to_string(total_charge)))
 
         n_float_param = n_float_param + 3 + JACOB_NUM_Y_(i_ion_pair)
-        n_int_param = n_int_param + 6
+        n_int_param = n_int_param + 8
 
       else if (str_type.eq."EQSAM") then
 
@@ -648,7 +651,7 @@ contains
         end do
 
         n_float_param = n_float_param + 3 + EQSAM_NUM_ION_(i_ion_pair)
-        n_int_param = n_int_param + 2 + EQSAM_NUM_ION_(i_ion_pair)
+        n_int_param = n_int_param + 2 + 2*EQSAM_NUM_ION_(i_ion_pair)
 
       else
         call die_msg(186680407, "Internal error.")
@@ -680,36 +683,5 @@ contains
   end subroutine finalize
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-#undef ACT_TYPE_JACOBSON
-#undef ACT_TYPE_EQSAM
-
-#undef NUM_PHASE_
-#undef GAS_WATER_ID_
-#undef NUM_ION_PAIR_
-#undef TOTAL_INT_PARAM_
-#undef TOTAL_FLOAT_PARAM_
-#undef PPM_TO_RH_
-#undef NUM_INT_PROP_
-#undef NUM_REAL_PROP_
-#undef PHASE_ID_
-#undef PAIR_INT_PARAM_LOC_
-#undef PAIR_FLOAT_PARAM_LOC_
-#undef TYPE_
-#undef JACOB_NUM_CATION_
-#undef JACOB_NUM_ANION_
-#undef JACOB_CATION_ID_
-#undef JACOB_ANION_ID_
-#undef JACOB_NUM_Y_
-#undef EQSAM_NUM_ION_
-#undef EQSAM_ION_ID_
-#undef JACOB_low_RH_
-#undef JACOB_CATION_MW_
-#undef JACOB_ANION_MW_
-#undef JACOB_Y_
-#undef EQSAM_NW_
-#undef EQSAM_ZW_
-#undef EQSAM_ION_PAIR_MW_
-#undef EQSAM_ION_MW_
 
 end module pmc_sub_model_ZSR_aerosol_water

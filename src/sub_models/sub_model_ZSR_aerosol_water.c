@@ -304,13 +304,19 @@ void sub_model_ZSR_aerosol_water_calculate(int *sub_model_int_data,
  * \param sub_model_int_data Pointer to the sub model integer data
  * \param sub_model_float_data Pointer to the sub model floating-point data
  * \param model_data Pointer to the model data
+ * \param J Jacobian to be calculated
+ * \param time_step Current time step [s]
  */
+#ifdef PMC_USE_SUNDIALS
 void sub_model_ZSR_aerosol_water_get_jac_contrib(int *sub_model_int_data,
-    double *sub_model_float_data, ModelData *model_data)
+    double *sub_model_float_data, ModelData *model_data, realtype *J,
+    double time_step)
 {
+  double *state = model_data->state;
   int *int_data = sub_model_int_data;
   double *float_data = sub_model_float_data;
 }
+#endif
 
 /** \brief Print the ZSR Aerosol Water sub model parameters
  *

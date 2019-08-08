@@ -34,6 +34,7 @@
 void pmc_debug_print(void *cvode_mem, const char *message, bool do_full,
     const int int_val, const int line, const char *func)
 {
+#ifdef PMC_USE_SUNDIALS
   CVodeMem cv_mem = (CVodeMem) cvode_mem;
   if( !(cv_mem->cv_debug_out) ) return;
   printf("\n[DEBUG] line %4d in %-20s(): %-25s %-4.0d t_n = %le h = %le q = %d "
@@ -62,9 +63,11 @@ void pmc_debug_print(void *cvode_mem, const char *message, bool do_full,
          i, NV_DATA_S(cv_mem->cv_last_yn)[i]);
     }
   }
+#endif
 }
 void pmc_debug_print_jac_struct(void *solver_data, const char *message)
 {
+#ifdef PMC_USE_SUNDIALS
   SolverData *sd = (SolverData*) solver_data;
 
   if( !(sd->debug_out) ) return;
@@ -86,6 +89,7 @@ void pmc_debug_print_jac_struct(void *solver_data, const char *message)
       }
     }
   }
+#endif
 }
 #else
 #define PMC_DEBUG_PRINT(x)
@@ -161,9 +165,11 @@ void * solver_new(int n_state_var, int *var_type, int n_rxn,
     exit(1);
   }
 
+#ifdef PMC_USE_SUNDIALS
 #ifdef PMC_DEBUG
   // Default to no debugging output
   sd->debug_out = SUNFALSE;
+#endif
 #endif
 
   // Save the number of state variables
@@ -398,6 +404,8 @@ int solver_set_debug_out(void *solver_data, bool do_output)
 
   sd->debug_out = do_output == true ? SUNTRUE : SUNFALSE;
   return PHLEX_SOLVER_SUCCESS;
+#else
+  return 0;
 #endif
 }
 #endif
@@ -417,6 +425,8 @@ int solver_set_eval_jac(void *solver_data, bool eval_Jac)
 
   sd->eval_Jac = eval_Jac == true ? SUNTRUE : SUNFALSE;
   return PHLEX_SOLVER_SUCCESS;
+#else
+  return 0;
 #endif
 }
 #endif
@@ -750,7 +760,7 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
 
   // Run the sub models
   sub_model_calculate(md);
-  sub_model_get_jac_contrib(md);
+  sub_model_get_jac_contrib(md, md->J_params, time_step);
 
   // Calculate the Jacobian
   rxn_calc_jac(md, J, time_step);

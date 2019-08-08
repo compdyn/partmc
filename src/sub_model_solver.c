@@ -270,8 +270,13 @@ void sub_model_calculate(ModelData *model_data)
  *
  * \param mode_data Pointer to the model data
  */
-void sub_model_get_jac_contrib(ModelData *model_data)
+#ifdef PMC_USE_SUNDIALS
+void sub_model_get_jac_contrib(ModelData *model_data, SUNMatrix J,
+    realtype time_step)
 {
+
+  // Get a pointer to the Jacobian data
+  realtype *J_data = SM_DATA_S(J);
 
   // Get the number of sub models
   int n_sub_model = model_data->sub_model_int_data[0];
@@ -290,19 +295,23 @@ void sub_model_get_jac_contrib(ModelData *model_data)
     switch (sub_model_type) {
       case SUB_MODEL_PDFITE :
         sub_model_PDFiTE_get_jac_contrib(
-                  sub_model_int_data, sub_model_float_data, model_data);
+                  sub_model_int_data, sub_model_float_data, model_data, J_data,
+                  (double) time_step);
         break;
       case SUB_MODEL_UNIFAC :
         sub_model_UNIFAC_get_jac_contrib(
-                  sub_model_int_data, sub_model_float_data, model_data);
+                  sub_model_int_data, sub_model_float_data, model_data, J_data,
+                  (double) time_step);
         break;
       case SUB_MODEL_ZSR_AEROSOL_WATER :
         sub_model_ZSR_aerosol_water_get_jac_contrib(
-                  sub_model_int_data, sub_model_float_data, model_data);
+                  sub_model_int_data, sub_model_float_data, model_data, J_data,
+                  (double) time_step);
         break;
     }
   }
 }
+#endif
 
 /** \brief Add condensed data to the condensed data block for sub models
  *

@@ -177,7 +177,7 @@ void * rxn_SIMPOL_phase_transfer_update_ids(ModelData *model_data,
 
   // Calculate a small number based on the integration tolerances to use
   // during solving. TODO find a better place to do this
-  realtype *abs_tol = model_data->abs_tol;
+  double *abs_tol = (double*) model_data->abs_tol;
   SMALL_NUMBER_ = ( abs_tol[GAS_SPEC_] > abs_tol[AERO_SPEC_(0)] ?
                     abs_tol[AERO_SPEC_(0)] / 10.0 : abs_tol[GAS_SPEC_] / 10.0 );
 

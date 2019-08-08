@@ -60,6 +60,7 @@
  * \param model_data Pointer to the model data
  * \param state Solver state
  */
+#ifdef PMC_USE_SUNDIALS
 int test_effective_radius(ModelData * model_data, N_Vector state) {
 
   int ret_val = 0;
@@ -278,6 +279,7 @@ int test_aero_phase_avg_MW(ModelData * model_data, N_Vector state) {
 
   return ret_val;
 }
+#endif
 
 /** \brief Run c function tests
  *
@@ -290,6 +292,7 @@ int run_aero_rep_modal_c_tests(void *solver_data, double *state, double *env) {
 
   int ret_val = 0;
 
+#ifdef PMC_USE_SUNDIALS
   SolverData *sd = (SolverData*) solver_data;
   ModelData * model_data = &(sd->model_data);
   void * aero_rep_data = model_data->aero_rep_data;
@@ -339,6 +342,7 @@ int run_aero_rep_modal_c_tests(void *solver_data, double *state, double *env) {
   ret_val += test_number_conc(model_data, solver_state);
 
   N_VDestroy(solver_state);
+#endif
 
   return ret_val;
 }

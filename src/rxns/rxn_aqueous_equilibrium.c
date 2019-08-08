@@ -156,7 +156,7 @@ void * rxn_aqueous_equilibrium_update_ids(ModelData *model_data, int *deriv_ids,
   // Calculate a small concentration for aerosol-phase species based on the
   // integration tolerances to use during solving. TODO find a better place
   // to do this
-  realtype *abs_tol = model_data->abs_tol;
+  double *abs_tol = (double*) model_data->abs_tol;
   for (int i_phase = 0; i_phase < NUM_AERO_PHASE_; i_phase++ ) {
     SMALL_CONC_(i_phase) = 99999.0;
     for (int i_react = 0; i_react < NUM_REACT_; i_react++) {

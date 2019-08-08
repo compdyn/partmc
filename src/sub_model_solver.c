@@ -268,7 +268,9 @@ void sub_model_calculate(ModelData *model_data)
 
 /** \brief Calculate the Jacobian constributions from sub model calculations
  *
- * \param mode_data Pointer to the model data
+ * \param model_data Pointer to the model data
+ * \param J Sub-model Jacobian
+ * \param time_step Current time step [s]
  */
 #ifdef PMC_USE_SUNDIALS
 void sub_model_get_jac_contrib(ModelData *model_data, SUNMatrix J,

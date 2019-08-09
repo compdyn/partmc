@@ -37,6 +37,7 @@ program pmc_test_PDFiTE
     if (pmc_mpi_rank().eq.0) write(*,*) " PD-FiTE activity sub model tests - PASS"
   else
     if (pmc_mpi_rank().eq.0) write(*,*) " PD-FiTE activity sub model tests - FAIL"
+    stop 3
   end if
 
   ! finalize mpi

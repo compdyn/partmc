@@ -1185,7 +1185,7 @@ SUNMatrix get_jac_init(SolverData *solver_data)
   // Reset the structure array
   for (int i_spec=0; i_spec < n_state_var; i_spec++)
     for (int j_spec=0; j_spec < n_state_var; j_spec++)
-      jac_struct[i_spec][j_spec] = i_spec==j_spec ? true : false;
+      jac_struct[i_spec][j_spec] = false;
 
   // Fill in the 2D array of flags with Jacobian elements used by the
   // mechanism sub models
@@ -1195,22 +1195,18 @@ SUNMatrix get_jac_init(SolverData *solver_data)
   n_jac_elem = 0;
   for (int i=0; i<n_state_var; i++)
     for (int j=0; j<n_state_var; j++)
-      if (jac_struct[i][j]==true &&
-	  solver_data->model_data.var_type[i]==CHEM_SPEC_CONSTANT &&
-	  solver_data->model_data.var_type[j]==CHEM_SPEC_VARIABLE) n_jac_elem++;
+      if (jac_struct[i][j]==true) ++n_jac_elem;
 
   // Initialize the sparse matrix
   n_dep_var = NV_LENGTH_S(solver_data->y);
   solver_data->model_data.J_params =
-      SUNSparseMatrix(n_dep_var, n_dep_var, n_jac_elem, CSC_MAT);
+      SUNSparseMatrix(n_state_var, n_state_var, n_jac_elem, CSC_MAT);
 
   // Set the column and row indices
   i_col=0, i_elem=0;
   for (int i=0; i<n_state_var; i++) {
-    if (solver_data->model_data.var_type[i]!=CHEM_SPEC_CONSTANT) continue;
     (SM_INDEXPTRS_S(solver_data->model_data.J_params))[i_col] = i_elem;
     for (int j=0, i_row=0; j<n_state_var; j++) {
-      if (solver_data->model_data.var_type[j]!=CHEM_SPEC_VARIABLE) continue;
       if (jac_struct[j][i]==true) {
 	(SM_DATA_S(solver_data->model_data.J_params))[i_elem] = (realtype) 1.0;
 	(SM_INDEXVALS_S(solver_data->model_data.J_params))[i_elem++] = i_row;
@@ -1224,9 +1220,7 @@ SUNMatrix get_jac_init(SolverData *solver_data)
   // Build the set of Jacobian ids
   for (int i_ind=0, i_jac_elem=0; i_ind < n_state_var; i_ind++)
     for (int i_dep=0; i_dep < n_state_var; i_dep++)
-      if (solver_data->model_data.var_type[i_dep]==CHEM_SPEC_CONSTANT &&
-          solver_data->model_data.var_type[i_ind]==CHEM_SPEC_VARIABLE &&
-	  jac_struct[i_dep][i_ind]==true) {
+      if (jac_struct[i_dep][i_ind]==true) {
 	jac_ids[i_dep][i_ind] = i_jac_elem++;
       } else {
 	jac_ids[i_dep][i_ind] = -1;

@@ -224,6 +224,8 @@ int run_aero_rep_single_particle_c_tests(void *solver_data, double *state, doubl
   ret_val += ASSERT_MSG(jac_struct!=NULL, "jac_struct not allocated");
   if (ret_val>0) return ret_val;
 
+  for (int i_var=0; i_var<n_solver_var; ++i_var) jac_struct[i_var] = false;
+
   int aero_phase_idx = AERO_PHASE_IDX;   // phase 2
   int aero_rep_idx   = AERO_REP_IDX;     // only one aero rep in the test
 

@@ -52,6 +52,7 @@ program pmc_test_aero_rep_data
     if (pmc_mpi_rank().eq.0) write(*,*) "Aerosol representation tests - PASS"
   else
     if (pmc_mpi_rank().eq.0) write(*,*) "Aerosol representation tests - FAIL"
+    stop 3
   end if
 
   !> finalize mpi

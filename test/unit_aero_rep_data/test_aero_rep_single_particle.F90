@@ -59,6 +59,7 @@ program pmc_test_aero_rep_data
     if (pmc_mpi_rank().eq.0) write(*,*) "Aerosol representation tests - PASS"
   else
     if (pmc_mpi_rank().eq.0) write(*,*) "Aerosol representation tests - FAIL"
+    stop 3
   end if
 
   !> finalize mpi
@@ -128,7 +129,7 @@ contains
 
     ! Loop through all the aerosol representations
     do i_rep = 1, size(rep_names)
-    
+
       ! Check the aerosol representation getter functions
       rep_name = rep_names(i_rep)%string
       call assert_msg(253854173, &
@@ -301,9 +302,9 @@ contains
 
     phlex_state => phlex_core%new_state()
 
-    phlex_state%state_var(:) = 0.0;
-    phlex_state%env_state%temp = 298.0;
-    phlex_state%env_state%pressure = 101325.0;
+    phlex_state%state_var(:) = 0.0
+    phlex_state%env_state%temp = 298.0
+    phlex_state%env_state%pressure = 101325.0
 
     ! Update external properties
     call aero_rep_factory%initialize_update_data( update_radius )

@@ -40,6 +40,7 @@ program pmc_test_first_order_loss
   else
     if (pmc_mpi_rank().eq.0) write(*,*) &
           "First-Order loss reaction tests - FAIL"
+    stop 3
   end if
 
   ! finalize mpi

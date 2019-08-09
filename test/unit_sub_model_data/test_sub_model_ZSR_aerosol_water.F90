@@ -25,10 +25,26 @@ program pmc_test_ZSR_aerosol_water
 #endif
   use pmc_mpi
 
+  use iso_c_binding
   implicit none
 
   ! Number of RHs to calculate aerosol water for
   integer(kind=i_kind) :: NUM_RH_STEP = 100
+
+  !> Interface to the c ODE solver and test functions
+  interface
+    !> Run the c functions tests
+    integer(kind=c_int) function run_sub_model_zsr_c_tests(solver_data, &
+        state, env) bind (c)
+      use iso_c_binding
+      !> Pointer to the initialized solver data
+      type(c_ptr), value :: solver_data
+      !> Pointer to the state array
+      type(c_ptr), value :: state
+      !> Pointer to the environmental state array
+      type(c_ptr), value :: env
+    end function run_sub_model_zsr_c_tests
+  end interface
 
   ! initialize mpi
   call pmc_mpi_init()
@@ -39,6 +55,7 @@ program pmc_test_ZSR_aerosol_water
   else
     if (pmc_mpi_rank().eq.0) write(*,*) &
             "ZSR aerosol water sub model tests - FAIL"
+          stop 3
   end if
 
   ! finalize mpi
@@ -340,7 +357,56 @@ contains
 
     deallocate(phlex_core)
 
+    ! Evaluate the sub model c functions
+    run_ZSR_aerosol_water_test = &
+      run_ZSR_aerosol_water_test .and. &
+      eval_c_func()
+
   end function run_ZSR_aerosol_water_test
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Evaluate the sub model c functions
+  logical function eval_c_func() result(passed)
+
+    type(phlex_core_t), pointer :: phlex_core
+    type(phlex_state_t), pointer :: phlex_state
+    character(len=:), allocatable :: input_file_path
+
+    ! Get the ZSR_aerosol_water sub model mechanism json file
+    input_file_path = 'test_ZSR_aerosol_water_config.json'
+
+    ! Construct a phlex_core variable
+    phlex_core => phlex_core_t(input_file_path)
+
+    deallocate(input_file_path)
+
+    ! Initialize the model
+    call phlex_core%initialize()
+
+    ! Initialize the solver
+    call phlex_core%solver_initialize()
+
+    ! Get a new state variable
+    phlex_state => phlex_core%new_state()
+
+    ! Set the initial conditions
+    phlex_state%state_var(:) = 0.0
+    phlex_state%env_state%temp = 298.0
+    phlex_state%env_state%pressure = 101325.0
+
+    call phlex_state%update_env_state()
+
+    passed = run_sub_model_zsr_c_tests(                                      &
+                 phlex_core%solver_data_gas_aero%solver_c_ptr,               &
+                 c_loc(phlex_state%state_var),                               &
+                 c_loc(phlex_state%env_var)                                  &
+                 ) .eq. 0
+
+   deallocate(phlex_state)
+   deallocate(phlex_core)
+
+  end function eval_c_func
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

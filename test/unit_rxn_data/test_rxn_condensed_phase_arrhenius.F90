@@ -36,6 +36,7 @@ program pmc_test_condensed_phase_arrhenius
     if (pmc_mpi_rank().eq.0) write(*,*) "Condensed-phase Arrhenius reaction tests - PASS"
   else
     if (pmc_mpi_rank().eq.0) write(*,*) "Condensed-phase Arrhenius reaction tests - FAIL"
+    stop 3
   end if
 
   ! finalize mpi

@@ -38,6 +38,7 @@ program pmc_test_photolysis
     if (pmc_mpi_rank().eq.0) write(*,*) "Photolysis reaction tests - PASS"
   else
     if (pmc_mpi_rank().eq.0) write(*,*) "Photolysis reaction tests - FAIL"
+    stop 3
   end if
 
   ! finalize mpi

@@ -621,7 +621,9 @@ add_executable(test_sub_model_PDFiTE test/unit_sub_model_data/test_sub_model_PDF
 target_link_libraries(test_sub_model_PDFiTE partmclib)
 add_executable(test_sub_model_UNIFAC test/unit_sub_model_data/test_sub_model_UNIFAC.F90)
 target_link_libraries(test_sub_model_UNIFAC partmclib)
-add_executable(test_sub_model_ZSR_aerosol_water test/unit_sub_model_data/test_sub_model_ZSR_aerosol_water.F90)
+add_executable(test_sub_model_ZSR_aerosol_water
+               test/unit_sub_model_data/test_sub_model_ZSR_aerosol_water.c
+               test/unit_sub_model_data/test_sub_model_ZSR_aerosol_water.F90)
 target_link_libraries(test_sub_model_ZSR_aerosol_water partmclib)
 
 ######################################################################

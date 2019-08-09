@@ -161,8 +161,8 @@ module pmc_sub_model_ZSR_aerosol_water
 
   implicit none
   private
-#define ACT_CALCJACOBSON 1
-#define ACT_CALCEQSAM 2
+#define ACT_CALC_JACOBSON 1
+#define ACT_CALC_EQSAM 2
 
 #define NUM_PHASE_ this%condensed_data_int(1)
 #define GAS_WATER_ID_ this%condensed_data_int(2)
@@ -343,7 +343,7 @@ contains
                 "' in ZSR aerosol water reaction.")
 
         n_float_param = n_float_param + 3 + sub_props%size()
-        n_int_param = n_int_param + 2 + (2+n_phase)*sub_props%size()
+        n_int_param = n_int_param + 2 + n_phase + (1+n_phase)*sub_props%size()
 
       else
         call die_msg(704759248, "Invalid activity type specified for ZSR "// &
@@ -433,7 +433,7 @@ contains
       if (str_type.eq."JACOBSON") then
 
         ! Set the type
-        TYPE_(i_ion_pair) = ACT_CALCJACOBSON
+        TYPE_(i_ion_pair) = ACT_CALC_JACOBSON
 
         ! Get the Y_j parameters
         key_name = "Y_j"
@@ -573,7 +573,7 @@ contains
       else if (str_type.eq."EQSAM") then
 
         ! Set the type
-        TYPE_(i_ion_pair) = ACT_CALCEQSAM
+        TYPE_(i_ion_pair) = ACT_CALC_EQSAM
 
         ! Get the required parameters for calculating activity
         key_name = "NW"
@@ -653,7 +653,8 @@ contains
         end do
 
         n_float_param = n_float_param + 3 + EQSAM_NUM_ION_(i_ion_pair)
-        n_int_param = n_int_param + 2 + (2+NUM_PHASE_)*EQSAM_NUM_ION_(i_ion_pair)
+        n_int_param = n_int_param + 2 + NUM_PHASE_ + &
+                      (1+NUM_PHASE_)*EQSAM_NUM_ION_(i_ion_pair)
 
       else
         call die_msg(186680407, "Internal error.")

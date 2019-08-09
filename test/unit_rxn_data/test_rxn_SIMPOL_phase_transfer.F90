@@ -40,6 +40,7 @@ program pmc_test_SIMPOL_phase_transfer
   else
     if (pmc_mpi_rank().eq.0) write(*,*) &
             "SIMPOL phase transfer reaction tests - FAIL"
+    stop 3
   end if
 
   ! finalize mpi

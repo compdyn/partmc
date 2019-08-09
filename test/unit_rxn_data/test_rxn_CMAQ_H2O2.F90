@@ -32,6 +32,7 @@ program pmc_test_CMAQ_H2O2
     if (pmc_mpi_rank().eq.0) write(*,*) "CMAQ_H2O2 reaction tests - PASS"
   else
     if (pmc_mpi_rank().eq.0) write(*,*) "CMAQ_H2O2 reaction tests - FAIL"
+    stop 3
   end if
 
   ! finalize mpi

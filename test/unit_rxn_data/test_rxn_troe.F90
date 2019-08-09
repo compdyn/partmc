@@ -32,6 +32,7 @@ program pmc_test_troe
     if (pmc_mpi_rank().eq.0) write(*,*) "Troe reaction tests - PASS"
   else
     if (pmc_mpi_rank().eq.0) write(*,*) "Troe reaction tests - FAIL"
+    stop 3
   end if
 
   ! finalize mpi

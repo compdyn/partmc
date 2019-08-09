@@ -17,8 +17,9 @@
 // Assert function def
 int pmc_assert(const char *func, const int line, bool eval,
                const char *message) {
-  if (eval)
+  if (eval) {
     return 0;
+  }
   printf("\n[ERROR] line %4d in %s(): %s", line, func, message);
   return 1;
 }

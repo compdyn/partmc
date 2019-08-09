@@ -461,4 +461,60 @@ void sub_model_ZSR_aerosol_water_print(int *sub_model_int_data,
     printf("  int param %d = %d\n", i, int_data[i]);
   for (int i=0; i<FLOAT_DATA_SIZE_; i++)
     printf("  float param %d = %le\n", i, float_data[i]);
+  printf("\nNumber of phases: %d", NUM_PHASE_);
+  printf("\nGas-phase water state id: %d", GAS_WATER_ID_);
+  printf("\nNumber of ion pairs: %d", NUM_ION_PAIR_);
+  printf("\nPPM-to-RH conversion: %lf", PPM_TO_RH_);
+  printf("\n*** Phase state ids (index of water in each phase) ***");
+  for (int i_phase=0; i_phase<NUM_PHASE_; ++i_phase) {
+    printf("\n  phase %d: %d", i_phase, PHASE_ID_(i_phase));
+  }
+  printf("\n*** Ion-Pair info ***");
+  for (int i_ion_pair=0; i_ion_pair<NUM_ION_PAIR_; ++i_ion_pair) {
+    printf("\n  ION PAIR %d", i_ion_pair);
+    switch (TYPE_(i_ion_pair)) {
+      case (ACT_TYPE_JACOBSON) :
+        printf("\n    *** JACOBSON ***");
+        printf("\n    low RH: %le", JACOB_low_RH_(i_ion_pair));
+        printf("\n    number of cations: %d number of anions: %d",
+               JACOB_NUM_CATION_(i_ion_pair), JACOB_NUM_ANION_(i_ion_pair));
+        printf("\n    cation id: %d anion id: %d",
+               JACOB_CATION_ID_(i_ion_pair), JACOB_ANION_ID_(i_ion_pair));
+        printf("\n    cation MW: %le anion MW: %le",
+               JACOB_CATION_MW_(i_ion_pair), JACOB_ANION_MW_(i_ion_pair));
+        printf("\n    number of Y parameters: %d:", JACOB_NUM_Y_(i_ion_pair));
+        for (int i_Y=0; i_Y<JACOB_NUM_Y_(i_ion_pair); ++i_Y)
+          printf(" Y(%d)=%le", i_Y, JACOB_Y_(i_ion_pair,i_Y));
+        for (int i_phase=0; i_phase<NUM_PHASE_; ++i_phase) {
+          printf("\n    PHASE %d:", i_phase);
+          printf(" gas-phase water Jac id: %d",
+                 JACOB_GAS_WATER_JAC_ID_(i_phase,i_ion_pair));
+          printf(" cation Jac id: %d",
+                 JACOB_CATION_JAC_ID_(i_phase,i_ion_pair));
+          printf(" anion Jac id: %d",
+                 JACOB_ANION_JAC_ID_(i_phase,i_ion_pair));
+        }
+        break;
+      case (ACT_TYPE_EQSAM) :
+        printf("\n    *** EQSAM ***");
+        printf("\n    NW: %le ZW: %le ion pair MW: %le",
+               EQSAM_NW_(i_ion_pair), EQSAM_ZW_(i_ion_pair),
+               EQSAM_ION_PAIR_MW_(i_ion_pair));
+        printf("\n    number of ions: %d", EQSAM_NUM_ION_(i_ion_pair));
+        printf("\n    IONS");
+        for (int i_ion=0; i_ion<EQSAM_NUM_ION_(i_ion_pair); ++i_ion) {
+          printf("\n      ion id: %d", EQSAM_ION_ID_(i_ion_pair, i_ion));
+          for (int i_phase=0; i_phase<NUM_PHASE_; ++i_phase) {
+            printf("\n        phase: %d gas-phase water Jac id: %d "
+                   "ion Jac id: %d", i_phase,
+                   EQSAM_GAS_WATER_JAC_ID_(i_phase,i_ion_pair),
+                   EQSAM_ION_JAC_ID_(i_phase,i_ion_pair,i_ion));
+          }
+        }
+        break;
+      default :
+        printf("\n !!! INVALID TYPE SPECIFIED: %d", TYPE_(i_ion_pair));
+        break;
+    }
+  }
 }

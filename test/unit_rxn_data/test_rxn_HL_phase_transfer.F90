@@ -38,6 +38,7 @@ program pmc_test_HL_phase_transfer
     if (pmc_mpi_rank().eq.0) write(*,*) "Henry's Law phase transfer reaction tests - PASS"
   else
     if (pmc_mpi_rank().eq.0) write(*,*) "Henry's Law phase transfer reaction tests - FAIL"
+    stop 3
   end if
 
   ! finalize mpi

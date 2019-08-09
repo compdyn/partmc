@@ -31,6 +31,7 @@ program pmc_test_sub_module_UNIFAC
     if (pmc_mpi_rank().eq.0) write(*,*) "UNIFAC activity sub module tests - PASS"
   else
     if (pmc_mpi_rank().eq.0) write(*,*) "UNIFAC activity sub module tests - FAIL"
+    stop 3
   end if
 
   ! finalize mpi

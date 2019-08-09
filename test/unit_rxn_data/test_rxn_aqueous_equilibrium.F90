@@ -38,6 +38,7 @@ program pmc_test_aqueous_equilibrium
   else
     if (pmc_mpi_rank().eq.0) write(*,*) &
             "Aqueous equilibrium reaction tests - FAIL"
+    stop 3
   end if
 
   ! finalize mpi

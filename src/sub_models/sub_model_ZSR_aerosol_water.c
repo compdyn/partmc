@@ -260,11 +260,11 @@ void sub_model_ZSR_aerosol_water_calculate(int *sub_model_int_data,
           double cation = state[PHASE_ID_(i_phase) +
                   JACOB_CATION_ID_(i_ion_pair)] /
 		  JACOB_NUM_CATION_(i_ion_pair) /
-                  JACOB_CATION_MW_(i_ion_pair);
+                  JACOB_CATION_MW_(i_ion_pair) / 1000.0; // (umol/m3)
           double anion = state[PHASE_ID_(i_phase) +
                   JACOB_ANION_ID_(i_ion_pair)] /
 		  JACOB_NUM_ANION_(i_ion_pair) /
-                  JACOB_ANION_MW_(i_ion_pair); // (umol/m3)
+                  JACOB_ANION_MW_(i_ion_pair) / 1000.0; // (umol/m3)
 	  conc = (cation>anion ? anion : cation);
           conc = (conc>0.0 ? conc : 0.0);
           *water += conc / molality * 1000.0; // (ug/m3)
@@ -280,7 +280,7 @@ void sub_model_ZSR_aerosol_water_calculate(int *sub_model_int_data,
 
 	  // Calculate the molality of the ion pair
 	  molality = (EQSAM_NW_(i_ion_pair) * 55.51 * 18.01 /
-                    EQSAM_ION_PAIR_MW_(i_ion_pair) * (1.0/e_aw-1.0));
+                    EQSAM_ION_PAIR_MW_(i_ion_pair) / 1000.0 * (1.0/e_aw-1.0));
 	  molality = pow(molality, EQSAM_ZW_(i_ion_pair)); // (mol/kg)
 
 	  // Calculate the water associated with this ion pair
@@ -288,7 +288,7 @@ void sub_model_ZSR_aerosol_water_calculate(int *sub_model_int_data,
 	    conc = state[PHASE_ID_(i_phase)+EQSAM_ION_ID_(i_ion_pair,i_ion)];
             conc = (conc>0.0 ? conc : 0.0);
             *water += conc / EQSAM_ION_MW_(i_ion_pair,i_ion) /
-                    molality * 1000.0; // (ug/m3);
+                    molality; // (ug/m3);
 	  }
 
 	  break;
@@ -357,45 +357,37 @@ void sub_model_ZSR_aerosol_water_get_jac_contrib(int *sub_model_int_data,
           double cation = state[PHASE_ID_(i_phase) +
                   JACOB_CATION_ID_(i_ion_pair)] /
 		  JACOB_NUM_CATION_(i_ion_pair) /
-                  JACOB_CATION_MW_(i_ion_pair); // (umol/m3)
+                  JACOB_CATION_MW_(i_ion_pair) / 1000.0; // (umol/m3)
           double d_cation_d_C = 1.0 /
 		  JACOB_NUM_CATION_(i_ion_pair) /
-                  JACOB_CATION_MW_(i_ion_pair);
+                  JACOB_CATION_MW_(i_ion_pair) / 1000.0;
           double anion = state[PHASE_ID_(i_phase) +
                   JACOB_ANION_ID_(i_ion_pair)] /
 		  JACOB_NUM_ANION_(i_ion_pair) /
-                  JACOB_ANION_MW_(i_ion_pair); // (umol/m3)
+                  JACOB_ANION_MW_(i_ion_pair) / 1000.0; // (umol/m3)
           double d_anion_d_A = 1.0 /
 		  JACOB_NUM_ANION_(i_ion_pair) /
-                  JACOB_ANION_MW_(i_ion_pair); // (umol/m3)
+                  JACOB_ANION_MW_(i_ion_pair) / 1000.0;
 
           // Determine the limiting ion and set Jacobian elements
           if (cation>anion) {
 
             // Anion-limited conditions
             if (anion>0.0) {
-              J[JACOB_GAS_WATER_JAC_ID_(i_phase,i_ion_pair)] =
+              J[JACOB_GAS_WATER_JAC_ID_(i_phase,i_ion_pair)] +=
                   -2.0 * anion / pow(molality, 3) * 1000.0 * d_molal_d_wg;
-              J[JACOB_ANION_JAC_ID_(i_phase,i_ion_pair)] =
+              J[JACOB_ANION_JAC_ID_(i_phase,i_ion_pair)] +=
                   1.0 / pow(molality, 2) * 1000.0 * d_anion_d_A;
-            } else {
-              J[JACOB_GAS_WATER_JAC_ID_(i_phase,i_ion_pair)] = 0.0;
-              J[JACOB_ANION_JAC_ID_(i_phase,i_ion_pair)]     = 0.0;
             }
-            J[JACOB_CATION_JAC_ID_(i_phase,i_ion_pair)]      = 0.0;
           } else {
 
             // Cation-limited conditions
             if (cation>0.0) {
-              J[JACOB_GAS_WATER_JAC_ID_(i_phase,i_ion_pair)] =
+              J[JACOB_GAS_WATER_JAC_ID_(i_phase,i_ion_pair)] +=
                   -2.0 * cation / pow(molality, 3) * 1000.0 * d_molal_d_wg;
-              J[JACOB_CATION_JAC_ID_(i_phase,i_ion_pair)] =
+              J[JACOB_CATION_JAC_ID_(i_phase,i_ion_pair)] +=
                   1.0 / pow(molality, 2) * 1000.0 * d_cation_d_C;
-            } else {
-              J[JACOB_GAS_WATER_JAC_ID_(i_phase,i_ion_pair)] = 0.0;
-              J[JACOB_CATION_JAC_ID_(i_phase,i_ion_pair)]     = 0.0;
             }
-            J[JACOB_ANION_JAC_ID_(i_phase,i_ion_pair)]      = 0.0;
           }
 
 	  break;
@@ -411,17 +403,16 @@ void sub_model_ZSR_aerosol_water_get_jac_contrib(int *sub_model_int_data,
 
 	  // Calculate the molality of the ion pair
 	  molality = (EQSAM_NW_(i_ion_pair) * 55.51 * 18.01 /
-                    EQSAM_ION_PAIR_MW_(i_ion_pair) * (1.0/e_aw-1.0));
+                    EQSAM_ION_PAIR_MW_(i_ion_pair) / 1000.0 * (1.0/e_aw-1.0));
 	  molality = pow(molality, EQSAM_ZW_(i_ion_pair)); // (mol/kg)
           d_molal_d_wg = EQSAM_NW_(i_ion_pair) * 55.01 * 18.01 /
-                    EQSAM_ION_PAIR_MW_(i_ion_pair) / pow(e_aw-1.0,2) *
+                    EQSAM_ION_PAIR_MW_(i_ion_pair) / 1000.0 / pow(e_aw-1.0,2) *
                     d_eaw_d_wg;
           d_molal_d_wg = EQSAM_ZW_(i_ion_pair) *
                          pow(molality, EQSAM_ZW_(i_ion_pair)-1.0) *
                          d_molal_d_wg;
 
 	  // Calculate the Jacobian contributions
-          J[EQSAM_GAS_WATER_JAC_ID_(i_phase,i_ion_pair)] = ZERO;
 	  for (int i_ion=0; i_ion<EQSAM_NUM_ION_(i_ion_pair); i_ion++) {
 	    conc = state[PHASE_ID_(i_phase)+EQSAM_ION_ID_(i_ion_pair,i_ion)];
             conc = (conc>0.0 ? conc : 0.0);
@@ -430,12 +421,12 @@ void sub_model_ZSR_aerosol_water_get_jac_contrib(int *sub_model_int_data,
             // Gas-phase water contribution
             J[EQSAM_GAS_WATER_JAC_ID_(i_phase,i_ion_pair)] +=
                 -1.0 * conc / EQSAM_ION_MW_(i_ion_pair,i_ion) /
-                pow(molality,2) * 1000.0 * d_molal_d_wg;
+                pow(molality,2) * d_molal_d_wg;
 
             // Ion contribution
-            J[EQSAM_ION_JAC_ID_(i_phase,i_ion_pair,i_ion)] =
+            J[EQSAM_ION_JAC_ID_(i_phase,i_ion_pair,i_ion)] +=
                 d_conc_d_ion / EQSAM_ION_MW_(i_ion_pair,i_ion) /
-                molality * 1000.0;
+                molality;
 	  }
 
 	  break;

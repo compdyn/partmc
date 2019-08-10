@@ -30,7 +30,7 @@
 #define PMC_DEBUG_PRINT(x) pmc_debug_print(sd->cvode_mem, x, false, 0, __LINE__, __func__)
 #define PMC_DEBUG_PRINT_INT(x,y) pmc_debug_print(sd->cvode_mem, x, false, y, __LINE__, __func__)
 #define PMC_DEBUG_PRINT_FULL(x) pmc_debug_print(sd->cvode_mem, x, true, 0, __LINE__, __func__)
-#define PMC_DEBUG_JAC_STRUCT(x) pmc_debug_print_jac_struct((void*)sd, x)
+#define PMC_DEBUG_JAC_STRUCT(x) pmc_debug_print_jac_struct((void*)sd, sd->model_data.J_init, x)
 void pmc_debug_print(void *cvode_mem, const char *message, bool do_full,
     const int int_val, const int line, const char *func)
 {
@@ -65,13 +65,13 @@ void pmc_debug_print(void *cvode_mem, const char *message, bool do_full,
   }
 #endif
 }
-void pmc_debug_print_jac_struct(void *solver_data, const char *message)
+void pmc_debug_print_jac_struct(void *solver_data, SUNMatrix J, const char *message)
 {
 #ifdef PMC_USE_SUNDIALS
   SolverData *sd = (SolverData*) solver_data;
 
   if( !(sd->debug_out) ) return;
-  int n_state_var = NV_LENGTH_S(sd->deriv);
+  int n_state_var = SM_COLUMNS_S(J);
   int i_elem = 0;
   int next_col = 0;
   printf("\n\n   Jacobian structure - %s\n     ", message);
@@ -79,9 +79,9 @@ void pmc_debug_print_jac_struct(void *solver_data, const char *message)
     printf("[%3d]", i_dep);
   for (int i_ind=0; i_ind < n_state_var; i_ind++) {
     printf("\n[%3d]", i_ind);
-    next_col = SM_INDEXPTRS_S(sd->model_data.J_init)[i_ind+1];
+    next_col = SM_INDEXPTRS_S(J)[i_ind+1];
     for (int i_dep=0; i_dep < n_state_var; i_dep++) {
-      if (i_dep == SM_INDEXVALS_S(sd->model_data.J_init)[i_elem] &&
+      if (i_dep == SM_INDEXVALS_S(J)[i_elem] &&
           i_elem < next_col) {
         printf(" %3d ", i_elem++);
       } else {
@@ -162,7 +162,7 @@ void * solver_new(int n_state_var, int *var_type, int n_rxn,
   SolverData *sd = (SolverData*) malloc(sizeof(SolverData));
   if (sd==NULL) {
     printf("\n\nERROR allocating space for SolverData\n\n");
-    exit(1);
+    EXIT_FAILURE;
   }
 
 #ifdef PMC_USE_SUNDIALS
@@ -179,7 +179,7 @@ void * solver_new(int n_state_var, int *var_type, int n_rxn,
   sd->model_data.var_type = (int*) malloc(n_state_var * sizeof(int));
   if (sd->model_data.var_type==NULL) {
     printf("\n\nERROR allocating space for variable types\n\n");
-    exit(1);
+    EXIT_FAILURE;
   }
   for (int i=0; i<n_state_var; i++)
     sd->model_data.var_type[i] = var_type[i];
@@ -203,7 +203,7 @@ void * solver_new(int n_state_var, int *var_type, int n_rxn,
 		  + n_rxn_float_param * sizeof(double));
   if (sd->model_data.rxn_data==NULL) {
     printf("\n\nERROR allocating space for reaction data\n\n");
-    exit(1);
+    EXIT_FAILURE;
   }
   int *ptr = sd->model_data.rxn_data;
   ptr[0] = n_rxn;
@@ -220,7 +220,7 @@ void * solver_new(int n_state_var, int *var_type, int n_rxn,
                   + n_aero_phase_float_param * sizeof(double));
   if (sd->model_data.aero_phase_data==NULL) {
     printf("\n\nERROR allocating space for aerosol phase data\n\n");
-    exit(1);
+    EXIT_FAILURE;
   }
   ptr = sd->model_data.aero_phase_data;
   ptr[0] = n_aero_phase;
@@ -236,7 +236,7 @@ void * solver_new(int n_state_var, int *var_type, int n_rxn,
 		  + n_aero_rep_float_param * sizeof(double));
   if (sd->model_data.aero_rep_data==NULL) {
     printf("\n\nERROR allocating space for aerosol representation data\n\n");
-    exit(1);
+    EXIT_FAILURE;
   }
   ptr = sd->model_data.aero_rep_data;
   ptr[0] = n_aero_rep;
@@ -249,13 +249,13 @@ void * solver_new(int n_state_var, int *var_type, int n_rxn,
                   (n_sub_model_int_param + 1 + n_sub_model) * sizeof(int));
   if (sd->model_data.sub_model_int_data==NULL) {
     printf("\n\nERROR allocating space for sub model integer data\n\n");
-    exit(1);
+    EXIT_FAILURE;
   }
   sd->model_data.sub_model_float_data= (double*) malloc(
                   n_sub_model_float_param * sizeof(double));
   if (sd->model_data.sub_model_float_data==NULL) {
     printf("\n\nERROR allocating space for sub model floating-point data\n\n");
-    exit(1);
+    EXIT_FAILURE;
   }
   ptr = sd->model_data.sub_model_int_data;
   ptr[0] = n_sub_model;
@@ -268,13 +268,13 @@ void * solver_new(int n_state_var, int *var_type, int n_rxn,
                   n_sub_model * sizeof(int**));
   if (sd->model_data.sub_model_int_ptrs==NULL) {
     printf("\n\nERROR allocating space for sub model integer pointers\n\n");
-    exit(1);
+    EXIT_FAILURE;
   }
   sd->model_data.sub_model_float_ptrs = (double**) malloc(
                   n_sub_model * sizeof(double**));
   if (sd->model_data.sub_model_float_ptrs==NULL) {
     printf("\n\nERROR allocating space for sub model float pointers\n\n");
-    exit(1);
+    EXIT_FAILURE;
   }
 
 
@@ -737,8 +737,9 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
     }
   }
 
-  // Reset the sub-model Jacobian
+  // Reset the sub-model and reaction Jacobians
   SUNMatZero(md->J_params);
+  SUNMatZero(md->J_rxn);
 
   // Reset the primary Jacobian
   /// \todo #83 Figure out how to stop CVODE from resizing the Jacobian
@@ -763,7 +764,15 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
   sub_model_get_jac_contrib(md, md->J_params, time_step);
 
   // Calculate the Jacobian
-  rxn_calc_jac(md, J, time_step);
+  rxn_calc_jac(md, md->J_rxn, time_step);
+
+  // Set the solver Jacobian
+  JacMap *jac_map = md->jac_map;
+  SM_DATA_S(md->J_params)[0] = 1.0; // dummy value for non-sub model calcs
+  for (int i_map=0; i_map<md->n_mapped_values; ++i_map)
+    SM_DATA_S(J)[jac_map[i_map].solver_id] +=
+      SM_DATA_S(md->J_rxn)[jac_map[i_map].rxn_id] *
+      SM_DATA_S(md->J_params)[jac_map[i_map].param_id];
 
 #ifdef PMC_DEBUG
   // Evaluate the Jacobian if flagged to do so
@@ -1088,75 +1097,80 @@ int guess_helper(const realtype t_n, const realtype h_n, N_Vector y_n,
  */
 SUNMatrix get_jac_init(SolverData *solver_data)
 {
-  int n_rxn;			/* number of reactions in the mechanism
-  				 * (stored in first position in *rxn_data) */
-  bool **jac_struct;		/* structure of Jacobian with flags to indicate
-				 * elements that could be used. */
-  sunindextype n_jac_elem; 	/* number of potentially non-zero Jacobian
-                                   elements */
+  int n_rxn;			  /* number of reactions in the mechanism
+  				   * (stored in first position in *rxn_data) */
+  bool **jac_struct_rxn;          /* structure of Jacobian with flags to indicate
+				   * elements that could be used by reactions. */
+  bool **jac_struct_param;        /* structure of Jacobian with flags to indicate
+			  	   * elements that could be used by sub models. */
+  bool **jac_struct_solver;       /* structure of Jacobian with flags to indicate
+			  	   * elements that could be used in the solver. */
+  sunindextype n_jac_elem_rxn; 	  /* number of potentially non-zero Jacobian
+                                     elements in the reaction matrix*/
+  sunindextype n_jac_elem_param;  /* number of potentially non-zero Jacobian
+                                     elements in the reaction matrix*/
+  sunindextype n_jac_elem_solver; /* number of potentially non-zero Jacobian
+                                     elements in the reaction matrix*/
 
   // Number of variables on the state array (these are the ids the reactions
   // are initialized with)
   int n_state_var = solver_data->model_data.n_state_var;
 
   // Set up the 2D array of flags
-  jac_struct = (bool**) malloc(sizeof(int*) * n_state_var);
-  if (jac_struct==NULL) {
+  jac_struct_rxn = (bool**) malloc(sizeof(int*) * n_state_var);
+  if (jac_struct_rxn==NULL) {
     printf("\n\nERROR allocating space for jacobian structure array\n\n");
-    exit(1);
+    EXIT_FAILURE;
   }
   for (int i_spec=0; i_spec < n_state_var; i_spec++) {
-    jac_struct[i_spec] = (bool*) malloc(sizeof(int) * n_state_var);
-    if (jac_struct[i_spec]==NULL) {
+    jac_struct_rxn[i_spec] = (bool*) malloc(sizeof(int) * n_state_var);
+    if (jac_struct_rxn[i_spec]==NULL) {
       printf("\n\nERROR allocating space for jacobian structure array "
                 "row %d\n\n", i_spec);
-      exit(1);
+      EXIT_FAILURE;
     }
     // Add diagnonal elements by default
     for (int j_spec=0; j_spec < n_state_var; j_spec++)
-            jac_struct[i_spec][j_spec] = i_spec==j_spec ? true : false;
+            jac_struct_rxn[i_spec][j_spec] = i_spec==j_spec ? true : false;
   }
 
   // Fill in the 2D array of flags with Jacobian elements used by the
   // mechanism reactions
-  rxn_get_used_jac_elem(&(solver_data->model_data), jac_struct);
+  rxn_get_used_jac_elem(&(solver_data->model_data), jac_struct_rxn);
 
   // Determine the number of non-zero Jacobian elements
-  n_jac_elem = 0;
+  n_jac_elem_rxn = 0;
   for (int i=0; i<n_state_var; i++)
     for (int j=0; j<n_state_var; j++)
-      if (jac_struct[i][j]==true &&
-	  solver_data->model_data.var_type[i]==CHEM_SPEC_VARIABLE &&
-	  solver_data->model_data.var_type[j]==CHEM_SPEC_VARIABLE) n_jac_elem++;
+      if (jac_struct_rxn[i][j]==true) ++n_jac_elem_rxn;
 
   // Initialize the sparse matrix
-  int n_dep_var = NV_LENGTH_S(solver_data->y);
-  SUNMatrix M = SUNSparseMatrix(n_dep_var, n_dep_var, n_jac_elem, CSC_MAT);
+  solver_data->model_data.J_rxn =
+      SUNSparseMatrix(n_state_var, n_state_var, n_jac_elem_rxn, CSC_MAT);
 
   // Set the column and row indices
   int i_col=0, i_elem=0;
   for (int i=0; i<n_state_var; i++) {
-    if (solver_data->model_data.var_type[i]!=CHEM_SPEC_VARIABLE) continue;
-    (SM_INDEXPTRS_S(M))[i_col] = i_elem;
+    (SM_INDEXPTRS_S(solver_data->model_data.J_rxn))[i_col] = i_elem;
     for (int j=0, i_row=0; j<n_state_var; j++) {
-      if (solver_data->model_data.var_type[j]!=CHEM_SPEC_VARIABLE) continue;
-      if (jac_struct[j][i]==true) {
-	(SM_DATA_S(M))[i_elem] = (realtype) 1.0;
-	(SM_INDEXVALS_S(M))[i_elem++] = i_row;
+      if (jac_struct_rxn[j][i]==true) {
+	(SM_DATA_S(solver_data->model_data.J_rxn))[i_elem] = (realtype) 1.0;
+	(SM_INDEXVALS_S(solver_data->model_data.J_rxn))[i_elem++] = i_row;
       }
       i_row++;
     }
     i_col++;
   }
-  (SM_INDEXPTRS_S(M))[i_col] = i_elem;
+  (SM_INDEXPTRS_S(solver_data->model_data.J_rxn))[i_col] = i_elem;
 
   // Build the set of time derivative ids
   int *deriv_ids = (int*) malloc(sizeof(int) * n_state_var);
   if (deriv_ids==NULL) {
     printf("\n\nERROR allocating space for derivative ids\n\n");
-    exit(1);
+    EXIT_FAILURE;
   }
-  for (int i_spec=0, i_dep_var=0; i_spec < n_state_var; i_spec++)
+  int i_dep_var=0;
+  for (int i_spec=0; i_spec < n_state_var; i_spec++)
     if (solver_data->model_data.var_type[i_spec]==CHEM_SPEC_VARIABLE) {
       deriv_ids[i_spec] = i_dep_var++;
     } else {
@@ -1164,51 +1178,62 @@ SUNMatrix get_jac_init(SolverData *solver_data)
     }
 
   // Build the set of Jacobian ids
-  int **jac_ids = (int**) jac_struct;
-  for (int i_ind=0, i_jac_elem=0; i_ind < n_state_var; i_ind++)
+  int **jac_ids_rxn = (int**) jac_struct_rxn;
+  for (int i_ind=0, i_jac_elem_rxn=0; i_ind < n_state_var; i_ind++)
     for (int i_dep=0; i_dep < n_state_var; i_dep++)
-      if (solver_data->model_data.var_type[i_dep]==CHEM_SPEC_VARIABLE &&
-          solver_data->model_data.var_type[i_ind]==CHEM_SPEC_VARIABLE &&
-	  jac_struct[i_dep][i_ind]==true) {
-	jac_ids[i_dep][i_ind] = i_jac_elem++;
+      if (jac_struct_rxn[i_dep][i_ind]==true) {
+	jac_ids_rxn[i_dep][i_ind] = i_jac_elem_rxn++;
       } else {
-	jac_ids[i_dep][i_ind] = -1;
+	jac_ids_rxn[i_dep][i_ind] = -1;
       }
 
   // Update the ids in the reaction data
-  rxn_update_ids(&(solver_data->model_data), deriv_ids, jac_ids);
+  rxn_update_ids(&(solver_data->model_data), deriv_ids, jac_ids_rxn);
 
   ////////////////////////////////////////////////////////////////////////
   // Get the Jacobian elements used in sub model parameter calculations //
   ////////////////////////////////////////////////////////////////////////
 
-  // Reset the structure array
-  for (int i_spec=0; i_spec < n_state_var; i_spec++)
+  // Set up the 2D array of flags
+  jac_struct_param = (bool**) malloc(sizeof(int*) * n_state_var);
+  if (jac_struct_param==NULL) {
+    printf("\n\nERROR allocating space for jacobian structure array\n\n");
+    EXIT_FAILURE;
+  }
+  for (int i_spec=0; i_spec < n_state_var; i_spec++) {
+    jac_struct_param[i_spec] = (bool*) malloc(sizeof(int) * n_state_var);
+    if (jac_struct_param[i_spec]==NULL) {
+      printf("\n\nERROR allocating space for jacobian structure array "
+                "row %d\n\n", i_spec);
+      EXIT_FAILURE;
+    }
     for (int j_spec=0; j_spec < n_state_var; j_spec++)
-      jac_struct[i_spec][j_spec] = false;
+            jac_struct_param[i_spec][j_spec] = false;
+  }
 
   // Fill in the 2D array of flags with Jacobian elements used by the
   // mechanism sub models
-  sub_model_get_used_jac_elem(&(solver_data->model_data), jac_struct);
+  sub_model_get_used_jac_elem(&(solver_data->model_data), jac_struct_param);
 
   // Determine the number of non-zero Jacobian elements
-  n_jac_elem = 0;
+  n_jac_elem_param = 0;
   for (int i=0; i<n_state_var; i++)
     for (int j=0; j<n_state_var; j++)
-      if (jac_struct[i][j]==true) ++n_jac_elem;
+      if (jac_struct_param[i][j]==true) ++n_jac_elem_param;
 
-  // Initialize the sparse matrix
-  n_dep_var = NV_LENGTH_S(solver_data->y);
+  // Initialize the sparse matrix with one extra element (at the first position)
+  // for use in mapping that is set to 1.0. (This is safe because there can be
+  // no elements on the diagonal in the sub model Jacobian.)
   solver_data->model_data.J_params =
-      SUNSparseMatrix(n_state_var, n_state_var, n_jac_elem, CSC_MAT);
+      SUNSparseMatrix(n_state_var, n_state_var, n_jac_elem_param+1, CSC_MAT);
 
   // Set the column and row indices
   i_col=0, i_elem=0;
   for (int i=0; i<n_state_var; i++) {
     (SM_INDEXPTRS_S(solver_data->model_data.J_params))[i_col] = i_elem;
     for (int j=0, i_row=0; j<n_state_var; j++) {
-      if (jac_struct[j][i]==true) {
-	(SM_DATA_S(solver_data->model_data.J_params))[i_elem] = (realtype) 1.0;
+      if (jac_struct_param[j][i]==true || (i==0 && j==0)) {
+	(SM_DATA_S(solver_data->model_data.J_params))[i_elem] = (realtype) 0.0;
 	(SM_INDEXVALS_S(solver_data->model_data.J_params))[i_elem++] = i_row;
       }
       i_row++;
@@ -1218,20 +1243,163 @@ SUNMatrix get_jac_init(SolverData *solver_data)
   (SM_INDEXPTRS_S(solver_data->model_data.J_params))[i_col] = i_elem;
 
   // Build the set of Jacobian ids
-  for (int i_ind=0, i_jac_elem=0; i_ind < n_state_var; i_ind++)
+  int **jac_ids_param = (int**) jac_struct_param;
+  for (int i_ind=0, i_jac_elem_param=0; i_ind < n_state_var; i_ind++)
     for (int i_dep=0; i_dep < n_state_var; i_dep++)
-      if (jac_struct[i_dep][i_ind]==true) {
-	jac_ids[i_dep][i_ind] = i_jac_elem++;
+      if (jac_struct_param[i_dep][i_ind]==true) {
+	jac_ids_param[i_dep][i_ind] = i_jac_elem_param++;
       } else {
-	jac_ids[i_dep][i_ind] = -1;
+	jac_ids_param[i_dep][i_ind] = -1;
       }
 
-  // Update the ids in the reaction data
-  sub_model_update_ids(&(solver_data->model_data), deriv_ids, jac_ids);
+  // Update the ids in the sub model data
+  sub_model_update_ids(&(solver_data->model_data), deriv_ids, jac_ids_param);
+
+  ////////////////////////////////
+  // Set up the solver Jacobian //
+  ////////////////////////////////
+
+  // Set up the 2D array of flags
+  jac_struct_solver = (bool**) malloc(sizeof(int*) * n_state_var);
+  if (jac_struct_solver==NULL) {
+    printf("\n\nERROR allocating space for jacobian structure array\n\n");
+    EXIT_FAILURE;
+  }
+  for (int i_spec=0; i_spec < n_state_var; i_spec++) {
+    jac_struct_solver[i_spec] = (bool*) malloc(sizeof(int) * n_state_var);
+    if (jac_struct_solver[i_spec]==NULL) {
+      printf("\n\nERROR allocating space for jacobian structure array "
+                "row %d\n\n", i_spec);
+      EXIT_FAILURE;
+    }
+    for (int j_spec=0; j_spec < n_state_var; j_spec++)
+            jac_struct_solver[i_spec][j_spec] = false;
+  }
+
+  // Determine the structure of the solver Jacobian and number of mapped values
+  int n_mapped_values = 0;
+  for (int i_ind=0; i_ind < n_state_var; ++i_ind) {
+    for (int i_dep=0; i_dep < n_state_var; ++i_dep) {
+      // skip dependent species that are not solver variables and
+      // depenedent species that aren't used by any reaction
+      if (solver_data->model_data.var_type[i_dep]!=CHEM_SPEC_VARIABLE ||
+          jac_ids_rxn[i_dep][i_ind]==-1) continue;
+      // If both elements are variable, use the rxn Jacobian only
+      if (solver_data->model_data.var_type[i_ind]==CHEM_SPEC_VARIABLE &&
+          solver_data->model_data.var_type[i_dep]==CHEM_SPEC_VARIABLE) {
+        jac_struct_solver[i_dep][i_ind] = true;
+        ++n_mapped_values;
+        continue;
+      }
+      // Check the sub model Jacobian for remaining conditions
+      /// \todo Make the Jacobian mapping recursive for sub model parameters
+      ///       that depend on other sub model parameters
+      for (int j_ind=0; j_ind < n_state_var; ++j_ind) {
+        if (jac_ids_param[i_ind][j_ind]>=0 &&
+            solver_data->model_data.var_type[j_ind]==CHEM_SPEC_VARIABLE) {
+          jac_struct_solver[i_dep][j_ind] = true;
+          ++n_mapped_values;
+        }
+      }
+    }
+  }
+
+  // Determine the number of non-zero Jacobian elements
+  n_jac_elem_solver = 0;
+  for (int i=0; i<n_state_var; i++)
+    for (int j=0; j<n_state_var; j++)
+      if (jac_struct_solver[i][j]==true) ++n_jac_elem_solver;
+
+  // Get the number of solver variables (excludes constants, parameters, etc.)
+  int n_dep_var = NV_LENGTH_S(solver_data->y);
+
+  // Initialize the sparse matrix
+  SUNMatrix M = SUNSparseMatrix(n_dep_var, n_dep_var, n_jac_elem_solver, CSC_MAT);
+
+  // Set the column and row indices
+  i_col=0, i_elem=0;
+  for (int i=0; i<n_state_var; i++) {
+    if (solver_data->model_data.var_type[i]!=CHEM_SPEC_VARIABLE) continue;
+    (SM_INDEXPTRS_S(M))[i_col] = i_elem;
+    for (int j=0, i_row=0; j<n_state_var; j++) {
+      if (solver_data->model_data.var_type[j]!=CHEM_SPEC_VARIABLE) continue;
+      if (jac_struct_solver[j][i]==true) {
+	(SM_DATA_S(M))[i_elem] = (realtype) 0.0;
+	(SM_INDEXVALS_S(M))[i_elem++] = i_row;
+      }
+      i_row++;
+    }
+    i_col++;
+  }
+  (SM_INDEXPTRS_S(M))[i_col] = i_elem;
+
+  // Build the set of Jacobian ids
+  int **jac_ids_solver = (int**) jac_struct_solver;
+  for (int i_ind=0, i_jac_elem_solver=0; i_ind < n_state_var; i_ind++)
+    for (int i_dep=0; i_dep < n_state_var; i_dep++)
+      if (jac_struct_solver[i_dep][i_ind]==true) {
+	jac_ids_solver[i_dep][i_ind] = i_jac_elem_solver++;
+      } else {
+	jac_ids_solver[i_dep][i_ind] = -1;
+      }
+
+  // Allocate space for the map
+  solver_data->model_data.n_mapped_values = n_mapped_values;
+  solver_data->model_data.jac_map = (JacMap*) malloc(sizeof(JacMap) *
+                                                     n_mapped_values);
+  if (solver_data->model_data.jac_map==NULL) {
+    printf("\n\nERROR allocating space for jacobian map\n\n");
+    EXIT_FAILURE;
+  }
+  JacMap *map = solver_data->model_data.jac_map;
+
+  // Set map indices (when no sub-model value is used, the param_id is
+  // set to 0 which maps to a fixed value of 1.0
+  int i_mapped_value = 0;
+  for (int i_ind=0; i_ind < n_state_var; ++i_ind) {
+    for (int i_dep=0; i_dep < n_state_var; ++i_dep) {
+      // skip dependent species that are not solver variables and
+      // depenedent species that aren't used by any reaction
+      if (solver_data->model_data.var_type[i_dep]!=CHEM_SPEC_VARIABLE ||
+          jac_ids_rxn[i_dep][i_ind]==-1) continue;
+      // If both elements are variable, use the rxn Jacobian only
+      if (solver_data->model_data.var_type[i_ind]==CHEM_SPEC_VARIABLE &&
+          solver_data->model_data.var_type[i_dep]==CHEM_SPEC_VARIABLE) {
+        map[i_mapped_value].solver_id = jac_struct_solver[i_dep][i_ind];
+        map[i_mapped_value].rxn_id    = jac_struct_rxn[i_dep][i_ind];
+        map[i_mapped_value].param_id  = 0;
+        ++i_mapped_value;
+        continue;
+      }
+      // Check the sub model Jacobian for remaining conditions
+      // (variable dependent species; independent paramter from sub model)
+      for (int j_ind=0; j_ind < n_state_var; ++j_ind) {
+        if (jac_ids_param[i_ind][j_ind]>=0 &&
+            solver_data->model_data.var_type[j_ind]==CHEM_SPEC_VARIABLE) {
+          map[i_mapped_value].solver_id = jac_struct_solver[i_dep][j_ind];
+          map[i_mapped_value].rxn_id    = jac_struct_rxn[i_dep][i_ind];
+          map[i_mapped_value].param_id  = jac_struct_param[i_ind][j_ind];
+          ++i_mapped_value;
+        }
+      }
+    }
+  }
+
+  if (i_mapped_value!=n_mapped_values) {
+    printf("[ERROR-340355266] Internal error");
+    EXIT_FAILURE;
+  }
 
   // Free the memory used
-  for (int i_spec=0; i_spec<n_state_var; i_spec++) free(jac_struct[i_spec]);
-  free(jac_struct);
+  for (int i_spec=0; i_spec<n_state_var; i_spec++)
+    free(jac_struct_rxn[i_spec]);
+  free(jac_struct_rxn);
+  for (int i_spec=0; i_spec<n_state_var; i_spec++)
+    free(jac_struct_param[i_spec]);
+  free(jac_struct_param);
+  for (int i_spec=0; i_spec<n_state_var; i_spec++)
+    free(jac_struct_solver[i_spec]);
+  free(jac_struct_solver);
   free(deriv_ids);
 
   return M;
@@ -1423,8 +1591,10 @@ void model_free(ModelData model_data)
 #ifdef PMC_USE_SUNDIALS
   // Destroy the initialized Jacbobian matrix
   SUNMatDestroy(model_data.J_init);
+  SUNMatDestroy(model_data.J_rxn);
   SUNMatDestroy(model_data.J_params);
 #endif
+  free(model_data.jac_map);
   free(model_data.var_type);
   free(model_data.rxn_data);
   free(model_data.aero_phase_data);

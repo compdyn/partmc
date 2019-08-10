@@ -160,7 +160,7 @@ int run_sub_model_zsr_c_tests(void *solver_data, double *state, double *env)
 
   md->state = state;
 
-  ret_val += ASSERT_MSG(SM_NNZ_S(J)==N_JAC_ELEM,
+  ret_val += ASSERT_MSG(SM_NNZ_S(J)-1==N_JAC_ELEM,
                         "Wrong number of flagged Jac elements");
 
   // Set species concentrations

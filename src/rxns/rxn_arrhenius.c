@@ -83,12 +83,10 @@ void * rxn_arrhenius_update_ids(ModelData *model_data, int *deriv_ids,
   // Update the Jacobian ids
   int i_jac = 0;
   for (int i_ind = 0; i_ind < NUM_REACT_; i_ind++) {
-    for (int i_dep = 0; i_dep < NUM_REACT_; i_dep++) {
+    for (int i_dep = 0; i_dep < NUM_REACT_; i_dep++)
       JAC_ID_(i_jac++) = jac_ids[REACT_(i_dep)][REACT_(i_ind)];
-    }
-    for (int i_dep = 0; i_dep < NUM_PROD_; i_dep++) {
+    for (int i_dep = 0; i_dep < NUM_PROD_; i_dep++)
       JAC_ID_(i_jac++) = jac_ids[PROD_(i_dep)][REACT_(i_ind)];
-    }
   }
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }

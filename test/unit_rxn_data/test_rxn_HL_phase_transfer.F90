@@ -80,8 +80,8 @@ contains
   !! application." J. Geophys. Res. 108, 4426. doi:10.1029/2002JD002202
   !!
   !! One of two scenarios is tested, depending on the passed integer:
-  !! one with a single-particle aerosol representation (1)
-  !! and one with a modal aerosol representation (2)
+  !! (1) single-particle aerosol representation and fixed water concentration
+  !! (2) modal aerosol representation and ZSR-calculated water concentration
   logical function run_HL_phase_transfer_test(scenario)
 
     use pmc_constants

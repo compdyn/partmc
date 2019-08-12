@@ -58,7 +58,8 @@ contains
     phlex_solver_data => phlex_solver_data_t()
 
     if (phlex_solver_data%is_solver_available()) then
-      passed = run_aqueous_equilibrium_test()
+      passed = run_aqueous_equilibrium_test(1)
+      passed = passed .and. run_aqueous_equilibrium_test(2)
     else
       call warn_msg(713064651, "No solver available")
       passed = .true.
@@ -71,17 +72,24 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Solve a mechanism consisting of two aqueous equilibrium reactions
-  logical function run_aqueous_equilibrium_test()
+  !!
+  !! One of two scenarios is tested, depending on the pased integer:
+  !! (1) single-particle aerosol representation and fixed water concentration
+  !! (2) modal aerosol representation and ZSR-calculated water concentration
+  logical function run_aqueous_equilibrium_test(scenario)
 
     use pmc_constants
 
+    !> Scenario flag
+    integer, intent(in) :: scenario
+
     type(phlex_core_t), pointer :: phlex_core
     type(phlex_state_t), pointer :: phlex_state
-    character(len=:), allocatable :: input_file_path, key
+    character(len=:), allocatable :: input_file_path, key, idx_prefix
     type(string_t), allocatable, dimension(:) :: output_file_path
 
     class(aero_rep_data_t), pointer :: aero_rep_ptr
-    real(kind=dp), dimension(0:NUM_TIME_STEP, 30) :: model_conc, true_conc
+    real(kind=dp), allocatable, dimension(:,:) :: model_conc, true_conc
     integer(kind=i_kind) :: idx_A, idx_B, idx_C, idx_D, idx_E, idx_F, idx_G, &
             idx_H, idx_BC_act, idx_H2O, idx_phase, i_time, i_spec
     real(kind=dp) :: time_step, time, Keq_1, Keq_2, Keq_3, k1_forward, &
@@ -96,7 +104,19 @@ contains
 
     type(solver_stats_t), target :: solver_stats
 
+    call assert_msg(533630504, scenario.ge.1 .and. scenario.le.2, &
+                    "Invalid scenario specified: "//to_string( scenario ))
+
     run_aqueous_equilibrium_test = .true.
+
+    ! Allocate space for the results
+    if (scenario.eq.1) then
+      allocate(model_conc(0:NUM_TIME_STEP, 30))
+      allocate(true_conc(0:NUM_TIME_STEP, 30))
+    else if (scenario.eq.2) then
+      allocate(model_conc(0:NUM_TIME_STEP, 15))
+      allocate(true_conc(0:NUM_TIME_STEP, 15))
+    end if
 
     ! Set the environmental and aerosol test conditions
     temp = 272.5d0              ! temperature (K)
@@ -111,7 +131,11 @@ contains
 #endif
 
       ! Get the aqueous_equilibrium reaction mechanism json file
-      input_file_path = 'test_aqueous_equilibrium_config.json'
+      if (scenario.eq.1) then
+        input_file_path = 'test_aqueous_equilibrium_config.json'
+      else if (scenario.eq.2) then
+        input_file_path = 'test_aqueous_equilibrium_config_2.json'
+      end if
 
       ! Construct a phlex_core variable
       phlex_core => phlex_core_t(input_file_path)
@@ -126,25 +150,30 @@ contains
       call assert(750324390, phlex_core%get_aero_rep(key, aero_rep_ptr))
 
       ! Get species indices
-      key = "aqueous aerosol.A"
+      if (scenario.eq.1) then
+        idx_prefix = ""
+      else if (scenario.eq.2) then
+        idx_prefix = "the mode."
+      end if
+      key = idx_prefix//"aqueous aerosol.A"
       idx_A = aero_rep_ptr%spec_state_id(key);
-      key = "aqueous aerosol.B"
+      key = idx_prefix//"aqueous aerosol.B"
       idx_B = aero_rep_ptr%spec_state_id(key);
-      key = "aqueous aerosol.C"
+      key = idx_prefix//"aqueous aerosol.C"
       idx_C = aero_rep_ptr%spec_state_id(key);
-      key = "aqueous aerosol.B-C"
+      key = idx_prefix//"aqueous aerosol.B-C"
       idx_BC_act = aero_rep_ptr%spec_state_id(key);
-      key = "aqueous aerosol.D"
+      key = idx_prefix//"aqueous aerosol.D"
       idx_D = aero_rep_ptr%spec_state_id(key);
-      key = "aqueous aerosol.E"
+      key = idx_prefix//"aqueous aerosol.E"
       idx_E = aero_rep_ptr%spec_state_id(key);
-      key = "aqueous aerosol.F"
+      key = idx_prefix//"aqueous aerosol.F"
       idx_F = aero_rep_ptr%spec_state_id(key);
-      key = "aqueous aerosol.G"
+      key = idx_prefix//"aqueous aerosol.G"
       idx_G = aero_rep_ptr%spec_state_id(key);
-      key = "aqueous aerosol.H"
+      key = idx_prefix//"aqueous aerosol.H"
       idx_H = aero_rep_ptr%spec_state_id(key);
-      key = "aqueous aerosol.H2O_aq"
+      key = idx_prefix//"aqueous aerosol.H2O_aq"
       idx_H2O = aero_rep_ptr%spec_state_id(key);
 
       ! Make sure the expected species are in the model
@@ -356,8 +385,13 @@ contains
       end do
 
       ! Save the results
-      open(unit=7, file="out/aqueous_equilibrium_results.txt", &
-              status="replace", action="write")
+      if (scenario.eq.1) then
+        open(unit=7, file="out/aqueous_equilibrium_results.txt", &
+                status="replace", action="write")
+      else if (scenario.eq.2) then
+        open(unit=7, file="out/aqueous_equilibrium_results_2.txt", &
+                status="replace", action="write")
+      end if
       do i_time = 0, NUM_TIME_STEP
         write(7,*) i_time*time_step, &
               ' ', true_conc(i_time, idx_A),' ', model_conc(i_time, idx_A), &
@@ -372,23 +406,25 @@ contains
       end do
       close(7)
 
-      ! Analyze the results
-      do i_time = 1, NUM_TIME_STEP
-        do i_spec = 1, size(model_conc, 2)
-          ! FIXME Check all species once a true value is found for the 4 
-          ! component reactions
-          if (i_spec.ne.idx_G.and.i_spec.ne.idx_H) cycle
-          call assert_msg(703162515, &
-            almost_equal(model_conc(i_time, i_spec), &
-            true_conc(i_time, i_spec), real(1.0e-2, kind=dp)).or. &
-            (model_conc(i_time, i_spec).lt.1e-5*model_conc(1, i_spec).and. &
-            true_conc(i_time, i_spec).lt.1e-5*true_conc(1, i_spec)), &
-            "time: "//trim(to_string(i_time))//"; species: "// &
-            trim(to_string(i_spec))//"; mod: "// &
-            trim(to_string(model_conc(i_time, i_spec)))//"; true: "// &
-            trim(to_string(true_conc(i_time, i_spec))))
+      ! Analyze the results (single-particle only)
+      if (scenario.eq.1) then
+        do i_time = 1, NUM_TIME_STEP
+          do i_spec = 1, size(model_conc, 2)
+            ! FIXME Check all species once a true value is found for the 4
+            ! component reactions
+            if (i_spec.ne.idx_G.and.i_spec.ne.idx_H) cycle
+            call assert_msg(703162515, &
+              almost_equal(model_conc(i_time, i_spec), &
+              true_conc(i_time, i_spec), real(1.0e-2, kind=dp)).or. &
+              (model_conc(i_time, i_spec).lt.1e-5*model_conc(1, i_spec).and. &
+              true_conc(i_time, i_spec).lt.1e-5*true_conc(1, i_spec)), &
+              "time: "//trim(to_string(i_time))//"; species: "// &
+              trim(to_string(i_spec))//"; mod: "// &
+              trim(to_string(model_conc(i_time, i_spec)))//"; true: "// &
+              trim(to_string(true_conc(i_time, i_spec))))
+          end do
         end do
-      end do
+      end if
 
       deallocate(phlex_state)
 

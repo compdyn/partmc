@@ -223,6 +223,10 @@ module pmc_sub_model_PDFiTE
   contains
     !> Reaction initialization
     procedure :: initialize
+    !> Return a real number representing the priority of the sub-model
+    !! calculations. Low priority sub models may depend on the results
+    !! of higher priority sub models.
+    procedure :: priority
     !> Finalize the reaction
     final :: finalize
   end type sub_model_PDFiTE_t
@@ -843,6 +847,25 @@ contains
             deallocate(this%condensed_data_int)
 
   end subroutine finalize
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Return a real number representing the priority of the sub model
+  !! calculations. Low priority sub models may use the results of higher
+  !! priority sub models. Lower numbers indicate higher priority.
+  !!
+  !! PD-FiTE calculations may depend on water concentrations, so must be
+  !! lower priority than the ZSR sub model.
+  function priority(this)
+
+    !> Sub model priority
+    real(kind=dp) :: priority
+    !> Sub model data
+    class(sub_model_PDFITE_t), intent(in) :: this
+
+    priority = 2.0;
+
+  end function priority
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

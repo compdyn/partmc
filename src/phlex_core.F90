@@ -424,6 +424,8 @@ contains
     type(sub_model_factory_t) :: sub_model_factory
     type(sub_model_data_ptr) :: sub_model_ptr
     class(sub_model_data_t), pointer :: existing_sub_model_ptr
+    logical :: sub_model_placed
+    integer(kind=i_kind) :: i_sub_model, j_sub_model
 
     ! aerosol representations
     type(aero_rep_data_ptr), pointer :: new_aero_rep(:)
@@ -554,10 +556,24 @@ contains
             deallocate(sub_model_ptr%val)
             call existing_sub_model_ptr%load(json, j_obj)
           else
+            sub_model_placed = .false.
             allocate(new_sub_model(size(this%sub_model)+1))
-            new_sub_model(1:size(this%sub_model)) = &
-                    this%sub_model(1:size(this%sub_model))
-            new_sub_model(size(new_sub_model))%val => sub_model_ptr%val
+            j_sub_model = 1
+            do i_sub_model = 1, size(this%sub_model)
+              if (.not.sub_model_placed .and. &
+                  sub_model_ptr%val%priority() < &
+                  this%sub_model(i_sub_model)%val%priority()) then
+                    sub_model_placed = .true.
+                    new_sub_model(j_sub_model)%val => sub_model_ptr%val
+                    j_sub_model = j_sub_model + 1
+              end if
+              new_sub_model(j_sub_model) = &
+                      this%sub_model(i_sub_model)
+              j_sub_model = j_sub_model + 1
+            end do
+            if (.not.sub_model_placed) then
+              new_sub_model(j_sub_model)%val => sub_model_ptr%val
+            end if
             call this%sub_model(:)%dereference()
             deallocate(this%sub_model)
             this%sub_model => new_sub_model

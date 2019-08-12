@@ -204,6 +204,10 @@ module pmc_sub_model_ZSR_aerosol_water
   contains
     !> Reaction initialization
     procedure :: initialize
+    !> Return a real number representing the priority of the sub-model
+    !! calculations. Low priority sub models may depend on the results
+    !! of higher priority sub models.
+    procedure :: priority
     !> Finalize
     final :: finalize
   end type sub_model_ZSR_aerosol_water_t
@@ -667,6 +671,25 @@ contains
     call assert(568314442, n_float_param.eq.TOTAL_FLOAT_PARAM_)
 
   end subroutine initialize
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Return a real number representing the priority of the sub model
+  !! calculations. Low priority sub models may use the results of higher
+  !! priority sub models. Lower numbers indicate higher priority.
+  !!
+  !! ZSR calculations do not depend on other sub model calculations, so can be
+  !! high priority.
+  function priority(this)
+
+    !> Sub model priority
+    real(kind=dp) :: priority
+    !> Sub model data
+    class(sub_model_ZSR_aerosol_water_t), intent(in) :: this
+
+    priority = 1.0;
+
+  end function priority
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

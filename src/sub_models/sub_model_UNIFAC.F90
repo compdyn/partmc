@@ -183,6 +183,10 @@ module pmc_sub_model_UNIFAC
     !! the input files have been read in. It ensures all data required
     !! during the model run are included in the condensed data arrays.
     procedure :: initialize
+    !> Return a real number representing the priority of the sub-model
+    !! calculations. Low priority sub models may depend on the results
+    !! of higher priority sub models.
+    procedure :: priority
     !> Finalize the sub-model
     final :: finalize
   end type sub_model_UNIFAC_t
@@ -642,6 +646,25 @@ contains
     deallocate(group_names)
 
   end subroutine initialize
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Return a real number representing the priority of the sub model
+  !! calculations. Low priority sub models may use the results of higher
+  !! priority sub models. Lower numbers indicate higher priority.
+  !!
+  !! UNIFAC calculations may depend on water concentrations, so must be
+  !! lower priority than the ZSR sub model.
+  function priority(this)
+
+    !> Sub model priority
+    real(kind=dp) :: priority
+    !> Sub model data
+    class(sub_model_UNIFAC_t), intent(in) :: this
+
+    priority = 2.0;
+
+  end function priority
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

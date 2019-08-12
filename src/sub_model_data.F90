@@ -79,6 +79,10 @@ module pmc_sub_model_data
     !! the input files have been read in. It ensures all data required
     !! during the model run are included in the condensed data arrays.
     procedure(initialize), deferred :: initialize
+    !> Return a real number representing the priority of the sub-model
+    !! calculations. Low priority sub models may depend on the results
+    !! of higher priority sub models. Lower numbers indicate higher priority.
+    procedure(priority), deferred :: priority
     !> Get the name of the sub-model
     procedure :: name => get_name
     !> Determine the number of bytes required to pack the sub-model data
@@ -143,6 +147,23 @@ interface
     type(chem_spec_data_t), intent(in) :: chem_spec_data
 
   end subroutine initialize
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Return a real number representing the priority of the sub model
+  !! calculations. Low priority sub models may use the results of higher
+  !! priority sub models. Lower numbers indicate higher priority.
+  function priority(this)
+
+    use pmc_constants,                           only : dp
+    import :: sub_model_data_t
+
+    !> Sub model priority
+    real(kind=dp) :: priority
+    !> Sub model data
+    class(sub_model_data_t), intent(in) :: this
+
+  end function priority
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

@@ -128,8 +128,8 @@ contains
       allocate(model_conc(0:NUM_TIME_STEP, 11))
       allocate(true_conc(0:NUM_TIME_STEP, 11))
     else if (scenario.eq.2) then
-      allocate(model_conc(0:NUM_TIME_STEP, 6))
-      allocate(true_conc(0:NUM_TIME_STEP, 6))
+      allocate(model_conc(0:NUM_TIME_STEP, 10))
+      allocate(true_conc(0:NUM_TIME_STEP, 10))
     endif
 
     ! Set the environmental conditions

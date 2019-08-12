@@ -6,6 +6,35 @@
     "value" : 1.0e-10
   },
   {
+    "name" : "H2O",
+    "type" : "CHEM_SPEC"
+  },
+  {
+    "name" : "Na_p",
+    "type" : "CHEM_SPEC",
+    "phase" : "AEROSOL",
+    "charge" : 1,
+    "density [kg m-3]" : 1.0,
+    "molecular weight [kg mol-1]" : 0.0229898
+  },
+  {
+    "name" : "Cl_m",
+    "type" : "CHEM_SPEC",
+    "phase" : "AEROSOL",
+    "charge" : -1,
+    "density [kg m-3]" : 1.0,
+    "molecular weight [kg mol-1]" : 0.035453
+  },
+  {
+    "name" : "Ca_pp",
+    "type" : "CHEM_SPEC",
+    "phase" : "AEROSOL",
+    "charge" : 2,
+    "density [kg m-3]" : 1.0,
+    "molecular weight [kg mol-1]" : 0.040078
+  },
+
+  {
     "name" : "O3",
     "type" : "CHEM_SPEC",
     "HLC(298K) [M Pa-1]" : 1.12509e-7,
@@ -46,6 +75,7 @@
   {
     "name" : "H2O_aq",
     "type" : "CHEM_SPEC",
+    "tracer type" : "CONSTANT",
     "phase" : "AEROSOL",
     "density [kg m-3]" : 1.0,
     "molecular weight [kg mol-1]" : 0.01801
@@ -53,7 +83,7 @@
   {
     "name" : "aqueous aerosol",
     "type" : "AERO_PHASE",
-    "species" : ["O3_aq", "H2O2_aq", "H2O_aq"]
+    "species" : ["O3_aq", "H2O2_aq", "Na_p", "Cl_m", "Ca_pp", "H2O_aq"]
   },
   {
     "name" : "that other phase",
@@ -102,6 +132,33 @@
 	"aerosol-phase water" : "H2O_aq"
       }
     ]
+  },
+  {
+    "name" : "simple sea-salt aerosol water",
+    "type" : "SUB_MODEL_ZSR_AEROSOL_WATER",
+    "aerosol phase" : "aqueous aerosol",
+    "gas-phase water" : "H2O",
+    "aerosol-phase water" : "H2O_aq",
+    "ion pairs" : {
+      "NaCl" : {
+        "type" : "EQSAM",
+        "ions" : {
+          "Cl_m" : {}
+        },
+        "NW" : 2.0,
+        "ZW" : 0.67,
+        "MW" : 0.0585
+      },
+      "CaCl2" : {
+        "type" : "JACOBSON",
+        "ions" : {
+          "Ca_pp" : {},
+          "Cl_m" : { "qty" : 2 }
+        },
+        "Y_j" : [-1.918004e2, 2.001540e3, -8.557205e3, 1.987670e4, -2.717192e4, 2.187103e4, -9.591577e3, 1.763672e3],
+        "low RH" : 0.43
+      }
+    }
   }
   ]
 }

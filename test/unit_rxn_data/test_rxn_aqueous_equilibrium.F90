@@ -73,7 +73,7 @@ contains
 
   !> Solve a mechanism consisting of two aqueous equilibrium reactions
   !!
-  !! One of two scenarios is tested, depending on the pased integer:
+  !! One of two scenarios is tested, depending on the passed integer:
   !! (1) single-particle aerosol representation and fixed water concentration
   !! (2) modal aerosol representation and ZSR-calculated water concentration
   logical function run_aqueous_equilibrium_test(scenario)

@@ -12,7 +12,7 @@ program process
   use pmc_stats
 
   character(len=PMC_MAX_FILENAME_LEN), parameter :: prefix &
-       = "out/urban_plume_aq_chem_b"
+       = "out/urban_plume_aq_chem_mono"
 
   character(len=PMC_MAX_FILENAME_LEN) :: in_filename, out_filename
   type(bin_grid_t) :: diam_grid, bc_grid, sc_grid, avg_bin_grid
@@ -107,20 +107,6 @@ program process
         pressure(i_index) = env_state%pressure
         write(*,*) "time ",times(i_index),"pressure ", pressure(i_index)
         
-        o3(i_index) = gas_state%mix_rat(11)
-        so2(i_index) = gas_state%mix_rat(18)
-        hno3(i_index) = gas_state%mix_rat(2)
-        nh3(i_index) = gas_state%mix_rat(4)
-        oh(i_index) = gas_state%mix_rat(14)
-        h2o2(i_index) = gas_state%mix_rat(16)
-        
-        write(*,*) "time ",times(i_index),"o3 ", o3(i_index)
-        write(*,*) "time ",times(i_index),"so2", so2(i_index)
-        write(*,*) "time ",times(i_index),"hno3 ", hno3(i_index)
-        write(*,*) "time ",times(i_index),"nh3 ", nh3(i_index)
-        write(*,*) "time ",times(i_index),"oh ", oh(i_index)
-        write(*,*) "time ",times(i_index),"h2o2 ", h2o2(i_index)
-        
         max_dp = 0.0
         do i=1,size(wet_diameters)
             if (wet_diameters(i).gt.max_dp) then
@@ -207,12 +193,6 @@ program process
   call pmc_nc_write_real_1d(ncid, times, "time", dim_name="time", unit="s")
   call pmc_nc_write_real_1d(ncid, temp, "temp", dim_name="time", unit="K")
   call pmc_nc_write_real_1d(ncid, pressure, "pressure", dim_name="time", unit="Pa")
-  call pmc_nc_write_real_1d(ncid, o3, "o3", dim_name="time", unit="ppb")
-  call pmc_nc_write_real_1d(ncid, hno3, "hno3", dim_name="time", unit="ppb")
-  call pmc_nc_write_real_1d(ncid, so2, "so2", dim_name="time", unit="ppb")
-  call pmc_nc_write_real_1d(ncid, oh, "oh", dim_name="time", unit="ppb")
-  call pmc_nc_write_real_1d(ncid, nh3, "nh3", dim_name="time", unit="ppb")
-  call pmc_nc_write_real_1d(ncid, h2o2, "h2o2", dim_name="time", unit="ppb")
   
   call stats_1d_output_netcdf(stats_tot_num_conc, ncid, "tot_num_conc", &
        dim_name="time", unit="m^{-3}")
@@ -222,7 +202,7 @@ program process
        dim_name="time", unit="m^{-3}")
   call pmc_nc_close(ncid)
 
-  call bin_grid_allocate(diam_grid)
+  call bin_grid_deallocate(diam_grid)
   call aero_data_deallocate(aero_data)
   call aero_state_deallocate(aero_state)
   call env_state_deallocate(env_state)

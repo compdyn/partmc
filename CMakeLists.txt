@@ -114,7 +114,10 @@ if(ENABLE_SUNDIALS)
   find_library(SUNDIALS_CVODE_LIB sundials_cvode
     DOC "SUNDIALS CVODE library"
     PATHS $ENV{SUNDIALS_HOME}/lib /opt/local/lib)
-  set(SUNDIALS_LIBS ${SUNDIALS_NVECSERIAL_LIB} ${SUNDIALS_CVODE_LIB})
+  find_library(SUNDIALS_KLU_LIB klu
+    DOC "SUNDIALS KLU library"
+    PATHS /opt/local/lib)
+  set(SUNDIALS_LIBS ${SUNDIALS_NVECSERIAL_LIB} ${SUNDIALS_CVODE_LIB} ${SUNDIALS_KLU_LIB})
   set(SUNDIALS_SRC src/condense_solver.c)
   include_directories(${SUNDIALS_INCLUDE_DIR})
   add_definitions(-DPMC_USE_SUNDIALS)

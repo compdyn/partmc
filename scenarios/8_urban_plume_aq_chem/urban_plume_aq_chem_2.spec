@@ -1,14 +1,14 @@
 run_type particle               # particle-resolved run
-output_prefix out/urban_plume_aq_chem_b   # prefix of output files
+output_prefix out/urban_plume_aq_chem_b_no_aq   # prefix of output files
 n_repeat 1                      # number of Monte Carlo repeats
 n_part 10                    # total number of particles
 restart yes                     # whether to restart from saved state (yes/no)
 restart_file out/urban_plume_aq_chem_0001_00000021.nc
 
-t_max 60                      # total simulation time (s)
+t_max 600                       # total simulation time (s)
 del_t 1                         # timestep (s)
 t_output 60                     # output interval (0 disables) (s)
-t_progress 1                  # progress printing interval (0 disables) (s)
+t_progress 1                    # progress printing interval (0 disables) (s)
 
 temp_profile temp_2.dat         # temperature profile file
 pressure_profile pres_2.dat     # pressure profile file
@@ -45,10 +45,10 @@ do_parallel no                  # whether to run in parallel (yes/no)
 # env_average yes                 # whether to average environment each timestep
 # parallel_coag local             # parallel coagulation method (local/dist)
 
-do_aq_chem yes                  # whether to do aqueous chemistry (yes/no)
-do_output_aq_rates yes          # whether to output aqueous rates (yes/no)
-aq_mech capram24_red+_mod4.txt       # aqueous chemical mechanism file
-aq_spec aq_spec_data_with_abstol.dat    # file containing aqueous species data
-aq_map aq_spec_map.dat          # file containing map between species in aq. mechanism and PartMC
-aq_init aq_spec_init.dat        # file containing initial and constant species concentrations
+do_aq_chem no                  # whether to do aqueous chemistry (yes/no)
+#do_output_aq_rates yes          # whether to output aqueous rates (yes/no)
+#aq_mech capram24_red+_mod4.txt       # aqueous chemical mechanism file
+#aq_spec aq_spec_data_with_abstol.dat    # file containing aqueous species data
+#aq_map aq_spec_map.dat          # file containing map between species in aq. mechanism and PartMC
+#aq_init aq_spec_init.dat        # file containing initial and constant species concentrations
 

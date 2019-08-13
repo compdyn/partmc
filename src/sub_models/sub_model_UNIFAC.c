@@ -35,7 +35,9 @@
 #define PHASE_INST_FLOAT_LOC_(p,c) (int_data[PHASE_INT_LOC_(p)+2+c]-1)
 #define PHASE_INST_ID_(p,c) (int_data[PHASE_INT_LOC_(p)+2+NUM_PHASE_INSTANCE_(p)+c]-1)
 #define SPEC_ID_(p,i) (int_data[PHASE_INT_LOC_(p)+2+2*NUM_PHASE_INSTANCE_(p)+i])
-#define V_IK_(p,i,k) (int_data[PHASE_INT_LOC_(p)+2+2*NUM_PHASE_INSTANCE_(p)+(k+1)*NUM_SPEC_(p)+i])
+#define ACT_JAC_ID_(p,c) int_data[PHASE_INT_LOC_(p)+2+2*NUM_PHASE_INSTANCE_(p)+NUM_SPEC_(p)+c]
+#define SPEC_JAC_ID_(p,c,i) int_data[PHASE_INT_LOC_(p)+2+3*NUM_PHASE_INSTANCE_(p)+(c+1)*NUM_SPEC_(p)+i]
+#define V_IK_(p,i,k) (int_data[PHASE_INT_LOC_(p)+2+3*NUM_PHASE_INSTANCE_(p)+(k+1+NUM_PHASE_INSTANCE_(p))*NUM_SPEC_(p)+i])
 
 #define Q_K_(k) (float_data[k])
 #define R_K_(k) (float_data[NUM_GROUP_+k])
@@ -313,38 +315,64 @@ void sub_model_UNIFAC_print(int *sub_model_int_data,
   for (int i=0; i<INT_DATA_SIZE_; i++) printf(" %d", int_data[i]);
   printf("\nfloat_data");
   for (int i=0; i<FLOAT_DATA_SIZE_; i++) printf(" %le", float_data[i]);
+  printf("\nNumber of unique phases %d", NUM_UNIQUE_PHASE_);
+  printf("\nNumber of UNIFAC groups %d", NUM_GROUP_);
+  printf("\n*** General group data ***");
+  for (int i_group=0; i_group<NUM_GROUP_; ++i_group) {
+    printf("\nGroup %d:", i_group);
+    printf("\n  Q_K: %le R_K: %le Theta_M: %le", Q_K_(i_group), R_K_(i_group),
+           THETA_M_(i_group));
+    printf("\n A_MN (by group):");
+    for (int j_group=0; j_group<NUM_GROUP_; ++j_group)
+      printf(" %le", A_MN_(i_group, j_group));
+    printf("\n Psi_MN (by group):");
+    for (int j_group=0; j_group<NUM_GROUP_; ++j_group)
+      printf(" %le", PSI_MN_(i_group, j_group));
+  }
+  printf("\n\n*** Phase data ***");
+  for (int i_phase=0; i_phase<NUM_UNIQUE_PHASE_; ++i_phase) {
+    printf("\nPhase %d:", i_phase);
+    printf("\n  Number of instances: %d", NUM_PHASE_INSTANCE_(i_phase));
+    printf("\n  Number of species: %d", NUM_SPEC_(i_phase));
+    printf("\n  Species ids:");
+    for (int i_spec=0; i_spec<NUM_SPEC_(i_phase); ++i_spec)
+      printf(" %d", SPEC_ID_(i_phase, i_spec));
+    printf("\n  ** Instance data **");
+    for (int i_inst=0; i_inst<NUM_PHASE_INSTANCE_(i_phase); ++i_inst) {
+      printf("\n  Instance %d:", i_inst);
+      printf("\n    Activity Jacobian id: %d", ACT_JAC_ID_(i_phase, i_inst));
+      printf("\n    Jacobian ids:");
+      for (int i_spec=0; i_spec<NUM_SPEC_(i_phase); ++i_spec)
+        printf(" %d", SPEC_JAC_ID_(i_phase, i_inst, i_spec));
+      printf("\n    gamma_i (by species):");
+      for (int i_spec=0; i_spec<NUM_SPEC_(i_phase); ++i_spec)
+        printf(" %le", GAMMA_I_(i_phase, i_inst, i_spec));
+
+    }
+    printf("\n  R_I (by species):");
+    for (int i_spec=0; i_spec<NUM_SPEC_(i_phase); ++i_spec)
+      printf(" %le", R_I_(i_phase, i_spec));
+    printf("\n  Q_I (by species):");
+    for (int i_spec=0; i_spec<NUM_SPEC_(i_phase); ++i_spec)
+      printf(" %le", Q_I_(i_phase, i_spec));
+    printf("\n  L_I (by species):");
+    for (int i_spec=0; i_spec<NUM_SPEC_(i_phase); ++i_spec)
+      printf(" %le", L_I_(i_phase, i_spec));
+    printf("\n  MW_I (by species):");
+    for (int i_spec=0; i_spec<NUM_SPEC_(i_phase); ++i_spec)
+      printf(" %le", MW_I_(i_phase, i_spec));
+    printf("\n  X_I (by species):");
+    for (int i_spec=0; i_spec<NUM_SPEC_(i_phase); ++i_spec)
+      printf(" %le", X_I_(i_phase, i_spec));
+    printf("\n  ** Phase-specific group data **");
+    for (int i_group=0; i_group<NUM_GROUP_; ++i_group) {
+      printf("\n  Group %d:", i_group);
+      printf("\n    v_ik (by species):");
+      for (int i_spec=0; i_spec<NUM_SPEC_(i_phase); ++i_spec)
+        printf(" %d", V_IK_(i_phase, i_spec, i_group));
+      printf("\n    ln_gamma_ik (by species):");
+      for (int i_spec=0; i_spec<NUM_SPEC_(i_phase); ++i_spec)
+        printf(" %le", LN_GAMMA_IK_(i_phase, i_spec, i_group));
+    }
+  }
 }
-
-#undef TEMPERATURE_K_
-#undef PRESSURE_PA_
-
-#undef NUM_UNIQUE_PHASE_
-#undef NUM_GROUP_
-#undef TOTAL_INT_PROP_
-#undef TOTAL_FLOAT_PROP_
-#undef NUM_INT_PROP_
-#undef NUM_FLOAT_PROP_
-#undef PHASE_INT_LOC_
-#undef PHASE_FLOAT_LOC_
-#undef NUM_PHASE_INSTANCE_
-#undef NUM_SPEC_
-#undef PHASE_INST_FLOAT_LOC_
-#undef PHASE_INST_ID_
-#undef SPEC_ID_
-#undef V_IK_
-
-#undef Q_K_
-#undef R_K_
-#undef THETA_M_
-#undef A_MN_
-#undef PSI_MN_
-#undef R_I_
-#undef Q_I_
-#undef L_I_
-#undef MW_I_
-#undef X_I_
-#undef LN_GAMMA_IK_
-#undef GAMMA_I_
-
-#undef INT_DATA_SIZE_
-#undef FLOAT_DATA_SIZE_

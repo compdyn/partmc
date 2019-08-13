@@ -151,11 +151,13 @@ module pmc_sub_model_UNIFAC
 #define PHASE_INST_REAL_LOC_(p,c) this%condensed_data_int(PHASE_INT_LOC_(p)+1+c)
 #define PHASE_INST_ID_(p,c) this%condensed_data_int(PHASE_INT_LOC_(p)+1+NUM_PHASE_INSTANCE_(p)+c)
 #define SPEC_ID_(p,i) this%condensed_data_int(PHASE_INT_LOC_(p)+1+2*NUM_PHASE_INSTANCE_(p)+i)
-#define V_IK_(p,i,k) this%condensed_data_int(PHASE_INT_LOC_(p)+1+2*NUM_PHASE_INSTANCE_(p)+k*NUM_SPEC_(p)+i)
+#define ACT_JAC_ID_(p,c) this%condensed_data_int(PHASE_INT_LOC_(p)+1+2*NUM_PHASE_INSTANCE_(p)+NUM_SPEC_(p)+c)
+#define SPEC_JAC_ID_(p,c,i) this%condensed_data_int(PHASE_INT_LOC_(p)+1+3*NUM_PHASE_INSTANCE_(p)+c*NUM_SPEC_(p)+i)
+#define V_IK_(p,i,k) this%condensed_data_int(PHASE_INT_LOC_(p)+1+3*NUM_PHASE_INSTANCE_(p)+(k+NUM_PHASE_INSTANCE_(p))*NUM_SPEC_(p)+i)
 
 #define Q_K_(k) this%condensed_data_real(k)
 #define R_K_(k) this%condensed_data_real(NUM_GROUP_+k)
-#define THETA_M_(m) this%condensed_data_real(2*NUM_GROUP_+k)
+#define THETA_M_(m) this%condensed_data_real(2*NUM_GROUP_+m)
 #define A_MN_(m,n) this%condensed_data_real((m+2)*NUM_GROUP_+n)
 #define PSI_MN_(m,n) this%condensed_data_real((m+2+NUM_GROUP_)*NUM_GROUP_+n)
 #define R_I_(p,i) this%condensed_data_real(PHASE_FLOAT_LOC_(p)+i-1)
@@ -344,6 +346,9 @@ contains
       num_int_data = num_int_data + 2                    & ! NUM_PHASE_INSTANCE, NUM_SPEC
                      + 2*num_phase_inst(i_UNIFAC_phase)  & ! PHASE_INST_REAL_LOC, PHASE_INST_ID
                      + num_phase_spec(i_UNIFAC_phase)    & ! SPEC_ID
+                     + num_phase_inst(i_UNIFAC_phase)    & ! ACT_JAC_ID
+                     + num_phase_inst(i_UNIFAC_phase) *  &
+                       num_phase_spec(i_UNIFAC_phase)    & ! SPEC_JAC_ID
                      + num_phase_spec(i_UNIFAC_phase) * num_group          ! v_ik
       num_real_data = num_real_data &
                      + 5*num_phase_spec(i_UNIFAC_phase)  & ! r_i, q_i, l_i, MW_i, X_i
@@ -375,6 +380,9 @@ contains
       num_int_data = num_int_data + 2                    & ! NUM_PHASE_INSTANCE, NUM_SPEC
                      + 2*num_phase_inst(i_UNIFAC_phase)  & ! PHASE_INST_REAL_LOC, PHASE_INST_ID
                      + num_phase_spec(i_UNIFAC_phase)    & ! SPEC_ID
+                     + num_phase_inst(i_UNIFAC_phase)    & ! ACT_JAC_ID
+                     + num_phase_inst(i_UNIFAC_phase) *  &
+                       num_phase_spec(i_UNIFAC_phase)    & ! SPEC_JAC_ID
                      + num_phase_spec(i_UNIFAC_phase) * num_group          ! v_ik
       num_real_data = num_real_data &
                      + 5*num_phase_spec(i_UNIFAC_phase)  & ! r_i, q_i, l_i, MW_i, X_i
@@ -687,31 +695,4 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-#undef NUM_UNIQUE_PHASE_
-#undef NUM_GROUP_
-#undef TOTAL_INT_PROP_
-#undef TOTAL_REAL_PROP_
-#undef NUM_INT_PROP_
-#undef NUM_REAL_PROP_
-#undef PHASE_INT_LOC_
-#undef PHASE_FLOAT_LOC_
-#undef NUM_PHASE_INSTANCE_
-#undef NUM_SPEC_
-#undef PHASE_INST_REAL_LOC_
-#undef PHASE_INST_ID_
-#undef SPEC_ID_
-#undef V_IK_
-
-#undef Q_K_
-#undef R_K_
-#undef THETA_M_
-#undef A_MN_
-#undef PSI_MN_
-#undef R_I_
-#undef Q_I_
-#undef L_I_
-#undef MW_I_
-#undef X_I_
-#undef LN_GAMMA_IK_
-#undef GAMMA_I_
 end module pmc_sub_model_UNIFAC

@@ -195,10 +195,6 @@ module pmc_phlex_core
     procedure :: update_sub_model_data
     !> Run the chemical mechanisms
     procedure :: solve
-    !> Get the id of a sub-model parameter in the solver data
-    procedure :: get_sub_model_parameter_id
-    !> Get the value of a sub-model parameter in the current solver data
-    procedure :: get_sub_model_parameter_value
     !> Determine the number of bytes required to pack the variable
     procedure :: pack_size
     !> Pack the given variable into a buffer, advancing position
@@ -1158,68 +1154,6 @@ contains
       call solver%solve(phlex_state, real(0.0, kind=dp), time_step)
     end if
   end subroutine solve
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Get the id of a sub-model parameter in the solver data
-  function get_sub_model_parameter_id(this, sub_model_type, identifiers) &
-      result (parameter_id)
-
-    use iso_c_binding
-
-    !> Parameter id
-    integer(kind=c_int) :: parameter_id
-    !> Core data
-    class(phlex_core_t), intent(in) :: this
-    !> Sub model type
-    integer(kind=i_kind), intent(in) :: sub_model_type
-    !> Identifiers needed by the sub-model to find a parameter
-    type(c_ptr), intent(in) :: identifiers
-
-    if (associated(this%solver_data_gas)) then
-      parameter_id = this%solver_data_gas%get_sub_model_parameter_id( &
-              sub_model_type, identifiers)
-    else if (associated(this%solver_data_aero)) then
-      parameter_id = this%solver_data_aero%get_sub_model_parameter_id( &
-              sub_model_type, identifiers)
-    else if (associated(this%solver_data_gas_aero)) then
-      parameter_id = this%solver_data_gas_aero%get_sub_model_parameter_id( &
-              sub_model_type, identifiers)
-    end if
-
-  end function get_sub_model_parameter_id
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Get the value associated with a sub-model parameter for the current
-  !! solver state
-  function get_sub_model_parameter_value(this, parameter_id) &
-      result (parameter_value)
-
-    use iso_c_binding
-
-    !> Parameter value
-    real(kind=dp) :: parameter_value
-    !> Core data
-    class(phlex_core_t), intent(in) :: this
-    !> Parameter id
-    integer(kind=c_int), intent(in) :: parameter_id
-
-    if (associated(this%solver_data_gas)) then
-      parameter_value = &
-              this%solver_data_gas%get_sub_model_parameter_value( &
-              parameter_id)
-    else if (associated(this%solver_data_aero)) then
-      parameter_value = &
-              this%solver_data_aero%get_sub_model_parameter_value( &
-              parameter_id)
-    else if (associated(this%solver_data_gas_aero)) then
-      parameter_value = &
-              this%solver_data_gas_aero%get_sub_model_parameter_value( &
-              parameter_id)
-    end if
-
-  end function get_sub_model_parameter_value
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

@@ -81,7 +81,7 @@ void sub_model_get_used_jac_elem(ModelData *model_data, bool **jac_struct)
  * calculations appearing before dependent sub-model calculations in
  * the sub-model array.
  *
- * \param solver_data Pointer to the solver data
+ * \param model_data Pointer to the model data
  * \param jac_ids Jacobian indices for sub-models
  */
 void sub_model_set_jac_map(ModelData *model_data, int **jac_ids)
@@ -213,102 +213,6 @@ void sub_model_update_ids(ModelData *model_data, int *deriv_ids, int **jac_ids)
 
   // Set the sub model interdependence Jacobian map
   sub_model_set_jac_map(model_data, jac_ids);
-}
-
-/** \brief Get a pointer to a calcualted sub model parameter
- * \param solver_data Pointer to the solver data
- * \param sub_model_type Sub model type
- * \param identifiers Pointer to information needed by the sub-model to idenify
- *                    the parameter requested. These must be in the format
- *                    used by the sub model
- * \return Index of the requested parameter, or -1 if it was not found that can
- *         be passed to sub_model_get_parameter_value() during solving
- */
-int sub_model_get_parameter_id_sd(void *solver_data, int sub_model_type,
-    void *identifiers)
-{
-  ModelData *model_data = &(((SolverData*)solver_data)->model_data);
-  return sub_model_get_parameter_id(model_data, sub_model_type, identifiers);
-}
-
-/** \brief Get a pointer to a calcualted sub model parameter
- * \param model_data Pointer to the model data
- * \param type Sub model type
- * \param identifiers Pointer to information needed by the sub-model to idenify
- *                    the parameter requested. These must be in the format
- *                    used by the sub model
- * \return Index of the requested parameter, or -1 if it was not found that can
- *         be passed to sub_model_get_parameter_value() during solving
- */
-int sub_model_get_parameter_id(ModelData *model_data, int type,
-          void *identifiers)
-{
-
-  // Get the number of sub models
-  int n_sub_model = model_data->sub_model_int_data[0];
-
-  // Initialize the parameter id
-  int parameter_id = -1;
-
-  // Loop through the sub models to find the requested parameter.
-  // The first model found to provide the parameter will be selected.
-  for (int i_sub_model=0; i_sub_model<n_sub_model; i_sub_model++) {
-
-    int *sub_model_int_data = model_data->sub_model_int_ptrs[i_sub_model];
-    double *sub_model_float_data = model_data->sub_model_float_ptrs[i_sub_model];
-
-    // Get the sub model type
-    int sub_model_type = *(sub_model_int_data++);
-
-    // Check if this is the requested type of sub model
-    if (type==sub_model_type) {
-      switch (sub_model_type) {
-        case SUB_MODEL_PDFITE :
-          sub_model_PDFiTE_get_parameter_id(
-              sub_model_int_data, sub_model_float_data, identifiers, &parameter_id);
-          break;
-        case SUB_MODEL_UNIFAC :
-          sub_model_UNIFAC_get_parameter_id(
-              sub_model_int_data, sub_model_float_data, identifiers, &parameter_id);
-          break;
-        case SUB_MODEL_ZSR_AEROSOL_WATER :
-          sub_model_ZSR_aerosol_water_get_parameter_id(
-              sub_model_int_data, sub_model_float_data, identifiers, &parameter_id);
-          break;
-      }
-    }
-
-    // Check if the parameter was found
-    if (parameter_id>=0) {
-      parameter_id += (sub_model_float_data - model_data->sub_model_float_data);
-      return parameter_id;
-    }
-
-  }
-  return -1;
-}
-
-/** \brief Return a parameter by its index in the sub model data block
- * \param solver_data Pointer to the solver data
- * \param parameter_id Index of the parameter in the data block
- * \return The parameter value
- */
-double sub_model_get_parameter_value_sd(void *solver_data, int parameter_id)
-{
-  ModelData *model_data = &(((SolverData*)solver_data)->model_data);
-  return (double) sub_model_get_parameter_value(model_data, parameter_id);
-}
-
-/** \brief Return a parameter by its index in the sub model data block
- * \param model_data Pointer to the model data
- * \param parameter_id Index of the parameter in the data block
- * \return The parameter value
- */
-double sub_model_get_parameter_value(ModelData *model_data, int parameter_id)
-{
-  double *param = model_data->sub_model_float_data;
-  param += parameter_id;
-  return *param;
 }
 
 /** \brief Update sub model data for a new environmental state

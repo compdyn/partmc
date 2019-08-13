@@ -47,7 +47,7 @@
 #define NUM_INT_PROP_ 2
 #define NUM_FLOAT_PROP_ 14
 #define AERO_SPEC_(x) (int_data[NUM_INT_PROP_ + x]-1)
-#define AERO_ACT_ID_(x) (int_data[NUM_INT_PROP_ + NUM_AERO_PHASE_ + x])
+#define AERO_ACT_ID_(x) (int_data[NUM_INT_PROP_ + NUM_AERO_PHASE_ + x]-1)
 #define AERO_PHASE_ID_(x) (int_data[NUM_INT_PROP_ + 2*(NUM_AERO_PHASE_) + x]-1)
 #define AERO_REP_ID_(x) (int_data[NUM_INT_PROP_ + 3*(NUM_AERO_PHASE_) + x]-1)
 #define DERIV_ID_(x) (int_data[NUM_INT_PROP_ + 4*(NUM_AERO_PHASE_) + x])
@@ -165,14 +165,6 @@ void * rxn_SIMPOL_phase_transfer_update_ids(ModelData *model_data,
                      [PHASE_JAC_ID_(i_aero_phase,JAC_AERO,i_elem)];
       }
     }
-  }
-
-  // Find activity coefficient ids, if they exist
-  // FIXME Don't hard-code sub model ids
-  for (int i_aero_phase = 0; i_aero_phase < NUM_AERO_PHASE_; i_aero_phase++) {
-    int aero_state_id = AERO_SPEC_(i_aero_phase);
-    AERO_ACT_ID_(i_aero_phase) =
-      sub_model_get_parameter_id(model_data, 1, (void*) (&aero_state_id));
   }
 
   // Calculate a small number based on the integration tolerances to use
@@ -374,8 +366,7 @@ void * rxn_SIMPOL_phase_transfer_calc_deriv_contrib(ModelData *model_data,
     // Get the activity coefficient (if one exists)
     realtype act_coeff = 1.0;
     if (AERO_ACT_ID_(i_phase)>-1) {
-      act_coeff = sub_model_get_parameter_value(model_data,
-                AERO_ACT_ID_(i_phase));
+      act_coeff = state[AERO_ACT_ID_(i_phase)];
     }
 
 #if 0
@@ -510,8 +501,7 @@ void * rxn_SIMPOL_phase_transfer_calc_jac_contrib(ModelData *model_data,
     // Get the activity coefficient (if one exists)
     realtype act_coeff = 1.0;
     if (AERO_ACT_ID_(i_phase)>-1) {
-      act_coeff = sub_model_get_parameter_value(model_data,
-                AERO_ACT_ID_(i_phase));
+      act_coeff = state[AERO_ACT_ID_(i_phase)];
     }
 
 #if 0
@@ -650,37 +640,3 @@ void * rxn_SIMPOL_phase_transfer_print(void *rxn_data)
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
-
-#undef TEMPERATURE_K_
-#undef PRESSURE_PA_
-
-#undef UNIV_GAS_CONST_
-#undef VERY_SMALL_NUMBER_
-#undef RATE_SCALING_
-
-#undef DELTA_H_
-#undef DELTA_S_
-#undef DIFF_COEFF_
-#undef PRE_C_AVG_
-#undef B1_
-#undef B2_
-#undef B3_
-#undef B4_
-#undef C_AVG_ALPHA_
-#undef EQUIL_CONST_
-#undef CONV_
-#undef MW_
-#undef UGM3_TO_PPM_
-#undef SMALL_NUMBER_
-#undef NUM_AERO_PHASE_
-#undef GAS_SPEC_
-#undef NUM_INT_PROP_
-#undef NUM_FLOAT_PROP_
-#undef AERO_SPEC_
-#undef AERO_ACT_ID_
-#undef AERO_PHASE_ID_
-#undef AERO_REP_ID_
-#undef DERIV_ID_
-#undef JAC_ID_
-#undef INT_DATA_SIZE_
-#undef FLOAT_DATA_SIZE_

@@ -170,23 +170,6 @@ void sub_model_ZSR_aerosol_water_update_ids(int *sub_model_int_data,
   }
 }
 
-/** \brief Get the id of a parameter in the condensed data block
- *
- * \param sub_model_int_data Pointer to the sub model integer data
- * \param sub_model_float_data Pointer to the sub model floating-point data
- * \param identifiers For the ZSR model, the identifer is just the id
- *                    on the state array of the phase for which water is being
- *                    calculated (not necessarily the state id of the water
- *                    species).
- * \param parameter_id Parameter id for the requested aerosol-phase water if
- *                     found
- */
-void sub_model_ZSR_aerosol_water_get_parameter_id(int *sub_model_int_data,
-    double *sub_model_float_data, void *identifiers, int *parameter_id)
-{
-  int *int_data = sub_model_int_data;
-  double *float_data = sub_model_float_data;
-}
 /** \brief Update sub model data for new environmental conditions
  *
  * \param sub_model_int_data Pointer to the sub model integer data

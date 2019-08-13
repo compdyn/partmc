@@ -84,10 +84,8 @@ contains
     real(kind=dp), dimension(0:NUM_MASS_FRAC_STEP, 27) :: model_conc, &
             calc_conc, model_activity, calc_activity
     integer(kind=i_kind) :: idx_butanol, idx_water, i_mass_frac, i_spec
-    integer(kind=c_int), target :: idx_butanol_c, idx_water_c, &
-            idx_butanol_act_c, idx_water_act_c
+    integer(kind=i_kind) :: idx_butanol_act, idx_water_act
     real(kind=dp) :: mass_frac_step, mole_frac, mass_frac
-    type(c_ptr) :: identifiers
 #ifdef PMC_USE_MPI
     character, allocatable :: buffer(:), buffer_copy(:)
     integer(kind=i_kind) :: pack_size, pos, i_elem, results
@@ -248,6 +246,10 @@ contains
       idx_butanol = aero_rep_ptr%spec_state_id(key);
       key = "n-butanol/water mixture.water"
       idx_water = aero_rep_ptr%spec_state_id(key);
+      key = "n-butanol/water mixture.gamma n-butanol"
+      idx_butanol_act = aero_rep_ptr%spec_state_id(key);
+      key = "n-butanol/water mixture.gamma water"
+      idx_water_act = aero_rep_ptr%spec_state_id(key);
 
       ! Make sure the expected species are in the model
       call assert(486977094, idx_butanol.gt.0)
@@ -306,18 +308,6 @@ contains
       phlex_state%env_state%pressure = pressure
       call phlex_state%update_env_state()
 
-      ! Get the parameter id for the activity coefficients
-      idx_butanol_c = int(idx_butanol-1, kind=c_int)
-      identifiers = c_loc(idx_butanol_c)
-      idx_butanol_act_c = phlex_core%get_sub_model_parameter_id(SUB_MODEL_UNIFAC, &
-                identifiers)
-      idx_water_c = int(idx_water-1, kind=c_int)
-      identifiers = c_loc(idx_water_c)
-      idx_water_act_c = phlex_core%get_sub_model_parameter_id(SUB_MODEL_UNIFAC, &
-                identifiers)
-      call assert(875073956, idx_butanol_act_c.gt.-1)
-      call assert(703463813, idx_water_act_c.gt.-1)
-
       ! Integrate the mechanism
       do i_mass_frac = 0, NUM_MASS_FRAC_STEP
 
@@ -337,11 +327,11 @@ contains
         call phlex_core%solve(phlex_state, real(1.0, kind=dp))
         model_activity(i_mass_frac,:) = 0.0d0
         model_activity(i_mass_frac, idx_butanol) = &
-                real(phlex_core%get_sub_model_parameter_value(idx_butanol_act_c), kind=dp) &
-                * phlex_state%state_var(idx_butanol)
+                phlex_state%state_var(idx_butanol_act) * &
+                phlex_state%state_var(idx_butanol)
         model_activity(i_mass_frac, idx_water) = &
-                real(phlex_core%get_sub_model_parameter_value(idx_water_act_c), kind=dp) &
-                * phlex_state%state_var(idx_water)
+                phlex_state%state_var(idx_water_act) * &
+                phlex_state%state_var(idx_water)
 
         !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         !!! Get the UNIFAC activities !!!

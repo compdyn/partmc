@@ -19,9 +19,6 @@ void sub_model_get_used_jac_elem(ModelData *model_data, bool **jac_struct);
 void sub_model_set_jac_map(ModelData *model_data, int **jac_ids);
 void sub_model_update_ids(ModelData *model_data, int *deriv_ids, int **jac_ids);
 void sub_model_update_env_state(ModelData *model_data, double *env);
-int sub_model_get_parameter_id(ModelData *model_data, int type,
-          void *identifiers);
-double sub_model_get_parameter_value(ModelData *model_data, int parameter_id);
 void sub_model_calculate(ModelData *model_data);
 #ifdef PMC_USE_SUNDIALS
 void sub_model_get_jac_contrib(ModelData *model_data, SUNMatrix J,
@@ -35,10 +32,5 @@ void sub_model_add_condensed_data(int sub_model_type, int n_int_param,
           void *solver_data);
 void sub_model_update_data(int update_sub_model_type, void *update_data,
           void *solver_data);
-
-/* Update data functions */
-int sub_model_get_parameter_id_sd(void *solver_data, int sub_model_type,
-          void *identifiers);
-double sub_model_get_parameter_value_sd(void *solver_data, int parameter_id);
 
 #endif

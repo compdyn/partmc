@@ -244,32 +244,6 @@ module pmc_phlex_solver_data
       type(c_ptr), value :: solver_data
     end subroutine sub_model_print_data
 
-    !> Get a sub model parameter id
-    function sub_model_get_parameter_id_sd(solver_data, sub_model_type, &
-                  identifiers) bind (c)
-      use iso_c_binding
-      !> Parameter id
-      integer(kind=c_int) :: sub_model_get_parameter_id_sd
-      !> Solver data
-      type(c_ptr), value :: solver_data
-      !> Sub model type
-      integer(kind=c_int), value :: sub_model_type
-      !> Sub model identifiers
-      type(c_ptr), value :: identifiers
-    end function sub_model_get_parameter_id_sd
-
-    !> Get a sub model parameter value
-    function sub_model_get_parameter_value_sd(solver_data, parameter_id) &
-                  bind (c)
-      use iso_c_binding
-      !> Parameter value
-      real(kind=c_double) :: sub_model_get_parameter_value_sd
-      !> Solver data
-      type(c_ptr), value :: solver_data
-      !> Parameter id
-      integer(kind=c_int), value :: parameter_id
-    end function sub_model_get_parameter_value_sd
-
     !> Add condensed aerosol phase data to the solver data block
     subroutine aero_phase_add_condensed_data(n_int_param, n_float_param, &
                   int_param, float_param, solver_data) bind(c)
@@ -373,10 +347,6 @@ module pmc_phlex_solver_data
     procedure, private :: get_solver_stats
     !> Checks whether a solver is available
     procedure :: is_solver_available
-    !> Get a parameter id
-    procedure :: get_sub_model_parameter_id
-    !> Get a current parameter value
-    procedure :: get_sub_model_parameter_value
     !> Print the solver data
     procedure :: print => do_print
     !> Finalize the solver data
@@ -899,63 +869,6 @@ contains
 #endif
 
   end function is_solver_available
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Get a sub model parameter id
-  !!
-  !! Returns the id for use with sub_model_get_parameter_value to get a
-  !! current sub-model parameter from the solver data
-  function get_sub_model_parameter_id(this, sub_model_type, identifiers) &
-      result (parameter_id)
-
-    !> The parameter id
-    integer(kind=c_int) :: parameter_id
-    !> Solver data
-    class(phlex_solver_data_t), intent(in) :: this
-    !> Sub-model type
-    integer(kind=i_kind), intent(in) :: sub_model_type
-    !> Identifiers required by the sub-model
-    type(c_ptr), intent(in) :: identifiers
-
-    integer(kind=c_int) :: sub_model_type_c
-
-    sub_model_type_c = int(sub_model_type, kind=c_int)
-
-    parameter_id = sub_model_get_parameter_id_sd( &
-            this%solver_c_ptr,          & ! Pointer to solver data
-            sub_model_type_c,           & ! Sub model type
-            identifiers                 & ! Indentifiers needed
-            )
-
-  end function get_sub_model_parameter_id
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Get a sub model parameter
-  !!
-  !! Returns the value associate with a sub model output, based on the current
-  !! solver state.
-  function get_sub_model_parameter_value(this, parameter_id) &
-      result (parameter_value)
-
-    !> Value of the parameter
-    real(kind=dp) :: parameter_value
-    !> Solver data
-    class(phlex_solver_data_t), intent(in) :: this
-    !> Parameter id
-    integer(kind=c_int), intent(in) :: parameter_id
-
-    real(kind=c_double) :: parameter_value_c
-
-    parameter_value_c = sub_model_get_parameter_value_sd( &
-            this%solver_c_ptr,          & ! Pointer to solver data
-            parameter_id                & ! Id of the parameter
-            )
-
-    parameter_value = real(parameter_value_c, kind=dp)
-
-  end function get_sub_model_parameter_value
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

@@ -99,37 +99,6 @@ void sub_model_UNIFAC_update_ids(int *sub_model_int_data,
                  [PHASE_INST_ID_(i_phase, i_inst)+SPEC_ID_(i_phase, i_spec)];
 }
 
-/** \brief Get the id of a parameter in the condensed data block
- *
- * \param sub_model_int_data Pointer to the sub model integer data
- * \param sub_model_float_data Pointer to the sub model floating-point data
- * \param identifiers For the UNIFAC model, the identifers are just the id
- *                    on the state array of the aerosol-phase species for
- *                    which the acitivty is needed.
- * \param parameter_id Parameter id for the requested activity coefficient if
- *                     found
- */
-void sub_model_UNIFAC_get_parameter_id(int *sub_model_int_data,
-    double *sub_model_float_data, void *identifiers, int *parameter_id)
-{
-  int *int_data = sub_model_int_data;
-  double *float_data = sub_model_float_data;
-
-  for (int i_phase=0; i_phase<NUM_UNIQUE_PHASE_; i_phase++) {
-    for (int i_instance=0; i_instance<NUM_PHASE_INSTANCE_(i_phase);
-        i_instance++) {
-      for (int i_spec=0; i_spec<NUM_SPEC_(i_phase); i_spec++) {
-        if (*((int*)identifiers) == SPEC_ID_(i_phase, i_spec)
-            + PHASE_INST_ID_(i_phase, i_instance)) {
-          *parameter_id = (int) (
-                (&(GAMMA_I_(i_phase, i_instance, i_spec))) - float_data);
-          return;
-        }
-      }
-    }
-  }
-}
-
 /** \brief Update sub-model data for new environmental conditions
  *
  * \param sub_model_int_data Pointer to the sub model integer data

@@ -48,14 +48,20 @@
 !!     "gas-phase species" : "my gas spec",
 !!     "aerosol phase" : "my aero phase",
 !!     "aerosol-phase species" : "my aero spec",
+!!     "aerosol-phase activity coefficient" : "my aero act coeff"
 !!     "B" : [ 123.2e3, -41.24, 2951.2, -1.245e-4 ]
 !!       ...
 !!   }
 !! \endcode
 !! The key-value pairs \b gas-phase \b species, \b aerosol \b phase and
 !! \b aerosol-phase \b species are required. Only one gas- and one
-!! aerosol-phase species are allowed per phase-transfer reaction.
-!! Additionally, gas-phase species must include parameters named
+!! aerosol-phase species are allowed per phase-transfer reaction. The
+!! key-value pair \b aerosol-phase \b activity \b coefficient is optional.
+!! When it is included its value must be the name of an species of type
+!! \c ACTIVITY_COEFF that is present in the specified aerosol phase. When
+!! it is not included, activity coefficients are assume to be 1.0.
+!!
+!! Gas-phase species must include parameters named
 !! \b diffusion \b coeff \b [m2 \b s-1], which specifies the diffusion
 !! coefficient in \f$\mbox{\si{\square\metre\per\second}}\f$, and \b molecular
 !! \b weight \b [kg \b mol-1], which specifies the molecular weight of the
@@ -175,11 +181,13 @@ contains
 
     type(property_t), pointer :: spec_props, b_params
     character(len=:), allocatable :: key_name, spec_name, phase_name
+    character(len=:), allocatable :: act_name
     integer(kind=i_kind) :: i_spec, i_aero_rep, n_aero_ids, i_aero_id
     integer(kind=i_kind) :: i_phase, n_aero_jac_elem, tmp_size
-    type(string_t), allocatable :: unique_spec_names(:)
+    type(string_t), allocatable :: unique_spec_names(:), unique_act_names(:)
     integer(kind=i_kind), allocatable :: phase_ids(:)
     real(kind=dp) :: temp_real, N_star
+    logical :: has_act_coeff
 
     ! Get the property set
     if (.not. associated(this%property_set)) call die_msg(382913491, &
@@ -196,6 +204,10 @@ contains
     call assert_msg(988456388, &
             this%property_set%get_string(key_name, spec_name), &
             "Missing aerosol-phase species in phase-transfer reaction")
+
+    ! Get the aerosol-phase activity coeffcient name
+    key_name = "aerosol-phase activity coefficient"
+    has_act_coeff = this%property_set%get_string(key_name, act_name)
 
     ! Check for aerosol representations
     call assert_msg(260518827, associated(aero_rep), &
@@ -270,6 +282,15 @@ contains
       unique_spec_names = aero_rep(i_aero_rep)%val%unique_names( &
               phase_name = phase_name, spec_name = spec_name)
 
+      ! Find the corresponding activity coefficients, if specified
+      if (has_act_coeff) then
+        unique_act_names = aero_rep(i_aero_rep)%val%unique_names( &
+              phase_name = phase_name, spec_name = act_name)
+        call assert_msg(236251734, size(unique_act_names).eq. &
+                        size(unique_spec_names), &
+                        "Mismatch of SIMPOL species and activity coeffs")
+      end if
+
       ! Get the phase ids for this aerosol phase
       phase_ids = aero_rep(i_aero_rep)%val%phase_ids(phase_name)
 
@@ -282,6 +303,13 @@ contains
         AERO_SPEC_(i_aero_id) = &
               aero_rep(i_aero_rep)%val%spec_state_id( &
               unique_spec_names(i_spec)%string)
+        if (has_act_coeff) then
+          AERO_ACT_ID_(i_aero_id) = &
+              aero_rep(i_aero_rep)%val%spec_state_id( &
+              unique_act_names(i_spec)%string)
+        else
+          AERO_ACT_ID_(i_aero_id) = -1
+        end if
         AERO_PHASE_ID_(i_aero_id) = phase_ids(i_spec)
         AERO_REP_ID_(i_aero_id) = i_aero_rep
         i_aero_id = i_aero_id + 1
@@ -409,28 +437,4 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-#undef DELTA_H_
-#undef DELTA_S_
-#undef DIFF_COEFF_
-#undef PRE_C_AVG_
-#undef B1_
-#undef B2_
-#undef B3_
-#undef B4_
-#undef C_AVG_ALHPA_
-#undef EQUIL_CONST_
-#undef CONV_
-#undef MW_
-#undef UGM3_TO_PPM_
-#undef SMALL_NUMBER_
-#undef NUM_AERO_PHASE_
-#undef GAS_SPEC_
-#undef NUM_INT_PROP_
-#undef NUM_REAL_PROP_
-#undef AERO_SPEC_
-#undef AERO_ACT_ID_
-#undef AERO_PHASE_ID_
-#undef AERO_REP_ID_
-#undef DERIV_ID_
-#undef JAC_ID_
 end module pmc_rxn_SIMPOL_phase_transfer

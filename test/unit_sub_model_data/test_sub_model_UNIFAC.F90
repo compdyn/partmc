@@ -81,7 +81,7 @@ contains
     type(string_t), allocatable, dimension(:) :: output_file_path
 
     class(aero_rep_data_t), pointer :: aero_rep_ptr
-    real(kind=dp), dimension(0:NUM_MASS_FRAC_STEP, 15) :: model_conc, &
+    real(kind=dp), dimension(0:NUM_MASS_FRAC_STEP, 27) :: model_conc, &
             calc_conc, model_activity, calc_activity
     integer(kind=i_kind) :: idx_butanol, idx_water, i_mass_frac, i_spec
     integer(kind=c_int), target :: idx_butanol_c, idx_water_c, &

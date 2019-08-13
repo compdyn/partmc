@@ -80,9 +80,13 @@
 !! calculated must contain a key-value pair \b UNIFAC \b groups whose value
 !! is a set of key value pairs that correspond with members of the
 !! \b functional \b groups set and whose values are the integer number of
-!! instances of a particular functional group in this species. For the
-!! above example UNIFAC model, the following species would be valid and
-!! included in activity coefficient calculations:
+!! instances of a particular functional group in this species. There must also
+!! be a \b CHEM_SPEC_ACTIVITY_COEFF species with a key value pair \b chemical
+!! \b species whose value is the name of the chemical species. Both the
+!! chemical species and the activity coefficient must be included in any
+!! aerosol phase for which activities are being calculated.
+!! For the above example UNIFAC model, the following species would be valid
+!! and included in activity coefficient calculations:
 !! \code{.json}
 !! { "pmc-data" : [
 !!   {
@@ -95,6 +99,13 @@
 !!     }
 !!   },
 !!   {
+!!     "name" : "gamma my species",
+!!     "type" : "CHEM_SPEC",
+!!     "phase" : "AEROSOL",
+!!     "tracer type" : "ACTIVITY_COEFF",
+!!     "chemical species" : "my species"
+!!   },
+!!   {
 !!     "name" : "my other species",
 !!     "type" : "CHEM_SPEC",
 !!     "phase" : "AEROSOL",
@@ -104,9 +115,17 @@
 !!     },
 !!   },
 !!   {
+!!     "name" : "gamma my other species",
+!!     "type" : "CHEM_SPEC",
+!!     "phase" : "AEROSOL",
+!!     "tracer type" : "ACTIVITY_COEFF"
+!!     "chemical species" : "my other species"
+!!   },
+!!   {
 !!     "name" : "some phase",
 !!     "type" : "AERO_PHASE",
-!!     "species" : { "my species", "my other species" }
+!!     "species" : { "my species", "gamma my species",
+!!                   "my other species", gamma my other species"}
 !!   }
 !! ]}
 !! \endcode
@@ -151,9 +170,9 @@ module pmc_sub_model_UNIFAC
 #define PHASE_INST_REAL_LOC_(p,c) this%condensed_data_int(PHASE_INT_LOC_(p)+1+c)
 #define PHASE_INST_ID_(p,c) this%condensed_data_int(PHASE_INT_LOC_(p)+1+NUM_PHASE_INSTANCE_(p)+c)
 #define SPEC_ID_(p,i) this%condensed_data_int(PHASE_INT_LOC_(p)+1+2*NUM_PHASE_INSTANCE_(p)+i)
-#define ACT_JAC_ID_(p,c) this%condensed_data_int(PHASE_INT_LOC_(p)+1+2*NUM_PHASE_INSTANCE_(p)+NUM_SPEC_(p)+c)
-#define SPEC_JAC_ID_(p,c,i) this%condensed_data_int(PHASE_INT_LOC_(p)+1+3*NUM_PHASE_INSTANCE_(p)+c*NUM_SPEC_(p)+i)
-#define V_IK_(p,i,k) this%condensed_data_int(PHASE_INT_LOC_(p)+1+3*NUM_PHASE_INSTANCE_(p)+(k+NUM_PHASE_INSTANCE_(p))*NUM_SPEC_(p)+i)
+#define GAMMA_ID_(p,i) this%condensed_data_int(PHASE_INT_LOC_(p)+1+2*NUM_PHASE_INSTANCE_(p)+NUM_SPEC_(p)+i)
+#define JAC_ID_(p,c,i) this%condensed_data_int(PHASE_INT_LOC_(p)+1+2*NUM_PHASE_INSTANCE_(p)+(c+1)*NUM_SPEC_(p)+i)
+#define V_IK_(p,i,k) this%condensed_data_int(PHASE_INT_LOC_(p)+1+2*NUM_PHASE_INSTANCE_(p)+(k+1+NUM_PHASE_INSTANCE_(p))*NUM_SPEC_(p)+i)
 
 #define Q_K_(k) this%condensed_data_real(k)
 #define R_K_(k) this%condensed_data_real(NUM_GROUP_+k)
@@ -235,17 +254,17 @@ contains
     type(property_t), pointer :: func_groups, func_group
     type(property_t), pointer :: main_groups, main_group
     type(property_t), pointer :: spec_groups, interactions
-    character(len=:), allocatable :: key_name, phase_name
+    character(len=:), allocatable :: key_name, phase_name, spec_name
     character(len=:), allocatable :: inter_group_name
     character(len=:), allocatable :: main_group_name, spec_group_name
-    integer(kind=i_kind) :: i_spec, i_phase, i_rep, i_main_group, i_group
+    integer(kind=i_kind) :: i_spec, j_spec, i_phase, i_rep, i_main_group
     integer(kind=i_kind) :: i_instance, i_inter, i_phase_inst, i_spec_group
-    integer(kind=i_kind) :: i_inter_group
+    integer(kind=i_kind) :: i_group, i_inter_group
     integer(kind=i_kind) :: i_UNIFAC_phase
     integer(kind=i_kind) :: num_unique_phase, num_group, num_main_group
     integer(kind=i_kind) :: num_int_data, num_real_data, num_spec_group
     integer(kind=i_kind) :: curr_spec_id, curr_phase_inst_id
-    integer(kind=i_kind) :: m, n
+    integer(kind=i_kind) :: m, n, spec_type
     integer(kind=i_kind), allocatable :: num_phase_inst(:)
     integer(kind=i_kind), allocatable :: num_phase_spec(:)
     integer(kind=i_kind), allocatable :: unique_phase_set_id(:)
@@ -337,22 +356,22 @@ contains
     end do
 
     ! Size of condensed data arrays
-    num_int_data =   NUM_INT_PROP_           & ! int props
+    num_int_data =   NUM_INT_PROP_            & ! int props
                      + 2*num_unique_phase       ! PHASE_INT_LOC, PHASE_REAL_LOC
-    num_real_data =  NUM_REAL_PROP_          & ! real props
+    num_real_data =  NUM_REAL_PROP_           & ! real props
                      + 3*num_group            & ! Q_k, R_k, THETA_m
                      + 2*num_group*num_group    ! a_mn, PSI_mn
     do i_UNIFAC_phase = 1, num_unique_phase
       num_int_data = num_int_data + 2                    & ! NUM_PHASE_INSTANCE, NUM_SPEC
                      + 2*num_phase_inst(i_UNIFAC_phase)  & ! PHASE_INST_REAL_LOC, PHASE_INST_ID
                      + num_phase_spec(i_UNIFAC_phase)    & ! SPEC_ID
-                     + num_phase_inst(i_UNIFAC_phase)    & ! ACT_JAC_ID
+                     + num_phase_spec(i_UNIFAC_phase)    & ! GAMMA_ID
                      + num_phase_inst(i_UNIFAC_phase) *  &
                        num_phase_spec(i_UNIFAC_phase)    & ! SPEC_JAC_ID
-                     + num_phase_spec(i_UNIFAC_phase) * num_group          ! v_ik
+                     + num_phase_spec(i_UNIFAC_phase) * num_group ! v_ik
       num_real_data = num_real_data &
                      + 5*num_phase_spec(i_UNIFAC_phase)  & ! r_i, q_i, l_i, MW_i, X_i
-                     + num_phase_spec(i_UNIFAC_phase) * num_group        & ! ln_GAMMA_ik
+                     + num_phase_spec(i_UNIFAC_phase) * num_group & ! ln_GAMMA_ik
                      + num_phase_spec(i_UNIFAC_phase) * num_phase_inst(i_UNIFAC_phase)    ! gamma
     end do
 
@@ -369,9 +388,9 @@ contains
     TOTAL_REAL_PROP_ = size(this%condensed_data_real)
 
     ! Set data locations
-    num_int_data =   NUM_INT_PROP_              & ! int props
+    num_int_data =   NUM_INT_PROP_               & ! int props
                      + 2*num_unique_phase          ! PHASE_INT_LOC, PHASE_REAL_LOC
-    num_real_data =  NUM_REAL_PROP_             & ! real props
+    num_real_data =  NUM_REAL_PROP_              & ! real props
                      + 3*num_group               & ! Q_k, R_k, THETA_m
                      + 2*num_group*num_group       ! a_mn, PSI_mn
     do i_UNIFAC_phase = 1, num_unique_phase
@@ -380,13 +399,13 @@ contains
       num_int_data = num_int_data + 2                    & ! NUM_PHASE_INSTANCE, NUM_SPEC
                      + 2*num_phase_inst(i_UNIFAC_phase)  & ! PHASE_INST_REAL_LOC, PHASE_INST_ID
                      + num_phase_spec(i_UNIFAC_phase)    & ! SPEC_ID
-                     + num_phase_inst(i_UNIFAC_phase)    & ! ACT_JAC_ID
+                     + num_phase_spec(i_UNIFAC_phase)    & ! GAMMA_ID
                      + num_phase_inst(i_UNIFAC_phase) *  &
                        num_phase_spec(i_UNIFAC_phase)    & ! SPEC_JAC_ID
-                     + num_phase_spec(i_UNIFAC_phase) * num_group          ! v_ik
+                     + num_phase_spec(i_UNIFAC_phase) * num_group ! v_ik
       num_real_data = num_real_data &
                      + 5*num_phase_spec(i_UNIFAC_phase)  & ! r_i, q_i, l_i, MW_i, X_i
-                     + num_phase_spec(i_UNIFAC_phase) * num_group          ! ln_GAMMA_ik
+                     + num_phase_spec(i_UNIFAC_phase) * num_group ! ln_GAMMA_ik
       do i_phase_inst = 1, num_phase_inst(i_UNIFAC_phase)
         PHASE_INST_REAL_LOC_(i_UNIFAC_phase, i_phase_inst) = num_real_data + 1
         num_real_data = num_real_data + num_phase_spec(i_UNIFAC_phase)     ! gamma
@@ -640,6 +659,37 @@ contains
               end if
             end do
           end if
+
+          ! Set the activity coefficient ids
+          key_name = "chemical species"
+          found = .false.
+          do j_spec = 1, size(spec_names)
+            call assert(739328266, chem_spec_data%get_type( &
+                                   spec_names(j_spec)%string, spec_type))
+            if (spec_type.ne.CHEM_SPEC_ACTIVITY_COEFF) cycle
+            call assert(190005517, chem_spec_data%get_property_set( &
+                                   spec_names(j_spec)%string, spec_props))
+            if (spec_props%get_string(key_name, spec_name)) then
+              if (spec_names(i_spec)%string.eq.spec_name) then
+                do i_rep = 1, size(aero_rep_set)
+                  unique_names = aero_rep_set(i_rep)%val%unique_names( &
+                        phase_name = phase_name, &
+                        spec_name = spec_names(j_spec)%string )
+                  if (size(unique_names).eq.0) continue
+                  GAMMA_ID_(i_UNIFAC_phase, curr_spec_id) = &
+                            aero_rep_set(i_rep)%val%spec_state_id( &
+                            unique_names(1)%string) - &
+                            PHASE_INST_ID_(i_UNIFAC_phase, 1)
+                  found = .true.
+                  exit
+                end do
+              end if
+            end if
+            if (found) exit
+          end do
+          call assert_msg(202726788, found, &
+                          "Missing activity coefficient for "//trim( &
+                          spec_names(i_spec)%string))
         end if
       end do
     end do

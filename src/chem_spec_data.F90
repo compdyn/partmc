@@ -262,6 +262,8 @@ contains
         else if (unicode_str_val.eq."ION_PAIR") then
           spec_type = CHEM_SPEC_ACTIVITY_COEFF
           spec_phase = CHEM_SPEC_AERO_PHASE
+        else if (unicode_str_val.eq."ACTIVITY_COEFF") then
+          spec_type = CHEM_SPEC_ACTIVITY_COEFF
         else
           str_val = unicode_str_val
           call die_msg(171550163, "Unknown chemical species type: "// &

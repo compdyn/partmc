@@ -23,6 +23,14 @@
 #include <sunmatrix/sunmatrix_sparse.h>  /* sparse SUNMatrix                    */
 #endif
 
+// State variable types (Must match parameters defined in pmc_chem_spec_data
+// module)
+#define CHEM_SPEC_UNKNOWN_TYPE 0
+#define CHEM_SPEC_VARIABLE 1
+#define CHEM_SPEC_CONSTANT 2
+#define CHEM_SPEC_PSSA 3
+#define CHEM_SPEC_ACTIVITY_COEFF 4
+
 /* Math constants */
 #define ZERO 0.0
 #define ONE 1.0
@@ -58,7 +66,16 @@ typedef struct {
                                 // parameter calculations
 #endif
   JacMap *jac_map;         // Array of Jacobian mapping elements
+  JacMap *jac_map_params;  // Array of Jacobian mapping elements to account for
+                           // sub-model interdependence. If sub-model parameter
+                           // i_dep depends on sub-model parameter i_ind, and
+                           // j_ind is a dependency (variable or parameter) of
+                           // i_ind, then:
+                           // solver_id = jac_id[i_dep][j_ind]
+                           // rxn_id    = jac_id[i_dep][i_ind]
+                           // param_id  = jac_id[i_ind][j_ind]
   int n_mapped_values;     // Number of Jacobian map elements
+  int n_mapped_params;     // Number of Jacobian map elements for sub models
   double *state;           // State array
   double *env;             // Environmental state array
   void *rxn_data;          // Pointer to reaction parameters

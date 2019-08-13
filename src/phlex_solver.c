@@ -119,13 +119,6 @@ void pmc_debug_print_jac_struct(void *solver_data, SUNMatrix J, const char *mess
 #define PHLEX_SOLVER_SUCCESS 0
 #define PHLEX_SOLVER_FAIL 1
 
-// State variable types (Must match parameters defined in pmc_chem_spec_data module)
-#define CHEM_SPEC_UNKNOWN_TYPE 0
-#define CHEM_SPEC_VARIABLE 1
-#define CHEM_SPEC_CONSTANT 2
-#define CHEM_SPEC_PSSA 3
-#define CHEM_SPEC_ACTIVITY_COEFF 4
-
 /** \brief Get a new solver object
  *
  * Return a pointer to a new SolverData object
@@ -1372,7 +1365,7 @@ SUNMatrix get_jac_init(SolverData *solver_data)
         continue;
       }
       // Check the sub model Jacobian for remaining conditions
-      // (variable dependent species; independent paramter from sub model)
+      // (variable dependent species; independent parameter from sub model)
       for (int j_ind=0; j_ind < n_state_var; ++j_ind) {
         if (jac_ids_param[i_ind][j_ind]>=0 &&
             solver_data->model_data.var_type[j_ind]==CHEM_SPEC_VARIABLE) {
@@ -1595,6 +1588,7 @@ void model_free(ModelData model_data)
   SUNMatDestroy(model_data.J_params);
 #endif
   free(model_data.jac_map);
+  free(model_data.jac_map_params);
   free(model_data.var_type);
   free(model_data.rxn_data);
   free(model_data.aero_phase_data);

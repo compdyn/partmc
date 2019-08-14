@@ -162,6 +162,8 @@ void sub_model_UNIFAC_calculate(int *sub_model_int_data,
   int *int_data = sub_model_int_data;
   double *float_data = sub_model_float_data;
 
+  double *state = model_data->state;
+
   // Loop through each instance of each phase to calculate activity
   for (int i_phase=0; i_phase<NUM_UNIQUE_PHASE_; i_phase++) {
     for (int i_instance=0; i_instance<NUM_PHASE_INSTANCE_(i_phase);
@@ -170,7 +172,7 @@ void sub_model_UNIFAC_calculate(int *sub_model_int_data,
       // Get the total number of moles of species in this phase instance
       double total_umoles = 0.0;
       for (int i_spec=0; i_spec<NUM_SPEC_(i_phase); i_spec++) {
-        total_umoles += model_data->state[PHASE_INST_ID_(i_phase, i_instance)
+        total_umoles += state[PHASE_INST_ID_(i_phase, i_instance)
           + SPEC_ID_(i_phase, i_spec)] / MW_I_(i_phase, i_spec);
       }
 
@@ -184,10 +186,24 @@ void sub_model_UNIFAC_calculate(int *sub_model_int_data,
 
       // Update the mole fractions X_i
       for (int i_spec=0; i_spec<NUM_SPEC_(i_phase); i_spec++) {
-        X_I_(i_phase, i_spec) = model_data->state[
-          PHASE_INST_ID_(i_phase, i_instance) + SPEC_ID_(i_phase, i_spec)]
-          / MW_I_(i_phase, i_spec) / total_umoles;
+        X_I_(i_phase, i_spec) = state[PHASE_INST_ID_(i_phase, i_instance) +
+                                      SPEC_ID_(i_phase, i_spec)]
+                                  / MW_I_(i_phase, i_spec) / total_umoles;
       }
+
+      // Calculate the total number of moles of individual UNIFAC groups
+      // and use this to create a conversion from total number of species
+      // to total number of groups (for use in calculating group mole
+      // fractions).
+      double spec_umoles_to_group_umoles = 0.0;
+      for (int i_spec=0; i_spec<NUM_SPEC_(i_phase); ++i_spec) {
+        for (int i_group=0; i_group<NUM_GROUP_; ++i_group) {
+          spec_umoles_to_group_umoles += V_IK_(i_phase, i_spec, i_group) *
+              state[PHASE_INST_ID_(i_phase, i_instance) +
+                    SPEC_ID_(i_phase, i_spec)] / MW_I_(i_phase, i_spec);
+        }
+      }
+      spec_umoles_to_group_umoles *= 1.0/total_umoles;
 
       // Calcualte the sum (Q_n * X_n) in the denominator of Eq. 9 for the
       // mixture
@@ -195,7 +211,7 @@ void sub_model_UNIFAC_calculate(int *sub_model_int_data,
       for (int n=0; n<NUM_GROUP_; n++) {
         for (int i_spec=0; i_spec<NUM_SPEC_(i_phase); i_spec++) {
           sum_Qn_Xn_mixture += Q_K_(n) * X_I_(i_phase, i_spec)
-            * V_IK_(i_phase, i_spec, n);
+            * V_IK_(i_phase, i_spec, n) / spec_umoles_to_group_umoles;
         }
       }
 
@@ -204,7 +220,7 @@ void sub_model_UNIFAC_calculate(int *sub_model_int_data,
         THETA_M_(m) = 0.0;
         for (int i_spec=0; i_spec<NUM_SPEC_(i_phase); i_spec++) {
           THETA_M_(m) += Q_K_(m) * X_I_(i_phase, i_spec)
-            * V_IK_(i_phase, i_spec, m);
+            * V_IK_(i_phase, i_spec, m) / spec_umoles_to_group_umoles;
         }
         THETA_M_(m) /= sum_Qn_Xn_mixture;
       }
@@ -259,8 +275,8 @@ void sub_model_UNIFAC_calculate(int *sub_model_int_data,
           / MW_I_(i_phase, i_spec);
 
         // Set the parameter on the model state
-        model_data->state[PHASE_INST_ID_(i_phase, i_instance)+
-                          GAMMA_ID_(i_phase, i_spec)] =
+        state[PHASE_INST_ID_(i_phase, i_instance) +
+              GAMMA_ID_(i_phase, i_spec)] =
           GAMMA_I_(i_phase, i_instance, i_spec);
       }
     }

@@ -130,6 +130,7 @@ contains
     real(kind=dp), dimension(num_group) :: ln_GAMMA_butanol_pure, ln_GAMMA_water_pure
     real(kind=dp), dimension(num_group) :: ln_GAMMA_mixture
     real(kind=dp) :: sum_Qn_Xn_butanol, sum_Qn_Xn_water, sum_Qn_Xn_mixture
+    real(kind=dp) :: tot_grps_butanol, tot_grps_water, tot_grps_mixture
     real(kind=dp) :: PHI_butanol, PHI_water
     real(kind=dp) :: THETA_butanol, THETA_water
     real(kind=dp) :: ln_gamma_C_butanol, ln_gamma_C_water
@@ -137,6 +138,7 @@ contains
 
     real(kind=dp), dimension(num_group) :: THETA_m
     real(kind=dp) :: sum_m_A, sum_m_B, sum_n
+    real(kind=dp) :: mole_frac_conv
 
     integer(kind=i_kind) :: i, k, m, n
 
@@ -172,17 +174,23 @@ contains
     ! Calculate the sum (Q_n * X_n) in the denominator of eq 9 for pure liquids
     sum_Qn_Xn_butanol = 0.0d0
     sum_Qn_Xn_water   = 0.0d0
+    tot_grps_butanol  = 0.0d0
+    tot_grps_water    = 0.0d0
     do n = 1, num_group
       sum_Qn_Xn_butanol = sum_Qn_Xn_butanol + Q_k(n) * real(butanol_grps(n), kind=dp)
       sum_Qn_Xn_water   = sum_Qn_Xn_water   + Q_k(n) * real(water_grps(n),   kind=dp)
+      tot_grps_butanol  = tot_grps_butanol + real(butanol_grps(n), kind=dp)
+      tot_grps_water    = tot_grps_water   + real(water_grps(n),   kind=dp)
     end do
+    sum_Qn_Xn_butanol = sum_Qn_Xn_butanol / tot_grps_butanol
+    sum_Qn_Xn_water   = sum_Qn_Xn_water   / tot_grps_water
 
     ! Calculate group residual acitivty coefficient for pure liquids (ln(GAMMA_k^(i)) in eq 7 & 8)
     ! ... for butanol
     do m = 1, num_group
       THETA_m(m) = Q_k(m) &
                    * real(butanol_grps(m), kind=dp) &
-                   / sum_Qn_Xn_butanol
+                   / tot_grps_butanol / sum_Qn_Xn_butanol
     end do
     do k = 1, num_group
       sum_m_A = 0.0d0 ! ln( sum_m_A  ) term in eq 8
@@ -202,7 +210,7 @@ contains
     do m = 1, num_group
       THETA_m(m) = Q_k(m) &
                    * real(water_grps(m), kind=dp) &
-                   / sum_Qn_Xn_water
+                   / tot_grps_water / sum_Qn_Xn_water
     end do
     do k = 1, num_group
       sum_m_A = 0.0d0 ! ln( sum_m_A  ) term in eq 8
@@ -337,6 +345,16 @@ contains
         !!! Get the UNIFAC activities !!!
         !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+        ! Species mole fraction to group mole fraction conversion
+        tot_grps_mixture = 0.0d0;
+        do n=1, num_group
+          tot_grps_mixture = tot_grps_mixture + (1.0d0 - mole_frac) * &
+                             real(butanol_grps(n), kind=dp)
+          tot_grps_mixture = tot_grps_mixture + mole_frac * &
+                             real(water_grps(n),   kind=dp)
+        end do
+        mole_frac_conv = tot_grps_mixture ! total moles is always 1.0
+
         ! Equation 4
         PHI_butanol = r_butanol * (1.0d0 - mole_frac) / &
                 (r_butanol * (1.0d0 - mole_frac) + r_water * mole_frac)
@@ -372,15 +390,18 @@ contains
         do n = 1, num_group
           sum_Qn_Xn_mixture = sum_Qn_Xn_mixture &
                               + Q_k(n) &
-                              * ( (1.0d0 - mole_frac) * real(butanol_grps(n), kind=dp) &
-                                   + mole_frac * real(water_grps(n), kind=dp) )
+                              * ( (1.0d0 - mole_frac) * &
+                                   real(butanol_grps(n), kind=dp) &
+                                 + mole_frac * real(water_grps(n), kind=dp) &
+                                ) / mole_frac_conv
         end do
 
         ! Group surface area fraction (Eq. 9)
         do m = 1, num_group
           THETA_m(m) = Q_k(m) &
                        * ( (1.0d0 - mole_frac) * real(butanol_grps(m), kind=dp) &
-                            + mole_frac * real(water_grps(m), kind=dp) ) &
+                            + mole_frac * real(water_grps(m), kind=dp) &
+                         ) / mole_frac_conv &
                        / sum_Qn_Xn_mixture
         end do
 

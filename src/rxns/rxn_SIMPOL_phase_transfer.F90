@@ -124,9 +124,11 @@ module pmc_rxn_SIMPOL_phase_transfer
 #define AERO_PHASE_ID_(x) this%condensed_data_int(NUM_INT_PROP_+2*NUM_AERO_PHASE_+x)
 #define AERO_REP_ID_(x) this%condensed_data_int(NUM_INT_PROP_+3*NUM_AERO_PHASE_+x)
 #define DERIV_ID_(x) this%condensed_data_int(NUM_INT_PROP_+4*NUM_AERO_PHASE_+x)
-#define JAC_ID_(x) this%condensed_data_int(NUM_INT_PROP_+1+5*NUM_AERO_PHASE_+x)
-#define PHASE_INT_LOC_(x) this%condensed_data_int(NUM_INT_PROP_+2+8*NUM_AERO_PHASE_+x)
-#define PHASE_REAL_LOC_(x) this%condensed_data_int(NUM_INT_PROP_+2+9*NUM_AERO_PHASE_+x)
+#define GAS_ACT_JAC_ID_(x) this%condensed_data_int(NUM_INT_PROP_+1+5*NUM_AERO_PHASE_+x)
+#define AERO_ACT_JAC_ID_(x) this%condensed_data_int(NUM_INT_PROP_+1+6*NUM_AERO_PHASE_+x)
+#define JAC_ID_(x) this%condensed_data_int(NUM_INT_PROP_+1+7*NUM_AERO_PHASE_+x)
+#define PHASE_INT_LOC_(x) this%condensed_data_int(NUM_INT_PROP_+2+10*NUM_AERO_PHASE_+x)
+#define PHASE_REAL_LOC_(x) this%condensed_data_int(NUM_INT_PROP_+2+11*NUM_AERO_PHASE_+x)
 #define NUM_AERO_PHASE_JAC_ELEM_(x) this%condensed_data_int(PHASE_INT_LOC_(x))
 #define PHASE_JAC_ID_(x,s,e) this%condensed_data_int(PHASE_INT_LOC_(x)+(s-1)*NUM_AERO_PHASE_JAC_ELEM_(x)+e)
 #define EFF_RAD_JAC_ELEM_(x,e) this%condensed_data_real(PHASE_REAL_LOC_(x)-1+e)
@@ -244,7 +246,7 @@ contains
     end do
 
     ! Allocate space in the condensed data arrays
-    allocate(this%condensed_data_int(NUM_INT_PROP_ + 2 + n_aero_ids * 11 + &
+    allocate(this%condensed_data_int(NUM_INT_PROP_ + 2 + n_aero_ids * 13 + &
                                      n_aero_jac_elem * 2))
     allocate(this%condensed_data_real(NUM_REAL_PROP_ + n_aero_jac_elem * 4))
     this%condensed_data_int(:) = int(0, kind=i_kind)
@@ -273,7 +275,7 @@ contains
 
     ! Set the ids of each aerosol-phase species instance
     i_aero_id = 1
-    PHASE_INT_LOC_(i_aero_id)  = NUM_INT_PROP_+10*NUM_AERO_PHASE_+3
+    PHASE_INT_LOC_(i_aero_id)  = NUM_INT_PROP_+12*NUM_AERO_PHASE_+3
     PHASE_REAL_LOC_(i_aero_id) = NUM_REAL_PROP_+1
     do i_aero_rep = 1, size(aero_rep)
 

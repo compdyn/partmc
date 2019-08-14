@@ -3,6 +3,9 @@ __next version__ - XXXX-XX-XX
 
   * Clean up README formatting (Matt West).
 
+  * Add aero_state_{remove_particles,n_orig_part,
+    least_create_times,greatest_create_times}() (Nicole Riemer).
+
 2.5.0 - 2018-11-17
 
   * Shift NetCDF CMake rules to `netcdf.cmake` (Matt West).

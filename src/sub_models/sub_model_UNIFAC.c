@@ -124,12 +124,17 @@ void sub_model_UNIFAC_update_env_state(int *sub_model_int_data,
       // Calculate the sum (Q_n * X_n) in the denominator of Eq. 9 for the
       // pure liquid
       double sum_Qn_Xn = 0.0;
-      for (int i_group=0; i_group<NUM_GROUP_; i_group++)
+      double total_group_moles = 0.0;
+      for (int i_group=0; i_group<NUM_GROUP_; i_group++) {
         sum_Qn_Xn += Q_K_(i_group) * V_IK_(i_phase, i_spec, i_group);
+        total_group_moles += V_IK_(i_phase, i_spec, i_group);
+      }
+      sum_Qn_Xn *= 1.0 / total_group_moles;
 
       // Calculate THETA_m Eq. 9
       for (int m=0; m<NUM_GROUP_; m++)
-        THETA_M_(m) = Q_K_(m) * V_IK_(i_phase, i_spec, m) / sum_Qn_Xn;
+        THETA_M_(m) = Q_K_(m) * V_IK_(i_phase, i_spec, m) / sum_Qn_Xn /
+                      total_group_moles;
 
       // Calculate ln(GAMMA_k^(i))
       for (int k=0; k<NUM_GROUP_; k++) {
@@ -184,7 +189,7 @@ void sub_model_UNIFAC_calculate(int *sub_model_int_data,
         continue;
       }
 
-      // Update the mole fractions X_i
+      // Update the mole fractions x_i
       for (int i_spec=0; i_spec<NUM_SPEC_(i_phase); i_spec++) {
         X_I_(i_phase, i_spec) = state[PHASE_INST_ID_(i_phase, i_instance) +
                                       SPEC_ID_(i_phase, i_spec)]
@@ -225,20 +230,24 @@ void sub_model_UNIFAC_calculate(int *sub_model_int_data,
         THETA_M_(m) /= sum_Qn_Xn_mixture;
       }
 
+      // Calculate the denominators of Eq. 4
+      double PHI_T = 0.0;
+      for (int j_spec=0; j_spec<NUM_SPEC_(i_phase); j_spec++)
+        PHI_T += R_I_(i_phase, j_spec) * X_I_(i_phase, j_spec);
+      double THETA_T = 0.0;
+      for (int j_spec=0; j_spec<NUM_SPEC_(i_phase); j_spec++)
+        THETA_T += Q_I_(i_phase, j_spec) * X_I_(i_phase, j_spec);
+
       // Calculate activity coefficients for each species in the phase instance
       for (int i_spec=0; i_spec<NUM_SPEC_(i_phase); i_spec++) {
 
         // Calculate PHI_i (Eq. 4)
-        double PHI_i = 0.0;
-        for (int j_spec=0; j_spec<NUM_SPEC_(i_phase); j_spec++)
-          PHI_i += R_I_(i_phase, j_spec) * X_I_(i_phase, j_spec);
-        PHI_i = R_I_(i_phase, i_spec) * X_I_(i_phase, i_spec) / PHI_i;
+        double PHI_i;
+        PHI_i = R_I_(i_phase, i_spec) * X_I_(i_phase, i_spec) / PHI_T;
 
         // Calculate THETA_i (Eq. 4)
-        double THETA_i = 0.0;
-        for (int j_spec=0; j_spec<NUM_SPEC_(i_phase); j_spec++)
-          THETA_i += Q_I_(i_phase, j_spec) * X_I_(i_phase, j_spec);
-        THETA_i = Q_I_(i_phase, i_spec) * X_I_(i_phase, i_spec) / THETA_i;
+        double THETA_i;
+        THETA_i = Q_I_(i_phase, i_spec) * X_I_(i_phase, i_spec) / THETA_T;
 
         // Calculate the combinatorial term ln(gamma_i^C) Eq. 3
         double lnGAMMA_I_C = 0.0;
@@ -286,6 +295,210 @@ void sub_model_UNIFAC_calculate(int *sub_model_int_data,
 // TODO finish adding J contributions
 /** \brief Add contributions to the Jacobian from derivates calculated using the output of this sub model
  *
+ * This derivation starts from equations (1)--(9) in \cite Marcolli2005.
+ * The mole fraction of species \f$i\f$ is calculated as:
+ * \f[
+ *   \chi_i = \frac{m_i}{m_T},
+ * \f]
+ * where \f$m_T = \displaystyle\sum_j m_j\f$,
+ * \f$m_i = \frac{c_i}{\mathrm{MW}_i}\f$
+ * is the number in moles of species \f$i\f$,
+ * \f$c_i\f$ is its mass concentration
+ * (\f$\mathrm{ug} \: \mathrm{m}^{-3}\f$; the state variable), and
+ * \f$\mathrm{MW}_i\f$ is its molecular weight
+ * (\f$\mathrm{ug} \: \mathrm{mol}^{-1}\f$). Thus,
+ * \f[
+ * \begin{align*}
+ *   \frac{\partial \chi_i}{\partial c_i} & =
+ *      \frac{(m_T-m_i)}{\mathrm{MW}_i m_T^2}, \textrm{ and} \\
+ *   \frac{\partial \chi_j}{\partial c_i} & =
+ *      -\frac{m_i}{\mathrm{MW}_i m_T^2} \quad \text{for } i\neq j. \\
+ * \end{align*}
+ * \f]
+ *
+ * The partial derivative of \f$\Phi_i\f$ (Eq. 4) with respect to \f$c_i\f$
+ * is derived as follows:
+ * \f[
+ * \begin{align*}
+ *   \frac{\partial r_i x_i}{\partial c_i} & =
+ *       r_i \frac{(m_T-m_i)}{\mathrm{MW}_i m_T^2}, \\
+ *   \frac{\partial r_j x_j}{\partial c_i} & =
+ *       - r_i \frac{m_i}{\mathrm{MW}_i m_T^2}
+ *       \quad \text{for } i\neq j, \\
+ *   \frac{\partial \displaystyle\sum_j r_j x_j}{\partial c_i} & =
+ *       \frac{r_i}{\mathrm{MW}_i m_T} -
+ *       \displaystyle\sum_j\frac{r_j m_j}{\mathrm{MW}_j m_T^2}, \\
+ *   \rho & \equiv \displaystyle\sum_j\frac{r_j m_j}{\mathrm{MW}_j m_T^2},
+ *   \quad \sigma \equiv \displaystyle\sum_k r_k x_k, \\
+ *   \frac{\partial \Phi_j}{\partial c_i} & = \frac{
+ *       \left[r_i \frac{(m^{\prime}_T-m_i)}{\mathrm{MW}_i m_T^2}
+ *        \sigma -
+ *        r_i x_i \left(\frac{r_i}{\mathrm{MW}_i m_T^2} - \rho
+ *        \right) \right]} {\sigma^2}, \qquad
+ *        m^{\prime}_T =
+ *        \begin{cases}
+ *          m_T  & \quad \text{if } i=j \\
+ *          0    & \quad \text{if } i\neq j
+ *        \end{cases}
+ * \end{align*}
+ * \f]
+ *
+ * Similarly, the partial derivative of \f$\Theta_i\f$ (Eq. 4) with respect
+ * to \f$c_i\f$ is:
+ * \f[
+ * \begin{align*}
+ *   \tau & \equiv \displaystyle\sum_j\frac{q_j m_j}{\mathrm{MW}_j m_T^2},
+ *   \quad \omega \equiv \displaystyle\sum_k q_k x_k, \\
+ *   \frac{\partial \Theta_j}{\partial c_i} & = \frac{
+ *       \left[q_i \frac{(m^{\prime}_T-m_i)}{\mathrm{MW}_i m_T^2}
+ *        \omega -
+ *        q_i x_i \left(\frac{q_i}{\mathrm{MW}_i m_T^2} - \tau
+ *        \right) \right]} {\omega^2}, \qquad
+ *        m^{\prime}_T =
+ *        \begin{cases}
+ *          m_T  & \quad \text{if } i=j \\
+ *          0    & \quad \text{if } i\neq j
+ *        \end{cases}
+ * \end{align*}
+ * \f]
+ *
+ * From Eqs 5 and 6,
+ * \f[
+ *   \frac{\partial r_i}{\partial c_i} =
+ *   \frac{\partial q_i}{\partial c_i} =
+ *   \frac{\partial l_i}{\partial c_i} = 0.
+ * \f]
+ * For the last term in Eq. 3,
+ * \f[
+ * \begin{align*}
+ *   \frac{\partial \displaystyle\sum_j x_j l_j}{\partial c_i} = &
+ *       \frac{l_i}{\mathrm{MW}_i m_T} -
+ *       \displaystyle\sum_j\frac{l_j m_j}{\mathrm{MW}_j m_T^2}, \\
+ *   \kappa \equiv & \displaystyle\sum_j\frac{l_j m_j}{\mathrm{MW}_j m_T^2},
+ *   \quad \mu \equiv \displaystyle\sum_j x_j l_j, \\
+ *   \frac{\partial \mu}{\partial c_i} = & \frac{l_i}{\mathrm{MW}_i m_T}
+ *       - \kappa.
+ * \end{align*}
+ * \f]
+ * Thus, the partial derivative of the full combinatorial term (Eq. 3) is:
+ * \f[
+ * \begin{align*}
+ *   \frac{\partial \ln{\gamma^C_j}}{\partial c_i} = &
+ *       \frac{x_j}{\Phi_j}\frac{\left( \frac{\partial \Phi_j}{\partial c_i}
+ *           x_j - \Phi_j\frac{\partial x_j}{\partial c_i} \right)}{x_j^2} \\
+ *     & \quad + \frac{z}{2}q_j\frac{\Phi_j}{\Theta_j}\frac{\left(
+ *           \frac{\partial \Theta_j}{\partial c_i} \Phi_j -
+ *           \Theta_j\frac{\partial \Phi_j}{\partial c_i}\right)}{\Phi_j^2} \\
+ *     & \quad - \mu\frac{\partial \mu}{\partial c_i}
+ *         \frac{\left(\frac{\partial \Phi_j}{\partial c_i}x_j -
+ *              \Phi_j\frac{\partial x_j}{\partial c_i} \right)}{x_j^2}.
+ * \end{align*}
+ * \f]
+ * After some rearranging, this becomes:
+ * \f[
+ * \begin{align*}
+ *   \frac{\partial \ln{\gamma^C_j}}{\partial c_i} = &
+ *       \frac{1}{\Phi_j}\frac{\partial \Phi_j}{\partial c_i}
+ *       - \frac{1}{x_j}\frac{\partial x_j}{\partial c_i} \\
+ *     & \quad + \frac{z}{2}q_j\left(
+ *       \frac{1}{\Theta_j}\frac{\partial \Theta_j}{\partial c_i}
+ *       - \frac{1}{\Phi_j}\frac{\partial \Phi_j}{\partial c_i}\right) \\
+ *     & \quad - \frac{\mu}{x_j}\frac{\partial \mu}{\partial c_i} \left(
+ *       \frac{\partial \Phi_j}{\partial c_i} - \frac{\Phi_j}{x_j}
+ *       \frac{\partial x_j}{\partial c_i} \right)
+ * \end{align*}
+ * \f]
+ * As \f$\rho\f$, \f$\sigma\f$, \f$\tau\f$ \f$\omega\f$, \f$\kappa\f$,
+ * and \f$\mu\f$ are independent of species \f$i\f$,
+ * these can be calculated outside the loop over the independent species.
+ * Moving to the residual term (Eq. 7), the mole fraction (\f$X_k\f$)
+ * of group \f$k\f$ in the mixture is related to the mole fraction
+ * (\f$x_i\f$) of species \f$i\f$ according to:
+ * \f[
+ *   X_k = \displaystyle\sum_i v_k^{(i)} x_i c_{xX},
+ * \f]
+ * where \f$c_{xX}\f$ is a conversion factor accounting for the difference
+ * in total species and total group number concentrations:
+ * \f[
+ *   c_{xX} = \frac{m_T}{\displaystyle\sum_i v_k^{(i)} m_i}
+ * \f]
+ * Partial derivatives of the group interaction terms in Eq 9,
+ * \f$\Theta_m\f$ and \f$\Psi_{mn}\f$, with respect to \f$c_i\f$ are
+ * derived as follows:
+ * \f[
+ * \begin{align*}
+ *   \frac{\partial X_k}{\partial c_i} = &
+ *      \frac{v_k^{(i)}c_{xX}}{\mathrm{MW}_i m_T} -
+ *      \displaystyle\sum_j \frac{v_k^{(j)} m_j c_{xX}}
+ *      {\mathrm{MW}_j m_T^2}, \\
+ *   \pi_k \equiv & \displaystyle\sum_j \frac{v_k^{(j)} m_j c_{xX}}
+ *       {\mathrm{MW}_j m_T^2}, \\
+ *   \frac{\partial \displaystyle\sum_n Q_n X_n}{\partial c_i} = &
+ *       \displaystyle\sum_n Q_n \frac{v_n^{(i)} c_{xX}}
+ *       {\mathrm{MW}_i m_T}
+ *       - \displaystyle\sum_n\displaystyle\sum_j Q_n
+ *       \frac{v_n^{(j)} m_j c_{xX}}{\mathrm{MW}_j m_T^2}, \\
+ *   \Pi \equiv & \displaystyle\sum_n Q_n \pi_n =
+ *       \displaystyle\sum_n\displaystyle\sum_j Q_n
+ *       \frac{v_n^{(j)} m_j c_{xX}}{\mathrm{MW}_j m_T^2}, \\
+ *   \frac{\partial \Theta_m}{\partial c_i} = & \left[
+ *       \left(Q_m\frac{v_m^{(i)} c_{xX}}{\mathrm{MW}_i m_T^2} -
+ *          Q_m\pi_m \right)
+ *       \displaystyle\sum_n Q_n X_n
+ *       - \left(\frac{v_m^{(i)} c_{xX}}{\mathrm{MW}_i m_T^2} - \Pi \right)
+ *       Q_m X_m \right] / \left(\displaystyle\sum_n Q_n X_n \right)^2,
+ *       \textrm{ and} \\
+ *   \frac{\partial \Psi_{mn}}{\partial c_i} = & 0
+ * \end{align*}
+ * \f]
+ * The partial derivative of the group residual activity coefficient (Eq. 8)
+ * with respect to \f$c_i\f$ is thus:
+ * \f[
+ * \begin{align*}
+ *   \frac{\partial \Gamma_k}{\partial c_i} = & Q_k \left[
+ *     - \frac{1}{\displaystyle\sum_m\Theta_m\Psi_{mk}}
+ *       \displaystyle\sum_m\frac{\partial\Theta_m}{\partial c_i}\Psi_{mk} \\
+ *     \quad - \displaystyle\sum_m\left(
+ *       \frac{\partial\Theta_m}{\partial c_i}\Psi_{km}
+ *         \displaystyle\sum_n\Theta_n\Psi_{nm}
+ *     - \Theta_m\Psi_{km}\displaystyle\sum_n
+ *         \frac{\partial\Theta_n}{\partial c_i}
+ *         \Psi_{nm}\right)/\left(
+ *           \displaystyle\sum_n\Theta_n\Psi_{nm}\right)^2
+ *     \right]
+ * \end{align*}
+ * \f]
+ * After some rearranging, this becomes:
+ * \f[
+ *   \frac{\partial \Gamma_k}{\partial c_i} = - Q_k \displaystyle\sum_m \left(
+ *     \frac{1}{\Theta_m}\frac{\partial\Theta_m}{\partial c_i}
+ *     + \frac{\Psi_{km}}{\displaystyle\sum_n\Theta_n\Psi_{nm}}
+ *       \frac{\partial\Theta_m}{\partial c_i}
+ *     + \frac{\Theta_m\Psi_{km}}
+ *            {\left(\displaystyle\sum_n\Theta_n\Psi_{nm}\right)^2}
+ *       \displaystyle\sum_n\frac{\partial\Theta_n}{\partial c_i}\Psi_{nm}
+ *   \right)
+ * \f]
+ * The left side of the three bracketed terms in the above equation are
+ * independent of species \f$i\f$ and can be calculated outside of the loop
+ * over the independent species. The partial derivative of the full residual
+ * term with respect to \f$c_i\f$ is thus:
+ * \f[
+ * \begin{align*}
+ *  \frac{\partial \ln{\Gamma_k^{(j)}}}{\partial c_i} = & 0 \\
+ *  \frac{\partial \ln{\gamma_j^R}}{\partial c_i} = &
+ *    \displaystyle\sum_k \frac{v_k^{(j)}}{\Gamma_k}
+ *       \frac{\partial \Gamma_k}{\partial c_i}
+ * \end{align*}
+ * \f]
+ * The overall equation for the partial derivative of \f$\gamma_j\f$ with
+ * respect to species \f$i\f$ is:
+ * \f[
+ *   \frac{\partial\gamma_j}{\partial c_i} = \gamma_j \left(
+ *     \frac{\partial\ln{\gamma_j^C}}{\partial c_i}
+ *     + \frac{\partial\ln{\gamma_j^R}}{\partial c_i} \right)
+ * \f]
+ *
  * \param sub_model_int_data Pointer to the sub model integer data
  * \param sub_model_float_data Pointer to the sub model floating-point data
  * \param model_data Pointer to the model data
@@ -299,6 +512,11 @@ void sub_model_UNIFAC_get_jac_contrib(int *sub_model_int_data,
 {
   int *int_data = sub_model_int_data;
   double *float_data = sub_model_float_data;
+
+  // Calculate the model parameters
+  sub_model_UNIFAC_calculate(sub_model_int_data, sub_model_float_data,
+                             model_data);
+
 }
 #endif
 

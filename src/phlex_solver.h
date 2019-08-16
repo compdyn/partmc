@@ -60,6 +60,9 @@ bool check_Jac(realtype t, N_Vector y, SUNMatrix J, N_Vector deriv,
 int check_flag(void *flag_value, char *func_name, int opt);
 void check_flag_fail(void *flag_value, char *func_name, int opt);
 static void solver_print_stats(void *cvode_mem);
+static void print_data_sizes(ModelData *md);
+static void print_jacobian_matrix(SUNMatrix M);
+static void print_derivative(N_Vector deriv);
 bool is_anything_going_on_here(SolverData *sd, realtype t_initial, realtype t_final);
 #endif
 

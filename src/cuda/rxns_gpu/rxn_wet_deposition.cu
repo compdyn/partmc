@@ -161,7 +161,7 @@ void * rxn_gpu_wet_deposition_pre_calc(ModelDatagpu *model_data, void *rxn_data)
  */
 #ifdef PMC_USE_SUNDIALS
 __device__ void rxn_gpu_wet_deposition_calc_deriv_contrib(double *rate_constants, double *state,
-          double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length, int n_rxn2)
+          double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step, int n_rxn2)
 {
   int n_rxn=n_rxn2;
   int *int_data = (int*) rxn_data;
@@ -189,7 +189,7 @@ __device__ void rxn_gpu_wet_deposition_calc_deriv_contrib(double *rate_constants
  */
 #ifdef PMC_USE_SUNDIALS
 void rxn_cpu_wet_deposition_calc_deriv_contrib(double *rate_constants, double *state,
-          double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length, int n_rxn2)
+          double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step, int n_rxn2)
 {
   int n_rxn=n_rxn2;
   int *int_data = (int*) rxn_data;
@@ -215,7 +215,7 @@ void rxn_cpu_wet_deposition_calc_deriv_contrib(double *rate_constants, double *s
  */
 #ifdef PMC_USE_SUNDIALS
 __device__ void rxn_gpu_wet_deposition_calc_jac_contrib(double *rate_constants, double *state, double *J,
-          void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length, int n_rxn2)
+          void *rxn_data, double * double_pointer_gpu, double time_step, int n_rxn2)
 {
   int n_rxn=n_rxn2;
   int *int_data = (int*) rxn_data;

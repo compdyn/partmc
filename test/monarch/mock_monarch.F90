@@ -31,7 +31,7 @@ program mock_monarch
   !> Number of total species in mock MONARCH
   integer, parameter :: NUM_MONARCH_SPEC = 800
   !> Number of vertical cells in mock MONARCH
-  integer, parameter :: NUM_VERT_CELLS = 2
+  integer, parameter :: NUM_VERT_CELLS = 40
   !> Starting W-E cell for phlex-chem call
   integer, parameter :: I_W = 1!9
   !> Ending W-E cell for phlex-chem call
@@ -56,7 +56,11 @@ program mock_monarch
   integer, parameter :: WATER_VAPOR_ID = 5
   !> Start time
   real, parameter :: START_TIME = 360.0
-
+  !> Number of cells to compute simultaneously
+  !integer :: n_cells = 1
+  integer :: n_cells = (I_E - I_W+1)*(I_N - I_S+1)*NUM_VERT_CELLS
+  !> Check multiple cells results are correct?
+  logical :: check_multiple_cells = .false. !.true. .false.
 
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   ! State variables for mock MONARCH model !
@@ -80,7 +84,7 @@ program mock_monarch
   real :: comp_species_conc(0:NUM_TIME_STEP, NUM_MONARCH_SPEC)
   real :: species_conc_copy(NUM_WE_CELLS, NUM_SN_CELLS, NUM_VERT_CELLS, NUM_MONARCH_SPEC)
 
-  !> Starting time for mock model run (min since midnight) TODO check how time
+  !> Starting time for mock model run (min since midnight)
   !! is tracked in MONARCH
   real :: curr_time = START_TIME
 
@@ -106,10 +110,7 @@ program mock_monarch
   integer :: status_code, i_time, i_spec, i, j, k
   !> Partmc nº of cases to test
   integer :: pmc_cases = 1
-  !> Number of cells to compute simultaneously
-  integer :: n_cells = 1
-  !> Check multiple cells results are correct?
-  logical :: check_multiple_cells = .true. !.true. .false.
+
 
   ! Check the command line arguments
   call assert_msg(129432506, command_argument_count().eq.3, "Usage: "// &
@@ -120,7 +121,7 @@ program mock_monarch
   call pmc_mpi_init()
 
   !Cells to solve simultaneously
-  n_cells = (I_E - I_W+1)*(I_N - I_S+1)*NUM_VERT_CELLS
+  !n_cells = (I_E - I_W+1)*(I_N - I_S+1)*NUM_VERT_CELLS
   !n_cells = 1
 
   !Check if repeat program to compare n_cells=1 with n_cells=N
@@ -253,16 +254,17 @@ program mock_monarch
   end do
 #endif
 
-
-
   !#ifdef DEBUG
-  print*, "SPECIES CONC", species_conc(:,1,1,100)
-  print*, "SPECIES CONC COPY", species_conc_copy(:,1,1,100)
+  !print*, "SPECIES CONC", species_conc(:,1,1,100)
+  !print*, "SPECIES CONC COPY", species_conc_copy(:,1,1,100)
   !#endif
 
-  !Deallocation
+  ! Deallocation
   deallocate(phlex_input_file)
   deallocate(interface_input_file)
+
+  ! Free the interface and the solver
+  deallocate(pmc_interface)
 
   ! close the output file
   close(RESULTS_FILE_UNIT)
@@ -302,26 +304,27 @@ contains
 
     !Initialize different axis values
     !TODO: Varying the pressure is not affecting the system, is that normal?
+
     do i=I_W, I_E
       species_conc(i,:,:,:) = &
-              species_conc(i,:,:,:) + 0.01*i
-      temperature(i,:,:) = temperature(i,:,:) + 0.01*i
+              species_conc(i,:,:,:) + 0.1*i
+      temperature(i,:,:) = temperature(i,:,:) + 0.1*i
       !Reduce slighty the pressure to avoid fails!
-      pressure(i,:,:) = pressure(i,:,:) - 0.01*i
+      pressure(i,:,:) = pressure(i,:,:) - 0.001*i
     end do
 
     do j=I_S, I_N
       species_conc(:,j,:,:) = &
-              species_conc(:,j,:,:) + 0.03*j
+              species_conc(:,j,:,:) + 0.3*j
       temperature(:,j,:) = temperature(:,j,:) + 0.3*j
-      pressure(:,:,j) = pressure(:,:,j) - 0.03*j
+      pressure(:,:,j) = pressure(:,:,j) - 0.003*j
     end do
 
     do k=1, NUM_VERT_CELLS
       species_conc(:,:,k,:) = &
-              species_conc(:,:,k,:) + 0.06*k
-      temperature(:,:,k) = temperature(:,:,k) + 0.06*k
-      pressure(:,k,:) = pressure(:,k,:) - 0.06*k
+              species_conc(:,:,k,:) + 0.6*k
+      temperature(:,:,k) = temperature(:,:,k) + 0.6*k
+      pressure(:,k,:) = pressure(:,k,:) - 0.006*k
     end do
 
     deallocate(file_name)

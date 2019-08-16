@@ -36,19 +36,8 @@
 /* Number of environmental parameters */
 #define PMC_NUM_ENV_PARAM_ 2 // !!! Must match the value in phlex_state.f90 !!!
 
-//TTODO: Try change max shared memory per block allowed on cuda config
-// with cudaDeviceSetCacheConfig, maybe we can reach improvement using 16kb
-//instead of default 48kb
-
 //Value to consider data size too big -> Memory optimization will change below and under the limit
 #define DATA_SIZE_LIMIT_OPT 2000
-
-//Knowed bug: Don't increase threads to 1024 or it crash with rxn_data flipped
-//Knowed bug: With some 2^n values (like 256) shared memory crash (However with 124 or 512 works fine)
-#define MAX_SHARED_MEMORY_BLOCK_DOUBLE 900//1024
-
-//TODO: get max number of blocks on runtime and return error if is set to maximum
-//#define MAX_N_GPU_BLOCKS 10
 
 #define HANDLE_ERROR( err ) (HandleError( err, __FILE__, __LINE__ ))
 #define HANDLE_ERROR2( ) (HandleError2( __FILE__, __LINE__ ))
@@ -115,14 +104,14 @@ typedef struct {
 
 
 void solver_new_gpu_cu(int n_dep_var,
-     int n_state_var, int *var_type, int n_rxn,
+     int n_state_var, int n_rxn,
      int n_rxn_int_param, int n_rxn_float_param, int n_cells);
-void solver_update_state_gpu(ModelDatagpu *md);
 void rxn_update_env_state_gpu(ModelDatagpu *model_data, double *env);
 void solveRxncpu(ModelDatagpu *model_data, double *deriv_data,
                  double time_step, int *int_data, double *float_data, int deriv_length, int n_rxn);
 void rxn_calc_deriv_gpu(ModelDatagpu *model_data, N_Vector deriv, realtype time_step);
 void free_gpu_cu();
+void print_gpu_specs();
 void solver_set_data_gpu(ModelDatagpu *model_data);
 
 #endif

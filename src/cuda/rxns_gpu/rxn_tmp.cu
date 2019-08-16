@@ -18,7 +18,7 @@ __global__ void rxn_gpu_tmp_arrhenius
           //double time_step, int n_rxn2
 
           ModelDatagpu *model_data, double *state, double *deriv,
-          double time_step, int deriv_length, int n_rxn,
+          double time_step, int n_rxn,
           int *int_pointer, double *double_pointer,
           unsigned int int_max_size, unsigned int double_max_size
           )

@@ -442,6 +442,42 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Divide particles into bins.
+  function aero_state_bin(aero_state, aero_data, bin_grid, quantity)
+
+    !> Aerosol state.
+    type(aero_state_t), intent(inout) :: aero_state
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> The scalar quantity for each particle for binning.
+    real(kind=dp), intent(in) :: quantity(:)
+
+    !> Return value.
+    type(aero_state_t) :: aero_state_bin(bin_grid_size(bin_grid))
+
+    integer :: i_part, n_part, i_bin, n_bin
+
+    n_part = aero_state_total_particles(aero_state)
+    call assert_msg(813723492, size(quantity) == n_part, &
+         "quantity size " // trim(integer_to_string(size(quantity))) &
+         // " does not match number of particles" &
+         // trim(integer_to_string(n_part)))
+
+    n_bin = bin_grid_size(bin_grid)
+    do i_part = 1,n_part
+       i_bin = bin_grid_find(quantity(i_part))
+       if (i_bin >= 1 .and. i_bin <= n_bin) then
+          call aero_state_add_particle(aero_state_bin(i_bin),
+               aero_state%apa%particle(i_part), aero_data)
+       end if
+    end do
+
+  end function aero_state_bin
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Remove a randomly chosen particle from the given bin and return
   !> it.
   subroutine aero_state_remove_rand_particle_from_bin(aero_state, &

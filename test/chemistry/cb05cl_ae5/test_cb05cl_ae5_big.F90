@@ -50,6 +50,8 @@ program pmc_test_cb05cl_ae5
   integer(kind=i_kind), parameter :: PHLEX_FILE_UNIT = 12
   ! Number of timesteps to integrate over
   integer(kind=i_kind), parameter :: NUM_TIME_STEPS = 100
+  ! Number of cells
+  integer(kind=i_kind), parameter :: NUM_CELLS= 100
   ! Number of EBI-solver species
   integer(kind=i_kind), parameter :: NUM_EBI_SPEC = 72
   ! Number of EBI-solever photolysis reactions
@@ -194,6 +196,7 @@ contains
     real(kind=dp), allocatable :: ebi_init(:), kpp_init(:), phlex_init(:)
 
     integer(kind=i_kind) :: n_cells = 1, compare_results=1, i, j, k, z, state_size_cell, cell
+    integer(kind=i_kind) :: n_repeats
 
     ! D
     passed = .false.
@@ -259,7 +262,12 @@ contains
     !!! Initialize phlex-chem !!!
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-    n_cells = 100
+    n_repeats = 1
+    n_cells = 2000
+
+    if (n_cells.eq.1) then
+      n_repeats = 100
+    end if
 
     call cpu_time(comp_start)
     phlex_input_file = "config_cb05cl_ae5_big.json"
@@ -520,7 +528,7 @@ contains
     state_size_cell = size(phlex_state%state_var) / n_cells
     do i = 0, n_cells-1
       do j = 1, state_size_cell !80*n_cells
-        phlex_state%state_var(i*state_size_cell+j) = phlex_state%state_var(j) !+ 0.01*j
+        phlex_state%state_var(i*state_size_cell+j) = phlex_state%state_var(j) !+ 0.1*j
       end do
     end do
 
@@ -535,7 +543,7 @@ contains
     phlex_init(:) = phlex_state%state_var(:)
 
     ! Repeatedly solve the mechanism
-    do i_repeat = 1, 100 /n_cells!100
+    do i_repeat = 1, n_repeats !100
 
       !print*, "running"
 
@@ -544,7 +552,7 @@ contains
       phlex_state%state_var(:) = phlex_init(:)
 
       ! Solve the mechanism
-      do i_time = 1, NUM_TIME_STEPS!NUM_TIME_STEPS
+      do i_time = 1, 2!NUM_TIME_STEPS
 
       ! Set minimum concentrations in all solvers
       YC(:) = MAX(YC(:), SMALL_NUM)
@@ -576,10 +584,9 @@ contains
           end do
           do i = 0, n_cells-1
             phlex_state%state_var( &
-                    chem_spec_data%gas_state_id( &
-                            ebi_spec_names(i_spec)%string) &
-                + i*state_size_cell &
-                  )= YC(i_spec)
+              chem_spec_data%gas_state_id( &
+              ebi_spec_names(i_spec)%string) &
+              + i*state_size_cell)= YC(i_spec)
           end do
         end do
       end if

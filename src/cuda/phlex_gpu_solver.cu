@@ -24,9 +24,12 @@ int max_n_gpu_thread;
 int max_n_gpu_blocks;
 
 //General data
-double *derivgpu_data;
+double *deriv_gpu_data;
 double *deriv_cpu;
+double *jac_gpu_data;
+double *jac_cpu;
 size_t deriv_size;
+size_t jac_size;
 size_t state_size;
 size_t env_size;
 size_t rate_constants_size;
@@ -102,13 +105,13 @@ void solver_new_gpu_cu(int n_dep_var,
   //Set GPU properties
   cudaDeviceProp prop;
   cudaGetDeviceProperties(&prop, device);
-  max_n_gpu_thread = prop.maxThreadsPerBlock/2;//TODO: fix bug too many resources without the /2
+  max_n_gpu_thread = prop.maxThreadsPerBlock/2; //TODO: Fix bug insufficient resources without the /2 (1024 threads)
   max_n_gpu_blocks = prop.maxGridSize[1];
   int n_blocks = (n_rxn + max_n_gpu_thread - 1) / max_n_gpu_thread;
 
   //GPU allocation
   cudaMalloc((void **) &dev_start_rxn_param, start_size);
-  cudaMalloc((void **) &derivgpu_data, deriv_size);
+  cudaMalloc((void **) &deriv_gpu_data, deriv_size);
   cudaMalloc((void **) &state_gpu, state_size);
   cudaMalloc((void **) &env_gpu, env_size);
   cudaMalloc((void **) &rate_constants_gpu, rate_constants_size);
@@ -144,6 +147,14 @@ void solver_new_gpu_cu(int n_dep_var,
 void solver_set_data_gpu(ModelDatagpu *model_data) {
   //Get rxn sizes
   if (solver_set_gpu_sizes) {
+
+    //Initialize Jacobian //TODO: FIX this to allow initialize on new_solver
+    jac_size = model_data->n_jac_elem*model_data->n_cells * sizeof(double);
+    cudaMalloc((void **) &jac_gpu_data, jac_size);
+
+    if(few_data){
+      cudaMallocHost((void**)&jac_cpu, jac_size);
+    }
 
     // Get the number of reactions
     int *rxn_data = (int *) (model_data->rxn_data);
@@ -318,22 +329,18 @@ void solver_set_data_gpu(ModelDatagpu *model_data) {
 
 __global__ void solveDerivative(double *state_init, double *deriv_init,
           double time_step, int deriv_length_cell, int state_size_cell, int n_rxn,
-          int n_cells_gpu, int *int_pointer, double *double_pointer,
+          int n_cells, int *int_pointer, double *double_pointer,
           double *rate_constants_init) //Interface CPU/GPU
 {
   //Get thread id
   int index = blockIdx.x * blockDim.x + threadIdx.x;
 
   //Maximum number of threads to compute all reactions
-  if(index < n_rxn*n_cells_gpu){
+  if(index < n_rxn*n_cells){
 
     //Thread index for deriv and state,
     // till we don't finish all reactions of a cell, we stay on same index
     int cell=index/n_rxn;
-
-    //Each thread set to zero his deriv part
-    for (int j=0; j<deriv_length_cell; j++)
-      deriv_init[j+deriv_length_cell*cell] = 0.0;
 
     //Get indices of each reaction
     int *int_data = (int *) &(((int *) int_pointer)[index%n_rxn]); //Same indices for each cell
@@ -366,8 +373,8 @@ __global__ void solveDerivative(double *state_init, double *deriv_init,
                 state, deriv_data, (void *) rxn_data, float_data, time_step,n_rxn);
         break;
       case RXN_CONDENSED_PHASE_ARRHENIUS :
-        rxn_gpu_condensed_phase_arrhenius_calc_deriv_contrib(rate_constants,
-                state, deriv_data, (void *) rxn_data, float_data, time_step,n_rxn);
+        //rxn_gpu_condensed_phase_arrhenius_calc_deriv_contrib(rate_constants,
+        //        state, deriv_data, (void *) rxn_data, float_data, time_step,n_rxn);
         break;
       case RXN_EMISSION :
         rxn_gpu_emission_calc_deriv_contrib(rate_constants,
@@ -417,12 +424,11 @@ __global__ void solveDerivative(double *state_init, double *deriv_init,
  * \param deriv NVector to hold the calculated vector
  * \param time_step Current model time step (s)
  */
-
 void rxn_calc_deriv_gpu(ModelDatagpu *model_data, N_Vector deriv, realtype time_step) {
 
   // Get a pointer to the derivative data
-  int n_cells = model_data->n_cells;
   realtype *deriv_data = N_VGetArrayPointer(deriv);
+  int n_cells = model_data->n_cells;
   int *rxn_data = (int *) (model_data->rxn_data);
   int n_rxn = rxn_data[0];
   int n_rxn_threads = rxn_data[0]*n_cells; //Reaction group per number of repetitions/cells
@@ -442,22 +448,180 @@ void rxn_calc_deriv_gpu(ModelDatagpu *model_data, N_Vector deriv, realtype time_
     HANDLE_ERROR(cudaMemcpy(rate_constants_gpu, rate_constants, rate_constants_size, cudaMemcpyHostToDevice));
   }
 
+  HANDLE_ERROR(cudaMemset(deriv_gpu_data, 0, deriv_size));
+
   solveDerivative << < (n_blocks), max_n_gpu_thread >> >
-    (state_gpu, derivgpu_data, time_step, model_data->n_dep_var, model_data->n_state_var,
+    (state_gpu, deriv_gpu_data, time_step, model_data->n_dep_var, model_data->n_state_var,
     n_rxn, n_cells, int_pointer_gpu, double_pointer_gpu, rate_constants_gpu);
 
   cudaDeviceSynchronize();// Secure cuda synchronization
 
   //Use pinned memory for few values
   if (few_data){
-    HANDLE_ERROR(cudaMemcpy(deriv_cpu, derivgpu_data, deriv_size, cudaMemcpyDeviceToHost));
+    HANDLE_ERROR(cudaMemcpy(deriv_cpu, deriv_gpu_data, deriv_size, cudaMemcpyDeviceToHost));
     memcpy(deriv_data, deriv_cpu, deriv_size);
   }
   else {
-    HANDLE_ERROR(cudaMemcpy(deriv_data, derivgpu_data, deriv_size, cudaMemcpyDeviceToHost));
+    HANDLE_ERROR(cudaMemcpy(deriv_data, deriv_gpu_data, deriv_size, cudaMemcpyDeviceToHost));
   }
 
 }
+
+/** \brief GPU function: Solve jacobian
+ *
+ * \param state_init Pointer to first value of state array
+ * \param jac_init Pointer to first value of jacobian array
+ * \param time_step Current time step being computed (s)
+ * \param jac_length_cell jacobian length for one cell
+ * \param state_size_cell jacobian length for one cell
+ * \param n_rxn Number of reactions to include
+ * \param n_cells_gpu Number of cells to compute
+ * \param int_pointer Pointer to integer reaction data
+ * \param double_pointer Pointer to double reaction data
+ * \param rate_constants_init Pointer to first value of reaction rates
+ */
+
+__global__ void solveJacobian(double *state_init, double *jac_init,
+        double time_step, int jac_length_cell, int state_size_cell, int n_rxn,
+        int n_cells, int *int_pointer, double *double_pointer,
+        double *rate_constants_init) //Interface CPU/GPU
+{
+  //Get thread id
+  int index = blockIdx.x * blockDim.x + threadIdx.x;
+
+  //Maximum number of threads to compute all reactions
+  if(index < n_rxn*n_cells){
+
+    //Thread index for jac and state,
+    // till we don't finish all reactions of a cell, we stay on same index
+    int cell=index/n_rxn;
+
+    //Get indices of each reaction
+    int *int_data = (int *) &(((int *) int_pointer)[index%n_rxn]); //Same indices for each cell
+    double *float_data = (double *) &(((double *) double_pointer)[index%n_rxn]);
+    int rxn_type = int_data[0];
+    int *rxn_data = (int *) &(int_data[1*n_rxn]);
+
+    //Get indices for concentrations
+    double *jac_data = &( jac_init[jac_length_cell*cell]);
+    double *state = &( state_init[state_size_cell*cell]);
+
+    //Get indices for rates
+    double *rate_constants = &( rate_constants_init[index]);
+
+    switch (rxn_type) {
+      case RXN_AQUEOUS_EQUILIBRIUM :
+        //rxn_gpu_aqueous_equilibrium_calc_jac_contrib(rate_constants,
+        //        state, jac_data, (void *) rxn_data, float_data, time_step, n_rxn);
+        break;
+      case RXN_ARRHENIUS :
+        rxn_gpu_arrhenius_calc_jac_contrib(rate_constants,
+                  state, jac_data, (void *) rxn_data, float_data, time_step,n_rxn);
+        break;
+      case RXN_CMAQ_H2O2 :
+        rxn_gpu_CMAQ_H2O2_calc_jac_contrib(rate_constants,
+                  state, jac_data, (void *) rxn_data, float_data, time_step,n_rxn);
+        break;
+      case RXN_CMAQ_OH_HNO3 :
+        rxn_gpu_CMAQ_OH_HNO3_calc_jac_contrib(rate_constants,
+                state, jac_data, (void *) rxn_data, float_data, time_step,n_rxn);
+        break;
+      case RXN_CONDENSED_PHASE_ARRHENIUS :
+        //rxn_gpu_condensed_phase_arrhenius_calc_jac_contrib(rate_constants,
+        //        state, jac_data, (void *) rxn_data, float_data, time_step,n_rxn);
+        break;
+      case RXN_EMISSION :
+        rxn_gpu_emission_calc_jac_contrib(rate_constants,
+                state, jac_data, (void *) rxn_data, float_data, time_step,n_rxn);
+        break;
+      case RXN_FIRST_ORDER_LOSS :
+        rxn_gpu_first_order_loss_calc_jac_contrib(rate_constants,
+                state, jac_data, (void *) rxn_data, float_data, time_step,n_rxn);
+        break;
+      case RXN_HL_PHASE_TRANSFER :
+        //rxn_gpu_HL_phase_transfer_calc_jac_contrib(rate_constants,
+        //        state, jac_data, (void *) rxn_data, float_data, time_step, n_rxn);
+        break;
+      case RXN_PDFITE_ACTIVITY :
+        rxn_gpu_PDFiTE_activity_calc_jac_contrib(rate_constants,
+                state, jac_data, (void *) rxn_data, float_data, time_step,n_rxn);
+        break;
+      case RXN_PHOTOLYSIS :
+        rxn_gpu_photolysis_calc_jac_contrib(rate_constants,
+                state, jac_data, (void *) rxn_data, float_data, time_step,n_rxn);
+        break;
+      case RXN_SIMPOL_PHASE_TRANSFER :
+        //rxn_gpu_SIMPOL_phase_transfer_calc_jac_contrib(rate_constants,
+        //        state, jac_data, (void *) rxn_data, float_data, time_step,n_rxn);
+        break;
+      case RXN_TROE :
+        rxn_gpu_troe_calc_jac_contrib(rate_constants,
+                state, jac_data, (void *) rxn_data, float_data, time_step, n_rxn);
+        break;
+      case RXN_WET_DEPOSITION :
+        rxn_gpu_wet_deposition_calc_jac_contrib(rate_constants,
+                state, jac_data, (void *) rxn_data, float_data, time_step,n_rxn);
+        break;
+      case RXN_ZSR_AEROSOL_WATER :
+        rxn_gpu_ZSR_aerosol_water_calc_jac_contrib(rate_constants,
+                state, jac_data, (void *) rxn_data, float_data, time_step,n_rxn);
+        break;
+
+    }
+    __syncthreads();
+  }
+}
+
+/** \brief Calculate the Jacobian on GPU
+ *
+ * \param model_data Pointer to the model data
+ * \param deriv NVector to hold the calculated vector
+ * \param time_step Current model time step (s)
+ */
+void rxn_calc_jac_gpu(ModelDatagpu *model_data, SUNMatrix jac, realtype time_step) {
+
+  // Get a pointer to the jacobian data
+  int n_cells = model_data->n_cells;
+  int *rxn_data = (int *) (model_data->rxn_data);
+  int n_rxn = rxn_data[0];
+  int n_rxn_threads = rxn_data[0]*n_cells; //Reaction group per number of repetitions/cells
+  int n_blocks = ((n_rxn_threads + max_n_gpu_thread - 1) / max_n_gpu_thread);
+  double *jac_data = SM_DATA_S(jac);
+  double *state = model_data->state;
+  double *rate_constants = model_data->rate_constants;
+
+  //Faster, use for few values
+  if (few_data){
+    //This method of passing them as a function parameter has a theoric maximum of 4kb of data
+    state_gpu= state;
+    rate_constants_gpu= rate_constants;
+  }
+    //Slower, use for large values
+  else{
+    HANDLE_ERROR(cudaMemcpy(state_gpu, state, state_size, cudaMemcpyHostToDevice));
+    HANDLE_ERROR(cudaMemcpy(rate_constants_gpu, rate_constants, rate_constants_size, cudaMemcpyHostToDevice));
+  }
+
+  HANDLE_ERROR(cudaMemset(jac_gpu_data, 0, jac_size));
+
+  solveJacobian << < (n_blocks), max_n_gpu_thread >> >
+    (state_gpu, jac_gpu_data, time_step, model_data->n_jac_elem, model_data->n_state_var,
+    n_rxn, n_cells, int_pointer_gpu, double_pointer_gpu, rate_constants_gpu);
+
+  cudaDeviceSynchronize();// Secure cuda synchronization
+
+  //Use pinned memory for few values
+  if (few_data){
+    HANDLE_ERROR(cudaMemcpy(jac_cpu, jac_gpu_data, jac_size, cudaMemcpyDeviceToHost));
+    memcpy(jac_data, jac_cpu, jac_size);
+  }
+  else {
+    HANDLE_ERROR(cudaMemcpy(jac_data, jac_gpu_data, jac_size, cudaMemcpyDeviceToHost));
+  }
+
+}
+
+
 
 /** \brief Free GPU data structures
  */
@@ -467,7 +631,7 @@ void free_gpu_cu() {
 
   HANDLE_ERROR(cudaFree(int_pointer_gpu));
   HANDLE_ERROR(cudaFree(double_pointer_gpu));
-  HANDLE_ERROR(cudaFree(derivgpu_data));
+  HANDLE_ERROR(cudaFree(deriv_gpu_data));
   HANDLE_ERROR(cudaFree(dev_start_rxn_param));
 
   if(few_data){

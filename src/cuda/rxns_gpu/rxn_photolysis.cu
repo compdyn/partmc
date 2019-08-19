@@ -197,7 +197,7 @@ __device__ void rxn_gpu_photolysis_calc_deriv_contrib(double *rate_constants, do
     for (int i_spec=0; i_spec<NUM_PROD_; i_spec++, i_dep_var++) {
       if (DERIV_ID_(i_dep_var) < 0) continue;
       //deriv[DERIV_ID_(i_dep_var)] += rate*YIELD_(i_spec);
-      if (-rate*YIELD_(i_spec)*time_step <= state[PROD_(i_spec)]) { //TODO: Added to avoid crash, comment matt
+      if (-rate*YIELD_(i_spec)*time_step <= state[PROD_(i_spec)]) { //TODO: Added to avoid crash, discuss with matt
         atomicAdd((double*)&(deriv[DERIV_ID_(i_dep_var)]),rate*YIELD_(i_spec));
       }
     }
@@ -270,20 +270,19 @@ __device__ void rxn_gpu_photolysis_calc_jac_contrib(double *rate_constants, doub
           rate *= state[REACT_(i_spec)];
 
   // Add contributions to the Jacobian
-  if (rate!=ZERO) {
-    int i_elem = 0;
-    for (int i_ind=0; i_ind<NUM_REACT_; i_ind++) {
-      for (int i_dep=0; i_dep<NUM_REACT_; i_dep++, i_elem++) {
-	if (JAC_ID_(i_elem) < 0) continue;
-	J[JAC_ID_(i_elem)] -= rate / state[REACT_(i_ind)];
-      }
-      for (int i_dep=0; i_dep<NUM_PROD_; i_dep++, i_elem++) {
-	if (JAC_ID_(i_elem) < 0) continue;
-	J[JAC_ID_(i_elem)] += YIELD_(i_dep) * rate / state[REACT_(i_ind)];
+  int i_elem = 0;
+  for (int i_ind=0; i_ind<NUM_REACT_; i_ind++) {
+    for (int i_dep=0; i_dep<NUM_REACT_; i_dep++, i_elem++) {
+      if (JAC_ID_(i_elem) < 0) continue;
+      atomicAdd(&(J[JAC_ID_(i_elem)]), -rate);
+    }
+    for (int i_dep=0; i_dep<NUM_PROD_; i_dep++, i_elem++) {
+     if (JAC_ID_(i_elem) < 0) continue;
+      if (-rate*YIELD_(i_dep)*time_step <= state[PROD_(i_dep)]) { //TODO: Added to avoid crash, discuss with matt
+        atomicAdd(&(J[JAC_ID_(i_elem)]),YIELD_(i_dep) * rate);
       }
     }
   }
-
   //return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 
 }

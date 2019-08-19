@@ -110,6 +110,7 @@ void rxn_update_env_state_gpu(ModelDatagpu *model_data, double *env);
 void solveRxncpu(ModelDatagpu *model_data, double *deriv_data,
                  double time_step, int *int_data, double *float_data, int deriv_length, int n_rxn);
 void rxn_calc_deriv_gpu(ModelDatagpu *model_data, N_Vector deriv, realtype time_step);
+void rxn_calc_jac_gpu(ModelDatagpu *model_data, SUNMatrix jac, realtype time_step);
 void free_gpu_cu();
 void print_gpu_specs();
 void solver_set_data_gpu(ModelDatagpu *model_data);

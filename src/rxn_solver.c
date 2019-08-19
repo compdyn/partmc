@@ -496,7 +496,6 @@ void rxn_calc_deriv(ModelData *model_data, N_Vector deriv, realtype time_step)
 #ifdef PMC_USE_SUNDIALS
 void rxn_calc_jac(ModelData *model_data, SUNMatrix J, realtype time_step)
 {
-
   // Get pointers to the Jacobian data and state array
   double *J_data = SM_DATA_S(J);
   double *state = model_data->state;
@@ -531,14 +530,17 @@ void rxn_calc_jac(ModelData *model_data, SUNMatrix J, realtype time_step)
         case RXN_ARRHENIUS :
           rxn_data = (int*) rxn_arrhenius_calc_jac_contrib(rate_constants,
                    state, model_data, J_data, (void*) rxn_data, time_step);
+          //rxn_data = (int*) rxn_arrhenius_skip((void*) rxn_data);
           break;
         case RXN_CMAQ_H2O2 :
           rxn_data = (int*) rxn_CMAQ_H2O2_calc_jac_contrib(rate_constants,
                    state, model_data, J_data, (void*) rxn_data, time_step);
+          //rxn_data = (int*) rxn_CMAQ_H2O2_skip((void*) rxn_data);
           break;
         case RXN_CMAQ_OH_HNO3 :
           rxn_data = (int*) rxn_CMAQ_OH_HNO3_calc_jac_contrib(rate_constants,
                    state, model_data, J_data, (void*) rxn_data, time_step);
+          //rxn_data = (int*) rxn_CMAQ_OH_HNO3_skip((void*) rxn_data);
           break;
         case RXN_CONDENSED_PHASE_ARRHENIUS :
           rxn_data = (int*) rxn_condensed_phase_arrhenius_calc_jac_contrib(rate_constants,
@@ -563,6 +565,7 @@ void rxn_calc_jac(ModelData *model_data, SUNMatrix J, realtype time_step)
         case RXN_PHOTOLYSIS :
           rxn_data = (int*) rxn_photolysis_calc_jac_contrib(rate_constants,
                    state, model_data, J_data, (void*) rxn_data, time_step);
+          //rxn_data = (int*) rxn_photolysis_skip((void*) rxn_data);
           break;
         case RXN_SIMPOL_PHASE_TRANSFER :
           rxn_data = (int*) rxn_SIMPOL_phase_transfer_calc_jac_contrib(rate_constants,
@@ -571,6 +574,7 @@ void rxn_calc_jac(ModelData *model_data, SUNMatrix J, realtype time_step)
         case RXN_TROE :
           rxn_data = (int*) rxn_troe_calc_jac_contrib(rate_constants,
                    state, model_data, J_data, (void*) rxn_data, time_step);
+          //rxn_data = (int*) rxn_troe_skip((void*) rxn_data);
           break;
         case RXN_WET_DEPOSITION :
           rxn_data = (int*) rxn_wet_deposition_calc_jac_contrib(rate_constants,
@@ -595,11 +599,10 @@ void rxn_calc_jac(ModelData *model_data, SUNMatrix J, realtype time_step)
  * \param deriv NVector to hold the calculated vector
  * \param time_step Current model time step (s)
  */
- /*
+
 #ifdef PMC_USE_SUNDIALS
 void rxn_calc_deriv_no_arrhenius(ModelData *model_data, N_Vector deriv, realtype time_step)
 {
-
   // Get pointers to the derivative and state arrays
   double *deriv_data = N_VGetArrayPointer(deriv);
   double *state = model_data->state;
@@ -610,7 +613,7 @@ void rxn_calc_deriv_no_arrhenius(ModelData *model_data, N_Vector deriv, realtype
   int n_state_var = model_data->n_state_var;
 
   // FIXME Move the rate constants to rxn_data
-  double *rate_constants = (double *) (model_data->rate_constants);
+  double *rate_constants = model_data->rate_constants;
 
   // Loop through the grid cells
   for (int i_cell=0; i_cell<n_cells; ++i_cell) {
@@ -685,12 +688,11 @@ void rxn_calc_deriv_no_arrhenius(ModelData *model_data, N_Vector deriv, realtype
       }
       rate_constants++;
     }
-    state += n_state_var;
     deriv_data += n_dep_var;
+    state += n_state_var;
   }
 }
 #endif
-*/
 
 /** \brief Add condensed data to the condensed data block of memory
  *

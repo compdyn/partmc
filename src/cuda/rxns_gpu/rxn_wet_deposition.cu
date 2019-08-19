@@ -223,7 +223,8 @@ __device__ void rxn_gpu_wet_deposition_calc_jac_contrib(double *rate_constants, 
 
   // Add contributions to the Jacobian
   for (int i_spec = 0; i_spec < NUM_SPEC_; i_spec++) {
-    if (JAC_ID_(i_spec) >= 0) J[JAC_ID_(i_spec)] -= rate_constants[0];
+    if (JAC_ID_(i_spec) >= 0)
+      atomicAdd(&(J[JAC_ID_(i_spec)]),-rate_constants[0]);
   }
 
   //return (void*) &(float_data[FLOAT_DATA_SIZE_]);

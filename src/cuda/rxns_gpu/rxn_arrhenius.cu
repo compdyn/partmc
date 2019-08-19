@@ -122,8 +122,6 @@ __device__ void rxn_gpu_arrhenius_update_env_state(double *rate_constants,
                    * pow(CONV_*PRESSURE_PA_/TEMPERATURE_K_, NUM_REACT_-1);
 
   rate_constants[0] = RATE_CONSTANT_;
-
-  //TODO: Comment Matt, to eliminate pre_calc or join it with this update
 }
 
 /** \brief Do pre-derivative calculations
@@ -158,7 +156,6 @@ __device__ void rxn_gpu_arrhenius_calc_deriv_contrib(double *rate_constants, dou
           double *deriv, void *rxn_data, double * double_pointer_gpu,
           double time_step,int n_rxn2)
 {
-
   int n_rxn=n_rxn2;
   int *int_data = (int*) rxn_data;
   double *float_data = double_pointer_gpu;
@@ -186,9 +183,11 @@ __device__ void rxn_gpu_arrhenius_calc_deriv_contrib(double *rate_constants, dou
       }
     }
   }
-
-
+  
 /*
+ //TODO: Traduction of the data read. As we can see, is a mess with some hardcoded values.
+ //RXN structure should be improve
+
  // Calculate the reaction rate
     double rate = float_data[6*n_rxn];
     for (int i_spec=0; i_spec<int_data[0]; i_spec++) rate *= state[int_data[(2 + i_spec)*n_rxn]-1];
@@ -217,6 +216,7 @@ __device__ void rxn_gpu_arrhenius_calc_deriv_contrib(double *rate_constants, dou
     }
   }
 */
+
 }
 #endif
 
@@ -286,20 +286,24 @@ __device__ void rxn_gpu_arrhenius_calc_jac_contrib(double *rate_constants, doubl
   for (int i_spec=0; i_spec<NUM_REACT_; i_spec++) rate *= state[REACT_(i_spec)];
 
   // Add contributions to the Jacobian
-  if (rate!=ZERO) {
-    int i_elem = 0;
-    for (int i_ind=0; i_ind<NUM_REACT_; i_ind++) {
-      for (int i_dep=0; i_dep<NUM_REACT_; i_dep++, i_elem++) {
-	if (JAC_ID_(i_elem) < 0) continue;
-	J[JAC_ID_(i_elem)] -= rate / state[REACT_(i_ind)];
-      }
-      for (int i_dep=0; i_dep<NUM_PROD_; i_dep++, i_elem++) {
-	if (JAC_ID_(i_elem) < 0) continue;
-        // Negative yields are allowed, but prevented from causing negative
-        // concentrations that lead to solver failures
-        if (-rate*YIELD_(i_dep)*time_step <= state[PROD_(i_dep)]) {
-	  J[JAC_ID_(i_elem)] += YIELD_(i_dep) * rate / state[REACT_(i_ind)];
-        }
+  int i_elem = 0;
+  for (int i_ind=0; i_ind<NUM_REACT_; i_ind++) {
+    for (int i_dep=0; i_dep<NUM_REACT_; i_dep++, i_elem++) {
+  if (JAC_ID_(i_elem) < 0) continue;
+  //J[JAC_ID_(i_elem)] -= rate / state[REACT_(i_ind)];
+  //double rate2 = rate /  state[REACT_(i_ind)];
+  //atomicAdd(&(J[JAC_ID_(i_elem)]),-rate2);
+  atomicAdd(&(J[JAC_ID_(i_elem)]),-rate / state[REACT_(i_ind)]);
+    }
+    for (int i_dep=0; i_dep<NUM_PROD_; i_dep++, i_elem++) {
+  if (JAC_ID_(i_elem) < 0) continue;
+      // Negative yields are allowed, but prevented from causing negative
+      // concentrations that lead to solver failures
+      if (-rate*YIELD_(i_dep)*time_step <= state[PROD_(i_dep)]) {
+    //J[JAC_ID_(i_elem)] += YIELD_(i_dep) * rate / state[REACT_(i_ind)];
+    //double rate2 = YIELD_(i_dep) * rate / state[REACT_(i_ind)];
+    //atomicAdd(&(J[JAC_ID_(i_elem)]), rate2);
+    atomicAdd(&(J[JAC_ID_(i_elem)]),YIELD_(i_dep) * rate / state[REACT_(i_ind)]);
       }
     }
   }

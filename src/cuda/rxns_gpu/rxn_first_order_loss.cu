@@ -214,7 +214,7 @@ __device__ void rxn_gpu_first_order_loss_calc_jac_contrib(double *rate_constants
   double *float_data = double_pointer_gpu;
 
   // Add contributions to the Jacobian
-  if (JAC_ID_ >= 0) J[JAC_ID_] -= rate_constants[0];
+  if (JAC_ID_ >= 0) atomicAdd((double*)&(J[JAC_ID_]),-rate_constants[0]);
 
   //return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 

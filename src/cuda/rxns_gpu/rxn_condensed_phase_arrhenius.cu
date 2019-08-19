@@ -368,15 +368,16 @@ __device__ void rxn_gpu_condensed_phase_arrhenius_calc_jac_contrib(double *rate_
     for (int i_react_ind = 0; i_react_ind < NUM_REACT_; i_react_ind++) {
       for (int i_react_dep = 0; i_react_dep < NUM_REACT_; i_react_dep++) {
 	if (JAC_ID_(i_jac)<0) {i_jac++; continue;}
-        J[JAC_ID_(i_jac++)] -= rate /
-                state[REACT_(i_phase*NUM_REACT_+i_react_ind)] /
-	        (UGM3_TO_MOLM3_(i_react_dep) * unit_conv);
+        atomicAdd((double*)&(J[JAC_ID_(i_jac++)]), -rate /
+          state[REACT_(i_phase*NUM_REACT_+i_react_ind)] /
+          (UGM3_TO_MOLM3_(i_react_dep) * unit_conv));
       }
       for (int i_prod_dep = 0; i_prod_dep < NUM_PROD_; i_prod_dep++) {
 	if (JAC_ID_(i_jac)<0) {i_jac++; continue;}
-        J[JAC_ID_(i_jac++)] += rate * YIELD_(i_prod_dep) /
-                state[REACT_(i_phase*NUM_REACT_+i_react_ind)] /
-	        (UGM3_TO_MOLM3_(NUM_REACT_+i_prod_dep) * unit_conv);
+        atomicAdd((double*)&(J[JAC_ID_(i_jac++)]),
+          rate * YIELD_(i_prod_dep) /
+          state[REACT_(i_phase*NUM_REACT_+i_react_ind)] /
+          (UGM3_TO_MOLM3_(NUM_REACT_+i_prod_dep) * unit_conv));
       }
     }
 
@@ -384,14 +385,16 @@ __device__ void rxn_gpu_condensed_phase_arrhenius_calc_jac_contrib(double *rate_
     // aqueous reactions
     for (int i_react_dep = 0; i_react_dep < NUM_REACT_; i_react_dep++) {
       if (JAC_ID_(i_jac)<0) {i_jac++; continue;}
-      J[JAC_ID_(i_jac++)] += (NUM_REACT_-1) * rate / state[WATER_(i_phase)] /
-	        (UGM3_TO_MOLM3_(i_react_dep) * unit_conv);
+      atomicAdd((double*)&(J[JAC_ID_(i_jac++)]),
+          (NUM_REACT_-1) * rate / state[WATER_(i_phase)] /
+          (UGM3_TO_MOLM3_(i_react_dep) * unit_conv));
     }
     for (int i_prod_dep = 0; i_prod_dep < NUM_PROD_; i_prod_dep++) {
       if (JAC_ID_(i_jac)<0) {i_jac++; continue;}
-      J[JAC_ID_(i_jac++)] -= (NUM_REACT_-1) * rate * YIELD_(i_prod_dep) /
-                state[WATER_(i_phase)] /
-	        (UGM3_TO_MOLM3_(NUM_REACT_+i_prod_dep) * unit_conv);
+      atomicAdd((double*)&(J[JAC_ID_(i_jac++)]),
+          -(NUM_REACT_-1) * rate * YIELD_(i_prod_dep) /
+          state[WATER_(i_phase)] /
+          (UGM3_TO_MOLM3_(NUM_REACT_+i_prod_dep) * unit_conv));
     }
 
   }

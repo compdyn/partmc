@@ -217,7 +217,7 @@ void * solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
     printf("\n\nERROR allocating space for reaction data\n\n");
     exit(1);
   }
-  //TODO: Maybe move this rxn_data away to model_data, avoiding hiding this value
+  //TODO: Maybe define n_rxn in model_data and avoid hide this value in rxn_data
   int *ptr = sd->model_data.rxn_data;
   ptr[0] = n_rxn;
   sd->model_data.nxt_rxn = (void*) &(ptr[1]);
@@ -392,6 +392,16 @@ void solver_initialize(void *solver_data, double *abs_tol, double rel_tol,
   flag = CVodeSetDlsGuessHelper(sd->cvode_mem, guess_helper);
   check_flag_fail(&flag, "CVodeSetDlsGuessHelper", 1);
 
+  //Allocate Jacobian on GPU
+  #ifdef PMC_USE_GPU
+    allocate_jac_gpu(sd->model_data.n_jac_elem, n_cells);
+  #endif
+
+  //Set gpu rxn values
+  #ifdef PMC_USE_GPU
+    solver_set_rxn_data_gpu(&(sd->model_data));
+  #endif
+
 #ifndef FAILURE_DETAIL
   // Set a custom error handling function
   flag = CVodeSetErrHandlerFn(sd->cvode_mem, error_handler, (void*) sd );
@@ -491,12 +501,6 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
 
   // Set the initial time step
   sd->init_time_step = (t_final - t_initial) * DEFAULT_TIME_STEP;
-
-#ifdef PMC_USE_GPU
-  //Set gpu rxn values only 1 time
-  //TODO: this should be reordered by setting after initializations and before the run
-  solver_set_data_gpu(&(sd->model_data));
-#endif
 
   // Check whether there is anything to solve (filters empty air masses with no
   // emissions)

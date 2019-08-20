@@ -34,7 +34,6 @@ size_t state_size;
 size_t env_size;
 size_t rate_constants_size;
 
-bool solver_set_gpu_sizes = 1;
 bool few_data = 0;
 unsigned int *start_rxn_param;
 unsigned int *dev_start_rxn_param;
@@ -137,179 +136,184 @@ void solver_new_gpu_cu(int n_dep_var,
 
 }
 
+/** \brief Allocate Jacobian on GPU
+*
+* \param n_jac_elem Number of data elements on the jacobian
+* \param n_cells Number of cells to compute
+*/
+void allocate_jac_gpu(int n_jac_elem, int n_cells){
+
+  jac_size = n_jac_elem * n_cells * sizeof(double);
+  cudaMalloc((void **) &jac_gpu_data, jac_size);
+
+  if(few_data){
+    cudaMallocHost((void**)&jac_cpu, jac_size);
+  }
+
+}
+
 /** \brief Set reaction data on GPU prepared structure. RXN data is divided
  * into two different matrix, per double and int data respectively. Matrix are
  * reversed to improve memory access on GPU.
  *
  * \param md Pointer to the model data
  */
-void solver_set_data_gpu(ModelData *model_data) {
-  //Get rxn sizes
-  if (solver_set_gpu_sizes) {
+void solver_set_rxn_data_gpu(ModelData *model_data) {
 
-    //Initialize Jacobian //TODO: FIX this to allow initialize on new_solver
-    jac_size = model_data->n_jac_elem*model_data->n_cells * sizeof(double);
-    cudaMalloc((void **) &jac_gpu_data, jac_size);
+  int *rxn_data = (int *) (model_data->rxn_data);
+  int n_rxn = *(rxn_data++);
+  void *rxn_param = (void *) rxn_data;
+  int *float_data = (int *) rxn_data;
+  unsigned int int_size = 0;
+  unsigned int int_total_size = 0;
+  unsigned int double_size = 0;
+  unsigned int double_total_size = 0;
 
-    if(few_data){
-      cudaMallocHost((void**)&jac_cpu, jac_size);
+  size_t start_size = (n_rxn+1) * sizeof(unsigned int); //Added 1 to simplify things
+  unsigned int int_sizes[start_size];
+  unsigned int double_sizes[start_size];
+
+  //Get sizes for int and double arrays
+  for (int i_rxn = 0; i_rxn < n_rxn; i_rxn++) {
+
+    //Reaction distances between pointers rows
+    start_rxn_param[i_rxn] = (unsigned int) ((int *) rxn_data - (int *) rxn_param);
+
+    int *rxn_start = rxn_data;
+
+    // Get the reaction type
+    int rxn_type = *(rxn_data++);
+
+    // Call the appropriate function
+    switch (rxn_type) {
+      case RXN_AQUEOUS_EQUILIBRIUM :
+        float_data = (int *) rxn_gpu_aqueous_equilibrium_int_size(
+                (void *) rxn_data);
+        rxn_data = (int*) rxn_gpu_aqueous_equilibrium_skip((void *) rxn_data);
+        break;
+      case RXN_ARRHENIUS :
+        float_data = (int *) rxn_gpu_arrhenius_int_size(
+                (void *) rxn_data);
+        rxn_data = (int*) rxn_gpu_arrhenius_skip((void *) rxn_data);
+        break;
+      case RXN_CMAQ_H2O2 :
+        float_data = (int *) rxn_gpu_CMAQ_H2O2_int_size(
+                (void *) rxn_data);
+        rxn_data = (int*) rxn_gpu_CMAQ_H2O2_skip((void *) rxn_data);
+        break;
+      case RXN_CMAQ_OH_HNO3 :
+        float_data = (int *) rxn_gpu_CMAQ_OH_HNO3_int_size(
+                (void *) rxn_data);
+        rxn_data = (int*) rxn_gpu_CMAQ_OH_HNO3_skip((void *) rxn_data);
+        break;
+      case RXN_CONDENSED_PHASE_ARRHENIUS :
+        float_data = (int *) rxn_gpu_condensed_phase_arrhenius_int_size(
+                (void *) rxn_data);
+        rxn_data = (int*) rxn_gpu_condensed_phase_arrhenius_skip((void *) rxn_data);
+        break;
+      case RXN_EMISSION :
+        float_data = (int *) rxn_gpu_emission_int_size(
+                (void *) rxn_data);
+        rxn_data = (int*) rxn_gpu_emission_skip((void *) rxn_data);
+        break;
+      case RXN_FIRST_ORDER_LOSS :
+        float_data = (int *) rxn_gpu_first_order_loss_int_size(
+                (void *) rxn_data);
+        rxn_data = (int*) rxn_gpu_first_order_loss_skip((void *) rxn_data);
+        break;
+      case RXN_HL_PHASE_TRANSFER :
+        float_data = (int*) rxn_gpu_HL_phase_transfer_int_size(
+                (void *) rxn_data);
+        rxn_data = (int*) rxn_gpu_HL_phase_transfer_skip((void *) rxn_data);
+        break;
+      case RXN_PDFITE_ACTIVITY :
+        float_data = (int *) rxn_gpu_PDFiTE_activity_int_size(
+                (void *) rxn_data);
+        rxn_data = (int*) rxn_gpu_PDFiTE_activity_skip((void *) rxn_data);
+        break;
+      case RXN_PHOTOLYSIS :
+        float_data = (int *) rxn_gpu_photolysis_int_size(
+                (void *) rxn_data);
+        rxn_data = (int*) rxn_gpu_photolysis_skip((void *) rxn_data);
+        break;
+      case RXN_SIMPOL_PHASE_TRANSFER :
+        float_data = (int *) rxn_gpu_SIMPOL_phase_transfer_int_size(
+                (void *) rxn_data);
+        rxn_data = (int*) rxn_gpu_SIMPOL_phase_transfer_skip((void *) rxn_data);
+        break;
+      case RXN_TROE :
+        float_data = (int *) rxn_gpu_troe_int_size(
+                (void *) rxn_data);
+        rxn_data =(int*)rxn_gpu_troe_skip((void *) rxn_data);
+        break;
+      case RXN_WET_DEPOSITION :
+        float_data = (int *) rxn_gpu_wet_deposition_int_size(
+                (void *) rxn_data);
+        rxn_data =(int*)rxn_gpu_wet_deposition_skip((void *) rxn_data);
+        break;
+      case RXN_ZSR_AEROSOL_WATER :
+        float_data = (int *) rxn_gpu_ZSR_aerosol_water_int_size(
+                (void *) rxn_data);
+        rxn_data = (int*) rxn_gpu_ZSR_aerosol_water_skip((void *) rxn_data);
+        break;
     }
 
-    // Get the number of reactions
-    int *rxn_data = (int *) (model_data->rxn_data);
-    int n_rxn = *(rxn_data++);
-    void *rxn_param = (void *) rxn_data;
-    int *float_data = (int *) rxn_data;
-    unsigned int int_size = 0;
-    unsigned int int_total_size = 0;
-    unsigned int double_size = 0;
-    unsigned int double_total_size = 0;
+    int_size = (unsigned int) ((int *) float_data - (int *) rxn_start);
+    int_total_size += int_size;
+    int_sizes[i_rxn+1] = int_total_size;
+    if(int_size>int_max_size) int_max_size=int_size;
 
-    size_t start_size = (n_rxn+1) * sizeof(unsigned int); //Added 1 to simplify things
-    unsigned int int_sizes[start_size];
-    unsigned int double_sizes[start_size];
+    double_size = (unsigned int) ((double *) rxn_data - (double *) float_data);
+    double_total_size += double_size;
+    double_sizes[i_rxn+1] = double_total_size;
+    if(double_size>double_max_size) double_max_size=double_size;
 
-    //Get sizes for int and double arrays
-    for (int i_rxn = 0; i_rxn < n_rxn; i_rxn++) {
+  }
 
-      //Reaction distances between pointers rows
-      start_rxn_param[i_rxn] = (unsigned int) ((int *) rxn_data - (int *) rxn_param);
+  int_sizes[0]=0;
+  double_sizes[0]=0;
+  unsigned int rxn_int_size=n_rxn*int_max_size;
+  unsigned int rxn_double_size=n_rxn*double_max_size;
 
-      int *rxn_start = rxn_data;
+  //Allocate int and double rxn data separately
+  int_pointer = (int *) malloc(rxn_int_size * sizeof(int));
+  memset(int_pointer, -1, rxn_int_size * sizeof(int));
+  double_pointer = (double*)calloc(rxn_double_size, sizeof(double));
+  cudaMalloc((void **) &int_pointer_gpu, rxn_int_size * sizeof(int));
+  cudaMalloc((void **) &double_pointer_gpu, rxn_double_size * sizeof(double));
 
-      // Get the reaction type
-      int rxn_type = *(rxn_data++);
+  //Copy into gpu rxn data
+  //Rxn matrix is reversed to improve memory access on gpu
+  for (int i_rxn = 0; i_rxn < n_rxn; i_rxn++) {
 
-      // Call the appropriate function
-      switch (rxn_type) {
-        case RXN_AQUEOUS_EQUILIBRIUM :
-          float_data = (int *) rxn_gpu_aqueous_equilibrium_int_size(
-                  (void *) rxn_data);
-          rxn_data = (int*) rxn_gpu_aqueous_equilibrium_skip((void *) rxn_data);
-          break;
-        case RXN_ARRHENIUS :
-          float_data = (int *) rxn_gpu_arrhenius_int_size(
-                  (void *) rxn_data);
-          rxn_data = (int*) rxn_gpu_arrhenius_skip((void *) rxn_data);
-          break;
-        case RXN_CMAQ_H2O2 :
-          float_data = (int *) rxn_gpu_CMAQ_H2O2_int_size(
-                  (void *) rxn_data);
-          rxn_data = (int*) rxn_gpu_CMAQ_H2O2_skip((void *) rxn_data);
-          break;
-        case RXN_CMAQ_OH_HNO3 :
-          float_data = (int *) rxn_gpu_CMAQ_OH_HNO3_int_size(
-                  (void *) rxn_data);
-          rxn_data = (int*) rxn_gpu_CMAQ_OH_HNO3_skip((void *) rxn_data);
-          break;
-        case RXN_CONDENSED_PHASE_ARRHENIUS :
-          float_data = (int *) rxn_gpu_condensed_phase_arrhenius_int_size(
-                  (void *) rxn_data);
-          rxn_data = (int*) rxn_gpu_condensed_phase_arrhenius_skip((void *) rxn_data);
-          break;
-        case RXN_EMISSION :
-          float_data = (int *) rxn_gpu_emission_int_size(
-                  (void *) rxn_data);
-          rxn_data = (int*) rxn_gpu_emission_skip((void *) rxn_data);
-          break;
-        case RXN_FIRST_ORDER_LOSS :
-          float_data = (int *) rxn_gpu_first_order_loss_int_size(
-                  (void *) rxn_data);
-          rxn_data = (int*) rxn_gpu_first_order_loss_skip((void *) rxn_data);
-          break;
-        case RXN_HL_PHASE_TRANSFER :
-          float_data = (int*) rxn_gpu_HL_phase_transfer_int_size(
-                  (void *) rxn_data);
-          rxn_data = (int*) rxn_gpu_HL_phase_transfer_skip((void *) rxn_data);
-          break;
-        case RXN_PDFITE_ACTIVITY :
-          float_data = (int *) rxn_gpu_PDFiTE_activity_int_size(
-                  (void *) rxn_data);
-          rxn_data = (int*) rxn_gpu_PDFiTE_activity_skip((void *) rxn_data);
-          break;
-        case RXN_PHOTOLYSIS :
-          float_data = (int *) rxn_gpu_photolysis_int_size(
-                  (void *) rxn_data);
-          rxn_data = (int*) rxn_gpu_photolysis_skip((void *) rxn_data);
-          break;
-        case RXN_SIMPOL_PHASE_TRANSFER :
-          float_data = (int *) rxn_gpu_SIMPOL_phase_transfer_int_size(
-                  (void *) rxn_data);
-          rxn_data = (int*) rxn_gpu_SIMPOL_phase_transfer_skip((void *) rxn_data);
-          break;
-        case RXN_TROE :
-          float_data = (int *) rxn_gpu_troe_int_size(
-                  (void *) rxn_data);
-          rxn_data =(int*)rxn_gpu_troe_skip((void *) rxn_data);
-          break;
-        case RXN_WET_DEPOSITION :
-          float_data = (int *) rxn_gpu_wet_deposition_int_size(
-                  (void *) rxn_data);
-          rxn_data =(int*)rxn_gpu_wet_deposition_skip((void *) rxn_data);
-          break;
-        case RXN_ZSR_AEROSOL_WATER :
-          float_data = (int *) rxn_gpu_ZSR_aerosol_water_int_size(
-                  (void *) rxn_data);
-          rxn_data = (int*) rxn_gpu_ZSR_aerosol_water_skip((void *) rxn_data);
-          break;
-      }
+    int_size = int_sizes[i_rxn+1] - int_sizes[i_rxn];
+    double_size = double_sizes[i_rxn+1] - double_sizes[i_rxn];
 
-      int_size = (unsigned int) ((int *) float_data - (int *) rxn_start);
-      int_total_size += int_size;
-      int_sizes[i_rxn+1] = int_total_size;
-      if(int_size>int_max_size) int_max_size=int_size;
+    for (int j = 0; j < int_size; j++)
+      int_pointer[n_rxn*j+i_rxn] = ((int *) rxn_param)[start_rxn_param[i_rxn] + j]; //Matrix order [int_size][n_rxn]
 
-      double_size = (unsigned int) ((double *) rxn_data - (double *) float_data);
-      double_total_size += double_size;
-      double_sizes[i_rxn+1] = double_total_size;
-      if(double_size>double_max_size) double_max_size=double_size;
-
+    for (int j = 0; j < double_size; j++) {
+      double *float_data = (double *) &(((int *) rxn_param)[start_rxn_param[i_rxn] + int_size]);
+      double_pointer[n_rxn*j+i_rxn] = float_data[j];//Matrix order [int_size][n_rxn]
     }
 
-    int_sizes[0]=0;
-    double_sizes[0]=0;
-    unsigned int rxn_int_size=n_rxn*int_max_size;
-    unsigned int rxn_double_size=n_rxn*double_max_size;
+  }
 
-    //Allocate int and double rxn data separately
-    int_pointer = (int *) malloc(rxn_int_size * sizeof(int));
-    memset(int_pointer, -1, rxn_int_size * sizeof(int));
-    double_pointer = (double*)calloc(rxn_double_size, sizeof(double));
-    cudaMalloc((void **) &int_pointer_gpu, rxn_int_size * sizeof(int));
-    cudaMalloc((void **) &double_pointer_gpu, rxn_double_size * sizeof(double));
+  //TODO: Avoid zeros or improve zeros access:
+  // Quick sort to reorganize rows starting with low number of zeros to a lot of zeros in row
 
-    //Copy into gpu rxn data
-    //Rxn matrix is reversed to improve memory access on gpu
-    for (int i_rxn = 0; i_rxn < n_rxn; i_rxn++) {
-
-      int_size = int_sizes[i_rxn+1] - int_sizes[i_rxn];
-      double_size = double_sizes[i_rxn+1] - double_sizes[i_rxn];
-
-      for (int j = 0; j < int_size; j++)
-        int_pointer[n_rxn*j+i_rxn] = ((int *) rxn_param)[start_rxn_param[i_rxn] + j]; //Matrix order [int_size][n_rxn]
-
-      for (int j = 0; j < double_size; j++) {
-        double *float_data = (double *) &(((int *) rxn_param)[start_rxn_param[i_rxn] + int_size]);
-        double_pointer[n_rxn*j+i_rxn] = float_data[j];//Matrix order [int_size][n_rxn]
-      }
-
-    }
-
-    //TODO: Avoid zeros or improve zeros access:
-    // Quick sort to reorganize rows starting with low number of zeros to a lot of zeros in row
-
-#ifdef PMC_DEBUG
+  #ifdef PMC_DEBUG
     printf(" Zeros_added_int_%: %f ", ((double) (n_rxn*int_max_size))/(n_rxn*int_max_size-int_total_size));
     printf(" Zeros_added_double_%: %f\n ", ((double) (n_rxn*double_max_size))/(n_rxn*double_max_size-double_total_size));
-#endif
+  #endif
 
-    //Save data to GPU
-    HANDLE_ERROR(cudaMemcpy(int_pointer_gpu, int_pointer, rxn_int_size*sizeof(int), cudaMemcpyHostToDevice));
-    HANDLE_ERROR(cudaMemcpy(double_pointer_gpu, double_pointer, rxn_double_size*sizeof(double), cudaMemcpyHostToDevice));
+  //Save data to GPU
+  HANDLE_ERROR(cudaMemcpy(int_pointer_gpu, int_pointer, rxn_int_size*sizeof(int), cudaMemcpyHostToDevice));
+  HANDLE_ERROR(cudaMemcpy(double_pointer_gpu, double_pointer, rxn_double_size*sizeof(double), cudaMemcpyHostToDevice));
 
-    //Set flag to zero to avoid repetitions, since this data is fixed all time
-    solver_set_gpu_sizes = 0;
-  }
+  //Set flag to zero to avoid repetitions, since this data is fixed all time
+  solver_set_gpu_sizes = 0;
+
 }
 
 /** \brief GPU function: Solve derivative
@@ -325,7 +329,6 @@ void solver_set_data_gpu(ModelData *model_data) {
  * \param double_pointer Pointer to double reaction data
  * \param rate_constants_init Pointer to first value of reaction rates
  */
-
 __global__ void solveDerivative(double *state_init, double *deriv_init,
           double time_step, int deriv_length_cell, int state_size_cell, int n_rxn,
           int n_cells, int *int_pointer, double *double_pointer,
@@ -574,7 +577,7 @@ __global__ void solveJacobian(double *state_init, double *jac_init,
 /** \brief Calculate the Jacobian on GPU
  *
  * \param model_data Pointer to the model data
- * \param deriv NVector to hold the calculated vector
+ * \param J Jacobian to be calculated
  * \param time_step Current model time step (s)
  */
 void rxn_calc_jac_gpu(ModelData *model_data, SUNMatrix jac, realtype time_step) {
@@ -631,6 +634,7 @@ void free_gpu_cu() {
   HANDLE_ERROR(cudaFree(int_pointer_gpu));
   HANDLE_ERROR(cudaFree(double_pointer_gpu));
   HANDLE_ERROR(cudaFree(deriv_gpu_data));
+  HANDLE_ERROR(cudaFree(jac_gpu_data));
   HANDLE_ERROR(cudaFree(dev_start_rxn_param));
 
   if(few_data){

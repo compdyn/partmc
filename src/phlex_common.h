@@ -37,7 +37,7 @@
 #define PMC_NUM_ENV_PARAM_ 2 // !!! Must match the value in phlex_state.f90 !!!
 
 /* boolean definition */
-//CUDA/C++ already has this definition, so is not necessary for GPU files
+//CUDA/C++ already has bool definition, so is not necessary for GPU files
 #ifndef PHLEX_GPU_SOLVER_H_
 typedef enum {false, true} bool;
 #endif

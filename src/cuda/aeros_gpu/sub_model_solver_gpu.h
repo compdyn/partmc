@@ -12,6 +12,6 @@
 #define SUB_MODEL_SOLVER_H
 #include "../phlex_gpu_solver.h"
 
-__device__ double sub_model_gpu_get_parameter_value(ModelDatagpu *model_data, int parameter_id);
+__device__ double sub_model_gpu_get_parameter_value(ModelData *model_data, int parameter_id);
 
 #endif

@@ -16,13 +16,13 @@
 
 /* Solver functions */
 
-__device__ void * aero_rep_gpu_get_effective_radius(ModelDatagpu *model_data, int aero_rep_gpu_idx,
+__device__ void * aero_rep_gpu_get_effective_radius(ModelData *model_data, int aero_rep_gpu_idx,
           int aero_phase_gpu_idx, double *radius);
-__device__ void * aero_rep_gpu_get_number_conc(ModelDatagpu *model_data, int aero_rep_gpu_idx,
+__device__ void * aero_rep_gpu_get_number_conc(ModelData *model_data, int aero_rep_gpu_idx,
           int aero_phase_gpu_idx, double *number_conc);
-__device__ int aero_rep_gpu_get_aero_conc_type(ModelDatagpu *model_data, int aero_rep_gpu_idx,
+__device__ int aero_rep_gpu_get_aero_conc_type(ModelData *model_data, int aero_rep_gpu_idx,
           int aero_phase_gpu_idx);
-__device__ void * aero_rep_gpu_get_aero_phase_mass(ModelDatagpu *model_data, int aero_rep_idx,
+__device__ void * aero_rep_gpu_get_aero_phase_mass(ModelData *model_data, int aero_rep_idx,
                                     int aero_phase_idx, double *aero_phase_mass,
                                     double *aero_phase_avg_MW);
 

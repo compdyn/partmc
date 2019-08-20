@@ -15,15 +15,15 @@
 /* Public aerosol phase functions*/
 
 /* Solver functions */
-int aero_phase_gpu_get_used_jac_elem(ModelDatagpu *model_data, int aero_phase_gpu_idx,
+int aero_phase_gpu_get_used_jac_elem(ModelData *model_data, int aero_phase_gpu_idx,
           int state_var_id, bool *jac_struct);
-void aero_phase_gpu_get_mass(ModelDatagpu *model_data, int aero_phase_gpu_idx,
+void aero_phase_gpu_get_mass(ModelData *model_data, int aero_phase_gpu_idx,
           double *state_var, double *mass, double *MW, double *jac_elem_mass,
           double *jac_elem_MW);
-void aero_phase_gpu_get_volume(ModelDatagpu *model_data, int aero_phase_gpu_idx,
+void aero_phase_gpu_get_volume(ModelData *model_data, int aero_phase_gpu_idx,
           double *state_var, double *volume, double *jac_elem);
-void * aero_phase_gpu_find(ModelDatagpu *model_data, int int_aero_phase_gpu_idx);
-void * aero_phase_gpu_skip(void *aero_phase_gpu_data);
+void * aero_phase_gpu_find(ModelData *model_data, int int_aero_phase_gpu_idx);
+void * aero_phase_gpu_skip(void *aero_phase_data);
 void aero_phase_gpu_print_data(void *solver_data);
 
 /* Setup functions */

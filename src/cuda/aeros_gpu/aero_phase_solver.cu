@@ -39,7 +39,7 @@ extern "C" {
  *                   been chosen by the calling function.)
  * \return Number of Jacobian elements flagged
  */
-int aero_phase_gpu_get_used_jac_elem(ModelDatagpu *model_data, int aero_phase_gpu_idx,
+int aero_phase_gpu_get_used_jac_elem(ModelData *model_data, int aero_phase_gpu_idx,
                                  int state_var_id, bool *jac_struct) {
 
   // Get the requested aerosol phase data
@@ -82,7 +82,7 @@ int aero_phase_gpu_get_used_jac_elem(ModelDatagpu *model_data, int aero_phase_gp
  *                 concentration \f$\frac{dMW}{dy_i}\f$ of each component
  *                 species \f$y_i\f$.
  */
-void aero_phase_gpu_get_mass(ModelDatagpu *model_data, int aero_phase_gpu_idx,
+void aero_phase_gpu_get_mass(ModelData *model_data, int aero_phase_gpu_idx,
                          double *state_var, double *mass, double *MW, double *jac_elem_mass,
                          double *jac_elem_MW) {
 
@@ -134,7 +134,7 @@ void aero_phase_gpu_get_mass(ModelDatagpu *model_data, int aero_phase_gpu_idx,
  *                 concentration \f$\frac{dv}{dy_i}\f$ of each component
  *                 species \f$y_i\f$.
  */
-void aero_phase_gpu_get_volume(ModelDatagpu *model_data, int aero_phase_gpu_idx,
+void aero_phase_gpu_get_volume(ModelData *model_data, int aero_phase_gpu_idx,
                            double *state_var, double *volume, double *jac_elem) {
 
   // Set up a pointer for the partial derivatives
@@ -164,32 +164,32 @@ void aero_phase_gpu_get_volume(ModelDatagpu *model_data, int aero_phase_gpu_idx,
  * \param aero_phase_gpu_idx Index of the desired aerosol phase
  * \return A pointer to the requested aerosol phase
  */
-void * aero_phase_gpu_find(ModelDatagpu *model_data, int aero_phase_gpu_idx) {
+void * aero_phase_gpu_find(ModelData *model_data, int aero_phase_gpu_idx) {
 
   // Get the number of aerosol phases
-  int *aero_phase_gpu_data = (int *) (model_data->aero_phase_gpu_data);
-  int n_aero_phase = *(aero_phase_gpu_data++);
+  int *aero_phase_data = (int *) (model_data->aero_phase_data);
+  int n_aero_phase = *(aero_phase_data++);
 
   // Loop through the aerosol phases to find the one requested
   for (int i_aero_phase = 0; i_aero_phase < aero_phase_gpu_idx; i_aero_phase++) {
 
     // Advance the pointer to the next aerosol phase
-    aero_phase_gpu_data = (int *) aero_phase_gpu_skip((void *) aero_phase_gpu_data);
+    aero_phase_data = (int *) aero_phase_gpu_skip((void *) aero_phase_data);
 
   }
 
-  return (void *) aero_phase_gpu_data;
+  return (void *) aero_phase_data;
 
 }
 
 /** \brief Skip over an aerosol phase
  *
- * \param aero_phase_gpu_data Pointer to the aerosol phase to skip over
- * \return The aero_phase_gpu_data pointer advanced by the size of the aerosol
+ * \param aero_phase_data Pointer to the aerosol phase to skip over
+ * \return The aero_phase_data pointer advanced by the size of the aerosol
  *         phase
  */
-void * aero_phase_gpu_skip(void *aero_phase_gpu_data) {
-  int *int_data = (int *) aero_phase_gpu_data;
+void * aero_phase_gpu_skip(void *aero_phase_data) {
+  int *int_data = (int *) aero_phase_data;
   double *float_data = (double *) &(int_data[INT_DATA_SIZE_]);
 
   return (void *) &(float_data[FLOAT_DATA_SIZE_]);
@@ -205,20 +205,20 @@ void * aero_phase_gpu_skip(void *aero_phase_gpu_data) {
  */
 void aero_phase_gpu_add_condensed_data(int n_int_param, int n_float_param,
                                    int *int_param, double *float_param, void *solver_data) {
-  ModelDatagpu *model_data =
-          (ModelDatagpu * ) & (((SolverDatagpu *) solver_data)->model_data);
-  int *aero_phase_gpu_data = (int *) (model_data->nxt_aero_phase);
+  /*ModelData *model_data =
+          (ModelData * ) & (((SolverData *) solver_data)->model_data);
+  int *aero_phase_data = (int *) (model_data->nxt_aero_phase);
 
   // Add the integer parameters
-  for (; n_int_param > 0; n_int_param--) *(aero_phase_gpu_data++) = *(int_param++);
+  for (; n_int_param > 0; n_int_param--) *(aero_phase_data++) = *(int_param++);
 
   // Add the floating-point parameters
-  double *flt_ptr = (double *) aero_phase_gpu_data;
+  double *flt_ptr = (double *) aero_phase_data;
   for (; n_float_param > 0; n_float_param--)
     *(flt_ptr++) = (double) *(float_param++);
 
-  // Set the pointer for the next free space in aero_phase_gpu_data;
-  model_data->nxt_aero_phase = (void *) flt_ptr;
+  // Set the pointer for the next free space in aero_phase_data;
+  model_data->nxt_aero_phase = (void *) flt_ptr;*/
 }
 
 #undef NUM_STATE_VAR_

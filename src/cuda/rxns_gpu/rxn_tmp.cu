@@ -13,11 +13,11 @@ extern "C" {
 
 __global__ void rxn_gpu_tmp_arrhenius
           (
-          //ModelDatagpu *model_data, double *state,
+          //ModelData *model_data, double *state,
           //double *deriv, int *rxn_data, double *double_pointer_gpu,
           //double time_step, int n_rxn2
 
-          ModelDatagpu *model_data, double *state, double *deriv,
+          ModelData *model_data, double *state, double *deriv,
           double time_step, int n_rxn,
           int *int_pointer, double *double_pointer,
           unsigned int int_max_size, unsigned int double_max_size

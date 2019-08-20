@@ -19,11 +19,11 @@
 void * rxn_gpu_aqueous_equilibrium_get_used_jac_elem(
           void *rxn_data, bool **jac_struct);
 void * rxn_gpu_aqueous_equilibrium_update_ids(
-          ModelDatagpu *model_data, int *deriv_ids, int **jac_ids, void *rxn_data);
+          ModelData *model_data, int *deriv_ids, int **jac_ids, void *rxn_data);
 __device__ void rxn_gpu_aqueous_equilibrium_update_env_state(double *rate_constants,
           int n_rxn2, double *double_pointer_gpu, double *env_data, void *rxn_data);
 void * rxn_gpu_aqueous_equilibrium_pre_calc(
-          ModelDatagpu *model_data, void *rxn_data);
+          ModelData *model_data, void *rxn_data);
 void * rxn_gpu_aqueous_equilibrium_int_size(void *rxn_data);
 void * rxn_gpu_aqueous_equilibrium_skip(
           void *rxn_data);
@@ -43,11 +43,11 @@ __device__ void rxn_gpu_aqueous_equilibrium_calc_jac_contrib(
 void * rxn_gpu_arrhenius_get_used_jac_elem(
           void *rxn_data, bool **jac_struct);
 void * rxn_gpu_arrhenius_update_ids(
-          ModelDatagpu *model_data, int *deriv_ids, int **jac_ids, void *rxn_data);
+          ModelData *model_data, int *deriv_ids, int **jac_ids, void *rxn_data);
 __device__ void rxn_gpu_arrhenius_update_env_state(double *rate_constants,
           int n_rxn2, double *double_pointer_gpu, double *env_data, void *rxn_data);
 void * rxn_gpu_arrhenius_pre_calc(
-          ModelDatagpu *model_data, void *rxn_data);
+          ModelData *model_data, void *rxn_data);
 void * rxn_gpu_arrhenius_int_size(void *rxn_data);
 void * rxn_gpu_arrhenius_skip(
           void *rxn_data);
@@ -67,11 +67,11 @@ __device__ void rxn_gpu_arrhenius_calc_jac_contrib(
 void * rxn_gpu_CMAQ_H2O2_get_used_jac_elem(
           void *rxn_data, bool **jac_struct);
 void * rxn_gpu_CMAQ_H2O2_update_ids(
-          ModelDatagpu *model_data, int *deriv_ids, int **jac_ids, void *rxn_data);
+          ModelData *model_data, int *deriv_ids, int **jac_ids, void *rxn_data);
 __device__ void rxn_gpu_CMAQ_H2O2_update_env_state(double *rate_constants,
           int n_rxn2, double *double_pointer_gpu, double *env_data, void *rxn_data);
 void * rxn_gpu_CMAQ_H2O2_pre_calc(
-          ModelDatagpu *model_data, void *rxn_data);
+          ModelData *model_data, void *rxn_data);
 void * rxn_gpu_CMAQ_H2O2_int_size(void *rxn_data);
 void * rxn_gpu_CMAQ_H2O2_skip(
           void *rxn_data);
@@ -91,11 +91,11 @@ __device__ void rxn_gpu_CMAQ_H2O2_calc_jac_contrib(
 void * rxn_gpu_CMAQ_OH_HNO3_get_used_jac_elem(
           void *rxn_data, bool **jac_struct);
 void * rxn_gpu_CMAQ_OH_HNO3_update_ids(
-          ModelDatagpu *model_data, int *deriv_ids, int **jac_ids, void *rxn_data);
+          ModelData *model_data, int *deriv_ids, int **jac_ids, void *rxn_data);
 __device__ void rxn_gpu_CMAQ_OH_HNO3_update_env_state(double *rate_constants,
           int n_rxn2, double *double_pointer_gpu, double *env_data, void *rxn_data);
 void * rxn_gpu_CMAQ_OH_HNO3_pre_calc(
-          ModelDatagpu *model_data, void *rxn_data);
+          ModelData *model_data, void *rxn_data);
 void * rxn_gpu_CMAQ_OH_HNO3_int_size(void *rxn_data);
 void * rxn_gpu_CMAQ_OH_HNO3_skip(
           void *rxn_data);
@@ -115,11 +115,11 @@ __device__ void rxn_gpu_CMAQ_OH_HNO3_calc_jac_contrib(
 void * rxn_gpu_condensed_phase_arrhenius_get_used_jac_elem(
           void *rxn_data, bool **jac_struct);
 void * rxn_gpu_condensed_phase_arrhenius_update_ids(
-          ModelDatagpu *model_data, int *deriv_ids, int **jac_ids, void *rxn_data);
+          ModelData *model_data, int *deriv_ids, int **jac_ids, void *rxn_data);
 __device__ void rxn_gpu_condensed_phase_arrhenius_update_env_state(double *rate_constants,
           int n_rxn2, double *double_pointer_gpu, double *env_data, void *rxn_data);
 void * rxn_gpu_condensed_phase_arrhenius_pre_calc(
-          ModelDatagpu *model_data, void *rxn_data);
+          ModelData *model_data, void *rxn_data);
 void * rxn_gpu_condensed_phase_arrhenius_int_size(void *rxn_data);
 void * rxn_gpu_condensed_phase_arrhenius_skip(
           void *rxn_data);
@@ -139,11 +139,11 @@ __device__ void rxn_gpu_condensed_phase_arrhenius_calc_jac_contrib(
 void * rxn_gpu_emission_get_used_jac_elem(
           void *rxn_data, bool **jac_struct);
 void * rxn_gpu_emission_update_ids(
-          ModelDatagpu *model_data, int *deriv_ids, int **jac_ids, void *rxn_data);
+          ModelData *model_data, int *deriv_ids, int **jac_ids, void *rxn_data);
 __device__ void rxn_gpu_emission_update_env_state(double *rate_constants,
           int n_rxn2, double *double_pointer_gpu, double *env_data, void *rxn_data);
 void * rxn_gpu_emission_pre_calc(
-          ModelDatagpu *model_data, void *rxn_data);
+          ModelData *model_data, void *rxn_data);
 void * rxn_gpu_emission_update_data(
           void *update_data, void *rxn_data);
 void * rxn_gpu_emission_int_size(void *rxn_data);
@@ -168,11 +168,11 @@ void rxn_gpu_emission_set_rate_update_data(
 void * rxn_gpu_first_order_loss_get_used_jac_elem(
           void *rxn_data, bool **jac_struct);
 void * rxn_gpu_first_order_loss_update_ids(
-          ModelDatagpu *model_data, int *deriv_ids, int **jac_ids, void *rxn_data);
+          ModelData *model_data, int *deriv_ids, int **jac_ids, void *rxn_data);
 __device__ void rxn_gpu_first_order_loss_update_env_state(double *rate_constants,
           int n_rxn2, double *double_pointer_gpu, double *env_data, void *rxn_data);
 void * rxn_gpu_first_order_loss_pre_calc(
-          ModelDatagpu *model_data, void *rxn_data);
+          ModelData *model_data, void *rxn_data);
 void * rxn_gpu_first_order_loss_update_data(
           void *update_data, void *rxn_data);
 void * rxn_gpu_first_order_loss_int_size(void *rxn_data);
@@ -215,11 +215,11 @@ __device__ void rxn_gpu_HL_phase_transfer_calc_jac_contrib(
 void * rxn_gpu_PDFiTE_activity_get_used_jac_elem(
           void *rxn_data, bool **jac_struct);
 void * rxn_gpu_PDFiTE_activity_update_ids(
-          ModelDatagpu *model_data, int *deriv_ids, int **jac_ids, void *rxn_data);
+          ModelData *model_data, int *deriv_ids, int **jac_ids, void *rxn_data);
 __device__ void rxn_gpu_PDFiTE_activity_update_env_state(double *rate_constants,
           int n_rxn2, double *double_pointer_gpu, double *env_data, void *rxn_data);
 void * rxn_gpu_PDFiTE_activity_pre_calc(
-          ModelDatagpu *model_data, void *rxn_data);
+          ModelData *model_data, void *rxn_data);
 void * rxn_gpu_PDFiTE_activity_int_size(void *rxn_data);
 void * rxn_gpu_PDFiTE_activity_skip(
           void *rxn_data);
@@ -239,11 +239,11 @@ __device__ void rxn_gpu_PDFiTE_activity_calc_jac_contrib(
 void * rxn_gpu_photolysis_get_used_jac_elem(
           void *rxn_data, bool **jac_struct);
 void * rxn_gpu_photolysis_update_ids(
-          ModelDatagpu *model_data, int *deriv_ids, int **jac_ids, void *rxn_data);
+          ModelData *model_data, int *deriv_ids, int **jac_ids, void *rxn_data);
 __device__ void rxn_gpu_photolysis_update_env_state(double *rate_constants,
           int n_rxn2, double *double_pointer_gpu, double *env_data, void *rxn_data);
 void * rxn_gpu_photolysis_pre_calc(
-          ModelDatagpu *model_data, void *rxn_data);
+          ModelData *model_data, void *rxn_data);
 void * rxn_gpu_photolysis_update_data(
           void *update_data, void *rxn_data);
 void * rxn_gpu_photolysis_int_size(void *rxn_data);
@@ -286,10 +286,10 @@ __device__ void rxn_gpu_SIMPOL_phase_transfer_calc_jac_contrib(
 void * rxn_gpu_troe_get_used_jac_elem(
           void *rxn_data, bool **jac_struct);
 void * rxn_gpu_troe_update_ids(
-          ModelDatagpu *model_data, int *deriv_ids, int **jac_ids, void *rxn_data);
+          ModelData *model_data, int *deriv_ids, int **jac_ids, void *rxn_data);
 __device__ void rxn_gpu_troe_update_env_state(double *rate_constants,
           int n_rxn2, double *double_pointer_gpu, double *env_data, void *rxn_data);
-void * rxn_gpu_troe_pre_calc(ModelDatagpu *model_data, void *rxn_data);
+void * rxn_gpu_troe_pre_calc(ModelData *model_data, void *rxn_data);
 void * rxn_gpu_troe_int_size(void *rxn_data);
 void * rxn_gpu_troe_skip(
           void *rxn_data);
@@ -309,11 +309,11 @@ __device__ void rxn_gpu_troe_calc_jac_contrib(
 void * rxn_gpu_wet_deposition_get_used_jac_elem(
           void *rxn_data, bool **jac_struct);
 void * rxn_gpu_wet_deposition_update_ids(
-          ModelDatagpu *model_data, int *deriv_ids, int **jac_ids, void *rxn_data);
+          ModelData *model_data, int *deriv_ids, int **jac_ids, void *rxn_data);
 __device__ void rxn_gpu_wet_deposition_update_env_state(double *rate_constants,
           int n_rxn2, double *double_pointer_gpu, double *env_data, void *rxn_data);
 void * rxn_gpu_wet_deposition_pre_calc(
-          ModelDatagpu *model_data, void *rxn_data);
+          ModelData *model_data, void *rxn_data);
 void * rxn_gpu_wet_deposition_update_data(
           void *update_data, void *rxn_data);
 void * rxn_gpu_wet_deposition_int_size(void *rxn_data);
@@ -354,11 +354,11 @@ __device__ void rxn_gpu_ZSR_aerosol_water_calc_jac_contrib(
 
 
 __global__ void rxn_gpu_tmp_arrhenius(
-        //ModelDatagpu *model_data, double *state,
+        //ModelData *model_data, double *state,
         //double *deriv, int *rxn_data, double *double_pointer_gpu,
         //double time_step, int n_rxn
 
-        ModelDatagpu *model_data, double *state, double *deriv,
+        ModelData *model_data, double *state, double *deriv,
         double time_step, int n_rxn,
         int *int_pointer, double *double_pointer,
         unsigned int int_max_size, unsigned int double_max_size

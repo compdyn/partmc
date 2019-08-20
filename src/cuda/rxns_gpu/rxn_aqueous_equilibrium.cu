@@ -108,7 +108,7 @@ void * rxn_gpu_aqueous_equilibrium_get_used_jac_elem(void *rxn_data,
  * \param rxn_data Pointer to the reaction data
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_gpu_aqueous_equilibrium_update_ids(ModelDatagpu *model_data, int *deriv_ids,
+void * rxn_gpu_aqueous_equilibrium_update_ids(ModelData *model_data, int *deriv_ids,
           int **jac_ids, void *rxn_data)
 {
   int n_rxn=1;
@@ -229,7 +229,7 @@ __device__ void rxn_gpu_aqueous_equilibrium_update_env_state(double *rate_consta
  * \param rxn_data Pointer to the reaction data
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_gpu_aqueous_equilibrium_pre_calc(ModelDatagpu *model_data, void *rxn_data)
+void * rxn_gpu_aqueous_equilibrium_pre_calc(ModelData *model_data, void *rxn_data)
 {
   int n_rxn=1;
   int *int_data = (int*) rxn_data;

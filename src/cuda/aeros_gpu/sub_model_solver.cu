@@ -19,10 +19,10 @@ extern "C" {
  * \param parameter_id Index of the parameter in the data block
  * \return The parameter value
  */
-__device__ double sub_model_gpu_get_parameter_value(ModelDatagpu *model_data, int parameter_id) {
-  int *sub_model_gpu_data = (int *) (model_data->sub_model_gpu_data);
-  sub_model_gpu_data += parameter_id;
-  return *((double *) sub_model_gpu_data);
+__device__ double sub_model_gpu_get_parameter_value(ModelData *model_data, int parameter_id) {
+  int *sub_model_data = (int *) (model_data->sub_model_data);
+  sub_model_data += parameter_id;
+  return *((double *) sub_model_data);
 }
 
 }

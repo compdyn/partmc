@@ -35,50 +35,50 @@ extern "C" {
  *         \f$\frac{\partial r_{eff}}{\partial y}\f$, or a NULL pointer if no
  *         partial derivatives exist
  */
-__device__ void *aero_rep_gpu_get_effective_radius(ModelDatagpu *model_data, int aero_rep_gpu_idx,
+__device__ void *aero_rep_gpu_get_effective_radius(ModelData *model_data, int aero_rep_gpu_idx,
                                     int aero_phase_gpu_idx, double *radius) {
 
   // Set up a pointer for the partial derivatives
   double *partial_deriv = NULL;
 
   // Get the number of aerosol representations
-  int *aero_rep_gpu_data = (int *) (model_data->aero_rep_gpu_data);
-  int n_aero_rep = *(aero_rep_gpu_data++);
+  int *aero_rep_data = (int *) (model_data->aero_rep_data);
+  int n_aero_rep = *(aero_rep_data++);
 
   // Loop through the aerosol representations to find the one requested
   for (int i_aero_rep = 0; i_aero_rep < aero_rep_gpu_idx; i_aero_rep++) {
 
     // Get the aerosol representation type
-    int aero_rep_gpu_type = *(aero_rep_gpu_data++);
+    int aero_rep_gpu_type = *(aero_rep_data++);
 
     // Advance the pointer to the next aerosol representation
     switch (aero_rep_gpu_type) {
         case AERO_REP_MODAL_BINNED_MASS : {
-          aero_rep_gpu_data = (int *) aero_rep_gpu_modal_binned_mass_skip(
-                  (void *) aero_rep_gpu_data);
+          aero_rep_data = (int *) aero_rep_gpu_modal_binned_mass_skip(
+                  (void *) aero_rep_data);
         break;
       }
       case AERO_REP_SINGLE_PARTICLE : {
-        aero_rep_gpu_data = (int *) aero_rep_gpu_single_particle_skip(
-                (void *) aero_rep_gpu_data);
+        aero_rep_data = (int *) aero_rep_gpu_single_particle_skip(
+                (void *) aero_rep_data);
         break;
       }
     }
   }
 
   // Get the aerosol representation type
-  int aero_rep_gpu_type = *(aero_rep_gpu_data++);
+  int aero_rep_gpu_type = *(aero_rep_data++);
 
   // Get the particle radius and set of partial derivatives
   switch (aero_rep_gpu_type) {
     case AERO_REP_MODAL_BINNED_MASS : {
-      aero_rep_gpu_data = (int *) aero_rep_gpu_modal_binned_mass_get_effective_radius(
-              aero_phase_gpu_idx, radius, partial_deriv, (void *) aero_rep_gpu_data);
+      aero_rep_data = (int *) aero_rep_gpu_modal_binned_mass_get_effective_radius(
+              aero_phase_gpu_idx, radius, partial_deriv, (void *) aero_rep_data);
       break;
     }
     case AERO_REP_SINGLE_PARTICLE : {
-      aero_rep_gpu_data = (int *) aero_rep_gpu_single_particle_get_effective_radius(
-              aero_phase_gpu_idx, radius, partial_deriv, (void *) aero_rep_gpu_data);
+      aero_rep_data = (int *) aero_rep_gpu_single_particle_get_effective_radius(
+              aero_phase_gpu_idx, radius, partial_deriv, (void *) aero_rep_data);
       break;
     }
   }
@@ -102,49 +102,49 @@ __device__ void *aero_rep_gpu_get_effective_radius(ModelDatagpu *model_data, int
  *         \f$\frac{\partial n}{\partial y}\f$, or a NULL pointer if no partial
  *         derivatives exist
  */
-__device__ void *aero_rep_gpu_get_number_conc(ModelDatagpu *model_data, int aero_rep_gpu_idx,
+__device__ void *aero_rep_gpu_get_number_conc(ModelData *model_data, int aero_rep_gpu_idx,
                                int aero_phase_gpu_idx, double *number_conc) {
 
   // Set up a pointer for the partial derivatives
   double *partial_deriv = NULL;
 
   // Get the number of aerosol representations
-  int *aero_rep_gpu_data = (int *) (model_data->aero_rep_gpu_data);
-  int n_aero_rep = *(aero_rep_gpu_data++);
+  int *aero_rep_data = (int *) (model_data->aero_rep_data);
+  int n_aero_rep = *(aero_rep_data++);
 
   // Loop through the aerosol representations to find the one requested
   for (int i_aero_rep = 0; i_aero_rep < aero_rep_gpu_idx; i_aero_rep++) {
 
     // Get the aerosol representation type
-    int aero_rep_gpu_type = *(aero_rep_gpu_data++);
+    int aero_rep_gpu_type = *(aero_rep_data++);
 
     // Advance the pointer to the next aerosol representation
     switch (aero_rep_gpu_type) {
       case AERO_REP_MODAL_BINNED_MASS :
-        aero_rep_gpu_data = (int *) aero_rep_gpu_modal_binned_mass_skip(
-                (void *) aero_rep_gpu_data);
+        aero_rep_data = (int *) aero_rep_gpu_modal_binned_mass_skip(
+                (void *) aero_rep_data);
         break;
       case AERO_REP_SINGLE_PARTICLE :
-        aero_rep_gpu_data = (int *) aero_rep_gpu_single_particle_skip(
-                (void *) aero_rep_gpu_data);
+        aero_rep_data = (int *) aero_rep_gpu_single_particle_skip(
+                (void *) aero_rep_data);
         break;
     }
   }
 
   // Get the aerosol representation type
-  int aero_rep_gpu_type = *(aero_rep_gpu_data++);
+  int aero_rep_gpu_type = *(aero_rep_data++);
 
   // Get the particle number concentration
   switch (aero_rep_gpu_type) {
     case AERO_REP_MODAL_BINNED_MASS :
-      aero_rep_gpu_data = (int *) aero_rep_gpu_modal_binned_mass_get_number_conc(
+      aero_rep_data = (int *) aero_rep_gpu_modal_binned_mass_get_number_conc(
               aero_phase_gpu_idx, number_conc, partial_deriv,
-              (void *) aero_rep_gpu_data);
+              (void *) aero_rep_data);
       break;
     case AERO_REP_SINGLE_PARTICLE :
-      aero_rep_gpu_data = (int *) aero_rep_gpu_single_particle_get_number_conc(
+      aero_rep_data = (int *) aero_rep_gpu_single_particle_get_number_conc(
               aero_phase_gpu_idx, number_conc, partial_deriv,
-              (void *) aero_rep_gpu_data);
+              (void *) aero_rep_data);
       break;
   }
   return partial_deriv;
@@ -158,47 +158,47 @@ __device__ void *aero_rep_gpu_get_number_conc(ModelDatagpu *model_data, int aero
  *                       representation
  * \return 0 for per-particle; 1 for total for each phase
  */
-__device__ int aero_rep_gpu_get_aero_conc_type(ModelDatagpu *model_data, int aero_rep_gpu_idx,
+__device__ int aero_rep_gpu_get_aero_conc_type(ModelData *model_data, int aero_rep_gpu_idx,
                                 int aero_phase_gpu_idx) {
 
   // Initialize the aerosol concentration type
   int aero_conc_type = 0;
 
   // Get the number of aerosol representations
-  int *aero_rep_gpu_data = (int *) (model_data->aero_rep_gpu_data);
-  int n_aero_rep = *(aero_rep_gpu_data++);
+  int *aero_rep_data = (int *) (model_data->aero_rep_data);
+  int n_aero_rep = *(aero_rep_data++);
 
   // Loop through the aerosol representations to find the one requested
   for (int i_aero_rep = 0; i_aero_rep < aero_rep_gpu_idx; i_aero_rep++) {
 
     // Get the aerosol representation type
-    int aero_rep_gpu_type = *(aero_rep_gpu_data++);
+    int aero_rep_gpu_type = *(aero_rep_data++);
 
     // Advance the pointer to the next aerosol representation
     switch (aero_rep_gpu_type) {
       case AERO_REP_MODAL_BINNED_MASS :
-        aero_rep_gpu_data = (int *) aero_rep_gpu_modal_binned_mass_skip(
-                (void *) aero_rep_gpu_data);
+        aero_rep_data = (int *) aero_rep_gpu_modal_binned_mass_skip(
+                (void *) aero_rep_data);
         break;
       case AERO_REP_SINGLE_PARTICLE :
-        aero_rep_gpu_data = (int *) aero_rep_gpu_single_particle_skip(
-                (void *) aero_rep_gpu_data);
+        aero_rep_data = (int *) aero_rep_gpu_single_particle_skip(
+                (void *) aero_rep_data);
         break;
     }
   }
 
   // Get the aerosol representation type
-  int aero_rep_gpu_type = *(aero_rep_gpu_data++);
+  int aero_rep_gpu_type = *(aero_rep_data++);
 
   // Get the type of aerosol concentration
   switch (aero_rep_gpu_type) {
     case AERO_REP_MODAL_BINNED_MASS :
-      aero_rep_gpu_data = (int *) aero_rep_gpu_modal_binned_mass_get_aero_conc_type(
-              aero_phase_gpu_idx, &aero_conc_type, (void *) aero_rep_gpu_data);
+      aero_rep_data = (int *) aero_rep_gpu_modal_binned_mass_get_aero_conc_type(
+              aero_phase_gpu_idx, &aero_conc_type, (void *) aero_rep_data);
       break;
     case AERO_REP_SINGLE_PARTICLE :
-      aero_rep_gpu_data = (int *) aero_rep_gpu_single_particle_get_aero_conc_type(
-              aero_phase_gpu_idx, &aero_conc_type, (void *) aero_rep_gpu_data);
+      aero_rep_data = (int *) aero_rep_gpu_single_particle_get_aero_conc_type(
+              aero_phase_gpu_idx, &aero_conc_type, (void *) aero_rep_data);
       break;
   }
   return aero_conc_type;
@@ -225,7 +225,7 @@ __device__ int aero_rep_gpu_get_aero_conc_type(ModelDatagpu *model_data, int aer
  *         \f$\frac{\partial m}{\partial y}\f$, or a NULL pointer if no partial
  *         derivatives exist
  */
-__device__ void * aero_rep_gpu_get_aero_phase_mass(ModelDatagpu *model_data, int aero_rep_idx,
+__device__ void * aero_rep_gpu_get_aero_phase_mass(ModelData *model_data, int aero_rep_idx,
                                     int aero_phase_idx, double *aero_phase_mass,
                                     double *aero_phase_avg_MW)
 {
@@ -234,7 +234,7 @@ __device__ void * aero_rep_gpu_get_aero_phase_mass(ModelDatagpu *model_data, int
   double *partial_deriv = NULL;
 
   // Get the number of aerosol representations
-  int *aero_rep_data = (int*) (model_data->aero_rep_gpu_data);
+  int *aero_rep_data = (int*) (model_data->aero_rep_data);
   int n_aero_rep = *(aero_rep_data++);
 
   // Loop through the aerosol representations to find the one requested

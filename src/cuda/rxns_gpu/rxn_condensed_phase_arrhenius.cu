@@ -94,7 +94,7 @@ void * rxn_gpu_condensed_phase_arrhenius_get_used_jac_elem(void *rxn_data,
  * \param rxn_data Pointer to the reaction data
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_gpu_condensed_phase_arrhenius_update_ids(ModelDatagpu *model_data,
+void * rxn_gpu_condensed_phase_arrhenius_update_ids(ModelData *model_data,
           int *deriv_ids, int **jac_ids, void *rxn_data)
 {
   int n_rxn=1;
@@ -180,7 +180,7 @@ __device__ void rxn_gpu_condensed_phase_arrhenius_update_env_state(double *rate_
  * \param rxn_data Pointer to the reaction data
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_gpu_condensed_phase_arrhenius_pre_calc(ModelDatagpu *model_data,
+void * rxn_gpu_condensed_phase_arrhenius_pre_calc(ModelData *model_data,
           void *rxn_data)
 {
   int n_rxn=1;

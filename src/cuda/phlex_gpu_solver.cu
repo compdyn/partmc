@@ -98,7 +98,6 @@ void solver_new_gpu_cu(int n_dep_var,
   }
 
   //Set working GPU: we have 4 gpu available on power9. as default, it should be assign to gpu 0
-  //TODO: Selecting different gpu from 0 raise illegal memory access (maybe is fixed now)
   int device=0;
   cudaSetDevice(device);
 
@@ -144,7 +143,7 @@ void solver_new_gpu_cu(int n_dep_var,
  *
  * \param md Pointer to the model data
  */
-void solver_set_data_gpu(ModelDatagpu *model_data) {
+void solver_set_data_gpu(ModelData *model_data) {
   //Get rxn sizes
   if (solver_set_gpu_sizes) {
 
@@ -424,7 +423,7 @@ __global__ void solveDerivative(double *state_init, double *deriv_init,
  * \param deriv NVector to hold the calculated vector
  * \param time_step Current model time step (s)
  */
-void rxn_calc_deriv_gpu(ModelDatagpu *model_data, N_Vector deriv, realtype time_step) {
+void rxn_calc_deriv_gpu(ModelData *model_data, N_Vector deriv, realtype time_step) {
 
   // Get a pointer to the derivative data
   realtype *deriv_data = N_VGetArrayPointer(deriv);
@@ -578,7 +577,7 @@ __global__ void solveJacobian(double *state_init, double *jac_init,
  * \param deriv NVector to hold the calculated vector
  * \param time_step Current model time step (s)
  */
-void rxn_calc_jac_gpu(ModelDatagpu *model_data, SUNMatrix jac, realtype time_step) {
+void rxn_calc_jac_gpu(ModelData *model_data, SUNMatrix jac, realtype time_step) {
 
   // Get a pointer to the jacobian data
   int n_cells = model_data->n_cells;
@@ -749,7 +748,7 @@ __global__ void updateEnvRxnBlock(double *rate_constants_init, int n_rxn, int n_
  * \param model_data Pointer to the model data
  * \param env Pointer to the environmental state array
  */
-void rxn_update_env_state_gpu(ModelDatagpu *model_data, double *env){
+void rxn_update_env_state_gpu(ModelData *model_data, double *env){
 
   int n_cells = model_data->n_cells;
   int *rxn_data = (int *) (model_data->rxn_data);

@@ -48,13 +48,13 @@ extern "C" {
  * \param radius Effective particle radius (m)
  * \param partial_deriv \f$\frac{\partial r_{eff}}{\partial y}\f$ where \f$y\f$
  *                      are species on the state array
- * \param aero_rep_gpu_data Pointer to the aerosol representation data
- * \return The aero_rep_gpu_data pointer advanced by the size of the aerosol
+ * \param aero_rep_data Pointer to the aerosol representation data
+ * \return The aero_rep_data pointer advanced by the size of the aerosol
  *         representation
  */
 __device__ void *aero_rep_gpu_single_particle_get_effective_radius(int aero_phase_idx,
-                                                    double *radius, double *partial_deriv, void *aero_rep_gpu_data) {
-  int *int_data = (int *) aero_rep_gpu_data;
+                                                    double *radius, double *partial_deriv, void *aero_rep_data) {
+  int *int_data = (int *) aero_rep_data;
   double *float_data = (double *) &(int_data[INT_DATA_SIZE_]);
 
   *radius = RADIUS_;
@@ -75,13 +75,13 @@ __device__ void *aero_rep_gpu_single_particle_get_effective_radius(int aero_phas
  *                    (\f$\mbox{\si{\#\per\cubic\centi\metre}}\f$)
  * \param partial_deriv \f$\frac{\partial n}{\partial y}\f$ where \f$y\f$ are
  *                      the species on the state array
- * \param aero_rep_gpu_data Pointer to the aerosol representation data
- * \return The aero_rep_gpu_data pointer advanced by the size of the aerosol
+ * \param aero_rep_data Pointer to the aerosol representation data
+ * \return The aero_rep_data pointer advanced by the size of the aerosol
  *         representation
  */
 __device__ void *aero_rep_gpu_single_particle_get_number_conc(int aero_phase_idx,
-                                               double *number_conc, double *partial_deriv, void *aero_rep_gpu_data) {
-  int *int_data = (int *) aero_rep_gpu_data;
+                                               double *number_conc, double *partial_deriv, void *aero_rep_data) {
+  int *int_data = (int *) aero_rep_data;
   double *float_data = (double *) &(int_data[INT_DATA_SIZE_]);
 
   *number_conc = NUMBER_CONC_;
@@ -96,13 +96,13 @@ __device__ void *aero_rep_gpu_single_particle_get_number_conc(int aero_phase_idx
  * \param aero_phase_idx Index of the aerosol phase within the representation
  * \param aero_conc_type Pointer to int that will hold the concentration type
  *                       code
- * \param aero_rep_gpu_data Pointer to the aerosol representation data
- * \return The aero_rep_gpu_data pointer advanced by the size of the aerosol
+ * \param aero_rep_data Pointer to the aerosol representation data
+ * \return The aero_rep_data pointer advanced by the size of the aerosol
  *         representation
  */
 __device__ void *aero_rep_gpu_single_particle_get_aero_conc_type(int aero_phase_idx,
-                                                  int *aero_conc_type, void *aero_rep_gpu_data) {
-  int *int_data = (int *) aero_rep_gpu_data;
+                                                  int *aero_conc_type, void *aero_rep_data) {
+  int *int_data = (int *) aero_rep_data;
   double *float_data = (double *) &(int_data[INT_DATA_SIZE_]);
 
   *aero_conc_type = 0;
@@ -141,12 +141,12 @@ __device__ void * aero_rep_gpu_single_particle_get_aero_phase_mass(int aero_phas
 
 /** \brief Advance the aerosol representation data pointer to the next aerosol representation
  *
- * \param aero_rep_gpu_data Pointer to the aerosol representation data
- * \return The aero_rep_gpu_data pointer advanced by the size of the aerosol
+ * \param aero_rep_data Pointer to the aerosol representation data
+ * \return The aero_rep_data pointer advanced by the size of the aerosol
  *         representation data
  */
-__device__ void *aero_rep_gpu_single_particle_skip(void *aero_rep_gpu_data) {
-  int *int_data = (int *) aero_rep_gpu_data;
+__device__ void *aero_rep_gpu_single_particle_skip(void *aero_rep_data) {
+  int *int_data = (int *) aero_rep_data;
   double *float_data = (double *) &(int_data[INT_DATA_SIZE_]);
 
   return (void *) &(float_data[FLOAT_DATA_SIZE_]);

@@ -18,14 +18,11 @@
 #include <math.h>
 #include "phlex_solver.h"
 #ifdef PMC_USE_GPU
-// FIXME phlex_gpu_solver.h duplicates information in phlex_solver
 #include "cuda/phlex_gpu_solver.h"
 #endif
 #include "aero_rep_solver.h"
 #include "rxn_solver.h"
 #include "sub_model_solver.h"
-
-//TODO: Check cvode version is working with this partmc version
 
 // FIXME are these necessary? CVODE already has counters for these calls
 // CVODE counters reset each time we call solver_run, so we need to accumulate them
@@ -1478,7 +1475,7 @@ void error_handler(int error_code, const char *module,
 void model_free(ModelData model_data)
 {
 
-#ifdef PMC_DEBUG_PRINT
+#ifndef PMC_DEBUG_PRINT
   printf ("Total Time Derivgpu= %f",timeDerivgpu / CLOCKS_PER_SEC);
   printf (", Total Time Deriv= %f",timeDeriv / CLOCKS_PER_SEC);
   printf (", Total Time Jac= %f\n",timeJac / CLOCKS_PER_SEC);

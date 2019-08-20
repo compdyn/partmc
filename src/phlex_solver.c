@@ -877,7 +877,8 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
     clock_t start2 = clock();
 
     // Calculate the Jacobian
-    rxn_calc_jac_gpu(md, J, time_step);
+    //rxn_calc_jac_gpu(md, J, time_step);
+    rxn_calc_jac(md, J, time_step);
 
     clock_t end2 = clock();
     timeDerivgpu+= ((double) (end2 - start2));

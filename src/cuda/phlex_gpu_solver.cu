@@ -311,9 +311,6 @@ void solver_set_rxn_data_gpu(ModelData *model_data) {
   HANDLE_ERROR(cudaMemcpy(int_pointer_gpu, int_pointer, rxn_int_size*sizeof(int), cudaMemcpyHostToDevice));
   HANDLE_ERROR(cudaMemcpy(double_pointer_gpu, double_pointer, rxn_double_size*sizeof(double), cudaMemcpyHostToDevice));
 
-  //Set flag to zero to avoid repetitions, since this data is fixed all time
-  solver_set_gpu_sizes = 0;
-
 }
 
 /** \brief GPU function: Solve derivative

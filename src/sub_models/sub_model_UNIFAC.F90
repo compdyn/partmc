@@ -170,8 +170,8 @@ module pmc_sub_model_UNIFAC
 #define PHASE_INST_ID_(p,c) this%condensed_data_int(PHASE_INT_LOC_(p)+1+c)
 #define SPEC_ID_(p,i) this%condensed_data_int(PHASE_INT_LOC_(p)+1+NUM_PHASE_INSTANCE_(p)+i)
 #define GAMMA_ID_(p,i) this%condensed_data_int(PHASE_INT_LOC_(p)+1+NUM_PHASE_INSTANCE_(p)+NUM_SPEC_(p)+i)
-#define JAC_ID_(p,c,i) this%condensed_data_int(PHASE_INT_LOC_(p)+1+NUM_PHASE_INSTANCE_(p)+(c+1)*NUM_SPEC_(p)+i)
-#define V_IK_(p,i,k) this%condensed_data_int(PHASE_INT_LOC_(p)+1+NUM_PHASE_INSTANCE_(p)+(k+1+NUM_PHASE_INSTANCE_(p))*NUM_SPEC_(p)+i)
+#define JAC_ID_(p,c,i) this%condensed_data_int(PHASE_INT_LOC_(p)+1+NUM_PHASE_INSTANCE_(p)+(c+1+(j-1)*NUM_SPEC_(p))*NUM_SPEC_(p)+i)
+#define V_IK_(p,i,k) this%condensed_data_int(PHASE_INT_LOC_(p)+1+NUM_PHASE_INSTANCE_(p)+(k+1+NUM_PHASE_INSTANCE_(p)+NUM_SPEC_(p))*NUM_SPEC_(p)+i)
 
 #define Q_K_(k) this%condensed_data_real(k)
 #define R_K_(k) this%condensed_data_real(NUM_GROUP_+k)
@@ -370,6 +370,7 @@ contains
                      + num_phase_spec(i_UNIFAC_phase)    & ! SPEC_ID
                      + num_phase_spec(i_UNIFAC_phase)    & ! GAMMA_ID
                      + num_phase_inst(i_UNIFAC_phase) *  &
+                       num_phase_spec(i_UNIFAC_phase) *  &
                        num_phase_spec(i_UNIFAC_phase)    & ! SPEC_JAC_ID
                      + num_phase_spec(i_UNIFAC_phase) * num_group ! v_ik
       num_real_data = num_real_data &
@@ -404,6 +405,7 @@ contains
                      + num_phase_spec(i_UNIFAC_phase)    & ! SPEC_ID
                      + num_phase_spec(i_UNIFAC_phase)    & ! GAMMA_ID
                      + num_phase_inst(i_UNIFAC_phase) *  &
+                       num_phase_spec(i_UNIFAC_phase) *  &
                        num_phase_spec(i_UNIFAC_phase)    & ! SPEC_JAC_ID
                      + num_phase_spec(i_UNIFAC_phase) * num_group ! v_ik
       num_real_data = num_real_data &

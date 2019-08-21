@@ -14,6 +14,7 @@ program pmc_test_sub_module_UNIFAC
   use pmc_phlex_core
   use pmc_phlex_state
   use pmc_aero_rep_data
+  use pmc_solver_stats
 #ifdef PMC_USE_JSON
   use json_module
 #endif
@@ -141,6 +142,8 @@ contains
     real(kind=dp) :: mole_frac_conv
 
     integer(kind=i_kind) :: i, k, m, n
+
+    type(solver_stats_t), target :: solver_stats
 
     run_UNIFAC_test = .true.
 
@@ -316,6 +319,11 @@ contains
       phlex_state%env_state%pressure = pressure
       call phlex_state%update_env_state()
 
+#ifdef PMC_DEBUG
+      ! Evaluate the Jacobian during solving
+      solver_stats%eval_Jac = .true.
+#endif
+
       ! Integrate the mechanism
       do i_mass_frac = 0, NUM_MASS_FRAC_STEP
 
@@ -332,7 +340,8 @@ contains
         phlex_state%state_var(:) = model_conc(i_mass_frac,:)
 
         ! Get the modeled conc
-        call phlex_core%solve(phlex_state, real(1.0, kind=dp))
+        call phlex_core%solve(phlex_state, real(1.0, kind=dp), &
+                              solver_stats = solver_stats)
         model_activity(i_mass_frac,:) = 0.0d0
         model_activity(i_mass_frac, idx_butanol) = &
                 phlex_state%state_var(idx_butanol_act) * &
@@ -340,6 +349,14 @@ contains
         model_activity(i_mass_frac, idx_water) = &
                 phlex_state%state_var(idx_water_act) * &
                 phlex_state%state_var(idx_water)
+
+#ifdef PMC_DEBUG
+        ! Check the Jacobian evaluations
+        call assert_msg(356112682, solver_stats%Jac_eval_fails.eq.0, &
+                        trim( to_string( solver_stats%Jac_eval_fails ) )// &
+                        " Jacobian evaluation failures for mass fraction: "// &
+                        trim( to_string( mass_frac ) ) )
+#endif
 
         !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         !!! Get the UNIFAC activities !!!

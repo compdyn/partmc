@@ -35,8 +35,8 @@
 #define PHASE_INST_ID_(p,c) (int_data[PHASE_INT_LOC_(p)+2+c]-1)
 #define SPEC_ID_(p,i) (int_data[PHASE_INT_LOC_(p)+2+NUM_PHASE_INSTANCE_(p)+i])
 #define GAMMA_ID_(p,i) (int_data[PHASE_INT_LOC_(p)+2+NUM_PHASE_INSTANCE_(p)+NUM_SPEC_(p)+i])
-#define JAC_ID_(p,c,i) int_data[PHASE_INT_LOC_(p)+2+NUM_PHASE_INSTANCE_(p)+(c+2)*NUM_SPEC_(p)+i]
-#define V_IK_(p,i,k) (int_data[PHASE_INT_LOC_(p)+2+NUM_PHASE_INSTANCE_(p)+(k+2+NUM_PHASE_INSTANCE_(p))*NUM_SPEC_(p)+i])
+#define JAC_ID_(p,c,j,i) int_data[PHASE_INT_LOC_(p)+2+NUM_PHASE_INSTANCE_(p)+(c+2+j*NUM_SPEC_(p))*NUM_SPEC_(p)+i]
+#define V_IK_(p,i,k) (int_data[PHASE_INT_LOC_(p)+2+NUM_PHASE_INSTANCE_(p)+(k+2+NUM_PHASE_INSTANCE_(p)+NUM_SPEC_(p))*NUM_SPEC_(p)+i])
 
 #define Q_K_(k) (float_data[k])
 #define R_K_(k) (float_data[NUM_GROUP_+k])
@@ -74,10 +74,11 @@ void sub_model_UNIFAC_get_used_jac_elem(int *sub_model_int_data,
 
   for (int i_phase=0; i_phase < NUM_UNIQUE_PHASE_; ++i_phase)
     for (int i_inst=0; i_inst < NUM_PHASE_INSTANCE_(i_phase); ++i_inst)
-      for (int i_spec=0; i_spec < NUM_SPEC_(i_phase); ++i_spec)
-        jac_struct[PHASE_INST_ID_(i_phase, i_inst)+GAMMA_ID_(i_phase, i_spec)]
-                  [PHASE_INST_ID_(i_phase, i_inst)+
-                   SPEC_ID_(i_phase, i_spec)] = true;
+      for (int i_gamma=0; i_gamma < NUM_SPEC_(i_phase); ++i_gamma)
+        for (int i_spec=0; i_spec < NUM_SPEC_(i_phase); ++i_spec)
+          jac_struct[PHASE_INST_ID_(i_phase, i_inst)+GAMMA_ID_(i_phase, i_gamma)]
+                    [PHASE_INST_ID_(i_phase, i_inst)+
+                     SPEC_ID_(i_phase, i_spec)] = true;
 }
 
 /** \brief Update stored ids for elements used within a row of the Jacobian matrix
@@ -95,10 +96,11 @@ void sub_model_UNIFAC_update_ids(int *sub_model_int_data,
 
   for (int i_phase=0; i_phase < NUM_UNIQUE_PHASE_; ++i_phase)
     for (int i_inst=0; i_inst < NUM_PHASE_INSTANCE_(i_phase); ++i_inst)
-      for (int i_spec=0; i_spec < NUM_SPEC_(i_phase); ++i_spec)
-        JAC_ID_(i_phase, i_inst, i_spec) =
-          jac_ids[PHASE_INST_ID_(i_phase, i_inst)+GAMMA_ID_(i_phase, i_spec)]
-                 [PHASE_INST_ID_(i_phase, i_inst)+SPEC_ID_(i_phase, i_spec)];
+      for (int i_gamma=0; i_gamma < NUM_SPEC_(i_phase); ++i_gamma)
+        for (int i_spec=0; i_spec < NUM_SPEC_(i_phase); ++i_spec)
+          JAC_ID_(i_phase, i_inst, i_gamma, i_spec) =
+            jac_ids[PHASE_INST_ID_(i_phase, i_inst)+GAMMA_ID_(i_phase, i_gamma)]
+                   [PHASE_INST_ID_(i_phase, i_inst)+SPEC_ID_(i_phase, i_spec)];
 }
 
 /** \brief Update sub-model data for new environmental conditions
@@ -736,8 +738,7 @@ void sub_model_UNIFAC_get_jac_contrib(int *sub_model_int_data,
 
           // Add the partial derivative contribution to the
           // Jacobian
-          // \FIXME finish
-
+          J[JAC_ID_(i_phase, i_instance, j, i)] += dgamma_j_dc_i;
 
         }
       }
@@ -791,9 +792,20 @@ void sub_model_UNIFAC_print(int *sub_model_int_data,
     printf("\n  ** Instance data **");
     for (int i_inst=0; i_inst<NUM_PHASE_INSTANCE_(i_phase); ++i_inst) {
       printf("\n  Instance %d:", i_inst);
-      printf("\n    Jacobian ids:");
+      printf("\n    State id: %d", PHASE_INST_ID_(i_phase, i_inst));
+      printf("\n    Gamma ids:");
+      for (int i_gamma=0; i_gamma<NUM_SPEC_(i_phase); ++i_gamma)
+        printf(" %d", PHASE_INST_ID_(i_phase, i_inst) +
+                      GAMMA_ID_(i_phase, i_gamma));
+      printf("\n    Species ids:");
       for (int i_spec=0; i_spec<NUM_SPEC_(i_phase); ++i_spec)
-        printf(" %d", JAC_ID_(i_phase, i_inst, i_spec));
+        printf(" %d", PHASE_INST_ID_(i_phase, i_inst) +
+                      SPEC_ID_(i_phase, i_spec));
+      printf("\n    Jacobian ids:");
+      for (int i_gamma=0; i_gamma<NUM_SPEC_(i_phase); ++i_gamma)
+        for (int i_spec=0; i_spec<NUM_SPEC_(i_phase); ++i_spec)
+          printf(" J[%d][%d] =  %d", i_gamma, i_spec,
+                 JAC_ID_(i_phase, i_inst, i_gamma, i_spec));
 
     }
     printf("\n  R_I (by species):");

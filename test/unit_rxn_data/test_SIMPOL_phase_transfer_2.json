@@ -19,7 +19,19 @@
     "phase" : "AEROSOL",
     "molecular weight [kg mol-1]" : 0.04607,
     "density [kg m-3]" : 1.0,
-    "absolute tolerance" : 1.0e-20
+    "absolute tolerance" : 1.0e-20,
+    "UNIFAC groups" : {
+      "OH" : 1,
+      "CH2(-OH)" : 1,
+      "CH3(hydrophobic tail)" : 1
+    }
+  },
+  {
+    "name" : "gamma ethanol",
+    "type" : "CHEM_SPEC",
+    "phase" : "AEROSOL",
+    "tracer type" : "ACTIVITY_COEFF",
+    "chemical species" : "ethanol_aq"
   },
   {
     "name" : "H2O_aq",
@@ -27,12 +39,22 @@
     "phase" : "AEROSOL",
     "molecular weight [kg mol-1]" : 0.01801,
     "density [kg m-3]" : 1.0,
-    "absolute tolerance" : 1.0e-20
+    "absolute tolerance" : 1.0e-20,
+    "UNIFAC groups" : {
+      "H2O" : 1
+    }
+  },
+  {
+    "name" : "gamma water",
+    "type" : "CHEM_SPEC",
+    "phase" : "AEROSOL",
+    "tracer type" : "ACTIVITY_COEFF",
+    "chemical species" : "H2O_aq"
   },
   {
     "name" : "aqueous aerosol",
     "type" : "AERO_PHASE",
-    "species" : ["ethanol_aq", "H2O_aq"]
+    "species" : ["ethanol_aq", "gamma ethanol", "H2O_aq", "gamma water"]
   },
   {
     "name" : "that other phase",
@@ -71,9 +93,67 @@
 	"gas-phase species" : "ethanol",
 	"aerosol phase" : "aqueous aerosol",
 	"aerosol-phase species" : "ethanol_aq",
+        "aerosol-phase activity coefficient" : "gamma ethanol",
 	"B" : [ -1.97E+03, 2.91E+00, 1.96E-03, -4.96E-01 ]
       }
     ]
+  }
+],
+"not used" : [
+  {
+    "name" : "ethanol/water activity",
+    "type" : "SUB_MODEL_UNIFAC",
+    "phases" : [ "temp phase" ],
+    "functional groups" : {
+      "CH2(-OH)" : {
+        "main group" : "CHn(-OH)",
+        "volume param" : 0.6744,
+        "surface param" : 0.540
+      },
+      "CH3(hydrophobic tail)" : {
+        "main group" : "CHn(hydrophobic tail)",
+        "volume param" : 0.9011,
+        "surface param" : 0.848
+      },
+      "OH" : {
+        "main group" : "OH",
+        "volume param" : 1.000,
+        "surface param" : 1.200
+      },
+      "H2O" : {
+        "main group" : "H2O",
+        "volume param" : 0.9200,
+        "surface param" : 1.400
+      }
+    },
+    "main groups" : {
+      "CHn(-OH)" : {
+        "interactions with" : {
+          "OH" : 986.5,
+          "H2O" : 2314
+        }
+      },
+      "CHn(hydrophobic tail)" : {
+        "interactions with" : {
+          "OH" : 986.5,
+          "H2O" : 1325
+        }
+      },
+      "OH" : {
+          "interactions with" : {
+          "CHn(-OH)" : 156.4,
+          "CHn(hydrophobic tail)" : 156.4,
+          "H2O" : 276.4
+        }
+      },
+      "H2O" : {
+        "interactions with" : {
+          "CHn(-OH)" : -89.71,
+          "CHn(hydrophobic tail)" : 362.1,
+          "OH" : -153.0
+        }
+      }
+    }
   }
   ]
 }

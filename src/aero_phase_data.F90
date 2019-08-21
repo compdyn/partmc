@@ -110,6 +110,8 @@ module pmc_aero_phase_data
     procedure :: name => get_name
     !> Get the number of species in the phase
     procedure :: size => get_size
+    !> Get the number of Jacobian row elements needed during solving
+    procedure :: num_jac_elem
     !> Get property data associated with this phase
     procedure :: get_property_set
     !> Get a list of species names in this phase
@@ -408,6 +410,27 @@ contains
     num_spec = this%num_spec
 
   end function get_size
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Get the number of Jacobian row elements needed during solving
+  integer(kind=i_kind) function num_jac_elem(this) result(num_elem)
+
+    !> Aerosol phase data
+    class(aero_phase_data_t), intent(in) :: this
+
+    integer :: i_spec
+
+    num_elem = 0
+    do i_spec = 1, this%num_spec
+      if (SPEC_TYPE_(i_spec) == CHEM_SPEC_VARIABLE .or.                      &
+          SPEC_TYPE_(i_spec) == CHEM_SPEC_CONSTANT .or.                      &
+          SPEC_TYPE_(i_spec) == CHEM_SPEC_PSSA) then
+          num_elem = num_elem + 1
+      end if
+    end do
+
+  end function num_jac_elem
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

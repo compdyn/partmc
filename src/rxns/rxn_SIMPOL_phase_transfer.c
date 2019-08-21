@@ -665,6 +665,49 @@ void * rxn_SIMPOL_phase_transfer_print(void *rxn_data)
     printf("  int param %d = %d\n", i, int_data[i]);
   for (int i=0; i<FLOAT_DATA_SIZE_; i++)
     printf("  float param %d = %le\n", i, float_data[i]);
+  printf("\ndelta H: %le delta S: %le diffusion coeff: %le preC_avg: %le",
+         DELTA_H_, DELTA_S_, DIFF_COEFF_, PRE_C_AVG_);
+  printf("\nB1: %le B2: %le B3:%le B4: %le", B1_, B2_, B3_, B4_);
+  printf("\nC_avg_alpha: %le K_eq: %le conv: %le MW: %le ug-to-ppm: %le"
+         " small num: %le", C_AVG_ALPHA_, EQUIL_CONST_, CONV_, MW_,
+         UGM3_TO_PPM_, SMALL_NUMBER_);
+  printf("\nNumber of aerosol phases: %d", NUM_AERO_PHASE_);
+  printf("\nGas-phase species id: %d", GAS_SPEC_);
+  printf("\nGas-phase derivative id: %d", DERIV_ID_(0));
+  printf("\ndGas/dGas Jac id: %d", JAC_ID_(0));
+  printf("\n*** Aerosol phase data ***");
+  for (int i=0; i<NUM_AERO_PHASE_; ++i) {
+    printf("\n  Aerosol species id: %d", AERO_SPEC_(i));
+    printf("\n  Activity coefficient id: %d", AERO_ACT_ID_(i));
+    printf("\n  Aerosol phase id: %d", AERO_PHASE_ID_(i));
+    printf("\n  Aerosol representation id: %d", AERO_REP_ID_(i));
+    printf("\n  Aerosol species derivative id: %d", DERIV_ID_(i+1));
+    printf("\n  dGas/dAct coeff  Jac id: %d", GAS_ACT_JAC_ID_(i));
+    printf("\n  dAero/dAct coeff Jac id: %d", AERO_ACT_JAC_ID_(i));
+    printf("\n  dAero/dGas  Jac id: %d", JAC_ID_(1+i*3));
+    printf("\n  dGas/dAero  Jac id: %d", JAC_ID_(2+i*3));
+    printf("\n  dAero/dAero Jac id: %d", JAC_ID_(3+i*3));
+    printf("\n  Number of aerosol-phase species Jac elements: %d",
+           NUM_AERO_PHASE_JAC_ELEM_(i));
+    printf("\n  dGas/dx ids:");
+    for (int j=0; j<NUM_AERO_PHASE_JAC_ELEM_(i); ++j)
+      printf(" %d", PHASE_JAC_ID_(i, JAC_GAS, j));
+    printf("\n  dAero/dx ids:");
+    for (int j=0; j<NUM_AERO_PHASE_JAC_ELEM_(i); ++j)
+      printf(" %d", PHASE_JAC_ID_(i, JAC_AERO, j));
+    printf("\n  Effective radius Jac elem:");
+    for (int j=0; j<NUM_AERO_PHASE_JAC_ELEM_(i); ++j)
+      printf(" %le", EFF_RAD_JAC_ELEM_(i, j));
+    printf("\n  Number concentration Jac elem:");
+    for (int j=0; j<NUM_AERO_PHASE_JAC_ELEM_(i); ++j)
+      printf(" %le", NUM_CONC_JAC_ELEM_(i, j));
+    printf("\n  Aerosol mass Jac elem:");
+    for (int j=0; j<NUM_AERO_PHASE_JAC_ELEM_(i); ++j)
+      printf(" %le", MASS_JAC_ELEM_(i, j));
+    printf("\n  Average MW Jac elem:");
+    for (int j=0; j<NUM_AERO_PHASE_JAC_ELEM_(i); ++j)
+      printf(" %le", MW_JAC_ELEM_(i, j));
+  }
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }

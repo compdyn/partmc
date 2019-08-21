@@ -1002,7 +1002,8 @@ contains
                      section_start + i_bin - 1 +                             &
                        ( NUM_PHASE_(i_section) - 1 ) * NUM_BINS_(i_section), &
                      NUM_BINS_(i_section)
-          num_jac_elem = num_jac_elem + this%aero_phase( j_phase )%val%size( )
+          num_jac_elem = num_jac_elem +                                      &
+                         this%aero_phase( j_phase )%val%num_jac_elem( )
         end do
         return
       end if

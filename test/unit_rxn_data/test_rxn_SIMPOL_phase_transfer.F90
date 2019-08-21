@@ -89,7 +89,10 @@ contains
   !!
   !! One of two scenarios is tested, depending on the passed integer:
   !! one with a single-particle aerosol representation (1)
-  !! and one with a modal aerosol representation (2)
+  !! and one with a modal aerosol representation (2).
+  !! Scenario (2) includes UNIFAC activity calculations to test the
+  !! Jacobian calculations of the UNIFAC sub model with the Jacobian
+  !! checker.
   logical function run_SIMPOL_phase_transfer_test(scenario)
 
     use pmc_constants
@@ -143,8 +146,8 @@ contains
       allocate(model_conc(0:NUM_TIME_STEP, 7))
       allocate(true_conc(0:NUM_TIME_STEP, 7))
     else if (scenario.eq.2) then
-      allocate(model_conc(0:NUM_TIME_STEP, 4))
-      allocate(true_conc(0:NUM_TIME_STEP, 4))
+      allocate(model_conc(0:NUM_TIME_STEP, 6))
+      allocate(true_conc(0:NUM_TIME_STEP, 6))
     endif
 
     ! Set the environmental conditions

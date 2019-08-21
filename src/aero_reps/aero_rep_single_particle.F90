@@ -522,7 +522,8 @@ contains
 
     num_jac_elem = 0
     do i_phase = 1, size(this%aero_phase)
-      num_jac_elem = num_jac_elem + this%aero_phase(i_phase)%val%size()
+      num_jac_elem = num_jac_elem +                                          &
+                     this%aero_phase(i_phase)%val%num_jac_elem()
     end do
 
   end function num_jac_elem

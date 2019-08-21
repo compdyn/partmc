@@ -49,8 +49,12 @@ int aero_phase_get_used_jac_elem(ModelData *model_data, int aero_phase_idx,
   int num_flagged_elem = 0;
 
   for (int i_spec=0; i_spec<NUM_STATE_VAR_; i_spec++) {
-    jac_struct[state_var_id+i_spec] = true;
-    num_flagged_elem++;
+    if (SPEC_TYPE_(i_spec)==CHEM_SPEC_VARIABLE ||
+        SPEC_TYPE_(i_spec)==CHEM_SPEC_CONSTANT ||
+        SPEC_TYPE_(i_spec)==CHEM_SPEC_PSSA) {
+      jac_struct[state_var_id+i_spec] = true;
+      num_flagged_elem++;
+    }
   }
 
   return num_flagged_elem;

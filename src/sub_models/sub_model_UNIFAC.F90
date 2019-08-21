@@ -177,8 +177,14 @@ module pmc_sub_model_UNIFAC
 #define Q_K_(k) this%condensed_data_real(k)
 #define R_K_(k) this%condensed_data_real(NUM_GROUP_+k)
 #define THETA_M_(m) this%condensed_data_real(2*NUM_GROUP_+m)
-#define A_MN_(m,n) this%condensed_data_real((m+2)*NUM_GROUP_+n)
-#define PSI_MN_(m,n) this%condensed_data_real((m+2+NUM_GROUP_)*NUM_GROUP_+n)
+#define PI_K_(m) this%condensed_data_real(3*NUM_GROUP_+m)
+#define X_K_(m) this%condensed_data_real(4*NUM_GROUP_+m)
+#define SUM_THETA_PSI_K_(m) this%condensed_data_real(5*NUM_GROUP_+m)
+#define DTHETA_DC_K_(m) this%condensed_data_real(6*NUM_GROUP_+m)
+#define XI_M_(m) this%condensed_data_real(7*NUM_GROUP_+m)
+#define LN_GAMMA_K_(m) this%condensed_data_real(8*NUM_GROUP_+m)
+#define A_MN_(m,n) this%condensed_data_real((m+8)*NUM_GROUP_+n)
+#define PSI_MN_(m,n) this%condensed_data_real((m+8+NUM_GROUP_)*NUM_GROUP_+n)
 #define R_I_(p,i) this%condensed_data_real(PHASE_FLOAT_LOC_(p)+i-1)
 #define Q_I_(p,i) this%condensed_data_real(PHASE_FLOAT_LOC_(p)+NUM_SPEC_(p)+i-1)
 #define L_I_(p,i) this%condensed_data_real(PHASE_FLOAT_LOC_(p)+2*NUM_SPEC_(p)+i-1)
@@ -359,7 +365,9 @@ contains
     num_int_data =   NUM_INT_PROP_            & ! int props
                      + 2*num_unique_phase       ! PHASE_INT_LOC, PHASE_REAL_LOC
     num_real_data =  NUM_REAL_PROP_           & ! real props
-                     + 3*num_group            & ! Q_k, R_k, THETA_m
+                     + 9*num_group            & ! Q_k, R_k, THETA_m, pi_k, X_k,
+                                                ! Sum_n(Theta_n Psi_nm),
+                                                ! dTheta_n / dc_i, ln(gamma_k), Xi_m
                      + 2*num_group*num_group    ! a_mn, PSI_mn
     do i_UNIFAC_phase = 1, num_unique_phase
       num_int_data = num_int_data + 2                    & ! NUM_PHASE_INSTANCE, NUM_SPEC
@@ -391,7 +399,9 @@ contains
     num_int_data =   NUM_INT_PROP_               & ! int props
                      + 2*num_unique_phase          ! PHASE_INT_LOC, PHASE_REAL_LOC
     num_real_data =  NUM_REAL_PROP_              & ! real props
-                     + 3*num_group               & ! Q_k, R_k, THETA_m
+                     + 9*num_group               & ! Q_k, R_k, THETA_m, pi_k, X_k,
+                                                   ! Sum_n(Theta_n Psi_nm),
+                                                   ! dTheta_n / dc_i, ln(Gamma_k), Xi_m
                      + 2*num_group*num_group       ! a_mn, PSI_mn
     do i_UNIFAC_phase = 1, num_unique_phase
       PHASE_INT_LOC_(i_UNIFAC_phase) = num_int_data + 1

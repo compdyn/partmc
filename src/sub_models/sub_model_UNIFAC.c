@@ -32,31 +32,27 @@
 #define PHASE_FLOAT_LOC_(p) (int_data[NUM_INT_PROP_+NUM_UNIQUE_PHASE_+p]-1)
 #define NUM_PHASE_INSTANCE_(p) (int_data[PHASE_INT_LOC_(p)])
 #define NUM_SPEC_(p) (int_data[PHASE_INT_LOC_(p)+1])
-#define PHASE_INST_FLOAT_LOC_(p,c) (int_data[PHASE_INT_LOC_(p)+2+c]-1)
-#define PHASE_INST_ID_(p,c) (int_data[PHASE_INT_LOC_(p)+2+NUM_PHASE_INSTANCE_(p)+c]-1)
-#define SPEC_ID_(p,i) (int_data[PHASE_INT_LOC_(p)+2+2*NUM_PHASE_INSTANCE_(p)+i])
-#define GAMMA_ID_(p,i) (int_data[PHASE_INT_LOC_(p)+2+2*NUM_PHASE_INSTANCE_(p)+NUM_SPEC_(p)+i])
-#define JAC_ID_(p,c,i) int_data[PHASE_INT_LOC_(p)+2+2*NUM_PHASE_INSTANCE_(p)+(c+2)*NUM_SPEC_(p)+i]
-#define V_IK_(p,i,k) (int_data[PHASE_INT_LOC_(p)+2+2*NUM_PHASE_INSTANCE_(p)+(k+2+NUM_PHASE_INSTANCE_(p))*NUM_SPEC_(p)+i])
+#define PHASE_INST_ID_(p,c) (int_data[PHASE_INT_LOC_(p)+2+c]-1)
+#define SPEC_ID_(p,i) (int_data[PHASE_INT_LOC_(p)+2+NUM_PHASE_INSTANCE_(p)+i])
+#define GAMMA_ID_(p,i) (int_data[PHASE_INT_LOC_(p)+2+NUM_PHASE_INSTANCE_(p)+NUM_SPEC_(p)+i])
+#define JAC_ID_(p,c,i) int_data[PHASE_INT_LOC_(p)+2+NUM_PHASE_INSTANCE_(p)+(c+2)*NUM_SPEC_(p)+i]
+#define V_IK_(p,i,k) (int_data[PHASE_INT_LOC_(p)+2+NUM_PHASE_INSTANCE_(p)+(k+2+NUM_PHASE_INSTANCE_(p))*NUM_SPEC_(p)+i])
 
 #define Q_K_(k) (float_data[k])
 #define R_K_(k) (float_data[NUM_GROUP_+k])
 #define THETA_M_(m) (float_data[2*NUM_GROUP_+m])
-#define PI_K_(m) (float_data[3*NUM_GROUP_+m])
-#define X_K_(m) (float_data[4*NUM_GROUP_+m])
-#define SUM_THETA_PSI_K_(m) (float_data[5*NUM_GROUP_+m])
-#define DTHETA_DC_K_(m) (float_data[6*NUM_GROUP_+m])
-#define XI_M_(m) (float_data[7*NUM_GROUP_+m])
-#define LN_GAMMA_K_(m) (float_data[8*NUM_GROUP_+m])
-#define A_MN_(m,n) (float_data[(m+9)*NUM_GROUP_+n])
-#define PSI_MN_(m,n) (float_data[(m+9+NUM_GROUP_)*NUM_GROUP_+n])
+#define X_K_(m) (float_data[3*NUM_GROUP_+m])
+#define DTHETA_M_DC_I_(m) (float_data[4*NUM_GROUP_+m])
+#define XI_M_(m) (float_data[5*NUM_GROUP_+m])
+#define LN_GAMMA_K_(m) (float_data[6*NUM_GROUP_+m])
+#define A_MN_(m,n) (float_data[(m+7)*NUM_GROUP_+n])
+#define PSI_MN_(m,n) (float_data[(m+7+NUM_GROUP_)*NUM_GROUP_+n])
 #define R_I_(p,i) (float_data[PHASE_FLOAT_LOC_(p)+i])
 #define Q_I_(p,i) (float_data[PHASE_FLOAT_LOC_(p)+NUM_SPEC_(p)+i])
 #define L_I_(p,i) (float_data[PHASE_FLOAT_LOC_(p)+2*NUM_SPEC_(p)+i])
 #define MW_I_(p,i) (float_data[PHASE_FLOAT_LOC_(p)+3*NUM_SPEC_(p)+i])
 #define X_I_(p,i) (float_data[PHASE_FLOAT_LOC_(p)+4*NUM_SPEC_(p)+i])
 #define LN_GAMMA_IK_(p,i,k) (float_data[PHASE_FLOAT_LOC_(p)+i*NUM_GROUP_+5*NUM_SPEC_(p)+k])
-#define GAMMA_I_(p,c,i) (float_data[PHASE_INST_FLOAT_LOC_(p,c)+i])
 
 #define INT_DATA_SIZE_ (TOTAL_INT_PROP_)
 #define FLOAT_DATA_SIZE_ (TOTAL_FLOAT_PROP_)
@@ -556,7 +552,7 @@ void sub_model_UNIFAC_get_jac_contrib(int *sub_model_int_data,
   double *float_data = sub_model_float_data;
 
   double *state = model_data->state;
-#if 0
+
   // Loop through each instance of each phase to calculate activity
   for (int i_phase=0; i_phase<NUM_UNIQUE_PHASE_; ++i_phase) {
     for (int i_instance=0; i_instance<NUM_PHASE_INSTANCE_(i_phase);
@@ -656,7 +652,7 @@ void sub_model_UNIFAC_get_jac_contrib(int *sub_model_int_data,
 
         // Full residual term
         double lngammaR_j = 0.0;
-        for (int k=0; k<NUM_GROUPS_; ++k) {
+        for (int k=0; k<NUM_GROUP_; ++k) {
           lngammaR_j += V_IK_(i_phase, j, k) *
                         ( LN_GAMMA_K_(k) - LN_GAMMA_IK_(i_phase, j, k) );
         }
@@ -685,7 +681,7 @@ void sub_model_UNIFAC_get_jac_contrib(int *sub_model_int_data,
           dPhi_j_dc_i   *= MWimT_inv / sigma / sigma;
           dTheta_j_dc_i *= MWimT_inv / tau   / tau;
 
-          dmu_j_dc_i = MWimT_inv * (L_I_(i_phase, i) - mu);
+          dmu_dc_i = MWimT_inv * (L_I_(i_phase, i) - mu);
 
           // partial derivative of full combinatorial term ln(gammaC_j)
           dlngammaC_j_dc_i = dPhi_j_dc_i / Phi_j - dx_j_dc_i / x_j
@@ -701,9 +697,9 @@ void sub_model_UNIFAC_get_jac_contrib(int *sub_model_int_data,
 
           // partial derivative of group surface area fractions Theta_m
           double sumQnvn_i = 0.0;
-          for (int n=0; n<NUM_GROUPS_; ++n)
+          for (int n=0; n<NUM_GROUP_; ++n)
             sumQnvn_i += Q_K_(n) * V_IK_(i_phase, i, n);
-          for (int m=0; m<NUM_GROUPS_; ++m) {
+          for (int m=0; m<NUM_GROUP_; ++m) {
             DTHETA_M_DC_I_(m) = Q_K_(m) * c_xX * MWimT_inv / Pi / Pi *
                                 ( V_IK_(i_phase, i, m)
                                   - X_K_(m) * sumQnvn_i );
@@ -712,14 +708,14 @@ void sub_model_UNIFAC_get_jac_contrib(int *sub_model_int_data,
 
           // partial derivative of full residual terms ln(gammaR_j)
           double dlngammaR_j_dc_i = 0.0;
-          for (int k=0; k<NUM_GROUPS_; ++k) {
+          for (int k=0; k<NUM_GROUP_; ++k) {
 
             // partial derivative of group residual activity coefficients
             // ln(Gamma_k)
             double dlnGamma_k_dc_i = 0.0;
-            for (int m=0; m<NUM_GROUPS_; ++m) {
+            for (int m=0; m<NUM_GROUP_; ++m) {
               double sum_n = 0.0;
-              for (int n=0; n<NUM_GROUPS_; ++n)
+              for (int n=0; n<NUM_GROUP_; ++n)
                 sum_n += DTHETA_M_DC_I_(n) * PSI_MN_(n,m);
               dlnGamma_k_dc_i += DTHETA_M_DC_I_(m) *
                                  ( 1.0 / THETA_M_(m)
@@ -735,7 +731,7 @@ void sub_model_UNIFAC_get_jac_contrib(int *sub_model_int_data,
 
           // partial derivative of activity coefficient gamma_j
           double dgamma_j_dc_i = (gamma_j * m_T * MW_I_(i_phase, j) *
-                                  (dlngammaC_j_dc_i + dlngammaR_j_dc_i);
+                                  (dlngammaC_j_dc_i + dlngammaR_j_dc_i)
                                   - gamma_j) / m_T / m_T;
 
           // Add the partial derivative contribution to the
@@ -747,7 +743,7 @@ void sub_model_UNIFAC_get_jac_contrib(int *sub_model_int_data,
       }
     }
   }
-#endif
+
 }
 #endif
 
@@ -772,11 +768,11 @@ void sub_model_UNIFAC_print(int *sub_model_int_data,
   printf("\n*** General group data ***");
   for (int i_group=0; i_group<NUM_GROUP_; ++i_group) {
     printf("\nGroup %d:", i_group);
-    printf("\n  Q_K: %le R_K: %le Theta_M: %le pi_k: %le X_k: %le",
-           Q_K_(i_group), R_K_(i_group), THETA_M_(i_group), PI_K_(i_group),
-           X_K_(i_group));
-    printf("\n  Sum_n (Theta_n Psi_nm): %le", SUM_THETA_PSI_K_(i_group));
-    printf("\n  dTheta_n / dc_i): %le", DTHETA_DC_K_(i_group));
+    printf("\n  Q_K: %le R_K: %le Theta_M: %le X_k: %le",
+           Q_K_(i_group), R_K_(i_group), THETA_M_(i_group), X_K_(i_group));
+    printf("\n  Xi_M: %le ln(Gamma_k): %le", XI_M_(i_group),
+           LN_GAMMA_K_(i_group));
+    printf("\n  dTheta_n / dc_i): %le", DTHETA_M_DC_I_(i_group));
     printf("\n A_MN (by group):");
     for (int j_group=0; j_group<NUM_GROUP_; ++j_group)
       printf(" %le", A_MN_(i_group, j_group));
@@ -798,9 +794,6 @@ void sub_model_UNIFAC_print(int *sub_model_int_data,
       printf("\n    Jacobian ids:");
       for (int i_spec=0; i_spec<NUM_SPEC_(i_phase); ++i_spec)
         printf(" %d", JAC_ID_(i_phase, i_inst, i_spec));
-      printf("\n    gamma_i (by species):");
-      for (int i_spec=0; i_spec<NUM_SPEC_(i_phase); ++i_spec)
-        printf(" %le", GAMMA_I_(i_phase, i_inst, i_spec));
 
     }
     printf("\n  R_I (by species):");

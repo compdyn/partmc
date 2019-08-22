@@ -103,7 +103,9 @@ void solver_new_gpu_cu(int n_dep_var,
   //Set GPU properties
   cudaDeviceProp prop;
   cudaGetDeviceProperties(&prop, device);
-  max_n_gpu_thread = prop.maxThreadsPerBlock/2; //TODO: Fix bug insufficient resources without the /2 (1024 threads)
+
+  //Set max threads without triggering too many resources error
+  max_n_gpu_thread = prop.maxThreadsPerBlock/2;
   max_n_gpu_blocks = prop.maxGridSize[1];
   int n_blocks = (n_rxn + max_n_gpu_thread - 1) / max_n_gpu_thread;
 
@@ -114,17 +116,15 @@ void solver_new_gpu_cu(int n_dep_var,
   cudaMalloc((void **) &env_gpu, env_size);
   cudaMalloc((void **) &rate_constants_gpu, rate_constants_size);
 
-  //GPU allocation few data
+  //GPU allocation few data on pinned memory
   if(few_data){
-    //Pinned memory
-
-    //Can't pin directly variables initialized before, auxiliar variables are created
+    //Notice auxiliar variables are created because we
+    // can't pin directly variables initialized before
     cudaMallocHost((void**)&rate_constants_cpu, rate_constants_size);
     cudaMallocHost((void**)&deriv_cpu, deriv_size);
   }
 
   // Warning if exceeding GPU limits
-
   if( n_blocks > max_n_gpu_blocks){
     printf("\nWarning: More blocks assigned: %d than maximum block numbers: %d",
            n_blocks, max_n_gpu_blocks);
@@ -178,7 +178,6 @@ void solver_set_rxn_data_gpu(ModelData *model_data) {
 
     //Reaction distances between pointers rows
     start_rxn_param[i_rxn] = (unsigned int) ((int *) rxn_data - (int *) rxn_param);
-
     int *rxn_start = rxn_data;
 
     // Get the reaction type
@@ -454,6 +453,8 @@ void rxn_calc_deriv_gpu(ModelData *model_data, N_Vector deriv, realtype time_ste
     n_rxn, n_cells, int_pointer_gpu, double_pointer_gpu, rate_constants_gpu);
 
   cudaDeviceSynchronize();// Secure cuda synchronization
+
+  HANDLE_ERROR2();
 
   //Use pinned memory for few values
   if (few_data){

@@ -98,12 +98,12 @@
       }
     ]
   }
-],
-"not used" : [
+  ],
+  "not used": [
   {
     "name" : "ethanol/water activity",
     "type" : "SUB_MODEL_UNIFAC",
-    "phases" : [ "temp phase" ],
+    "phases" : [ "aqueous aerosol" ],
     "functional groups" : {
       "CH2(-OH)" : {
         "main group" : "CHn(-OH)",

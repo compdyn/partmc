@@ -30,7 +30,8 @@
 #define PMC_DEBUG_PRINT(x) pmc_debug_print(sd->cvode_mem, x, false, 0, __LINE__, __func__)
 #define PMC_DEBUG_PRINT_INT(x,y) pmc_debug_print(sd->cvode_mem, x, false, y, __LINE__, __func__)
 #define PMC_DEBUG_PRINT_FULL(x) pmc_debug_print(sd->cvode_mem, x, true, 0, __LINE__, __func__)
-#define PMC_DEBUG_JAC_STRUCT(x) pmc_debug_print_jac_struct((void*)sd, sd->model_data.J_init, x)
+#define PMC_DEBUG_JAC_STRUCT(J,x) pmc_debug_print_jac_struct((void*)sd, J, x)
+#define PMC_DEBUG_JAC(J,x) pmc_debug_print_jac((void*)sd, J, x)
 void pmc_debug_print(void *cvode_mem, const char *message, bool do_full,
     const int int_val, const int line, const char *func)
 {
@@ -91,11 +92,39 @@ void pmc_debug_print_jac_struct(void *solver_data, SUNMatrix J, const char *mess
   }
 #endif
 }
+void pmc_debug_print_jac(void *solver_data, SUNMatrix J, const char *message)
+{
+#ifdef PMC_USE_SUNDIALS
+  SolverData *sd = (SolverData*) solver_data;
+
+  if( !(sd->debug_out) ) return;
+  int n_state_var = SM_COLUMNS_S(J);
+  int i_elem = 0;
+  int next_col = 0;
+  printf("\n\n   Jacobian - %s\n     ", message);
+  for (int i_dep=0; i_dep < n_state_var; i_dep++)
+    printf("      [%3d]", i_dep);
+  for (int i_ind=0; i_ind < n_state_var; i_ind++) {
+    printf("\n[%3d]   ", i_ind);
+    next_col = SM_INDEXPTRS_S(J)[i_ind+1];
+    for (int i_dep=0; i_dep < n_state_var; i_dep++) {
+      if (i_dep == SM_INDEXVALS_S(J)[i_elem] &&
+          i_elem < next_col) {
+        printf(" % -1.2le ", SM_DATA_S(J)[i_elem++]);
+      } else {
+        printf("     -     ");
+      }
+    }
+  }
+#endif
+}
+
 #else
 #define PMC_DEBUG_PRINT(x)
 #define PMC_DEBUG_PRINT_INT(x,y)
 #define PMC_DEBUG_PRINT_FULL(x)
-#define PMC_DEBUG_JAC_STRUCT(x)
+#define PMC_DEBUG_JAC_STRUCT(J,x)
+#define PMC_DEBUG_JAC(J,x)
 #endif
 
 // Default solver initial time step relative to total integration time
@@ -467,7 +496,7 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   sub_model_update_env_state(&(sd->model_data), env);
   rxn_update_env_state(&(sd->model_data), env);
 
-  PMC_DEBUG_JAC_STRUCT("Begin solving");
+  PMC_DEBUG_JAC_STRUCT(sd->model_data.J_init, "Begin solving");
 
   // Reset the flag indicating a current J_guess
   sd->curr_J_guess = false;
@@ -731,8 +760,10 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
   }
 
   // Reset the sub-model and reaction Jacobians
-  SUNMatZero(md->J_params);
-  SUNMatZero(md->J_rxn);
+  for (int i=0; i<SM_NNZ_S(md->J_params); ++i)
+    SM_DATA_S(md->J_params)[i] = 0.0;
+  for (int i=0; i<SM_NNZ_S(md->J_rxn); ++i)
+    SM_DATA_S(md->J_rxn)[i] = 0.0;
 
   // Reset the primary Jacobian
   /// \todo #83 Figure out how to stop CVODE from resizing the Jacobian
@@ -872,8 +903,9 @@ bool check_Jac(realtype t, N_Vector y, SUNMatrix J, N_Vector deriv,
                i_ind, i_dep, SM_DATA_S(J)[i_elem], partial_deriv,
                fabs(SM_DATA_S(J)[i_elem] - partial_deriv),
                abs_tol);
-        for( int i_spec=0; i_spec<NV_LENGTH_S(tmp); ++i_spec)
-          printf("\n species %d conc: %le", i_spec, NV_DATA_S(tmp)[i_spec]);
+        ModelData *md = &(((SolverData*)solver_data)->model_data);
+        for( int i_spec=0; i_spec<md->n_state_var; ++i_spec)
+          printf("\n species %d conc: %le", i_spec, md->state[i_spec]);
         retval = false;
       }
     }
@@ -1147,7 +1179,7 @@ SUNMatrix get_jac_init(SolverData *solver_data)
     (SM_INDEXPTRS_S(solver_data->model_data.J_rxn))[i_col] = i_elem;
     for (int j=0, i_row=0; j<n_state_var; j++) {
       if (jac_struct_rxn[j][i]==true) {
-	(SM_DATA_S(solver_data->model_data.J_rxn))[i_elem] = (realtype) 1.0;
+	(SM_DATA_S(solver_data->model_data.J_rxn))[i_elem] = (realtype) 0.0;
 	(SM_INDEXVALS_S(solver_data->model_data.J_rxn))[i_elem++] = i_row;
       }
       i_row++;
@@ -1203,6 +1235,8 @@ SUNMatrix get_jac_init(SolverData *solver_data)
     for (int j_spec=0; j_spec < n_state_var; j_spec++)
             jac_struct_param[i_spec][j_spec] = false;
   }
+  // Set up a dummy param at the first position
+  jac_struct_param[0][0] = true;
 
   // Fill in the 2D array of flags with Jacobian elements used by the
   // mechanism sub models
@@ -1218,7 +1252,7 @@ SUNMatrix get_jac_init(SolverData *solver_data)
   // for use in mapping that is set to 1.0. (This is safe because there can be
   // no elements on the diagonal in the sub model Jacobian.)
   solver_data->model_data.J_params =
-      SUNSparseMatrix(n_state_var, n_state_var, n_jac_elem_param+1, CSC_MAT);
+      SUNSparseMatrix(n_state_var, n_state_var, n_jac_elem_param, CSC_MAT);
 
   // Set the column and row indices
   i_col=0, i_elem=0;

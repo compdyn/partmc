@@ -121,15 +121,16 @@ int test_sub_model_zsr_jac_calc(void *solver_data, double *state, double *env,
   // Call the sub-model Jac calculation function
   sub_model_get_jac_contrib(md, J, 0.0);
 
-  ret_val += ASSERT_MSG(SM_DATA_S(J)[0]==J_H2O, "gas-phase water Jac element");
+  // (The first Jacobian element is a dummy element)
   ret_val += ASSERT_MSG(SM_DATA_S(J)[1]==J_H2O, "gas-phase water Jac element");
   ret_val += ASSERT_MSG(SM_DATA_S(J)[2]==J_H2O, "gas-phase water Jac element");
-  ret_val += ASSERT_MSG(SM_DATA_S(J)[3]==J_CL,  "Cl- Jac element");
-  ret_val += ASSERT_MSG(SM_DATA_S(J)[5]==J_CL,  "Cl- Jac element");
-  ret_val += ASSERT_MSG(SM_DATA_S(J)[7]==J_CL,  "Cl- Jac element");
-  ret_val += ASSERT_MSG(SM_DATA_S(J)[4]==J_CA,  "Ca++ Jac element");
-  ret_val += ASSERT_MSG(SM_DATA_S(J)[6]==J_CA,  "Ca++ Jac element");
-  ret_val += ASSERT_MSG(SM_DATA_S(J)[8]==J_CA,  "Ca++ Jac element");
+  ret_val += ASSERT_MSG(SM_DATA_S(J)[3]==J_H2O, "gas-phase water Jac element");
+  ret_val += ASSERT_MSG(SM_DATA_S(J)[4]==J_CL,  "Cl- Jac element");
+  ret_val += ASSERT_MSG(SM_DATA_S(J)[5]==J_CA,  "Ca++ Jac element");
+  ret_val += ASSERT_MSG(SM_DATA_S(J)[6]==J_CL,  "Cl- Jac element");
+  ret_val += ASSERT_MSG(SM_DATA_S(J)[7]==J_CA,  "Ca++ Jac element");
+  ret_val += ASSERT_MSG(SM_DATA_S(J)[8]==J_CL,  "Cl- Jac element");
+  ret_val += ASSERT_MSG(SM_DATA_S(J)[9]==J_CA,  "Ca++ Jac element");
 
   return ret_val;
 }

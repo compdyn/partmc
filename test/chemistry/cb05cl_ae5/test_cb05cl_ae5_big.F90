@@ -527,12 +527,10 @@ contains
 
     state_size_cell = size(phlex_state%state_var) / n_cells
     do i = 0, n_cells-1
-      do j = 1, state_size_cell !80*n_cells
+      do j = 1, state_size_cell
         phlex_state%state_var(i*state_size_cell+j) = phlex_state%state_var(j) !+ 0.1*j
       end do
     end do
-
-    !print*, "phlex_state: ", phlex_state%state_var(:)
 
     ! Save the initial states for repeat calls
     allocate(ebi_init(size(YC)))
@@ -543,7 +541,7 @@ contains
     phlex_init(:) = phlex_state%state_var(:)
 
     ! Repeatedly solve the mechanism
-    do i_repeat = 1, n_repeats !100
+    do i_repeat = 1, n_repeats
 
       !print*, "running"
 
@@ -552,7 +550,7 @@ contains
       phlex_state%state_var(:) = phlex_init(:)
 
       ! Solve the mechanism
-      do i_time = 1, 2!NUM_TIME_STEPS
+      do i_time = 1, 2 !NUM_TIME_STEPS
 
       ! Set minimum concentrations in all solvers
       YC(:) = MAX(YC(:), SMALL_NUM)

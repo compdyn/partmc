@@ -608,7 +608,7 @@ __device__ void rxn_gpu_aqueous_equilibrium_calc_jac_contrib(double *rate_consta
  * \param rxn_data Pointer to the reaction data
  * \return The data size of int array
  */
-void * rxn_gpu_aqueous_equilibrium_int_size(void *rxn_data)
+void * rxn_gpu_aqueous_equilibrium_get_float_pointer(void *rxn_data)
 {
   int n_rxn=1;
   int *int_data = (int*) rxn_data;

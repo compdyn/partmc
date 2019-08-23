@@ -276,7 +276,7 @@ __device__ void rxn_gpu_ZSR_aerosol_water_calc_jac_contrib(double *rate_constant
  * \param rxn_data Pointer to the reaction data
  * \return The data size of int array
  */
-void * rxn_gpu_ZSR_aerosol_water_int_size(void *rxn_data)
+void * rxn_gpu_ZSR_aerosol_water_get_float_pointer(void *rxn_data)
 {
   int n_rxn=1;
   int *int_data = (int*) rxn_data;

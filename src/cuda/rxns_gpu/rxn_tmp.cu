@@ -20,7 +20,7 @@ __global__ void rxn_gpu_tmp_arrhenius
           ModelData *model_data, double *state, double *deriv,
           double time_step, int n_rxn,
           int *int_pointer, double *double_pointer,
-          unsigned int int_max_size, unsigned int double_max_size
+          unsigned int int_max_length, unsigned int double_max_length
           )
 {
 

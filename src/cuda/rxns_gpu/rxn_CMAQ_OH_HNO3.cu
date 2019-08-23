@@ -295,7 +295,7 @@ __device__ void rxn_gpu_CMAQ_OH_HNO3_calc_jac_contrib(double *rate_constants, do
  * \param rxn_data Pointer to the reaction data
  * \return The data size of int array
  */
-void * rxn_gpu_CMAQ_OH_HNO3_int_size(void *rxn_data)
+void * rxn_gpu_CMAQ_OH_HNO3_get_float_pointer(void *rxn_data)
 {
   int n_rxn=1;
   int *int_data = (int*) rxn_data;

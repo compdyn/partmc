@@ -226,7 +226,7 @@ __device__ void rxn_gpu_first_order_loss_calc_jac_contrib(double *rate_constants
  * \param rxn_data Pointer to the reaction data
  * \return The data size of int array
  */
-void * rxn_gpu_first_order_loss_int_size(void *rxn_data)
+void * rxn_gpu_first_order_loss_get_float_pointer(void *rxn_data)
 {
   int n_rxn=1;
   int *int_data = (int*) rxn_data;

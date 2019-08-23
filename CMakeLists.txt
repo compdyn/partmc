@@ -633,7 +633,6 @@ set_source_files_properties(${CB5_EBI_SOLVER} PROPERTIES COMPILE_FLAGS
 ######################################################################
 # test_chemistry_cb05cl_ae5_big
 
-if (NOT ENABLE_TESTS)
 add_executable(mock_monarch test/monarch/mock_monarch.F90
         test/monarch/pmc_monarch_interface.F90)
 target_link_libraries(mock_monarch partmclib)
@@ -643,8 +642,6 @@ add_executable(test_chemistry_cb05cl_ae5_big
         ${CB5_EBI_SOLVER} ${CB5_KPP_SOLVER}
         test/chemistry/cb05cl_ae5/module_BSC_CHEM_DATA.F90)
 target_link_libraries(test_chemistry_cb05cl_ae5_big partmclib)
-
-endif()
 
 if (ENABLE_TESTS)
 

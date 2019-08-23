@@ -163,7 +163,7 @@ __device__ void rxn_gpu_arrhenius_calc_deriv_contrib(double *rate_constants, dou
   //double rate = RATE_CONSTANT_;
   double rate = rate_constants[0];
   for (int i_spec=0; i_spec<NUM_REACT_; i_spec++) rate *= state[REACT_(i_spec)];
-  
+
   // Add contributions to the time derivative
   if (rate!=ZERO) {
     int i_dep_var = 0;
@@ -316,7 +316,7 @@ __device__ void rxn_gpu_arrhenius_calc_jac_contrib(double *rate_constants, doubl
  * \param rxn_data Pointer to the reaction data
  * \return The data size of int array
  */
-void * rxn_gpu_arrhenius_int_size(void *rxn_data)
+void * rxn_gpu_arrhenius_get_float_pointer(void *rxn_data)
 {
   int n_rxn=1;
   int *int_data = (int*) rxn_data;

@@ -1620,7 +1620,7 @@ contains
     type(aero_rep_data_ptr), pointer :: new_aero_rep(:)
     type(aero_rep_factory_t) :: aero_rep_factory
 
-    !TODO: Improve this multiple reallocation !cguzman
+    !TODO: Improve this multiple reallocation
     allocate(new_aero_rep(size(this%aero_rep)+1))
 
     new_aero_rep(1:size(this%aero_rep)) = &

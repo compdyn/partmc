@@ -344,11 +344,9 @@ contains
                               solver_stats = solver_stats)
         model_activity(i_mass_frac,:) = 0.0d0
         model_activity(i_mass_frac, idx_butanol) = &
-                phlex_state%state_var(idx_butanol_act) * &
-                phlex_state%state_var(idx_butanol)
+                phlex_state%state_var(idx_butanol_act)
         model_activity(i_mass_frac, idx_water) = &
-                phlex_state%state_var(idx_water_act) * &
-                phlex_state%state_var(idx_water)
+                phlex_state%state_var(idx_water_act)
 
 #ifdef PMC_DEBUG
         ! Check the Jacobian evaluations

@@ -228,7 +228,7 @@ void sub_model_UNIFAC_calculate(int *sub_model_int_data,
       if (m_T<=0.0) {
         for (int i_spec=0; i_spec<NUM_SPEC_(i_phase); ++i_spec) {
           state[PHASE_INST_ID_(i_phase, i_instance) +
-                GAMMA_ID_(i_phase, i_spec)] = 1.0;
+                GAMMA_ID_(i_phase, i_spec)] = 0.0;
         }
         continue;
       }
@@ -320,11 +320,10 @@ void sub_model_UNIFAC_calculate(int *sub_model_int_data,
                         ( LN_GAMMA_K_(k) - LN_GAMMA_IK_(i_phase, j, k) );
         }
 
-        // Calculate gamma_i Eq. 1 and convert to units of (m^3/ug)
-        // Set the parameter on the model state
+        // Calculate gamma_i Eq. 1
         state[PHASE_INST_ID_(i_phase, i_instance) +
               GAMMA_ID_(i_phase, j)] =
-          exp( lngammaC_j + lngammaR_j ) / m_T / MW_I_(i_phase, j);
+          exp( lngammaC_j + lngammaR_j ) * X_I_(i_phase, j);
       }
     }
   }
@@ -431,7 +430,7 @@ void sub_model_UNIFAC_calculate(int *sub_model_int_data,
  *        - \frac{1}{\Phi_j}\frac{\partial \Phi_j}{\partial c_i}\right) \\
  *      & \quad - \frac{\partial \Phi_j}{\partial c_i}\frac{\mu}{x_j}
  *      - \frac{\Phi_j}{x_j}\frac{\partial \mu}{\partial c_i}
- *      - \frac{\Phi_j \mu}{x_j^2}\frac{\partial x_j}{\partial c_i}
+ *      + \frac{\Phi_j \mu}{x_j^2}\frac{\partial x_j}{\partial c_i}
  * \end{align*}
  * \f]
  *  As \f$\sigma\f$, \f$\tau\f$,
@@ -491,7 +490,7 @@ void sub_model_UNIFAC_calculate(int *sub_model_int_data,
  *  with respect to \f$c_i\f$ is:
  * \f[
  *   \begin{align*}
- *    \frac{\partial \Gamma_k}{\partial c_i} & = Q_k \left[
+ *    \frac{\partial \ln{\Gamma_k}}{\partial c_i} & = Q_k \left[
  *      - \frac{1}{\displaystyle\sum_m\Theta_m\Psi_{mk}}
  *        \displaystyle\sum_m\frac{\partial\Theta_m}{\partial c_i}\Psi_{mk} \\
  *      \quad - \displaystyle\sum_m\left(
@@ -508,7 +507,7 @@ void sub_model_UNIFAC_calculate(int *sub_model_int_data,
  * \f[
  *   \begin{align*}
  *    \Xi_m & \equiv \displaystyle\sum_n\Theta_n\Psi_{nm}, \\
- *    \frac{\partial \Gamma_k}{\partial c_i} & =
+ *    \frac{\partial \ln{\Gamma_k}}{\partial c_i} & =
  *      - Q_k \displaystyle\sum_m \left(
  *      \frac{1}{\Theta_m}\frac{\partial\Theta_m}{\partial c_i}
  *      + \frac{\Psi_{km}}{\Xi_m}
@@ -527,8 +526,8 @@ void sub_model_UNIFAC_calculate(int *sub_model_int_data,
  *   \begin{align*}
  *   \frac{\partial \ln{\Gamma_k^{(j)}}}{\partial c_i} & = 0 \\
  *   \frac{\partial \ln{\gamma_j^R}}{\partial c_i} & =
- *     \displaystyle\sum_k \frac{v_k^{(j)}}{\Gamma_k}
- *        \frac{\partial \Gamma_k}{\partial c_i}
+ *     \displaystyle\sum_k v_k^{(j)}
+ *        \frac{\partial \ln{\Gamma_k}}{\partial c_i}
  *   \end{align*}
  * \f]
  *  The overall equation for the partial derivative of \f$\gamma_j\f$ with
@@ -615,7 +614,7 @@ void sub_model_UNIFAC_get_jac_contrib(int *sub_model_int_data,
       for (int i_group=0; i_group<NUM_GROUP_; ++i_group)
         THETA_M_(i_group) = Q_K_(i_group) * X_K_(i_group) / Pi;
 
-      // Xi_k
+      // Xi_m
       for (int i_group=0; i_group<NUM_GROUP_; ++i_group) {
         XI_M_(i_group) = 0;
         for (int j_group=0; j_group<NUM_GROUP_; ++j_group)
@@ -645,12 +644,13 @@ void sub_model_UNIFAC_get_jac_contrib(int *sub_model_int_data,
         Theta_j = Q_I_(i_phase, j) * x_j / tau;
 
         // Full combinatorial term
-        double lngammaC_j;
-        lngammaC_j = log( Phi_j / x_j )
-                    + 5.0 * Q_I_(i_phase, j) * log( Theta_j / Phi_j )
-                    + L_I_(i_phase, j)
-                    - Phi_j / x_j * mu;
-
+        double lngammaC_j = 0.0;
+        if (X_I_(i_phase, j) > 0.0) {
+          lngammaC_j = log( Phi_j / x_j )
+                      + 5.0 * Q_I_(i_phase, j) * log( Theta_j / Phi_j )
+                      + L_I_(i_phase, j)
+                      - Phi_j / x_j * mu;
+        }
 
         // Full residual term
         double lngammaR_j = 0.0;
@@ -660,8 +660,7 @@ void sub_model_UNIFAC_get_jac_contrib(int *sub_model_int_data,
         }
 
         // Activity coefficient gamma_j (in m3/ug)
-        double gamma_j = exp(lngammaC_j + lngammaR_j) / m_T /
-                         MW_I_(i_phase, j);
+        double gamma_j = exp(lngammaC_j + lngammaR_j);
 
         // Loop over independent species i
         double dx_j_dc_i, dPhi_j_dc_i, dTheta_j_dc_i; // combinatorial
@@ -687,12 +686,11 @@ void sub_model_UNIFAC_get_jac_contrib(int *sub_model_int_data,
 
           // partial derivative of full combinatorial term ln(gammaC_j)
           dlngammaC_j_dc_i = dPhi_j_dc_i / Phi_j - dx_j_dc_i / x_j
-                            + 0.5 * Q_I_(i_phase, j) *
+                            + 5.0 * Q_I_(i_phase, j) *
                                 (dTheta_j_dc_i / Theta_j - dPhi_j_dc_i / Phi_j)
-                            - dTheta_j_dc_i * mu / x_j
-                            - Theta_j / x_j * dmu_dc_i
-                            - Phi_j * mu / x_j / x_j * dx_j_dc_i;
-
+                            - dPhi_j_dc_i * mu / x_j
+                            - Phi_j / x_j * dmu_dc_i
+                            + Phi_j * mu / x_j / x_j * dx_j_dc_i;
 
 
           // Residual partial derivatives
@@ -725,16 +723,16 @@ void sub_model_UNIFAC_get_jac_contrib(int *sub_model_int_data,
                                  + THETA_M_(m) * PSI_MN_(k,m) /
                                    pow( XI_M_(m), 2 ) * sum_n;
             }
+            dlnGamma_k_dc_i *= -Q_K_(k);
 
             dlngammaR_j_dc_i += V_IK_(i_phase, i, k)
-                                / exp( LN_GAMMA_K_(k) )
                                 * dlnGamma_k_dc_i;
           }
 
           // partial derivative of activity coefficient gamma_j
-          double dgamma_j_dc_i = (gamma_j * m_T * MW_I_(i_phase, j) *
-                                  (dlngammaC_j_dc_i + dlngammaR_j_dc_i)
-                                  - gamma_j) / m_T / m_T;
+          double dgamma_j_dc_i = gamma_j * x_j *
+                                   (dlngammaC_j_dc_i + dlngammaR_j_dc_i)
+                                 + gamma_j * dx_j_dc_i;
 
           // Add the partial derivative contribution to the
           // Jacobian

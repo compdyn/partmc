@@ -14,6 +14,7 @@ program pmc_test_sub_module_UNIFAC
   use pmc_phlex_core
   use pmc_phlex_state
   use pmc_aero_rep_data
+  use pmc_solver_stats
 #ifdef PMC_USE_JSON
   use json_module
 #endif
@@ -31,6 +32,7 @@ program pmc_test_sub_module_UNIFAC
     if (pmc_mpi_rank().eq.0) write(*,*) "UNIFAC activity sub module tests - PASS"
   else
     if (pmc_mpi_rank().eq.0) write(*,*) "UNIFAC activity sub module tests - FAIL"
+    stop 3
   end if
 
   ! finalize mpi
@@ -65,7 +67,7 @@ contains
   !> Calculate UNIFAC acitivity coefficients for the n-butanol/water mixture
   !!
   !! Example is from Marcolli and Peter, ACP 5(2), 1501-1527, 2005. (fig 3a)
-  !! 
+  !!
   !! Equations in the test comments are from the same reference.
   !!
   logical function run_UNIFAC_test()
@@ -80,13 +82,11 @@ contains
     type(string_t), allocatable, dimension(:) :: output_file_path
 
     class(aero_rep_data_t), pointer :: aero_rep_ptr
-    real(kind=dp), dimension(0:NUM_MASS_FRAC_STEP, 15) :: model_conc, &
+    real(kind=dp), dimension(0:NUM_MASS_FRAC_STEP, 27) :: model_conc, &
             calc_conc, model_activity, calc_activity
     integer(kind=i_kind) :: idx_butanol, idx_water, i_mass_frac, i_spec
-    integer(kind=c_int), target :: idx_butanol_c, idx_water_c, &
-            idx_butanol_act_c, idx_water_act_c
+    integer(kind=i_kind) :: idx_butanol_act, idx_water_act
     real(kind=dp) :: mass_frac_step, mole_frac, mass_frac
-    type(c_ptr) :: identifiers
 #ifdef PMC_USE_MPI
     character, allocatable :: buffer(:), buffer_copy(:)
     integer(kind=i_kind) :: pack_size, pos, i_elem, results
@@ -98,7 +98,7 @@ contains
     ! Molecular weights
     real(kind=dp), parameter :: mw_butanol = 74.12
     real(kind=dp), parameter :: mw_water = 18.01
-    
+
     ! Number of functional groups
     integer(kind=i_kind), parameter :: num_group = 5
 
@@ -131,15 +131,19 @@ contains
     real(kind=dp), dimension(num_group) :: ln_GAMMA_butanol_pure, ln_GAMMA_water_pure
     real(kind=dp), dimension(num_group) :: ln_GAMMA_mixture
     real(kind=dp) :: sum_Qn_Xn_butanol, sum_Qn_Xn_water, sum_Qn_Xn_mixture
+    real(kind=dp) :: tot_grps_butanol, tot_grps_water, tot_grps_mixture
     real(kind=dp) :: PHI_butanol, PHI_water
     real(kind=dp) :: THETA_butanol, THETA_water
     real(kind=dp) :: ln_gamma_C_butanol, ln_gamma_C_water
     real(kind=dp) :: ln_gamma_R_butanol, ln_gamma_R_water
 
     real(kind=dp), dimension(num_group) :: THETA_m
-    real(kind=dp) :: sum_m_A, sum_m_B, sum_n 
+    real(kind=dp) :: sum_m_A, sum_m_B, sum_n
+    real(kind=dp) :: mole_frac_conv
 
     integer(kind=i_kind) :: i, k, m, n
+
+    type(solver_stats_t), target :: solver_stats
 
     run_UNIFAC_test = .true.
 
@@ -173,17 +177,23 @@ contains
     ! Calculate the sum (Q_n * X_n) in the denominator of eq 9 for pure liquids
     sum_Qn_Xn_butanol = 0.0d0
     sum_Qn_Xn_water   = 0.0d0
+    tot_grps_butanol  = 0.0d0
+    tot_grps_water    = 0.0d0
     do n = 1, num_group
-      sum_Qn_Xn_butanol = sum_Qn_Xn_butanol + Q_k(n) * real(butanol_grps(n), kind=dp) 
+      sum_Qn_Xn_butanol = sum_Qn_Xn_butanol + Q_k(n) * real(butanol_grps(n), kind=dp)
       sum_Qn_Xn_water   = sum_Qn_Xn_water   + Q_k(n) * real(water_grps(n),   kind=dp)
+      tot_grps_butanol  = tot_grps_butanol + real(butanol_grps(n), kind=dp)
+      tot_grps_water    = tot_grps_water   + real(water_grps(n),   kind=dp)
     end do
+    sum_Qn_Xn_butanol = sum_Qn_Xn_butanol / tot_grps_butanol
+    sum_Qn_Xn_water   = sum_Qn_Xn_water   / tot_grps_water
 
     ! Calculate group residual acitivty coefficient for pure liquids (ln(GAMMA_k^(i)) in eq 7 & 8)
     ! ... for butanol
     do m = 1, num_group
       THETA_m(m) = Q_k(m) &
                    * real(butanol_grps(m), kind=dp) &
-                   / sum_Qn_Xn_butanol
+                   / tot_grps_butanol / sum_Qn_Xn_butanol
     end do
     do k = 1, num_group
       sum_m_A = 0.0d0 ! ln( sum_m_A  ) term in eq 8
@@ -202,8 +212,8 @@ contains
     ! ... for water
     do m = 1, num_group
       THETA_m(m) = Q_k(m) &
-                   * real(water_grps(m), kind=dp) & 
-                   / sum_Qn_Xn_water
+                   * real(water_grps(m), kind=dp) &
+                   / tot_grps_water / sum_Qn_Xn_water
     end do
     do k = 1, num_group
       sum_m_A = 0.0d0 ! ln( sum_m_A  ) term in eq 8
@@ -247,6 +257,10 @@ contains
       idx_butanol = aero_rep_ptr%spec_state_id(key);
       key = "n-butanol/water mixture.water"
       idx_water = aero_rep_ptr%spec_state_id(key);
+      key = "n-butanol/water mixture.gamma n-butanol"
+      idx_butanol_act = aero_rep_ptr%spec_state_id(key);
+      key = "n-butanol/water mixture.gamma water"
+      idx_water_act = aero_rep_ptr%spec_state_id(key);
 
       ! Make sure the expected species are in the model
       call assert(486977094, idx_butanol.gt.0)
@@ -305,17 +319,10 @@ contains
       phlex_state%env_state%pressure = pressure
       call phlex_state%update_env_state()
 
-      ! Get the parameter id for the activity coefficients
-      idx_butanol_c = int(idx_butanol-1, kind=c_int)
-      identifiers = c_loc(idx_butanol_c)
-      idx_butanol_act_c = phlex_core%get_sub_model_parameter_id(SUB_MODEL_UNIFAC, &
-                identifiers)
-      idx_water_c = int(idx_water-1, kind=c_int)
-      identifiers = c_loc(idx_water_c)
-      idx_water_act_c = phlex_core%get_sub_model_parameter_id(SUB_MODEL_UNIFAC, &
-                identifiers)
-      call assert(875073956, idx_butanol_act_c.gt.-1)
-      call assert(703463813, idx_water_act_c.gt.-1)
+#ifdef PMC_DEBUG
+      ! Evaluate the Jacobian during solving
+      solver_stats%eval_Jac = .true.
+#endif
 
       ! Integrate the mechanism
       do i_mass_frac = 0, NUM_MASS_FRAC_STEP
@@ -328,24 +335,43 @@ contains
         calc_conc(i_mass_frac, idx_butanol) = (1.0d0 - mole_frac) * mw_butanol
         calc_conc(i_mass_frac, idx_water)   = mole_frac * mw_water
         model_conc(i_mass_frac,:) = calc_conc(i_mass_frac,:)
-      
+
         ! Set the concentrations in the model
         phlex_state%state_var(:) = model_conc(i_mass_frac,:)
 
         ! Get the modeled conc
-        call phlex_core%solve(phlex_state, real(1.0, kind=dp))
+        call phlex_core%solve(phlex_state, real(1.0, kind=dp), &
+                              solver_stats = solver_stats)
         model_activity(i_mass_frac,:) = 0.0d0
         model_activity(i_mass_frac, idx_butanol) = &
-                real(phlex_core%get_sub_model_parameter_value(idx_butanol_act_c), kind=dp) &
-                * phlex_state%state_var(idx_butanol)
+                phlex_state%state_var(idx_butanol_act) * &
+                phlex_state%state_var(idx_butanol)
         model_activity(i_mass_frac, idx_water) = &
-                real(phlex_core%get_sub_model_parameter_value(idx_water_act_c), kind=dp) &
-                * phlex_state%state_var(idx_water)
+                phlex_state%state_var(idx_water_act) * &
+                phlex_state%state_var(idx_water)
+
+#ifdef PMC_DEBUG
+        ! Check the Jacobian evaluations
+        call assert_msg(356112682, solver_stats%Jac_eval_fails.eq.0, &
+                        trim( to_string( solver_stats%Jac_eval_fails ) )// &
+                        " Jacobian evaluation failures for mass fraction: "// &
+                        trim( to_string( mass_frac ) ) )
+#endif
 
         !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         !!! Get the UNIFAC activities !!!
         !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      
+
+        ! Species mole fraction to group mole fraction conversion
+        tot_grps_mixture = 0.0d0;
+        do n=1, num_group
+          tot_grps_mixture = tot_grps_mixture + (1.0d0 - mole_frac) * &
+                             real(butanol_grps(n), kind=dp)
+          tot_grps_mixture = tot_grps_mixture + mole_frac * &
+                             real(water_grps(n),   kind=dp)
+        end do
+        mole_frac_conv = tot_grps_mixture ! total moles is always 1.0
+
         ! Equation 4
         PHI_butanol = r_butanol * (1.0d0 - mole_frac) / &
                 (r_butanol * (1.0d0 - mole_frac) + r_water * mole_frac)
@@ -355,7 +381,7 @@ contains
                 (q_butanol * (1.0d0 - mole_frac) + q_water * mole_frac)
         THETA_water   = q_water * mole_frac / &
                 (q_butanol * (1.0d0 - mole_frac) + q_water * mole_frac)
-     
+
         ! Combinatorial portion (ln(gamma_i^C)) Eq. 3
         if (i_mass_frac.eq.NUM_MASS_FRAC_STEP) then
           ln_gamma_C_butanol = 0.0d0
@@ -373,7 +399,7 @@ contains
                              + 5.0d0 * q_water * log(THETA_water/PHI_water) &
                              + l_water &
                              - PHI_water / mole_frac &
-                                * ((1.0d0 - mole_frac) * l_butanol + mole_frac * l_water) 
+                                * ((1.0d0 - mole_frac) * l_butanol + mole_frac * l_water)
         end if
 
         ! Calculate the sum (Q_n * X_n) in the denominator of eq 9 for the mixture
@@ -381,18 +407,21 @@ contains
         do n = 1, num_group
           sum_Qn_Xn_mixture = sum_Qn_Xn_mixture &
                               + Q_k(n) &
-                              * ( (1.0d0 - mole_frac) * real(butanol_grps(n), kind=dp) &
-                                   + mole_frac * real(water_grps(n), kind=dp) )
+                              * ( (1.0d0 - mole_frac) * &
+                                   real(butanol_grps(n), kind=dp) &
+                                 + mole_frac * real(water_grps(n), kind=dp) &
+                                ) / mole_frac_conv
         end do
 
         ! Group surface area fraction (Eq. 9)
         do m = 1, num_group
           THETA_m(m) = Q_k(m) &
                        * ( (1.0d0 - mole_frac) * real(butanol_grps(m), kind=dp) &
-                            + mole_frac * real(water_grps(m), kind=dp) ) &
+                            + mole_frac * real(water_grps(m), kind=dp) &
+                         ) / mole_frac_conv &
                        / sum_Qn_Xn_mixture
         end do
-      
+
         ! Group residual activity coefficients (ln(GAMMA_k)) Eq. 8
         do k = 1, num_group
           sum_m_A = 0.0d0 ! ln( sum_m_A  ) term in eq 8
@@ -443,8 +472,8 @@ contains
       ! Analyze the results
       do i_mass_frac = 1, NUM_MASS_FRAC_STEP
         mass_frac = i_mass_frac * mass_frac_step
-     
-        ! Check these calculations against the digitized plot for n-butanol/water @ 25C 
+
+        ! Check these calculations against the digitized plot for n-butanol/water @ 25C
         ! (The digitized plot is noisy close to butanol mass fraction = 1.0)
         if (mass_frac < 0.97d0) then
           call assert_msg(666095395, &
@@ -475,7 +504,7 @@ contains
         results = 1
       end if
     end if
-    
+
     ! Send the results back to the primary process
     call pmc_mpi_transfer_integer(results, results, 1, 0)
 
@@ -490,7 +519,7 @@ contains
 
     deallocate(buffer)
 #endif
-    
+
     deallocate(phlex_core)
 
     run_UNIFAC_test = .true.

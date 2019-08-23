@@ -3,14 +3,13 @@
 ! option) any later version. See the file COPYING for details.
 
 !> \file
-!> The pmc_rxn_ZSR_aerosol_water module.
+!> The pmc_sub_model_ZSR_aerosol_water module.
 
 ! TODO Incorporate deliquesence calculations
-! FIXME Move to a sub-model
 
-!> \page phlex_rxn_ZSR_aerosol_water Phlexible Module for Chemistry: ZSR Aerosol Water Reaction
+!> \page phlex_sub_model_ZSR_aerosol_water Phlexible Module for Chemistry: ZSR Aerosol Water
 !!
-!! ZSR aerosol water reactions calculate equilibrium aerosol water content
+!! ZSR aerosol water calculates equilibrium aerosol water content
 !! based on the Zdanovski-Stokes-Robinson mixing rule \cite Jacobson1996 in
 !! the following generalized format:
 !!
@@ -27,8 +26,9 @@
 !!
 !! Input data for ZSR aerosol water calculations have the following format :
 !! \code{.json}
+!! { "pmc-data" : [
 !!   {
-!!     "type" : "ZSR_AEROSOL_WATER",
+!!     "type" : "SUB_MODEL_ZSR_AEROSOL_WATER",
 !!     "aerosol phase" : "my aero phase",
 !!     "gas-phase water" : "H2O",
 !!     "aerosol-phase water" : "H2O_aq",
@@ -49,11 +49,12 @@
 !!         },
 !!         "NW" : 4.5,
 !!         "ZW" : 0.5,
-!!         "MW" : 98.0
+!!         "MW" : 0.0980
 !!       }
 !!       ...
 !!     }
 !!   }
+!! ]}
 !! \endcode
 !! The key-value pair \b aerosol \b phase is required to specify the aerosol
 !! phase for which to calculate water content. Key-value pairs
@@ -144,8 +145,8 @@
 
 ! TODO Find a way to incorporate the "regimes" in EQSAM
 
-!> The rxn_ZSR_aerosol_water_t type and associated functions.
-module pmc_rxn_ZSR_aerosol_water
+!> The sub_model_ZSR_aerosol_water_t type and associated functions.
+module pmc_sub_model_ZSR_aerosol_water
 
   use pmc_aero_phase_data
   use pmc_aero_rep_data
@@ -153,15 +154,15 @@ module pmc_rxn_ZSR_aerosol_water
   use pmc_constants,                        only: const
   use pmc_phlex_state
   use pmc_property
-  use pmc_rxn_data
+  use pmc_sub_model_data
   use pmc_util,                             only: i_kind, dp, to_string, &
                                                   assert, assert_msg, &
                                                   die_msg, string_t
 
   implicit none
   private
-#define ACT_CALCJACOBSON 1
-#define ACT_CALCEQSAM 2
+#define ACT_CALC_JACOBSON 1
+#define ACT_CALC_EQSAM 2
 
 #define NUM_PHASE_ this%condensed_data_int(1)
 #define GAS_WATER_ID_ this%condensed_data_int(2)
@@ -171,7 +172,7 @@ module pmc_rxn_ZSR_aerosol_water
 #define PPM_TO_RH_ this%condensed_data_real(1)
 #define NUM_INT_PROP_ 5
 #define NUM_REAL_PROP_ 1
-#define PHASE_ID_(x) this%condensed_data_int(NUM_INT_PROP_+x)
+#define PHASE_ID_(p) this%condensed_data_int(NUM_INT_PROP_+p)
 #define PAIR_INT_PARAM_LOC_(x) this%condensed_data_int(NUM_INT_PROP_+NUM_PHASE_+x)
 #define PAIR_FLOAT_PARAM_LOC_(x) this%condensed_data_int(NUM_INT_PROP_+NUM_PHASE_+NUM_ION_PAIR_+x)
 #define TYPE_(x) this%condensed_data_int(PAIR_INT_PARAM_LOC_(x))
@@ -180,8 +181,13 @@ module pmc_rxn_ZSR_aerosol_water
 #define JACOB_CATION_ID_(x) this%condensed_data_int(PAIR_INT_PARAM_LOC_(x)+3)
 #define JACOB_ANION_ID_(x) this%condensed_data_int(PAIR_INT_PARAM_LOC_(x)+4)
 #define JACOB_NUM_Y_(x) this%condensed_data_int(PAIR_INT_PARAM_LOC_(x)+5)
+#define JACOB_GAS_WATER_JAC_ID_(p,x) this%condensed_data_int(PAIR_INT_PARAM_LOC_(x)+5+p)
+#define JACOB_CATION_JAC_ID_(p,x) this%condensed_data_int(PAIR_INT_PARAM_LOC_(x)+5+NUM_PHASE_+p)
+#define JACOB_ANION_JAC_ID_(p,x) this%condensed_data_int(PAIR_INT_PARAM_LOC_(x)+5+2*NUM_PHASE_+p)
 #define EQSAM_NUM_ION_(x) this%condensed_data_int(PAIR_INT_PARAM_LOC_(x)+1)
-#define EQSAM_ION_ID_(x,y) this%condensed_data_int(PAIR_INT_PARAM_LOC_(x)+1+y)
+#define EQSAM_GAS_WATER_JAC_ID_(p,x) this%condensed_data_int(PAIR_INT_PARAM_LOC_(x)+1+p)
+#define EQSAM_ION_ID_(x,y) this%condensed_data_int(PAIR_INT_PARAM_LOC_(x)+1+NUM_PHASE_+y)
+#define EQSAM_ION_JAC_ID_(p,x,y) this%condensed_data_int(PAIR_INT_PARAM_LOC_(x)+1+NUM_PHASE_+EQSAM_NUM_ION_(x)+(y-1)*NUM_PHASE_+p)
 #define JACOB_low_RH_(x) this%condensed_data_real(PAIR_FLOAT_PARAM_LOC_(x))
 #define JACOB_CATION_MW_(x) this%condensed_data_real(PAIR_FLOAT_PARAM_LOC_(x)+1)
 #define JACOB_ANION_MW_(x) this%condensed_data_real(PAIR_FLOAT_PARAM_LOC_(x)+2)
@@ -191,21 +197,25 @@ module pmc_rxn_ZSR_aerosol_water
 #define EQSAM_ION_PAIR_MW_(x) this%condensed_data_real(PAIR_FLOAT_PARAM_LOC_(x)+2)
 #define EQSAM_ION_MW_(x,y) this%condensed_data_real(PAIR_FLOAT_PARAM_LOC_(x)+2+y)
 
-  public :: rxn_ZSR_aerosol_water_t
+  public :: sub_model_ZSR_aerosol_water_t
 
   !> Generic test reaction data type
-  type, extends(rxn_data_t) :: rxn_ZSR_aerosol_water_t
+  type, extends(sub_model_data_t) :: sub_model_ZSR_aerosol_water_t
   contains
     !> Reaction initialization
     procedure :: initialize
+    !> Return a real number representing the priority of the sub-model
+    !! calculations. Low priority sub models may depend on the results
+    !! of higher priority sub models.
+    procedure :: priority
     !> Finalize
     final :: finalize
-  end type rxn_ZSR_aerosol_water_t
+  end type sub_model_ZSR_aerosol_water_t
 
-  !> Constructor for rxn_ZSR_aerosol_water_t
-  interface rxn_ZSR_aerosol_water_t
+  !> Constructor for sub_model_ZSR_aerosol_water_t
+  interface sub_model_ZSR_aerosol_water_t
     procedure :: constructor
-  end interface rxn_ZSR_aerosol_water_t
+  end interface sub_model_ZSR_aerosol_water_t
 
 contains
 
@@ -215,10 +225,9 @@ contains
   function constructor() result(new_obj)
 
     !> A new reaction instance
-    type(rxn_ZSR_aerosol_water_t), pointer :: new_obj
+    type(sub_model_ZSR_aerosol_water_t), pointer :: new_obj
 
     allocate(new_obj)
-    new_obj%rxn_phase = AERO_RXN
 
   end function constructor
 
@@ -227,14 +236,16 @@ contains
   !> Initialize the reaction data, validating component data and loading
   !! any required information into the condensed data arrays for use during
   !! solving
-  subroutine initialize(this, chem_spec_data, aero_rep)
+  subroutine initialize(this, aero_rep_set, aero_phase_set, chem_spec_data)
 
     !> Reaction data
-    class(rxn_ZSR_aerosol_water_t), intent(inout) :: this
+    class(sub_model_ZSR_aerosol_water_t), intent(inout) :: this
+    !> The set of aerosol representations
+    type(aero_rep_data_ptr), pointer, intent(in) :: aero_rep_set(:)
+    !> The set of aerosol phases
+    type(aero_phase_data_ptr), pointer, intent(in) :: aero_phase_set(:)
     !> Chemical species data
     type(chem_spec_data_t), intent(in) :: chem_spec_data
-    !> Aerosol representations
-    type(aero_rep_data_ptr), pointer, intent(in) :: aero_rep(:)
 
     type(property_t), pointer :: spec_props, ion_pairs, ion_pair, sub_props, &
             ions
@@ -259,11 +270,11 @@ contains
 
     ! Count the instances of the aerosol phase
     n_phase = 0
-    do i_aero_rep = 1, size(aero_rep)
+    do i_aero_rep = 1, size(aero_rep_set)
 
       ! Get the number of instances of the phase in this representation
       n_phase = n_phase + &
-              aero_rep(i_aero_rep)%val%num_phase_instances(phase_name)
+              aero_rep_set(i_aero_rep)%val%num_phase_instances(phase_name)
 
     end do
 
@@ -318,7 +329,7 @@ contains
                 "ZSR aerosol water reaction.")
 
         n_float_param = n_float_param + 3 + sub_props%size()
-        n_int_param = n_int_param + 6
+        n_int_param = n_int_param + 6 + 3*n_phase
 
       else if (str_type.eq."EQSAM") then
 
@@ -336,7 +347,7 @@ contains
                 "' in ZSR aerosol water reaction.")
 
         n_float_param = n_float_param + 3 + sub_props%size()
-        n_int_param = n_int_param + 2 + sub_props%size()
+        n_int_param = n_int_param + 2 + n_phase + (1+n_phase)*sub_props%size()
 
       else
         call die_msg(704759248, "Invalid activity type specified for ZSR "// &
@@ -383,12 +394,12 @@ contains
     ! phase instance. Then the aerosol water id is 1, and the ion
     ! ids will be relative to the water id in each phase.
     i_phase = 1
-    do i_aero_rep = 1, size(aero_rep)
-      unique_spec_names = aero_rep(i_aero_rep)%val%unique_names( &
+    do i_aero_rep = 1, size(aero_rep_set)
+      unique_spec_names = aero_rep_set(i_aero_rep)%val%unique_names( &
               phase_name = phase_name, spec_name = spec_name)
       if (.not.allocated(unique_spec_names)) cycle
       do i_spec = 1, size(unique_spec_names)
-        PHASE_ID_(i_phase) = aero_rep(i_aero_rep)%val%spec_state_id( &
+        PHASE_ID_(i_phase) = aero_rep_set(i_aero_rep)%val%spec_state_id( &
                 unique_spec_names(i_spec)%string)
         call assert(204327668, PHASE_ID_(i_phase).gt.0)
         i_phase = i_phase + 1
@@ -426,7 +437,7 @@ contains
       if (str_type.eq."JACOBSON") then
 
         ! Set the type
-        TYPE_(i_ion_pair) = ACT_CALCJACOBSON
+        TYPE_(i_ion_pair) = ACT_CALC_JACOBSON
 
         ! Get the Y_j parameters
         key_name = "Y_j"
@@ -509,32 +520,32 @@ contains
 
           ! Get the state ids for this species
           i_phase = 1
-          do i_aero_rep = 1, size(aero_rep)
-            unique_spec_names = aero_rep(i_aero_rep)%val%unique_names( &
+          do i_aero_rep = 1, size(aero_rep_set)
+            unique_spec_names = aero_rep_set(i_aero_rep)%val%unique_names( &
                     phase_name = phase_name, spec_name = ion_name)
             if (.not.allocated(unique_spec_names)) cycle
             do i_spec = 1, size(unique_spec_names)
               if (charge.gt.0) then
                 if (i_phase.eq.1) then
                   JACOB_CATION_ID_(i_ion_pair) = &
-                          aero_rep(i_aero_rep)%val%spec_state_id( &
+                          aero_rep_set(i_aero_rep)%val%spec_state_id( &
                           unique_spec_names(i_spec)%string) - &
                           PHASE_ID_(i_phase)
                 else
                   call assert(473680545, JACOB_CATION_ID_(i_ion_pair).eq. &
-                          aero_rep(i_aero_rep)%val%spec_state_id( &
+                          aero_rep_set(i_aero_rep)%val%spec_state_id( &
                           unique_spec_names(i_spec)%string) - &
                           PHASE_ID_(i_phase))
                 end if
               else
                 if (i_phase.eq.1) then
                   JACOB_ANION_ID_(i_ion_pair) = &
-                          aero_rep(i_aero_rep)%val%spec_state_id( &
+                          aero_rep_set(i_aero_rep)%val%spec_state_id( &
                           unique_spec_names(i_spec)%string) - &
                           PHASE_ID_(i_phase)
                 else
                   call assert(234155524, JACOB_ANION_ID_(i_ion_pair).eq. &
-                          aero_rep(i_aero_rep)%val%spec_state_id( &
+                          aero_rep_set(i_aero_rep)%val%spec_state_id( &
                           unique_spec_names(i_spec)%string) - &
                           PHASE_ID_(i_phase))
                 end if
@@ -561,12 +572,12 @@ contains
                 trim(to_string(total_charge)))
 
         n_float_param = n_float_param + 3 + JACOB_NUM_Y_(i_ion_pair)
-        n_int_param = n_int_param + 6
+        n_int_param = n_int_param + 6 + 3*n_phase
 
       else if (str_type.eq."EQSAM") then
 
         ! Set the type
-        TYPE_(i_ion_pair) = ACT_CALCEQSAM
+        TYPE_(i_ion_pair) = ACT_CALC_EQSAM
 
         ! Get the required parameters for calculating activity
         key_name = "NW"
@@ -613,19 +624,19 @@ contains
 
           ! Set the ion id (relative to water within the specified phase)
           i_phase = 1
-          do i_aero_rep = 1, size(aero_rep)
-            unique_spec_names = aero_rep(i_aero_rep)%val%unique_names( &
+          do i_aero_rep = 1, size(aero_rep_set)
+            unique_spec_names = aero_rep_set(i_aero_rep)%val%unique_names( &
                     phase_name = phase_name, spec_name = ion_name)
             if (.not.allocated(unique_spec_names)) cycle
             do i_spec = 1, size(unique_spec_names)
               if (i_phase.eq.1) then
                 EQSAM_ION_ID_(i_ion_pair,i_ion) = &
-                        aero_rep(i_aero_rep)%val%spec_state_id( &
+                        aero_rep_set(i_aero_rep)%val%spec_state_id( &
                         unique_spec_names(i_spec)%string) - &
                         PHASE_ID_(i_phase)
               else
                 call assert(973648240, EQSAM_ION_ID_(i_ion_pair,i_ion) .eq. &
-                        aero_rep(i_aero_rep)%val%spec_state_id( &
+                        aero_rep_set(i_aero_rep)%val%spec_state_id( &
                         unique_spec_names(i_spec)%string) - &
                         PHASE_ID_(i_phase))
               end if
@@ -646,7 +657,8 @@ contains
         end do
 
         n_float_param = n_float_param + 3 + EQSAM_NUM_ION_(i_ion_pair)
-        n_int_param = n_int_param + 2 + EQSAM_NUM_ION_(i_ion_pair)
+        n_int_param = n_int_param + 2 + NUM_PHASE_ + &
+                      (1+NUM_PHASE_)*EQSAM_NUM_ION_(i_ion_pair)
 
       else
         call die_msg(186680407, "Internal error.")
@@ -662,11 +674,30 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Return a real number representing the priority of the sub model
+  !! calculations. Low priority sub models may use the results of higher
+  !! priority sub models. Lower numbers indicate higher priority.
+  !!
+  !! ZSR calculations do not depend on other sub model calculations, so can be
+  !! high priority.
+  function priority(this)
+
+    !> Sub model priority
+    real(kind=dp) :: priority
+    !> Sub model data
+    class(sub_model_ZSR_aerosol_water_t), intent(in) :: this
+
+    priority = 1.0;
+
+  end function priority
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Finalize the reaction
   elemental subroutine finalize(this)
 
     !> Reaction data
-    type(rxn_ZSR_aerosol_water_t), intent(inout) :: this
+    type(sub_model_ZSR_aerosol_water_t), intent(inout) :: this
 
     if (associated(this%property_set)) &
             deallocate(this%property_set)
@@ -679,35 +710,4 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-#undef ACT_TYPE_JACOBSON
-#undef ACT_TYPE_EQSAM
-
-#undef NUM_PHASE_
-#undef GAS_WATER_ID_
-#undef NUM_ION_PAIR_
-#undef TOTAL_INT_PARAM_
-#undef TOTAL_FLOAT_PARAM_
-#undef PPM_TO_RH_
-#undef NUM_INT_PROP_
-#undef NUM_REAL_PROP_
-#undef PHASE_ID_
-#undef PAIR_INT_PARAM_LOC_
-#undef PAIR_FLOAT_PARAM_LOC_
-#undef TYPE_
-#undef JACOB_NUM_CATION_
-#undef JACOB_NUM_ANION_
-#undef JACOB_CATION_ID_
-#undef JACOB_ANION_ID_
-#undef JACOB_NUM_Y_
-#undef EQSAM_NUM_ION_
-#undef EQSAM_ION_ID_
-#undef JACOB_low_RH_
-#undef JACOB_CATION_MW_
-#undef JACOB_ANION_MW_
-#undef JACOB_Y_
-#undef EQSAM_NW_
-#undef EQSAM_ZW_
-#undef EQSAM_ION_PAIR_MW_
-#undef EQSAM_ION_MW_
-
-end module pmc_rxn_ZSR_aerosol_water
+end module pmc_sub_model_ZSR_aerosol_water

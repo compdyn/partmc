@@ -43,12 +43,10 @@
 !!   - \subpage phlex_rxn_emission "emission"
 !!   - \subpage phlex_rxn_first_order_loss "first-order loss"
 !!   - \subpage phlex_rxn_HL_phase_transfer "Henry's Law phase transfer"
-!!   - \subpage phlex_rxn_PDFiTE_activity "PD-FiTE activity"
 !!   - \subpage phlex_rxn_photolysis "photolysis"
 !!   - \subpage phlex_rxn_SIMPOL_phase_transfer "SIMPOL.1 phase transfer"
 !!   - \subpage phlex_rxn_troe "Troe (fall-off)"
 !!   - \subpage phlex_rxn_wet_deposition "wet deposition"
-!!   - \subpage phlex_rxn_ZSR_aerosol_water "ZSR aerosol water"
 !!
 !! The general input format for a reaction can be found
 !! \subpage input_format_rxn "here".
@@ -249,11 +247,9 @@ contains
   !!   - \subpage phlex_rxn_CMAQ_OH_HNO3 "CMAQ_OH_HNO3"
   !!   - \subpage phlex_rxn_condensed_phase_arrhenius "CONDENSED_PHASE_ARRHENIUS"
   !!   - \subpage phlex_rxn_HL_phase_transfer "HL_PHASE_TRANSFER"
-  !!   - \subpage phlex_rxn_PDFiTE_activity "PDFITE_ACTIVITY"
   !!   - \subpage phlex_rxn_SIMPOL_phase_transfer "SIMPOL_PHASE_TRANSFER"
   !!   - \subpage phlex_rxn_photolysis "PHOTOLYSIS"
   !!   - \subpage phlex_rxn_troe "TROE"
-  !!   - \subpage phlex_rxn_ZSR_aerosol_water "ZSR_AEROSOL_WATER"
   !!
   !! All remaining data are optional and may include any valid \c json value,
   !! including nested objects. However, extending types (i.e. reactions) will

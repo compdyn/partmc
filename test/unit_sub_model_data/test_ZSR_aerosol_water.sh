@@ -15,12 +15,12 @@ do
   echo Attempt $counter
 
 if [[ $1 = "MPI" ]]; then
-  exec_str="mpirun -v -np 2 ../../test_rxn_ZSR_aerosol_water"
+  exec_str="mpirun -v -np 2 ../../test_sub_model_ZSR_aerosol_water"
 else
-  exec_str="../../test_rxn_ZSR_aerosol_water"
+  exec_str="../../test_sub_model_ZSR_aerosol_water"
 fi
 
-if ! $exec_str; then 
+if ! $exec_str; then
 	  echo Failure "$counter"
 	  if [ "$counter" -gt 10 ]
 	  then

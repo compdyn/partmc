@@ -237,7 +237,6 @@ contains
     ! cycle through the species properties to find the name, type and phase
     ! and load the remaining data into the species property set
     next => null()
-    !child => null()
     call json%get_child(j_obj, child)
     do while (associated(child))
       call json%info(child, name=key, var_type=var_type)
@@ -263,6 +262,8 @@ contains
         else if (unicode_str_val.eq."ION_PAIR") then
           spec_type = CHEM_SPEC_ACTIVITY_COEFF
           spec_phase = CHEM_SPEC_AERO_PHASE
+        else if (unicode_str_val.eq."ACTIVITY_COEFF") then
+          spec_type = CHEM_SPEC_ACTIVITY_COEFF
         else
           str_val = unicode_str_val
           call die_msg(171550163, "Unknown chemical species type: "// &
@@ -721,7 +722,7 @@ contains
     !> Property set for new species
     type(property_t), intent(inout), optional :: property_set
 
-    integer(kind=i_kind) :: i_spec, i
+    integer(kind=i_kind) :: i_spec
 
     ! if the species exists, append the new data
     if (this%find(spec_name, i_spec)) then
@@ -755,12 +756,10 @@ contains
       this%spec_type(this%num_spec) = spec_type
       this%spec_phase(this%num_spec) = spec_phase
       if (present(property_set)) then
-          call property_set%move(this%property_set(this%num_spec))
+        call property_set%move(this%property_set(this%num_spec))
       else
-          this%property_set(this%num_spec) = property_t()
+        this%property_set(this%num_spec) = property_t()
       end if
-      !end do
-
     end if
 
   end subroutine add

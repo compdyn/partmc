@@ -3,10 +3,10 @@
 ! option) any later version. See the file COPYING for details.
 
 !> \file
-!> The pmc_test_PDFiTE_activity program
+!> The pmc_test_PDFiTE program
 
-!> Test of PDFiTE_activity reaction module
-program pmc_test_PDFiTE_activity
+!> Test of PDFiTE sub model module
+program pmc_test_PDFiTE
 
   use iso_c_binding
 
@@ -33,10 +33,11 @@ program pmc_test_PDFiTE_activity
   ! initialize mpi
   call pmc_mpi_init()
 
-  if (run_PDFiTE_activity_tests()) then
-    if (pmc_mpi_rank().eq.0) write(*,*) " PD-FiTE activity reaction tests - PASS"
+  if (run_PDFiTE_tests()) then
+    if (pmc_mpi_rank().eq.0) write(*,*) " PD-FiTE activity sub model tests - PASS"
   else
-    if (pmc_mpi_rank().eq.0) write(*,*) " PD-FiTE activity reaction tests - FAIL"
+    if (pmc_mpi_rank().eq.0) write(*,*) " PD-FiTE activity sub model tests - FAIL"
+    stop 3
   end if
 
   ! finalize mpi
@@ -47,7 +48,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Run all pmc_chem_mech_solver tests
-  logical function run_PDFiTE_activity_tests() result(passed)
+  logical function run_PDFiTE_tests() result(passed)
 
     use pmc_phlex_solver_data
 
@@ -56,7 +57,7 @@ contains
     phlex_solver_data => phlex_solver_data_t()
 
     if (phlex_solver_data%is_solver_available()) then
-      passed = run_PDFiTE_activity_test()
+      passed = run_PDFiTE_test()
     else
       call warn_msg(713064651, "No solver available")
       passed = .true.
@@ -64,15 +65,15 @@ contains
 
     deallocate(phlex_solver_data)
 
-  end function run_PDFiTE_activity_tests
+  end function run_PDFiTE_tests
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Solve a PD-FiTE activity coefficient calculation 
+  !> Solve a PD-FiTE activity coefficient calculation
   !!
   !! The scenario matches that described for the H+ - NH4+ - SO42- - NO3-
   !! system described by equations 16 and 17 in \cite{Topping2009}.
-  logical function run_PDFiTE_activity_test()
+  logical function run_PDFiTE_test()
 
     use pmc_constants
 
@@ -94,7 +95,7 @@ contains
             H2SO4_B0, H2SO4_B1, H2SO4_B2, H2SO4_B3, NH42SO4_B0, NH42SO4_B1, &
             NH42SO4_B2, NH42SO4_B3, NH4NO3_B0, NH4NO3_B1, NH4NO3_B2, &
             NH4NO3_B3, H_p_mol_m3, NH4_p_mol_m3, SO4_mm_mol_m3, &
-            NO3_m_mol_m3, temp, pressure, a_w 
+            NO3_m_mol_m3, temp, pressure, a_w
 #ifdef PMC_USE_MPI
     character, allocatable :: buffer(:), buffer_copy(:)
     integer(kind=i_kind) :: pack_size, pos, i_elem, results
@@ -102,7 +103,7 @@ contains
 
     type(solver_stats_t), target :: solver_stats
 
-    run_PDFiTE_activity_test = .true.
+    run_PDFiTE_test = .true.
 
     ! Set the environmental and aerosol test conditions
     temp = 272.5d0              ! temperature (K)
@@ -116,8 +117,8 @@ contains
     if (pmc_mpi_rank().eq.0) then
 #endif
 
-      ! Get the PDFiTE_activity reaction mechanism json file
-      input_file_path = 'test_PDFiTE_activity_config.json'
+      ! Get the PDFiTE sub model mechanism json file
+      input_file_path = 'test_PDFiTE_config.json'
 
       ! Construct a phlex_core variable
       phlex_core => phlex_core_t(input_file_path)
@@ -232,7 +233,7 @@ contains
       ! Save the initial concentrations
       true_conc(:,:)            = 0.0d0
       true_conc(:,idx_H2O)      = 0.0d0
-      true_conc(:,idx_H2O_aq)   = 1.0d0 ! TODO remove from reaction parameters
+      true_conc(:,idx_H2O_aq)   = 1.0d0 ! TODO remove from sub model parameters
       true_conc(:,idx_H_p)      = 1.0d-9
       true_conc(:,idx_NH4_p)    = 0.62d0
       true_conc(:,idx_SO4_mm)   = 0.25d0
@@ -244,7 +245,7 @@ contains
       model_conc(:,:) = true_conc(:,:)
 
       ! Set the polynomial parameters
-    
+
       ! H-NO3 0.1 - 0.4 RH
       HNO3_LRH_B0 = 0.12091
       HNO3_LRH_B1 = 13.497
@@ -403,7 +404,7 @@ contains
       end do
 
       ! Save the results
-      open(unit=7, file="out/PDFiTE_activity_results.txt", status="replace", &
+      open(unit=7, file="out/PDFiTE_results.txt", status="replace", &
               action="write")
       do i_RH = 0, NUM_RH_STEP
         a_w = real(1.0, kind=dp)/(NUM_RH_STEP-1)*(i_RH-1) + 1.0d-10
@@ -434,8 +435,8 @@ contains
       ! Analyze the results
       do i_RH = 1, NUM_RH_STEP
         do i_spec = 1, size(model_conc, 2)
-          if (i_spec.ne.1.and.(i_spec.lt.11.or.i_spec.gt.19)) cycle 
-          call assert_msg(848069355, &
+          if (i_spec.ne.1.and.(i_spec.lt.11.or.i_spec.gt.19)) cycle
+          call assert_msg(357068617, &
             almost_equal(model_conc(i_RH, i_spec), &
             true_conc(i_RH, i_spec), real(1.0e-2, kind=dp)).or. &
             (model_conc(i_RH, i_spec).lt.1e-5*model_conc(1, i_spec).and. &
@@ -451,32 +452,32 @@ contains
 
 #ifdef PMC_USE_MPI
       ! convert the results to an integer
-      if (run_PDFiTE_activity_test) then
+      if (run_PDFiTE_test) then
         results = 0
       else
         results = 1
       end if
     end if
-    
+
     ! Send the results back to the primary process
     call pmc_mpi_transfer_integer(results, results, 1, 0)
 
     ! convert the results back to a logical value
     if (pmc_mpi_rank().eq.0) then
       if (results.eq.0) then
-        run_PDFiTE_activity_test = .true.
+        run_PDFiTE_test = .true.
       else
-        run_PDFiTE_activity_test = .false.
+        run_PDFiTE_test = .false.
       end if
     end if
 
     deallocate(buffer)
 #endif
-    
+
     deallocate(phlex_core)
 
-  end function run_PDFiTE_activity_test
+  end function run_PDFiTE_test
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-end program pmc_test_PDFiTE_activity
+end program pmc_test_PDFiTE

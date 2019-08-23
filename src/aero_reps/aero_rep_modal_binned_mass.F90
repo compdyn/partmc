@@ -101,6 +101,9 @@ module pmc_aero_rep_modal_binned_mass
 #define PHASE_STATE_ID_(x,y,b) this%condensed_data_int(MODE_INT_PROP_LOC_(x)+2+(b-1)*NUM_PHASE_(x)+y)
 #define PHASE_MODEL_DATA_ID_(x,y,b) this%condensed_data_int(MODE_INT_PROP_LOC_(x)+2+NUM_BINS_(x)*NUM_PHASE_(x)+(b-1)*NUM_PHASE_(x)+y)
 
+! Number of Jacobian elements in a phase
+#define PHASE_NUM_JAC_ELEM_(x,y,b) this%condensed_data_int(MODE_INT_PROP_LOC_(x)+2+2*NUM_BINS_(x)*NUM_PHASE_(x)+(b-1)*NUM_PHASE_(x)+y)
+
 ! GMD and bin diameter are stored in the same position - for modes, b=1
 #define GMD_(x,b) this%condensed_data_real(MODE_REAL_PROP_LOC_(x)+(b-1)*4)
 #define BIN_DP_(x,b) this%condensed_data_real(MODE_REAL_PROP_LOC_(x)+(b-1)*4)
@@ -436,8 +439,9 @@ contains
         do j_phase = 1, size(aero_phase_set)
           if (phase_name.eq.aero_phase_set(j_phase)%val%name()) then
 
-            ! Add space for the phase state and model data ids
-            n_int_param = n_int_param + 2 * num_bin
+            ! Add space for the phase state, model data ids, and number
+            ! of Jacobian elements
+            n_int_param = n_int_param + 3 * num_bin
 
             ! Add space for total aerosol phase mass and average MW,
             n_float_param = n_float_param + 2 * num_bin
@@ -534,7 +538,7 @@ contains
         ! (See aero_rep_modal_binned_mass_get_effective_radius for details)
         EFFECTIVE_RADIUS_(i_section, NUM_BINS_(i_section)) = &
                 GMD_(i_section, NUM_BINS_(i_section)) / 2.0d0 * &
-                exp(5.0d0/2.0d0*(GSD_(i_section, NUM_BINS_(i_section)))**2)
+                exp(9.0d0/2.0d0*(GSD_(i_section, NUM_BINS_(i_section)))**2)
 
       ! Get bin parameters
       else if (SECTION_TYPE_(i_section).eq.BINNED) then
@@ -574,6 +578,10 @@ contains
           do i_bin = 1, NUM_BINS_(i_section)
             BIN_DP_(i_section,i_bin) = 10.0d0**( log10(min_Dp) + &
                     (i_bin-1) * d_log_Dp )
+
+            ! Set the effective radius
+            EFFECTIVE_RADIUS_(i_section,i_bin) = &
+                BIN_DP_(i_section,i_bin) / 2.0
           end do
         else
           call die_msg(236797392, "Invalid scale specified for bin '"// &
@@ -581,9 +589,6 @@ contains
                 "' in modal/binned mass aerosol representation '"// &
                 this%rep_name//"'")
         end if
-
-        ! Set the effective radius
-        EFFECTIVE_RADIUS_(i_section,i_bin) = BIN_DP_(i_section,i_bin)
 
       end if
 
@@ -631,8 +636,9 @@ contains
               i_phase = i_phase + 1
             end do
 
-            ! Add space for aerosol phase state and model data ids
-            n_int_param = n_int_param + 2*NUM_BINS_(i_section)
+            ! Add space for aerosol phase state, model data ids, and
+            ! number of Jacobian elements
+            n_int_param = n_int_param + 3*NUM_BINS_(i_section)
 
             ! Add space for aerosol phase mass and average MW
             n_float_param = n_float_param + 2*NUM_BINS_(i_section)
@@ -961,8 +967,7 @@ contains
     num_phase_instances = 0
     do i_phase = 1, size(this%aero_phase)
       if (this%aero_phase(i_phase)%val%name().eq.phase_name) then
-        num_phase_instances = 1
-        return
+        num_phase_instances = num_phase_instances + 1
       end if
     end do
 
@@ -997,7 +1002,8 @@ contains
                      section_start + i_bin - 1 +                             &
                        ( NUM_PHASE_(i_section) - 1 ) * NUM_BINS_(i_section), &
                      NUM_BINS_(i_section)
-          num_jac_elem = num_jac_elem + this%aero_phase( j_phase )%val%size( )
+          num_jac_elem = num_jac_elem +                                      &
+                         this%aero_phase( j_phase )%val%num_jac_elem( )
         end do
         return
       end if

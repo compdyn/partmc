@@ -12,8 +12,6 @@
 #define PHLEX_SOLVER_H_
 #include "phlex_common.h"
 
-int n_cells;
-
 /* Functions called by phlex-chem */
 void *solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
                  int n_rxn_int_param, int n_rxn_float_param, int n_aero_phase,
@@ -40,7 +38,6 @@ void model_free(ModelData model_data);
 
 #ifdef PMC_USE_SUNDIALS
 /* Functions called by the solver */
-int pre_f(void *solver_data);
 int f(realtype t, N_Vector y, N_Vector deriv, void *model_data);
 int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *model_data,
   	  N_Vector tmp1, N_Vector tmp2, N_Vector tmp3);
@@ -63,7 +60,19 @@ static void solver_print_stats(void *cvode_mem);
 static void print_data_sizes(ModelData *md);
 static void print_jacobian(SUNMatrix M);
 static void print_derivative(N_Vector deriv);
-bool is_anything_going_on_here(SolverData *sd, realtype t_initial, realtype t_final);
+bool is_anything_going_on_here(SolverData *sd, realtype t_initial,
+          realtype t_final);
+#ifdef PMC_USE_GSL
+double gsl_f(double x, void *param);
+typedef struct {
+  int ind_var;             // independent variable index
+  int dep_var;             // dependent variable index
+  realtype t;              // current model time (s)
+  N_Vector y;              // dependent variable array
+  N_Vector deriv;          // time derivative vector f(t,y)
+  SolverData *solver_data; // solver data
+} GSLParam;
+#endif
 #endif
 
 #endif

@@ -1,4 +1,10 @@
-//Test
+/* Copyright (C) 2019 Christian Guzman
+ * Licensed under the GNU General Public License version 1 or (at your
+ * option) any later version. See the file COPYING for details.
+ *
+ * Interface Host-Device (CPU-GPU) to compute reaction-specific functions on GPU
+ *
+ */
 extern "C" {
 #include "phlex_gpu_solver.h"
 #include "rxns_gpu.h"

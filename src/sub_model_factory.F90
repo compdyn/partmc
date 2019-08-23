@@ -26,7 +26,9 @@ module pmc_sub_model_factory
                                                warn_msg
 
   ! Use all sub-models
+  use pmc_sub_model_PDFiTE
   use pmc_sub_model_UNIFAC
+  use pmc_sub_model_ZSR_aerosol_water
 
   implicit none
   private
@@ -35,6 +37,8 @@ module pmc_sub_model_factory
 
   !> Identifiers for sub-models - used by binary packing/unpacking functions
   integer(kind=i_kind), parameter, public :: SUB_MODEL_UNIFAC = 1
+  integer(kind=i_kind), parameter, public :: SUB_MODEL_ZSR_AEROSOL_WATER = 2
+  integer(kind=i_kind), parameter, public :: SUB_MODEL_PDFITE = 3
 
   !> Factory type for sub-models
   !!
@@ -75,8 +79,12 @@ contains
     new_obj => null()
 
     select case (type_name)
+      case ("SUB_MODEL_PDFITE")
+        new_obj => sub_model_PDFiTE_t()
       case ("SUB_MODEL_UNIFAC")
         new_obj => sub_model_UNIFAC_t()
+      case ("SUB_MODEL_ZSR_AEROSOL_WATER")
+        new_obj => sub_model_ZSR_aerosol_water_t()
       case default
         call die_msg(293855421, "Unknown sub-model type: "//type_name)
     end select
@@ -142,8 +150,12 @@ contains
     class(sub_model_data_t), intent(in) :: sub_model
 
     select type (sub_model)
+      type is (sub_model_PDFiTE_t)
+        sub_model_data_type = SUB_MODEL_PDFITE
       type is (sub_model_UNIFAC_t)
         sub_model_data_type = SUB_MODEL_UNIFAC
+      type is (sub_model_ZSR_aerosol_water_t)
+        sub_model_data_type = SUB_MODEL_ZSR_AEROSOL_WATER
       class default
         call die_msg(695653684, "Unknown sub-model type")
     end select
@@ -205,8 +217,12 @@ contains
 
     prev_position = pos
     select type (sub_model)
+      type is (sub_model_PDFiTE_t)
+        sub_model_data_type = SUB_MODEL_PDFITE
       type is (sub_model_UNIFAC_t)
         sub_model_data_type = SUB_MODEL_UNIFAC
+      type is (sub_model_ZSR_aerosol_water_t)
+        sub_model_data_type = SUB_MODEL_ZSR_AEROSOL_WATER
       class default
         call die_msg(850922257, "Trying to pack sub-model of unknown type.")
     end select
@@ -240,8 +256,12 @@ contains
     prev_position = pos
     call pmc_mpi_unpack_integer(buffer, pos, sub_model_data_type, comm)
     select case (sub_model_data_type)
+      case (SUB_MODEL_PDFITE)
+        sub_model => sub_model_PDFiTE_t()
       case (SUB_MODEL_UNIFAC)
         sub_model => sub_model_UNIFAC_t()
+      case (SUB_MODEL_ZSR_AEROSOL_WATER)
+        sub_model => sub_model_ZSR_aerosol_water_t()
       case default
         call die_msg(786366152, "Trying to unpack sub-model of unknown "// &
                 "type: "//trim(to_string(sub_model_data_type)))

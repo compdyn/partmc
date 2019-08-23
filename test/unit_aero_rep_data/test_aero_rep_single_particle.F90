@@ -24,7 +24,30 @@ program pmc_test_aero_rep_data
   use pmc_util,                         only: i_kind, dp, assert, &
                                               almost_equal
 
+  use iso_c_binding
   implicit none
+
+  ! Externally set properties
+  real(kind=dp), parameter :: PART_NUM_CONC = 1.23e3
+  real(kind=dp), parameter :: PART_RADIUS   = 2.43e-7
+
+  ! Aerosol rep id for update functions
+  integer(kind=i_kind), parameter :: AERO_REP_ID = 234
+
+  !> Interface to c ODE solver and test functions
+  interface
+    !> Run the c function tests
+    integer(kind=c_int) function run_aero_rep_single_particle_c_tests(solver_data, &
+        state, env)  bind (c)
+      use iso_c_binding
+      !> Pointer to the initialized solver data
+      type(c_ptr), value :: solver_data
+      !> Pointer to the state array
+      type(c_ptr), value :: state
+      !> Pointer to the environmental state array
+      type(c_ptr), value :: env
+    end function run_aero_rep_single_particle_c_tests
+  end interface
 
   ! New-line character
   character(len=*), parameter :: new_line = char(10)
@@ -36,6 +59,7 @@ program pmc_test_aero_rep_data
     if (pmc_mpi_rank().eq.0) write(*,*) "Aerosol representation tests - PASS"
   else
     if (pmc_mpi_rank().eq.0) write(*,*) "Aerosol representation tests - FAIL"
+    stop 3
   end if
 
   !> finalize mpi
@@ -105,7 +129,7 @@ contains
 
     ! Loop through all the aerosol representations
     do i_rep = 1, size(rep_names)
-    
+
       ! Check the aerosol representation getter functions
       rep_name = rep_names(i_rep)%string
       call assert_msg(253854173, &
@@ -229,17 +253,78 @@ contains
         end do
       end associate
     end do
+
+    aero_rep => null()
+
     deallocate(buffer)
     deallocate(aero_rep_passed_data_set)
 #endif
 
+    ! Evaluate the aerosol representation c functions
+    build_aero_rep_data_set_test = eval_c_func(phlex_core)
+
     deallocate(phlex_state)
     deallocate(phlex_core)
 
-#endif  
-    build_aero_rep_data_set_test = .true.
+#endif
 
   end function build_aero_rep_data_set_test
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Evaluate the aerosol representation c functions
+  logical function eval_c_func(phlex_core) result(passed)
+
+    !> Phlex-core
+    type(phlex_core_t), intent(inout) :: phlex_core
+
+    class(aero_rep_data_t), pointer :: aero_rep
+    type(phlex_state_t), pointer :: phlex_state
+    integer(kind=i_kind), allocatable :: phase_ids(:)
+    character(len=:), allocatable :: rep_name, phase_name
+    type(aero_rep_factory_t) :: aero_rep_factory
+    type(aero_rep_update_data_single_particle_radius_t) :: update_radius
+    type(aero_rep_update_data_single_particle_number_t) :: update_number
+
+    rep_name = "AERO_REP_SINGLE_PARTICLE"
+
+    call assert_msg(264314298, phlex_core%get_aero_rep(rep_name, aero_rep), &
+                    rep_name)
+
+    select type( aero_rep )
+      type is(aero_rep_single_particle_t)
+        call aero_rep%set_id( AERO_REP_ID )
+      class default
+        call die_msg(766425873, "Wrong aero rep type")
+    end select
+
+    call phlex_core%solver_initialize()
+
+    phlex_state => phlex_core%new_state()
+
+    phlex_state%state_var(:) = 0.0
+    phlex_state%env_state%temp = 298.0
+    phlex_state%env_state%pressure = 101325.0
+
+    ! Update external properties
+    call aero_rep_factory%initialize_update_data( update_radius )
+    call aero_rep_factory%initialize_update_data( update_number )
+    call update_radius%set_radius( AERO_REP_ID, PART_RADIUS )
+    call update_number%set_number( AERO_REP_ID, PART_NUM_CONC )
+    call phlex_core%update_aero_rep_data( update_radius )
+    call phlex_core%update_aero_rep_data( update_number )
+
+    call phlex_state%update_env_state()
+
+    passed = run_aero_rep_single_particle_c_tests(                           &
+                 phlex_core%solver_data_gas_aero%solver_c_ptr,               &
+                 c_loc(phlex_state%state_var),                               &
+                 c_loc(phlex_state%env_var)                                  &
+                 ) .eq. 0
+
+    deallocate(phlex_state)
+
+  end function eval_c_func
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

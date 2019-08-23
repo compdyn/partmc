@@ -156,7 +156,7 @@ void * rxn_aqueous_equilibrium_update_ids(ModelData *model_data, int *deriv_ids,
   // Calculate a small concentration for aerosol-phase species based on the
   // integration tolerances to use during solving. TODO find a better place
   // to do this
-  realtype *abs_tol = model_data->abs_tol;
+  double *abs_tol = (double*) model_data->abs_tol;
   for (int i_phase = 0; i_phase < NUM_AERO_PHASE_; i_phase++ ) {
     SMALL_CONC_(i_phase) = 99999.0;
     for (int i_react = 0; i_react < NUM_REACT_; i_react++) {
@@ -216,21 +216,74 @@ void * rxn_aqueous_equilibrium_update_env_state(double *rate_constants, double *
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
 
-/** \brief Do pre-derivative calculations
+/** \brief Calculate the overall per-particle reaction rate [M/s]
  *
- * Nothing to do for aqueous_equilibrium reactions
+ * This function is called by the deriv and Jac functions to get the overall
+ * reaction rate on a per-particle basis, trying to avoid floating-point
+ * subtraction errors.
  *
- * \param model_data Pointer to the model data, including the state array
  * \param rxn_data Pointer to the reaction data
- * \return The rxn_data pointer advanced by the size of the reaction data
+ * \param state State array
+ * \param react_fact Product of all reactant concentrations [M^n_react)
+ * \param prod_fact Product of all product concentrations [M^n_prod]
+ * \param water Water concentration [ug/m3]
+ * \param i_phase Index for the aerosol phase being calcualted
+ * \return The calculated overall rate [M/s]
  */
-void * rxn_aqueous_equilibrium_pre_calc(ModelData *model_data, void *rxn_data)
+#ifdef PMC_USE_SUNDIALS
+realtype rxn_aqueous_equilibrium_calc_overall_rate(void *rxn_data,
+          realtype *state, realtype react_fact, realtype prod_fact,
+          realtype water, int i_phase)
 {
   int *int_data = (int*) rxn_data;
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
+  realtype rate         = ONE;
+  realtype rc_forward   = RATE_CONST_FORWARD_;
+  realtype rc_reverse   = RATE_CONST_REVERSE_;
+  realtype react_fact_l = react_fact;
+  realtype prod_fact_l  = prod_fact;
+  realtype water_l      = water;
+
+  /// \todo explore higher precision variables to reduce Jac errors
+
+  // Calculate the overall rate
+  // These equations are set up to try to avoid loss of accuracy from
+  // subtracting two almost-equal numbers when rate_forward ~ rate_backward.
+  // When modifying these calculations, be sure to use the Jacobian checker
+  // during unit testing.
+  if (react_fact_l == ZERO || prod_fact_l == ZERO) {
+    rate = rc_forward * react_fact_l - rc_reverse * prod_fact_l;
+  } else if (rc_forward * react_fact_l >
+             rc_reverse * prod_fact_l) {
+    realtype mod_react = ONE;
+    for (int i_react = 1; i_react < NUM_REACT_; ++i_react) {
+      mod_react *= (realtype) state[REACT_(i_phase*NUM_REACT_+i_react)] *
+              (realtype) MASS_FRAC_TO_M_(i_react) / water_l;
+    }
+    realtype r1_eq = (prod_fact_l / mod_react) *
+                        (rc_reverse / rc_forward);
+    rate = ((realtype) state[REACT_(i_phase*NUM_REACT_)] *
+            (realtype) MASS_FRAC_TO_M_(0) / water_l - r1_eq) *
+           rc_forward * mod_react;
+  } else {
+    realtype mod_prod = ONE;
+    for (int i_prod = 1; i_prod < NUM_PROD_; ++i_prod) {
+      mod_prod *= (realtype) state[PROD_(i_phase*NUM_PROD_+i_prod)] *
+              (realtype) MASS_FRAC_TO_M_(NUM_REACT_+i_prod) / water_l;
+    }
+    if (ACTIVITY_COEFF_(i_phase)>=0) mod_prod *=
+            (realtype) state[ACTIVITY_COEFF_(i_phase)];
+    realtype p1_eq = (react_fact_l / mod_prod) *
+                        (rc_forward / rc_reverse);
+    rate = (p1_eq - (realtype) state[PROD_(i_phase*NUM_PROD_)] *
+            (realtype) MASS_FRAC_TO_M_(NUM_REACT_) / water_l) *
+           rc_reverse * mod_prod;
+  }
+
+  return (realtype) rate;
 }
+#endif
 
 /** \brief Calculate contributions to the time derivative \f$f(t,y)\f$ from
  * this reaction.
@@ -291,36 +344,8 @@ void * rxn_aqueous_equilibrium_calc_deriv_contrib(double *rate_constants, double
     if (ACTIVITY_COEFF_(i_phase)>=0) prod_fact *=
             state[ACTIVITY_COEFF_(i_phase)];
 
-    // Calculate the overall rate
-    // (These equations are set up to try to avoid loss of accuracy from
-    //  subtracting two almost-equal numbers when rate_forward ~ rate_backward)
-    realtype rate = ONE;
-    if (react_fact == ZERO || prod_fact == ZERO) {
-      rate = RATE_CONST_FORWARD_ * react_fact - RATE_CONST_REVERSE_ * prod_fact;
-#if 0
-    } else {
-      realtype mod_react = ONE;
-      for (int i_react = 1; i_react < NUM_REACT_; i_react++) {
-        mod_react *= state[REACT_(i_phase*NUM_REACT_+i_react)] *
-                MASS_FRAC_TO_M_(i_react) / water;
-      }
-      realtype r1_eq = (prod_fact / mod_react) *
-                       (RATE_CONST_REVERSE_ / RATE_CONST_FORWARD_);
-      rate = (state[REACT_(i_phase*NUM_REACT_)] *
-              MASS_FRAC_TO_M_(0) / water - r1_eq) *
-             RATE_CONST_FORWARD_ * mod_react;
-    }
-#endif
-    } else if (RATE_CONST_FORWARD_ * react_fact >
-               RATE_CONST_REVERSE_ * prod_fact) {
-      rate = RATE_CONST_FORWARD_ -
-             RATE_CONST_REVERSE_ * ( prod_fact / react_fact );
-      rate *= react_fact;
-    } else {
-      rate = RATE_CONST_FORWARD_ * ( react_fact / prod_fact ) -
-             RATE_CONST_REVERSE_;
-      rate *= prod_fact;
-    }
+    realtype rate = rxn_aqueous_equilibrium_calc_overall_rate(rxn_data,
+                        state, react_fact, prod_fact, water, i_phase);
     if (rate == ZERO) continue;
 
     // Slow rates as concentrations become low

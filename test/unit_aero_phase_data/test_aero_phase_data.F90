@@ -33,6 +33,7 @@ program pmc_test_aero_phase_data
     if (pmc_mpi_rank().eq.0) write(*,*) "Aerosol phase data tests - PASS"
   else
     if (pmc_mpi_rank().eq.0) write(*,*) "Aerosol phase data tests - FAIL"
+    stop 3
   end if
 
   !> finalize mpi

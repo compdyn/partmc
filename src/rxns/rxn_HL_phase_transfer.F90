@@ -122,12 +122,10 @@ module pmc_rxn_HL_phase_transfer
 #define AERO_PHASE_ID_(x) this%condensed_data_int(PHASE_INT_LOC_(x)+2)
 #define AERO_REP_ID_(x) this%condensed_data_int(PHASE_INT_LOC_(x)+3)
 #define NUM_AERO_PHASE_JAC_ELEM_(x) this%condensed_data_int(PHASE_INT_LOC_(x)+4)
-#define PHASE_JAC_ID_(x,s,e) this%condensed_data_int(PHASE_INT_LOC_(x)+5+s*NUM_AERO_PHASE_JAC_ELEM_(x)+e)
+#define PHASE_JAC_ID_(x,s,e) this%condensed_data_int(PHASE_INT_LOC_(x)+4+(s-1)*NUM_AERO_PHASE_JAC_ELEM_(x)+e)
 #define SMALL_WATER_CONC_(x) this%condensed_data_real(PHASE_REAL_LOC_(x))
-#define FAST_FLUX_(x) this%condensed_data_real(PHASE_REAL_LOC_(x)+1)
-#define AERO_ADJ_(x) this%condensed_data_real(PHASE_REAL_LOC_(x)+2)
-#define EFF_RAD_JAC_ELEM_(x,e) this%condensed_data_real(PHASE_REAL_LOC_(x)+2+e)
-#define NUM_CONC_JAC_ELEM_(x,e) this%condensed_data_real(PHASE_REAL_LOC_(x)+2+NUM_AERO_PHASE_JAC_ELEM_(x,e)+e)
+#define EFF_RAD_JAC_ELEM_(x,e) this%condensed_data_real(PHASE_REAL_LOC_(x)+e)
+#define NUM_CONC_JAC_ELEM_(x,e) this%condensed_data_real(PHASE_REAL_LOC_(x)+NUM_AERO_PHASE_JAC_ELEM_(x)+e)
 
   public :: rxn_HL_phase_transfer_t
 
@@ -178,7 +176,7 @@ contains
     character(len=:), allocatable :: key_name, spec_name, water_name, &
             phase_name
     integer(kind=i_kind) :: i_spec, i_aero_rep, n_aero_ids, i_aero_id, &
-            n_aero_jac_elem, i_phase
+            n_aero_jac_elem, i_phase, tmp_size
     type(string_t), allocatable :: unique_spec_names(:), &
             unique_water_names(:)
     integer(kind=i_kind), allocatable :: phase_ids(:)
@@ -243,7 +241,7 @@ contains
       phase_ids = aero_rep(i_aero_rep)%val%phase_ids(phase_name)
       do i_phase = 1, size(phase_ids)
         n_aero_jac_elem = n_aero_jac_elem + &
-                2*aero_rep(i_aero_rep)%val%num_jac_elem(phase_ids(i_phase))
+                aero_rep(i_aero_rep)%val%num_jac_elem(phase_ids(i_phase))
       end do
 
       deallocate(unique_spec_names)
@@ -251,12 +249,10 @@ contains
 
     end do
 
-    write(*,*) NUM_INT_PROP_, n_aero_ids, n_aero_jac_elem, NUM_REAL_PROP_
-
     ! Allocate space in the condensed data arrays
     allocate(this%condensed_data_int(NUM_INT_PROP_ + 2 + n_aero_ids * 13 + &
                                       n_aero_jac_elem * 2))
-    allocate(this%condensed_data_real(NUM_REAL_PROP_ + n_aero_ids * 3 + &
+    allocate(this%condensed_data_real(NUM_REAL_PROP_ + n_aero_ids + &
                                       n_aero_jac_elem * 2))
     this%condensed_data_int(:) = int(0, kind=i_kind)
     this%condensed_data_real(:) = real(0.0, kind=dp)
@@ -307,7 +303,7 @@ contains
       ! the aerosol representations and the locations of the real data
       do i_spec = 1, size(unique_spec_names)
         NUM_AERO_PHASE_JAC_ELEM_(i_aero_id) = &
-              2*aero_rep(i_aero_rep)%val%num_jac_elem(phase_ids(i_spec))
+              aero_rep(i_aero_rep)%val%num_jac_elem(phase_ids(i_spec))
         AERO_SPEC_(i_aero_id) = &
               aero_rep(i_aero_rep)%val%spec_state_id( &
               unique_spec_names(i_spec)%string)
@@ -320,7 +316,7 @@ contains
         if (i_aero_id .le. NUM_AERO_PHASE_) then
           PHASE_INT_LOC_(i_aero_id)  = PHASE_INT_LOC_(i_aero_id - 1) + 5 + &
                                      2*NUM_AERO_PHASE_JAC_ELEM_(i_aero_id - 1)
-          PHASE_REAL_LOC_(i_aero_id) = PHASE_REAL_LOC_(i_aero_id - 1) + 3 + &
+          PHASE_REAL_LOC_(i_aero_id) = PHASE_REAL_LOC_(i_aero_id - 1) + 1 + &
                                      2*NUM_AERO_PHASE_JAC_ELEM_(i_aero_id - 1)
         end if
       end do
@@ -395,6 +391,16 @@ contains
     call assert_msg(469582180, spec_props%get_real(key_name, temp_real), &
             "Missing molecular weight for species "//spec_name)
     PRE_C_AVG_ = sqrt(8.0*const%univ_gas_const/(const%pi*temp_real))
+
+    ! Check the sizes of the data arrays
+    tmp_size = PHASE_INT_LOC_(i_aero_id - 1) + 5 + &
+               2*NUM_AERO_PHASE_JAC_ELEM_(i_aero_id - 1) - 1
+    call assert_msg(881234422, size(this%condensed_data_int) .eq. tmp_size, &
+                    "int array size mismatch")
+    tmp_size = PHASE_REAL_LOC_(i_aero_id - 1) + 1 + &
+               2*NUM_AERO_PHASE_JAC_ELEM_(i_aero_id - 1) - 1
+    call assert_msg(520767976, size(this%condensed_data_real) .eq. tmp_size,&
+                    "real array size mismatch")
 
   end subroutine initialize
 

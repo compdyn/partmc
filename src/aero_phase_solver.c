@@ -49,7 +49,9 @@ int aero_phase_get_used_jac_elem(ModelData *model_data, int aero_phase_idx,
   int num_flagged_elem = 0;
 
   for (int i_spec=0; i_spec<NUM_STATE_VAR_; i_spec++) {
-    if (SPEC_TYPE_(i_spec)==CHEM_SPEC_VARIABLE) {
+    if (SPEC_TYPE_(i_spec)==CHEM_SPEC_VARIABLE ||
+        SPEC_TYPE_(i_spec)==CHEM_SPEC_CONSTANT ||
+        SPEC_TYPE_(i_spec)==CHEM_SPEC_PSSA) {
       jac_struct[state_var_id+i_spec] = true;
       num_flagged_elem++;
     }
@@ -87,36 +89,33 @@ void aero_phase_get_mass(ModelData *model_data, int aero_phase_idx,
         double *jac_elem_MW)
 {
 
-  // Set up a pointer for the partial derivatives
-  void *partial_deriv = NULL;
-
   // Get the requested aerosol phase data
   int *int_data = (int*) aero_phase_find(model_data, aero_phase_idx);
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   // Sum the mass and MW
-  *mass = 0.0;
-  double moles = 0.0;
+  long double l_mass = 0.0;
+  long double moles = 0.0;
   int i_jac = 0;
   for (int i_spec=0; i_spec<NUM_STATE_VAR_; i_spec++) {
     if (SPEC_TYPE_(i_spec)==CHEM_SPEC_VARIABLE ||
         SPEC_TYPE_(i_spec)==CHEM_SPEC_CONSTANT ||
         SPEC_TYPE_(i_spec)==CHEM_SPEC_PSSA) {
-      *mass += state_var[i_spec];
-      moles += state_var[i_spec] / MW_(i_spec);
-      if (jac_elem_mass) jac_elem_mass[i_jac] = 1.0;
-      if (jac_elem_MW)   jac_elem_MW[i_jac]   = 1.0 / MW_(i_spec);
+      l_mass += state_var[i_spec];
+      moles += state_var[i_spec] / (long double) MW_(i_spec);
+      if (jac_elem_mass) jac_elem_mass[i_jac] = 1.0L;
+      if (jac_elem_MW)   jac_elem_MW[i_jac]   = 1.0L / MW_(i_spec);
       i_jac++;
     }
   }
-  *MW = *mass / moles;
+  *MW = (double) l_mass / moles;
   if (jac_elem_MW) {
     for (int j_jac=0; j_jac<i_jac; j_jac++) {
-      jac_elem_MW[j_jac] = (moles - jac_elem_MW[j_jac] * *mass)
+      jac_elem_MW[j_jac] = (moles - jac_elem_MW[j_jac] * l_mass)
                            / (moles * moles);
     }
   }
-
+  *mass = (double) l_mass;
 }
 
 /** \brief Get the volume of an aerosol phase
@@ -138,9 +137,6 @@ void aero_phase_get_mass(ModelData *model_data, int aero_phase_idx,
 void aero_phase_get_volume(ModelData *model_data, int aero_phase_idx,
           double *state_var, double *volume, double *jac_elem)
 {
-
-  // Set up a pointer for the partial derivatives
-  void *partial_deriv = NULL;
 
   // Get the requested aerosol phase data
   int *int_data = (int*) aero_phase_find(model_data, aero_phase_idx);

@@ -1,3 +1,27 @@
+**/.DS_Store
+CMakeCache.txt
+CMakeFiles/
+build/
+doc/ChangeLog.html
+doc/README.html
+doc/condensation/average.pdf
+doc/condensation/condense.pdf
+doc/deposition/deposition.pdf
+doc/html/
+doc/latex/
+doc/partmc_modules.gv
+doc/partmc_modules.pdf
+doc/*.tmp
+doc/*.eps
+scenarios/1_urban_plume/out/
+scenarios/2_urban_plume2/out/
+scenarios/3_condense/start/
+scenarios/3_condense/spec/
+scenarios/3_condense/temp/
+scenarios/3_condense/out/
+scenarios/4_chamber/out/
+cvode*/
+
 #Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio and WebStorm
 # Reference: https://intellij-support.jetbrains.com/hc/en-us/articles/206544839
 

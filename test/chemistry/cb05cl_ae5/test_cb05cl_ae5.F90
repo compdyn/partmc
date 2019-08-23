@@ -184,8 +184,6 @@ contains
     ! Arrays to hold starting concentrations
     real(kind=dp), allocatable :: ebi_init(:), kpp_init(:), phlex_init(:)
 
-    integer(kind=i_kind) :: n_cells = 1
-
     ! D
     passed = .false.
    
@@ -333,7 +331,6 @@ contains
     ! Make sure the right number of reactions is present
     ! (KPP includes two Cl rxns with rate constants set to zero that are not
     !  present in phlex-chem)
-
     call assert_msg(396732632, mechanism%size().eq.186, &
             "Wrong number of phlex-chem reactions: "// &
             trim(to_string(mechanism%size())))

@@ -142,22 +142,6 @@ void * rxn_photolysis_update_env_state(double *rate_constants, double *env_data,
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
 
-/** \brief Do pre-derivative calculations
- *
- * Nothing to do for photolysis reactions
- *
- * \param model_data Pointer to the model data, including the state array
- * \param rxn_data Pointer to the reaction data
- * \return The rxn_data pointer advanced by the size of the reaction data
- */
-void * rxn_photolysis_pre_calc(ModelData *model_data, void *rxn_data)
-{
-  int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
-
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
-}
-
 /** \brief Calculate contributions to the time derivative \f$f(t,y)\f$ from
  * this reaction.
  *
@@ -215,22 +199,16 @@ void * rxn_photolysis_calc_jac_contrib(double *rate_constants, double *state, Mo
   int *int_data = (int*) rxn_data;
   realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
 
-  // Calculate the reaction rate
-  //realtype rate = RATE_CONSTANT_;
-  realtype rate = rate_constants[0];
-  for (int i_spec=0; i_spec<NUM_REACT_; i_spec++)
-          rate *= state[REACT_(i_spec)];
-
   // Add contributions to the Jacobian
   int i_elem = 0;
   for (int i_ind=0; i_ind<NUM_REACT_; i_ind++) {
     for (int i_dep=0; i_dep<NUM_REACT_; i_dep++, i_elem++) {
       if (JAC_ID_(i_elem) < 0) continue;
-      J[JAC_ID_(i_elem)] -= rate;
+      J[JAC_ID_(i_elem)] -= rate_constants[0];
     }
     for (int i_dep=0; i_dep<NUM_PROD_; i_dep++, i_elem++) {
       if (JAC_ID_(i_elem) < 0) continue;
-      J[JAC_ID_(i_elem)] += YIELD_(i_dep) * rate;
+      J[JAC_ID_(i_elem)] += YIELD_(i_dep) * rate_constants[0];
     }
   }
 

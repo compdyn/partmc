@@ -102,6 +102,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Update the environmental state array
+  !! TODO make the environmental parameters part of the input data
   subroutine update_env_state(this, grid_cell)
 
     !> Model state

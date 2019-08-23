@@ -48,14 +48,20 @@
 !!     "gas-phase species" : "my gas spec",
 !!     "aerosol phase" : "my aero phase",
 !!     "aerosol-phase species" : "my aero spec",
+!!     "aerosol-phase activity coefficient" : "my aero act coeff"
 !!     "B" : [ 123.2e3, -41.24, 2951.2, -1.245e-4 ]
 !!       ...
 !!   }
 !! \endcode
 !! The key-value pairs \b gas-phase \b species, \b aerosol \b phase and
 !! \b aerosol-phase \b species are required. Only one gas- and one
-!! aerosol-phase species are allowed per phase-transfer reaction.
-!! Additionally, gas-phase species must include parameters named
+!! aerosol-phase species are allowed per phase-transfer reaction. The
+!! key-value pair \b aerosol-phase \b activity \b coefficient is optional.
+!! When it is included its value must be the name of an species of type
+!! \c ACTIVITY_COEFF that is present in the specified aerosol phase. When
+!! it is not included, activity coefficients are assume to be 1.0.
+!!
+!! Gas-phase species must include parameters named
 !! \b diffusion \b coeff \b [m2 \b s-1], which specifies the diffusion
 !! coefficient in \f$\mbox{\si{\square\metre\per\second}}\f$, and \b molecular
 !! \b weight \b [kg \b mol-1], which specifies the molecular weight of the
@@ -118,9 +124,17 @@ module pmc_rxn_SIMPOL_phase_transfer
 #define AERO_PHASE_ID_(x) this%condensed_data_int(NUM_INT_PROP_+2*NUM_AERO_PHASE_+x)
 #define AERO_REP_ID_(x) this%condensed_data_int(NUM_INT_PROP_+3*NUM_AERO_PHASE_+x)
 #define DERIV_ID_(x) this%condensed_data_int(NUM_INT_PROP_+4*NUM_AERO_PHASE_+x)
-#define JAC_ID_(x) this%condensed_data_int(NUM_INT_PROP_+1+5*NUM_AERO_PHASE_+x)
-#define FAST_FLUX_(x) this%condensed_data_real(NUM_REAL_PROP_+x)
-#define AERO_ADJ_(x) this%condensed_data_real(NUM_REAL_PROP_+NUM_AERO_PHASE_+x)
+#define GAS_ACT_JAC_ID_(x) this%condensed_data_int(NUM_INT_PROP_+1+5*NUM_AERO_PHASE_+x)
+#define AERO_ACT_JAC_ID_(x) this%condensed_data_int(NUM_INT_PROP_+1+6*NUM_AERO_PHASE_+x)
+#define JAC_ID_(x) this%condensed_data_int(NUM_INT_PROP_+1+7*NUM_AERO_PHASE_+x)
+#define PHASE_INT_LOC_(x) this%condensed_data_int(NUM_INT_PROP_+2+10*NUM_AERO_PHASE_+x)
+#define PHASE_REAL_LOC_(x) this%condensed_data_int(NUM_INT_PROP_+2+11*NUM_AERO_PHASE_+x)
+#define NUM_AERO_PHASE_JAC_ELEM_(x) this%condensed_data_int(PHASE_INT_LOC_(x))
+#define PHASE_JAC_ID_(x,s,e) this%condensed_data_int(PHASE_INT_LOC_(x)+(s-1)*NUM_AERO_PHASE_JAC_ELEM_(x)+e)
+#define EFF_RAD_JAC_ELEM_(x,e) this%condensed_data_real(PHASE_REAL_LOC_(x)-1+e)
+#define NUM_CONC_JAC_ELEM_(x,e) this%condensed_data_real(PHASE_REAL_LOC_(x)-1+NUM_AERO_PHASE_JAC_ELEM_(x)+e)
+#define MASS_JAC_ELEM_(x,e) this%condensed_data_real(PHASE_REAL_LOC_(x)-1+2*NUM_AERO_PHASE_JAC_ELEM_(x)+e)
+#define MW_JAC_ELEM_(x,e) this%condensed_data_real(PHASE_REAL_LOC_(x)-1+3*NUM_AERO_PHASE_JAC_ELEM_(x)+e)
 
   public :: rxn_SIMPOL_phase_transfer_t
 
@@ -169,10 +183,13 @@ contains
 
     type(property_t), pointer :: spec_props, b_params
     character(len=:), allocatable :: key_name, spec_name, phase_name
+    character(len=:), allocatable :: act_name
     integer(kind=i_kind) :: i_spec, i_aero_rep, n_aero_ids, i_aero_id
-    type(string_t), allocatable :: unique_spec_names(:)
+    integer(kind=i_kind) :: i_phase, n_aero_jac_elem, tmp_size
+    type(string_t), allocatable :: unique_spec_names(:), unique_act_names(:)
     integer(kind=i_kind), allocatable :: phase_ids(:)
     real(kind=dp) :: temp_real, N_star
+    logical :: has_act_coeff
 
     ! Get the property set
     if (.not. associated(this%property_set)) call die_msg(382913491, &
@@ -190,6 +207,10 @@ contains
             this%property_set%get_string(key_name, spec_name), &
             "Missing aerosol-phase species in phase-transfer reaction")
 
+    ! Get the aerosol-phase activity coeffcient name
+    key_name = "aerosol-phase activity coefficient"
+    has_act_coeff = this%property_set%get_string(key_name, act_name)
+
     ! Check for aerosol representations
     call assert_msg(260518827, associated(aero_rep), &
             "Missing aerosol representation for phase transfer reaction")
@@ -198,6 +219,7 @@ contains
 
     ! Count the instances of this phase/species pair
     n_aero_ids = 0
+    n_aero_jac_elem = 0
     do i_aero_rep = 1, size(aero_rep)
 
       ! Get the unique names in this aerosol representation for the
@@ -211,13 +233,22 @@ contains
       ! Add these instances to the list
       n_aero_ids = n_aero_ids + size(unique_spec_names)
 
+      ! Get the number of Jacobian elements for calculations of mass, volume,
+      ! number, etc. for this partitioning into this phase
+      phase_ids = aero_rep(i_aero_rep)%val%phase_ids(phase_name)
+      do i_phase = 1, size(phase_ids)
+        n_aero_jac_elem = n_aero_jac_elem + &
+                aero_rep(i_aero_rep)%val%num_jac_elem(phase_ids(i_phase))
+      end do
+
       deallocate(unique_spec_names)
 
     end do
 
     ! Allocate space in the condensed data arrays
-    allocate(this%condensed_data_int(NUM_INT_PROP_ + 2 + n_aero_ids * 8))
-    allocate(this%condensed_data_real(NUM_REAL_PROP_ + n_aero_ids * 2))
+    allocate(this%condensed_data_int(NUM_INT_PROP_ + 2 + n_aero_ids * 13 + &
+                                     n_aero_jac_elem * 2))
+    allocate(this%condensed_data_real(NUM_REAL_PROP_ + n_aero_jac_elem * 4))
     this%condensed_data_int(:) = int(0, kind=i_kind)
     this%condensed_data_real(:) = real(0.0, kind=dp)
 
@@ -244,6 +275,8 @@ contains
 
     ! Set the ids of each aerosol-phase species instance
     i_aero_id = 1
+    PHASE_INT_LOC_(i_aero_id)  = NUM_INT_PROP_+12*NUM_AERO_PHASE_+3
+    PHASE_REAL_LOC_(i_aero_id) = NUM_REAL_PROP_+1
     do i_aero_rep = 1, size(aero_rep)
 
       ! Get the unique names in this aerosol representation for the
@@ -251,18 +284,43 @@ contains
       unique_spec_names = aero_rep(i_aero_rep)%val%unique_names( &
               phase_name = phase_name, spec_name = spec_name)
 
+      ! Find the corresponding activity coefficients, if specified
+      if (has_act_coeff) then
+        unique_act_names = aero_rep(i_aero_rep)%val%unique_names( &
+              phase_name = phase_name, spec_name = act_name)
+        call assert_msg(236251734, size(unique_act_names).eq. &
+                        size(unique_spec_names), &
+                        "Mismatch of SIMPOL species and activity coeffs")
+      end if
+
       ! Get the phase ids for this aerosol phase
       phase_ids = aero_rep(i_aero_rep)%val%phase_ids(phase_name)
 
       ! Add the species concentration and activity coefficient ids to
-      ! the condensed data
+      ! the condensed data, and set the number of Jacobian elements for
+      ! the aerosol representations and the locations of the real data
       do i_spec = 1, size(unique_spec_names)
+        NUM_AERO_PHASE_JAC_ELEM_(i_aero_id) = &
+              aero_rep(i_aero_rep)%val%num_jac_elem(phase_ids(i_spec))
         AERO_SPEC_(i_aero_id) = &
               aero_rep(i_aero_rep)%val%spec_state_id( &
               unique_spec_names(i_spec)%string)
+        if (has_act_coeff) then
+          AERO_ACT_ID_(i_aero_id) = &
+              aero_rep(i_aero_rep)%val%spec_state_id( &
+              unique_act_names(i_spec)%string)
+        else
+          AERO_ACT_ID_(i_aero_id) = -1
+        end if
         AERO_PHASE_ID_(i_aero_id) = phase_ids(i_spec)
         AERO_REP_ID_(i_aero_id) = i_aero_rep
         i_aero_id = i_aero_id + 1
+        if (i_aero_id .le. NUM_AERO_PHASE_) then
+          PHASE_INT_LOC_(i_aero_id)  = PHASE_INT_LOC_(i_aero_id - 1) + 1 + &
+                                     2*NUM_AERO_PHASE_JAC_ELEM_(i_aero_id - 1)
+          PHASE_REAL_LOC_(i_aero_id) = PHASE_REAL_LOC_(i_aero_id - 1) + &
+                                     4*NUM_AERO_PHASE_JAC_ELEM_(i_aero_id - 1)
+        end if
       end do
 
       deallocate(unique_spec_names)
@@ -350,6 +408,16 @@ contains
             "Missing molecular weight for species "//spec_name)
     PRE_C_AVG_ = sqrt(8.0*const%univ_gas_const/(const%pi*temp_real*1.0e3))
 
+    ! Check the sizes of the data arrays
+    tmp_size = PHASE_INT_LOC_(i_aero_id - 1) + 1 + &
+               2*NUM_AERO_PHASE_JAC_ELEM_(i_aero_id - 1) - 1
+    call assert_msg(625802519, size(this%condensed_data_int) .eq. tmp_size, &
+                    "int array size mismatch")
+    tmp_size = PHASE_REAL_LOC_(i_aero_id - 1) + &
+               4*NUM_AERO_PHASE_JAC_ELEM_(i_aero_id - 1) - 1
+    call assert_msg(391089510, size(this%condensed_data_real) .eq. tmp_size, &
+                    "real array size mismatch")
+
   end subroutine initialize
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -371,30 +439,4 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-#undef DELTA_H_
-#undef DELTA_S_
-#undef DIFF_COEFF_
-#undef PRE_C_AVG_
-#undef B1_
-#undef B2_
-#undef B3_
-#undef B4_
-#undef C_AVG_ALHPA_
-#undef EQUIL_CONST_
-#undef CONV_
-#undef MW_
-#undef UGM3_TO_PPM_
-#undef SMALL_NUMBER_
-#undef NUM_AERO_PHASE_
-#undef GAS_SPEC_
-#undef NUM_INT_PROP_
-#undef NUM_REAL_PROP_
-#undef AERO_SPEC_
-#undef AERO_ACT_ID_
-#undef AERO_PHASE_ID_
-#undef AERO_REP_ID_
-#undef DERIV_ID_
-#undef JAC_ID_
-#undef FAST_FLUX_
-#undef AERO_ADJ_
 end module pmc_rxn_SIMPOL_phase_transfer

@@ -23,6 +23,14 @@
 #include <sunmatrix/sunmatrix_sparse.h>  /* sparse SUNMatrix                    */
 #endif
 
+// State variable types (Must match parameters defined in pmc_chem_spec_data
+// module)
+#define CHEM_SPEC_UNKNOWN_TYPE 0
+#define CHEM_SPEC_VARIABLE 1
+#define CHEM_SPEC_CONSTANT 2
+#define CHEM_SPEC_PSSA 3
+#define CHEM_SPEC_ACTIVITY_COEFF 4
+
 /* Math constants */
 #define ZERO 0.0
 #define ONE 1.0
@@ -37,41 +45,71 @@
 #define PMC_NUM_ENV_PARAM_ 2 // !!! Must match the value in phlex_state.f90 !!!
 
 /* boolean definition */
-//CUDA/C++ already has bool definition, so is not necessary for GPU files
+//CUDA/C++ already has bool definition: Avoid issues disabling it for GPU
 #ifndef PHLEX_GPU_SOLVER_H_
 typedef enum {false, true} bool;
 #endif
 
+/* Jacobian map */
+typedef struct {
+  int solver_id; // solver Jacobian id
+  int rxn_id;    // reaction Jacobian id
+  int param_id;  // sub model Jacobian id
+} JacMap;
+
 /* Model data structure */
 typedef struct {
-  int n_state_var;      // number of state variablesper grid cell
+  int n_state_var;	    // number of state variables (>=NV_LENGTH_S(y))
   int n_dep_var;        // number of solver variables per grid cell
+  int n_cells;          // number of cells to compute simultaneously
   int n_jac_elem;       // number of potentially non-zero Jacobian elements
-                        // per grid cell
-  int n_cells;          // Number of cells to compute simultaneously
   double *abs_tol;      // pointer to array of state variable absolute
                         // integration tolerances
-  int *var_type;	// pointer to array of state variable types (solver,
-                        // constant, PSSA)
+  int *var_type;	        // pointer to array of state variable types (solver,
+                                // constant, PSSA)
 #ifdef PMC_USE_SUNDIALS
-  SUNMatrix J_init;	// sparse Jacobian matrix with used elements
-                        // initialized to 1.0
+  SUNMatrix J_init; // sparse solver Jacobian matrix with used elements
+                    // initialized to 1.0
+  SUNMatrix J_rxn;  // Matrix for Jacobian contributions from reactions
+  SUNMatrix J_params;           // Matrix for Jacobian contributions from sub model
+                                // parameter calculations
 #endif
-  double *state;	// Pointer to the state array
-  double *env;		// Pointer to the environmental state array
-  double *rate_constants; // Pointer to the rate constants state array
-  void *rxn_data;	// Pointer to reaction parameters
-  void *nxt_rxn;	// Pointer to element of rxn_data in which to store next
- 			// set of reaction data
-  void *aero_phase_data;// Pointer to aerosol phase parameters
-  void *nxt_aero_phase; // Pointer to element of aero_phase_data in which to store
-                        // the next set of aerosol phase data
-  void *aero_rep_data;	// Pointer to aerosol representation parameters
-  void *nxt_aero_rep;	// Pointer to element of aero_rep_data in which to store
-  			// the next set of aerosol representation data
-  void *sub_model_data; // Pointer to the sub model parameters
-  void *nxt_sub_model;  // Pointer to the element of sub_model_data in which to
-                        // store the next set of sub model data
+  JacMap *jac_map;         // Array of Jacobian mapping elements
+  JacMap *jac_map_params;  // Array of Jacobian mapping elements to account for
+                           // sub-model interdependence. If sub-model parameter
+                           // i_dep depends on sub-model parameter i_ind, and
+                           // j_ind is a dependency (variable or parameter) of
+                           // i_ind, then:
+                           // solver_id = jac_id[i_dep][j_ind]
+                           // rxn_id    = jac_id[i_dep][i_ind]
+                           // param_id  = jac_id[i_ind][j_ind]
+  int n_mapped_values;     // Number of Jacobian map elements
+  int n_mapped_params;     // Number of Jacobian map elements for sub models
+  double *state;           // State array
+  double *env;             // Environmental state array
+  double *rate_constants;  // Pointer to the rate constants state array
+  void *rxn_data;          // Pointer to reaction parameters
+  void *nxt_rxn;           // Pointer to element of rxn_data in which to store
+                           // next set of reaction data
+  void *aero_phase_data;   // Pointer to aerosol phase parameters
+  void *nxt_aero_phase;    // Pointer to element of aero_phase_data in which
+                           // to store the next set of aerosol phase data
+  void *aero_rep_data;     // Pointer to aerosol representation parameters
+  void *nxt_aero_rep;      // Pointer to element of aero_rep_data in which to
+                           // store the next set of aerosol representation data
+  int n_added_sub_models;  // The number of sub models whose data has been
+                           // added to the sub model data arrays
+  int *sub_model_int_data; // Pointer to sub model integer parameters
+  double
+      *sub_model_float_data;   // Pointer to sub model floating-point parameters
+  int *nxt_sub_model_int;      // Pointer to the next available integer in
+                               // sub_model_int_data
+  double *nxt_sub_model_float; // Pointer to the next available floating-point
+                               // number in sub_model_float_data
+  int **sub_model_int_ptrs;    // Array of pointers to integer data for each
+                               // sub model
+  double **sub_model_float_ptrs; // Array of pointers to floating-point data for
+                                 // each sub model
 } ModelData;
 
 /* Solver data structure */

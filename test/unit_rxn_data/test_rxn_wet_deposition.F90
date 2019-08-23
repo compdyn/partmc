@@ -41,6 +41,7 @@ program pmc_test_wet_deposition
   else
     if (pmc_mpi_rank().eq.0) write(*,*) &
           "Wet Deposition reaction tests - FAIL"
+    stop 3
   end if
 
   ! finalize mpi

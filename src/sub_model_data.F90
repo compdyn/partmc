@@ -11,7 +11,9 @@
 !! current model state for use by reactions.
 !!
 !! The available sub-models are:
+!!  - \subpage phlex_sub_model_PDFiTE "PDFiTE Activity Coefficients"
 !!  - \subpage phlex_sub_model_UNIFAC "UNIFAC Activity Coefficients"
+!!  - \subpage phlex_sub_model_ZSR_aerosol_water "ZSR Aerosol Water"
 !!
 !! The general input format for a sub-model can be found
 !! \subpage input_format_sub_model "here".
@@ -77,6 +79,10 @@ module pmc_sub_model_data
     !! the input files have been read in. It ensures all data required
     !! during the model run are included in the condensed data arrays.
     procedure(initialize), deferred :: initialize
+    !> Return a real number representing the priority of the sub-model
+    !! calculations. Low priority sub models may depend on the results
+    !! of higher priority sub models. Lower numbers indicate higher priority.
+    procedure(priority), deferred :: priority
     !> Get the name of the sub-model
     procedure :: name => get_name
     !> Determine the number of bytes required to pack the sub-model data
@@ -144,6 +150,23 @@ interface
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Return a real number representing the priority of the sub model
+  !! calculations. Low priority sub models may use the results of higher
+  !! priority sub models. Lower numbers indicate higher priority.
+  function priority(this)
+
+    use pmc_constants,                           only : dp
+    import :: sub_model_data_t
+
+    !> Sub model priority
+    real(kind=dp) :: priority
+    !> Sub model data
+    class(sub_model_data_t), intent(in) :: this
+
+  end function priority
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 end interface
 
 contains
@@ -187,7 +210,9 @@ contains
   !! Sub-models must have a unique \b type that corresponds to a valid
   !! sub-model type. These include:
   !!
+  !!   - \subpage phlex_sub_model_PDFiTE "SUB_MODEL_PDFITE"
   !!   - \subpage phlex_sub_model_UNIFAC "SUB_MODEL_UNIFAC"
+  !!   - \subpage phlex_sub_model_ZSR_aerosol_water "SUB_MODEL_ZSR_AEROSOL_WATER"
   !!
   !! All remaining data are optional and may include and valid \b json value,
   !! including nested objects. However, extending types will have specific

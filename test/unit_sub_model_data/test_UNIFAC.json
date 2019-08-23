@@ -22,6 +22,13 @@
     }
   },
   {
+    "name" : "gamma n-butanol",
+    "type" : "CHEM_SPEC",
+    "phase" : "AEROSOL",
+    "tracer type" : "ACTIVITY_COEFF",
+    "chemical species" : "n-butanol"
+  },
+  {
     "name" : "water",
     "type" : "CHEM_SPEC",
     "phase" : "AEROSOL",
@@ -30,6 +37,13 @@
     "UNIFAC groups" : {
       "H2O" : 1
     }
+  },
+  {
+    "name" : "gamma water",
+    "type" : "CHEM_SPEC",
+    "phase" : "AEROSOL",
+    "tracer type" : "ACTIVITY_COEFF",
+    "chemical species" : "water"
   },
   {
     "name" : "methanol",
@@ -42,12 +56,12 @@
   {
     "name" : "some other phase",
     "type" : "AERO_PHASE",
-    "species" : [ "methanol", "water", "n-butanol" ]
+    "species" : [ "methanol", "water", "gamma water", "n-butanol", "gamma n-butanol" ]
   },
   {
     "name" : "n-butanol/water mixture",
     "type" : "AERO_PHASE",
-    "species" : [ "n-butanol", "water" ]
+    "species" : [ "n-butanol", "gamma n-butanol", "water", "gamma water" ]
   },
   {
     "name" : "my aero rep",

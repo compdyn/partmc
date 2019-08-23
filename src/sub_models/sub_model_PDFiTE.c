@@ -2,16 +2,16 @@
  * Licensed under the GNU General Public License version 2 or (at your
  * option) any later version. See the file COPYING for details.
  *
- * PDFiTE Activity reaction solver functions
+ * PDFiTE Activity sub model solver functions
  *
 */
 /** \file
- * \brief PDFiTE Activity reaction solver functions
+ * \brief PDFiTE Activity sub model solver functions
 */
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "../rxns.h"
+#include "../sub_models.h"
 
 // TODO Lookup environmental indices during initialization
 #define TEMPERATURE_K_ env_data[0]
@@ -46,52 +46,48 @@
 #define B_Z_(x,y,z) (float_data[INTER_SPEC_LOC_(x,y)+2+z])
 
 
-/** \brief Flag Jacobian elements used by this reaction
+/** \brief Flag Jacobian elements used by this sub model
  *
- * activity reactions are assumed to be at equilibrium
+ * activity sub models are assumed to be at equilibrium
  *
- * \param rxn_data A pointer to the reaction data
- * \param jac_struct 2D array of flags indicating potentially non-zero
- *                   Jacobian elements
- * \return The rxn_data pointer advanced by the size of the reaction data
+ * \param sub_model_int_data Pointer to the sub model integer data
+ * \param sub_model_float_data Pointer to the sub model floating-point data
+ * \param jac_struct A matrix of flags for needed Jac elements
  */
-void * rxn_PDFiTE_activity_get_used_jac_elem(void *rxn_data, bool **jac_struct)
+void sub_model_PDFiTE_get_used_jac_elem(int *sub_model_int_data,
+    double *sub_model_float_data, bool **jac_struct)
 {
-  int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
-
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
+  int *int_data = sub_model_int_data;
+  double *float_data = sub_model_float_data;
 }
 
 /** \brief Update the time derivative and Jacbobian array indices
  *
- * activity reactions are assumed to be at equilibrium
+ * activity sub models are assumed to be at equilibrium
  *
- * \param model_data Pointer to the model data
- * \param deriv_ids Id of each state variable in the derivative array
- * \param jac_ids Id of each state variable combo in the Jacobian array
- * \param rxn_data Pointer to the reaction data
- * \return The rxn_data pointer advanced by the size of the reaction data
+ * \param sub_model_int_data Pointer to the sub model integer data
+ * \param sub_model_float_data Pointer to the sub model floating-point data
+ * \param deriv_ids Indices for state array variables on the solver state array
+ * \param jac_ids Indices for Jacobian elements in the sparse data array
  */
-void * rxn_PDFiTE_activity_update_ids(ModelData *model_data, int *deriv_ids,
-          int **jac_ids, void *rxn_data)
+void sub_model_PDFiTE_update_ids(int *sub_model_int_data,
+    double *sub_model_float_data, int *deriv_ids, int **jac_ids)
 {
-  int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
-
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
+  int *int_data = sub_model_int_data;
+  double *float_data = sub_model_float_data;
 }
 
-/** \brief Update reaction data for new environmental conditions
+/** \brief Update sub model data for new environmental conditions
  *
+ * \param sub_model_int_data Pointer to the sub model integer data
+ * \param sub_model_float_data Pointer to the sub model floating-point data
  * \param env_data Pointer to the environmental state array
- * \param rxn_data Pointer to the reaction data
- * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_PDFiTE_activity_update_env_state(double *rate_constants, double *env_data, void *rxn_data)
+void sub_model_PDFiTE_update_env_state(int *sub_model_int_data,
+    double *sub_model_float_data, double *env_data)
 {
-  int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  int *int_data = sub_model_int_data;
+  double *float_data = sub_model_float_data;
 
   // Calculate PPM_TO_RH_
   // From MOSAIC code - reference to Seinfeld & Pandis page 181
@@ -104,22 +100,25 @@ void * rxn_PDFiTE_activity_update_env_state(double *rate_constants, double *env_
 
   PPM_TO_RH_ = PRESSURE_PA_ / water_vp / 1.0e6;		// (1/ppm)
 
-  rate_constants[0] = PPM_TO_RH_;
+  //TODO: n_cells computation simultaneously
+  //rate_constants[0] = PPM_TO_RH_;
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
 
-/** \brief Do pre-derivative calculations
+/** \brief Perform the sub-model calculations for the current model state
  *
- * \param model_data Pointer to the model data, including the state array
- * \param rxn_data Pointer to the reaction data
- * \return The rxn_data pointer advanced by the size of the reaction data
+ * \param sub_model_int_data Pointer to the sub model integer data
+ * \param sub_model_float_data Pointer to the sub model floating-point data
+ * \param model_data Pointer to the model data including the current state and
+ *                   environmental conditions
  */
-void * rxn_PDFiTE_activity_pre_calc(ModelData *model_data, void *rxn_data)
+void sub_model_PDFiTE_calculate(int *sub_model_int_data,
+    double *sub_model_float_data, ModelData *model_data)
 {
   double *state = model_data->state;
-  int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  int *int_data = sub_model_int_data;
+  double *float_data = sub_model_float_data;
 
   // Calculate the water activity---i.e., relative humidity (0-1)
   double a_w = PPM_TO_RH_ * state[GAS_WATER_ID_];
@@ -226,82 +225,43 @@ void * rxn_PDFiTE_activity_pre_calc(ModelData *model_data, void *rxn_data)
     } // Loop on primary ion_pairs
 
   } // Loop on aerosol phases
-
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
 
-/** \brief Calculate contributions to the time derivative f(t,y) from this
- * reaction.
+// TODO finish adding J contributions
+/** \brief Add contributions to the Jacobian from derivates calculated using the output of this sub model
  *
- * \param model_data Pointer to the model data, including the state array
- * \param deriv Pointer to the time derivative to add contributions to
- * \param rxn_data Pointer to the reaction data
- * \param time_step Current time step being computed (s)
- * \return The rxn_data pointer advanced by the size of the reaction data
- */
-#ifdef PMC_USE_SUNDIALS
-void * rxn_PDFiTE_activity_calc_deriv_contrib(double *rate_constants, double *state, ModelData *model_data,
-          realtype *deriv, void *rxn_data, double time_step)
-{
-  int *int_data = (int*) rxn_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
-
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
-
-}
-#endif
-
-/** \brief Calculate contributions to the Jacobian from this reaction
- *
+ * \param sub_model_int_data Pointer to the sub model integer data
+ * \param sub_model_float_data Pointer to the sub model floating-point data
  * \param model_data Pointer to the model data
- * \param J Pointer to the sparse Jacobian matrix to add contributions to
- * \param rxn_data Pointer to the reaction data
- * \param time_step Current time step being calculated (s)
- * \return The rxn_data pointer advanced by the size of the reaction data
+ * \param J Jacobian to be calculated
+ * \param time_step Current time step in [s]
  */
 #ifdef PMC_USE_SUNDIALS
-void * rxn_PDFiTE_activity_calc_jac_contrib(double *rate_constants, double *state, ModelData *model_data, realtype *J,
-          void *rxn_data, double time_step)
+void sub_model_PDFiTE_get_jac_contrib(int *sub_model_int_data,
+    double *sub_model_float_data, ModelData *model_data, realtype *J,
+    double time_step)
 {
-  //realtype *state = model_data->state;
-  int *int_data = (int*) rxn_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
-
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
-
+  int *int_data = sub_model_int_data;
+  double *float_data = sub_model_float_data;
 }
 #endif
 
-/** \brief Advance the reaction data pointer to the next reaction
+/** \brief Print the PDFiTE Activity sub model parameters
  *
- * \param rxn_data Pointer to the reaction data
- * \return The rxn_data pointer advanced by the size of the reaction data
+ * \param sub_model_int_data Pointer to the sub model integer data
+ * \param sub_model_float_data Pointer to the sub model floating-point data
  */
-void * rxn_PDFiTE_activity_skip(void *rxn_data)
+void sub_model_PDFiTE_print(int *sub_model_int_data,
+    double *sub_model_float_data)
 {
-  int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  int *int_data = sub_model_int_data;
+  double *float_data = sub_model_float_data;
 
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
-}
-
-/** \brief Print the PDFiTE Activity reaction parameters
- *
- * \param rxn_data Pointer to the reaction data
- * \return The rxn_data pointer advanced by the size of the reaction data
- */
-void * rxn_PDFiTE_activity_print(void *rxn_data)
-{
-  int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
-
-  printf("\n\nPDFiTE Activity reaction\n");
+  printf("\n\nPDFiTE Activity sub model\n");
   for (int i=0; i<INT_DATA_SIZE_; i++)
     printf("  int param %d = %d\n", i, int_data[i]);
   for (int i=0; i<FLOAT_DATA_SIZE_; i++)
     printf("  float param %d = %le\n", i, float_data[i]);
-
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
 
 #undef TEMPERATURE_K_

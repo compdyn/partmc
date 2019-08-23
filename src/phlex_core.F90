@@ -153,11 +153,11 @@ module pmc_phlex_core
     ! Variable types
     integer(kind=i_kind), allocatable :: var_type(:)
     !> Solver data (gas-phase reactions)
-    type(phlex_solver_data_t), pointer :: solver_data_gas => null()
+    type(phlex_solver_data_t), pointer, public :: solver_data_gas => null()
     !> Solver data (aerosol-phase reactions)
-    type(phlex_solver_data_t), pointer :: solver_data_aero => null()
+    type(phlex_solver_data_t), pointer, public :: solver_data_aero => null()
     !> Solver data (mixed gas- and aerosol-phase reactions)
-    type(phlex_solver_data_t), pointer :: solver_data_gas_aero => null()
+    type(phlex_solver_data_t), pointer, public :: solver_data_gas_aero => null()
     !> Flag indicating the model data has been initialized
     logical :: core_is_initialized = .false.
     !> Flag indicating the solver has been initialized
@@ -199,10 +199,6 @@ module pmc_phlex_core
     procedure :: update_sub_model_data
     !> Run the chemical mechanisms
     procedure :: solve
-    !> Get the id of a sub-model parameter in the solver data
-    procedure :: get_sub_model_parameter_id
-    !> Get the value of a sub-model parameter in the current solver data
-    procedure :: get_sub_model_parameter_value
     !> Determine the number of bytes required to pack the variable
     procedure :: pack_size
     !> Pack the given variable into a buffer, advancing position
@@ -299,8 +295,8 @@ contains
 
     logical(kind=json_lk) :: found, valid
     character(kind=json_ck, len=:), allocatable :: unicode_str_val
-    integer(kind=json_ik) :: i_file, num_files
     character(kind=json_ck, len=:), allocatable :: json_err_msg
+    integer(kind=json_ik) :: i_file, num_files
     type(string_t), allocatable :: file_list(:)
     logical :: file_exists
 
@@ -434,6 +430,8 @@ contains
     type(sub_model_factory_t) :: sub_model_factory
     type(sub_model_data_ptr) :: sub_model_ptr
     class(sub_model_data_t), pointer :: existing_sub_model_ptr
+    logical :: sub_model_placed
+    integer(kind=i_kind) :: i_sub_model, j_sub_model
 
     ! aerosol representations
     type(aero_rep_data_ptr), pointer :: new_aero_rep(:)
@@ -564,10 +562,24 @@ contains
             deallocate(sub_model_ptr%val)
             call existing_sub_model_ptr%load(json, j_obj)
           else
+            sub_model_placed = .false.
             allocate(new_sub_model(size(this%sub_model)+1))
-            new_sub_model(1:size(this%sub_model)) = &
-                    this%sub_model(1:size(this%sub_model))
-            new_sub_model(size(new_sub_model))%val => sub_model_ptr%val
+            j_sub_model = 1
+            do i_sub_model = 1, size(this%sub_model)
+              if (.not.sub_model_placed .and. &
+                  sub_model_ptr%val%priority() < &
+                  this%sub_model(i_sub_model)%val%priority()) then
+                    sub_model_placed = .true.
+                    new_sub_model(j_sub_model)%val => sub_model_ptr%val
+                    j_sub_model = j_sub_model + 1
+              end if
+              new_sub_model(j_sub_model) = &
+                      this%sub_model(i_sub_model)
+              j_sub_model = j_sub_model + 1
+            end do
+            if (.not.sub_model_placed) then
+              new_sub_model(j_sub_model)%val => sub_model_ptr%val
+            end if
             call this%sub_model(:)%dereference()
             deallocate(this%sub_model)
             this%sub_model => new_sub_model
@@ -966,8 +978,6 @@ contains
     !> Chemical model
     class(phlex_core_t), intent(inout) :: this
 
-
-
     call assert_msg(662920365, .not.this%solver_is_initialized, &
             "Attempting to initialize the solver twice.")
 
@@ -1176,91 +1186,12 @@ contains
 
     ! Run the integration
     if (present(solver_stats)) then
-
       call solver%solve(phlex_state, real(0.0, kind=dp), time_step,          &
                         solver_stats)
     else
       call solver%solve(phlex_state, real(0.0, kind=dp), time_step)
     end if
-
-
   end subroutine solve
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Get the id of a sub-model parameter in the solver data
-  function get_sub_model_parameter_id(this, sub_model_type, identifiers) &
-      result (parameter_id)
-
-    use iso_c_binding
-
-    !> Parameter id
-    integer(kind=c_int) :: parameter_id
-    !> Core data
-    class(phlex_core_t), intent(in) :: this
-    !> Sub model type
-    integer(kind=i_kind), intent(in) :: sub_model_type
-    !> Identifiers needed by the sub-model to find a parameter
-    type(c_ptr), intent(in) :: identifiers
-
-    if (associated(this%solver_data_gas)) then
-      parameter_id = this%solver_data_gas%get_sub_model_parameter_id( &
-              sub_model_type, identifiers)
-    else if (associated(this%solver_data_aero)) then
-      parameter_id = this%solver_data_aero%get_sub_model_parameter_id( &
-              sub_model_type, identifiers)
-    else if (associated(this%solver_data_gas_aero)) then
-      parameter_id = this%solver_data_gas_aero%get_sub_model_parameter_id( &
-              sub_model_type, identifiers)
-    end if
-
-  end function get_sub_model_parameter_id
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Get the value associated with a sub-model parameter for the current
-  !! solver state
-  function get_sub_model_parameter_value(this, parameter_id) &
-      result (parameter_value)
-
-    use iso_c_binding
-
-    !> Parameter value
-    real(kind=dp) :: parameter_value
-    !> Core data
-    class(phlex_core_t), intent(in) :: this
-    !> Parameter id
-    integer(kind=c_int), intent(in) :: parameter_id
-
-    if (associated(this%solver_data_gas)) then
-      parameter_value = &
-              this%solver_data_gas%get_sub_model_parameter_value( &
-              parameter_id)
-    else if (associated(this%solver_data_aero)) then
-      parameter_value = &
-              this%solver_data_aero%get_sub_model_parameter_value( &
-              parameter_id)
-    else if (associated(this%solver_data_gas_aero)) then
-      parameter_value = &
-              this%solver_data_gas_aero%get_sub_model_parameter_value( &
-              parameter_id)
-    end if
-
-  end function get_sub_model_parameter_value
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-!> Set number of cells to compute simultaneously
-  subroutine set_n_cells(this, n_cells)
-
-    !> Core data
-    class(phlex_core_t), intent(inout) :: this
-    !> Parameter id
-    integer(kind=i_kind) :: n_cells
-
-    this%n_cells = n_cells
-
-  end subroutine set_n_cells
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

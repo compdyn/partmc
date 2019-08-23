@@ -1,5 +1,5 @@
-/* Copyright (C) 2015-2018 Matthew Dawson
- * Licensed under the GNU General Public License version 2 or (at your
+/* Copyright (C) 2019 Christian Guzman
+ * Licensed under the GNU General Public License version 1 or (at your
  * option) any later version. See the file COPYING for details.
  *
  * ZSR Aerosol Water reaction solver functions

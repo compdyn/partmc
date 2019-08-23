@@ -129,22 +129,6 @@ void * rxn_wet_deposition_update_env_state(double *rate_constants, double *env_d
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
 
-/** \brief Do pre-derivative calculations
- *
- * Nothing to do for wet deposition reactions
- *
- * \param model_data Pointer to the model data, including the state array
- * \param rxn_data Pointer to the reaction data
- * \return The rxn_data pointer advanced by the size of the reaction data
- */
-void * rxn_wet_deposition_pre_calc(ModelData *model_data, void *rxn_data)
-{
-  int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
-
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
-}
-
 /** \brief Calculate contributions to the time derivative \f$f(t,y)\f$ from
  * this reaction.
  *
@@ -165,7 +149,6 @@ void * rxn_wet_deposition_calc_deriv_contrib(double *rate_constants, double *sta
   // Add contributions to the time derivative
   for (int i_spec = 0; i_spec < NUM_SPEC_; i_spec++) {
     if (DERIV_ID_(i_spec) >= 0 )
-        //deriv[DERIV_ID_(i_spec)] -= RATE_CONSTANT_ * state[REACT_(i_spec)];
       deriv[DERIV_ID_(i_spec)] -= rate_constants[0] * state[REACT_(i_spec)];
   }
 
@@ -192,7 +175,6 @@ void * rxn_wet_deposition_calc_jac_contrib(double *rate_constants, double *state
 
   // Add contributions to the Jacobian
   for (int i_spec = 0; i_spec < NUM_SPEC_; i_spec++) {
-    //if (JAC_ID_(i_spec) >= 0) J[JAC_ID_(i_spec)] -= RATE_CONSTANT_;
     if (JAC_ID_(i_spec) >= 0) J[JAC_ID_(i_spec)] -= rate_constants[0];
   }
 

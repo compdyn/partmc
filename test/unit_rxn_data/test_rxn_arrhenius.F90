@@ -21,7 +21,7 @@ program pmc_test_arrhenius
 #endif
 
   implicit none
-  
+
   ! Number of timesteps to output in mechanisms
   integer(kind=i_kind) :: NUM_TIME_STEP = 100
 
@@ -32,6 +32,7 @@ program pmc_test_arrhenius
     if (pmc_mpi_rank().eq.0) write(*,*) "Arrhenius reaction tests - PASS"
   else
     if (pmc_mpi_rank().eq.0) write(*,*) "Arrhenius reaction tests - FAIL"
+    stop 3
   end if
 
   ! finalize mpi
@@ -284,7 +285,7 @@ contains
         results = 1
       end if
     end if
-    
+
     ! Send the results back to the primary process
     call pmc_mpi_transfer_integer(results, results, 1, 0)
 

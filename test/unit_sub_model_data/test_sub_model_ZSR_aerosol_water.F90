@@ -5,7 +5,7 @@
 !> \file
 !> The pmc_test_ZSR_aerosol_water program
 
-!> Test of ZSR_aerosol_water reaction module
+!> Test of ZSR_aerosol_water sub model
 program pmc_test_ZSR_aerosol_water
 
   use iso_c_binding
@@ -25,20 +25,37 @@ program pmc_test_ZSR_aerosol_water
 #endif
   use pmc_mpi
 
+  use iso_c_binding
   implicit none
 
   ! Number of RHs to calculate aerosol water for
   integer(kind=i_kind) :: NUM_RH_STEP = 100
+
+  !> Interface to the c ODE solver and test functions
+  interface
+    !> Run the c functions tests
+    integer(kind=c_int) function run_sub_model_zsr_c_tests(solver_data, &
+        state, env) bind (c)
+      use iso_c_binding
+      !> Pointer to the initialized solver data
+      type(c_ptr), value :: solver_data
+      !> Pointer to the state array
+      type(c_ptr), value :: state
+      !> Pointer to the environmental state array
+      type(c_ptr), value :: env
+    end function run_sub_model_zsr_c_tests
+  end interface
 
   ! initialize mpi
   call pmc_mpi_init()
 
   if (run_ZSR_aerosol_water_tests()) then
     if (pmc_mpi_rank().eq.0) write(*,*) &
-            "ZSR aerosol water reaction tests - PASS"
+            "ZSR aerosol water sub model tests - PASS"
   else
     if (pmc_mpi_rank().eq.0) write(*,*) &
-            "ZSR aerosol water reaction tests - FAIL"
+            "ZSR aerosol water sub model tests - FAIL"
+          stop 3
   end if
 
   ! finalize mpi
@@ -72,7 +89,7 @@ contains
 
   !> Solve a mechanism consisting of one aersol water calculation with two ion pairs
   !!
-  !! JACOBSON molality parameters are for NaCl from Jacobson et al. 
+  !! JACOBSON molality parameters are for NaCl from Jacobson et al.
   !! \cite{Jacobson1996} Table 2. (CaCl2 is used in the test just to test code
   !! when the number of anions and cations differs.) EQSAM molality parameters
   !! are also for NaCl from EQSAM_v03d.
@@ -92,7 +109,7 @@ contains
             idx_Cl_m_act, idx_Ca_pp, idx_Ca_pp_act, idx_H2O_aq, idx_H2O_act, &
             i_RH, i_spec, idx_phase
     real(kind=dp) :: RH_step, RH, ppm_to_RH, molal_NaCl, molal_CaCl2, &
-            NaCl_conc, CaCl2_conc, water_NaCl, water_CaCl2, temp, pressure 
+            NaCl_conc, CaCl2_conc, water_NaCl, water_CaCl2, temp, pressure
 #ifdef PMC_USE_MPI
     character, allocatable :: buffer(:), buffer_copy(:)
     integer(kind=i_kind) :: pack_size, pos, i_elem, results
@@ -114,7 +131,7 @@ contains
     if (pmc_mpi_rank().eq.0) then
 #endif
 
-      ! Get the ZSR_aerosol_water reaction mechanism json file
+      ! Get the ZSR_aerosol_water sub model mechanism json file
       input_file_path = 'test_ZSR_aerosol_water_config.json'
 
       ! Construct a phlex_core variable
@@ -263,18 +280,18 @@ contains
               9.591577e3 * RH**6 + 1.763672e3 * RH**7
         molal_CaCl2 = molal_CaCl2**2
         ! EQSAM molality (from EQSAM_v03d)
-        !  m_i = (NW_i * MW_H2O/MW_i * (1.0/RH-1.0))^ZW_i   
+        !  m_i = (NW_i * MW_H2O/MW_i * (1.0/RH-1.0))^ZW_i
         !  where MW_H2O is defined as 55.51*18.01
         RH = i_RH * RH_step
         molal_NaCl = (2.0d0 * 55.51D0 * 18.01d0 / 58.5d0 * &
                 (1.0d0/RH - 1.0d0))**0.67d0
         CaCl2_conc = MIN(true_conc(i_RH,idx_Ca_pp)/40.078d0, &
-                true_conc(i_RH,idx_Cl_m)/2.0d0/35.453d0) 
+                true_conc(i_RH,idx_Cl_m)/2.0d0/35.453d0)
                 ! (umol/m^3_air = mol/cm^3_air)
-        NaCl_conc = true_conc(i_RH,idx_Cl_m)/35.453d0 
+        NaCl_conc = true_conc(i_RH,idx_Cl_m)/35.453d0
                 ! (umol/m^3_air = mol/cm^3_air)
         ! Water content is (eq 28 \cite{Jacobson1996}) :
-        ! cw = 1000 / MW_H2O * sum_i (c_i / m_i)   
+        ! cw = 1000 / MW_H2O * sum_i (c_i / m_i)
         !   with cw and c_i in (mol_i/cm^3_air) and m_i in (mol_i/kg_H2O)
         water_CaCl2 =  CaCl2_conc / molal_CaCl2 * 1000.0d0 ! (ug_H2O/m^3_air)
         water_NaCl = NaCl_conc / molal_NaCl * 1000.0d0 ! (ug_H2O/m^3_air)
@@ -322,7 +339,7 @@ contains
         results = 1
       end if
     end if
-    
+
     ! Send the results back to the primary process
     call pmc_mpi_transfer_integer(results, results, 1, 0)
 
@@ -340,7 +357,56 @@ contains
 
     deallocate(phlex_core)
 
+    ! Evaluate the sub model c functions
+    run_ZSR_aerosol_water_test = &
+      run_ZSR_aerosol_water_test .and. &
+      eval_c_func()
+
   end function run_ZSR_aerosol_water_test
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Evaluate the sub model c functions
+  logical function eval_c_func() result(passed)
+
+    type(phlex_core_t), pointer :: phlex_core
+    type(phlex_state_t), pointer :: phlex_state
+    character(len=:), allocatable :: input_file_path
+
+    ! Get the ZSR_aerosol_water sub model mechanism json file
+    input_file_path = 'test_ZSR_aerosol_water_config.json'
+
+    ! Construct a phlex_core variable
+    phlex_core => phlex_core_t(input_file_path)
+
+    deallocate(input_file_path)
+
+    ! Initialize the model
+    call phlex_core%initialize()
+
+    ! Initialize the solver
+    call phlex_core%solver_initialize()
+
+    ! Get a new state variable
+    phlex_state => phlex_core%new_state()
+
+    ! Set the initial conditions
+    phlex_state%state_var(:) = 0.0
+    phlex_state%env_state%temp = 298.0
+    phlex_state%env_state%pressure = 101325.0
+
+    call phlex_state%update_env_state()
+
+    passed = run_sub_model_zsr_c_tests(                                      &
+                 phlex_core%solver_data_gas_aero%solver_c_ptr,               &
+                 c_loc(phlex_state%state_var),                               &
+                 c_loc(phlex_state%env_var)                                  &
+                 ) .eq. 0
+
+   deallocate(phlex_state)
+   deallocate(phlex_core)
+
+  end function eval_c_func
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

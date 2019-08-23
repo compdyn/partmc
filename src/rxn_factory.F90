@@ -190,12 +190,10 @@ module pmc_rxn_factory
   use pmc_rxn_emission
   use pmc_rxn_first_order_loss
   use pmc_rxn_HL_phase_transfer
-  use pmc_rxn_PDFiTE_activity
   use pmc_rxn_photolysis
   use pmc_rxn_SIMPOL_phase_transfer
   use pmc_rxn_troe
   use pmc_rxn_wet_deposition
-  use pmc_rxn_ZSR_aerosol_water
 
   use iso_c_binding
 
@@ -213,8 +211,6 @@ module pmc_rxn_factory
   integer(kind=i_kind), parameter, public :: RXN_PHOTOLYSIS = 5
   integer(kind=i_kind), parameter, public :: RXN_HL_PHASE_TRANSFER = 6
   integer(kind=i_kind), parameter, public :: RXN_AQUEOUS_EQUILIBRIUM = 7
-  integer(kind=i_kind), parameter, public :: RXN_ZSR_AEROSOL_WATER = 8
-  integer(kind=i_kind), parameter, public :: RXN_PDFITE_ACTIVITY = 9
   integer(kind=i_kind), parameter, public :: RXN_SIMPOL_PHASE_TRANSFER = 10
   integer(kind=i_kind), parameter, public :: RXN_CONDENSED_PHASE_ARRHENIUS = 11
   integer(kind=i_kind), parameter, public :: RXN_FIRST_ORDER_LOSS = 12
@@ -275,10 +271,6 @@ contains
         new_obj => rxn_HL_phase_transfer_t()
       case ("AQUEOUS_EQUILIBRIUM")
         new_obj => rxn_aqueous_equilibrium_t()
-      case ("ZSR_AEROSOL_WATER")
-        new_obj => rxn_ZSR_aerosol_water_t()
-      case ("PDFITE_ACTIVITY")
-        new_obj => rxn_PDFiTE_activity_t()
       case ("SIMPOL_PHASE_TRANSFER")
         new_obj => rxn_SIMPOL_phase_transfer_t()
       case ("CONDENSED_PHASE_ARRHENIUS")
@@ -368,10 +360,6 @@ contains
         rxn_type = RXN_HL_PHASE_TRANSFER
       type is (rxn_aqueous_equilibrium_t)
         rxn_type = RXN_AQUEOUS_EQUILIBRIUM
-      type is (rxn_ZSR_aerosol_water_t)
-        rxn_type = RXN_ZSR_AEROSOL_WATER
-      type is (rxn_PDFiTE_activity_t)
-        rxn_type = RXN_PDFITE_ACTIVITY
       type is (rxn_SIMPOL_phase_transfer_t)
         rxn_type = RXN_SIMPOL_PHASE_TRANSFER
       type is (rxn_condensed_phase_arrhenius_t)
@@ -465,10 +453,6 @@ contains
         rxn_type = RXN_HL_PHASE_TRANSFER
       type is (rxn_aqueous_equilibrium_t)
         rxn_type = RXN_AQUEOUS_EQUILIBRIUM
-      type is (rxn_ZSR_aerosol_water_t)
-        rxn_type = RXN_ZSR_AEROSOL_WATER
-      type is (rxn_PDFiTE_activity_t)
-        rxn_type = RXN_PDFITE_ACTIVITY
       type is (rxn_SIMPOL_phase_transfer_t)
         rxn_type = RXN_SIMPOL_PHASE_TRANSFER
       type is (rxn_condensed_phase_arrhenius_t)
@@ -526,10 +510,6 @@ contains
         rxn => rxn_HL_phase_transfer_t()
       case (RXN_AQUEOUS_EQUILIBRIUM)
         rxn => rxn_aqueous_equilibrium_t()
-      case (RXN_ZSR_AEROSOL_WATER)
-        rxn => rxn_ZSR_aerosol_water_t()
-      case (RXN_PDFITE_ACTIVITY)
-        rxn => rxn_PDFiTE_activity_t()
       case (RXN_SIMPOL_PHASE_TRANSFER)
         rxn => rxn_SIMPOL_phase_transfer_t()
       case (RXN_CONDENSED_PHASE_ARRHENIUS)

@@ -1,0 +1,240 @@
+{
+  "note" : "Test mechanism for aqueous equilibrium reactions",
+  "pmc-data" : [
+   {
+    "type" : "RELATIVE_TOLERANCE",
+    "value" : 1.0e-15
+  },
+  {
+    "name" : "H2O",
+    "type" : "CHEM_SPEC"
+  },
+  {
+    "name" : "Na_p",
+    "type" : "CHEM_SPEC",
+    "phase" : "AEROSOL",
+    "charge" : 1,
+    "density [kg m-3]" : 1.0,
+    "molecular weight [kg mol-1]" : 0.0229898
+  },
+  {
+    "name" : "Cl_m",
+    "type" : "CHEM_SPEC",
+    "phase" : "AEROSOL",
+    "charge" : -1,
+    "density [kg m-3]" : 1.0,
+    "molecular weight [kg mol-1]" : 0.035453
+  },
+  {
+    "name" : "Ca_pp",
+    "type" : "CHEM_SPEC",
+    "phase" : "AEROSOL",
+    "charge" : 2,
+    "density [kg m-3]" : 1.0,
+    "molecular weight [kg mol-1]" : 0.040078
+  },
+  {
+    "name" : "A",
+    "type" : "CHEM_SPEC",
+    "phase" : "AEROSOL",
+    "molecular weight [kg mol-1]" : 0.1572,
+    "density [kg m-3]" : 1.0,
+    "absolute tolerance" : 1.0e-20
+  },
+  {
+    "name" : "B",
+    "type" : "CHEM_SPEC",
+    "phase" : "AEROSOL",
+    "molecular weight [kg mol-1]" : 0.0219,
+    "density [kg m-3]" : 1.0,
+    "absolute tolerance" : 1.0e-20
+  },
+  {
+    "name" : "C",
+    "type" : "CHEM_SPEC",
+    "phase" : "AEROSOL",
+    "molecular weight [kg mol-1]" : 0.2049,
+    "density [kg m-3]" : 1.0,
+    "absolute tolerance" : 1.0e-20
+  },
+  {
+    "name" : "D",
+    "type" : "CHEM_SPEC",
+    "phase" : "AEROSOL",
+    "molecular weight [kg mol-1]" : 0.0345,
+    "density [kg m-3]" : 1.0,
+    "tracer type" : "CONSTANT"
+  },
+  {
+    "name" : "H2O_aq",
+    "type" : "CHEM_SPEC",
+    "phase" : "AEROSOL",
+    "density [kg m-3]" : 1.0,
+    "molecular weight [kg mol-1]" : 0.01801
+  },
+  {
+    "name" : "that other phase",
+    "type" : "AERO_PHASE",
+    "species" : ["H2O_aq"]
+  },
+  {
+    "name" : "aqueous aerosol",
+    "type" : "AERO_PHASE",
+    "species" : ["A", "B", "C", "D", "Na_p", "Cl_m", "Ca_pp", "H2O_aq"]
+  },
+  {
+    "name" : "organic aerosol",
+    "type" : "AERO_PHASE",
+    "species" : ["A", "B", "C", "D"]
+  },
+  {
+    "type" : "AERO_REP_MODAL_BINNED_MASS",
+    "name" : "my aero rep 2",
+    "modes/bins" :
+    {
+      "ununsed mode" :
+      {
+        "type" : "MODAL",
+        "phases" : ["that other phase"],
+        "shape" : "LOG_NORMAL",
+        "geometric mean diameter [m]" : 1.2e-6,
+        "geometric standard deviation" : 1.2
+      },
+      "the mode" :
+      {
+        "type" : "MODAL",
+        "phases" : ["aqueous aerosol", "organic aerosol"],
+        "shape" : "LOG_NORMAL",
+        "geometric mean diameter [m]" : 9.3e-7,
+        "geometric standard deviation" : 0.9
+      }
+    }
+  },
+  {
+    "name" : "condensed phase Arrhenius",
+    "type" : "MECHANISM",
+    "reactions" : [
+      {
+	"type" : "CONDENSED_PHASE_ARRHENIUS",
+        "aerosol phase" : "aqueous aerosol",
+        "aerosol-phase water" : "H2O_aq",
+        "units" : "M",
+        "reactants" : {
+	  "A" : {},
+	  "D" : {}
+	},
+	"products" : {
+	  "B" : {}
+	}
+      },
+      {
+	"type" : "CONDENSED_PHASE_ARRHENIUS",
+        "aerosol phase" : "aqueous aerosol",
+        "aerosol-phase water" : "H2O_aq",
+        "units" : "M",
+	"reactants" : {
+	  "A" : {}
+	},
+	"products" : {
+	  "B" : {}
+	},
+	"A" : 1476.0,
+	"Ea" : 5.5e-21,
+	"B" : 150.0,
+	"E" : 0.15,
+	"time unit" : "MIN"
+      },
+      {
+	"type" : "CONDENSED_PHASE_ARRHENIUS",
+        "aerosol phase" : "aqueous aerosol",
+        "aerosol-phase water" : "H2O_aq",
+        "units" : "M",
+	"reactants" : {
+	  "B" : {}
+	},
+	"products" : {
+	  "C" : {},
+	  "D" : {}
+	},
+	"A" : 21.0,
+	"C" : -4000.0,
+	"B" : 11.0,
+	"D" : 315.0,
+	"E" : 0.05
+      },
+      {
+	"type" : "CONDENSED_PHASE_ARRHENIUS",
+        "aerosol phase" : "organic aerosol",
+        "units" : "mol m-3",
+        "reactants" : {
+	  "A" : {},
+	  "D" : {}
+	},
+	"products" : {
+	  "B" : {}
+	}
+      },
+      {
+	"type" : "CONDENSED_PHASE_ARRHENIUS",
+        "aerosol phase" : "organic aerosol",
+        "units" : "mol m-3",
+	"reactants" : {
+	  "A" : {}
+	},
+	"products" : {
+	  "B" : {}
+	},
+	"A" : 1476.0,
+	"Ea" : 5.5e-21,
+	"B" : 150.0,
+	"E" : 0.15,
+	"time unit" : "MIN"
+      },
+      {
+	"type" : "CONDENSED_PHASE_ARRHENIUS",
+        "aerosol phase" : "organic aerosol",
+        "units" : "mol m-3",
+	"reactants" : {
+	  "B" : {}
+	},
+	"products" : {
+	  "C" : {},
+	  "D" : {}
+	},
+	"A" : 21.0,
+	"C" : -4000.0,
+	"B" : 11.0,
+	"D" : 315.0,
+	"E" : 0.05
+      }
+    ]
+  },
+  {
+    "name" : "simple sea-salt aerosol water",
+    "type" : "SUB_MODEL_ZSR_AEROSOL_WATER",
+    "aerosol phase" : "aqueous aerosol",
+    "gas-phase water" : "H2O",
+    "aerosol-phase water" : "H2O_aq",
+    "ion pairs" : {
+      "NaCl" : {
+        "type" : "EQSAM",
+        "ions" : {
+          "Cl_m" : {}
+        },
+        "NW" : 2.0,
+        "ZW" : 0.67,
+        "MW" : 0.0585
+      },
+      "CaCl2" : {
+        "type" : "JACOBSON",
+        "ions" : {
+          "Ca_pp" : {},
+          "Cl_m" : { "qty" : 2 }
+        },
+        "Y_j" : [-1.918004e2, 2.001540e3, -8.557205e3, 1.987670e4, -2.717192e4, 2.187103e4, -9.591577e3, 1.763672e3],
+        "low RH" : 0.43
+      }
+    }
+  }
+  ]
+}

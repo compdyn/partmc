@@ -255,18 +255,19 @@ if (ENABLE_TESTS)
       add_test(test_rxn_emission ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_emission.sh ${MPI_TEST_FLAG})
       add_test(test_rxn_first_order_loss ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_first_order_loss.sh ${MPI_TEST_FLAG})
       add_test(test_rxn_HL_phase_transfer ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_HL_phase_transfer.sh ${MPI_TEST_FLAG})
-      add_test(test_rxn_PDFiTE_activity ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_PDFiTE_activity.sh ${MPI_TEST_FLAG})
       add_test(test_rxn_photolysis ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_photolysis.sh ${MPI_TEST_FLAG})
       add_test(test_rxn_SIMPOL_phase_transfer ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_SIMPOL_phase_transfer.sh ${MPI_TEST_FLAG})
       add_test(test_rxn_troe ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_troe.sh ${MPI_TEST_FLAG})
       add_test(test_rxn_wet_deposition ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_wet_deposition.sh ${MPI_TEST_FLAG})
-      add_test(test_rxn_ZSR_aerosol_water ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_ZSR_aerosol_water.sh ${MPI_TEST_FLAG})
+      add_test(test_sub_model_PDFiTE ${CMAKE_BINARY_DIR}/test_run/unit_sub_model_data/test_PDFiTE.sh ${MPI_TEST_FLAG})
       add_test(test_sub_model_UNIFAC ${CMAKE_BINARY_DIR}/test_run/unit_sub_model_data/test_UNIFAC.sh ${MPI_TEST_FLAG})
+      add_test(test_sub_model_ZSR_aerosol_water ${CMAKE_BINARY_DIR}/test_run/unit_sub_model_data/test_ZSR_aerosol_water.sh ${MPI_TEST_FLAG})
       add_test(test_chem_mech_solver ${CMAKE_BINARY_DIR}/test_run/chemistry/test_chemistry_1.sh ${MPI_TEST_FLAG})
       add_test(test_chemistry_cb05cl_ae5 ${CMAKE_BINARY_DIR}/test_run/chemistry/cb05cl_ae5/test_chemistry_cb05cl_ae5.sh ${MPI_TEST_FLAG})
       add_test(test_chemistry_eqsam_v03d ${CMAKE_BINARY_DIR}/test_run/chemistry/eqsam_v03d/test_chemistry_eqsam_v03d.sh ${MPI_TEST_FLAG})
       add_test(test_MONARCH_1 ${CMAKE_BINARY_DIR}/test_run/monarch/test_monarch_1.sh ${MPI_TEST_FLAG})
-      # Disable full MONARCH test until solver strategy is finished
+
+      # Disable full MONARCH test until solver strategy is determined
       # add_test(test_MONARCH_2 ${CMAKE_BINARY_DIR}/test_run/monarch/test_monarch_2.sh ${MPI_TEST_FLAG})
     endif()
 
@@ -434,12 +435,10 @@ set(REACTIONS_F_SRC
 	src/rxns/rxn_emission.F90
 	src/rxns/rxn_first_order_loss.F90
 	src/rxns/rxn_HL_phase_transfer.F90
-	src/rxns/rxn_PDFiTE_activity.F90
 	src/rxns/rxn_photolysis.F90
         src/rxns/rxn_SIMPOL_phase_transfer.F90
 	src/rxns/rxn_troe.F90
-        src/rxns/rxn_wet_deposition.F90
-	src/rxns/rxn_ZSR_aerosol_water.F90)
+        src/rxns/rxn_wet_deposition.F90)
 
 set(REACTIONS_C_SRC
 	src/rxns/rxn_aqueous_equilibrium.c
@@ -450,12 +449,10 @@ set(REACTIONS_C_SRC
 	src/rxns/rxn_emission.c
 	src/rxns/rxn_first_order_loss.c
 	src/rxns/rxn_HL_phase_transfer.c
-	src/rxns/rxn_PDFiTE_activity.c
 	src/rxns/rxn_photolysis.c
         src/rxns/rxn_SIMPOL_phase_transfer.c
 	src/rxns/rxn_troe.c
-        src/rxns/rxn_wet_deposition.c
-	src/rxns/rxn_ZSR_aerosol_water.c)
+        src/rxns/rxn_wet_deposition.c)
 
 set_source_files_properties(${REACTIONS_F_SRC} PROPERTIES COMPILE_FLAGS
         ${STD_F_FLAGS})
@@ -482,10 +479,14 @@ set_source_files_properties(${AEROSOL_REPS_C_SRC} PROPERTIES COMPILE_FLAGS
 set(AEROSOL_REPS_SRC ${AEROSOL_REPS_F_SRC} ${AEROSOL_REPS_C_SRC})
 
 set(SUB_MODELS_F_SRC
-        src/sub_models/sub_model_UNIFAC.F90)
+  src/sub_models/sub_model_PDFiTE.F90
+        src/sub_models/sub_model_UNIFAC.F90
+        src/sub_models/sub_model_ZSR_aerosol_water.F90)
 
 set(SUB_MODELS_C_SRC
-        src/sub_models/sub_model_UNIFAC.c)
+  src/sub_models/sub_model_PDFiTE.c
+        src/sub_models/sub_model_UNIFAC.c
+        src/sub_models/sub_model_ZSR_aerosol_water.c)
 
 set_source_files_properties(${SUB_MODELS_F_SRC} PROPERTIES COMPILE_FLAGS
         ${STD_F_FLAGS})
@@ -503,11 +504,11 @@ set_source_files_properties(${PHLEX_C_SRC} PROPERTIES COMPILE_FLAGS
         ${STD_C_FLAGS})
 
 if(ENABLE_CXX)
-  set(PHLEX_CXX_SRC
-        src/solver_odeint/phlex_odeint.cpp)
-  set_source_files_properties(${PHLEX_CXX_SRC} PROPERTIES COMPILE_FLAGS
-        ${STD_CXX_FLAGS})
-  set_source_files_properties(${PHLEX_CXX_SRC} PROPERTIES LANGUAGE CXX)
+
+    set(PHLEX_CXX_SRC "")
+  #set_source_files_properties(${PHLEX_CXX_SRC} PROPERTIES COMPILE_FLAGS
+  #      ${STD_CXX_FLAGS})
+  #set_source_files_properties(${PHLEX_CXX_SRC} PROPERTIES LANGUAGE CXX)
 else()
   set(PHLEX_CXX_SRC "")
 endif()
@@ -529,7 +530,6 @@ if(ENABLE_GPU)
           src/cuda/rxns_gpu/rxn_troe.cu
           src/cuda/rxns_gpu/rxn_wet_deposition.cu
           src/cuda/rxns_gpu/rxn_ZSR_aerosol_water.cu
-          src/cuda/rxns_gpu/rxn_tmp.cu
           src/cuda/aeros_gpu/aero_phase_solver.cu
           src/cuda/aeros_gpu/aero_rep_solver.cu
           src/cuda/aeros_gpu/sub_model_solver.cu
@@ -543,9 +543,9 @@ else()
   set(PHLEX_CUDA_SRC "")
 endif()
 
-add_library(partmclib src/aero_state.F90 src/aero_sorted.F90
+add_library(partmclib src/aero_state.F90 src/integer_varray.F90
+  src/integer_rmap.F90 src/integer_rmap2.F90 src/aero_sorted.F90
   src/aero_binned.F90 src/bin_grid.F90 src/constants.F90
-  src/integer_rmap.F90 src/integer_rmap2.F90 src/integer_varray.F90
   src/scenario.F90 src/env_state.F90 src/aero_mode.F90
   src/aero_dist.F90 src/aero_weight.F90 src/aero_weight_array.F90
   src/coag_kernel_additive.F90 src/coag_kernel_sedi.F90
@@ -633,15 +633,19 @@ set_source_files_properties(${CB5_EBI_SOLVER} PROPERTIES COMPILE_FLAGS
 ######################################################################
 # test_chemistry_cb05cl_ae5_big
 
-add_executable(mock_monarch test/monarch/mock_monarch.F90
-        test/monarch/pmc_monarch_interface.F90)
-target_link_libraries(mock_monarch partmclib)
-
 add_executable(test_chemistry_cb05cl_ae5_big
         test/chemistry/cb05cl_ae5/test_cb05cl_ae5_big.F90
         ${CB5_EBI_SOLVER} ${CB5_KPP_SOLVER}
         test/chemistry/cb05cl_ae5/module_BSC_CHEM_DATA.F90)
 target_link_libraries(test_chemistry_cb05cl_ae5_big partmclib)
+
+######################################################################
+# MONARCH interface
+
+add_executable(mock_monarch test/monarch/mock_monarch.F90
+        test/monarch/pmc_monarch_interface.F90)
+
+target_link_libraries(mock_monarch partmclib)
 
 if (ENABLE_TESTS)
 
@@ -658,20 +662,13 @@ target_link_libraries(test_chemistry_cb05cl_ae5 partmclib)
 # test_chemistry_eqsam_v03d
 
 set(EQSAM_V03D
-    test/chemistry/eqsam_v03d/eqsam_v03d.F90)
+	test/chemistry/eqsam_v03d/eqsam_v03d.F90
+	)
 
 add_executable(test_chemistry_eqsam_v03d test/chemistry/eqsam_v03d/test_eqsam_v03d.F90
-    ${EQSAM_V03D})
+	${EQSAM_V03D})
 
 target_link_libraries(test_chemistry_eqsam_v03d partmclib)
-
-######################################################################
-# MONARCH interface
-
-add_executable(mock_monarch test/monarch/mock_monarch.F90
-    test/monarch/pmc_monarch_interface.F90)
-
-target_link_libraries(mock_monarch partmclib)
 
 ######################################################################
 # test_property
@@ -706,8 +703,6 @@ add_executable(test_rxn_first_order_loss test/unit_rxn_data/test_rxn_first_order
 target_link_libraries(test_rxn_first_order_loss partmclib)
 add_executable(test_rxn_HL_phase_transfer test/unit_rxn_data/test_rxn_HL_phase_transfer.F90)
 target_link_libraries(test_rxn_HL_phase_transfer partmclib)
-add_executable(test_rxn_PDFiTE_activity test/unit_rxn_data/test_rxn_PDFiTE_activity.F90)
-target_link_libraries(test_rxn_PDFiTE_activity partmclib)
 add_executable(test_rxn_photolysis test/unit_rxn_data/test_rxn_photolysis.F90)
 target_link_libraries(test_rxn_photolysis partmclib)
 add_executable(test_rxn_SIMPOL_phase_transfer test/unit_rxn_data/test_rxn_SIMPOL_phase_transfer.F90)
@@ -716,14 +711,18 @@ add_executable(test_rxn_troe test/unit_rxn_data/test_rxn_troe.F90)
 target_link_libraries(test_rxn_troe partmclib)
 add_executable(test_rxn_wet_deposition test/unit_rxn_data/test_rxn_wet_deposition.F90)
 target_link_libraries(test_rxn_wet_deposition partmclib)
-add_executable(test_rxn_ZSR_aerosol_water test/unit_rxn_data/test_rxn_ZSR_aerosol_water.F90)
-target_link_libraries(test_rxn_ZSR_aerosol_water partmclib)
 
 ######################################################################
 # test_sub_model_data
 
+add_executable(test_sub_model_PDFiTE test/unit_sub_model_data/test_sub_model_PDFiTE.F90)
+target_link_libraries(test_sub_model_PDFiTE partmclib)
 add_executable(test_sub_model_UNIFAC test/unit_sub_model_data/test_sub_model_UNIFAC.F90)
 target_link_libraries(test_sub_model_UNIFAC partmclib)
+add_executable(test_sub_model_ZSR_aerosol_water
+               test/unit_sub_model_data/test_sub_model_ZSR_aerosol_water.c
+               test/unit_sub_model_data/test_sub_model_ZSR_aerosol_water.F90)
+target_link_libraries(test_sub_model_ZSR_aerosol_water partmclib)
 
 ######################################################################
 # test_phlex_core
@@ -743,7 +742,8 @@ target_link_libraries(unit_test_aero_phase_data partmclib)
 # test_aero_rep_single_particle
 
 add_executable(unit_test_aero_rep_single_particle
-    test/unit_aero_rep_data/test_aero_rep_single_particle.F90)
+	test/unit_aero_rep_data/test_aero_rep_single_particle.c
+	test/unit_aero_rep_data/test_aero_rep_single_particle.F90)
 
 target_link_libraries(unit_test_aero_rep_single_particle partmclib)
 
@@ -751,7 +751,8 @@ target_link_libraries(unit_test_aero_rep_single_particle partmclib)
 # test_aero_rep_modal_binned_mass
 
 add_executable(unit_test_aero_rep_modal_binned_mass
-    test/unit_aero_rep_data/test_aero_rep_modal_binned_mass.F90)
+        test/unit_aero_rep_data/test_aero_rep_modal_binned_mass.c
+	test/unit_aero_rep_data/test_aero_rep_modal_binned_mass.F90)
 
 target_link_libraries(unit_test_aero_rep_modal_binned_mass partmclib)
 

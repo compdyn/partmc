@@ -36,6 +36,7 @@ program pmc_test_condensed_phase_arrhenius
     if (pmc_mpi_rank().eq.0) write(*,*) "Condensed-phase Arrhenius reaction tests - PASS"
   else
     if (pmc_mpi_rank().eq.0) write(*,*) "Condensed-phase Arrhenius reaction tests - FAIL"
+    stop 3
   end if
 
   ! finalize mpi
@@ -55,7 +56,8 @@ contains
     phlex_solver_data => phlex_solver_data_t()
 
     if (phlex_solver_data%is_solver_available()) then
-      passed = run_condensed_phase_arrhenius_test()
+      passed = run_condensed_phase_arrhenius_test(1)
+      passed = passed .and. run_condensed_phase_arrhenius_test(2)
     else
       call warn_msg(187891224, "No solver available")
       passed = .true.
@@ -76,19 +78,25 @@ contains
   !! where k1 and k2 are condensed-phase Arrhenius reaction rate constants,
   !! and D is a constant species. One set of reactions is done with units
   !! of 'M' and one is with 'ug/m3'.
-  logical function run_condensed_phase_arrhenius_test()
+  !!
+  !! One of two scenarios is tested, depending on the passed integer:
+  !! (1) single-particle aerosol representation and fixed water concentration
+  !! (2) modal aerosol representation and ZSR-calculated water concentration
+  logical function run_condensed_phase_arrhenius_test(scenario)
 
     use pmc_constants
 
+    !> Scenario flag
+    integer, intent(in) :: scenario
+
     type(phlex_core_t), pointer :: phlex_core
     type(phlex_state_t), pointer :: phlex_state
-    character(len=:), allocatable :: input_file_path, key
+    character(len=:), allocatable :: input_file_path, key, idx_prefix
     type(string_t), allocatable, dimension(:) :: output_file_path
 
     class(aero_rep_data_t), pointer :: aero_rep_ptr
-    integer(kind=i_kind), parameter :: NUM_STATE_VAR = 27
-    real(kind=dp), dimension(0:NUM_TIME_STEP, NUM_STATE_VAR) :: model_conc, &
-            true_conc
+    integer(kind=i_kind) :: num_state_var, state_size
+    real(kind=dp), allocatable, dimension(:,:) :: model_conc, true_conc
     integer(kind=i_kind) :: idx_A_aq, idx_B_aq, idx_C_aq, idx_D_aq, idx_H2O, &
             idx_A_org, idx_B_org, idx_C_org, idx_D_org, idx_aq_phase, &
             idx_org_phase, i_time, i_spec
@@ -101,7 +109,19 @@ contains
 
     type(solver_stats_t), target :: solver_stats
 
+    call assert_msg(619416982, scenario.ge.1 .and. scenario.le.2, &
+                    "Invalid scenario specified: "//to_string( scenario ))
+
     run_condensed_phase_arrhenius_test = .true.
+
+    ! Allocate space for the results
+    if (scenario.eq.1) then
+      num_state_var = 27
+    else if (scenario.eq.2) then
+      num_state_var = 14
+    end if
+    allocate(model_conc(0:NUM_TIME_STEP, num_state_var))
+    allocate(true_conc(0:NUM_TIME_STEP, num_state_var))
 
     ! Set the environmental and aerosol test conditions
     temp = 272.5d0              ! temperature (K)
@@ -134,7 +154,11 @@ contains
 #endif
 
       ! Get the condensed_phase_arrhenius reaction mechanism json file
-      input_file_path = 'test_condensed_phase_arrhenius_config.json'
+      if (scenario.eq.1) then
+        input_file_path = 'test_condensed_phase_arrhenius_config.json'
+      else if (scenario.eq.2) then
+        input_file_path = 'test_condensed_phase_arrhenius_config_2.json'
+      end if
 
       ! Construct a phlex_core variable
       phlex_core => phlex_core_t(input_file_path)
@@ -149,23 +173,28 @@ contains
       call assert(421062613, phlex_core%get_aero_rep(key, aero_rep_ptr))
 
       ! Get species indices
-      key = "aqueous aerosol.A"
+      if (scenario.eq.1) then
+        idx_prefix = ""
+      else if (scenario.eq.2) then
+        idx_prefix = "the mode."
+      end if
+      key = idx_prefix//"aqueous aerosol.A"
       idx_A_aq = aero_rep_ptr%spec_state_id(key);
-      key = "aqueous aerosol.B"
+      key = idx_prefix//"aqueous aerosol.B"
       idx_B_aq = aero_rep_ptr%spec_state_id(key);
-      key = "aqueous aerosol.C"
+      key = idx_prefix//"aqueous aerosol.C"
       idx_C_aq = aero_rep_ptr%spec_state_id(key);
-      key = "aqueous aerosol.D"
+      key = idx_prefix//"aqueous aerosol.D"
       idx_D_aq = aero_rep_ptr%spec_state_id(key);
-      key = "aqueous aerosol.H2O_aq"
+      key = idx_prefix//"aqueous aerosol.H2O_aq"
       idx_H2O = aero_rep_ptr%spec_state_id(key);
-      key = "organic aerosol.A"
+      key = idx_prefix//"organic aerosol.A"
       idx_A_org = aero_rep_ptr%spec_state_id(key);
-      key = "organic aerosol.B"
+      key = idx_prefix//"organic aerosol.B"
       idx_B_org = aero_rep_ptr%spec_state_id(key);
-      key = "organic aerosol.C"
+      key = idx_prefix//"organic aerosol.C"
       idx_C_org = aero_rep_ptr%spec_state_id(key);
-      key = "organic aerosol.D"
+      key = idx_prefix//"organic aerosol.D"
       idx_D_org = aero_rep_ptr%spec_state_id(key);
 
       ! Make sure the expected species are in the model
@@ -235,7 +264,9 @@ contains
       phlex_state => phlex_core%new_state()
 
       ! Check the size of the state array
-      call assert(235226766, size(phlex_state%state_var).eq.NUM_STATE_VAR)
+      state_size = size(phlex_state%state_var)
+      call assert_msg(235226766, state_size.eq.NUM_STATE_VAR, &
+                      "Wrong state size: "//to_string( state_size ))
 
       ! Set the environmental conditions
       phlex_state%env_state%temp = temp
@@ -302,8 +333,13 @@ contains
       end do
 
       ! Save the results
-      open(unit=7, file="out/condensed_phase_arrhenius_results.txt", &
+      if (scenario.eq.1) then
+        open(unit=7, file="out/condensed_phase_arrhenius_results.txt", &
               status="replace", action="write")
+      else if (scenario.eq.2) then
+        open(unit=7, file="out/condensed_phase_arrhenius_results_2.txt", &
+              status="replace", action="write")
+      end if
       do i_time = 0, NUM_TIME_STEP
         write(7,*) i_time*time_step, &
               ' ', true_conc(i_time, idx_A_aq), &
@@ -327,20 +363,24 @@ contains
       end do
       close(7)
 
-      ! Analyze the results
-      do i_time = 1, NUM_TIME_STEP
-        do i_spec = 1, size(model_conc, 2)
-          call assert_msg(848069355, &
-            almost_equal(model_conc(i_time, i_spec), &
-            true_conc(i_time, i_spec), real(1.0e-2, kind=dp)).or. &
-            (model_conc(i_time, i_spec).lt.1e-5*model_conc(1, i_spec).and. &
-            true_conc(i_time, i_spec).lt.1e-5*true_conc(1, i_spec)), &
-            "time: "//trim(to_string(i_time))//"; species: "// &
-            trim(to_string(i_spec))//"; mod: "// &
-            trim(to_string(model_conc(i_time, i_spec)))//"; true: "// &
-            trim(to_string(true_conc(i_time, i_spec))))
+      ! Analyze the results (single-particle only)
+      if (scenario.eq.1) then
+        do i_time = 1, NUM_TIME_STEP
+          do i_spec = 1, size(model_conc, 2)
+            call assert_msg(248109045, &
+              almost_equal(model_conc(i_time, i_spec), &
+              true_conc(i_time, i_spec), real(1.0e-2, kind=dp)).or. &
+              (model_conc(i_time, i_spec).lt.1e-5*model_conc(1, i_spec).and. &
+              true_conc(i_time, i_spec).lt.1e-5*true_conc(1, i_spec)).or. &
+              (model_conc(i_time, i_spec).lt.1.0e-30.and. &
+              true_conc(i_time, i_spec).lt.1.0e-30), &
+              "time: "//trim(to_string(i_time))//"; species: "// &
+              trim(to_string(i_spec))//"; mod: "// &
+              trim(to_string(model_conc(i_time, i_spec)))//"; true: "// &
+              trim(to_string(true_conc(i_time, i_spec))))
+          end do
         end do
-      end do
+      end if
 
       deallocate(phlex_state)
 
@@ -352,7 +392,7 @@ contains
         results = 1
       end if
     end if
-    
+
     ! Send the results back to the primary process
     call pmc_mpi_transfer_integer(results, results, 1, 0)
 

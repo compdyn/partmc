@@ -83,12 +83,10 @@ void * rxn_arrhenius_update_ids(ModelData *model_data, int *deriv_ids,
   // Update the Jacobian ids
   int i_jac = 0;
   for (int i_ind = 0; i_ind < NUM_REACT_; i_ind++) {
-    for (int i_dep = 0; i_dep < NUM_REACT_; i_dep++) {
+    for (int i_dep = 0; i_dep < NUM_REACT_; i_dep++)
       JAC_ID_(i_jac++) = jac_ids[REACT_(i_dep)][REACT_(i_ind)];
-    }
-    for (int i_dep = 0; i_dep < NUM_PROD_; i_dep++) {
+    for (int i_dep = 0; i_dep < NUM_PROD_; i_dep++)
       JAC_ID_(i_jac++) = jac_ids[PROD_(i_dep)][REACT_(i_ind)];
-    }
   }
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
@@ -115,22 +113,6 @@ void * rxn_arrhenius_update_env_state(double *rate_constants, double *env_data, 
           * pow(CONV_*PRESSURE_PA_/TEMPERATURE_K_, NUM_REACT_-1);
 
   rate_constants[0] = RATE_CONSTANT_;
-
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
-}
-
-/** \brief Do pre-derivative calculations
- *
- * Nothing to do for arrhenius reactions
- *
- * \param model_data Pointer to the model data, including the state array
- * \param rxn_data Pointer to the reaction data
- * \return The rxn_data pointer advanced by the size of the reaction data
- */
-void * rxn_arrhenius_pre_calc(ModelData *model_data, void *rxn_data)
-{
-  int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
@@ -169,8 +151,7 @@ void * rxn_arrhenius_calc_deriv_contrib(double *rate_constants, double *state, M
 
       // Negative yields are allowed, but prevented from causing negative
       // concentrations that lead to solver failures
-      //if (-rate*YIELD_(i_spec)*time_step <= state[PROD_(i_spec)]) {
-      if (-rate*YIELD_(i_spec) <= state[PROD_(i_spec)]) {
+      if (-rate*YIELD_(i_spec)*time_step <= state[PROD_(i_spec)]) {
         deriv[DERIV_ID_(i_dep_var)] += rate*YIELD_(i_spec);
       }
     }

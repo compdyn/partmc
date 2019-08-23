@@ -11,7 +11,7 @@
     "phase" : "AEROSOL",
     "charge" : 1,
     "density [kg m-3]" : 1.0,
-    "molecular weight [kg mol-1]" : 22.9898
+    "molecular weight [kg mol-1]" : 0.0229898
   },
   {
     "name" : "Cl_m",
@@ -19,7 +19,7 @@
     "phase" : "AEROSOL",
     "charge" : -1,
     "density [kg m-3]" : 1.0,
-    "molecular weight [kg mol-1]" : 35.453
+    "molecular weight [kg mol-1]" : 0.035453
   },
   {
     "name" : "Ca_pp",
@@ -27,7 +27,7 @@
     "phase" : "AEROSOL",
     "charge" : 2,
     "density [kg m-3]" : 1.0,
-    "molecular weight [kg mol-1]" : 40.078
+    "molecular weight [kg mol-1]" : 0.040078
   },
   {
     "name" : "H2O_aq",
@@ -35,7 +35,7 @@
     "tracer type" : "CONSTANT",
     "phase" : "AEROSOL",
     "density [kg m-3]" : 1.0,
-    "molecular weight [kg mol-1]" : 18.01
+    "molecular weight [kg mol-1]" : 0.01801
   },
   {
     "name" : "aqueous aerosol",
@@ -55,36 +55,31 @@
     "name" : "my aero rep 3"
   },
   {
-    "name" : "ZSR aerosol water",
-    "type" : "MECHANISM",
-    "reactions" : [
-      {
-	"type" : "ZSR_AEROSOL_WATER",
-	"aerosol phase" : "aqueous aerosol",
-	"gas-phase water" : "H2O",
-	"aerosol-phase water" : "H2O_aq",
-	"ion pairs" : {
-	  "NaCl" : {
-            "type" : "EQSAM",
-	    "ions" : {
-	      "Cl_m" : {}
-	    },
-	    "NW" : 2.0,
-	    "ZW" : 0.67,
-	    "MW" : 58.5
-	  },
-	  "CaCl2" : {
-	    "type" : "JACOBSON",
-	    "ions" : {
-	      "Ca_pp" : {},
-	      "Cl_m" : { "qty" : 2 }
-	    },
-	    "Y_j" : [-1.918004e2, 2.001540e3, -8.557205e3, 1.987670e4, -2.717192e4, 2.187103e4, -9.591577e3, 1.763672e3],
-	    "low RH" : 0.43
-	  }
-	}
+    "name" : "simple sea-salt aerosol water",
+    "type" : "SUB_MODEL_ZSR_AEROSOL_WATER",
+    "aerosol phase" : "aqueous aerosol",
+    "gas-phase water" : "H2O",
+    "aerosol-phase water" : "H2O_aq",
+    "ion pairs" : {
+      "NaCl" : {
+        "type" : "EQSAM",
+        "ions" : {
+          "Cl_m" : {}
+        },
+        "NW" : 2.0,
+        "ZW" : 0.67,
+        "MW" : 0.0585
+      },
+      "CaCl2" : {
+        "type" : "JACOBSON",
+        "ions" : {
+          "Ca_pp" : {},
+          "Cl_m" : { "qty" : 2 }
+        },
+        "Y_j" : [-1.918004e2, 2.001540e3, -8.557205e3, 1.987670e4, -2.717192e4, 2.187103e4, -9.591577e3, 1.763672e3],
+        "low RH" : 0.43
       }
-    ]
+    }
   }
   ]
 }

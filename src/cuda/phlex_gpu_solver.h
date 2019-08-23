@@ -1,3 +1,10 @@
+/* Copyright (C) 2019 Christian Guzman
+ * Licensed under the GNU General Public License version 1 or (at your
+ * option) any later version. See the file COPYING for details.
+ *
+ * Header file for solver functions
+ *
+ */
 
 #ifndef PHLEX_GPU_SOLVER_H_
 #define PHLEX_GPU_SOLVER_H_

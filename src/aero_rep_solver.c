@@ -188,16 +188,13 @@ void aero_rep_update_state(ModelData *model_data)
  * \param aero_phase_idx Index of the aerosol phase within the aerosol
  *                       representation
  * \param radius Pointer to hold effective particle radius (m)
- * \return A pointer to a set of partial derivatives
- *         \f$\frac{\partial r_{eff}}{\partial y}\f$, or a NULL pointer if no
- *         partial derivatives exist
+ * \param partial_deriv Pointer to the set of partial derivatives to be
+ *                      calculated \f$\frac{\partial r_{eff}}{\partial y}\f$,
+ *                      or a NULL pointer if no partial derivatives are needed
  */
-void * aero_rep_get_effective_radius(ModelData *model_data, int aero_rep_idx,
-         int aero_phase_idx, double *radius)
+void aero_rep_get_effective_radius(ModelData *model_data, int aero_rep_idx,
+         int aero_phase_idx, double *radius, double *partial_deriv)
 {
-
-  // Set up a pointer for the partial derivatives
-  void *partial_deriv = NULL;
 
   // Get the number of aerosol representations
   int *aero_rep_data = (int*) (model_data->aero_rep_data);
@@ -229,14 +226,16 @@ void * aero_rep_get_effective_radius(ModelData *model_data, int aero_rep_idx,
   switch (aero_rep_type) {
     case AERO_REP_MODAL_BINNED_MASS :
       aero_rep_data = (int*) aero_rep_modal_binned_mass_get_effective_radius(
-                aero_phase_idx, radius, partial_deriv, (void*) aero_rep_data);
+                model_data, aero_phase_idx, radius, partial_deriv,
+                (void*) aero_rep_data);
       break;
     case AERO_REP_SINGLE_PARTICLE :
       aero_rep_data = (int*) aero_rep_single_particle_get_effective_radius(
-                aero_phase_idx, radius, partial_deriv, (void*) aero_rep_data);
+                model_data, aero_phase_idx, radius, partial_deriv,
+                (void*) aero_rep_data);
       break;
   }
-  return partial_deriv;
+  return;
 }
 
 /** \brief Get the particle number concentration \f$n\f$ (\f$\mbox{\si{\#\per\cubic\centi\metre}}\f$)
@@ -252,16 +251,13 @@ void * aero_rep_get_effective_radius(ModelData *model_data, int aero_rep_idx,
  *                       representation
  * \param number_conc Pointer to hold calculated number concentration, \f$n\f$
  *                    (\f$\mbox{\si{\#\per\cubic\centi\metre}}\f$)
- * \return A pointer to a set of partial derivatives
- *         \f$\frac{\partial n}{\partial y}\f$, or a NULL pointer if no partial
- *         derivatives exist
+ * \param partial_deriv Pointer to the set of partial derivatives to be
+ *                      calculated \f$\frac{\partial n}{\partial y}\f$, or a
+ *                      NULL pointer if no partial derivatives are required
  */
-void * aero_rep_get_number_conc(ModelData *model_data, int aero_rep_idx,
-          int aero_phase_idx, double *number_conc)
+void aero_rep_get_number_conc(ModelData *model_data, int aero_rep_idx,
+          int aero_phase_idx, double *number_conc, double *partial_deriv)
 {
-
-  // Set up a pointer for the partial derivatives
-  void *partial_deriv = NULL;
 
   // Get the number of aerosol representations
   int *aero_rep_data = (int*) (model_data->aero_rep_data);
@@ -293,16 +289,16 @@ void * aero_rep_get_number_conc(ModelData *model_data, int aero_rep_idx,
   switch (aero_rep_type) {
     case AERO_REP_MODAL_BINNED_MASS :
       aero_rep_data = (int*) aero_rep_modal_binned_mass_get_number_conc(
-                aero_phase_idx, number_conc, partial_deriv,
+                model_data, aero_phase_idx, number_conc, partial_deriv,
                 (void*) aero_rep_data);
       break;
     case AERO_REP_SINGLE_PARTICLE :
       aero_rep_data = (int*) aero_rep_single_particle_get_number_conc(
-		aero_phase_idx, number_conc, partial_deriv,
+		model_data, aero_phase_idx, number_conc, partial_deriv,
                 (void*) aero_rep_data);
       break;
   }
-  return partial_deriv;
+  return;
 }
 
 /** \brief Check whether aerosol concentrations are per-particle or total for each phase
@@ -360,7 +356,8 @@ int aero_rep_get_aero_conc_type(ModelData *model_data, int aero_rep_idx,
   return aero_conc_type;
 }
 
-/** \brief Get the total mass of an aerosol phase in this representation \f$m\f$ (\f$\mbox{\si{\micro\gram\per\cubic\metre}}\f$)
+/** \brief Get the total mass of an aerosol phase in this representation
+ **        \f$m\f$ (\f$\mbox{\si{\micro\gram\per\cubic\metre}}\f$)
  *
  * Calculates total aerosol phase mass, \f$m\f$
  * (\f$\mbox{\si{\micro\gram\per\cubic\metre}}\f$), as well as the set of
@@ -374,19 +371,13 @@ int aero_rep_get_aero_conc_type(ModelData *model_data, int aero_rep_idx,
  * \param aero_phase_mass Pointer to hold calculated aerosol-phase mass,
  *                        \f$m\f$
  *                        (\f$\mbox{\si{\micro\gram\per\cubic\metre}}\f$)
- * \param aero_phase_avg_MW Pointer to hold calculated average MW in the
- *                          aerosol phase (\f$\mbox{\si{\kilogram\per\mole}}\f$)
- * \return A pointer to a set of partial derivatives
- *         \f$\frac{\partial m}{\partial y}\f$, or a NULL pointer if no partial
- *         derivatives exist
+ * \param partial_deriv Pointer to the set of partial derivatives to be
+ *                      calculated \f$\frac{\partial m}{\partial y}\f$, or a
+ *                      NULL pointer if no partial derivatives are needed
  */
-void * aero_rep_get_aero_phase_mass(ModelData *model_data, int aero_rep_idx,
-          int aero_phase_idx, double *aero_phase_mass,
-          double *aero_phase_avg_MW)
+void aero_rep_get_aero_phase_mass(ModelData *model_data, int aero_rep_idx,
+          int aero_phase_idx, double *aero_phase_mass, double *partial_deriv)
 {
-
-  // Set up a pointer for the partial derivatives
-  void *partial_deriv = NULL;
 
   // Get the number of aerosol representations
   int *aero_rep_data = (int*) (model_data->aero_rep_data);
@@ -418,16 +409,78 @@ void * aero_rep_get_aero_phase_mass(ModelData *model_data, int aero_rep_idx,
   switch (aero_rep_type) {
     case AERO_REP_MODAL_BINNED_MASS :
       aero_rep_data = (int*) aero_rep_modal_binned_mass_get_aero_phase_mass(
-		      aero_phase_idx, aero_phase_mass, aero_phase_avg_MW,
+		      model_data, aero_phase_idx, aero_phase_mass,
                       partial_deriv, (void*) aero_rep_data);
       break;
     case AERO_REP_SINGLE_PARTICLE :
       aero_rep_data = (int*) aero_rep_single_particle_get_aero_phase_mass(
-		      aero_phase_idx, aero_phase_mass, aero_phase_avg_MW,
+		      model_data, aero_phase_idx, aero_phase_mass,
                       partial_deriv, (void*) aero_rep_data);
       break;
   }
-  return partial_deriv;
+}
+
+/** \brief Get the average molecular weight of an aerosol phase in this
+ **        representation \f$m\f$ (\f$\mbox{\si{\micro\gram\per\cubic\metre}}\f$)
+ *
+ * Calculates total aerosol phase mass, \f$m\f$
+ * (\f$\mbox{\si{\micro\gram\per\cubic\metre}}\f$), as well as the set of
+ * \f$\frac{\partial m}{\partial y}\f$ where \f$y\f$ are variables on the
+ * solver state array.
+ *
+ * \param model_data Pointer to the model data
+ * \param aero_rep_idx Index of aerosol representation to use for calculation
+ * \param aero_phase_idx Index of the aerosol phase within the aerosol
+ *                       representation
+ * \param aero_phase_avg_MW Pointer to hold calculated average MW in the
+ *                          aerosol phase (\f$\mbox{\si{\kilogram\per\mole}}\f$)
+ * \param partial_deriv Pointer to the set of partial derivatives to be
+ *                      calculated \f$\frac{\partial m}{\partial y}\f$, or a
+ *                      NULL pointer if no partial derivatives are needed
+ */
+void aero_rep_get_aero_phase_avg_MW(ModelData *model_data, int aero_rep_idx,
+          int aero_phase_idx, double *aero_phase_avg_MW, double *partial_deriv)
+{
+
+  // Get the number of aerosol representations
+  int *aero_rep_data = (int*) (model_data->aero_rep_data);
+  int n_aero_rep = *(aero_rep_data++);
+
+  // Loop through the aerosol representations to find the one requested
+  for (int i_aero_rep=0; i_aero_rep<aero_rep_idx; i_aero_rep++) {
+
+    // Get the aerosol representation type
+    int aero_rep_type = *(aero_rep_data++);
+
+    // Advance the pointer to the next aerosol representation
+    switch (aero_rep_type) {
+      case AERO_REP_MODAL_BINNED_MASS :
+	aero_rep_data = (int*) aero_rep_modal_binned_mass_skip(
+                  (void*) aero_rep_data);
+        break;
+      case AERO_REP_SINGLE_PARTICLE :
+	aero_rep_data = (int*) aero_rep_single_particle_skip(
+                  (void*) aero_rep_data);
+        break;
+    }
+  }
+
+  // Get the aerosol representation type
+  int aero_rep_type = *(aero_rep_data++);
+
+  // Get the particle number concentration
+  switch (aero_rep_type) {
+    case AERO_REP_MODAL_BINNED_MASS :
+      aero_rep_data = (int*) aero_rep_modal_binned_mass_get_aero_phase_avg_MW(
+		      model_data, aero_phase_idx, aero_phase_avg_MW,
+                      partial_deriv, (void*) aero_rep_data);
+      break;
+    case AERO_REP_SINGLE_PARTICLE :
+      aero_rep_data = (int*) aero_rep_single_particle_get_aero_phase_avg_MW(
+		      model_data, aero_phase_idx, aero_phase_avg_MW,
+                      partial_deriv, (void*) aero_rep_data);
+      break;
+  }
 }
 
 /** \brief Add condensed data to the condensed data block for aerosol representations

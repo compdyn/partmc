@@ -1853,7 +1853,7 @@ void error_handler(int error_code, const char *module,
 void model_free(ModelData model_data)
 {
 
-#ifdef PMC_DEBUG_PRINT
+#ifndef PMC_DEBUG_PRINT
   printf ("Total Time Derivgpu= %f",timeDerivgpu / CLOCKS_PER_SEC);
   printf (", Total Time Deriv= %f",timeDeriv / CLOCKS_PER_SEC);
   printf (", Total Time Jac= %f\n",timeJac / CLOCKS_PER_SEC);

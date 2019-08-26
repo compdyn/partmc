@@ -783,7 +783,7 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data)
     clock_t start = clock();
 
     // Calculate the time derivative f(t,y)
-    rxn_calc_deriv(md, deriv, (double) time_step);
+    rxn_calc_deriv_gpu(md, deriv, (double) time_step);
 
     clock_t end = clock();
     timeDeriv+= ((double) (end - start));
@@ -1854,7 +1854,7 @@ void error_handler(int error_code, const char *module,
 void model_free(ModelData model_data)
 {
 
-#ifndef PMC_DEBUG_PRINT
+#ifdef PMC_DEBUG_PRINT
   printf ("Total Time Derivgpu= %f",timeDerivgpu / CLOCKS_PER_SEC);
   printf (", Total Time Deriv= %f",timeDeriv / CLOCKS_PER_SEC);
   printf (", Total Time Jac= %f\n",timeJac / CLOCKS_PER_SEC);

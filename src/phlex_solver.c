@@ -59,7 +59,7 @@ void pmc_debug_print(void *cvode_mem, const char *message, bool do_full,
          NV_DATA_S(cv_mem->cv_zn[1])[PMC_DEBUG_SPEC_],
          NV_DATA_S(cv_mem->cv_tempv)[PMC_DEBUG_SPEC_],
          NV_DATA_S(cv_mem->cv_tempv1)[PMC_DEBUG_SPEC_],
-         NV_DATA_S(cv_mem->cv_tempv2)[PMC_DEBUG_SPEC_],
+         //NV_DATA_S(cv_mem->cv_tempv2)[PMC_DEBUG_SPEC_],
          NV_DATA_S(cv_mem->cv_acor_init)[PMC_DEBUG_SPEC_],
          NV_DATA_S(cv_mem->cv_last_yn)[PMC_DEBUG_SPEC_]);
   if (do_full) {
@@ -71,7 +71,7 @@ void pmc_debug_print(void *cvode_mem, const char *message, bool do_full,
          i, NV_DATA_S(cv_mem->cv_zn[1])[i],
          i, NV_DATA_S(cv_mem->cv_tempv)[i],
          i, NV_DATA_S(cv_mem->cv_tempv1)[i],
-         i, NV_DATA_S(cv_mem->cv_tempv2)[i],
+         //i, NV_DATA_S(cv_mem->cv_tempv2)[i],
          i, NV_DATA_S(cv_mem->cv_acor_init)[i],
          i, NV_DATA_S(cv_mem->cv_last_yn)[i]);
     }
@@ -329,8 +329,8 @@ void * solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
   n_rxn_int_param, n_rxn_float_param, n_cells);
 #endif
 
-#ifdef PMC_DEBUG
-  print_data_sizes(sd->model_data);
+#ifdef PMC_DEBUG_PRINT
+  print_data_sizes(&(sd->model_data));
 #endif
 
   // Return a pointer to the new SolverData object

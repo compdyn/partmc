@@ -134,8 +134,8 @@ void solver_new_gpu_cu(int n_dep_var,
            n_blocks, max_n_gpu_blocks);
   }
 
-#ifdef PMC_DEBUG
-  print_gpu_data();
+#ifdef PMC_DEBUG_PRINT
+  print_gpu_specs();
 #endif
 
 }

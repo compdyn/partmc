@@ -35,8 +35,8 @@
 #define PHASE_INST_ID_(p,c) (int_data[PHASE_INT_LOC_(p)+2+c]-1)
 #define SPEC_ID_(p,i) (int_data[PHASE_INT_LOC_(p)+2+NUM_PHASE_INSTANCE_(p)+i])
 #define GAMMA_ID_(p,i) (int_data[PHASE_INT_LOC_(p)+2+NUM_PHASE_INSTANCE_(p)+NUM_SPEC_(p)+i])
-#define JAC_ID_(p,c,j,i) int_data[PHASE_INT_LOC_(p)+2+NUM_PHASE_INSTANCE_(p)+(c+2+j*NUM_SPEC_(p))*NUM_SPEC_(p)+i]
-#define V_IK_(p,i,k) (int_data[PHASE_INT_LOC_(p)+2+NUM_PHASE_INSTANCE_(p)+(k+2+NUM_PHASE_INSTANCE_(p)+NUM_SPEC_(p))*NUM_SPEC_(p)+i])
+#define JAC_ID_(p,c,j,i) int_data[PHASE_INT_LOC_(p)+2+NUM_PHASE_INSTANCE_(p)+(2+c*NUM_SPEC_(p)+j)*NUM_SPEC_(p)+i]
+#define V_IK_(p,i,k) (int_data[PHASE_INT_LOC_(p)+2+NUM_PHASE_INSTANCE_(p)+(k+2+NUM_PHASE_INSTANCE_(p)*NUM_SPEC_(p))*NUM_SPEC_(p)+i])
 
 #define Q_K_(k) (float_data[k])
 #define R_K_(k) (float_data[NUM_GROUP_+k])
@@ -436,52 +436,61 @@ void sub_model_UNIFAC_calculate(int *sub_model_int_data,
  *  As \f$\sigma\f$, \f$\tau\f$,
  *  and \f$\mu\f$ are independent of species \f$i\f$,
  *  these can be calculated outside the loop over the independent species.
- *  Moving to the residual term (Eq. 7), the mole fraction (\f$X_j\f$)
- *  of group \f$j\f$ in the mixture is related to the mole fraction
- *  (\f$x_i\f$) of species \f$i\f$ according to:
+ *  Moving to the residual term (Eq. 7), the mole fraction (\f$X_p\f$)
+ *  of group \f$p\f$ in the mixture is related to the mole fraction
+ *  (\f$x_j\f$) of species \f$j\f$ according to:
  * \f[
- *    X_j = c_{xX} \displaystyle\sum_i v_j^{(i)} x_i,
+ *    X_p = c_{xX} \omega_p, \textrm{ where }
+ *    \omega_p \equiv \displaystyle\sum_j v_p^{(j)} x_j, \\
  * \f]
- *  where \f$c_{xX}\f$ is a conversion factor accounting for the difference
+ *  and \f$c_{xX}\f$ is a conversion factor accounting for the difference
  *  in total species and total group number concentrations:
  * \f[
- *    c_{xX} = \frac{1}{\displaystyle\sum_j
- *                   \displaystyle\sum_i v_j^{(i)} x_i}
+ *    c_{xX} = \frac{1}{\displaystyle\sum_p \omega_p}.
  * \f]
  *  Partial derivatives of the group interaction terms in Eq 9,
  *  \f$\Theta_m\f$ and \f$\Psi_{mn}\f$, with respect to \f$c_i\f$ are
  *  derived as follows:
  * \f[
  *   \begin{align*}
- *     \frac{\partial c_{xX}}{c_i} & = - c_{xX}^2
- *       \displaystyle\sum_j \displaystyle\sum_i v_j^{(i)}
- *       \frac{\partial x_i}{\partial c_i}
- *       = - c_{xX} \displaystyle\sum_j X_j, \\
- *     \omega & \equiv \displaystyle\sum_j X_j,
- *     \qquad \Pi \equiv \displaystyle\sum_n Q_n X_n, \\
- *     \frac{\partial X_j}{\partial c_i} & =
- *       \frac{1}{\mathrm{MW}_i m_T} \left(
- *       v_j^{(i)} c_{xX} - X_j \right) - X_j \omega, \\
+ *     \frac{\partial c_{xX}}{\partial c_i} & = - c_{xX}^2
+ *       \displaystyle\sum_p \displaystyle\sum_j v_p^{(j)}
+ *       \frac{\partial x_j}{\partial c_i}
+ *       = - \frac{c_{xX}^2}{\mathrm{MW}_im_T} \left(
+ *             \displaystyle\sum_p v_p^{(i)} -
+ *             \displaystyle\sum_p \omega_p \right), \\
+ *       & = \frac{c_{xX}}{\mathrm{MW}_im_T} \left(
+ *               1 - c_{xX} \displaystyle\sum_p v_p^{(i)} \right), \\
+ *     \frac{\partial X_n}{\partial c_i} & =
+ *       c_{xX} \displaystyle\sum_j v_n^{(j)}
+ *            \frac{\partial x_j}{\partial c_i}
+ *       + \frac{\partial c_{xX}}{\partial c_i} \omega_n, \\
+ *       & = \frac{c_{xX}}{\mathrm{MW}_im_T}
+ *                  \left( v_n^{(i)} - \omega_n \right)
+ *             + \frac{c_{xX}}{\mathrm{MW}_im_T}
+ *                  \left( \omega_n - c_{xX}\omega_n
+ *                      \displaystyle\sum_p v_p^{(i)} \right), \\
+ *        & = \frac{c_{xX}}{\mathrm{MW}_im_T} \left(
+ *                  v_n^{(i)} - X_n
+ *                      \displaystyle\sum_p v_p^{(i)} \right), \\
+ *     \Pi & \equiv \displaystyle\sum_n Q_n X_n, \\
  *     \frac{\partial \Pi}{\partial c_i} & =
- *        \displaystyle\sum_n Q_n \left[
- *        \frac{1}{\mathrm{MW}_i m_T}\left(
- *        v_n^{(i)}c_{xX} - X_n\right) - X_n \omega \right], \\
- *     & = \frac{c_{xX}}{\mathrm{MW}_i m_T}
- *            \displaystyle\sum_nQ_nv_n^{(i)} -
- *            \frac{\Pi}{\mathrm{MW}_i m_T} - \omega\Pi, \\
+ *        \displaystyle\sum_n Q_n
+ *        \frac{c_{xX}}{\mathrm{MW}_i m_T}\left(
+ *            v_n^{(i)} - X_n \displaystyle\sum_p v_p^{(i)} \right), \\
+ *     & = \frac{c_{xX}}{\mathrm{MW}_i m_T} \left(
+ *            \displaystyle\sum_n Q_n v_n^{(i)} -
+ *            \Pi \displaystyle\sum_p v_p^{(i)} \right), \\
  *     \frac{\partial \Theta_m}{\partial c_i} & = \frac{
  *     \left(Q_m\frac{\partial X_m}{\partial c_i} \Pi -
  *         Q_m X_m \frac{\partial \Pi}{\partial c_i} \right)}{\Pi^2} , \\
- *     & = \frac{Q_m}{\Pi^2} \left[
- *         \frac{v_m^{(i)}c_{xX}\Pi}{\mathrm{MW}_im_T}
- *         - \frac{X_m\Pi}{\mathrm{MW}_im_T}
- *         - X_m\omega\Pi
- *         - \frac{X_m c_{xX}}{\mathrm{MW}_im_T}
- *              \displaystyle\sum_n Q_n v_n^{(i)}
- *         + \frac{X_m \Pi}{\mathrm{MW}_im_T}
- *         + X_m\omega\Pi \right], \\
- *     & = \frac{Q_m c_{xX}}{\mathrm{MW}_im_T\Pi^2} \left[
- *            v_m^{(i)} - X_m\displaystyle\sum_n Q_n v_n^{(i)}\right],
+ *     & = \frac{c_{xX} Q_m}{\mathrm{MW}_im_T\Pi^2} \left[
+ *              \left( \Pi v_m^{(i)} - \Pi X_m
+ *                  \displaystyle\sum_p v_p^{(i)} \right) -
+ *              \left( X_m \displaystyle\sum_n Q_n v_n^{(i)} -
+ *                  X_m \Pi \displaystyle\sum_p v_p^{(i)} \right) \right], \\
+ *     & = \frac{c_{xX} Q_m}{\mathrm{MW}_im_T\Pi^2} \left[
+ *            \Pi v_m^{(i)} - X_m\displaystyle\sum_n Q_n v_n^{(i)}\right],
  *        \textrm{ and} \\
  *    \frac{\partial \Psi_{mn}}{\partial c_i} & = 0
  *   \end{align*}
@@ -509,10 +518,10 @@ void sub_model_UNIFAC_calculate(int *sub_model_int_data,
  *    \Xi_m & \equiv \displaystyle\sum_n\Theta_n\Psi_{nm}, \\
  *    \frac{\partial \ln{\Gamma_k}}{\partial c_i} & =
  *      - Q_k \displaystyle\sum_m \left(
- *      \frac{1}{\Theta_m}\frac{\partial\Theta_m}{\partial c_i}
+ *      \frac{\Psi_{mk}}{\Xi_k}\frac{\partial\Theta_m}{\partial c_i}
  *      + \frac{\Psi_{km}}{\Xi_m}
  *        \frac{\partial\Theta_m}{\partial c_i}
- *      + \frac{\Theta_m\Psi_{km}}
+ *      - \frac{\Theta_m\Psi_{km}}
  *             {\Xi_m^2}
  *        \displaystyle\sum_n\frac{\partial\Theta_n}{\partial c_i}\Psi_{nm}
  *    \right)
@@ -679,8 +688,8 @@ void sub_model_UNIFAC_get_jac_contrib(int *sub_model_int_data,
           }
           double MWimT_inv = 1.0 / (MW_I_(i_phase, i) * m_T);
           dx_j_dc_i     *= MWimT_inv;
-          dPhi_j_dc_i   *= MWimT_inv / sigma / sigma;
-          dTheta_j_dc_i *= MWimT_inv / tau   / tau;
+          dPhi_j_dc_i   *= R_I_(i_phase, j) * MWimT_inv / sigma / sigma;
+          dTheta_j_dc_i *= Q_I_(i_phase, j) * MWimT_inv / tau   / tau;
 
           dmu_dc_i = MWimT_inv * (L_I_(i_phase, i) - mu);
 
@@ -701,7 +710,7 @@ void sub_model_UNIFAC_get_jac_contrib(int *sub_model_int_data,
             sumQnvn_i += Q_K_(n) * V_IK_(i_phase, i, n);
           for (int m=0; m<NUM_GROUP_; ++m) {
             DTHETA_M_DC_I_(m) = Q_K_(m) * c_xX * MWimT_inv / Pi / Pi *
-                                ( V_IK_(i_phase, i, m)
+                                ( Pi * V_IK_(i_phase, i, m)
                                   - X_K_(m) * sumQnvn_i );
           }
 
@@ -718,14 +727,14 @@ void sub_model_UNIFAC_get_jac_contrib(int *sub_model_int_data,
               for (int n=0; n<NUM_GROUP_; ++n)
                 sum_n += DTHETA_M_DC_I_(n) * PSI_MN_(n,m);
               dlnGamma_k_dc_i += DTHETA_M_DC_I_(m) *
-                                 ( 1.0 / THETA_M_(m)
+                                 ( PSI_MN_(m,k) / XI_M_(k)
                                    + PSI_MN_(k,m) / XI_M_(m) )
-                                 + THETA_M_(m) * PSI_MN_(k,m) /
+                                 - THETA_M_(m) * PSI_MN_(k,m) /
                                    pow( XI_M_(m), 2 ) * sum_n;
             }
             dlnGamma_k_dc_i *= -Q_K_(k);
 
-            dlngammaR_j_dc_i += V_IK_(i_phase, i, k)
+            dlngammaR_j_dc_i += V_IK_(i_phase, j, k)
                                 * dlnGamma_k_dc_i;
           }
 

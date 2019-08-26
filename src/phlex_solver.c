@@ -783,10 +783,11 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data)
     clock_t start = clock();
 
     // Calculate the time derivative f(t,y)
-    rxn_calc_deriv_gpu(md, deriv, (double) time_step);
+    //rxn_calc_deriv_gpu(md, deriv, (double) time_step);
+    rxn_calc_deriv(md, deriv, (double) time_step);
 
-    clock_t end = clock();
-    timeDeriv+= ((double) (end - start));
+    clock_t end2 = clock();
+    timeDerivgpu+= ((double) (end2 - start2));
     counterDeriv++;
 
   #else

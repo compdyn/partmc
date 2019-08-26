@@ -573,7 +573,6 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   realtype t_rt = (realtype) t_initial;
   if (!sd->no_solve) {
     flag = CVode(sd->cvode_mem, (realtype) t_final, sd->y, &t_rt, CV_NORMAL);
-      printf("CVODE END\n");
 #ifndef FAILURE_DETAIL
     if (flag < 0 ) {
 #else
@@ -870,12 +869,14 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
     }
   }
 
-    // Reset the sub-model and reaction Jacobians
+  //TODO: J_init, sd->J and sd->J_guess are the same and the used on calc_jac is j_rxn
+  //Delete unnecessaries
+
+  // Reset the sub-model and reaction Jacobians
   for (int i=0; i<SM_NNZ_S(md->J_params); ++i)
     SM_DATA_S(md->J_params)[i] = 0.0;
   for (int i=0; i<SM_NNZ_S(md->J_rxn); ++i)
     SM_DATA_S(md->J_rxn)[i] = 0.0;
-
 
   // Reset the Jacobian
   /// \todo #83 Figure out how to stop CVODE from resetting the Jacobian
@@ -960,7 +961,7 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
   }
 #endif
 
-#ifdef PMC_DEBUG_PRINT
+#ifndef PMC_DEBUG_PRINT
 
   if(counterJac==1)
     print_jacobian(sd->J);
@@ -1303,6 +1304,9 @@ SUNMatrix get_jac_init(SolverData *solver_data)
   // (these are the ids the reactions are initialized with)
   int n_state_var = solver_data->model_data.n_state_var;
 
+   // Number of total state variables
+  int n_state_var_total =  n_state_var * n_cells;
+
   // Number of solver variables per grid cell (excludes constants, parameters, etc.)
   int n_dep_var = solver_data->model_data.n_dep_var;
 
@@ -1341,28 +1345,28 @@ SUNMatrix get_jac_init(SolverData *solver_data)
   solver_data->model_data.n_jac_elem = (int) n_jac_elem_rxn;
 
   // Initialize the sparse matrix
-  //TODO: J_rxn and J_init are the same, choose one to delete
   solver_data->model_data.J_rxn =
-          SUNSparseMatrix(n_dep_var_total, n_dep_var_total,
+          SUNSparseMatrix(n_state_var_total, n_state_var_total,
                   n_jac_elem_rxn * n_cells, CSC_MAT);
-  SUNMatrix J_rxn = solver_data->model_data.J_rxn;
 
   // Set the column and row indices
   int i_col=0, i_elem=0;
   for (int i_cell=0; i_cell<n_cells; i_cell++){
     for (int i=0; i<n_state_var; i++) {
-      (SM_INDEXPTRS_S(J_rxn))[i_col] = i_elem;
+      (SM_INDEXPTRS_S(solver_data->model_data.J_rxn))[i_col] = i_elem;
       for (int j=0, i_row=0; j<n_state_var; j++) {
         if (jac_struct_rxn[j][i]==true) {
-      (SM_DATA_S(J_rxn))[i_elem] = (realtype) 0.0;
-      (SM_INDEXVALS_S(J_rxn))[i_elem++] = i_row+n_dep_var*i_cell;
+      (SM_DATA_S(solver_data->model_data.J_rxn))[i_elem] =
+              (realtype) 0.0;
+      (SM_INDEXVALS_S(solver_data->model_data.J_rxn))[i_elem++] =
+              i_row+n_dep_var*i_cell;
         }
         i_row++;
       }
       i_col++;
     }
   }
-  (SM_INDEXPTRS_S(J_rxn))[i_col] = i_elem;
+  (SM_INDEXPTRS_S(solver_data->model_data.J_rxn))[i_col] = i_elem;
 
   // Build the set of time derivative ids
   int *deriv_ids = (int*) malloc(sizeof(int) * n_state_var);
@@ -1428,7 +1432,7 @@ SUNMatrix get_jac_init(SolverData *solver_data)
   // for use in mapping that is set to 1.0. (This is safe because there can be
   // no elements on the diagonal in the sub model Jacobian.)
   solver_data->model_data.J_params =
-      SUNSparseMatrix(n_state_var*n_cells, n_state_var*n_cells,
+      SUNSparseMatrix(n_state_var_total, n_state_var_total,
               n_jac_elem_param*n_cells, CSC_MAT);
 
   // Set the column and row indices
@@ -1516,11 +1520,13 @@ SUNMatrix get_jac_init(SolverData *solver_data)
   n_jac_elem_solver = 0;
   for (int i=0; i<n_state_var; i++)
     for (int j=0; j<n_state_var; j++)
-      if (jac_struct_solver[i][j]==true) ++n_jac_elem_solver;
+      if (jac_struct_solver[i][j]==true &&
+      solver_data->model_data.var_type[i]==CHEM_SPEC_VARIABLE &&
+      solver_data->model_data.var_type[j]==CHEM_SPEC_VARIABLE) ++n_jac_elem_solver;
 
   // Initialize the sparse matrix
   SUNMatrix M = SUNSparseMatrix(n_dep_var_total, n_dep_var_total,
-          n_jac_elem_rxn*n_cells, CSC_MAT);
+          n_jac_elem_solver*n_cells, CSC_MAT);
 
   // Set the column and row indices
   i_col=0, i_elem=0;

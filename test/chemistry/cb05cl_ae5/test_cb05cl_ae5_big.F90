@@ -266,7 +266,7 @@ contains
     n_cells = 2000
 
     if (n_cells.eq.1) then
-      n_repeats = 100
+      n_repeats = 2000
     end if
 
     call cpu_time(comp_start)

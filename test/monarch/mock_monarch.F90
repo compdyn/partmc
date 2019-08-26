@@ -31,15 +31,15 @@ program mock_monarch
   !> Number of total species in mock MONARCH
   integer, parameter :: NUM_MONARCH_SPEC = 800
   !> Number of vertical cells in mock MONARCH
-  integer, parameter :: NUM_VERT_CELLS = 1
+  integer, parameter :: NUM_VERT_CELLS = 48
   !> Starting W-E cell for phlex-chem call
   integer, parameter :: I_W = 1!9
   !> Ending W-E cell for phlex-chem call
-  integer, parameter :: I_E = 2!15!11
+  integer, parameter :: I_E = 15!15!11
   !> Starting S-N cell for phlex-chem call
   integer, parameter :: I_S = 1!14
   !> Ending S-N cell for phlex-chem call
-  integer, parameter :: I_N = 1!15!16
+  integer, parameter :: I_N = 15!15!16
   !> Number of W-E cells in mock MONARCH
   integer, parameter :: NUM_WE_CELLS = I_E-I_W+1 !20
   !> Number of S-N cells in mock MONARCH

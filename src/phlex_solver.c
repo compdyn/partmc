@@ -329,7 +329,7 @@ void * solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
   n_rxn_int_param, n_rxn_float_param, n_cells);
 #endif
 
-#ifdef PMC_DEBUG_PRINT
+#ifndef PMC_DEBUG_PRINT
   print_data_sizes(&(sd->model_data));
 #endif
 

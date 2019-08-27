@@ -799,18 +799,18 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data)
 #else
 
   #ifdef PMC_DEBUG_PRINT
-  clock_t start2 = clock();
-
-  // Calculate the time derivative f(t,y)
-  rxn_calc_deriv_gpu(md, deriv, (double) time_step);
-
-  clock_t end2 = clock();
-  timeDerivgpu+= ((double) (end2 - start2));
-  counterDeriv++;
-  #else
+    clock_t start2 = clock();
 
     // Calculate the time derivative f(t,y)
-    rxn_calc_deriv(md, deriv, (double) time_step);
+    rxn_calc_deriv_gpu(md, deriv, (double) time_step);
+
+    clock_t end2 = clock();
+    timeDerivgpu+= ((double) (end2 - start2));
+    counterDeriv++;
+    #else
+
+      // Calculate the time derivative f(t,y)
+      rxn_calc_deriv_gpu(md, deriv, (double) time_step);
 
   #endif
 
@@ -907,7 +907,7 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
     clock_t start = clock();
 
     // Calculate the Jacobian
-    rxn_calc_jac(md, J, time_step);
+    rxn_calc_jac(md, md->J_rxn, time_step);
 
     clock_t end = clock();
     timeJac+= ((double) (end - start));
@@ -916,7 +916,7 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
   #else
 
     // Calculate the Jacobian
-    rxn_calc_jac(md, J, time_step);
+    rxn_calc_jac(md, md->J_rxn, time_step);
 
   #endif
 
@@ -927,8 +927,7 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
     clock_t start2 = clock();
 
     // Calculate the Jacobian
-    //rxn_calc_jac_gpu(md, J, time_step);
-    rxn_calc_jac(md, J, time_step);
+    rxn_calc_jac_gpu(md, md->J_rxn, time_step);
 
     clock_t end2 = clock();
     timeDerivgpu+= ((double) (end2 - start2));
@@ -937,7 +936,7 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
   #else
 
     // Calculate the Jacobian
-    rxn_calc_jac_gpu(md, J, time_step);
+    rxn_calc_jac_gpu(md, md->J_rxn, time_step);
 
   #endif
 

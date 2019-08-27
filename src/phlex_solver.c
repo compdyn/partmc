@@ -59,7 +59,7 @@ void pmc_debug_print(void *cvode_mem, const char *message, bool do_full,
          NV_DATA_S(cv_mem->cv_zn[1])[PMC_DEBUG_SPEC_],
          NV_DATA_S(cv_mem->cv_tempv)[PMC_DEBUG_SPEC_],
          NV_DATA_S(cv_mem->cv_tempv1)[PMC_DEBUG_SPEC_],
-         //NV_DATA_S(cv_mem->cv_tempv2)[PMC_DEBUG_SPEC_],
+         NV_DATA_S(cv_mem->cv_tempv2)[PMC_DEBUG_SPEC_],
          NV_DATA_S(cv_mem->cv_acor_init)[PMC_DEBUG_SPEC_],
          NV_DATA_S(cv_mem->cv_last_yn)[PMC_DEBUG_SPEC_]);
   if (do_full) {
@@ -71,7 +71,7 @@ void pmc_debug_print(void *cvode_mem, const char *message, bool do_full,
          i, NV_DATA_S(cv_mem->cv_zn[1])[i],
          i, NV_DATA_S(cv_mem->cv_tempv)[i],
          i, NV_DATA_S(cv_mem->cv_tempv1)[i],
-         //i, NV_DATA_S(cv_mem->cv_tempv2)[i],
+         i, NV_DATA_S(cv_mem->cv_tempv2)[i],
          i, NV_DATA_S(cv_mem->cv_acor_init)[i],
          i, NV_DATA_S(cv_mem->cv_last_yn)[i]);
     }
@@ -1743,15 +1743,15 @@ static void print_data_sizes(ModelData *md)
 static void print_jacobian(SUNMatrix M)
 {
 
-  printf("\n NNZ JAC: %d \n",SM_NNZ_S(M));
+  printf("\n NNZ JAC: %lld \n",SM_NNZ_S(M));
   printf("DATA | INDEXVALS:\n");
   for (int i=0; i<SM_NNZ_S(M); i++) {
     printf ("% -le \n", (SM_DATA_S(M))[i]);
-    printf ("%d \n", (SM_INDEXVALS_S(M))[i]);
+    printf ("%lld \n", (SM_INDEXVALS_S(M))[i]);
   }
   printf("PTRS:\n");
   for (int i=0; i<=SM_NP_S(M); i++) {
-    printf ("%d \n", (SM_INDEXPTRS_S(M))[i]);
+    printf ("%lld \n", (SM_INDEXPTRS_S(M))[i]);
   }
 
 }
@@ -1802,6 +1802,8 @@ void solver_free(void *solver_data)
   // free the linear solver
   SUNLinSolFree(sd->ls);
 #endif
+
+  free(sd->model_data.rate_constants);
 
   // Free the allocated ModelData
   model_free(sd->model_data);

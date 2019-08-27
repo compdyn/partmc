@@ -209,7 +209,7 @@ void rxn_update_env_state(ModelData *model_data, double *env)
                   env, (void *) rxn_data);
           break;
         case RXN_ARRHENIUS :
-          rxn_data = (int *) rxn_arrhenius_update_env_state(rate_constants,
+          rxn_data = (int *) rxn_arrhenius_update_env_state(i_cell,
                   env, (void *) rxn_data);
           break;
         case RXN_CMAQ_H2O2 :
@@ -300,7 +300,7 @@ void rxn_calc_deriv(ModelData *model_data, N_Vector deriv, realtype time_step)
                  state, model_data, deriv_data, (void*) rxn_data, time_step);
           break;
         case RXN_ARRHENIUS :
-          rxn_data = (int*) rxn_arrhenius_calc_deriv_contrib(rate_constants,
+          rxn_data = (int*) rxn_arrhenius_calc_deriv_contrib(i_cell,
                  state, model_data, deriv_data, (void*) rxn_data, time_step);
           //rxn_data = (int*) rxn_arrhenius_skip((void*) rxn_data);
           break;
@@ -395,7 +395,7 @@ void rxn_calc_jac(ModelData *model_data, SUNMatrix J, realtype time_step)
                    state, model_data, J_data, (void*) rxn_data, time_step);
           break;
         case RXN_ARRHENIUS :
-          rxn_data = (int*) rxn_arrhenius_calc_jac_contrib(rate_constants,
+          rxn_data = (int*) rxn_arrhenius_calc_jac_contrib(i_cell,
                    state, model_data, J_data, (void*) rxn_data, time_step);
           //rxn_data = (int*) rxn_arrhenius_skip((void*) rxn_data);
           break;

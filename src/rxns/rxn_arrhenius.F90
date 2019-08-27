@@ -79,20 +79,21 @@ module pmc_rxn_arrhenius
 
 #define NUM_REACT_ this%condensed_data_int(1)
 #define NUM_PROD_ this%condensed_data_int(2)
+#define NUM_CELLS_ this%condensed_data_int(3)
 #define A_ this%condensed_data_real(1)
 #define B_ this%condensed_data_real(2)
 #define C_ this%condensed_data_real(3)
 #define D_ this%condensed_data_real(4)
 #define E_ this%condensed_data_real(5)
 #define CONV_ this%condensed_data_real(6)
-#define RATE_CONSTANT_ this%condensed_data_real(7)
-#define NUM_INT_PROP_ 2
-#define NUM_REAL_PROP_ 7
+#define NUM_INT_PROP_ 3
+#define NUM_REAL_PROP_ 6
 #define REACT_(x) this%condensed_data_int(NUM_INT_PROP_ + x)
 #define PROD_(x) this%condensed_data_int(NUM_INT_PROP_ + NUM_REACT_ + x)
 #define DERIV_ID_(x) this%condensed_data_int(NUM_INT_PROP_ + NUM_REACT_ + NUM_PROD_ + x)
 #define JAC_ID_(x) this%condensed_data_int(NUM_INT_PROP_ + 2*(NUM_REACT_+NUM_PROD_) + x)
 #define YIELD_(x) this%condensed_data_real(NUM_REAL_PROP_ + x)
+#define RATE_CONSTANT_(x) this%condensed_data_real(NUM_REAL_PROP_ + NUM_PROD_ + x)
 
   public :: rxn_arrhenius_t
 
@@ -130,7 +131,7 @@ contains
   !> Initialize the reaction data, validating component data and loading
   !! any required information into the condensed data arrays for use during
   !! solving
-  subroutine initialize(this, chem_spec_data, aero_rep)
+  subroutine initialize(this, chem_spec_data, aero_rep, n_cells)
 
     !> Reaction data
     class(rxn_arrhenius_t), intent(inout) :: this
@@ -138,6 +139,8 @@ contains
     type(chem_spec_data_t), intent(in) :: chem_spec_data
     !> Aerosol representations
     type(aero_rep_data_ptr), pointer, intent(in) :: aero_rep(:)
+    !> Number of grid cells being solved simultaneously
+    integer(kind=i_kind), intent(in) :: n_cells
 
     type(property_t), pointer :: spec_props, reactants, products
     character(len=:), allocatable :: key_name, spec_name, string_val
@@ -173,7 +176,8 @@ contains
     ! Allocate space in the condensed data arrays
     allocate(this%condensed_data_int(NUM_INT_PROP_ + &
             (i_spec + 2) * (i_spec + products%size())))
-    allocate(this%condensed_data_real(NUM_REAL_PROP_ + products%size()))
+    allocate(this%condensed_data_real(NUM_REAL_PROP_ + products%size() + &
+             n_cells))
     this%condensed_data_int(:) = int(0, kind=i_kind)
     this%condensed_data_real(:) = real(0.0, kind=dp)
 
@@ -181,6 +185,9 @@ contains
     ! these can vary)
     NUM_REACT_ = i_spec
     NUM_PROD_ = products%size()
+
+    ! Save the number of grid cells being solved at once
+    NUM_CELLS_ = n_cells
 
     ! Set the #/cc -> ppm conversion prefactor
     CONV_ = const%avagadro / const%univ_gas_const * 10.0d0**(-12.0d0)

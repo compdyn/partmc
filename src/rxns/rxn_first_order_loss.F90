@@ -160,7 +160,7 @@ contains
   !> Initialize the reaction data, validating component data and loading
   !! any required information into the condensed data arrays for use during
   !! solving
-  subroutine initialize(this, chem_spec_data, aero_rep)
+  subroutine initialize(this, chem_spec_data, aero_rep, n_cells)
 
     !> Reaction data
     class(rxn_first_order_loss_t), intent(inout) :: this
@@ -168,6 +168,8 @@ contains
     type(chem_spec_data_t), intent(in) :: chem_spec_data
     !> Aerosol representations
     type(aero_rep_data_ptr), pointer, intent(in) :: aero_rep(:)
+    !> Number of grid cells to solve simultaneously
+    integer(kind=i_kind), intent(in) :: n_cells
 
     type(property_t), pointer :: spec_props
     character(len=:), allocatable :: key_name, spec_name

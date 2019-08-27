@@ -692,7 +692,7 @@ contains
     ! Initialize the mechanisms
     do i_mech = 1, size(this%mechanism)
       call this%mechanism(i_mech)%val%initialize(this%chem_spec_data, &
-              this%aero_rep)
+              this%aero_rep, this%n_cells)
     end do
 
     ! Allocate space for the variable types and absolute tolerances

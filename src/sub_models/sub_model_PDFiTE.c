@@ -103,7 +103,7 @@ void sub_model_PDFiTE_update_env_state(int *sub_model_int_data,
   //TODO: n_cells computation simultaneously
   //rate_constants[0] = PPM_TO_RH_;
 
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
+  return;
 }
 
 /** \brief Perform the sub-model calculations for the current model state

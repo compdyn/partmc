@@ -19,22 +19,23 @@
 
 #define NUM_REACT_ int_data[0]
 #define NUM_PROD_ int_data[1]
+#define NUM_CELLS_ int_data[2]
 #define A_ float_data[0]
 #define B_ float_data[1]
 #define C_ float_data[2]
 #define D_ float_data[3]
 #define E_ float_data[4]
 #define CONV_ float_data[5]
-#define RATE_CONSTANT_ float_data[6]
-#define NUM_INT_PROP_ 2
-#define NUM_FLOAT_PROP_ 7
+#define NUM_INT_PROP_ 3
+#define NUM_FLOAT_PROP_ 6
 #define REACT_(x) (int_data[NUM_INT_PROP_ + x]-1)
 #define PROD_(x) (int_data[NUM_INT_PROP_ + NUM_REACT_ + x]-1)
 #define DERIV_ID_(x) int_data[NUM_INT_PROP_ + NUM_REACT_ + NUM_PROD_ + x]
 #define JAC_ID_(x) int_data[NUM_INT_PROP_ + 2*(NUM_REACT_+NUM_PROD_) + x]
 #define YIELD_(x) float_data[NUM_FLOAT_PROP_ + x]
+#define RATE_CONSTANT_(x) float_data[NUM_FLOAT_PROP_ + NUM_PROD_ + x]
 #define INT_DATA_SIZE_ (NUM_INT_PROP_+(NUM_REACT_+2)*(NUM_REACT_+NUM_PROD_))
-#define FLOAT_DATA_SIZE_ (NUM_FLOAT_PROP_+NUM_PROD_)
+#define FLOAT_DATA_SIZE_ (NUM_FLOAT_PROP_+NUM_PROD_+NUM_CELLS_)
 
 /** \brief Flag Jacobian elements used by this reaction
  *
@@ -96,23 +97,22 @@ void * rxn_arrhenius_update_ids(ModelData *model_data, int *deriv_ids,
  * For Arrhenius reaction this only involves recalculating the rate
  * constant.
  *
+ * \param cell_id Index for the grid cell being solved
  * \param env_data Pointer to the environmental state array
  * \param rxn_data Pointer to the reaction data
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_arrhenius_update_env_state(double *rate_constants, double *env_data, void *rxn_data)
+void * rxn_arrhenius_update_env_state(int cell_id, double *env_data, void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   // Calculate the rate constant in (#/cc)
   // k = A*exp(C/T) * (T/D)^B * (1+E*P)
-  RATE_CONSTANT_ = A_ * exp(C_/TEMPERATURE_K_)
+  RATE_CONSTANT_(cell_id) = A_ * exp(C_/TEMPERATURE_K_)
 	  * (B_==0.0 ? 1.0 : pow(TEMPERATURE_K_/D_, B_))
 	  * (E_==0.0 ? 1.0 : (1.0 + E_*PRESSURE_PA_))
           * pow(CONV_*PRESSURE_PA_/TEMPERATURE_K_, NUM_REACT_-1);
-
-  rate_constants[0] = RATE_CONSTANT_;
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
@@ -120,23 +120,24 @@ void * rxn_arrhenius_update_env_state(double *rate_constants, double *env_data, 
 /** \brief Calculate contributions to the time derivative \f$f(t,y)\f$ from
  * this reaction.
  *
- * \param model_data Pointer to the model data, including the state array
+ * \param cell_id Index for the grid cell being solved
+ * \param state Model state array
+ * \param model_data Model data
  * \param deriv Pointer to the time derivative to add contributions to
  * \param rxn_data Pointer to the reaction data
  * \param time_step Current time step being computed (s)
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-void * rxn_arrhenius_calc_deriv_contrib(double *rate_constants, double *state, ModelData *model_data,
-          realtype *deriv, void *rxn_data, double time_step)
+void * rxn_arrhenius_calc_deriv_contrib(int cell_id, double *state,
+          ModelData *model_data, realtype *deriv, void *rxn_data,
+          double time_step)
 {
-  //realtype *state = model_data->state;
   int *int_data = (int*) rxn_data;
   realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
 
   // Calculate the reaction rate
-  //realtype rate = RATE_CONSTANT_;
-  realtype rate = rate_constants[0];
+  realtype rate = RATE_CONSTANT_(cell_id);
   for (int i_spec=0; i_spec<NUM_REACT_; i_spec++) rate *= state[REACT_(i_spec)];
 
   // Add contributions to the time derivative
@@ -164,23 +165,24 @@ void * rxn_arrhenius_calc_deriv_contrib(double *rate_constants, double *state, M
 
 /** \brief Calculate contributions to the Jacobian from this reaction
  *
- * \param model_data Pointer to the model data
+ * \param cell_id Index for the grid cell being solved
+ * \param state Model state array
+ * \param model_data Model data
  * \param J Pointer to the sparse Jacobian matrix to add contributions to
  * \param rxn_data Pointer to the reaction data
  * \param time_step Current time step being calculated (s)
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-void * rxn_arrhenius_calc_jac_contrib(double *rate_constants, double *state, ModelData *model_data, realtype *J,
-          void *rxn_data, double time_step)
+void * rxn_arrhenius_calc_jac_contrib(int cell_id, double *state,
+          ModelData *model_data, realtype *J, void *rxn_data,
+          double time_step)
 {
-  //realtype *state = model_data->state;
   int *int_data = (int*) rxn_data;
   realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
 
   // Calculate the reaction rate
-  //realtype rate = RATE_CONSTANT_;
-  realtype rate = rate_constants[0];
+  realtype rate = RATE_CONSTANT_(cell_id);
   for (int i_spec=0; i_spec<NUM_REACT_; i_spec++) rate *= state[REACT_(i_spec)];
 
   // Add contributions to the Jacobian

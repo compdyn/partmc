@@ -44,18 +44,19 @@ void * rxn_arrhenius_get_used_jac_elem(
           void *rxn_data, bool **jac_struct);
 void * rxn_arrhenius_update_ids(
           ModelData *model_data, int *deriv_ids, int **jac_ids, void *rxn_data);
-void * rxn_arrhenius_update_env_state(double *rate_constants,
-          double *env_data, void *rxn_data);
+void *rxn_arrhenius_update_env_state(int cell_id, double *env_data,
+                                     void *rxn_data);
 void * rxn_arrhenius_skip(
           void *rxn_data);
 void * rxn_arrhenius_print(
           void *rxn_data);
 #ifdef PMC_USE_SUNDIALS
-void * rxn_arrhenius_calc_deriv_contrib(double *rate_constants, double *state,
-          ModelData *model_data, realtype *deriv, void *rxn_data,
-          realtype time_step);
-void * rxn_arrhenius_calc_jac_contrib(double *rate_constants, double *state,
-          ModelData *model_data, realtype *J, void *rxn_data, realtype time_step);
+void *rxn_arrhenius_calc_deriv_contrib(int cell_id, double *state,
+                                       ModelData *model_data, realtype *deriv,
+                                       void *rxn_data, realtype time_step);
+void *rxn_arrhenius_calc_jac_contrib(int cell_id, double *state,
+                                     ModelData *model_data, realtype *J,
+                                     void *rxn_data, realtype time_step);
 #endif
 
 // CMAQ_H2O2

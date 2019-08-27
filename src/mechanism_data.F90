@@ -243,7 +243,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Initialize the mechanism
-  subroutine initialize(this, chem_spec_data, aero_rep_data)
+  subroutine initialize(this, chem_spec_data, aero_rep_data, n_cells)
 
     !> Chemical mechanism
     class(mechanism_data_t), intent(inout) :: this
@@ -251,12 +251,15 @@ contains
     type(chem_spec_data_t), intent(in) :: chem_spec_data
     !> Aerosol representation data
     type(aero_rep_data_ptr), pointer, intent(in) :: aero_rep_data(:)
+    !> Number of grid cells to solve simultaneously
+    integer(kind=i_kind), intent(in) :: n_cells
 
     integer(kind=i_kind) :: i_rxn
 
     do i_rxn = 1, this%num_rxn
       call assert(340397127, associated(this%rxn_ptr(i_rxn)%val))
-      call this%rxn_ptr(i_rxn)%val%initialize(chem_spec_data, aero_rep_data)
+      call this%rxn_ptr(i_rxn)%val%initialize(chem_spec_data, aero_rep_data, &
+                                              n_cells)
     end do
 
   end subroutine initialize

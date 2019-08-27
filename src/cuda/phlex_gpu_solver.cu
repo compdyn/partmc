@@ -156,7 +156,7 @@ void allocate_jac_gpu(int n_jac_elem, int n_cells){
 
 }
 
-/** \brief Set reaction data on GPU prepared structure. RXN data is divided
+/** \brief Set reaction data on GPU prepared structure.  data is divided
  * into two different matrix, per double and int data respectively. Matrix are
  * reversed to improve memory access on GPU.
  *

@@ -246,7 +246,7 @@ void * solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
     printf("\n\nERROR allocating space for reaction data\n\n");
     EXIT_FAILURE;
   }
-  //TODO: Maybe define n_rxn in model_data and avoid hide this value in rxn_daque perteneceta
+  //TODO: Maybe define n_rxn in model_data and avoid hide this value in rxn_data
   int *ptr = sd->model_data.rxn_data;
   ptr[0] = n_rxn;
   sd->model_data.nxt_rxn = (void*) &(ptr[1]);
@@ -775,7 +775,7 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data)
 
 #ifndef PMC_USE_GPU
 
-  #ifdef PMC_DEBUG_PRINT
+  #ifndef PMC_DEBUG_PRINT
 
     N_Vector derivtest = N_VNew_Serial(NV_LENGTH_S(deriv));
     N_VConst(ZERO, derivtest);
@@ -798,7 +798,7 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data)
 
 #else
 
-  #ifdef PMC_DEBUG_PRINT
+  #ifndef PMC_DEBUG_PRINT
     clock_t start2 = clock();
 
     // Calculate the time derivative f(t,y)
@@ -807,7 +807,7 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data)
     clock_t end2 = clock();
     timeDerivgpu+= ((double) (end2 - start2));
     counterDeriv++;
-    
+
     #else
       // Calculate the time derivative f(t,y)
       rxn_calc_deriv_gpu(md, deriv, (double) time_step);

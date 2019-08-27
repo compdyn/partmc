@@ -783,10 +783,10 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data)
     clock_t start = clock();
 
     // Calculate the time derivative f(t,y)
-    rxn_calc_deriv_gpu(md, deriv, (double) time_step);
+    rxn_calc_deriv(md, deriv, (double) time_step);
 
-    clock_t end2 = clock();
-    timeDerivgpu+= ((double) (end2 - start2));
+    clock_t end = clock();
+    timeDerivgpu+= ((double) (end - start));
     counterDeriv++;
 
   #else
@@ -801,13 +801,13 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data)
   #ifdef PMC_DEBUG_PRINT
     clock_t start2 = clock();
 
-    
     // Calculate the time derivative f(t,y)
     rxn_calc_deriv_gpu(md, deriv, (double) time_step);
 
     clock_t end2 = clock();
     timeDerivgpu+= ((double) (end2 - start2));
     counterDeriv++;
+    
     #else
       // Calculate the time derivative f(t,y)
       rxn_calc_deriv_gpu(md, deriv, (double) time_step);

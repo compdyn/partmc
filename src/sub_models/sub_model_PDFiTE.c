@@ -34,9 +34,12 @@
 #define CATION_ID_(x) (int_data[PAIR_INT_PARAM_LOC_(x)+3])
 #define ANION_ID_(x) (int_data[PAIR_INT_PARAM_LOC_(x)+4])
 #define NUM_INTER_(x) (int_data[PAIR_INT_PARAM_LOC_(x)+5])
-#define NUM_B_(x,y) (int_data[PAIR_INT_PARAM_LOC_(x)+6+y])
-#define INTER_SPEC_ID_(x,y) (int_data[PAIR_INT_PARAM_LOC_(x)+6+NUM_INTER_(x)+y]-1)
-#define INTER_SPEC_LOC_(x,y) (int_data[PAIR_INT_PARAM_LOC_(x)+6+2*(NUM_INTER_(x))+y]-1)
+#define JAC_WATER_ID_(p,x) (int_data[PAIR_INT_PARAM_LOC_(x)+6+p])
+#define JAC_CATION_ID_(p,x) (int_data[PAIR_INT_PARAM_LOC_(x)+6+NUM_PHASE_+p])
+#define JAC_ANION_ID_(p,x) (int_data[PAIR_INT_PARAM_LOC_(x)+6+2*NUM_PHASE_+p])
+#define NUM_B_(x,y) (int_data[PAIR_INT_PARAM_LOC_(x)+6+3*NUM_PHASE_+y])
+#define INTER_SPEC_ID_(x,y) (int_data[PAIR_INT_PARAM_LOC_(x)+6+3*NUM_PHASE_+NUM_INTER_(x)+y]-1)
+#define INTER_SPEC_LOC_(x,y) (int_data[PAIR_INT_PARAM_LOC_(x)+6+3*NUM_PHASE_+2*(NUM_INTER_(x))+y]-1)
 #define CATION_MW_(x) (float_data[PAIR_FLOAT_PARAM_LOC_(x)])
 #define ANION_MW_(x) (float_data[PAIR_FLOAT_PARAM_LOC_(x)+1])
 #define CATION_N_(x) (float_data[PAIR_FLOAT_PARAM_LOC_(x)+2])
@@ -59,6 +62,17 @@ void sub_model_PDFiTE_get_used_jac_elem(int *sub_model_int_data,
 {
   int *int_data = sub_model_int_data;
   double *float_data = sub_model_float_data;
+
+  for (int i_phase=0; i_phase < NUM_PHASE_; ++i_phase) {
+    for (int i_ion_pair=0; i_ion_pair < NUM_ION_PAIRS_; ++i_ion_pair) {
+      jac_struct[PHASE_ID_(i_phase)+ION_PAIR_ACT_ID_(i_ion_pair)]
+                [GAS_WATER_ID_] = true;
+      jac_struct[PHASE_ID_(i_phase)+ION_PAIR_ACT_ID_(i_ion_pair)]
+                [PHASE_ID_(i_phase)+CATION_ID_(i_ion_pair)] = true;
+      jac_struct[PHASE_ID_(i_phase)+ION_PAIR_ACT_ID_(i_ion_pair)]
+                [PHASE_ID_(i_phase)+ANION_ID_(i_ion_pair)] = true;
+    }
+  }
 }
 
 /** \brief Update the time derivative and Jacbobian array indices
@@ -75,6 +89,20 @@ void sub_model_PDFiTE_update_ids(int *sub_model_int_data,
 {
   int *int_data = sub_model_int_data;
   double *float_data = sub_model_float_data;
+
+  for (int i_phase=0; i_phase < NUM_PHASE_; ++i_phase) {
+    for (int i_ion_pair=0; i_ion_pair < NUM_ION_PAIRS_; ++i_ion_pair) {
+      JAC_WATER_ID_(i_phase, i_ion_pair) =
+        jac_ids[PHASE_ID_(i_phase)+ION_PAIR_ACT_ID_(i_ion_pair)]
+               [GAS_WATER_ID_];
+      JAC_CATION_ID_(i_phase, i_ion_pair) =
+        jac_ids[PHASE_ID_(i_phase)+ION_PAIR_ACT_ID_(i_ion_pair)]
+               [PHASE_ID_(i_phase)+CATION_ID_(i_ion_pair)];
+      JAC_ANION_ID_(i_phase, i_ion_pair) =
+        jac_ids[PHASE_ID_(i_phase)+ION_PAIR_ACT_ID_(i_ion_pair)]
+               [PHASE_ID_(i_phase)+ANION_ID_(i_ion_pair)];
+    }
+  }
 }
 
 /** \brief Update sub model data for new environmental conditions
@@ -222,7 +250,6 @@ void sub_model_PDFiTE_calculate(int *sub_model_int_data,
   } // Loop on aerosol phases
 }
 
-// TODO finish adding J contributions
 /** \brief Add contributions to the Jacobian from derivates calculated using the output of this sub model
  *
  * \param sub_model_int_data Pointer to the sub model integer data
@@ -236,8 +263,183 @@ void sub_model_PDFiTE_get_jac_contrib(int *sub_model_int_data,
     double *sub_model_float_data, ModelData *model_data, realtype *J,
     double time_step)
 {
+  double *state = model_data->state;
   int *int_data = sub_model_int_data;
   double *float_data = sub_model_float_data;
+
+  // Calculate the water activity---i.e., relative humidity (0-1)
+  double a_w = PPM_TO_RH_ * state[GAS_WATER_ID_];
+
+  // Keep a_w within 0-1
+  // TODO Filter =( try to remove
+  if (a_w<0.0) a_w = 0.0;
+  if (a_w>1.0) a_w = 1.0;
+
+  // Calculate ion_pair activity coefficients in each phase
+  for (int i_phase=0; i_phase<NUM_PHASE_; i_phase++) {
+
+    // Initialize omega' (defined below)
+    double omega_prime = 0.0;
+
+    // Calculate the number of moles of each ion and omega' for the phase
+    for (int i_ion_pair=0; i_ion_pair<NUM_ION_PAIRS_; i_ion_pair++) {
+
+      // N (mol_i/m3) = c_i (ug/m3) / 10^6 (ug/g) / MW_i (ug/umol)
+      CATION_N_(i_ion_pair) = state[PHASE_ID_(i_phase)+CATION_ID_(i_ion_pair)]
+	      /CATION_MW_(i_ion_pair)/1000000.0;
+      ANION_N_(i_ion_pair) = state[PHASE_ID_(i_phase)+ANION_ID_(i_ion_pair)]
+	      /ANION_MW_(i_ion_pair)/1000000.0;
+
+      // Calculate omega' (eq. 14 in \cite Topping 2009) as
+      //   v_e^C = 2 * ( v_cation + v_anion) * N_cation * N_anion
+      // where v_x is the stoichiometric coefficient for species x in
+      // the ion_pair and N_x is its concentration summed across all
+      // ion_pairs.
+      // For each activity coefficient
+      //   omega = omega' - omega_x
+      // where omega_x is the contribution of ion_pair x to omega'
+      omega_prime += 2.0 * ( NUM_CATION_(i_ion_pair) +
+          NUM_ANION_(i_ion_pair) ) * CATION_N_(i_ion_pair) *
+          ANION_N_(i_ion_pair);
+
+    } // Loop on primary ion_pair
+
+    // Calculate the activity coefficient
+    for (int i_ion_pair=0; i_ion_pair<NUM_ION_PAIRS_; i_ion_pair++) {
+
+      // If there are no interactions, the remaining ion pairs will not
+      // have activity calculations (they only participate in interactions)
+      if (NUM_INTER_(i_ion_pair)==0) break;
+
+      // Calculate omega for this ion_pair
+      // (eq. 15 in \cite{Topping2009})
+      double omega = omega_prime - 2.0 * ( NUM_CATION_(i_ion_pair) +
+      NUM_ANION_(i_ion_pair) ) * CATION_N_(i_ion_pair) *
+      ANION_N_(i_ion_pair);
+
+      // Initialize ln(gamma)
+      double ln_gamma = 0.0;
+
+      // Add contributions from each interacting ion_pair
+      for (int i_inter=0; i_inter<NUM_INTER_(i_ion_pair); i_inter++) {
+
+        // Only include interactions in the correct RH range
+        // where the range is in (minRH, maxRH] except when a_w = 0.0
+        // where the range is in [0.0, maxRH]
+        if ((a_w<=MIN_RH_(i_ion_pair, i_inter) ||
+             a_w>MAX_RH_(i_ion_pair, i_inter))
+            &&
+            !(a_w<=0.0 &&
+             MIN_RH_(i_ion_pair, i_inter)<=0.0)
+           ) continue;
+
+        // Get the ion_pair id of the interacting species
+        int j_ion_pair = INTER_SPEC_ID_(i_ion_pair, i_inter);
+
+        // Calculate ln_gamma_inter
+        double ln_gamma_inter = 0.0;
+        for (int i_B=0; i_B<NUM_B_(i_ion_pair, i_inter); i_B++) {
+          ln_gamma_inter += B_Z_(i_ion_pair, i_inter, i_B) * pow(a_w, i_B);
+        }
+
+        // If this is the "self" interaction, ln_gamma_inter is ln(gamma_0A)
+        // (eq. 15 in \cite{Topping2009})
+        if (i_ion_pair == j_ion_pair) {
+
+          // Add contribution to ln(gamma_A) from ln(gamma_0A)
+          ln_gamma += ln_gamma_inter;
+        }
+        // ... otherwise it is d(ln(gamma_A))/g(N_B,M N_B,x)
+        // (eq. 15 in \cite{Topping2009})
+        else {
+
+          // Add contribution to ln(gamma_A) from interacting ion_pair.
+          // When omega == 0, N_cation or N_anion must be 0, so
+          // skip to avoid divide by zero errors
+          if (omega>0.0) {
+            ln_gamma += ln_gamma_inter * CATION_N_(j_ion_pair) *
+                     ANION_N_(j_ion_pair) / omega;
+          }
+
+        }
+
+      } // Loop on interacting ion_pairs
+
+      double gamma_i = exp(ln_gamma);
+
+      // Loop through the ion pairs to set the partial derivatives
+      for (int i_inter=0; i_inter<NUM_INTER_(i_ion_pair); i_inter++) {
+
+        // Only include interactions in the correct RH range
+        // where the range is in (minRH, maxRH] except when a_w = 0.0
+        // where the range is in [0.0, maxRH]
+        if ((a_w<=MIN_RH_(i_ion_pair, i_inter) ||
+             a_w>MAX_RH_(i_ion_pair, i_inter))
+            &&
+            !(a_w<=0.0 &&
+             MIN_RH_(i_ion_pair, i_inter)<=0.0)
+           ) continue;
+
+        // Get the ion_pair id of the interacting species
+        int j_ion_pair = INTER_SPEC_ID_(i_ion_pair, i_inter);
+
+        // Calculate ln_gamma_inter and dln_gamma_inter_d_water
+        double ln_gamma_inter = B_Z_(i_ion_pair, i_inter, 0);
+        double d_ln_gamma_inter_d_water = 0.0;
+        for (int i_B=1; i_B<NUM_B_(i_ion_pair, i_inter); i_B++) {
+          ln_gamma_inter += B_Z_(i_ion_pair, i_inter, i_B) * pow(a_w, i_B);
+          d_ln_gamma_inter_d_water += B_Z_(i_ion_pair, i_inter, i_B) *
+                                     i_B * pow(a_w, i_B-1);
+        }
+        d_ln_gamma_inter_d_water *= PPM_TO_RH_;
+
+        // If this is the "self" interaction, ln_gamma_inter is ln(gamma_0A)
+        // (eq. 15 in \cite{Topping2009})
+        if (i_ion_pair == j_ion_pair) {
+
+          // Add the water contribution to ln(gamma_0A)
+          J[JAC_WATER_ID_(i_phase, i_ion_pair)] +=
+              gamma_i * d_ln_gamma_inter_d_water;
+
+        }
+        // ... otherwise it is d(ln(gamma_A))/g(N_B,M N_B,x)
+        // (eq. 15 in \cite{Topping2009})
+        else {
+
+          // Add contribution to ln(gamma_A) from interacting ion_pair.
+          // When omega == 0, N_cation or N_anion must be 0, so
+          // skip to avoid divide by zero errors
+          if (omega>0.0) {
+
+            // d_gamma / d_cation
+            J[JAC_CATION_ID_(i_phase, i_ion_pair)] +=
+                gamma_i * ( ln_gamma_inter / omega * ANION_N_(j_ion_pair)
+                          / CATION_MW_(j_ion_pair) / 1.0e6 * (
+                             1.0 - 2.0 * CATION_N_(j_ion_pair) / omega *
+                                   ( NUM_CATION_(j_ion_pair) +
+                                     NUM_ANION_(j_ion_pair) ) ) );
+            // d_gamma / d_anion
+            J[JAC_ANION_ID_(i_phase, i_ion_pair)] +=
+                gamma_i * ( ln_gamma_inter / omega * CATION_N_(j_ion_pair)
+                          / ANION_MW_(j_ion_pair) / 1.0e6 * (
+                             1.0 - 2.0 * ANION_N_(j_ion_pair) / omega *
+                                   ( NUM_CATION_(j_ion_pair) +
+                                     NUM_ANION_(j_ion_pair) ) ) );
+
+            // d_gamma / d_water
+            J[JAC_WATER_ID_(i_phase, i_ion_pair)] +=
+                gamma_i * CATION_N_(j_ion_pair) * ANION_N_(j_ion_pair)
+                / omega * d_ln_gamma_inter_d_water;
+
+          }
+
+        }
+
+      } // Loop over ion pairs for partial derivatives
+
+    } // Loop on primary ion_pairs
+
+  } // Loop on aerosol phases
 }
 #endif
 

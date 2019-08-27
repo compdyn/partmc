@@ -103,9 +103,9 @@
 !!
 !! When the interacting ion pair is the same as the ion-pair for which the
 !! mean binary activity coefficient is being calculated, the interaction
-!! parameters are used to calculate \f$ln(\gamma_A^0(RH))\f$. Otherwise, the
-!! parameters are used to calculate
-!! \f$\frac{dln(gamma_A))}{d(N_{B,M}N_{B,x})}\f$.
+!! parameters are used to calculate \f$ln(\gamma_A^0(\mathrm{RH}))\f$.
+!! Otherwise, the parameters are used to calculate
+!! \f$\frac{d\ln{\gamma_A(\mathrm{RH})}}{d(N_{B,M}N_{B,x})}\f$.
 !!
 !! For the above example, the following input data should be present:
 !! \code{.json}
@@ -202,9 +202,12 @@ module pmc_sub_model_PDFiTE
 #define CATION_ID_(x) this%condensed_data_int(PAIR_INT_PARAM_LOC_(x)+3)
 #define ANION_ID_(x) this%condensed_data_int(PAIR_INT_PARAM_LOC_(x)+4)
 #define NUM_INTER_(x) this%condensed_data_int(PAIR_INT_PARAM_LOC_(x)+5)
-#define NUM_B_(x,y) this%condensed_data_int(PAIR_INT_PARAM_LOC_(x)+5+y)
-#define INTER_SPEC_ID_(x,y) this%condensed_data_int(PAIR_INT_PARAM_LOC_(x)+5+NUM_INTER_(x)+y)
-#define INTER_SPEC_LOC_(x,y) this%condensed_data_int(PAIR_INT_PARAM_LOC_(x)+5+2*(NUM_INTER_(x))+y)
+#define JAC_WATER_ID_(p,x) this%condensed_data_int(PAIR_INT_PARAM_LOC_(x)+5+p)
+#define JAC_CATION_ID_(p,x) this%condensed_data_int(PAIR_INT_PARAM_LOC_(x)+5+NUM_PHASE_+p)
+#define JAC_ANION_ID_(p,x) this%condensed_data_int(PAIR_INT_PARAM_LOC_(x)+5+2*NUM_PHASE_+p)
+#define NUM_B_(x,y) this%condensed_data_int(PAIR_INT_PARAM_LOC_(x)+5+3*NUM_PHASE_+y)
+#define INTER_SPEC_ID_(x,y) this%condensed_data_int(PAIR_INT_PARAM_LOC_(x)+5+3*NUM_PHASE_+NUM_INTER_(x)+y)
+#define INTER_SPEC_LOC_(x,y) this%condensed_data_int(PAIR_INT_PARAM_LOC_(x)+5+3*NUM_PHASE_+2*(NUM_INTER_(x))+y)
 #define CATION_MW_(x) this%condensed_data_real(PAIR_FLOAT_PARAM_LOC_(x))
 #define ANION_MW_(x) this%condensed_data_real(PAIR_FLOAT_PARAM_LOC_(x)+1)
 #define CATION_N_(x) this%condensed_data_real(PAIR_FLOAT_PARAM_LOC_(x)+2)
@@ -424,8 +427,9 @@ contains
 
     ! Adding space for locations of int and float data for each ion pair,
     ! ion pair activity coefficient state id, number of cations and anions,
-    ! state ids of cation and anion, and the number of interactions
-    n_int_param = n_int_param + 8*n_ion_pair
+    ! state ids of cation and anion, the number of interactions, and three
+    ! Jacobian ids per phase and ion pair
+    n_int_param = n_int_param + (8+3*n_phase)*n_ion_pair
     ! Adding space for MW of the cation and anion, and cation and anion
     ! concentrations (for use during solving)
     n_float_param = n_float_param + 4*n_ion_pair
@@ -659,7 +663,7 @@ contains
               trim(to_string(total_charge)))
 
       n_float_param = n_float_param + 4
-      n_int_param = n_int_param + 6
+      n_int_param = n_int_param + 6 + 3*NUM_PHASE_
 
       ! The first portion of ion_pair_names holds species for which
       ! activity coefficients are calculated

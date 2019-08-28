@@ -703,7 +703,7 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data)
   // Update the state array with the current dependent variable values.
   // Signal a recoverable error (positive return value) for negative
   // concentrations.
-  if (phlex_solver_update_model_state(y, md, TINY, TINY)
+  if (phlex_solver_update_model_state(y, md, ZERO, ZERO)
       != PHLEX_SOLVER_SUCCESS) return 1;
 
   // Reset the derivative vector
@@ -747,17 +747,19 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
   // Update the state array with the current dependent variable values
   // Signal a recoverable error (positive return value) for negative
   // concentrations.
-  if (phlex_solver_update_model_state(y, md, TINY, TINY)
+  if (phlex_solver_update_model_state(y, md, ZERO, ZERO)
       != PHLEX_SOLVER_SUCCESS) return 1;
 
   // Advance the state by a small amount to get more accurate Jac values
   // for species that are currently at zero concentration
+#if 0
   for (int i_spec=0, i_dep_var=0; i_spec<md->n_state_var; i_spec++) {
     if (md->var_type[i_spec]==CHEM_SPEC_VARIABLE) {
       md->state[i_spec] += NV_DATA_S(deriv)[i_dep_var] * SMALL_NUMBER;
       i_dep_var++;
     }
   }
+#endif
 
   // Reset the sub-model and reaction Jacobians
   for (int i=0; i<SM_NNZ_S(md->J_params); ++i)

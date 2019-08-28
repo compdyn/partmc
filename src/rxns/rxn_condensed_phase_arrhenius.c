@@ -256,40 +256,45 @@ void * rxn_condensed_phase_arrhenius_calc_jac_contrib(ModelData *model_data,
 
       // For aqueous reactions, if no aerosol water is present, no reaction
       // occurs
-      if (unit_conv < SMALL_NUMBER_) {
+      if (unit_conv <= ZERO) {
         i_jac += (NUM_REACT_ + NUM_PROD_) * (NUM_REACT_ + 1);
         continue;
       }
       unit_conv = 1.0/unit_conv;
     }
 
-    // Calculate the reaction rate rate (M/s or mol/m3/s)
-    realtype rate = RATE_CONSTANT_;
-    for (int i_react = 0; i_react < NUM_REACT_; i_react++) {
-      rate *= state[REACT_(i_phase*NUM_REACT_+i_react)] *
-              UGM3_TO_MOLM3_(i_react) * unit_conv;
-    }
-
-    // No Jac contributions to add if the rate is zero
-    if (rate==0.0) {
-      i_jac += (NUM_REACT_ + NUM_PROD_) * (NUM_REACT_ + 1);
-      continue;
-    }
-
     // Add dependence on reactants for reactants and products
     for (int i_react_ind = 0; i_react_ind < NUM_REACT_; i_react_ind++) {
+
+      // Calculate d_rate / d_react_i
+      realtype rate = RATE_CONSTANT_;
+      for (int i_react = 0; i_react < NUM_REACT_; i_react++) {
+        if (i_react==i_react_ind) {
+          rate *= UGM3_TO_MOLM3_(i_react) * unit_conv;
+        } else {
+          rate *= state[REACT_(i_phase*NUM_REACT_+i_react)] *
+                  UGM3_TO_MOLM3_(i_react) * unit_conv;
+        }
+      }
+
+      // Add the Jacobian elements
       for (int i_react_dep = 0; i_react_dep < NUM_REACT_; i_react_dep++) {
 	if (JAC_ID_(i_jac)<0) {i_jac++; continue;}
         J[JAC_ID_(i_jac++)] -= rate /
-                state[REACT_(i_phase*NUM_REACT_+i_react_ind)] /
 	        (UGM3_TO_MOLM3_(i_react_dep) * unit_conv);
       }
       for (int i_prod_dep = 0; i_prod_dep < NUM_PROD_; i_prod_dep++) {
 	if (JAC_ID_(i_jac)<0) {i_jac++; continue;}
         J[JAC_ID_(i_jac++)] += rate * YIELD_(i_prod_dep) /
-                state[REACT_(i_phase*NUM_REACT_+i_react_ind)] /
 	        (UGM3_TO_MOLM3_(NUM_REACT_+i_prod_dep) * unit_conv);
       }
+    }
+
+    // Calculate the overall reaction rate rate (M/s or mol/m3/s)
+    realtype rate = RATE_CONSTANT_;
+    for (int i_react = 0; i_react < NUM_REACT_; i_react++) {
+      rate *= state[REACT_(i_phase*NUM_REACT_+i_react)] *
+              UGM3_TO_MOLM3_(i_react) * unit_conv;
     }
 
     // Add dependence on aerosol-phase water for reactants and products in

@@ -908,13 +908,17 @@ bool check_Jac(realtype t, N_Vector y, SUNMatrix J, N_Vector deriv,
                        fabs(abs_err) * JAC_CHECK_GSL_TOL : SMALL;
 
       // Evaluate the results
-      if (fabs(SM_DATA_S(J)[i_elem] - partial_deriv) > abs_tol) {
+      double rel_diff = 1.0;
+      if (partial_deriv != 0.0) rel_diff =
+        fabs((SM_DATA_S(J)[i_elem] - partial_deriv) / partial_deriv);
+      if (fabs(SM_DATA_S(J)[i_elem] - partial_deriv) > abs_tol &&
+          rel_diff > 1.0e-4) {
         printf("\nError in Jacobian[%d][%d]: Got %le; expected %le"
                "\n  difference %le is greater than error %le",
                i_ind, i_dep, SM_DATA_S(J)[i_elem], partial_deriv,
                fabs(SM_DATA_S(J)[i_elem] - partial_deriv),
                abs_tol);
-        printf("\n  with intial time step %le", h);
+        printf("\n  relative error %le intial time step %le", rel_diff, h);
         ModelData *md = &(((SolverData*)solver_data)->model_data);
         for( int i_spec=0; i_spec<md->n_state_var; ++i_spec)
           printf("\n species %d conc: %le", i_spec, md->state[i_spec]);

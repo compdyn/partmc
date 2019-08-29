@@ -349,8 +349,14 @@ void * rxn_aqueous_equilibrium_calc_deriv_contrib(ModelData *model_data,
     // Slow rates as concentrations become low
     realtype min_conc = (rate > ZERO) ? min_react_conc : min_prod_conc;
     if (min_conc <= ZERO) continue;
+#if 0
+    realtype exp_fact = exp( -min_conc / SMALL_CONC_(i_phase) );
+    if (exp_fact > 1.0 - 1.0e-5) exp_fact = 1.0;
     realtype spec_scaling =
-      2.0 / ( 1.0 + exp( -min_conc / SMALL_CONC_(i_phase) ) ) - 1.0;
+      2.0 / ( 1.0 + exp_fact ) - 1.0;
+#endif
+    realtype exp_fact = 0.0;
+    realtype spec_scaling = 1.0;
     rate *= spec_scaling;
 
     // Reactants change as (reverse - forward) (ug/m3/s)
@@ -453,12 +459,22 @@ void * rxn_aqueous_equilibrium_calc_jac_contrib(ModelData *model_data,
       low_spec_id = low_prod_id;
     }
     if (min_conc <= ZERO) continue;
+#if 0
+    realtype exp_fact = exp( -min_conc / SMALL_CONC_(i_phase) );
+    realtype spec_scaling_deriv;
+    if (exp_fact > 1.0 - 1e-5) {
+      exp_fact = 1.0;
+      spec_scaling_deriv = 0.0;
+    } else {
+    spec_scaling_deriv = 2.0 * exp_fact / ( SMALL_CONC_(i_phase) *
+                           ( 1.0 + 2.0 * exp_fact + exp_fact * exp_fact ) );
+    }
     realtype spec_scaling =
-      2.0 / ( 1.0 + exp( -min_conc / SMALL_CONC_(i_phase) ) ) - 1.0;
-    realtype spec_scaling_deriv =
-      2.0 / ( SMALL_CONC_(i_phase) *
-              ( exp(  min_conc / SMALL_CONC_(i_phase) ) + 2.0 +
-                exp( -min_conc / SMALL_CONC_(i_phase) ) ) );
+      2.0 / ( 1.0 + exp_fact ) - 1.0;
+#endif
+    realtype exp_fact = 0.0;
+    realtype spec_scaling = 1.0;
+    realtype spec_scaling_deriv = 0.0;
 
     // Add dependence on reactants for reactants and products (forward reaction)
     for (int i_react_ind = 0; i_react_ind < NUM_REACT_; i_react_ind++) {

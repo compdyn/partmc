@@ -280,7 +280,6 @@ void sub_model_ZSR_aerosol_water_calculate(int *sub_model_int_data,
   }
 }
 
-// TODO finish adding J contributions
 /** \brief Add contributions to the Jacobian from derivates calculated using the output of this sub model
  *
  * \param sub_model_int_data Pointer to the sub model integer data
@@ -304,8 +303,6 @@ void sub_model_ZSR_aerosol_water_get_jac_contrib(int *sub_model_int_data,
 
   // Calculate the total aerosol water for each instance of the aerosol phase
   for (int i_phase=0; i_phase<NUM_PHASE_; i_phase++) {
-    double *water = &(state[PHASE_ID_(i_phase)]);
-    *water = 0.0;
 
     // Get the contribution from each ion pair
     for (int i_ion_pair=0; i_ion_pair<NUM_ION_PAIR_; i_ion_pair++) {

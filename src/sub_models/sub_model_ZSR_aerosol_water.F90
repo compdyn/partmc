@@ -99,7 +99,9 @@
 !! electrolyte. The total molecular weight for the binary electroly
 !! \f$MW_i\f$ is calculated as a sum of its ionic components, and the ion
 !! species concentrations are used to determine the \f$M_i\f$ during
-!! integration.
+!! integration. The aerosol-phase water species to be calculated using
+!! the ZSR method must have the key-value pair \b tracer \b type
+!! with value "CONSTANT".
 !!
 !! For the above example, the following input data should be present:
 !! \code{.json}
@@ -109,10 +111,19 @@
 !!   "phase" : "GAS",
 !! },
 !! {
+!!   "name" : "H2O_aq",
+!!   "type" : "CHEM_SPEC",
+!!   "tracer type" : "CONSTANT",
+!!   "phase" : "AEROSOL",
+!!   "density [kg m-3]" : 1.0,
+!!   "molecular weight [kg mol-1]" : 0.01801
+!! },
+!! {
 !!   "name" : "Nap",
 !!   "type" : "CHEM_SPEC",
 !!   "phase" : "AEROSOL",
 !!   "charge" : 1,
+!!   "density [kg m-3]" : 1.0,
 !!   "molecular weight [kg mol-1]" : 0.0229898
 !! },
 !! {
@@ -120,6 +131,7 @@
 !!   "type" : "CHEM_SPEC",
 !!   "phase" : "AEROSOL",
 !!   "charge" : -2,
+!!   "density [kg m-3]" : 1.0,
 !!   "molecular weight [kg mol-1]" : 0.09606
 !! },
 !! {
@@ -252,7 +264,7 @@ contains
     character(len=:), allocatable :: key_name, spec_name, phase_name
     integer(kind=i_kind) :: n_phase, n_ion_pair, n_int_param, n_float_param, &
             i_aero_rep, i_phase, i_ion_pair, i_ion, i_spec, i_sub_prop, &
-            qty, int_val, charge, total_charge
+            qty, int_val, charge, total_charge, tracer_type
     real(kind=dp) :: real_val, molecular_weight
     type(string_t), allocatable :: unique_spec_names(:)
     character(len=:), allocatable :: str_type, ion_pair_name, ion_name
@@ -389,6 +401,13 @@ contains
             this%property_set%get_string(key_name, spec_name), &
             "Missing aerosol-phase water species name in ZSR aerosol "// &
             "water reaction.")
+
+    ! Check the tracer type for the aerosol water species
+    call assert(939974986, &
+            chem_spec_data%get_type(spec_name, tracer_type))
+    call assert_msg(145575786, tracer_type.eq.CHEM_SPEC_CONSTANT, &
+            "ZSR calculated species "//trim(spec_name)// &
+            " must be of tracer type CONSTANT")
 
     ! Make the PHASE_ID_(x) hold the state id of aerosol water in each
     ! phase instance. Then the aerosol water id is 1, and the ion

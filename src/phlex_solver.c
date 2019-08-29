@@ -75,7 +75,7 @@ void pmc_debug_print_jac_struct(void *solver_data, SUNMatrix J, const char *mess
   int n_state_var = SM_COLUMNS_S(J);
   int i_elem = 0;
   int next_col = 0;
-  printf("\n\n   Jacobian structure - %s\n     ", message);
+  printf("\n\n   Jacobian structure (↓ind →dep) - %s\n     ", message);
   for (int i_dep=0; i_dep < n_state_var; i_dep++)
     printf("[%3d]", i_dep);
   for (int i_ind=0; i_ind < n_state_var; i_ind++) {
@@ -101,7 +101,7 @@ void pmc_debug_print_jac(void *solver_data, SUNMatrix J, const char *message)
   int n_state_var = SM_COLUMNS_S(J);
   int i_elem = 0;
   int next_col = 0;
-  printf("\n\n   Jacobian - %s\n     ", message);
+  printf("\n\n   Jacobian (↓ind →dep) - %s\n     ", message);
   for (int i_dep=0; i_dep < n_state_var; i_dep++)
     printf("      [%3d]", i_dep);
   for (int i_ind=0; i_ind < n_state_var; i_ind++) {
@@ -129,8 +129,6 @@ void pmc_debug_print_jac(void *solver_data, SUNMatrix J, const char *message)
 
 // Default solver initial time step relative to total integration time
 #define DEFAULT_TIME_STEP 1.0
-// Small number used in filtering
-#define SMALL_NUMBER 1.1E-30
 // State advancement factor for Jacobian element evaluation
 #define JAC_CHECK_ADV 1.0E-8
 // Tolerance for Jacobian element evaluation
@@ -467,12 +465,18 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
 {
 #ifdef PMC_USE_SUNDIALS
   SolverData *sd = (SolverData*) solver_data;
+  ModelData *md  = &(sd->model_data);
   int flag;
 
   // Update the dependent variables
-  for (int i_spec=0, i_dep_var=0; i_spec<sd->model_data.n_state_var; i_spec++)
-    if (sd->model_data.var_type[i_spec]==CHEM_SPEC_VARIABLE)
-      NV_Ith_S(sd->y,i_dep_var++) = (realtype) state[i_spec];
+  for (int i_spec=0, i_dep_var=0; i_spec<md->n_state_var; i_spec++)
+    if (md->var_type[i_spec]==CHEM_SPEC_VARIABLE) {
+      NV_Ith_S(sd->y,i_dep_var++) =
+        state[i_spec] > TINY ?
+        (realtype) state[i_spec] : TINY;
+    } else if (md->var_type[i_spec]==CHEM_SPEC_CONSTANT) {
+      state[i_spec] = state[i_spec] > TINY ? state[i_spec] : TINY;
+    }
 
   // Update model data pointers
   sd->model_data.state = state;
@@ -492,9 +496,9 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   // Update data for new environmental state
   // (This is set up to assume the environmental variables do not change during
   //  solving. This can be changed in the future if necessary.)
-  aero_rep_update_env_state(&(sd->model_data), env);
-  sub_model_update_env_state(&(sd->model_data), env);
-  rxn_update_env_state(&(sd->model_data), env);
+  aero_rep_update_env_state(md, env);
+  sub_model_update_env_state(md, env);
+  rxn_update_env_state(md, env);
 
   PMC_DEBUG_JAC_STRUCT(sd->model_data.J_init, "Begin solving");
 
@@ -533,8 +537,8 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
       flag = f(t_initial, sd->y, deriv, sd);
       if (flag!=0) printf("\nCall to f() at failed state failed with flag %d\n", flag);
       printf("temp = %le pressure = %le\n", env[0], env[1]);
-      for (int i_spec=0, i_dep_var=0; i_spec<sd->model_data.n_state_var; i_spec++)
-        if (sd->model_data.var_type[i_spec]==CHEM_SPEC_VARIABLE) {
+      for (int i_spec=0, i_dep_var=0; i_spec<md->n_state_var; i_spec++)
+        if (md->var_type[i_spec]==CHEM_SPEC_VARIABLE) {
           printf("spec %d = %le deriv = %le\n", i_spec, NV_Ith_S(sd->y,i_dep_var), NV_Ith_S(deriv, i_dep_var));
           i_dep_var++;
         } else {
@@ -547,8 +551,8 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   }
 
   // Update the species concentrations on the state array
-  for (int i_spec=0, i_dep_var=0; i_spec<sd->model_data.n_state_var; i_spec++) {
-    if (sd->model_data.var_type[i_spec]==CHEM_SPEC_VARIABLE) {
+  for (int i_spec=0, i_dep_var=0; i_spec<md->n_state_var; i_spec++) {
+    if (md->var_type[i_spec]==CHEM_SPEC_VARIABLE) {
       state[i_spec] = (double) ( NV_Ith_S(sd->y, i_dep_var) > 0.0 ?
                                  NV_Ith_S(sd->y, i_dep_var) : 0.0 );
       i_dep_var++;
@@ -557,7 +561,7 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
 
   // Re-run the pre-derivative calculations to update equilibrium species
   // and apply adjustments to final state
-  sub_model_calculate(&(sd->model_data));
+  sub_model_calculate(md);
 
   return PHLEX_SOLVER_SUCCESS;
 #else
@@ -663,7 +667,7 @@ int phlex_solver_update_model_state(N_Vector solver_state,
 {
   for (int i_spec=0, i_dep_var=0; i_spec<model_data->n_state_var; i_spec++) {
     if (model_data->var_type[i_spec]==CHEM_SPEC_VARIABLE) {
-      if (NV_DATA_S(solver_state)[i_dep_var] < -SMALL_NUMBER) {
+      if (NV_DATA_S(solver_state)[i_dep_var] < -SMALL) {
 #ifdef FAILURE_DETAIL
         printf("\nFailed model state update: [spec %d] = %le", i_spec,
             NV_DATA_S(solver_state)[i_dep_var]);
@@ -755,7 +759,7 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
 #if 0
   for (int i_spec=0, i_dep_var=0; i_spec<md->n_state_var; i_spec++) {
     if (md->var_type[i_spec]==CHEM_SPEC_VARIABLE) {
-      md->state[i_spec] += NV_DATA_S(deriv)[i_dep_var] * SMALL_NUMBER;
+      md->state[i_spec] += NV_DATA_S(deriv)[i_dep_var] * SMALL;
       i_dep_var++;
     }
   }
@@ -788,9 +792,11 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
   // Run the sub models
   sub_model_calculate(md);
   sub_model_get_jac_contrib(md, md->J_params, time_step);
+  PMC_DEBUG_JAC(md->J_params, "sub model");
 
   // Calculate the Jacobian
   rxn_calc_jac(md, md->J_rxn, time_step);
+  PMC_DEBUG_JAC(md->J_rxn, "reaction");
 
   // Set the solver Jacobian
   JacMap *jac_map = md->jac_map;
@@ -799,6 +805,7 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
     SM_DATA_S(J)[jac_map[i_map].solver_id] +=
       SM_DATA_S(md->J_rxn)[jac_map[i_map].rxn_id] *
       SM_DATA_S(md->J_params)[jac_map[i_map].param_id];
+  PMC_DEBUG_JAC(J, "solver");
 
 #ifdef PMC_DEBUG
   // Evaluate the Jacobian if flagged to do so
@@ -874,7 +881,9 @@ bool check_Jac(realtype t, N_Vector y, SUNMatrix J, N_Vector deriv,
     // Guess the initial step size
     double x = d_state[i_ind];
     double h = x * JAC_CHECK_ADV;
-    h = (h < SMALL_NUMBER*10.0) ? SMALL_NUMBER*10.0 : h;
+
+    // Skip small concentrations
+    if (h<TINY) continue;
 
     gsl_param.ind_var = i_ind;
 
@@ -895,8 +904,8 @@ bool check_Jac(realtype t, N_Vector y, SUNMatrix J, N_Vector deriv,
                i_ind, i_dep);
       }
 
-      double abs_tol = fabs(abs_err) > SMALL_NUMBER ?
-                       fabs(abs_err) * JAC_CHECK_GSL_TOL : SMALL_NUMBER;
+      double abs_tol = fabs(abs_err) > SMALL ?
+                       fabs(abs_err) * JAC_CHECK_GSL_TOL : SMALL;
 
       // Evaluate the results
       if (fabs(SM_DATA_S(J)[i_elem] - partial_deriv) > abs_tol) {
@@ -905,6 +914,7 @@ bool check_Jac(realtype t, N_Vector y, SUNMatrix J, N_Vector deriv,
                i_ind, i_dep, SM_DATA_S(J)[i_elem], partial_deriv,
                fabs(SM_DATA_S(J)[i_elem] - partial_deriv),
                abs_tol);
+        printf("\n  with intial time step %le", h);
         ModelData *md = &(((SolverData*)solver_data)->model_data);
         for( int i_spec=0; i_spec<md->n_state_var; ++i_spec)
           printf("\n species %d conc: %le", i_spec, md->state[i_spec]);
@@ -916,7 +926,7 @@ bool check_Jac(realtype t, N_Vector y, SUNMatrix J, N_Vector deriv,
     N_VScale(ONE, y, tmp);
 
     // Skip very low concentration species
-    if (d_state[i_ind] <= SMALL_NUMBER) continue;
+    if (d_state[i_ind] <= SMALL) continue;
 
     // Advance the state for species i_ind
     realtype d_ind = JAC_CHECK_ADV * fabs(d_state[i_ind]);
@@ -1034,7 +1044,7 @@ int guess_helper(const realtype t_n, const realtype h_n, N_Vector y_n,
   int n_elem      = NV_LENGTH_S(y_n);
 
   // Only try improvements when negative concentrations are predicted
-  if (N_VMin(y_n) > -SMALL_NUMBER) return 0;
+  if (N_VMin(y_n) > -SMALL) return 0;
 
   PMC_DEBUG_PRINT_FULL("Trying to improve guess");
 

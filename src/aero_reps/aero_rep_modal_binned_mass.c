@@ -358,12 +358,18 @@ void * aero_rep_modal_binned_mass_get_number_conc(ModelData *model_data,
         *number_conc = NUMBER_CONC_(i_section, i_bin);
         if (partial_deriv) {
           for (int i_phase = 0; i_phase < NUM_PHASE_(i_section); ++i_phase) {
+
+            // Get a pointer to the phase on the state array
             double *state = (double*) (model_data->state);
             state += PHASE_STATE_ID_(i_section, i_phase, i_bin);
+
+            // Get the aerosol phase volume
             double phase_volume = 0.0;
             aero_phase_get_volume(model_data,
                       PHASE_MODEL_DATA_ID_(i_section, i_phase, i_bin),
                       state, &phase_volume, partial_deriv);
+
+            // Convert d_vol/d_conc to d_number/d_conc
             for (int i_elem = 0;
                  i_elem < PHASE_NUM_JAC_ELEM_(i_section, i_phase, i_bin);
                  ++i_elem) {
@@ -442,13 +448,21 @@ void * aero_rep_modal_binned_mass_get_aero_phase_mass(ModelData *model_data,
         if (aero_phase_idx==0) {
           *aero_phase_mass = PHASE_MASS_(i_section, i_phase, i_bin);
           if (partial_deriv) {
+
+            // Get a pointer to the phase on the state array
             double *state = (double*) (model_data->state);
             state += PHASE_STATE_ID_(i_section, i_phase, i_bin);
+
+            // Get d_mass / d_conc
             double mass, mw;
-            aero_phase_get_mass(model_data, aero_phase_idx, state, &mass, &mw,
-                                partial_deriv, NULL);
+            aero_phase_get_mass(model_data,
+                      PHASE_MODEL_DATA_ID_(i_section, i_phase, i_bin),
+                      state, &mass, &mw, partial_deriv, NULL);
             partial_deriv += PHASE_NUM_JAC_ELEM_(i_section, i_phase, i_bin);
           }
+
+        // Other phases present in the bin or mode do not contribute to
+        // the aerosol phase mass
         } else if (partial_deriv) {
           for( int i_elem=0;
                i_elem < PHASE_NUM_JAC_ELEM_(i_section, i_phase, i_bin);
@@ -496,13 +510,21 @@ void * aero_rep_modal_binned_mass_get_aero_phase_avg_MW(ModelData *model_data,
         if (aero_phase_idx==0) {
           *aero_phase_avg_MW = PHASE_AVG_MW_(i_section, i_phase, i_bin);
           if (partial_deriv) {
+
+            // Get a pointer to the phase on the state array
             double *state = (double*) (model_data->state);
             state += PHASE_STATE_ID_(i_section, i_phase, i_bin);
+
+            // Get d_MW / d_conc
             double mass, mw;
-            aero_phase_get_mass(model_data, aero_phase_idx, state, &mass, &mw,
-                                NULL, partial_deriv);
+            aero_phase_get_mass(model_data,
+                      PHASE_MODEL_DATA_ID_(i_section, i_phase, i_bin),
+                      state, &mass, &mw, NULL, partial_deriv);
             partial_deriv += PHASE_NUM_JAC_ELEM_(i_section, i_phase, i_bin);
           }
+
+        // Other phases present in the bin/mode do not contribute to the
+        // average MW of the aerosol phase
         } else if (partial_deriv) {
           for( int i_elem=0;
                i_elem < PHASE_NUM_JAC_ELEM_(i_section, i_phase, i_bin);

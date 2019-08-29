@@ -1416,7 +1416,7 @@ contains
         deallocate(rep_spec_names)
       end do
       do i_spec = 1, size(state_names)
-        write(f_unit,*) i_spec, state_names(i_spec)%string
+        write(f_unit,*) i_spec-1, state_names(i_spec)%string
       end do
 
       write(f_unit,*) "*** Solver Data ***"

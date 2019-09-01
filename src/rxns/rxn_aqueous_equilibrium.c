@@ -305,33 +305,17 @@ void * rxn_aqueous_equilibrium_calc_deriv_contrib(ModelData *model_data,
   for (int i_phase=0, i_deriv = 0; i_phase<NUM_AERO_PHASE_; i_phase++) {
 
     // If no aerosol water is present, no reaction occurs
-    if (state[WATER_(i_phase)] < MIN_WATER_ * SMALL_WATER_CONC_(i_phase)) {
+    realtype water = state[WATER_(i_phase)];
+    if (water < MIN_WATER_ * SMALL_WATER_CONC_(i_phase)) {
       i_deriv += NUM_REACT_ + NUM_PROD_;
       continue;
     }
-
-    // Slow down rates as water approaches the minimum value
-#if 0
-    realtype water_adj = state[WATER_(i_phase)] -
-                         MIN_WATER_ * SMALL_WATER_CONC_(i_phase);
-    water_adj = ( water_adj > ZERO ) ? water_adj : ZERO;
-    realtype water_scaling =
-      2.0 / ( 1.0 + exp( -water_adj / SMALL_WATER_CONC_(i_phase) ) ) - 1.0;
-#endif
-    realtype water_scaling = 1.0;
-    realtype water = state[WATER_(i_phase)] * water_scaling;
-
-    // Get the lowest concentration to use in slowing rates
-    realtype min_react_conc = 1.0e100;
-    realtype min_prod_conc  = 1.0e100;
 
     // Get the product of all reactants
     realtype react_fact = ONE;
     for (int i_react = 0; i_react < NUM_REACT_; i_react++) {
       react_fact *= state[REACT_(i_phase*NUM_REACT_+i_react)] *
               MASS_FRAC_TO_M_(i_react) / water;
-      if (min_react_conc > state[REACT_(i_phase*NUM_REACT_+i_react)])
-        min_react_conc = state[REACT_(i_phase*NUM_REACT_+i_react)];
     }
 
     // Get the product of all products
@@ -339,8 +323,6 @@ void * rxn_aqueous_equilibrium_calc_deriv_contrib(ModelData *model_data,
     for (int i_prod = 0; i_prod < NUM_PROD_; i_prod++) {
       prod_fact *= state[PROD_(i_phase*NUM_PROD_+i_prod)] *
               MASS_FRAC_TO_M_(NUM_REACT_+i_prod) / water;
-      if (min_prod_conc > state[PROD_(i_phase*NUM_PROD_+i_prod)])
-        min_prod_conc = state[PROD_(i_phase*NUM_PROD_+i_prod)];
     }
     if (ACTIVITY_COEFF_(i_phase)>=0) prod_fact *=
             state[ACTIVITY_COEFF_(i_phase)];
@@ -348,19 +330,6 @@ void * rxn_aqueous_equilibrium_calc_deriv_contrib(ModelData *model_data,
     realtype rate = rxn_aqueous_equilibrium_calc_overall_rate(rxn_data,
                         state, react_fact, prod_fact, water, i_phase);
     if (rate == ZERO) continue;
-
-    // Slow rates as concentrations become low
-    realtype min_conc = (rate > ZERO) ? min_react_conc : min_prod_conc;
-    if (min_conc <= ZERO) continue;
-#if 0
-    realtype exp_fact = exp( -min_conc / SMALL_CONC_(i_phase) );
-    if (exp_fact > 1.0 - 1.0e-5) exp_fact = 1.0;
-    realtype spec_scaling =
-      2.0 / ( 1.0 + exp_fact ) - 1.0;
-#endif
-    realtype exp_fact = 0.0;
-    realtype spec_scaling = 1.0;
-    rate *= spec_scaling;
 
     // Reactants change as (reverse - forward) (ug/m3/s)
     for (int i_react = 0; i_react < NUM_REACT_; i_react++) {
@@ -404,42 +373,17 @@ void * rxn_aqueous_equilibrium_calc_jac_contrib(ModelData *model_data,
   for (int i_phase=0, i_jac = 0; i_phase<NUM_AERO_PHASE_; i_phase++) {
 
     // If not aerosol water is present, no reaction occurs
-    if (state[WATER_(i_phase)] < MIN_WATER_ * SMALL_WATER_CONC_(i_phase)) {
+    realtype water = state[WATER_(i_phase)];
+    if (water < MIN_WATER_ * SMALL_WATER_CONC_(i_phase)) {
       i_jac += (NUM_REACT_ + NUM_PROD_) * (NUM_REACT_ + NUM_PROD_ + 1);
       continue;
     }
-
-    // Slow down rates as water approaches the minimum value
-#if 0
-    realtype water_adj = state[WATER_(i_phase)] -
-                         MIN_WATER_ * SMALL_WATER_CONC_(i_phase);
-    water_adj = ( water_adj > ZERO ) ? water_adj : ZERO;
-    realtype water_scaling =
-      2.0 / ( 1.0 + exp( -water_adj / SMALL_WATER_CONC_(i_phase) ) ) - 1.0;
-    realtype water_scaling_deriv = water_scaling + state[WATER_(i_phase)] *
-      2.0 / ( SMALL_WATER_CONC_(i_phase) *
-              ( exp(  water_adj / SMALL_WATER_CONC_(i_phase) ) + 2.0 +
-                exp( -water_adj / SMALL_WATER_CONC_(i_phase) ) ) );
-#endif
-    realtype water_scaling = 1.0;
-    realtype water_scaling_deriv = 1.0;
-    realtype water = state[WATER_(i_phase)] * water_scaling;
-
-    // Get the lowest concentration to use in slowing rates
-    realtype min_react_conc = 1.0e100;
-    realtype min_prod_conc  = 1.0e100;
-    int low_react_id = 0;
-    int low_prod_id  = 0;
 
     // Calculate the forward rate (M/s)
     realtype forward_rate = RATE_CONST_FORWARD_;
     for (int i_react = 0; i_react < NUM_REACT_; i_react++) {
       forward_rate *= state[REACT_(i_phase*NUM_REACT_+i_react)] *
               MASS_FRAC_TO_M_(i_react) / water;
-      if (min_react_conc > state[REACT_(i_phase*NUM_REACT_+i_react)]) {
-        min_react_conc = state[REACT_(i_phase*NUM_REACT_+i_react)];
-        low_react_id = i_react;
-      }
     }
 
     // Calculate the reverse rate (M/s)
@@ -447,59 +391,21 @@ void * rxn_aqueous_equilibrium_calc_jac_contrib(ModelData *model_data,
     for (int i_prod = 0; i_prod < NUM_PROD_; i_prod++) {
       reverse_rate *= state[PROD_(i_phase*NUM_PROD_+i_prod)] *
               MASS_FRAC_TO_M_(NUM_REACT_+i_prod) / water;
-      if (min_prod_conc > state[PROD_(i_phase*NUM_PROD_+i_prod)]) {
-        min_prod_conc = state[PROD_(i_phase*NUM_PROD_+i_prod)];
-        low_prod_id = NUM_REACT_ + i_prod;
-      }
     }
     if (ACTIVITY_COEFF_(i_phase)>=0) reverse_rate *=
             state[ACTIVITY_COEFF_(i_phase)];
-
-    // Slow rates as concentrations become low
-    realtype min_conc;
-    int low_spec_id;
-    if (forward_rate > reverse_rate) {
-      min_conc = min_react_conc;
-      low_spec_id = low_react_id;
-    } else {
-      min_conc = min_prod_conc;
-      low_spec_id = low_prod_id;
-    }
-    if (min_conc <= ZERO) continue;
-#if 0
-    realtype exp_fact = exp( -min_conc / SMALL_CONC_(i_phase) );
-    realtype spec_scaling_deriv;
-    if (exp_fact > 1.0 - 1e-5) {
-      exp_fact = 1.0;
-      spec_scaling_deriv = 0.0;
-    } else {
-    spec_scaling_deriv = 2.0 * exp_fact / ( SMALL_CONC_(i_phase) *
-                           ( 1.0 + 2.0 * exp_fact + exp_fact * exp_fact ) );
-    }
-    realtype spec_scaling =
-      2.0 / ( 1.0 + exp_fact ) - 1.0;
-#endif
-    realtype exp_fact = 0.0;
-    realtype spec_scaling = 1.0;
-    realtype spec_scaling_deriv = 0.0;
 
     // Add dependence on reactants for reactants and products (forward reaction)
     for (int i_react_ind = 0; i_react_ind < NUM_REACT_; i_react_ind++) {
       for (int i_react_dep = 0; i_react_dep < NUM_REACT_; i_react_dep++) {
 	if (JAC_ID_(i_jac)<0 || forward_rate==0.0) {i_jac++; continue;}
-        if (low_spec_id == i_react_ind) {
-          J[JAC_ID_(i_jac)] += (-forward_rate) * spec_scaling_deriv;
-        }
-        J[JAC_ID_(i_jac++)] += (-forward_rate) * spec_scaling /
+        J[JAC_ID_(i_jac++)] += (-forward_rate) /
                 state[REACT_(i_phase*NUM_REACT_+i_react_ind)] /
 		MASS_FRAC_TO_M_(i_react_dep) * water;
       }
       for (int i_prod_dep = 0; i_prod_dep < NUM_PROD_; i_prod_dep++) {
 	if (JAC_ID_(i_jac)<0 || forward_rate==0.0) {i_jac++; continue;}
-        if (low_spec_id == i_react_ind) {
-          J[JAC_ID_(i_jac)] += (forward_rate) * spec_scaling_deriv;
-        }
-        J[JAC_ID_(i_jac++)] += (forward_rate) * spec_scaling /
+        J[JAC_ID_(i_jac++)] += (forward_rate) /
                 state[REACT_(i_phase*NUM_REACT_+i_react_ind)] /
 		MASS_FRAC_TO_M_(NUM_REACT_ + i_prod_dep) * water;
       }
@@ -509,19 +415,13 @@ void * rxn_aqueous_equilibrium_calc_jac_contrib(ModelData *model_data,
     for (int i_prod_ind = 0; i_prod_ind < NUM_PROD_; i_prod_ind++) {
       for (int i_react_dep = 0; i_react_dep < NUM_REACT_; i_react_dep++) {
 	if (JAC_ID_(i_jac)<0 || reverse_rate==0.0) {i_jac++; continue;}
-        if (low_spec_id == NUM_REACT_ + i_prod_ind) {
-          J[JAC_ID_(i_jac)] += (reverse_rate) * spec_scaling_deriv;
-        }
-        J[JAC_ID_(i_jac++)] += (reverse_rate) * spec_scaling /
+        J[JAC_ID_(i_jac++)] += (reverse_rate) /
                 state[PROD_(i_phase*NUM_PROD_+i_prod_ind)] /
 		MASS_FRAC_TO_M_(i_react_dep) * water;
       }
       for (int i_prod_dep = 0; i_prod_dep < NUM_PROD_; i_prod_dep++) {
 	if (JAC_ID_(i_jac)<0 || reverse_rate==0.0) {i_jac++; continue;}
-        if (low_spec_id == NUM_REACT_ + i_prod_ind) {
-          J[JAC_ID_(i_jac)] += (-reverse_rate) * spec_scaling_deriv;
-        }
-        J[JAC_ID_(i_jac++)] += (-reverse_rate) * spec_scaling /
+        J[JAC_ID_(i_jac++)] += (-reverse_rate) /
                 state[PROD_(i_phase*NUM_PROD_+i_prod_ind)] /
 		MASS_FRAC_TO_M_(NUM_REACT_ + i_prod_dep) * water;
       }
@@ -532,14 +432,12 @@ void * rxn_aqueous_equilibrium_calc_jac_contrib(ModelData *model_data,
       if (JAC_ID_(i_jac)<0) {i_jac++; continue;}
       J[JAC_ID_(i_jac++)] +=
          ( forward_rate * (NUM_REACT_-1) - reverse_rate * (NUM_PROD_-1) )
-         * spec_scaling * water_scaling_deriv
          / MASS_FRAC_TO_M_(i_react_dep);
     }
     for (int i_prod_dep = 0; i_prod_dep < NUM_PROD_; i_prod_dep++) {
       if (JAC_ID_(i_jac)<0) {i_jac++; continue;}
       J[JAC_ID_(i_jac++)] -=
          ( forward_rate * (NUM_REACT_-1) - reverse_rate * (NUM_PROD_-1) )
-         * spec_scaling * water_scaling_deriv
          / MASS_FRAC_TO_M_(NUM_REACT_ + i_prod_dep);
     }
 

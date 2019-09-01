@@ -42,7 +42,7 @@
 #define MASS_FRAC_TO_M_(x) (float_data[NUM_FLOAT_PROP_+x])
 #define SMALL_WATER_CONC_(x) (float_data[NUM_FLOAT_PROP_+NUM_REACT_+NUM_PROD_+x])
 #define SMALL_CONC_(x) (float_data[NUM_FLOAT_PROP_+NUM_REACT_+NUM_PROD_+NUM_AERO_PHASE_+x])
-#define INT_DATA_SIZE_ (NUM_INT_PROP_+((NUM_REACT_+NUM_PROD_)*(NUM_REACT_+NUM_PROD_+3)+2)*NUM_AERO_PHASE_)
+#define INT_DATA_SIZE_ (NUM_INT_PROP_+((NUM_REACT_+NUM_PROD_)*(NUM_REACT_+NUM_PROD_+4)+2)*NUM_AERO_PHASE_)
 #define FLOAT_DATA_SIZE_ (NUM_FLOAT_PROP_+NUM_PROD_+NUM_REACT_+2*NUM_AERO_PHASE_)
 
 /** \brief Flag Jacobian elements used by this reaction
@@ -90,6 +90,15 @@ void * rxn_aqueous_equilibrium_get_used_jac_elem(void *rxn_data,
     for (int i_prod_dep = i_phase*NUM_PROD_;
               i_prod_dep < (i_phase+1)*NUM_PROD_; i_prod_dep++)
       jac_struct[PROD_(i_prod_dep)][WATER_(i_phase)] = true;
+
+    // Add dependence on activity coefficients for reactants and products
+    if (ACTIVITY_COEFF_(i_phase)<0) continue;
+    for (int i_react_dep = i_phase*NUM_REACT_;
+              i_react_dep < (i_phase+1)*NUM_REACT_; ++i_react_dep)
+      jac_struct[REACT_(i_react_dep)][ACTIVITY_COEFF_(i_phase)] = true;
+    for (int i_prod_dep = i_phase*NUM_PROD_;
+              i_prod_dep < (i_phase+1)*NUM_PROD_; ++i_prod_dep)
+      jac_struct[PROD_(i_prod_dep)][ACTIVITY_COEFF_(i_phase)] = true;
 
   }
 
@@ -150,6 +159,25 @@ void * rxn_aqueous_equilibrium_update_ids(ModelData *model_data, int *deriv_ids,
     for (int i_prod_dep = i_phase*NUM_PROD_;
               i_prod_dep < (i_phase+1)*NUM_PROD_; i_prod_dep++)
       JAC_ID_(i_jac++) = jac_ids[PROD_(i_prod_dep)][WATER_(i_phase)];
+
+    // Add dependence on activity coefficients for reactants and products
+    if (ACTIVITY_COEFF_(i_phase)<0) {
+      for (int i_react_dep = i_phase*NUM_REACT_;
+              i_react_dep < (i_phase+1)*NUM_REACT_; ++i_react_dep)
+        JAC_ID_(i_jac++) = -1;
+      for (int i_prod_dep = i_phase*NUM_PROD_;
+              i_prod_dep < (i_phase+1)*NUM_PROD_; ++i_prod_dep)
+        JAC_ID_(i_jac++) = -1;
+    } else {
+      for (int i_react_dep = i_phase*NUM_REACT_;
+              i_react_dep < (i_phase+1)*NUM_REACT_; ++i_react_dep)
+        JAC_ID_(i_jac++) =
+          jac_ids[REACT_(i_react_dep)][ACTIVITY_COEFF_(i_phase)];
+      for (int i_prod_dep = i_phase*NUM_PROD_;
+              i_prod_dep < (i_phase+1)*NUM_PROD_; ++i_prod_dep)
+        JAC_ID_(i_jac++) =
+          jac_ids[PROD_(i_prod_dep)][ACTIVITY_COEFF_(i_phase)];
+    }
 
   }
 
@@ -329,7 +357,10 @@ void * rxn_aqueous_equilibrium_calc_deriv_contrib(ModelData *model_data,
 
     realtype rate = rxn_aqueous_equilibrium_calc_overall_rate(rxn_data,
                         state, react_fact, prod_fact, water, i_phase);
-    if (rate == ZERO) continue;
+    if (rate == ZERO) {
+      i_deriv += NUM_REACT_ + NUM_PROD_;
+      continue;
+    }
 
     // Reactants change as (reverse - forward) (ug/m3/s)
     for (int i_react = 0; i_react < NUM_REACT_; i_react++) {
@@ -375,7 +406,7 @@ void * rxn_aqueous_equilibrium_calc_jac_contrib(ModelData *model_data,
     // If not aerosol water is present, no reaction occurs
     realtype water = state[WATER_(i_phase)];
     if (water < MIN_WATER_ * SMALL_WATER_CONC_(i_phase)) {
-      i_jac += (NUM_REACT_ + NUM_PROD_) * (NUM_REACT_ + NUM_PROD_ + 1);
+      i_jac += (NUM_REACT_ + NUM_PROD_) * (NUM_REACT_ + NUM_PROD_ + 2);
       continue;
     }
 
@@ -439,6 +470,24 @@ void * rxn_aqueous_equilibrium_calc_jac_contrib(ModelData *model_data,
       J[JAC_ID_(i_jac++)] -=
          ( forward_rate * (NUM_REACT_-1) - reverse_rate * (NUM_PROD_-1) )
          / MASS_FRAC_TO_M_(NUM_REACT_ + i_prod_dep);
+    }
+
+    // Add dependence on activity coefficients for reactants and products
+    if (ACTIVITY_COEFF_(i_phase)<0) {
+      i_jac += NUM_REACT_ + NUM_PROD_;
+      continue;
+    }
+    for (int i_react_dep = 0; i_react_dep < NUM_REACT_; i_react_dep++) {
+      if (JAC_ID_(i_jac)<0) {i_jac++; continue;}
+      J[JAC_ID_(i_jac++)] += reverse_rate
+            / state[ACTIVITY_COEFF_(i_phase)]
+            / MASS_FRAC_TO_M_(i_react_dep) * water;
+    }
+    for (int i_prod_dep = 0; i_prod_dep < NUM_PROD_; i_prod_dep++) {
+      if (JAC_ID_(i_jac)<0) {i_jac++; continue;}
+      J[JAC_ID_(i_jac++)] -= reverse_rate
+            / state[ACTIVITY_COEFF_(i_phase)]
+            / MASS_FRAC_TO_M_(NUM_REACT_ + i_prod_dep) * water;
     }
 
   }

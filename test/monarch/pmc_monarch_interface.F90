@@ -334,7 +334,7 @@ contains
 
 #ifdef PMC_DEBUG
         ! Check the Jacobian evaluations
-        call assert_msg(611569150, solver_stats%Jac_eval_fails.eq.0, &
+        call warn_assert_msg(611569150, solver_stats%Jac_eval_fails.eq.0, &
                         trim( to_string( solver_stats%Jac_eval_fails ) )// &
                         " Jacobian evaluation failures at time "// &
                         trim( to_string( start_time ) ) )

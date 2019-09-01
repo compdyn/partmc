@@ -35,11 +35,11 @@
 #define ANION_ID_(x) (int_data[PAIR_INT_PARAM_LOC_(x)+4])
 #define NUM_INTER_(x) (int_data[PAIR_INT_PARAM_LOC_(x)+5])
 #define JAC_WATER_ID_(p,x) (int_data[PAIR_INT_PARAM_LOC_(x)+6+p])
-#define JAC_CATION_ID_(p,x) (int_data[PAIR_INT_PARAM_LOC_(x)+6+NUM_PHASE_+p])
-#define JAC_ANION_ID_(p,x) (int_data[PAIR_INT_PARAM_LOC_(x)+6+2*NUM_PHASE_+p])
-#define NUM_B_(x,y) (int_data[PAIR_INT_PARAM_LOC_(x)+6+3*NUM_PHASE_+y])
-#define INTER_SPEC_ID_(x,y) (int_data[PAIR_INT_PARAM_LOC_(x)+6+3*NUM_PHASE_+NUM_INTER_(x)+y]-1)
-#define INTER_SPEC_LOC_(x,y) (int_data[PAIR_INT_PARAM_LOC_(x)+6+3*NUM_PHASE_+2*(NUM_INTER_(x))+y]-1)
+#define JAC_CATION_ID_(p,x,y) (int_data[PAIR_INT_PARAM_LOC_(x)+6+NUM_PHASE_+p*NUM_ION_PAIRS_+y])
+#define JAC_ANION_ID_(p,x,y) (int_data[PAIR_INT_PARAM_LOC_(x)+6+(1+NUM_ION_PAIRS_)*NUM_PHASE_+p*NUM_ION_PAIRS_+y])
+#define NUM_B_(x,y) (int_data[PAIR_INT_PARAM_LOC_(x)+6+(1+2*NUM_ION_PAIRS_)*NUM_PHASE_+y])
+#define INTER_SPEC_ID_(x,y) (int_data[PAIR_INT_PARAM_LOC_(x)+6+(1+2*NUM_ION_PAIRS_)*NUM_PHASE_+NUM_INTER_(x)+y]-1)
+#define INTER_SPEC_LOC_(x,y) (int_data[PAIR_INT_PARAM_LOC_(x)+6+(1+2*NUM_ION_PAIRS_)*NUM_PHASE_+2*(NUM_INTER_(x))+y]-1)
 #define CATION_MW_(x) (float_data[PAIR_FLOAT_PARAM_LOC_(x)])
 #define ANION_MW_(x) (float_data[PAIR_FLOAT_PARAM_LOC_(x)+1])
 #define CATION_N_(x) (float_data[PAIR_FLOAT_PARAM_LOC_(x)+2])
@@ -67,10 +67,12 @@ void sub_model_PDFiTE_get_used_jac_elem(int *sub_model_int_data,
     for (int i_ion_pair=0; i_ion_pair < NUM_ION_PAIRS_; ++i_ion_pair) {
       jac_struct[PHASE_ID_(i_phase)+ION_PAIR_ACT_ID_(i_ion_pair)]
                 [GAS_WATER_ID_] = true;
-      jac_struct[PHASE_ID_(i_phase)+ION_PAIR_ACT_ID_(i_ion_pair)]
-                [PHASE_ID_(i_phase)+CATION_ID_(i_ion_pair)] = true;
-      jac_struct[PHASE_ID_(i_phase)+ION_PAIR_ACT_ID_(i_ion_pair)]
-                [PHASE_ID_(i_phase)+ANION_ID_(i_ion_pair)] = true;
+      for (int j_ion_pair=0; j_ion_pair < NUM_ION_PAIRS_; ++j_ion_pair) {
+        jac_struct[PHASE_ID_(i_phase)+ION_PAIR_ACT_ID_(i_ion_pair)]
+                  [PHASE_ID_(i_phase)+CATION_ID_(j_ion_pair)] = true;
+        jac_struct[PHASE_ID_(i_phase)+ION_PAIR_ACT_ID_(i_ion_pair)]
+                  [PHASE_ID_(i_phase)+ANION_ID_(j_ion_pair)] = true;
+      }
     }
   }
 }
@@ -95,12 +97,14 @@ void sub_model_PDFiTE_update_ids(int *sub_model_int_data,
       JAC_WATER_ID_(i_phase, i_ion_pair) =
         jac_ids[PHASE_ID_(i_phase)+ION_PAIR_ACT_ID_(i_ion_pair)]
                [GAS_WATER_ID_];
-      JAC_CATION_ID_(i_phase, i_ion_pair) =
-        jac_ids[PHASE_ID_(i_phase)+ION_PAIR_ACT_ID_(i_ion_pair)]
-               [PHASE_ID_(i_phase)+CATION_ID_(i_ion_pair)];
-      JAC_ANION_ID_(i_phase, i_ion_pair) =
-        jac_ids[PHASE_ID_(i_phase)+ION_PAIR_ACT_ID_(i_ion_pair)]
-               [PHASE_ID_(i_phase)+ANION_ID_(i_ion_pair)];
+      for (int j_ion_pair=0; j_ion_pair < NUM_ION_PAIRS_; ++j_ion_pair) {
+        JAC_CATION_ID_(i_phase, i_ion_pair, j_ion_pair) =
+          jac_ids[PHASE_ID_(i_phase)+ION_PAIR_ACT_ID_(i_ion_pair)]
+                 [PHASE_ID_(i_phase)+CATION_ID_(j_ion_pair)];
+        JAC_ANION_ID_(i_phase, i_ion_pair, j_ion_pair) =
+          jac_ids[PHASE_ID_(i_phase)+ION_PAIR_ACT_ID_(i_ion_pair)]
+                 [PHASE_ID_(i_phase)+ANION_ID_(j_ion_pair)];
+      }
     }
   }
 }
@@ -412,24 +416,42 @@ void sub_model_PDFiTE_get_jac_contrib(int *sub_model_int_data,
           if (omega>0.0) {
 
             // d_gamma / d_cation
-            J[JAC_CATION_ID_(i_phase, i_ion_pair)] +=
-                gamma_i * ( ln_gamma_inter / omega * ANION_N_(j_ion_pair)
-                          / CATION_MW_(j_ion_pair) / 1.0e6 * (
-                             1.0 - 2.0 * CATION_N_(j_ion_pair) / omega *
-                                   ( NUM_CATION_(j_ion_pair) +
-                                     NUM_ANION_(j_ion_pair) ) ) );
+            J[JAC_CATION_ID_(i_phase, i_ion_pair, j_ion_pair)] +=
+                gamma_i * ln_gamma_inter * ANION_N_(j_ion_pair)
+                / CATION_MW_(j_ion_pair) / omega * 1.0e-6;
+
             // d_gamma / d_anion
-            J[JAC_ANION_ID_(i_phase, i_ion_pair)] +=
-                gamma_i * ( ln_gamma_inter / omega * CATION_N_(j_ion_pair)
-                          / ANION_MW_(j_ion_pair) / 1.0e6 * (
-                             1.0 - 2.0 * ANION_N_(j_ion_pair) / omega *
-                                   ( NUM_CATION_(j_ion_pair) +
-                                     NUM_ANION_(j_ion_pair) ) ) );
+            J[JAC_ANION_ID_(i_phase, i_ion_pair, j_ion_pair)] +=
+                gamma_i * ln_gamma_inter * CATION_N_(j_ion_pair)
+                / ANION_MW_(j_ion_pair) / omega * 1.0e-6;
 
             // d_gamma / d_water
             J[JAC_WATER_ID_(i_phase, i_ion_pair)] +=
                 gamma_i * CATION_N_(j_ion_pair) * ANION_N_(j_ion_pair)
                 / omega * d_ln_gamma_inter_d_water;
+
+            // Add the contributions from other ion pairs to omega
+            for (int k_ion_pair=0; k_ion_pair<NUM_ION_PAIRS_; ++k_ion_pair) {
+
+              // The ion pair whose activity is being calculated is not
+              // included in omega
+              if (k_ion_pair==i_ion_pair) continue;
+
+              // d_gamma / d_cation
+              J[JAC_CATION_ID_(i_phase, i_ion_pair, k_ion_pair)] +=
+                  - gamma_i * ln_gamma_inter * CATION_N_(j_ion_pair)
+                  * ANION_N_(j_ion_pair) / (omega * omega)
+                  * 2.0 * ( NUM_CATION_(k_ion_pair) + NUM_ANION_(k_ion_pair) )
+                  * ANION_N_(k_ion_pair) / CATION_MW_(k_ion_pair) * 1.0e-6;
+
+              // d_gamma / d_anion
+              J[JAC_ANION_ID_(i_phase, i_ion_pair, k_ion_pair)] +=
+                  - gamma_i * ln_gamma_inter * CATION_N_(j_ion_pair)
+                  * ANION_N_(j_ion_pair) / (omega * omega)
+                  * 2.0 * ( NUM_CATION_(k_ion_pair) + NUM_ANION_(k_ion_pair) )
+                  * CATION_N_(k_ion_pair) / ANION_MW_(k_ion_pair) * 1.0e-6;
+
+            }
 
           }
 
@@ -454,40 +476,60 @@ void sub_model_PDFiTE_print(int *sub_model_int_data,
   int *int_data = sub_model_int_data;
   double *float_data = sub_model_float_data;
 
-  printf("\n\nPDFiTE Activity sub model\n");
+  printf("\n\n*** PD-FiTE activity sub model ***\n");
+#if 0
   for (int i=0; i<INT_DATA_SIZE_; i++)
     printf("  int param %d = %d\n", i, int_data[i]);
   for (int i=0; i<FLOAT_DATA_SIZE_; i++)
     printf("  float param %d = %le\n", i, float_data[i]);
+#endif
+  printf("\n number of phases:     %d", NUM_PHASE_);
+  printf("\n gas-phase water id:   %d", GAS_WATER_ID_);
+  printf("\n number of ion pairs:  %d", NUM_ION_PAIRS_);
+  printf("\n PPM -> RH conversion: %le", PPM_TO_RH_);
+  printf("\n ** Phase data **");
+  printf("\n   (Ids for ions and activity coefficients are relative");
+  printf("\n    to the state id of aerosol-phase water for each phase.)");
+  for (int i_phase=0; i_phase<NUM_PHASE_; ++i_phase) {
+    printf("\n   phase %d: aerosol-phase water state id: %d",
+           i_phase, PHASE_ID_(i_phase));
+  }
+  printf("\n ** Ion pair data **");
+  for (int i_pair=0; i_pair<NUM_ION_PAIRS_; ++i_pair) {
+    printf("\n Ion pair %d", i_pair);
+    printf("\n   State ids (relative to aerosol-phase water)");
+    printf("\n     Activity coeff: %d", ION_PAIR_ACT_ID_(i_pair));
+    printf("\n     Cation:         %d", CATION_ID_(i_pair));
+    printf("\n     Anion:          %d", ANION_ID_(i_pair));
+    printf("\n   Jacobian aerosol water id (by phase):");
+    for (int i_phase=0; i_phase<NUM_PHASE_; ++i_phase)
+      printf(" %d", JAC_WATER_ID_(i_phase, i_pair));
+    printf("\n   Cation stoichiometry:      %d", NUM_CATION_(i_pair));
+    printf("\n   Anion stoichiometry:       %d", NUM_ANION_(i_pair));
+    printf("\n   Cation MW (kg/mol):        %le", CATION_MW_(i_pair));;
+    printf("\n   Anion MW (kg/mol):         %le", ANION_MW_(i_pair));;
+    printf("\n   Cation concentration (mol m-3): %le", CATION_N_(i_pair));
+    printf("\n   Anion concentration (mol m-3):  %le", ANION_N_(i_pair));
+    printf("\n   Number of ion-pair interactions: %d", NUM_INTER_(i_pair));
+    printf("\n   * Ion-pair interaction data *");
+    for (int i_inter=0; i_inter<NUM_INTER_(i_pair); ++i_inter) {
+      printf("\n   Interaction %d:", i_inter);
+      printf("\n     Ion pair index: %d", INTER_SPEC_ID_(i_pair, i_inter));
+      printf("\n     Min RH: %le", MIN_RH_(i_pair, i_inter));
+      printf("\n     Max RH: %le", MAX_RH_(i_pair, i_inter));
+      printf("\n     Jacobian ids (by phase)");
+      printf("\n       Cation:");
+      for (int i_phase=0; i_phase<NUM_PHASE_; ++i_phase)
+        printf(" %d", JAC_CATION_ID_(i_phase, i_pair,
+                                     INTER_SPEC_ID_(i_pair, i_inter)));
+      printf("\n       Anion: ");
+      for (int i_phase=0; i_phase<NUM_PHASE_; ++i_phase)
+        printf(" %d", JAC_ANION_ID_(i_phase, i_pair,
+                                    INTER_SPEC_ID_(i_pair, i_inter)));
+      printf("\n    ");
+      for (int i_B=0; i_B<NUM_B_(i_pair, i_inter); ++i_B)
+        printf(" B%d: %le", i_B, B_Z_(i_pair, i_inter, i_B));
+    }
+  }
+  printf("\n*** end PD-FiTE activity sub model ***");
 }
-
-#undef TEMPERATURE_K_
-#undef PRESSURE_PA_
-
-#undef NUM_PHASE_
-#undef GAS_WATER_ID_
-#undef NUM_ION_PAIRS_
-#undef INT_DATA_SIZE_
-#undef FLOAT_DATA_SIZE_
-#undef PPM_TO_RH_
-#undef NUM_INT_PROP_
-#undef NUM_REAL_PROP_
-#undef PHASE_ID_
-#undef PAIR_INT_PARAM_LOC_
-#undef PAIR_FLOAT_PARAM_LOC_
-#undef ION_PAIR_ACT_ID_
-#undef NUM_CATION_
-#undef NUM_ANION_
-#undef CATION_ID_
-#undef ANION_ID_
-#undef NUM_INTER_
-#undef NUM_B_
-#undef INTER_SPEC_ID_
-#undef INTER_SPEC_LOC_
-#undef CATION_MW_
-#undef ANION_MW_
-#undef CATION_N_
-#undef ANION_N_
-#undef MIN_RH_
-#undef MAX_RH_
-#undef B_Z_

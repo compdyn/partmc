@@ -111,9 +111,9 @@ int test_sub_model_zsr_jac_calc(void *solver_data, double *state, double *env,
   double MW = 0.0585;
 
   molality = NW * 55.51 * 18.01 / MW / 1000.0 * (1.0/a_w-1.0);
-  molality = pow(molality, ZW);
-  d_molal_d_wg = NW * 55.01 * 18.01 / MW / 1000.0 / pow(a_w-1.0,2) * d_aw_d_wg;
+  d_molal_d_wg = -NW * 55.51 * 18.01 / MW / 1000.0 / pow(a_w,2) * d_aw_d_wg;
   d_molal_d_wg = ZW * pow(molality, ZW-1.0) * d_molal_d_wg;
+  molality = pow(molality, ZW);
 
   J_H2O += -1.0 * CONC_CL / MW_CL / pow(molality,2) * d_molal_d_wg;
   J_CL  += 1.0 / MW_CL / molality;

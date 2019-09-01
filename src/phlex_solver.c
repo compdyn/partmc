@@ -1428,6 +1428,11 @@ SUNMatrix get_jac_init(SolverData *solver_data)
     }
   }
 
+  SolverData *sd = solver_data;
+  PMC_DEBUG_JAC_STRUCT(sd->model_data.J_params, "Param struct");
+  PMC_DEBUG_JAC_STRUCT(sd->model_data.J_rxn, "Param struct");
+  PMC_DEBUG_JAC_STRUCT(M, "Param struct");
+
   if (i_mapped_value!=n_mapped_values) {
     printf("[ERROR-340355266] Internal error");
     EXIT_FAILURE;

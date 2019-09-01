@@ -98,7 +98,9 @@ contains
     class(aero_rep_data_t), pointer :: aero_rep_ptr
     real(kind=dp), allocatable, dimension(:,:) :: model_conc, true_conc
     integer(kind=i_kind) :: idx_phase, idx_aero_rep, idx_O3, idx_O3_aq, &
-            idx_H2O2, idx_H2O2_aq, idx_H2O_aq, i_time, i_spec
+            idx_H2O2, idx_H2O2_aq, idx_H2O_aq, idx_HNO3, idx_HNO3_aq, &
+            idx_NH3, idx_NH3_aq, idx_H2O, idx_Na_p, idx_Cl_m, idx_Ca_pp, &
+            i_time, i_spec
     character(len=:), allocatable :: key, idx_prefix
     real(kind=dp) :: time_step, time, n_star, del_H, del_S, del_G, alpha, &
             crms, M_to_ppm, ugm3_to_ppm, K_eq_O3, K_eq_H2O2, k_O3_forward, &
@@ -128,8 +130,8 @@ contains
       allocate(model_conc(0:NUM_TIME_STEP, 11))
       allocate(true_conc(0:NUM_TIME_STEP, 11))
     else if (scenario.eq.2) then
-      allocate(model_conc(0:NUM_TIME_STEP, 20))
-      allocate(true_conc(0:NUM_TIME_STEP, 20))
+      allocate(model_conc(0:NUM_TIME_STEP, 24))
+      allocate(true_conc(0:NUM_TIME_STEP, 24))
     endif
 
     ! Set the environmental conditions
@@ -201,6 +203,24 @@ contains
       idx_H2O2 = chem_spec_data%gas_state_id(key);
       key = idx_prefix//"aqueous aerosol.H2O2_aq"
       idx_H2O2_aq = aero_rep_ptr%spec_state_id(key);
+      if (scenario.eq.2) then
+        key = "HNO3"
+        idx_HNO3 = chem_spec_data%gas_state_id(key);
+        key = idx_prefix//"aqueous aerosol.HNO3_aq"
+        idx_HNO3_aq = aero_rep_ptr%spec_state_id(key);
+        key = "NH3"
+        idx_NH3 = chem_spec_data%gas_state_id(key);
+        key = idx_prefix//"aqueous aerosol.NH3_aq"
+        idx_NH3_aq = aero_rep_ptr%spec_state_id(key);
+        key = "H2O"
+        idx_H2O = chem_spec_data%gas_state_id(key);
+        key = idx_prefix//"aqueous aerosol.Na_p"
+        idx_Na_p = aero_rep_ptr%spec_state_id(key);
+        key = idx_prefix//"aqueous aerosol.Cl_m"
+        idx_Cl_m = aero_rep_ptr%spec_state_id(key);
+        key = idx_prefix//"aqueous aerosol.Ca_pp"
+        idx_Ca_pp = aero_rep_ptr%spec_state_id(key);
+      end if
       key = idx_prefix//"aqueous aerosol.H2O_aq"
       idx_H2O_aq = aero_rep_ptr%spec_state_id(key);
 
@@ -209,6 +229,13 @@ contains
       call assert(262338032, idx_O3_aq.gt.0)
       call assert(374656377, idx_H2O2.gt.0)
       call assert(704441571, idx_H2O2_aq.gt.0)
+      if (scenario.eq.2) then
+        call assert(274044966, idx_HNO3.gt.0)
+        call assert(386363311, idx_HNO3_aq.gt.0)
+        call assert(833731157, idx_NH3.gt.0)
+        call assert(946049502, idx_NH3_aq.gt.0)
+        call assert(688163399, idx_H2O.gt.0)
+      end if
       call assert(758921357, idx_H2O_aq.gt.0)
 
 #ifdef PMC_USE_MPI
@@ -269,11 +296,26 @@ contains
 
       ! Save the initial concentrations
       true_conc(:,:) = 0.0
-      true_conc(0,idx_O3) = 0.0
-      true_conc(0,idx_O3_aq) = 1.0e-3
-      true_conc(0,idx_H2O2) = 1.0
-      true_conc(0,idx_H2O2_aq) = 0.0
-      true_conc(0,idx_H2O_aq) = 1.4e-2
+      if (scenario.eq.1) then
+        true_conc(0,idx_O3) = 0.0
+        true_conc(0,idx_O3_aq) = 1.0e-3
+        true_conc(0,idx_H2O2) = 1.0
+        true_conc(0,idx_H2O2_aq) = 0.0
+        true_conc(0,idx_H2O_aq) = 1.4e-2
+      else if (scenario.eq.2) then
+        true_conc(0,idx_O3) = 0.0
+        true_conc(0,idx_O3_aq) = 1.0
+        true_conc(0,idx_H2O2) = 1.0
+        true_conc(0,idx_H2O2_aq) = 0.0
+        true_conc(0,idx_HNO3) = 1.0
+        true_conc(0,idx_HNO3_aq) = 0.0
+        true_conc(0,idx_NH3) = 1.0
+        true_conc(0,idx_NH3_aq) = 0.0
+        true_conc(0,idx_Na_p) = 2.5
+        true_conc(0,idx_Cl_m) = 5.3
+        true_conc(0,idx_Ca_pp) = 1.3
+        true_conc(0,idx_H2O) = 3000.0
+      end if
       model_conc(0,:) = true_conc(0,:)
 
       ! Calculate the radius and number concentration to use
@@ -407,8 +449,9 @@ contains
         open(unit=7, file="out/HL_phase_transfer_results_2.txt", status="replace", &
               action="write")
       end if
-      do i_time = 0, NUM_TIME_STEP
-        write(7,*) i_time*time_step, &
+      if (scenario.eq.1.) then
+        do i_time = 0, NUM_TIME_STEP
+          write(7,*) i_time*time_step, &
               ' ', true_conc(i_time, idx_O3), &
               ' ', model_conc(i_time, idx_O3), &
               ' ', true_conc(i_time, idx_O3_aq),&
@@ -419,7 +462,32 @@ contains
               ' ', model_conc(i_time, idx_H2O2_aq), &
               ' ', true_conc(i_time, idx_H2O_aq), &
               ' ', model_conc(i_time, idx_H2O_aq)
-      end do
+        end do
+      else if (scenario.eq.2) then
+        do i_time = 0, NUM_TIME_STEP
+          write(7,*) i_time*time_step, &
+              ' ', true_conc(i_time, idx_O3), &
+              ' ', model_conc(i_time, idx_O3), &
+              ' ', true_conc(i_time, idx_O3_aq),&
+              ' ', model_conc(i_time, idx_O3_aq), &
+              ' ', true_conc(i_time, idx_H2O2), &
+              ' ', model_conc(i_time, idx_H2O2), &
+              ' ', true_conc(i_time, idx_H2O2_aq), &
+              ' ', model_conc(i_time, idx_H2O2_aq), &
+              ' ', true_conc(i_time, idx_HNO3), &
+              ' ', model_conc(i_time, idx_HNO3), &
+              ' ', true_conc(i_time, idx_HNO3_aq), &
+              ' ', model_conc(i_time, idx_HNO3_aq), &
+              ' ', true_conc(i_time, idx_NH3), &
+              ' ', model_conc(i_time, idx_NH3), &
+              ' ', true_conc(i_time, idx_NH3_aq), &
+              ' ', model_conc(i_time, idx_NH3_aq), &
+              ' ', true_conc(i_time, idx_H2O), &
+              ' ', model_conc(i_time, idx_H2O), &
+              ' ', true_conc(i_time, idx_H2O_aq), &
+              ' ', model_conc(i_time, idx_H2O_aq)
+        end do
+      endif
       close(7)
 
       ! Analyze the results (single-particle only)

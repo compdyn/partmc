@@ -144,7 +144,7 @@
 !! Metzger et al. (2002) \cite Metzger2002 for aerosol water content:
 !!
 !! \f[
-!!   \sqrt{m_{i}(a_w)} = (NW_i MW_{H2O}/MW_i 1/(a_w-1))^{ZW_i}
+!!   \sqrt{m_{i}(a_w)} = (NW_i MW_{H2O}/MW_i (1/a_w-1))^{ZW_i}
 !! \f]
 !!
 !! where \f$NW_i\f$ and \f$ZW_i\f$ are fitting parameters \cite Metzger2002,

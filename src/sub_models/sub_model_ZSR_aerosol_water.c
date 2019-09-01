@@ -308,8 +308,9 @@ void sub_model_ZSR_aerosol_water_get_jac_contrib(int *sub_model_int_data,
     for (int i_ion_pair=0; i_ion_pair<NUM_ION_PAIR_; i_ion_pair++) {
 
       double molality, d_molal_d_wg;
-      double j_aw, d_jaw_d_wg, e_aw, d_eaw_d_wg;
       double conc, d_conc_d_ion;
+      double e_aw, d_eaw_d_wg;
+      double j_aw, d_jaw_d_wg;
 
       // Determine which type of activity calculation should be used
       switch (TYPE_(i_ion_pair)) {
@@ -323,9 +324,9 @@ void sub_model_ZSR_aerosol_water_get_jac_contrib(int *sub_model_int_data,
           d_jaw_d_wg = a_w>JACOB_low_RH_(i_ion_pair) ? d_aw_d_wg : 0.0;
 
           // Calculate the molality of the pure binary ion pair solution
-	  molality = 0.0;
+	  molality = JACOB_Y_(i_ion_pair, 0);
           d_molal_d_wg = 0.0;
-          for (int i_order=0; i_order<JACOB_NUM_Y_(i_ion_pair); i_order++) {
+          for (int i_order=1; i_order<JACOB_NUM_Y_(i_ion_pair); i_order++) {
             molality += JACOB_Y_(i_ion_pair, i_order) *
                         pow(j_aw,i_order);
             d_molal_d_wg += JACOB_Y_(i_ion_pair, i_order) * i_order *
@@ -384,13 +385,13 @@ void sub_model_ZSR_aerosol_water_get_jac_contrib(int *sub_model_int_data,
 	  // Calculate the molality of the ion pair
 	  molality = (EQSAM_NW_(i_ion_pair) * 55.51 * 18.01 /
                     EQSAM_ION_PAIR_MW_(i_ion_pair) / 1000.0 * (1.0/e_aw-1.0));
-	  molality = pow(molality, EQSAM_ZW_(i_ion_pair)); // (mol/kg)
-          d_molal_d_wg = EQSAM_NW_(i_ion_pair) * 55.01 * 18.01 /
-                    EQSAM_ION_PAIR_MW_(i_ion_pair) / 1000.0 / pow(e_aw-1.0,2) *
+          d_molal_d_wg = -EQSAM_NW_(i_ion_pair) * 55.51 * 18.01 /
+                    EQSAM_ION_PAIR_MW_(i_ion_pair) / 1000.0 / pow(e_aw,2) *
                     d_eaw_d_wg;
           d_molal_d_wg = EQSAM_ZW_(i_ion_pair) *
                          pow(molality, EQSAM_ZW_(i_ion_pair)-1.0) *
                          d_molal_d_wg;
+	  molality = pow(molality, EQSAM_ZW_(i_ion_pair)); // (mol/kg)
 
 	  // Calculate the Jacobian contributions
 	  for (int i_ion=0; i_ion<EQSAM_NUM_ION_(i_ion_pair); i_ion++) {

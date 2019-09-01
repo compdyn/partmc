@@ -311,11 +311,14 @@ void * rxn_aqueous_equilibrium_calc_deriv_contrib(ModelData *model_data,
     }
 
     // Slow down rates as water approaches the minimum value
+#if 0
     realtype water_adj = state[WATER_(i_phase)] -
                          MIN_WATER_ * SMALL_WATER_CONC_(i_phase);
     water_adj = ( water_adj > ZERO ) ? water_adj : ZERO;
     realtype water_scaling =
       2.0 / ( 1.0 + exp( -water_adj / SMALL_WATER_CONC_(i_phase) ) ) - 1.0;
+#endif
+    realtype water_scaling = 1.0;
     realtype water = state[WATER_(i_phase)] * water_scaling;
 
     // Get the lowest concentration to use in slowing rates
@@ -407,6 +410,7 @@ void * rxn_aqueous_equilibrium_calc_jac_contrib(ModelData *model_data,
     }
 
     // Slow down rates as water approaches the minimum value
+#if 0
     realtype water_adj = state[WATER_(i_phase)] -
                          MIN_WATER_ * SMALL_WATER_CONC_(i_phase);
     water_adj = ( water_adj > ZERO ) ? water_adj : ZERO;
@@ -416,6 +420,9 @@ void * rxn_aqueous_equilibrium_calc_jac_contrib(ModelData *model_data,
       2.0 / ( SMALL_WATER_CONC_(i_phase) *
               ( exp(  water_adj / SMALL_WATER_CONC_(i_phase) ) + 2.0 +
                 exp( -water_adj / SMALL_WATER_CONC_(i_phase) ) ) );
+#endif
+    realtype water_scaling = 1.0;
+    realtype water_scaling_deriv = 1.0;
     realtype water = state[WATER_(i_phase)] * water_scaling;
 
     // Get the lowest concentration to use in slowing rates

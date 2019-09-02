@@ -284,9 +284,11 @@ contains
 
     type(solver_stats_t), target :: solver_stats
 
+#if 0
 #ifdef PMC_DEBUG
       ! Evaluate the Jacobian during solving
       solver_stats%eval_Jac = .true.
+#endif
 #endif
 
     ! Loop through the grid cells
@@ -332,12 +334,14 @@ contains
             comp_time = comp_time + (comp_end-comp_start)
           end if
 
+#if 0
 #ifdef PMC_DEBUG
         ! Check the Jacobian evaluations
         call warn_assert_msg(611569150, solver_stats%Jac_eval_fails.eq.0, &
                         trim( to_string( solver_stats%Jac_eval_fails ) )// &
                         " Jacobian evaluation failures at time "// &
                         trim( to_string( start_time ) ) )
+#endif
 #endif
 
           ! Update the MONARCH tracer array with new species concentrations

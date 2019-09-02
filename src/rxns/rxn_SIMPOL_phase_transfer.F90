@@ -23,7 +23,7 @@
 !!   \Delta S_{obs} = -13 \times (N^*-1) - 19 \times (N^*-1) + 9.21 \times (N^{*2/3}-1) - 0.1 \times 13 (\mbox{\si{cal.M^{-1}.K^{-1}}})
 !! \f]
 !! \f[
-!!   \frac{\alpha}{1-\alpha} = e^{\frac{-\Delta G^{\*}}{RT}}
+!!   \frac{\alpha}{1-\alpha} = e^{\frac{-\Delta G^{*}}{RT}}
 !! \f]
 !!
 !! Condensation rate constants are calculated as:

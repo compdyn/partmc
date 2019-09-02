@@ -59,55 +59,70 @@ typedef struct {
 
 /* Model data structure */
 typedef struct {
-  int n_state_var;	    // number of state variables (>=NV_LENGTH_S(y))
-  int n_dep_var;        // number of solver variables per grid cell
-  int n_cells;          // number of cells to compute simultaneously
-  int n_jac_elem;       // number of potentially non-zero Jacobian elements
-  double *abs_tol;      // pointer to array of state variable absolute
-                        // integration tolerances
-  int *var_type;	        // pointer to array of state variable types (solver,
-                                // constant, PSSA)
+  int n_per_cell_state_var; // number of state variables per grid cell
+  int n_per_cell_dep_var;   // number of solver variables per grid cell
+  int n_per_cell_rxn_jac_elem;    // number of potentially non-zero
+                                  // reaction Jacobian elements
+  int n_per_cell_param_jac_elem;  // number of potentially non-zero
+                                  // parameter Jacobian elements
+  int n_per_cell_solver_jac_elem; // number of potentially non-zero
+                                  // solver Jacobian elements
+  int n_cells;              // number of cells to compute simultaneously
+  double *abs_tol;          // pointer to array of state variable absolute
+                            // integration tolerances
+  int *var_type;	    // pointer to array of state variable types (solver,
+                            // constant, PSSA)
 #ifdef PMC_USE_SUNDIALS
-  SUNMatrix J_init; // sparse solver Jacobian matrix with used elements
-                    // initialized to 1.0
-  SUNMatrix J_rxn;  // Matrix for Jacobian contributions from reactions
-  SUNMatrix J_params;           // Matrix for Jacobian contributions from sub model
-                                // parameter calculations
+  SUNMatrix J_init;         // sparse solver Jacobian matrix with used elements
+                            // initialized to 1.0
+  SUNMatrix J_rxn;          // Matrix for Jacobian contributions from reactions
+  SUNMatrix J_params;       // Matrix for Jacobian contributions from sub model
+                            // parameter calculations
 #endif
-  JacMap *jac_map;         // Array of Jacobian mapping elements
-  JacMap *jac_map_params;  // Array of Jacobian mapping elements to account for
-                           // sub-model interdependence. If sub-model parameter
-                           // i_dep depends on sub-model parameter i_ind, and
-                           // j_ind is a dependency (variable or parameter) of
-                           // i_ind, then:
-                           // solver_id = jac_id[i_dep][j_ind]
-                           // rxn_id    = jac_id[i_dep][i_ind]
-                           // param_id  = jac_id[i_ind][j_ind]
-  int n_mapped_values;     // Number of Jacobian map elements
-  int n_mapped_params;     // Number of Jacobian map elements for sub models
-  double *state;           // State array
-  double *env;             // Environmental state array
+  JacMap *jac_map;          // Array of Jacobian mapping elements
+  JacMap *jac_map_params;   // Array of Jacobian mapping elements to account for
+                            // sub-model interdependence. If sub-model parameter
+                            // i_dep depends on sub-model parameter i_ind, and
+                            // j_ind is a dependency (variable or parameter) of
+                            // i_ind, then:
+                            // solver_id = jac_id[i_dep][j_ind]
+                            // rxn_id    = jac_id[i_dep][i_ind]
+                            // param_id  = jac_id[i_ind][j_ind]
+  int n_mapped_values;      // Number of Jacobian map elements
+  int n_mapped_params;      // Number of Jacobian map elements for sub models
+  int grid_cell_id;         // Index of the current grid cell
+  double *grid_cell_state;  // Pointer to the current grid cell being solved
+                            // on the total_state array
+  double *total_state;      // Total (multi-cell) state array
+  double *grid_cell_env;    // Pointer to the current grid cell being solved
+                            // on the total_env state array
+  double *total_env;        // Environmental state array
+
+  // TODO Remove once integrated into rxn data
   double *rate_constants;  // Pointer to the rate constants state array
+
   void *rxn_data;          // Pointer to reaction parameters
   void *nxt_rxn;           // Pointer to element of rxn_data in which to store
                            // next set of reaction data
+
   void *aero_phase_data;   // Pointer to aerosol phase parameters
   void *nxt_aero_phase;    // Pointer to element of aero_phase_data in which
                            // to store the next set of aerosol phase data
+
   void *aero_rep_data;     // Pointer to aerosol representation parameters
   void *nxt_aero_rep;      // Pointer to element of aero_rep_data in which to
                            // store the next set of aerosol representation data
-  int n_added_sub_models;  // The number of sub models whose data has been
-                           // added to the sub model data arrays
-  int *sub_model_int_data; // Pointer to sub model integer parameters
-  double
-      *sub_model_float_data;   // Pointer to sub model floating-point parameters
-  int *nxt_sub_model_int;      // Pointer to the next available integer in
-                               // sub_model_int_data
-  double *nxt_sub_model_float; // Pointer to the next available floating-point
-                               // number in sub_model_float_data
-  int **sub_model_int_ptrs;    // Array of pointers to integer data for each
-                               // sub model
+
+  int n_added_sub_models;        // The number of sub models whose data has been
+                                 // added to the sub model data arrays
+  int *sub_model_int_data;       // Pointer to sub model integer parameters
+  double *sub_model_float_data;  // Pointer to sub model floating-point parameters
+  int *nxt_sub_model_int;        // Pointer to the next available integer in
+                                 // sub_model_int_data
+  double *nxt_sub_model_float;   // Pointer to the next available floating-point
+                                 // number in sub_model_float_data
+  int **sub_model_int_ptrs;      // Array of pointers to integer data for each
+                                 // sub model
   double **sub_model_float_ptrs; // Array of pointers to floating-point data for
                                  // each sub model
 } ModelData;

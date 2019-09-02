@@ -98,14 +98,15 @@ void * rxn_emission_update_data(void *update_data, void *rxn_data)
  *
  * For emission reactions this only involves recalculating the rate.
  *
- * \param env_data Pointer to the environmental state array
+ * \param model_data Pointer to the model data
  * \param rxn_data Pointer to the reaction data
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_emission_update_env_state(double *rate_constants, double *env_data, void *rxn_data)
+void * rxn_emission_update_env_state(double *rate_constants, ModelData *model_data, void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  double *env_data = model_data->grid_cell_env;
 
   // Calculate the rate constant in (concentration_units/s)
   RATE_ = SCALING_ * BASE_RATE_;
@@ -125,15 +126,17 @@ void * rxn_emission_update_env_state(double *rate_constants, double *env_data, v
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-void * rxn_emission_calc_deriv_contrib(double *rate_constants, double *state, ModelData *model_data,
+void * rxn_emission_calc_deriv_contrib(double *rate_constants, ModelData *model_data,
           realtype *deriv, void *rxn_data, double time_step)
 {
-  //realtype *state = model_data->state;
   int *int_data = (int*) rxn_data;
   realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  double *state    = model_data->grid_cell_state;
+  double *env_data = model_data->grid_cell_env;
+  int cell_id      = model_data->grid_cell_id;
 
   // Add contributions to the time derivative
-  if (DERIV_ID_ >= 0) deriv[DERIV_ID_] += RATE_;
+  if (DERIV_ID_ >= 0) deriv[DERIV_ID_] += rate_constants[0];
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 
@@ -149,12 +152,14 @@ void * rxn_emission_calc_deriv_contrib(double *rate_constants, double *state, Mo
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-void * rxn_emission_calc_jac_contrib(double *rate_constants, double *state, ModelData *model_data, realtype *J,
+void * rxn_emission_calc_jac_contrib(double *rate_constants, ModelData *model_data, realtype *J,
           void *rxn_data, double time_step)
 {
-  //realtype *state = model_data->state;
   int *int_data = (int*) rxn_data;
   realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  double *state    = model_data->grid_cell_state;
+  double *env_data = model_data->grid_cell_env;
+  int cell_id      = model_data->grid_cell_id;
 
   // No Jacobian contributions from 0th order emissions
 

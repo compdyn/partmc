@@ -14,8 +14,8 @@
 #include "../sub_models.h"
 
 // TODO Lookup environmental indices during initialization
-#define TEMPERATURE_K_ env_state[0]
-#define PRESSURE_PA_ env_state[1]
+#define TEMPERATURE_K_ env_data[0]
+#define PRESSURE_PA_ env_data[1]
 
 #define SMALL_NUMBER_ 1.0e-30
 
@@ -174,13 +174,14 @@ void sub_model_ZSR_aerosol_water_update_ids(int *sub_model_int_data,
  *
  * \param sub_model_int_data Pointer to the sub model integer data
  * \param sub_model_float_data Pointer to the sub model floating-point data
- * \param env_state Pointer to the environmental state array
+ * \param model_data Pointer to the model data
  */
 void sub_model_ZSR_aerosol_water_update_env_state(int *sub_model_int_data,
-    double *sub_model_float_data, double *env_state)
+    double *sub_model_float_data, ModelData *model_data)
 {
   int *int_data = sub_model_int_data;
   double *float_data = sub_model_float_data;
+  double *env_data = model_data->grid_cell_env;
 
   // Calculate PPM_TO_RH_
   // From MOSAIC code - reference to Seinfeld & Pandis page 181
@@ -203,7 +204,7 @@ void sub_model_ZSR_aerosol_water_update_env_state(int *sub_model_int_data,
 void sub_model_ZSR_aerosol_water_calculate(int *sub_model_int_data,
     double *sub_model_float_data, ModelData *model_data)
 {
-  double *state = model_data->state;
+  double *state = model_data->grid_cell_state;
   int *int_data = sub_model_int_data;
   double *float_data = sub_model_float_data;
 
@@ -280,7 +281,6 @@ void sub_model_ZSR_aerosol_water_calculate(int *sub_model_int_data,
   }
 }
 
-// TODO finish adding J contributions
 /** \brief Add contributions to the Jacobian from derivates calculated using the output of this sub model
  *
  * \param sub_model_int_data Pointer to the sub model integer data
@@ -294,9 +294,11 @@ void sub_model_ZSR_aerosol_water_get_jac_contrib(int *sub_model_int_data,
     double *sub_model_float_data, ModelData *model_data, realtype *J,
     double time_step)
 {
-  double *state = model_data->state;
   int *int_data = sub_model_int_data;
   double *float_data = sub_model_float_data;
+  double *state    = model_data->grid_cell_state;
+  double *env_data = model_data->grid_cell_env;
+  int cell_id      = model_data->grid_cell_id;
 
   // Calculate the water activity---i.e., relative humidity (0-1)
   double a_w = PPM_TO_RH_ * state[GAS_WATER_ID_];
@@ -304,15 +306,14 @@ void sub_model_ZSR_aerosol_water_get_jac_contrib(int *sub_model_int_data,
 
   // Calculate the total aerosol water for each instance of the aerosol phase
   for (int i_phase=0; i_phase<NUM_PHASE_; i_phase++) {
-    double *water = &(state[PHASE_ID_(i_phase)]);
-    *water = 0.0;
 
     // Get the contribution from each ion pair
     for (int i_ion_pair=0; i_ion_pair<NUM_ION_PAIR_; i_ion_pair++) {
 
       double molality, d_molal_d_wg;
-      double j_aw, d_jaw_d_wg, e_aw, d_eaw_d_wg;
       double conc, d_conc_d_ion;
+      double e_aw, d_eaw_d_wg;
+      double j_aw, d_jaw_d_wg;
 
       // Determine which type of activity calculation should be used
       switch (TYPE_(i_ion_pair)) {
@@ -326,9 +327,9 @@ void sub_model_ZSR_aerosol_water_get_jac_contrib(int *sub_model_int_data,
           d_jaw_d_wg = a_w>JACOB_low_RH_(i_ion_pair) ? d_aw_d_wg : 0.0;
 
           // Calculate the molality of the pure binary ion pair solution
-	  molality = 0.0;
+	  molality = JACOB_Y_(i_ion_pair, 0);
           d_molal_d_wg = 0.0;
-          for (int i_order=0; i_order<JACOB_NUM_Y_(i_ion_pair); i_order++) {
+          for (int i_order=1; i_order<JACOB_NUM_Y_(i_ion_pair); i_order++) {
             molality += JACOB_Y_(i_ion_pair, i_order) *
                         pow(j_aw,i_order);
             d_molal_d_wg += JACOB_Y_(i_ion_pair, i_order) * i_order *
@@ -387,13 +388,13 @@ void sub_model_ZSR_aerosol_water_get_jac_contrib(int *sub_model_int_data,
 	  // Calculate the molality of the ion pair
 	  molality = (EQSAM_NW_(i_ion_pair) * 55.51 * 18.01 /
                     EQSAM_ION_PAIR_MW_(i_ion_pair) / 1000.0 * (1.0/e_aw-1.0));
-	  molality = pow(molality, EQSAM_ZW_(i_ion_pair)); // (mol/kg)
-          d_molal_d_wg = EQSAM_NW_(i_ion_pair) * 55.01 * 18.01 /
-                    EQSAM_ION_PAIR_MW_(i_ion_pair) / 1000.0 / pow(e_aw-1.0,2) *
+          d_molal_d_wg = -EQSAM_NW_(i_ion_pair) * 55.51 * 18.01 /
+                    EQSAM_ION_PAIR_MW_(i_ion_pair) / 1000.0 / pow(e_aw,2) *
                     d_eaw_d_wg;
           d_molal_d_wg = EQSAM_ZW_(i_ion_pair) *
                          pow(molality, EQSAM_ZW_(i_ion_pair)-1.0) *
                          d_molal_d_wg;
+	  molality = pow(molality, EQSAM_ZW_(i_ion_pair)); // (mol/kg)
 
 	  // Calculate the Jacobian contributions
 	  for (int i_ion=0; i_ion<EQSAM_NUM_ION_(i_ion_pair); i_ion++) {

@@ -105,14 +105,15 @@ void * rxn_first_order_loss_update_data(void *update_data, void *rxn_data)
  * For first-order loss reactions this only involves recalculating the rate
  * constant.
  *
- * \param env_data Pointer to the environmental state array
+ * \param model_data Pointer to the model data
  * \param rxn_data Pointer to the reaction data
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_first_order_loss_update_env_state(double *rate_constants, double *env_data, void *rxn_data)
+void * rxn_first_order_loss_update_env_state(double *rate_constants, ModelData *model_data, void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  double *env_data = model_data->grid_cell_env;
 
   // Calculate the rate constant in (1/s)
   RATE_CONSTANT_ = SCALING_ * BASE_RATE_;
@@ -132,15 +133,16 @@ void * rxn_first_order_loss_update_env_state(double *rate_constants, double *env
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-void * rxn_first_order_loss_calc_deriv_contrib(double *rate_constants, double *state, ModelData *model_data,
+void * rxn_first_order_loss_calc_deriv_contrib(double *rate_constants, ModelData *model_data,
           realtype *deriv, void *rxn_data, double time_step)
 {
-  //realtype *state = model_data->state;
   int *int_data = (int*) rxn_data;
   realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  double *state    = model_data->grid_cell_state;
+  double *env_data = model_data->grid_cell_env;
+  int cell_id      = model_data->grid_cell_id;
 
   // Calculate the reaction rate
-  //realtype rate = RATE_CONSTANT_ * state[REACT_];
   realtype rate = rate_constants[0] * state[REACT_];
 
   // Add contributions to the time derivative
@@ -160,15 +162,16 @@ void * rxn_first_order_loss_calc_deriv_contrib(double *rate_constants, double *s
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-void * rxn_first_order_loss_calc_jac_contrib(double *rate_constants, double *state, ModelData *model_data, realtype *J,
+void * rxn_first_order_loss_calc_jac_contrib(double *rate_constants, ModelData *model_data, realtype *J,
           void *rxn_data, double time_step)
 {
-  //realtype *state = model_data->state;
   int *int_data = (int*) rxn_data;
   realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  double *state    = model_data->grid_cell_state;
+  double *env_data = model_data->grid_cell_env;
+  int cell_id      = model_data->grid_cell_id;
 
   // Add contributions to the Jacobian
-  //if (JAC_ID_ >= 0) J[JAC_ID_] -= RATE_CONSTANT_;
   if (JAC_ID_ >= 0) J[JAC_ID_] -= rate_constants[0];
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);

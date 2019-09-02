@@ -374,8 +374,11 @@ contains
 
     !> Relative tolerance.
     real(kind=dp) :: eps = 1d-8
+    !> Absolute tolerance.
+    real(kind=dp) :: at = 1d-30
 
     if (present(rel_tol)) eps = rel_tol
+    if (present(abs_tol)) at  = abs_tol
 
     ! handle the 0.0 case
     if (d1 .eq. d2) then
@@ -384,11 +387,9 @@ contains
        if (abs(d1 - d2) / (abs(d1) + abs(d2)) .lt. eps) then
           almost_equal = .true.
        else
-         if (present(abs_tol)) then
-           if (abs(d1 - d2) .le. abs_tol) then
-             almost_equal = .true.
-             return
-           end if
+         if (abs(d1 - d2) .le. at) then
+           almost_equal = .true.
+           return
          end if
          almost_equal = .false.
        end if

@@ -79,7 +79,8 @@ void * rxn_SIMPOL_phase_transfer_get_used_jac_elem(ModelData *model_data,
   int *int_data = (int*) rxn_data;
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
-  bool *aero_jac_elem = (bool*) malloc(sizeof(bool) * model_data->n_state_var);
+  bool *aero_jac_elem = (bool*) malloc(sizeof(bool) *
+                                       model_data->n_per_cell_state_var);
   if (aero_jac_elem==NULL) {
     printf("\n\nERROR allocating space for 1D Jacobian structure array for "
            "SIMPOL phase transfer reaction\n\n");
@@ -97,7 +98,7 @@ void * rxn_SIMPOL_phase_transfer_get_used_jac_elem(ModelData *model_data,
       jac_struct[AERO_SPEC_(i_aero_phase)][AERO_ACT_ID_(i_aero_phase)] = true;
     }
 
-    for (int i_elem = 0; i_elem < model_data->n_state_var; ++i_elem)
+    for (int i_elem = 0; i_elem < model_data->n_per_cell_state_var; ++i_elem)
       aero_jac_elem[i_elem] = false;
 
     int n_jac_elem = aero_rep_get_used_jac_elem( model_data,
@@ -105,7 +106,7 @@ void * rxn_SIMPOL_phase_transfer_get_used_jac_elem(ModelData *model_data,
                                                  AERO_PHASE_ID_(i_aero_phase),
                                                  aero_jac_elem );
     int i_used_elem = 0;
-    for (int i_elem = 0; i_elem < model_data->n_state_var; ++i_elem) {
+    for (int i_elem = 0; i_elem < model_data->n_per_cell_state_var; ++i_elem) {
       if (aero_jac_elem[i_elem] == true ) {
         jac_struct[GAS_SPEC_][i_elem] = true;
         jac_struct[AERO_SPEC_(i_aero_phase)][i_elem] = true;
@@ -197,15 +198,16 @@ void * rxn_SIMPOL_phase_transfer_update_ids(ModelData *model_data,
  * For Phase Transfer reaction this only involves recalculating the rate
  * constant.
  *
- * \param env_data Pointer to the environmental state array
+ * \param model_data Pointer to the model data
  * \param rxn_data Pointer to the reaction data
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_SIMPOL_phase_transfer_update_env_state(double *rate_constants, double *env_data,
+void * rxn_SIMPOL_phase_transfer_update_env_state(double *rate_constants, ModelData *model_data,
           void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  double *env_data = model_data->grid_cell_env;
 
   // Calculate the mass accomodation coefficient if the N* parameter
   // was provided, otherwise set it to 1.0
@@ -239,7 +241,7 @@ void * rxn_SIMPOL_phase_transfer_update_env_state(double *rate_constants, double
                   * 1.0e6;             // 1.0e6ppm_x*Pa_air/Pa_x *
                                        //  1.0e-9kg_x/ug_x * 1.0e9ug_tot/kg_tot
 
-  //rate_constants[0] = EQUIL_CONST_; //TODO: Update all rate constants
+  // FIXME This does not work with multi-cell solving yet
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
@@ -298,13 +300,14 @@ realtype rxn_SIMPOL_phase_transfer_calc_overall_rate(void *rxn_data,
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-void * rxn_SIMPOL_phase_transfer_calc_deriv_contrib(double *rate_constants, double *state, ModelData *model_data,
+void * rxn_SIMPOL_phase_transfer_calc_deriv_contrib(double *rate_constants, ModelData *model_data,
           realtype *deriv, void *rxn_data, double time_step)
 {
-  //realtype *state = model_data->state;
-  realtype *env_data = model_data->env;
   int *int_data = (int*) rxn_data;
   realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  double *state    = model_data->grid_cell_state;
+  double *env_data = model_data->grid_cell_env;
+  int cell_id      = model_data->grid_cell_id;
 
   // Calculate derivative contributions for each aerosol phase
   for (int i_phase=0; i_phase<NUM_AERO_PHASE_; i_phase++) {
@@ -368,41 +371,16 @@ void * rxn_SIMPOL_phase_transfer_calc_deriv_contrib(double *rate_constants, doub
     realtype evap_rate = cond_rate * (EQUIL_CONST_ * aero_phase_avg_MW /
               aero_phase_mass);
 
-#if 0
-    // Slow down condensation rate as gas-phase concentrations become small
-    realtype gas_adj = state[GAS_SPEC_] - VERY_SMALL_NUMBER_;
-    gas_adj = ( gas_adj > ZERO ) ? gas_adj : ZERO;
-    realtype cond_scaling =
-      2.0 / ( 1.0 + exp( -gas_adj / SMALL_NUMBER_ ) ) - 1.0;
-    cond_scaling *= cond_scaling;
-#endif
-    realtype cond_scaling = ONE;
-
-    // Calculate gas-phase condensation rate (ppm/s)
-    cond_rate *= cond_scaling;
-
     // Get the activity coefficient (if one exists)
     realtype act_coeff = 1.0;
     if (AERO_ACT_ID_(i_phase)>-1) {
       act_coeff = state[AERO_ACT_ID_(i_phase)];
     }
 
-#if 0
-    // Slow down evaporation as aerosol-phase activity becomes small
-    realtype aero_adj = state[AERO_SPEC_(i_phase)] * act_coeff -
-                        VERY_SMALL_NUMBER_;
-    aero_adj = ( aero_adj > ZERO ) ? aero_adj : ZERO;
-    realtype evap_scaling =
-      2.0 / ( 1.0 + exp( -aero_adj / SMALL_NUMBER_ ) ) - 1.0;
-    evap_scaling *= evap_scaling;
-#endif
-    realtype evap_scaling = ONE;
-
     // Calculate aerosol-phase evaporation rate (ppm/s)
-    // (Slow down evaporation as aerosol-phase concentrations approach zero
-    //  to help out the solver.)
-    evap_rate *= act_coeff * evap_scaling;
+    evap_rate *= act_coeff;
 
+    // Calculate the overall rate
     realtype rate = rxn_SIMPOL_phase_transfer_calc_overall_rate(rxn_data,
                         state, cond_rate, evap_rate, i_phase);
 
@@ -430,13 +408,14 @@ void * rxn_SIMPOL_phase_transfer_calc_deriv_contrib(double *rate_constants, doub
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-void * rxn_SIMPOL_phase_transfer_calc_jac_contrib(double *rate_constants, double *state, ModelData *model_data,
+void * rxn_SIMPOL_phase_transfer_calc_jac_contrib(double *rate_constants, ModelData *model_data,
           realtype *J, void *rxn_data, double time_step)
 {
-  //realtype *state = model_data->state;
-  realtype *env_data = model_data->env;
   int *int_data = (int*) rxn_data;
   realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  double *state    = model_data->grid_cell_state;
+  double *env_data = model_data->grid_cell_env;
+  int cell_id      = model_data->grid_cell_id;
 
   // Calculate derivative contributions for each aerosol phase
   for (int i_phase=0; i_phase<NUM_AERO_PHASE_; i_phase++) {
@@ -501,78 +480,36 @@ void * rxn_SIMPOL_phase_transfer_calc_jac_contrib(double *rate_constants, double
     realtype evap_rate = cond_rate * (EQUIL_CONST_ * aero_phase_avg_MW /
               aero_phase_mass);
 
-#if 0
-    // Slow down condensation rate as gas-phase concentrations become small
-    realtype gas_adj = state[GAS_SPEC_] - VERY_SMALL_NUMBER_;
-    gas_adj = ( gas_adj > ZERO ) ? gas_adj : ZERO;
-    realtype cond_scaling =
-      2.0 / ( 1.0 + exp( -gas_adj / SMALL_NUMBER_ ) ) - 1.0;
-    realtype cond_scaling_deriv =
-      2.0 / ( SMALL_NUMBER_ * ( exp(  gas_adj / SMALL_NUMBER_ ) + 2.0 +
-                                exp( -gas_adj / SMALL_NUMBER_ ) ) );
-    cond_scaling_deriv *= 2.0 * cond_scaling;
-    cond_scaling *= cond_scaling;
-#endif
-    realtype cond_scaling = ONE;
-    realtype cond_scaling_deriv = ZERO;
-
     // Get the activity coefficient (if one exists)
     realtype act_coeff = 1.0;
     if (AERO_ACT_ID_(i_phase)>-1) {
       act_coeff = state[AERO_ACT_ID_(i_phase)];
     }
 
-#if 0
-    // Slow down evaporation as aerosol-phase activity becomes small
-    realtype aero_adj = state[AERO_SPEC_(i_phase)] * act_coeff -
-                        VERY_SMALL_NUMBER_;
-    aero_adj = ( aero_adj > ZERO ) ? aero_adj : ZERO;
-    realtype evap_scaling =
-      2.0 / ( 1.0 + exp( -aero_adj / SMALL_NUMBER_ ) ) - 1.0;
-    realtype evap_scaling_deriv =
-      2.0 / ( SMALL_NUMBER_ * ( exp(  aero_adj / SMALL_NUMBER_ ) + 2.0 +
-                                exp( -aero_adj / SMALL_NUMBER_ ) ) );
-    evap_scaling_deriv *= 2.0 * evap_scaling;
-    evap_scaling *= evap_scaling;
-#endif
-    realtype evap_scaling = ONE;
-    realtype evap_scaling_deriv = ZERO;
-
     // Change in the gas-phase is evaporation - condensation (ppm/s)
     if (JAC_ID_(1+i_phase*3+1)>=0)
-        J[JAC_ID_(1+i_phase*3+1)] += number_conc * evap_rate * act_coeff *
-                                     ( evap_scaling +
-                                       state[AERO_SPEC_(i_phase)] *
-                                       evap_scaling_deriv );
-    if (JAC_ID_(0)>=0) J[JAC_ID_(0)] -= number_conc * cond_rate *
-                                        ( cond_scaling +
-                                          state[GAS_SPEC_] *
-                                          cond_scaling_deriv );
+        J[JAC_ID_(1+i_phase*3+1)] += number_conc * evap_rate * act_coeff;
+    if (JAC_ID_(0)>=0) J[JAC_ID_(0)] -= number_conc * cond_rate;
 
     // Change in the aerosol-phase species is condensation - evaporation
     // (ug/m^3/s)
     if (JAC_ID_(1+i_phase*3)>=0) J[JAC_ID_(1+i_phase*3)] +=
-          cond_rate / UGM3_TO_PPM_ *
-          ( cond_scaling + state[GAS_SPEC_] * cond_scaling_deriv );
+          cond_rate / UGM3_TO_PPM_;
     if (JAC_ID_(1+i_phase*3+2)>=0) J[JAC_ID_(1+i_phase*3+2)] -=
-          evap_rate * act_coeff / UGM3_TO_PPM_ *
-          ( evap_scaling + state[AERO_SPEC_(i_phase)] * evap_scaling_deriv );
+          evap_rate * act_coeff / UGM3_TO_PPM_;
 
     // Activity coefficient contributions
     if (GAS_ACT_JAC_ID_(i_phase)>0) {
         J[GAS_ACT_JAC_ID_(i_phase)] += number_conc * evap_rate *
-                                       evap_scaling *
                                        state[AERO_SPEC_(i_phase)];
     }
     if (AERO_ACT_JAC_ID_(i_phase)>0) {
         J[AERO_ACT_JAC_ID_(i_phase)] -= evap_rate / UGM3_TO_PPM_ *
-                                        evap_scaling *
                                         state[AERO_SPEC_(i_phase)];
     }
 
     // Get the overall rates
-    cond_rate *= cond_scaling;
-    evap_rate *= evap_scaling * act_coeff;
+    evap_rate *= act_coeff;
     realtype rate = rxn_SIMPOL_phase_transfer_calc_overall_rate(rxn_data,
         state, cond_rate, evap_rate, i_phase);
     cond_rate *= state[GAS_SPEC_];

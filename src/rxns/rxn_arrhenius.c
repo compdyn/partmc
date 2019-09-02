@@ -97,15 +97,17 @@ void * rxn_arrhenius_update_ids(ModelData *model_data, int *deriv_ids,
  * For Arrhenius reaction this only involves recalculating the rate
  * constant.
  *
- * \param cell_id Index for the grid cell being solved
- * \param env_data Pointer to the environmental state array
+ * \param model_data Pointer to the model data
  * \param rxn_data Pointer to the reaction data
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_arrhenius_update_env_state(int cell_id, double *env_data, void *rxn_data)
+void * rxn_arrhenius_update_env_state(ModelData *model_data,
+    void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  double *env_data = model_data->grid_cell_env;
+  int cell_id = model_data->grid_cell_id;
 
   // Calculate the rate constant in (#/cc)
   // k = A*exp(C/T) * (T/D)^B * (1+E*P)
@@ -120,8 +122,6 @@ void * rxn_arrhenius_update_env_state(int cell_id, double *env_data, void *rxn_d
 /** \brief Calculate contributions to the time derivative \f$f(t,y)\f$ from
  * this reaction.
  *
- * \param cell_id Index for the grid cell being solved
- * \param state Model state array
  * \param model_data Model data
  * \param deriv Pointer to the time derivative to add contributions to
  * \param rxn_data Pointer to the reaction data
@@ -129,12 +129,15 @@ void * rxn_arrhenius_update_env_state(int cell_id, double *env_data, void *rxn_d
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-void * rxn_arrhenius_calc_deriv_contrib(int cell_id, double *state,
+void * rxn_arrhenius_calc_deriv_contrib(
           ModelData *model_data, realtype *deriv, void *rxn_data,
           double time_step)
 {
   int *int_data = (int*) rxn_data;
   realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  double *state    = model_data->grid_cell_state;
+  double *env_data = model_data->grid_cell_env;
+  int cell_id      = model_data->grid_cell_id;
 
   // Calculate the reaction rate
   realtype rate = RATE_CONSTANT_(cell_id);
@@ -165,8 +168,6 @@ void * rxn_arrhenius_calc_deriv_contrib(int cell_id, double *state,
 
 /** \brief Calculate contributions to the Jacobian from this reaction
  *
- * \param cell_id Index for the grid cell being solved
- * \param state Model state array
  * \param model_data Model data
  * \param J Pointer to the sparse Jacobian matrix to add contributions to
  * \param rxn_data Pointer to the reaction data
@@ -174,30 +175,36 @@ void * rxn_arrhenius_calc_deriv_contrib(int cell_id, double *state,
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-void * rxn_arrhenius_calc_jac_contrib(int cell_id, double *state,
+void * rxn_arrhenius_calc_jac_contrib(
           ModelData *model_data, realtype *J, void *rxn_data,
           double time_step)
 {
   int *int_data = (int*) rxn_data;
   realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
-
-  // Calculate the reaction rate
-  realtype rate = RATE_CONSTANT_(cell_id);
-  for (int i_spec=0; i_spec<NUM_REACT_; i_spec++) rate *= state[REACT_(i_spec)];
+  double *state    = model_data->grid_cell_state;
+  double *env_data = model_data->grid_cell_env;
+  int cell_id      = model_data->grid_cell_id;
 
   // Add contributions to the Jacobian
   int i_elem = 0;
   for (int i_ind=0; i_ind<NUM_REACT_; i_ind++) {
+
+    // Calculate d_rate / d_i_ind
+    realtype rate = RATE_CONSTANT_(cell_id);
+    for (int i_spec=0; i_spec<NUM_REACT_; i_spec++)
+     if (i_spec != i_ind)  rate *= state[REACT_(i_spec)];
+
     for (int i_dep=0; i_dep<NUM_REACT_; i_dep++, i_elem++) {
       if (JAC_ID_(i_elem) < 0) continue;
-      J[JAC_ID_(i_elem)] -= rate / state[REACT_(i_ind)];
+      J[JAC_ID_(i_elem)] -= rate;
     }
     for (int i_dep=0; i_dep<NUM_PROD_; i_dep++, i_elem++) {
       if (JAC_ID_(i_elem) < 0) continue;
       // Negative yields are allowed, but prevented from causing negative
       // concentrations that lead to solver failures
-      if (-rate*YIELD_(i_dep)*time_step <= state[PROD_(i_dep)]) {
-	J[JAC_ID_(i_elem)] += YIELD_(i_dep) * rate / state[REACT_(i_ind)];
+      if (-rate * state[REACT_(i_ind)] * YIELD_(i_dep) * time_step
+          <= state[PROD_(i_dep)]) {
+	J[JAC_ID_(i_elem)] += YIELD_(i_dep) * rate;
       }
     }
   }

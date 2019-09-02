@@ -33,7 +33,6 @@
     "density [kg m-3]" : 1.0,
     "molecular weight [kg mol-1]" : 0.040078
   },
-
   {
     "name" : "O3",
     "type" : "CHEM_SPEC",
@@ -73,6 +72,129 @@
     "absolute tolerance" : 1.0e-10
   },
   {
+    "name" : "HNO3",
+    "type" : "CHEM_SPEC",
+    "HLC(298K) [M Pa-1]" : 2.0725389,
+    "HLC exp factor [K]" : 8700.0,
+    "diffusion coeff [m2 s-1]" : 1.32e-5,
+    "N star" : 1.94,
+    "molecular weight [kg mol-1]" : 0.06301,
+    "density [kg m-3]" : 1.0,
+    "absolute tolerance" : 1.0e-10
+  },
+  {
+    "name" : "HNO3_aq",
+    "type" : "CHEM_SPEC",
+    "phase" : "AEROSOL",
+    "molecular weight [kg mol-1]" : 0.0630129,
+    "density [kg m-3]" : 1.0,
+    "absolute tolerance" : 1.0e-10
+  },
+  {
+    "name" : "NH3",
+    "type" : "CHEM_SPEC",
+    "HLC(298K) [M Pa-1]" : 5.990624e-4,
+    "HLC exp factor [K]" : 3920.0,
+    "diffusion coeff [m2 s-1]" : 2.3e-5,
+    "N star" : 1.92,
+    "molecular weight [kg mol-1]" : 0.017031,
+    "density [kg m-3]" : 1.0,
+    "absolute integration tolerance" : 1.0E-10
+  },
+  {
+    "name" : "NH3_aq",
+    "type" : "CHEM_SPEC",
+    "phase" : "AEROSOL",
+    "absolute integration tolerance" : 1.0E-09,
+    "density [kg m-3]" : 1000.0,
+    "molecular weight [kg mol-1]" : 0.017031
+  },
+  {
+    "name" : "H_p",
+    "type" : "CHEM_SPEC",
+    "charge" : 1,
+    "phase" : "AEROSOL",
+    "density [kg m-3]" : 1.0,
+    "molecular weight [kg mol-1]" : 0.001008
+  },
+  {
+    "name" : "OH_m",
+    "type" : "CHEM_SPEC",
+    "phase" : "AEROSOL",
+    "charge" : -1,
+    "density [kg m-3]" : 1000.0,
+    "molecular weight [kg mol-1]" : 0.017008
+  },
+  {
+    "name" : "NH4_p",
+    "type" : "CHEM_SPEC",
+    "charge" : 1,
+    "phase" : "AEROSOL",
+    "density [kg m-3]" : 1.0,
+    "molecular weight [kg mol-1]" : 0.01804
+  },
+  {
+    "name" : "SO4_mm",
+    "type" : "CHEM_SPEC",
+    "charge" : -2,
+    "phase" : "AEROSOL",
+    "density [kg m-3]" : 1.0,
+    "molecular weight [kg mol-1]" : 0.09606
+  },
+  {
+    "name" : "NO3_m",
+    "type" : "CHEM_SPEC",
+    "charge" : -1,
+    "phase" : "AEROSOL",
+    "density [kg m-3]" : 1.0,
+    "molecular weight [kg mol-1]" : 0.0620049
+  },
+  {
+    "name" : "(NH4)2-SO4",
+    "type" : "CHEM_SPEC",
+    "tracer type" : "ION_PAIR",
+    "ions" : {
+      "NH4_p" : { "qty" : 2 },
+      "SO4_mm" : {}
+    }
+  },
+  {
+    "name" : "NH4-NO3",
+    "type" : "CHEM_SPEC",
+    "tracer type" : "ION_PAIR",
+    "ions" : {
+      "NH4_p" : {},
+      "NO3_m" : {}
+    }
+  },
+  {
+    "name" : "H-NO3",
+    "type" : "CHEM_SPEC",
+    "tracer type" : "ION_PAIR",
+    "ions" : {
+      "H_p" : {},
+      "NO3_m" : {}
+    }
+  },
+  {
+    "name" : "H2-SO4",
+    "type" : "CHEM_SPEC",
+    "tracer type" : "ION_PAIR",
+    "ions" : {
+      "H_p" : { "qty" : 2 },
+      "SO4_mm" : {}
+    }
+  },
+  {
+    "name" : "NH4/H",
+    "type" : "CHEM_SPEC",
+    "tracer type" : "ION_PAIR",
+    "ions" : {
+      "NH4_p" : {},
+      "OH_m" : {}
+    }
+  },
+  {
     "name" : "H2O_aq",
     "type" : "CHEM_SPEC",
     "tracer type" : "CONSTANT",
@@ -83,7 +205,7 @@
   {
     "name" : "aqueous aerosol",
     "type" : "AERO_PHASE",
-    "species" : ["O3_aq", "H2O2_aq", "Na_p", "Cl_m", "Ca_pp", "H2O_aq"]
+    "species" : ["O3_aq", "H2O2_aq", "HNO3_aq", "NH3_aq", "Na_p", "Cl_m", "Ca_pp", "H2O_aq", "H_p", "OH_m", "NH4_p", "SO4_mm", "NO3_m", "(NH4)2-SO4", "NH4-NO3", "H-NO3", "H2-SO4", "NH4/H"]
   },
   {
     "name" : "that other phase",
@@ -130,6 +252,61 @@
 	"aerosol phase" : "aqueous aerosol",
 	"aerosol-phase species" : "H2O2_aq",
 	"aerosol-phase water" : "H2O_aq"
+      },
+      {
+        "type" : "HL_PHASE_TRANSFER",
+        "gas-phase species" : "HNO3",
+        "aerosol phase" : "aqueous aerosol",
+        "aerosol-phase species" : "HNO3_aq",
+        "aerosol-phase water" : "H2O_aq"
+      },
+      {
+        "type" : "AQUEOUS_EQUILIBRIUM",
+        "aerosol phase" : "aqueous sulfate",
+        "aerosol-phase water" : "H2O_aq",
+        "A" : 1.8e-16,
+        "C" : -6800.0,
+        "k_reverse" : 1.3e11,
+        "reactants" : {
+          "H2O_aq" : {}
+        },
+        "products" : {
+          "H_p" : {},
+          "OH_m" : {}
+        }
+      },
+      {
+        "type" : "AQUEOUS_EQUILIBRIUM",
+        "aerosol phase" : "aqueous sulfate",
+        "aerosol-phase water" : "H2O_aq",
+        "A" : 3.17e-7,
+        "C" : -560.0,
+        "k_reverse" : 3.4e10,
+        "ion pair" : "NH4/H",
+        "reactants" : {
+          "NH3_aq" : {},
+          "H2O_aq" : {}
+        },
+        "products" : {
+          "NH4_p" : {},
+          "OH_m" : {}
+        }
+      },
+      {
+        "type" : "AQUEOUS_EQUILIBRIUM",
+        "aerosol phase" : "aqueous sulfate",
+        "aerosol-phase water" : "H2O_aq",
+        "A" : 22.0,
+        "C" : 1800.0,
+        "k_reverse" : 5.0e10,
+        "ion pair" : "H-NO3",
+        "reactants" : {
+          "HNO3_aq" : {}
+        },
+        "products" : {
+          "NO3_m" : {},
+          "H_p" : {}
+        }
       }
     ]
   },
@@ -157,6 +334,179 @@
         },
         "Y_j" : [-1.918004e2, 2.001540e3, -8.557205e3, 1.987670e4, -2.717192e4, 2.187103e4, -9.591577e3, 1.763672e3],
         "low RH" : 0.43
+      }
+    }
+  },
+  {
+    "name" : "PD-FiTE activity coefficient",
+    "type" : "SUB_MODEL_PDFITE",
+    "gas-phase water" : "H2O",
+    "aerosol-phase water" : "H2O_aq",
+    "aerosol phase" : "aqueous aerosol",
+    "calculate for" : {
+      "H-NO3" : {
+        "interactions" : [
+          {
+            "ion pair": "H-NO3",
+            "min RH" : 0.0,
+            "max RH" : 0.1,
+            "B" : [ 0.925133 ]
+          },
+          {
+            "ion pair": "H-NO3",
+            "min RH" : 0.1,
+            "max RH" : 0.4,
+            "B" : [ 0.12091, 13.497, -67.771, 144.01, -117.97 ]
+          },
+          {
+            "ion pair" : "H-NO3",
+            "min RH" : 0.4,
+            "max RH" : 0.9,
+            "B" : [ 1.3424, -0.8197, -0.52983, -0.37335 ]
+          },
+          {
+            "ion pair" : "H-NO3",
+            "min RH" : 0.9,
+            "max RH" : 0.99,
+            "B" : [ -1420.5, 4467.9, -4682.7, 1635.1 ]
+          },
+          {
+            "ion pair" : "H-NO3",
+            "min RH" : 0.99,
+            "max RH" : 1.0,
+            "B" : [ -0.2573751 ]
+          },
+          {
+            "ion pair" : "H2-SO4",
+            "min RH" : 0.0,
+            "max RH" : 0.1,
+            "B" : [ 7.0531446 ]
+          },
+          {
+            "ion pair" : "H2-SO4",
+            "min RH" : 0.1,
+            "max RH" : 0.99,
+            "B" : [ 9.3948, -26.808, 35.7654, -18.5094 ]
+          },
+          {
+            "ion pair" : "H2-SO4",
+            "min RH" : 0.99,
+            "max RH" : 1.0,
+            "B" : [ -0.0511038 ]
+          },
+          {
+            "ion pair" : "(NH4)2-SO4",
+            "min RH" : 0.0,
+            "max RH" : 0.1,
+            "B" : [ -31.136334 ]
+          },
+          {
+            "ion pair" : "(NH4)2-SO4",
+            "min RH" : 0.1,
+            "max RH" : 0.99,
+            "B" : [ -40.4136, 108.798, -170.346, 100.926 ]
+          },
+          {
+            "ion pair" : "(NH4)2-SO4",
+            "min RH" : 0.99,
+            "max RH" : 1.0,
+            "B" : [ -1.7312977 ]
+          },
+          {
+            "ion pair" : "NH4-NO3",
+            "min RH" : 0.0,
+            "max RH" : 0.1,
+            "B" : [ -11.93308 ]
+          },
+          {
+            "ion pair" : "NH4-NO3",
+            "min RH" : 0.1,
+            "max RH" : 0.99,
+            "B" : [ -17.0372, 59.232, -86.312, 44.04 ]
+          },
+          {
+            "ion pair" : "NH4-NO3",
+            "min RH" : 0.99,
+            "max RH" : 1.0,
+            "B" : [ -0.2599432 ]
+          }
+        ]
+      },
+      "NH4/H" : {
+        "interactions" : [
+          {
+            "ion pair" : "H-NO3",
+            "min RH" : 0.0,
+            "max RH" : 0.1,
+            "B" : [ -31.711852 ]
+          },
+          {
+            "ion pair" : "H-NO3",
+            "min RH" : 0.1,
+            "max RH" : 0.99,
+            "B" : [ -39.1996, 84.264, -99.276, 54.108 ]
+          },
+          {
+            "ion pair" : "H-NO3",
+            "min RH" : 0.99,
+            "max RH" : 1.0,
+            "B" : [ -0.5777093 ]
+          },
+          {
+            "ion pair" : "H2-SO4",
+            "min RH" : 0.0,
+            "max RH" : 0.1,
+            "B" : [ -58.151568 ]
+          },
+          {
+            "ion pair" : "H2-SO4",
+            "min RH" : 0.1,
+            "max RH" : 0.99,
+            "B" : [ -72.978, 165.162, -177.51, 85.332 ]
+          },
+                      {
+            "ion pair" : "H2-SO4",
+            "min RH" : 0.99,
+            "max RH" : 1.0,
+            "B" : [ -0.6476167 ]
+          },
+          {
+            "ion pair" : "(NH4)2-SO4",
+            "min RH" : 0.0,
+            "max RH" : 0.1,
+            "B" : [ -8.918661 ]
+          },
+          {
+            "ion pair" : "(NH4)2-SO4",
+            "min RH" : 0.1,
+            "max RH" : 0.99,
+            "B" : [ -15.213, 79.782, -193.326, 262.77, -133.71 ]
+          },
+          {
+            "ion pair" : "(NH4)2-SO4",
+            "min RH" : 0.99,
+            "max RH" : 1.0,
+            "B" : [ 0.81654313 ]
+          },
+          {
+            "ion pair" : "NH4-NO3",
+            "min RH" : 0.0,
+            "max RH" : 0.1,
+            "B" : [ -24.41782 ]
+          },
+          {
+            "ion pair" : "NH4-NO3",
+            "min RH" : 0.1,
+            "max RH" : 0.99,
+            "B" : [ -25.8256, 12.772, 13.058 ]
+          },
+          {
+            "ion pair" : "NH4-NO3",
+            "min RH" : 0.99,
+            "max RH" : 1.0,
+            "B": [ -0.3831742 ]
+          }
+        ]
       }
     }
   }

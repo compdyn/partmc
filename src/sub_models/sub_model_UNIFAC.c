@@ -35,8 +35,8 @@
 #define PHASE_INST_ID_(p,c) (int_data[PHASE_INT_LOC_(p)+2+c]-1)
 #define SPEC_ID_(p,i) (int_data[PHASE_INT_LOC_(p)+2+NUM_PHASE_INSTANCE_(p)+i])
 #define GAMMA_ID_(p,i) (int_data[PHASE_INT_LOC_(p)+2+NUM_PHASE_INSTANCE_(p)+NUM_SPEC_(p)+i])
-#define JAC_ID_(p,c,j,i) int_data[PHASE_INT_LOC_(p)+2+NUM_PHASE_INSTANCE_(p)+(c+2+j*NUM_SPEC_(p))*NUM_SPEC_(p)+i]
-#define V_IK_(p,i,k) (int_data[PHASE_INT_LOC_(p)+2+NUM_PHASE_INSTANCE_(p)+(k+2+NUM_PHASE_INSTANCE_(p)+NUM_SPEC_(p))*NUM_SPEC_(p)+i])
+#define JAC_ID_(p,c,j,i) int_data[PHASE_INT_LOC_(p)+2+NUM_PHASE_INSTANCE_(p)+(2+c*NUM_SPEC_(p)+j)*NUM_SPEC_(p)+i]
+#define V_IK_(p,i,k) (int_data[PHASE_INT_LOC_(p)+2+NUM_PHASE_INSTANCE_(p)+(k+2+NUM_PHASE_INSTANCE_(p)*NUM_SPEC_(p))*NUM_SPEC_(p)+i])
 
 #define Q_K_(k) (float_data[k])
 #define R_K_(k) (float_data[NUM_GROUP_+k])
@@ -107,13 +107,14 @@ void sub_model_UNIFAC_update_ids(int *sub_model_int_data,
  *
  * \param sub_model_int_data Pointer to the sub model integer data
  * \param sub_model_float_data Pointer to the sub model floating-point data
- * \param env_data Pointer to the environmental state array
+ * \param model_data Pointer to the model data
  */
 void sub_model_UNIFAC_update_env_state(int *sub_model_int_data,
-    double *sub_model_float_data, double *env_data)
+    double *sub_model_float_data, ModelData *model_data)
 {
   int *int_data = sub_model_int_data;
   double *float_data = sub_model_float_data;
+  double *env_data = model_data->grid_cell_env;
 
   // Update the interaction parameters
   for (int m=0; m<NUM_GROUP_; m++)
@@ -210,7 +211,7 @@ void sub_model_UNIFAC_calculate(int *sub_model_int_data,
   int *int_data = sub_model_int_data;
   double *float_data = sub_model_float_data;
 
-  double *state = model_data->state;
+  double *state = model_data->grid_cell_state;
 
   // Loop through each instance of each phase to calculate activity
   for (int i_phase=0; i_phase<NUM_UNIQUE_PHASE_; ++i_phase) {
@@ -228,7 +229,7 @@ void sub_model_UNIFAC_calculate(int *sub_model_int_data,
       if (m_T<=0.0) {
         for (int i_spec=0; i_spec<NUM_SPEC_(i_phase); ++i_spec) {
           state[PHASE_INST_ID_(i_phase, i_instance) +
-                GAMMA_ID_(i_phase, i_spec)] = 1.0;
+                GAMMA_ID_(i_phase, i_spec)] = 0.0;
         }
         continue;
       }
@@ -320,11 +321,10 @@ void sub_model_UNIFAC_calculate(int *sub_model_int_data,
                         ( LN_GAMMA_K_(k) - LN_GAMMA_IK_(i_phase, j, k) );
         }
 
-        // Calculate gamma_i Eq. 1 and convert to units of (m^3/ug)
-        // Set the parameter on the model state
+        // Calculate gamma_i Eq. 1
         state[PHASE_INST_ID_(i_phase, i_instance) +
               GAMMA_ID_(i_phase, j)] =
-          exp( lngammaC_j + lngammaR_j ) / m_T / MW_I_(i_phase, j);
+          exp( lngammaC_j + lngammaR_j ) * X_I_(i_phase, j);
       }
     }
   }
@@ -431,58 +431,67 @@ void sub_model_UNIFAC_calculate(int *sub_model_int_data,
  *        - \frac{1}{\Phi_j}\frac{\partial \Phi_j}{\partial c_i}\right) \\
  *      & \quad - \frac{\partial \Phi_j}{\partial c_i}\frac{\mu}{x_j}
  *      - \frac{\Phi_j}{x_j}\frac{\partial \mu}{\partial c_i}
- *      - \frac{\Phi_j \mu}{x_j^2}\frac{\partial x_j}{\partial c_i}
+ *      + \frac{\Phi_j \mu}{x_j^2}\frac{\partial x_j}{\partial c_i}
  * \end{align*}
  * \f]
  *  As \f$\sigma\f$, \f$\tau\f$,
  *  and \f$\mu\f$ are independent of species \f$i\f$,
  *  these can be calculated outside the loop over the independent species.
- *  Moving to the residual term (Eq. 7), the mole fraction (\f$X_j\f$)
- *  of group \f$j\f$ in the mixture is related to the mole fraction
- *  (\f$x_i\f$) of species \f$i\f$ according to:
+ *  Moving to the residual term (Eq. 7), the mole fraction (\f$X_p\f$)
+ *  of group \f$p\f$ in the mixture is related to the mole fraction
+ *  (\f$x_j\f$) of species \f$j\f$ according to:
  * \f[
- *    X_j = c_{xX} \displaystyle\sum_i v_j^{(i)} x_i,
+ *    X_p = c_{xX} \omega_p, \textrm{ where }
+ *    \omega_p \equiv \displaystyle\sum_j v_p^{(j)} x_j, \\
  * \f]
- *  where \f$c_{xX}\f$ is a conversion factor accounting for the difference
+ *  and \f$c_{xX}\f$ is a conversion factor accounting for the difference
  *  in total species and total group number concentrations:
  * \f[
- *    c_{xX} = \frac{1}{\displaystyle\sum_j
- *                   \displaystyle\sum_i v_j^{(i)} x_i}
+ *    c_{xX} = \frac{1}{\displaystyle\sum_p \omega_p}.
  * \f]
  *  Partial derivatives of the group interaction terms in Eq 9,
  *  \f$\Theta_m\f$ and \f$\Psi_{mn}\f$, with respect to \f$c_i\f$ are
  *  derived as follows:
  * \f[
  *   \begin{align*}
- *     \frac{\partial c_{xX}}{c_i} & = - c_{xX}^2
- *       \displaystyle\sum_j \displaystyle\sum_i v_j^{(i)}
- *       \frac{\partial x_i}{\partial c_i}
- *       = - c_{xX} \displaystyle\sum_j X_j, \\
- *     \omega & \equiv \displaystyle\sum_j X_j,
- *     \qquad \Pi \equiv \displaystyle\sum_n Q_n X_n, \\
- *     \frac{\partial X_j}{\partial c_i} & =
- *       \frac{1}{\mathrm{MW}_i m_T} \left(
- *       v_j^{(i)} c_{xX} - X_j \right) - X_j \omega, \\
+ *     \frac{\partial c_{xX}}{\partial c_i} & = - c_{xX}^2
+ *       \displaystyle\sum_p \displaystyle\sum_j v_p^{(j)}
+ *       \frac{\partial x_j}{\partial c_i}
+ *       = - \frac{c_{xX}^2}{\mathrm{MW}_im_T} \left(
+ *             \displaystyle\sum_p v_p^{(i)} -
+ *             \displaystyle\sum_p \omega_p \right), \\
+ *       & = \frac{c_{xX}}{\mathrm{MW}_im_T} \left(
+ *               1 - c_{xX} \displaystyle\sum_p v_p^{(i)} \right), \\
+ *     \frac{\partial X_n}{\partial c_i} & =
+ *       c_{xX} \displaystyle\sum_j v_n^{(j)}
+ *            \frac{\partial x_j}{\partial c_i}
+ *       + \frac{\partial c_{xX}}{\partial c_i} \omega_n, \\
+ *       & = \frac{c_{xX}}{\mathrm{MW}_im_T}
+ *                  \left( v_n^{(i)} - \omega_n \right)
+ *             + \frac{c_{xX}}{\mathrm{MW}_im_T}
+ *                  \left( \omega_n - c_{xX}\omega_n
+ *                      \displaystyle\sum_p v_p^{(i)} \right), \\
+ *        & = \frac{c_{xX}}{\mathrm{MW}_im_T} \left(
+ *                  v_n^{(i)} - X_n
+ *                      \displaystyle\sum_p v_p^{(i)} \right), \\
+ *     \Pi & \equiv \displaystyle\sum_n Q_n X_n, \\
  *     \frac{\partial \Pi}{\partial c_i} & =
- *        \displaystyle\sum_n Q_n \left[
- *        \frac{1}{\mathrm{MW}_i m_T}\left(
- *        v_n^{(i)}c_{xX} - X_n\right) - X_n \omega \right], \\
- *     & = \frac{c_{xX}}{\mathrm{MW}_i m_T}
- *            \displaystyle\sum_nQ_nv_n^{(i)} -
- *            \frac{\Pi}{\mathrm{MW}_i m_T} - \omega\Pi, \\
+ *        \displaystyle\sum_n Q_n
+ *        \frac{c_{xX}}{\mathrm{MW}_i m_T}\left(
+ *            v_n^{(i)} - X_n \displaystyle\sum_p v_p^{(i)} \right), \\
+ *     & = \frac{c_{xX}}{\mathrm{MW}_i m_T} \left(
+ *            \displaystyle\sum_n Q_n v_n^{(i)} -
+ *            \Pi \displaystyle\sum_p v_p^{(i)} \right), \\
  *     \frac{\partial \Theta_m}{\partial c_i} & = \frac{
  *     \left(Q_m\frac{\partial X_m}{\partial c_i} \Pi -
  *         Q_m X_m \frac{\partial \Pi}{\partial c_i} \right)}{\Pi^2} , \\
- *     & = \frac{Q_m}{\Pi^2} \left[
- *         \frac{v_m^{(i)}c_{xX}\Pi}{\mathrm{MW}_im_T}
- *         - \frac{X_m\Pi}{\mathrm{MW}_im_T}
- *         - X_m\omega\Pi
- *         - \frac{X_m c_{xX}}{\mathrm{MW}_im_T}
- *              \displaystyle\sum_n Q_n v_n^{(i)}
- *         + \frac{X_m \Pi}{\mathrm{MW}_im_T}
- *         + X_m\omega\Pi \right], \\
- *     & = \frac{Q_m c_{xX}}{\mathrm{MW}_im_T\Pi^2} \left[
- *            v_m^{(i)} - X_m\displaystyle\sum_n Q_n v_n^{(i)}\right],
+ *     & = \frac{c_{xX} Q_m}{\mathrm{MW}_im_T\Pi^2} \left[
+ *              \left( \Pi v_m^{(i)} - \Pi X_m
+ *                  \displaystyle\sum_p v_p^{(i)} \right) -
+ *              \left( X_m \displaystyle\sum_n Q_n v_n^{(i)} -
+ *                  X_m \Pi \displaystyle\sum_p v_p^{(i)} \right) \right], \\
+ *     & = \frac{c_{xX} Q_m}{\mathrm{MW}_im_T\Pi^2} \left[
+ *            \Pi v_m^{(i)} - X_m\displaystyle\sum_n Q_n v_n^{(i)}\right],
  *        \textrm{ and} \\
  *    \frac{\partial \Psi_{mn}}{\partial c_i} & = 0
  *   \end{align*}
@@ -491,7 +500,7 @@ void sub_model_UNIFAC_calculate(int *sub_model_int_data,
  *  with respect to \f$c_i\f$ is:
  * \f[
  *   \begin{align*}
- *    \frac{\partial \Gamma_k}{\partial c_i} & = Q_k \left[
+ *    \frac{\partial \ln{\Gamma_k}}{\partial c_i} & = Q_k \left[
  *      - \frac{1}{\displaystyle\sum_m\Theta_m\Psi_{mk}}
  *        \displaystyle\sum_m\frac{\partial\Theta_m}{\partial c_i}\Psi_{mk} \\
  *      \quad - \displaystyle\sum_m\left(
@@ -508,12 +517,12 @@ void sub_model_UNIFAC_calculate(int *sub_model_int_data,
  * \f[
  *   \begin{align*}
  *    \Xi_m & \equiv \displaystyle\sum_n\Theta_n\Psi_{nm}, \\
- *    \frac{\partial \Gamma_k}{\partial c_i} & =
+ *    \frac{\partial \ln{\Gamma_k}}{\partial c_i} & =
  *      - Q_k \displaystyle\sum_m \left(
- *      \frac{1}{\Theta_m}\frac{\partial\Theta_m}{\partial c_i}
+ *      \frac{\Psi_{mk}}{\Xi_k}\frac{\partial\Theta_m}{\partial c_i}
  *      + \frac{\Psi_{km}}{\Xi_m}
  *        \frac{\partial\Theta_m}{\partial c_i}
- *      + \frac{\Theta_m\Psi_{km}}
+ *      - \frac{\Theta_m\Psi_{km}}
  *             {\Xi_m^2}
  *        \displaystyle\sum_n\frac{\partial\Theta_n}{\partial c_i}\Psi_{nm}
  *    \right)
@@ -527,8 +536,8 @@ void sub_model_UNIFAC_calculate(int *sub_model_int_data,
  *   \begin{align*}
  *   \frac{\partial \ln{\Gamma_k^{(j)}}}{\partial c_i} & = 0 \\
  *   \frac{\partial \ln{\gamma_j^R}}{\partial c_i} & =
- *     \displaystyle\sum_k \frac{v_k^{(j)}}{\Gamma_k}
- *        \frac{\partial \Gamma_k}{\partial c_i}
+ *     \displaystyle\sum_k v_k^{(j)}
+ *        \frac{\partial \ln{\Gamma_k}}{\partial c_i}
  *   \end{align*}
  * \f]
  *  The overall equation for the partial derivative of \f$\gamma_j\f$ with
@@ -552,8 +561,9 @@ void sub_model_UNIFAC_get_jac_contrib(int *sub_model_int_data,
 {
   int *int_data = sub_model_int_data;
   double *float_data = sub_model_float_data;
-
-  double *state = model_data->state;
+  double *state    = model_data->grid_cell_state;
+  double *env_data = model_data->grid_cell_env;
+  int cell_id      = model_data->grid_cell_id;
 
   // Loop through each instance of each phase to calculate activity
   for (int i_phase=0; i_phase<NUM_UNIQUE_PHASE_; ++i_phase) {
@@ -615,7 +625,7 @@ void sub_model_UNIFAC_get_jac_contrib(int *sub_model_int_data,
       for (int i_group=0; i_group<NUM_GROUP_; ++i_group)
         THETA_M_(i_group) = Q_K_(i_group) * X_K_(i_group) / Pi;
 
-      // Xi_k
+      // Xi_m
       for (int i_group=0; i_group<NUM_GROUP_; ++i_group) {
         XI_M_(i_group) = 0;
         for (int j_group=0; j_group<NUM_GROUP_; ++j_group)
@@ -645,12 +655,13 @@ void sub_model_UNIFAC_get_jac_contrib(int *sub_model_int_data,
         Theta_j = Q_I_(i_phase, j) * x_j / tau;
 
         // Full combinatorial term
-        double lngammaC_j;
-        lngammaC_j = log( Phi_j / x_j )
-                    + 5.0 * Q_I_(i_phase, j) * log( Theta_j / Phi_j )
-                    + L_I_(i_phase, j)
-                    - Phi_j / x_j * mu;
-
+        double lngammaC_j = 0.0;
+        if (X_I_(i_phase, j) > 0.0) {
+          lngammaC_j = log( Phi_j / x_j )
+                      + 5.0 * Q_I_(i_phase, j) * log( Theta_j / Phi_j )
+                      + L_I_(i_phase, j)
+                      - Phi_j / x_j * mu;
+        }
 
         // Full residual term
         double lngammaR_j = 0.0;
@@ -660,8 +671,7 @@ void sub_model_UNIFAC_get_jac_contrib(int *sub_model_int_data,
         }
 
         // Activity coefficient gamma_j (in m3/ug)
-        double gamma_j = exp(lngammaC_j + lngammaR_j) / m_T /
-                         MW_I_(i_phase, j);
+        double gamma_j = exp(lngammaC_j + lngammaR_j);
 
         // Loop over independent species i
         double dx_j_dc_i, dPhi_j_dc_i, dTheta_j_dc_i; // combinatorial
@@ -680,19 +690,18 @@ void sub_model_UNIFAC_get_jac_contrib(int *sub_model_int_data,
           }
           double MWimT_inv = 1.0 / (MW_I_(i_phase, i) * m_T);
           dx_j_dc_i     *= MWimT_inv;
-          dPhi_j_dc_i   *= MWimT_inv / sigma / sigma;
-          dTheta_j_dc_i *= MWimT_inv / tau   / tau;
+          dPhi_j_dc_i   *= R_I_(i_phase, j) * MWimT_inv / sigma / sigma;
+          dTheta_j_dc_i *= Q_I_(i_phase, j) * MWimT_inv / tau   / tau;
 
           dmu_dc_i = MWimT_inv * (L_I_(i_phase, i) - mu);
 
           // partial derivative of full combinatorial term ln(gammaC_j)
           dlngammaC_j_dc_i = dPhi_j_dc_i / Phi_j - dx_j_dc_i / x_j
-                            + 0.5 * Q_I_(i_phase, j) *
+                            + 5.0 * Q_I_(i_phase, j) *
                                 (dTheta_j_dc_i / Theta_j - dPhi_j_dc_i / Phi_j)
-                            - dTheta_j_dc_i * mu / x_j
-                            - Theta_j / x_j * dmu_dc_i
-                            - Phi_j * mu / x_j / x_j * dx_j_dc_i;
-
+                            - dPhi_j_dc_i * mu / x_j
+                            - Phi_j / x_j * dmu_dc_i
+                            + Phi_j * mu / x_j / x_j * dx_j_dc_i;
 
 
           // Residual partial derivatives
@@ -703,7 +712,7 @@ void sub_model_UNIFAC_get_jac_contrib(int *sub_model_int_data,
             sumQnvn_i += Q_K_(n) * V_IK_(i_phase, i, n);
           for (int m=0; m<NUM_GROUP_; ++m) {
             DTHETA_M_DC_I_(m) = Q_K_(m) * c_xX * MWimT_inv / Pi / Pi *
-                                ( V_IK_(i_phase, i, m)
+                                ( Pi * V_IK_(i_phase, i, m)
                                   - X_K_(m) * sumQnvn_i );
           }
 
@@ -720,21 +729,21 @@ void sub_model_UNIFAC_get_jac_contrib(int *sub_model_int_data,
               for (int n=0; n<NUM_GROUP_; ++n)
                 sum_n += DTHETA_M_DC_I_(n) * PSI_MN_(n,m);
               dlnGamma_k_dc_i += DTHETA_M_DC_I_(m) *
-                                 ( 1.0 / THETA_M_(m)
+                                 ( PSI_MN_(m,k) / XI_M_(k)
                                    + PSI_MN_(k,m) / XI_M_(m) )
-                                 + THETA_M_(m) * PSI_MN_(k,m) /
+                                 - THETA_M_(m) * PSI_MN_(k,m) /
                                    pow( XI_M_(m), 2 ) * sum_n;
             }
+            dlnGamma_k_dc_i *= -Q_K_(k);
 
-            dlngammaR_j_dc_i += V_IK_(i_phase, i, k)
-                                / exp( LN_GAMMA_K_(k) )
+            dlngammaR_j_dc_i += V_IK_(i_phase, j, k)
                                 * dlnGamma_k_dc_i;
           }
 
           // partial derivative of activity coefficient gamma_j
-          double dgamma_j_dc_i = (gamma_j * m_T * MW_I_(i_phase, j) *
-                                  (dlngammaC_j_dc_i + dlngammaR_j_dc_i)
-                                  - gamma_j) / m_T / m_T;
+          double dgamma_j_dc_i = gamma_j * x_j *
+                                   (dlngammaC_j_dc_i + dlngammaR_j_dc_i)
+                                 + gamma_j * dx_j_dc_i;
 
           // Add the partial derivative contribution to the
           // Jacobian

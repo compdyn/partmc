@@ -244,7 +244,7 @@ contains
 
     ! Allocate space in the condensed data arrays
     allocate(this%condensed_data_int(NUM_INT_PROP_ + &
-            num_phase * (num_spec_per_phase * (num_spec_per_phase + 3) + 2)))
+            num_phase * (num_spec_per_phase * (num_spec_per_phase + 4) + 2)))
     allocate(this%condensed_data_real(NUM_REAL_PROP_ + &
             num_spec_per_phase + 2 * num_phase))
     this%condensed_data_int(:) = int(0, kind=i_kind)

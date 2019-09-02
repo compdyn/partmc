@@ -90,16 +90,17 @@ void * aero_rep_single_particle_get_dependencies(void *aero_rep_data,
  * The single particle aerosol representation does not use environmental
  * conditions
  *
- * \param env_data Pointer to the environmental state array
+ * \param model_data Pointer to the model data
  * \param aero_rep_data Pointer to the aerosol representation data
  * \return The aero_rep_data pointer advanced by the size of the aerosol
  *         representation
  */
-void * aero_rep_single_particle_update_env_state(double *env_data,
+void * aero_rep_single_particle_update_env_state(ModelData *model_data,
           void *aero_rep_data)
 {
   int *int_data = (int*) aero_rep_data;
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  double *env_data = model_data->grid_cell_env;
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
@@ -125,7 +126,7 @@ void * aero_rep_single_particle_update_state(ModelData *model_data,
   for (int i_phase=0; i_phase<NUM_PHASE_; i_phase++) {
 
     // Get a pointer to the phase on the state array
-    double *state_var = (double*) (model_data->state);
+    double *state_var = (double*) (model_data->grid_cell_state);
     state_var += PHASE_STATE_ID_(i_phase);
 
     // Get the mass and average MW
@@ -256,7 +257,7 @@ void * aero_rep_single_particle_get_aero_phase_mass(ModelData *model_data,
   if (partial_deriv) {
     for (int i_phase = 0; i_phase < NUM_PHASE_; ++i_phase) {
       if (i_phase == aero_phase_idx) {
-        double *state = (double*) (model_data->state);
+        double *state = (double*) (model_data->grid_cell_state);
         state += PHASE_STATE_ID_(i_phase);
         double mass, mw;
         aero_phase_get_mass(model_data, aero_phase_idx, state, &mass, &mw,
@@ -300,7 +301,7 @@ void * aero_rep_single_particle_get_aero_phase_avg_MW(ModelData *model_data,
   if (partial_deriv) {
     for (int i_phase = 0; i_phase < NUM_PHASE_; ++i_phase) {
       if (i_phase == aero_phase_idx) {
-        double *state = (double*) (model_data->state);
+        double *state = (double*) (model_data->grid_cell_state);
         state += PHASE_STATE_ID_(i_phase);
         double mass, mw;
         aero_phase_get_mass(model_data, aero_phase_idx, state, &mass, &mw,

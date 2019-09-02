@@ -115,9 +115,8 @@ void * aero_rep_get_dependencies(ModelData *model_data, bool *state_flags)
 /** \brief Update the aerosol representations for new environmental conditions
  *
  * \param model_data Pointer to the model data
- * \param env Pointer to the environmental state array
  */
-void aero_rep_update_env_state(ModelData *model_data, double *env)
+void aero_rep_update_env_state(ModelData *model_data)
 {
 
   // Get the number of aerosol representations
@@ -135,11 +134,11 @@ void aero_rep_update_env_state(ModelData *model_data, double *env)
     switch (aero_rep_type) {
       case AERO_REP_MODAL_BINNED_MASS :
 	aero_rep_data = (int*) aero_rep_modal_binned_mass_update_env_state(
-                  env, (void*) aero_rep_data);
+                  model_data, (void*) aero_rep_data);
         break;
       case AERO_REP_SINGLE_PARTICLE :
 	aero_rep_data = (int*) aero_rep_single_particle_update_env_state(
-                  env, (void*) aero_rep_data);
+                  model_data, (void*) aero_rep_data);
         break;
     }
   }

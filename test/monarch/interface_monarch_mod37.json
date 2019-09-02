@@ -1,6 +1,6 @@
 {
   "notes" : "Species map and initial concentrations for current MONARCH chemistry scheme",
-  "monarch-data" : 
+  "monarch-data" :
   [
     {
       "name" : "MONARCH chemistry species map",

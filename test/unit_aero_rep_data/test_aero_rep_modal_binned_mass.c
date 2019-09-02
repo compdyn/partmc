@@ -299,7 +299,11 @@ int run_aero_rep_modal_c_tests(void *solver_data, double *state, double *env) {
   int n_solver_var = NV_LENGTH_S(sd->y);
   N_Vector solver_state = N_VNew_Serial(n_solver_var);
 
-  model_data->state = state;
+  model_data->grid_cell_id    = 0;
+  model_data->total_state     = state;
+  model_data->grid_cell_state = model_data->total_state;
+  model_data->total_env       = env;
+  model_data->grid_cell_env   = model_data->total_env;
 
   bool *jac_struct = malloc(sizeof(bool) * n_solver_var);
   ret_val += ASSERT_MSG(jac_struct!=NULL, "jac_struct not allocated");
@@ -332,7 +336,7 @@ int run_aero_rep_modal_c_tests(void *solver_data, double *state, double *env) {
   NV_DATA_S(solver_state)[ 5] = state[ 5] = CONC_2_2E; // phase two, species e
 
   // Update the environmental and concentration states
-  aero_rep_update_env_state(model_data, env);
+  aero_rep_update_env_state(model_data);
   aero_rep_update_state(model_data);
 
   // Run the property tests

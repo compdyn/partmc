@@ -180,175 +180,168 @@ void rxn_update_ids(ModelData *model_data, int *deriv_ids, int **jac_ids)
 
 /** \brief Update reaction data for new environmental state
  *
- * \param model_data Pointer to the model data
- * \param env Pointer to the environmental state array
+ * \param model_data Pointer to the model data with updated env state
  */
-void rxn_update_env_state(ModelData *model_data, double *env)
+void rxn_update_env_state(ModelData *model_data)
 {
 
-  int n_cells = model_data->n_cells;
-  double *rate_constants = model_data->rate_constants;
+  // Get the number of reactions
+  int *rxn_data = (int *) (model_data->rxn_data);
+  int n_rxn = *(rxn_data++);
 
-  // Loop through the grid cells
-  for (int i_cell=0; i_cell<n_cells; ++i_cell) {
+  // TODO remove once rate constants moved to rxn data
+  double *rate_constants =
+    &(model_data->rate_constants[model_data->grid_cell_id * n_rxn]);
 
-    // Get the number of reactions
-    int *rxn_data = (int *) (model_data->rxn_data);
-    int n_rxn = *(rxn_data++);
+  // Loop through the reactions advancing the rxn_data pointer each time
+  for (int i_rxn = 0; i_rxn < n_rxn; i_rxn++) {
 
-    // Loop through the reactions advancing the rxn_data pointer each time
-    for (int i_rxn = 0; i_rxn < n_rxn; i_rxn++) {
+    // Get the reaction type
+    int rxn_type = *(rxn_data++);
 
-      // Get the reaction type
-      int rxn_type = *(rxn_data++);
-
-      // Call the appropriate function
-      switch (rxn_type) {
-        case RXN_AQUEOUS_EQUILIBRIUM :
-          rxn_data = (int *) rxn_aqueous_equilibrium_update_env_state(rate_constants,
-                  env, (void *) rxn_data);
-          break;
-        case RXN_ARRHENIUS :
-          rxn_data = (int *) rxn_arrhenius_update_env_state(i_cell,
-                  env, (void *) rxn_data);
-          break;
-        case RXN_CMAQ_H2O2 :
-          rxn_data = (int *) rxn_CMAQ_H2O2_update_env_state(rate_constants,
-                  env, (void *) rxn_data);
-          break;
-        case RXN_CMAQ_OH_HNO3 :
-          rxn_data = (int *) rxn_CMAQ_OH_HNO3_update_env_state(rate_constants,
-                  env, (void *) rxn_data);
-          break;
-        case RXN_CONDENSED_PHASE_ARRHENIUS :
-          rxn_data = (int *) rxn_condensed_phase_arrhenius_update_env_state(rate_constants,
-                  env, (void *) rxn_data);
-          break;
-        case RXN_EMISSION :
-          rxn_data = (int *) rxn_emission_update_env_state(rate_constants,
-                  env, (void *) rxn_data);
-          break;
-        case RXN_FIRST_ORDER_LOSS :
-          rxn_data = (int *) rxn_first_order_loss_update_env_state(rate_constants,
-                  env, (void *) rxn_data);
-          break;
-        case RXN_HL_PHASE_TRANSFER :
-          rxn_data = (int *) rxn_HL_phase_transfer_update_env_state(rate_constants,
-                  env, (void *) rxn_data);
-          break;
-        case RXN_PHOTOLYSIS :
-          rxn_data = (int *) rxn_photolysis_update_env_state(rate_constants,
-                  env, (void *) rxn_data);
-          break;
-        case RXN_SIMPOL_PHASE_TRANSFER :
-          rxn_data = (int *) rxn_SIMPOL_phase_transfer_update_env_state(rate_constants,
-                  env, (void *) rxn_data);
-          break;
-        case RXN_TROE :
-          rxn_data = (int *) rxn_troe_update_env_state(rate_constants,
-                  env, (void *) rxn_data);
-          break;
-        case RXN_WET_DEPOSITION :
-          rxn_data = (int *) rxn_wet_deposition_update_env_state(rate_constants,
-                  env, (void *) rxn_data);
-          break;
-      }
-      rate_constants++;
+    // Call the appropriate function
+    switch (rxn_type) {
+      case RXN_AQUEOUS_EQUILIBRIUM :
+        rxn_data = (int *) rxn_aqueous_equilibrium_update_env_state(rate_constants,
+                model_data, (void *) rxn_data);
+        break;
+      case RXN_ARRHENIUS :
+        rxn_data = (int *) rxn_arrhenius_update_env_state(
+                model_data, (void *) rxn_data);
+        break;
+      case RXN_CMAQ_H2O2 :
+        rxn_data = (int *) rxn_CMAQ_H2O2_update_env_state(rate_constants,
+                model_data, (void *) rxn_data);
+        break;
+      case RXN_CMAQ_OH_HNO3 :
+        rxn_data = (int *) rxn_CMAQ_OH_HNO3_update_env_state(rate_constants,
+                model_data, (void *) rxn_data);
+        break;
+      case RXN_CONDENSED_PHASE_ARRHENIUS :
+        rxn_data = (int *) rxn_condensed_phase_arrhenius_update_env_state(rate_constants,
+                model_data, (void *) rxn_data);
+        break;
+      case RXN_EMISSION :
+        rxn_data = (int *) rxn_emission_update_env_state(rate_constants,
+                model_data, (void *) rxn_data);
+        break;
+      case RXN_FIRST_ORDER_LOSS :
+        rxn_data = (int *) rxn_first_order_loss_update_env_state(rate_constants,
+                model_data, (void *) rxn_data);
+        break;
+      case RXN_HL_PHASE_TRANSFER :
+        rxn_data = (int *) rxn_HL_phase_transfer_update_env_state(rate_constants,
+                model_data, (void *) rxn_data);
+        break;
+      case RXN_PHOTOLYSIS :
+        rxn_data = (int *) rxn_photolysis_update_env_state(rate_constants,
+                model_data, (void *) rxn_data);
+        break;
+      case RXN_SIMPOL_PHASE_TRANSFER :
+        rxn_data = (int *) rxn_SIMPOL_phase_transfer_update_env_state(rate_constants,
+                model_data, (void *) rxn_data);
+        break;
+      case RXN_TROE :
+        rxn_data = (int *) rxn_troe_update_env_state(rate_constants,
+                model_data, (void *) rxn_data);
+        break;
+      case RXN_WET_DEPOSITION :
+        rxn_data = (int *) rxn_wet_deposition_update_env_state(rate_constants,
+                model_data, (void *) rxn_data);
+        break;
     }
-    env += PMC_NUM_ENV_PARAM_;
+    rate_constants++;
   }
 }
 
 /** \brief Calculate the time derivative \f$f(t,y)\f$
  *
  * \param model_data Pointer to the model data
- * \param deriv NVector to hold the calculated vector
+ * \param deriv_data Pointer to the derivative data for the current grid cell
  * \param time_step Current model time step (s)
  */
 #ifdef PMC_USE_SUNDIALS
-void rxn_calc_deriv(ModelData *model_data, N_Vector deriv, realtype time_step)
+void rxn_calc_deriv(ModelData *model_data, double *deriv_data, realtype time_step)
 {
-  // Get pointers to the derivative and state arrays
-  double *deriv_data = N_VGetArrayPointer(deriv);
-  double *state = model_data->state;
 
-  // Get the system dimensions
-  int n_cells = model_data->n_cells;
-  int n_dep_var = model_data->n_dep_var;
-  int n_state_var = model_data->n_state_var;
+  // Get the number of reactions
+  int *rxn_data = (int*) (model_data->rxn_data);
+  int n_rxn = *(rxn_data++);
 
-  // FIXME Move the rate constants to rxn_data
-  double *rate_constants = model_data->rate_constants;
+  // TODO remove once rate constants moved to rxn data
+  double *rate_constants =
+    &(model_data->rate_constants[model_data->grid_cell_id * n_rxn]);
 
-  // Loop through the grid cells
-  for (int i_cell=0; i_cell<n_cells; ++i_cell) {
+  // Loop through the reactions advancing the rxn_data pointer each time
+  for (int i_rxn=0; i_rxn<n_rxn; i_rxn++) {
 
-    // Get the number of reactions
-    int *rxn_data = (int*) (model_data->rxn_data);
-    int n_rxn = *(rxn_data++);
+    // Get the reaction type
+    int rxn_type = *(rxn_data++);
 
-    // Loop through the reactions advancing the rxn_data pointer each time
-    for (int i_rxn=0; i_rxn<n_rxn; i_rxn++) {
-
-      // Get the reaction type
-      int rxn_type = *(rxn_data++);
-
-      // Call the appropriate function
-      switch (rxn_type) {
-        case RXN_AQUEOUS_EQUILIBRIUM :
-          rxn_data = (int*) rxn_aqueous_equilibrium_calc_deriv_contrib(rate_constants,
-                 state, model_data, deriv_data, (void*) rxn_data, time_step);
-          break;
-        case RXN_ARRHENIUS :
-          rxn_data = (int*) rxn_arrhenius_calc_deriv_contrib(i_cell,
-                 state, model_data, deriv_data, (void*) rxn_data, time_step);
-          //rxn_data = (int*) rxn_arrhenius_skip((void*) rxn_data);
-          break;
-        case RXN_CMAQ_H2O2 :
-          rxn_data = (int*) rxn_CMAQ_H2O2_calc_deriv_contrib(rate_constants,
-                 state, model_data, deriv_data, (void*) rxn_data, time_step);
-          break;
-        case RXN_CMAQ_OH_HNO3 :
-          rxn_data = (int*) rxn_CMAQ_OH_HNO3_calc_deriv_contrib(rate_constants,
-                 state, model_data, deriv_data, (void*) rxn_data, time_step);
-          break;
-        case RXN_CONDENSED_PHASE_ARRHENIUS :
-          rxn_data = (int*) rxn_condensed_phase_arrhenius_calc_deriv_contrib(rate_constants,
-                 state, model_data, deriv_data, (void*) rxn_data, time_step);
-          break;
-        case RXN_EMISSION :
-          rxn_data = (int*) rxn_emission_calc_deriv_contrib(rate_constants,
-                 state, model_data, deriv_data, (void*) rxn_data, time_step);
-          break;
-        case RXN_FIRST_ORDER_LOSS :
-          rxn_data = (int*) rxn_first_order_loss_calc_deriv_contrib(rate_constants,
-                 state, model_data, deriv_data, (void*) rxn_data, time_step);
-          break;
-        case RXN_HL_PHASE_TRANSFER :
-          rxn_data = (int*) rxn_HL_phase_transfer_calc_deriv_contrib(rate_constants,
-                 state, model_data, deriv_data, (void*) rxn_data, time_step);
-          break;
-        case RXN_PHOTOLYSIS :
-          rxn_data = (int*) rxn_photolysis_calc_deriv_contrib(rate_constants,
-                 state, model_data, deriv_data, (void*) rxn_data, time_step);
-          break;
-        case RXN_SIMPOL_PHASE_TRANSFER :
-          rxn_data = (int*) rxn_SIMPOL_phase_transfer_calc_deriv_contrib(rate_constants,
-                 state, model_data, deriv_data, (void*) rxn_data, time_step);
-          break;
-        case RXN_TROE :
-          rxn_data = (int*) rxn_troe_calc_deriv_contrib(rate_constants,
-                 state, model_data, deriv_data, (void*) rxn_data, time_step);
-          break;
-        case RXN_WET_DEPOSITION :
-          rxn_data = (int*) rxn_wet_deposition_calc_deriv_contrib(rate_constants,
-                 state, model_data, deriv_data, (void*) rxn_data, time_step);;
-          break;
-      }
-      rate_constants++;
+    // Call the appropriate function
+    switch (rxn_type) {
+      case RXN_AQUEOUS_EQUILIBRIUM :
+        rxn_data = (int*) rxn_aqueous_equilibrium_calc_deriv_contrib(
+               rate_constants, model_data, deriv_data,
+               (void*) rxn_data, time_step);
+        break;
+      case RXN_ARRHENIUS :
+        rxn_data = (int*) rxn_arrhenius_calc_deriv_contrib(
+               model_data, deriv_data, (void*) rxn_data,
+               time_step);
+        break;
+      case RXN_CMAQ_H2O2 :
+        rxn_data = (int*) rxn_CMAQ_H2O2_calc_deriv_contrib(
+               rate_constants, model_data, deriv_data,
+               (void*) rxn_data, time_step);
+        break;
+      case RXN_CMAQ_OH_HNO3 :
+        rxn_data = (int*) rxn_CMAQ_OH_HNO3_calc_deriv_contrib(
+               rate_constants, model_data, deriv_data,
+               (void*) rxn_data, time_step);
+        break;
+      case RXN_CONDENSED_PHASE_ARRHENIUS :
+        rxn_data = (int*) rxn_condensed_phase_arrhenius_calc_deriv_contrib(
+               rate_constants, model_data, deriv_data,
+               (void*) rxn_data, time_step);
+        break;
+      case RXN_EMISSION :
+        rxn_data = (int*) rxn_emission_calc_deriv_contrib(
+               rate_constants, model_data, deriv_data,
+               (void*) rxn_data, time_step);
+        break;
+      case RXN_FIRST_ORDER_LOSS :
+        rxn_data = (int*) rxn_first_order_loss_calc_deriv_contrib(
+               rate_constants, model_data, deriv_data,
+               (void*) rxn_data, time_step);
+        break;
+      case RXN_HL_PHASE_TRANSFER :
+        rxn_data = (int*) rxn_HL_phase_transfer_calc_deriv_contrib(
+               rate_constants, model_data, deriv_data,
+               (void*) rxn_data, time_step);
+        break;
+      case RXN_PHOTOLYSIS :
+        rxn_data = (int*) rxn_photolysis_calc_deriv_contrib(
+               rate_constants, model_data, deriv_data,
+               (void*) rxn_data, time_step);
+        break;
+      case RXN_SIMPOL_PHASE_TRANSFER :
+        rxn_data = (int*) rxn_SIMPOL_phase_transfer_calc_deriv_contrib(
+               rate_constants, model_data, deriv_data,
+               (void*) rxn_data, time_step);
+        break;
+      case RXN_TROE :
+        rxn_data = (int*) rxn_troe_calc_deriv_contrib(
+               rate_constants, model_data, deriv_data,
+               (void*) rxn_data, time_step);
+        break;
+      case RXN_WET_DEPOSITION :
+        rxn_data = (int*) rxn_wet_deposition_calc_deriv_contrib(
+               rate_constants, model_data, deriv_data,
+               (void*) rxn_data, time_step);;
+        break;
     }
-    deriv_data += n_dep_var;
-    state += n_state_var;
+    rate_constants++;
   }
 }
 #endif
@@ -357,97 +350,92 @@ void rxn_calc_deriv(ModelData *model_data, N_Vector deriv, realtype time_step)
 /** \brief Calculate the Jacobian
  *
  * \param model_data Pointer to the model data
- * \param J Jacobian to be calculated
+ * \param J_data Pointer to the Jacobian to be calculated for the current
+ *               grid cell
  * \param time_step Current model time step (s)
  */
 #ifdef PMC_USE_SUNDIALS
-void rxn_calc_jac(ModelData *model_data, SUNMatrix J, realtype time_step)
+void rxn_calc_jac(ModelData *model_data, double *J_data, realtype time_step)
 {
-  // Get pointers to the Jacobian data and state array
-  double *J_data = SM_DATA_S(J);
-  double *state = model_data->state;
 
-  // Get the system dimensions
-  int n_cells = model_data->n_cells;
-  int n_state_var = model_data->n_state_var;
-  int n_jac_elem = model_data->n_jac_elem;
+  // Get the number of reactions
+  int *rxn_data = (int*) (model_data->rxn_data);
+  int n_rxn = *(rxn_data++);
 
-  // FIXME Move the rate constants to rxn_data
-  double *rate_constants = model_data->rate_constants;
+  // TODO remove once rate constants moved to rxn data
+  double *rate_constants =
+    &(model_data->rate_constants[model_data->grid_cell_id * n_rxn]);
 
-  //Loop through number of cells
-  for (int i_cell=0; i_cell<n_cells; ++i_cell) {
+  // Loop through the reactions advancing the rxn_data pointer each time
+  for (int i_rxn=0; i_rxn<n_rxn; i_rxn++) {
 
-    // Get the number of reactions
-    int *rxn_data = (int*) (model_data->rxn_data);
-    int n_rxn = *(rxn_data++);
+    // Get the reaction type
+    int rxn_type = *(rxn_data++);
 
-    // Loop through the reactions advancing the rxn_data pointer each time
-    for (int i_rxn=0; i_rxn<n_rxn; i_rxn++) {
-
-      // Get the reaction type
-      int rxn_type = *(rxn_data++);
-
-      // Call the appropriate function
-      switch (rxn_type) {
-        case RXN_AQUEOUS_EQUILIBRIUM :
-          rxn_data = (int*) rxn_aqueous_equilibrium_calc_jac_contrib(rate_constants,
-                   state, model_data, J_data, (void*) rxn_data, time_step);
-          break;
-        case RXN_ARRHENIUS :
-          rxn_data = (int*) rxn_arrhenius_calc_jac_contrib(i_cell,
-                   state, model_data, J_data, (void*) rxn_data, time_step);
-          //rxn_data = (int*) rxn_arrhenius_skip((void*) rxn_data);
-          break;
-        case RXN_CMAQ_H2O2 :
-          rxn_data = (int*) rxn_CMAQ_H2O2_calc_jac_contrib(rate_constants,
-                   state, model_data, J_data, (void*) rxn_data, time_step);
-          //rxn_data = (int*) rxn_CMAQ_H2O2_skip((void*) rxn_data);
-          break;
-        case RXN_CMAQ_OH_HNO3 :
-          rxn_data = (int*) rxn_CMAQ_OH_HNO3_calc_jac_contrib(rate_constants,
-                   state, model_data, J_data, (void*) rxn_data, time_step);
-          //rxn_data = (int*) rxn_CMAQ_OH_HNO3_skip((void*) rxn_data);
-          break;
-        case RXN_CONDENSED_PHASE_ARRHENIUS :
-          rxn_data = (int*) rxn_condensed_phase_arrhenius_calc_jac_contrib(rate_constants,
-                   state, model_data, J_data, (void*) rxn_data, time_step);
-          break;
-        case RXN_EMISSION :
-          rxn_data = (int*) rxn_emission_calc_jac_contrib(rate_constants,
-                   state, model_data, J_data, (void*) rxn_data, time_step);
-          break;
-        case RXN_FIRST_ORDER_LOSS :
-          rxn_data = (int*) rxn_first_order_loss_calc_jac_contrib(rate_constants,
-                   state, model_data, J_data, (void*) rxn_data, time_step);
-          break;
-        case RXN_HL_PHASE_TRANSFER :
-          rxn_data = (int*) rxn_HL_phase_transfer_calc_jac_contrib(rate_constants,
-                   state, model_data, J_data, (void*) rxn_data, time_step);
-          break;
-        case RXN_PHOTOLYSIS :
-          rxn_data = (int*) rxn_photolysis_calc_jac_contrib(rate_constants,
-                   state, model_data, J_data, (void*) rxn_data, time_step);
-          //rxn_data = (int*) rxn_photolysis_skip((void*) rxn_data);
-          break;
-        case RXN_SIMPOL_PHASE_TRANSFER :
-          rxn_data = (int*) rxn_SIMPOL_phase_transfer_calc_jac_contrib(rate_constants,
-                   state, model_data, J_data, (void*) rxn_data, time_step);
-          break;
-        case RXN_TROE :
-          rxn_data = (int*) rxn_troe_calc_jac_contrib(rate_constants,
-                   state, model_data, J_data, (void*) rxn_data, time_step);
-          //rxn_data = (int*) rxn_troe_skip((void*) rxn_data);
-          break;
-        case RXN_WET_DEPOSITION :
-          rxn_data = (int*) rxn_wet_deposition_calc_jac_contrib(rate_constants,
-                   state, model_data, J_data, (void*) rxn_data, time_step);
-          break;
-      }
-      rate_constants++;
+    // Call the appropriate function
+    switch (rxn_type) {
+      case RXN_AQUEOUS_EQUILIBRIUM :
+        rxn_data = (int*) rxn_aqueous_equilibrium_calc_jac_contrib(
+                 rate_constants, model_data, J_data,
+                 (void*) rxn_data, time_step);
+        break;
+      case RXN_ARRHENIUS :
+        rxn_data = (int*) rxn_arrhenius_calc_jac_contrib(
+                 model_data, J_data, (void*) rxn_data,
+                 time_step);
+        break;
+      case RXN_CMAQ_H2O2 :
+        rxn_data = (int*) rxn_CMAQ_H2O2_calc_jac_contrib(
+                 rate_constants, model_data, J_data,
+                 (void*) rxn_data, time_step);
+        break;
+      case RXN_CMAQ_OH_HNO3 :
+        rxn_data = (int*) rxn_CMAQ_OH_HNO3_calc_jac_contrib(
+                 rate_constants, model_data, J_data,
+                 (void*) rxn_data, time_step);
+        break;
+      case RXN_CONDENSED_PHASE_ARRHENIUS :
+        rxn_data = (int*) rxn_condensed_phase_arrhenius_calc_jac_contrib(
+                 rate_constants, model_data, J_data,
+                 (void*) rxn_data, time_step);
+        break;
+      case RXN_EMISSION :
+        rxn_data = (int*) rxn_emission_calc_jac_contrib(
+                 rate_constants, model_data, J_data,
+                 (void*) rxn_data, time_step);
+        break;
+      case RXN_FIRST_ORDER_LOSS :
+        rxn_data = (int*) rxn_first_order_loss_calc_jac_contrib(
+                 rate_constants, model_data, J_data,
+                 (void*) rxn_data, time_step);
+        break;
+      case RXN_HL_PHASE_TRANSFER :
+        rxn_data = (int*) rxn_HL_phase_transfer_calc_jac_contrib(
+                 rate_constants, model_data, J_data,
+                 (void*) rxn_data, time_step);
+        break;
+      case RXN_PHOTOLYSIS :
+        rxn_data = (int*) rxn_photolysis_calc_jac_contrib(
+                 rate_constants, model_data, J_data,
+                 (void*) rxn_data, time_step);
+        break;
+      case RXN_SIMPOL_PHASE_TRANSFER :
+        rxn_data = (int*) rxn_SIMPOL_phase_transfer_calc_jac_contrib(
+                 rate_constants, model_data, J_data,
+                 (void*) rxn_data, time_step);
+        break;
+      case RXN_TROE :
+        rxn_data = (int*) rxn_troe_calc_jac_contrib(
+                 rate_constants, model_data, J_data,
+                 (void*) rxn_data, time_step);
+        break;
+      case RXN_WET_DEPOSITION :
+        rxn_data = (int*) rxn_wet_deposition_calc_jac_contrib(
+                 rate_constants, model_data, J_data,
+                 (void*) rxn_data, time_step);
+        break;
     }
-    J_data += n_jac_elem;
-    state += n_state_var;
+    rate_constants++;
   }
 }
 #endif

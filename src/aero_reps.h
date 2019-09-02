@@ -19,29 +19,23 @@ int aero_rep_modal_binned_mass_get_used_jac_elem(
 void * aero_rep_modal_binned_mass_get_dependencies(
           void *aero_rep_data, bool *state_flags);
 void * aero_rep_modal_binned_mass_update_env_state(
-          double *env_data, void *aero_rep_data);
+          ModelData *model_data, void *aero_rep_data);
 void * aero_rep_modal_binned_mass_update_state(
           ModelData *model_data, void *aero_rep_data);
-void *aero_rep_modal_binned_mass_get_effective_radius(ModelData *model_data,
-                                                      int aero_phase_idx,
-                                                      double *radius,
-                                                      double *partial_deriv,
-                                                      void *aero_rep_data);
-void *aero_rep_modal_binned_mass_get_number_conc(ModelData *model_data,
-                                                 int aero_phase_idx,
-                                                 double *number_conc,
-                                                 double *partial_deriv,
-                                                 void *aero_rep_data);
+void *aero_rep_modal_binned_mass_get_effective_radius(
+          ModelData *model_data, int aero_phase_idx, double *radius,
+          double *partial_deriv, void *aero_rep_data);
+void *aero_rep_modal_binned_mass_get_number_conc(
+          ModelData *model_data, int aero_phase_idx, double *number_conc,
+          double *partial_deriv, void *aero_rep_data);
 void * aero_rep_modal_binned_mass_get_aero_conc_type(
           int aero_phase_idx, int *aero_conc_type, void *aero_rep_data);
-void *aero_rep_modal_binned_mass_get_aero_phase_mass(ModelData *model_data,
-                                                     int aero_phase_idx,
-                                                     double *aero_phase_mass,
-                                                     double *partial_deriv,
-                                                     void *aero_rep_data);
+void *aero_rep_modal_binned_mass_get_aero_phase_mass(
+          ModelData *model_data, int aero_phase_idx, double *aero_phase_mass,
+          double *partial_deriv, void *aero_rep_data);
 void *aero_rep_modal_binned_mass_get_aero_phase_avg_MW(
-    ModelData *model_data, int aero_phase_idx, double *aero_phase_avg_MW,
-    double *partial_deriv, void *aero_rep_data);
+          ModelData *model_data, int aero_phase_idx, double *aero_phase_avg_MW,
+          double *partial_deriv, void *aero_rep_data);
 void * aero_rep_modal_binned_mass_update_data(
           void *update_data, void *aero_rep_data);
 void * aero_rep_modal_binned_mass_print(
@@ -62,31 +56,23 @@ int aero_rep_single_particle_get_used_jac_elem(
 void * aero_rep_single_particle_get_dependencies(
           void *aero_rep_data, bool *state_flags);
 void * aero_rep_single_particle_update_env_state(
-          double *env_data, void *aero_rep_data);
+          ModelData *model_data, void *aero_rep_data);
 void * aero_rep_single_particle_update_state(
           ModelData *model_data, void *aero_rep_data);
-void *aero_rep_single_particle_get_effective_radius(ModelData *model_data,
-                                                    int aero_phase_idx,
-                                                    double *radius,
-                                                    double *partial_deriv,
-                                                    void *aero_rep_data);
-void *aero_rep_single_particle_get_number_conc(ModelData *model_data,
-                                               int aero_phase_idx,
-                                               double *number_conc,
-                                               double *partial_deriv,
-                                               void *aero_rep_data);
+void *aero_rep_single_particle_get_effective_radius(
+          ModelData *model_data, int aero_phase_idx, double *radius,
+          double *partial_deriv, void *aero_rep_data);
+void *aero_rep_single_particle_get_number_conc(
+          ModelData *model_data, int aero_phase_idx, double *number_conc,
+          double *partial_deriv, void *aero_rep_data);
 void * aero_rep_single_particle_get_aero_conc_type(
           int aero_phase_idx, int *aero_conc_type, void *aero_rep_data);
-void *aero_rep_single_particle_get_aero_phase_mass(ModelData *model_data,
-                                                   int aero_phase_idx,
-                                                   double *aero_phase_mass,
-                                                   double *partial_deriv,
-                                                   void *aero_rep_data);
-void *aero_rep_single_particle_get_aero_phase_avg_MW(ModelData *model_data,
-                                                     int aero_phase_idx,
-                                                     double *aero_phase_avg_MW,
-                                                     double *partial_deriv,
-                                                     void *aero_rep_data);
+void *aero_rep_single_particle_get_aero_phase_mass(
+          ModelData *model_data, int aero_phase_idx, double *aero_phase_mass,
+          double *partial_deriv, void *aero_rep_data);
+void *aero_rep_single_particle_get_aero_phase_avg_MW(
+          ModelData *model_data, int aero_phase_idx, double *aero_phase_avg_MW,
+          double *partial_deriv, void *aero_rep_data);
 void * aero_rep_single_particle_update_data(
           void *update_data, void *aero_rep_data);
 void * aero_rep_single_particle_print(

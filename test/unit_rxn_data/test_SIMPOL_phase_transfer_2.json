@@ -97,9 +97,7 @@
 	"B" : [ -1.97E+03, 2.91E+00, 1.96E-03, -4.96E-01 ]
       }
     ]
-  }
-  ],
-  "not used": [
+  },
   {
     "name" : "ethanol/water activity",
     "type" : "SUB_MODEL_UNIFAC",

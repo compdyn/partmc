@@ -102,14 +102,15 @@ void * rxn_troe_update_ids(ModelData *model_data, int *deriv_ids,
  * For Troe reaction this only involves recalculating the rate
  * constant.
  *
- * \param env_data Pointer to the environmental state array
+ * \param model_data Pointer to the model data
  * \param rxn_data Pointer to the reaction data
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_troe_update_env_state(double *rate_constants, double *env_data, void *rxn_data)
+void * rxn_troe_update_env_state(double *rate_constants, ModelData *model_data, void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  double *env_data = model_data->grid_cell_env;
 
   // Calculate the rate constant in (#/cc)
   // k = (k0[M] / (1 + k0[M]/kinf)) * Fc^(1/(1+(1/N*log(k0[M]/kinf))^2))
@@ -144,15 +145,16 @@ void * rxn_troe_update_env_state(double *rate_constants, double *env_data, void 
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-void * rxn_troe_calc_deriv_contrib(double *rate_constants, double *state, ModelData *model_data, realtype *deriv,
+void * rxn_troe_calc_deriv_contrib(double *rate_constants, ModelData *model_data, realtype *deriv,
           void *rxn_data, double time_step)
 {
-  //realtype *state = model_data->state;
   int *int_data = (int*) rxn_data;
   realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  double *state    = model_data->grid_cell_state;
+  double *env_data = model_data->grid_cell_env;
+  int cell_id      = model_data->grid_cell_id;
 
   // Calculate the reaction rate
-  //realtype rate = RATE_CONSTANT_;
   realtype rate = rate_constants[0];
   for (int i_spec=0; i_spec<NUM_REACT_; i_spec++)
           rate *= state[REACT_(i_spec)];
@@ -188,32 +190,35 @@ void * rxn_troe_calc_deriv_contrib(double *rate_constants, double *state, ModelD
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-void * rxn_troe_calc_jac_contrib(double *rate_constants, double *state, ModelData *model_data, realtype *J,
+void * rxn_troe_calc_jac_contrib(double *rate_constants, ModelData *model_data, realtype *J,
           void *rxn_data, double time_step)
 {
-  //realtype *state = model_data->state;
   int *int_data = (int*) rxn_data;
   realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
-
-  // Calculate the reaction rate
-  //realtype rate = RATE_CONSTANT_;
-  realtype rate = rate_constants[0];
-  for (int i_spec=0; i_spec<NUM_REACT_; i_spec++)
-          rate *= state[REACT_(i_spec)];
+  double *state    = model_data->grid_cell_state;
+  double *env_data = model_data->grid_cell_env;
+  int cell_id      = model_data->grid_cell_id;
 
   // Add contributions to the Jacobian
   int i_elem = 0;
   for (int i_ind=0; i_ind<NUM_REACT_; i_ind++) {
+
+    // Calculate d_rate / d_i_ind
+    realtype rate = rate_constants[0];
+    for (int i_spec=0; i_spec<NUM_REACT_; i_spec++)
+      if (i_ind!=i_spec) rate *= state[REACT_(i_spec)];
+
     for (int i_dep=0; i_dep<NUM_REACT_; i_dep++, i_elem++) {
       if (JAC_ID_(i_elem) < 0) continue;
-      J[JAC_ID_(i_elem)] -= rate / state[REACT_(i_ind)];
+      J[JAC_ID_(i_elem)] -= rate;
     }
     for (int i_dep=0; i_dep<NUM_PROD_; i_dep++, i_elem++) {
       if (JAC_ID_(i_elem) < 0) continue;
       // Negative yields are allowed, but prevented from causing negative
       // concentrations that lead to solver failures
-      if (-rate*YIELD_(i_dep)*time_step <= state[PROD_(i_dep)]) {
-	J[JAC_ID_(i_elem)] += YIELD_(i_dep) * rate / state[REACT_(i_ind)];
+      if (-rate * state[REACT_(i_ind)] * YIELD_(i_dep) * time_step
+          <= state[PROD_(i_dep)]) {
+	J[JAC_ID_(i_elem)] += YIELD_(i_dep) * rate;
       }
     }
   }

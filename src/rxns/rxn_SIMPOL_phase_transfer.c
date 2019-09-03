@@ -62,22 +62,20 @@
 #define NUM_CONC_JAC_ELEM_(x,e) float_data[PHASE_FLOAT_LOC_(x)+NUM_AERO_PHASE_JAC_ELEM_(x)+e]
 #define MASS_JAC_ELEM_(x,e) float_data[PHASE_FLOAT_LOC_(x)+2*NUM_AERO_PHASE_JAC_ELEM_(x)+e]
 #define MW_JAC_ELEM_(x,e) float_data[PHASE_FLOAT_LOC_(x)+3*NUM_AERO_PHASE_JAC_ELEM_(x)+e]
-#define INT_DATA_SIZE_ (PHASE_INT_LOC_(NUM_AERO_PHASE_-1)+1+2*NUM_AERO_PHASE_JAC_ELEM_(NUM_AERO_PHASE_-1))
-#define FLOAT_DATA_SIZE_ (PHASE_FLOAT_LOC_(NUM_AERO_PHASE_-1)+4*NUM_AERO_PHASE_JAC_ELEM_(NUM_AERO_PHASE_-1))
 
 /** \brief Flag Jacobian elements used by this reaction
  *
  * \param model_data Pointer to the model data
- * \param rxn_data A pointer to the reaction data
+ * \param rxn_int_data Pointer to the reaction integer data
+ * \param rxn_float_data Pointer to the reaction floating-point data
  * \param jac_struct 2D array of flags indicating potentially non-zero
  *                   Jacobian elements
- * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_SIMPOL_phase_transfer_get_used_jac_elem(ModelData *model_data,
-          void *rxn_data, bool **jac_struct)
+void rxn_SIMPOL_phase_transfer_get_used_jac_elem(ModelData *model_data,
+          int *rxn_int_data, double *rxn_float_data, bool **jac_struct)
 {
-  int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  int *int_data = rxn_int_data;
+  double *float_data = rxn_float_data;
 
   bool *aero_jac_elem = (bool*) malloc(sizeof(bool) * model_data->n_state_var);
   if (aero_jac_elem==NULL) {
@@ -122,7 +120,7 @@ void * rxn_SIMPOL_phase_transfer_get_used_jac_elem(ModelData *model_data,
     if (i_used_elem != n_jac_elem) {
       printf("\n\nERROR setting used Jacobian elements in SIMPOL phase "
              "transfer reaction %d %d\n\n", i_used_elem, n_jac_elem);
-      rxn_SIMPOL_phase_transfer_print(rxn_data);
+      rxn_SIMPOL_phase_transfer_print(rxn_int_data, rxn_float_data);
       exit(1);
     }
 
@@ -130,7 +128,7 @@ void * rxn_SIMPOL_phase_transfer_get_used_jac_elem(ModelData *model_data,
 
   free(aero_jac_elem);
 
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
+  return;
 }
 
 /** \brief Update the time derivative and Jacbobian array indices
@@ -138,14 +136,15 @@ void * rxn_SIMPOL_phase_transfer_get_used_jac_elem(ModelData *model_data,
  * \param model_data Pointer to the model data for finding sub model ids
  * \param deriv_ids Id of each state variable in the derivative array
  * \param jac_ids Id of each state variable combo in the Jacobian array
- * \param rxn_data Pointer to the reaction data
- * \return The rxn_data pointer advanced by the size of the reaction data
+ * \param rxn_int_data Pointer to the reaction integer data
+ * \param rxn_float_data Pointer to the reaction floating-point data
  */
-void * rxn_SIMPOL_phase_transfer_update_ids(ModelData *model_data,
-          int *deriv_ids, int **jac_ids, void *rxn_data)
+void rxn_SIMPOL_phase_transfer_update_ids(ModelData *model_data,
+          int *deriv_ids, int **jac_ids, int *rxn_int_data,
+          double *rxn_float_data)
 {
-  int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  int *int_data = rxn_int_data;
+  double *float_data = rxn_float_data;
 
   // Update the time derivative ids
   DERIV_ID_(0) = deriv_ids[GAS_SPEC_];
@@ -189,7 +188,7 @@ void * rxn_SIMPOL_phase_transfer_update_ids(ModelData *model_data,
   SMALL_NUMBER_ = ( abs_tol[GAS_SPEC_] > abs_tol[AERO_SPEC_(0)] ?
                     abs_tol[AERO_SPEC_(0)] / 10.0 : abs_tol[GAS_SPEC_] / 10.0 );
 
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
+  return;
 }
 
 /** \brief Update reaction data for new environmental conditions
@@ -198,14 +197,14 @@ void * rxn_SIMPOL_phase_transfer_update_ids(ModelData *model_data,
  * constant.
  *
  * \param env_data Pointer to the environmental state array
- * \param rxn_data Pointer to the reaction data
- * \return The rxn_data pointer advanced by the size of the reaction data
+ * \param rxn_int_data Pointer to the reaction integer data
+ * \param rxn_float_data Pointer to the reaction floating-point data
  */
-void * rxn_SIMPOL_phase_transfer_update_env_state(double *env_data,
-          void *rxn_data)
+void rxn_SIMPOL_phase_transfer_update_env_state(double *env_data,
+          int *rxn_int_data, double *rxn_float_data)
 {
-  int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  int *int_data = rxn_int_data;
+  double *float_data = rxn_float_data;
 
   // Calculate the mass accomodation coefficient if the N* parameter
   // was provided, otherwise set it to 1.0
@@ -239,7 +238,7 @@ void * rxn_SIMPOL_phase_transfer_update_env_state(double *env_data,
                   * 1.0e6;             // 1.0e6ppm_x*Pa_air/Pa_x *
                                        //  1.0e-9kg_x/ug_x * 1.0e9ug_tot/kg_tot
 
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
+  return;
 }
 
 /** \brief Calculate the overall per-particle reaction rate ([ppm]/s)
@@ -248,19 +247,20 @@ void * rxn_SIMPOL_phase_transfer_update_env_state(double *env_data,
  * reaction rate on a per-particle basis, trying to avoid floating-point
  * subtraction errors.
  *
- * \param rxn_data Pointer to the reaction data
+ * \param rxn_int_data Pointer to the reaction integer data
+ * \param rxn_float_data Pointer to the reaction floating-point data
  * \param state State array
  * \param cond_rc Condensation rate constant ([ppm]^(-n_react+1)s^-1)
  * \param evap_rc Evaporation rate constant ([ppm]^(-n_prod+1)s^-1)
  * \param i_phase Index for the aerosol phase being calculated
- * \return The calculated overall rate ([ppm]/s)
  */
 #ifdef PMC_USE_SUNDIALS
-realtype rxn_SIMPOL_phase_transfer_calc_overall_rate(void *rxn_data,
-          realtype *state, realtype cond_rc, realtype evap_rc, int i_phase)
+realtype rxn_SIMPOL_phase_transfer_calc_overall_rate(int *rxn_int_data,
+    double *rxn_float_data, realtype *state, realtype cond_rc,
+    realtype evap_rc, int i_phase)
 {
-  int *int_data = (int*) rxn_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  int *int_data = rxn_int_data;
+  double *float_data = rxn_float_data;
 
   // Calculate the overall rate.
   // These equations are set up to try to avoid loss of accuracy from
@@ -291,18 +291,19 @@ realtype rxn_SIMPOL_phase_transfer_calc_overall_rate(void *rxn_data,
  *
  * \param model_data Pointer to the model data, including the state array
  * \param deriv Pointer to the time derivative to add contributions to
- * \param rxn_data Pointer to the reaction data
+ * \param rxn_int_data Pointer to the reaction integer data
+ * \param rxn_float_data Pointer to the reaction floating-point data
  * \param time_step Current time step being computed (s)
- * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-void * rxn_SIMPOL_phase_transfer_calc_deriv_contrib(ModelData *model_data,
-          realtype *deriv, void *rxn_data, double time_step)
+void rxn_SIMPOL_phase_transfer_calc_deriv_contrib(ModelData *model_data,
+          realtype *deriv, int *rxn_int_data, double *rxn_float_data,
+          double time_step)
 {
   realtype *state = model_data->state;
   realtype *env_data = model_data->env;
-  int *int_data = (int*) rxn_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  int *int_data = rxn_int_data;
+  double *float_data = rxn_float_data;
 
   // Calculate derivative contributions for each aerosol phase
   for (int i_phase=0; i_phase<NUM_AERO_PHASE_; i_phase++) {
@@ -376,7 +377,8 @@ void * rxn_SIMPOL_phase_transfer_calc_deriv_contrib(ModelData *model_data,
     evap_rate *= act_coeff;
 
     // Calculate the overall rate
-    realtype rate = rxn_SIMPOL_phase_transfer_calc_overall_rate(rxn_data,
+    realtype rate = rxn_SIMPOL_phase_transfer_calc_overall_rate(
+                        rxn_int_data, rxn_float_data,
                         state, cond_rate, evap_rate, i_phase);
 
     // Change in the gas-phase is evaporation - condensation (ppm/s)
@@ -389,7 +391,7 @@ void * rxn_SIMPOL_phase_transfer_calc_deriv_contrib(ModelData *model_data,
     }
   }
 
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
+  return;
 
 }
 #endif
@@ -398,18 +400,19 @@ void * rxn_SIMPOL_phase_transfer_calc_deriv_contrib(ModelData *model_data,
  *
  * \param model_data Pointer to the model data
  * \param J Pointer to the sparse Jacobian matrix to add contributions to
- * \param rxn_data Pointer to the reaction data
+ * \param rxn_int_data Pointer to the reaction integer data
+ * \param rxn_float_data Pointer to the reaction floating-point data
  * \param time_step Current time step being calculated (s)
- * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-void * rxn_SIMPOL_phase_transfer_calc_jac_contrib(ModelData *model_data,
-          realtype *J, void *rxn_data, double time_step)
+void rxn_SIMPOL_phase_transfer_calc_jac_contrib(ModelData *model_data,
+          realtype *J, int *rxn_int_data, double *rxn_float_data,
+          double time_step)
 {
   realtype *state = model_data->state;
   realtype *env_data = model_data->env;
-  int *int_data = (int*) rxn_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  int *int_data = rxn_int_data;
+  double *float_data = rxn_float_data;
 
   // Calculate derivative contributions for each aerosol phase
   for (int i_phase=0; i_phase<NUM_AERO_PHASE_; i_phase++) {
@@ -504,7 +507,8 @@ void * rxn_SIMPOL_phase_transfer_calc_jac_contrib(ModelData *model_data,
 
     // Get the overall rates
     evap_rate *= act_coeff;
-    realtype rate = rxn_SIMPOL_phase_transfer_calc_overall_rate(rxn_data,
+    realtype rate = rxn_SIMPOL_phase_transfer_calc_overall_rate(
+        rxn_int_data, rxn_float_data,
         state, cond_rate, evap_rate, i_phase);
     cond_rate *= state[GAS_SPEC_];
     evap_rate *= state[AERO_SPEC_(i_phase)];
@@ -565,39 +569,23 @@ void * rxn_SIMPOL_phase_transfer_calc_jac_contrib(ModelData *model_data,
 
   }
 
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
+  return;
 
 }
 #endif
 
-/** \brief Advance the reaction data pointer to the next reaction
- *
- * \param rxn_data Pointer to the reaction data
- * \return The rxn_data pointer advanced by the size of the reaction data
- */
-void * rxn_SIMPOL_phase_transfer_skip(void *rxn_data)
-{
-  int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
-
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
-}
-
 /** \brief Print the Phase Transfer reaction parameters
  *
- * \param rxn_data Pointer to the reaction data
- * \return The rxn_data pointer advanced by the size of the reaction data
+ * \param rxn_int_data Pointer to the reaction integer data
+ * \param rxn_float_data Pointer to the reaction floating-point data
  */
-void * rxn_SIMPOL_phase_transfer_print(void *rxn_data)
+void rxn_SIMPOL_phase_transfer_print(int *rxn_int_data,
+    double *rxn_float_data)
 {
-  int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  int *int_data = rxn_int_data;
+  double *float_data = rxn_float_data;
 
   printf("\n\nSIMPOL.1 Phase Transfer reaction\n");
-  for (int i=0; i<INT_DATA_SIZE_; i++)
-    printf("  int param %d = %d\n", i, int_data[i]);
-  for (int i=0; i<FLOAT_DATA_SIZE_; i++)
-    printf("  float param %d = %le\n", i, float_data[i]);
   printf("\ndelta H: %le delta S: %le diffusion coeff: %le preC_avg: %le",
          DELTA_H_, DELTA_S_, DIFF_COEFF_, PRE_C_AVG_);
   printf("\nB1: %le B2: %le B3:%le B4: %le", B1_, B2_, B3_, B4_);
@@ -642,5 +630,5 @@ void * rxn_SIMPOL_phase_transfer_print(void *rxn_data)
       printf(" %le", MW_JAC_ELEM_(i, j));
   }
 
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
+  return;
 }

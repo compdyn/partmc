@@ -26,24 +26,23 @@
 #define RATE_CONSTANT_ float_data[2]
 #define NUM_INT_PROP_ 4
 #define NUM_FLOAT_PROP_ 3
-#define INT_DATA_SIZE_ (NUM_INT_PROP_)
-#define FLOAT_DATA_SIZE_ (NUM_FLOAT_PROP_)
 
 /** \brief Flag Jacobian elements used by this reaction
  *
- * \param rxn_data A pointer to the reaction data
+ * \param rxn_int_data Pointer to the reaction integer data
+ * \param rxn_float_data Pointer to the reaction floating-point data
  * \param jac_struct 2D array of flags indicating potentially non-zero
  *                   Jacobian elements
- * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_first_order_loss_get_used_jac_elem(void *rxn_data, bool **jac_struct)
+void rxn_first_order_loss_get_used_jac_elem(int *rxn_int_data,
+    double *rxn_float_data, bool **jac_struct)
 {
-  int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  int *int_data = rxn_int_data;
+  double *float_data = rxn_float_data;
 
   jac_struct[REACT_][REACT_] = true;
 
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
+  return;
 }
 
 /** \brief Update the time derivative and Jacbobian array indices
@@ -51,14 +50,14 @@ void * rxn_first_order_loss_get_used_jac_elem(void *rxn_data, bool **jac_struct)
  * \param model_data Pointer to the model data
  * \param deriv_ids Id of each state variable in the derivative array
  * \param jac_ids Id of each state variable combo in the Jacobian array
- * \param rxn_data Pointer to the reaction data
- * \return The rxn_data pointer advanced by the size of the reaction data
+ * \param rxn_int_data Pointer to the reaction integer data
+ * \param rxn_float_data Pointer to the reaction floating-point data
  */
-void * rxn_first_order_loss_update_ids(ModelData *model_data, int *deriv_ids,
-          int **jac_ids, void *rxn_data)
+void rxn_first_order_loss_update_ids(ModelData *model_data, int *deriv_ids,
+          int **jac_ids, int *rxn_int_data, double *rxn_float_data)
 {
-  int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  int *int_data = rxn_int_data;
+  double *float_data = rxn_float_data;
 
   // Update the time derivative id
   DERIV_ID_ = deriv_ids[REACT_];
@@ -66,7 +65,7 @@ void * rxn_first_order_loss_update_ids(ModelData *model_data, int *deriv_ids,
   // Update the Jacobian id
   JAC_ID_ = jac_ids[REACT_][REACT_];
 
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
+  return;
 }
 
 /** \brief Update reaction data
@@ -82,13 +81,14 @@ void * rxn_first_order_loss_update_ids(ModelData *model_data, int *deriv_ids,
  *  - \b double rate_const (New pre-scaling rate constant.)
  *
  * \param update_data Pointer to the updated reaction data
- * \param rxn_data Pointer to the reaction data
- * \return The rxn_data pointer advanced by the size of the reaction data
+ * \param rxn_int_data Pointer to the reaction integer data
+ * \param rxn_float_data Pointer to the reaction floating-point data
  */
-void * rxn_first_order_loss_update_data(void *update_data, void *rxn_data)
+void rxn_first_order_loss_update_data(void *update_data, int *rxn_int_data,
+    double *rxn_float_data)
 {
-  int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  int *int_data = rxn_int_data;
+  double *float_data = rxn_float_data;
 
   int *rxn_id = (int*) update_data;
   double *base_rate = (double*) &(rxn_id[1]);
@@ -97,7 +97,7 @@ void * rxn_first_order_loss_update_data(void *update_data, void *rxn_data)
   if (*rxn_id==RXN_ID_ && RXN_ID_!=0)
           BASE_RATE_ = (double) *base_rate;
 
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
+  return;
 }
 
 /** \brief Update reaction data for new environmental conditions
@@ -106,18 +106,19 @@ void * rxn_first_order_loss_update_data(void *update_data, void *rxn_data)
  * constant.
  *
  * \param env_data Pointer to the environmental state array
- * \param rxn_data Pointer to the reaction data
- * \return The rxn_data pointer advanced by the size of the reaction data
+ * \param rxn_int_data Pointer to the reaction integer data
+ * \param rxn_float_data Pointer to the reaction floating-point data
  */
-void * rxn_first_order_loss_update_env_state(double *env_data, void *rxn_data)
+void rxn_first_order_loss_update_env_state(double *env_data, int *rxn_int_data,
+    double *rxn_float_data)
 {
-  int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  int *int_data = rxn_int_data;
+  double *float_data = rxn_float_data;
 
   // Calculate the rate constant in (1/s)
   RATE_CONSTANT_ = SCALING_ * BASE_RATE_;
 
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
+  return;
 }
 
 /** \brief Calculate contributions to the time derivative \f$f(t,y)\f$ from
@@ -125,17 +126,18 @@ void * rxn_first_order_loss_update_env_state(double *env_data, void *rxn_data)
  *
  * \param model_data Pointer to the model data, including the state array
  * \param deriv Pointer to the time derivative to add contributions to
- * \param rxn_data Pointer to the reaction data
+ * \param rxn_int_data Pointer to the reaction integer data
+ * \param rxn_float_data Pointer to the reaction floating-point data
  * \param time_step Current time step being computed (s)
- * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-void * rxn_first_order_loss_calc_deriv_contrib(ModelData *model_data,
-          realtype *deriv, void *rxn_data, double time_step)
+void rxn_first_order_loss_calc_deriv_contrib(ModelData *model_data,
+          realtype *deriv, int *rxn_int_data, double *rxn_float_data,
+          double time_step)
 {
   realtype *state = model_data->state;
-  int *int_data = (int*) rxn_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  int *int_data = rxn_int_data;
+  double *float_data = rxn_float_data;
 
   // Calculate the reaction rate
   realtype rate = RATE_CONSTANT_ * state[REACT_];
@@ -143,7 +145,7 @@ void * rxn_first_order_loss_calc_deriv_contrib(ModelData *model_data,
   // Add contributions to the time derivative
   if (DERIV_ID_ >= 0) deriv[DERIV_ID_] -= rate;
 
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
+  return;
 
 }
 #endif
@@ -152,56 +154,52 @@ void * rxn_first_order_loss_calc_deriv_contrib(ModelData *model_data,
  *
  * \param model_data Pointer to the model data
  * \param J Pointer to the sparse Jacobian matrix to add contributions to
- * \param rxn_data Pointer to the reaction data
+ * \param rxn_int_data Pointer to the reaction integer data
+ * \param rxn_float_data Pointer to the reaction floating-point data
  * \param time_step Current time step being calculated (s)
- * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-void * rxn_first_order_loss_calc_jac_contrib(ModelData *model_data, realtype *J,
-          void *rxn_data, double time_step)
+void rxn_first_order_loss_calc_jac_contrib(ModelData *model_data, realtype *J,
+          int *rxn_int_data, double *rxn_float_data, double time_step)
 {
   realtype *state = model_data->state;
-  int *int_data = (int*) rxn_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  int *int_data = rxn_int_data;
+  double *float_data = rxn_float_data;
 
   // Add contributions to the Jacobian
   if (JAC_ID_ >= 0) J[JAC_ID_] -= RATE_CONSTANT_;
 
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
+  return;
 
 }
 #endif
 
 /** \brief Advance the reaction data pointer to the next reaction
  *
- * \param rxn_data Pointer to the reaction data
- * \return The rxn_data pointer advanced by the size of the reaction data
+ * \param rxn_int_data Pointer to the reaction integer data
+ * \param rxn_float_data Pointer to the reaction floating-point data
  */
-void * rxn_first_order_loss_skip(void *rxn_data)
+void rxn_first_order_loss_skip(int *rxn_int_data, double *rxn_float_data)
 {
-  int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  int *int_data = rxn_int_data;
+  double *float_data = rxn_float_data;
 
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
+  return;
 }
 
 /** \brief Print the reaction parameters
  *
- * \param rxn_data Pointer to the reaction data
- * \return The rxn_data pointer advanced by the size of the reaction data
+ * \param rxn_int_data Pointer to the reaction integer data
+ * \param rxn_float_data Pointer to the reaction floating-point data
  */
-void * rxn_first_order_loss_print(void *rxn_data)
+void rxn_first_order_loss_print(int *rxn_int_data, double *rxn_float_data)
 {
-  int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  int *int_data = rxn_int_data;
+  double *float_data = rxn_float_data;
 
   printf("\n\nFirst-Order loss reaction\n");
-  for (int i=0; i<INT_DATA_SIZE_; i++)
-    printf("  int param %d = %d\n", i, int_data[i]);
-  for (int i=0; i<FLOAT_DATA_SIZE_; i++)
-    printf("  float param %d = %le\n", i, float_data[i]);
 
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
+  return;
 }
 
 /** \brief Create update data for new first-order loss rates
@@ -232,18 +230,3 @@ void rxn_first_order_loss_set_rate_update_data(void *update_data, int rxn_id,
   *new_rxn_id = rxn_id;
   *new_base_rate = base_rate;
 }
-
-#undef TEMPERATURE_K_
-#undef PRESSURE_PA_
-
-#undef RXN_ID_
-#undef REACT_
-#undef DERIV_ID_
-#undef JAC_ID_
-#undef BASE_RATE_
-#undef SCALING_
-#undef RATE_CONSTANT_
-#undef NUM_INT_PROP_
-#undef NUM_FLOAT_PROP_
-#undef INT_DATA_SIZE_
-#undef FLOAT_DATA_SIZE_

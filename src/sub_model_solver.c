@@ -416,16 +416,7 @@ void sub_model_update_data(int update_sub_model_type, void *update_data,
     // Skip sub-models of other types
     if (sub_model_type!=update_sub_model_type) continue;
 
-    // ... otherwise, call the update function for sub-model types that have
-    // then
-    switch (sub_model_type) {
-      case SUB_MODEL_PDFITE :
-        break;
-      case SUB_MODEL_UNIFAC :
-        break;
-      case SUB_MODEL_ZSR_AEROSOL_WATER :
-        break;
-    }
+    // Currently there are no sub-models with update data functions
   }
 }
 

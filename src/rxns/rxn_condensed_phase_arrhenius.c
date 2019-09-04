@@ -35,21 +35,19 @@
 #define JAC_ID_(x) (int_data[NUM_INT_PROP_+(2*(NUM_REACT_+NUM_PROD_)+1)*NUM_AERO_PHASE_+x])
 #define YIELD_(x) (float_data[NUM_FLOAT_PROP_+x])
 #define UGM3_TO_MOLM3_(x) (float_data[NUM_FLOAT_PROP_+NUM_PROD_+x])
-#define INT_DATA_SIZE_ (NUM_INT_PROP_+((NUM_REACT_+NUM_PROD_)*(NUM_REACT_+3)+1)*NUM_AERO_PHASE_)
-#define FLOAT_DATA_SIZE_ (NUM_FLOAT_PROP_+2*NUM_PROD_+NUM_REACT_)
 
 /** \brief Flag Jacobian elements used by this reaction
  *
- * \param rxn_data A pointer to the reaction data
+ * \param rxn_int_data Pointer to the reaction integer data
+ * \param rxn_float_data Pointer to the reaction floating-point data
  * \param jac_struct 2D array of flags indicating potentially non-zero
  *                   Jacobian elements
- * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_condensed_phase_arrhenius_get_used_jac_elem(void *rxn_data,
+void rxn_condensed_phase_arrhenius_get_used_jac_elem(int *rxn_int_data, double *rxn_float_data,
           bool **jac_struct)
 {
-  int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  int *int_data = rxn_int_data;
+  double *float_data = rxn_float_data;
 
   // Loop over all the instances of the specified phase
   for (int i_phase = 0; i_phase < NUM_AERO_PHASE_; i_phase++) {
@@ -78,7 +76,7 @@ void * rxn_condensed_phase_arrhenius_get_used_jac_elem(void *rxn_data,
 
   }
 
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
+  return;
 }
 
 /** \brief Update the time derivative and Jacbobian array indices
@@ -86,14 +84,14 @@ void * rxn_condensed_phase_arrhenius_get_used_jac_elem(void *rxn_data,
  * \param model_data Pointer to the model data
  * \param deriv_ids Id of each state variable in the derivative array
  * \param jac_ids Id of each state variable combo in the Jacobian array
- * \param rxn_data Pointer to the reaction data
- * \return The rxn_data pointer advanced by the size of the reaction data
+ * \param rxn_int_data Pointer to the reaction integer data
+ * \param rxn_float_data Pointer to the reaction floating-point data
  */
-void * rxn_condensed_phase_arrhenius_update_ids(ModelData *model_data,
-          int *deriv_ids, int **jac_ids, void *rxn_data)
+void rxn_condensed_phase_arrhenius_update_ids(ModelData *model_data,
+          int *deriv_ids, int **jac_ids, int *rxn_int_data, double *rxn_float_data)
 {
-  int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  int *int_data = rxn_int_data;
+  double *float_data = rxn_float_data;
 
   // Update the time derivative ids
   for (int i_phase = 0, i_deriv = 0; i_phase < NUM_AERO_PHASE_; i_phase++) {
@@ -135,7 +133,7 @@ void * rxn_condensed_phase_arrhenius_update_ids(ModelData *model_data,
 
   }
 
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
+  return;
 
 }
 
@@ -145,14 +143,15 @@ void * rxn_condensed_phase_arrhenius_update_ids(ModelData *model_data,
  * forward rate constant.
  *
  * \param model_data Pointer to the model data
- * \param rxn_data Pointer to the reaction data
- * \return The rxn_data pointer advanced by the size of the reaction data
+ * \param rxn_int_data Pointer to the reaction integer data
+ * \param rxn_float_data Pointer to the reaction floating-point data
  */
-void * rxn_condensed_phase_arrhenius_update_env_state(double *rate_constants, ModelData *model_data,
-          void *rxn_data)
+void rxn_condensed_phase_arrhenius_update_env_state(double *rate_constants,
+          ModelData *model_data,
+          int *rxn_int_data, double *rxn_float_data)
 {
-  int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  int *int_data = rxn_int_data;
+  double *float_data = rxn_float_data;
   double *env_data = model_data->grid_cell_env;
 
   // Calculate the rate constant in (M or mol/m3)
@@ -163,7 +162,7 @@ void * rxn_condensed_phase_arrhenius_update_env_state(double *rate_constants, Mo
 
   rate_constants[0] = RATE_CONSTANT_;
 
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
+  return;
 }
 
 /** \brief Calculate contributions to the time derivative f(t,y) from this
@@ -171,16 +170,17 @@ void * rxn_condensed_phase_arrhenius_update_env_state(double *rate_constants, Mo
  *
  * \param model_data Pointer to the model data, including the state array
  * \param deriv Pointer to the time derivative to add contributions to
- * \param rxn_data Pointer to the reaction data
+ * \param rxn_int_data Pointer to the reaction integer data
+ * \param rxn_float_data Pointer to the reaction floating-point data
  * \param time_step Current time step of the itegrator (s)
- * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-void * rxn_condensed_phase_arrhenius_calc_deriv_contrib(double *rate_constants, ModelData *model_data,
-          realtype *deriv, void *rxn_data, double time_step)
+void rxn_condensed_phase_arrhenius_calc_deriv_contrib(double *rate_constants,
+          ModelData *model_data,
+          realtype *deriv, int *rxn_int_data, double *rxn_float_data, double time_step)
 {
-  int *int_data = (int*) rxn_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  int *int_data = rxn_int_data;
+  double *float_data = rxn_float_data;
   double *state    = model_data->grid_cell_state;
   double *env_data = model_data->grid_cell_env;
   int cell_id      = model_data->grid_cell_id;
@@ -226,7 +226,7 @@ void * rxn_condensed_phase_arrhenius_calc_deriv_contrib(double *rate_constants, 
 
   }
 
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
+  return;
 
 }
 #endif
@@ -235,16 +235,17 @@ void * rxn_condensed_phase_arrhenius_calc_deriv_contrib(double *rate_constants, 
  *
  * \param model_data Pointer to the model data
  * \param J Pointer to the sparse Jacobian matrix to add contributions to
- * \param rxn_data Pointer to the reaction data
+ * \param rxn_int_data Pointer to the reaction integer data
+ * \param rxn_float_data Pointer to the reaction floating-point data
  * \param time_step Current time step of the itegrator (s)
- * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-void * rxn_condensed_phase_arrhenius_calc_jac_contrib(double *rate_constants, ModelData *model_data,
-          realtype *J, void *rxn_data, double time_step)
+void rxn_condensed_phase_arrhenius_calc_jac_contrib(double *rate_constants,
+          ModelData *model_data,
+          realtype *J, int *rxn_int_data, double *rxn_float_data, double time_step)
 {
-  int *int_data = (int*) rxn_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  int *int_data = rxn_int_data;
+  double *float_data = rxn_float_data;
   double *state    = model_data->grid_cell_state;
   double *env_data = model_data->grid_cell_env;
   int cell_id      = model_data->grid_cell_id;
@@ -320,41 +321,24 @@ void * rxn_condensed_phase_arrhenius_calc_jac_contrib(double *rate_constants, Mo
 
   }
 
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
+  return;
 
 }
 #endif
 
-/** \brief Advance the reaction data pointer to the next reaction
- *
- * \param rxn_data Pointer to the reaction data
- * \return The rxn_data pointer advanced by the size of the reaction data
- */
-void * rxn_condensed_phase_arrhenius_skip(void *rxn_data)
-{
-  int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
-
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
-}
-
 /** \brief Print the Condensed Phase Arrhenius reaction parameters
  *
- * \param rxn_data Pointer to the reaction data
- * \return The rxn_data pointer advanced by the size of the reaction data
+ * \param rxn_int_data Pointer to the reaction integer data
+ * \param rxn_float_data Pointer to the reaction floating-point data
  */
-void * rxn_condensed_phase_arrhenius_print(void *rxn_data)
+void rxn_condensed_phase_arrhenius_print(int *rxn_int_data, double *rxn_float_data)
 {
-  int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  int *int_data = rxn_int_data;
+  double *float_data = rxn_float_data;
 
   int phase_jac_size = (NUM_REACT_+1) * (NUM_REACT_+NUM_PROD_);
 
   printf("\n\nCondensed Phase Arrhenius reaction\n");
-  for (int i=0; i<INT_DATA_SIZE_; i++)
-    printf("  int param %d = %d\n", i, int_data[i]);
-  for (int i=0; i<FLOAT_DATA_SIZE_; i++)
-    printf("  float param %d = %le\n", i, float_data[i]);
 
   printf("\n number of reactants:      %d", NUM_REACT_);
   printf("\n number of products:       %d", NUM_PROD_);
@@ -431,5 +415,5 @@ void * rxn_condensed_phase_arrhenius_print(void *rxn_data)
                      NUM_REACT_*(NUM_REACT_+NUM_PROD_)+NUM_REACT_+i_prod));
     }
   }
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
+  return;
 }

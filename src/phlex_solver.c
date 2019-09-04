@@ -237,17 +237,37 @@ void * solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
   // Allocate space for the reaction data and set the number
   // of reactions (including one int for the number of reactions
   // and one int per reaction to store the reaction type)
-  sd->model_data.rxn_data = (void*) malloc(
-		  (n_rxn_int_param + 1 + n_rxn) * sizeof(int)
-		  + n_rxn_float_param * sizeof(double));
-  if (sd->model_data.rxn_data==NULL) {
-    printf("\n\nERROR allocating space for reaction data\n\n");
+  sd->model_data.rxn_int_data = (int*) malloc(
+		  (n_rxn_int_param + 1 + n_rxn) * sizeof(int));
+  if (sd->model_data.rxn_int_data==NULL) {
+    printf("\n\nERROR allocating space for reaction integer data\n\n");
     EXIT_FAILURE;
   }
-  //TODO: Maybe define n_rxn in model_data and avoid hide this value in rxn_data
-  int *ptr = sd->model_data.rxn_data;
+  sd->model_data.rxn_float_data = (double*) malloc(
+		  n_rxn_float_param * sizeof(double));
+  if (sd->model_data.rxn_float_data==NULL) {
+    printf("\n\nERROR allocating space for reaction float data\n\n");
+    EXIT_FAILURE;
+  }
+  int *ptr = sd->model_data.rxn_int_data;
   ptr[0] = n_rxn;
-  sd->model_data.nxt_rxn = (void*) &(ptr[1]);
+  sd->model_data.n_added_rxns  = 0;
+  sd->model_data.nxt_rxn_int   = (int*) &(ptr[1]);
+  sd->model_data.nxt_rxn_float = sd->model_data.rxn_float_data;
+
+  // Allocate space for the reaction data pointers
+  sd->model_data.rxn_int_ptrs = (int**) malloc(
+                  n_rxn * sizeof(int**));
+  if (sd->model_data.rxn_int_ptrs==NULL) {
+    printf("\n\nERROR allocating space for reaction integer pointers\n\n");
+    EXIT_FAILURE;
+  }
+  sd->model_data.rxn_float_ptrs = (double**) malloc(
+                  n_rxn * sizeof(double**));
+  if (sd->model_data.rxn_float_ptrs==NULL) {
+    printf("\n\nERROR allocating space for reaction float pointers\n\n");
+    EXIT_FAILURE;
+  }
 
   // If there are no reactions, flag the solver not to run
   sd->no_solve = (n_rxn==0);
@@ -1747,7 +1767,7 @@ static void solver_print_stats(void *cvode_mem)
 static void print_data_sizes(ModelData *md)
 {
 
-  int *ptr = md->rxn_data;
+  int *ptr = md->rxn_int_data;
   int n_rxn = ptr[0];
 
   printf("n_rxn: %d " , n_rxn);
@@ -1899,7 +1919,10 @@ void model_free(ModelData model_data)
   free(model_data.jac_map);
   free(model_data.jac_map_params);
   free(model_data.var_type);
-  free(model_data.rxn_data);
+  free(model_data.rxn_int_data);
+  free(model_data.rxn_float_data);
+  free(model_data.rxn_int_ptrs);
+  free(model_data.rxn_float_ptrs);
   free(model_data.aero_phase_data);
   free(model_data.aero_rep_data);
   free(model_data.sub_model_int_data);

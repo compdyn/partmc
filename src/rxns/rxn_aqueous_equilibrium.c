@@ -42,21 +42,19 @@
 #define MASS_FRAC_TO_M_(x) (float_data[NUM_FLOAT_PROP_+x])
 #define SMALL_WATER_CONC_(x) (float_data[NUM_FLOAT_PROP_+NUM_REACT_+NUM_PROD_+x])
 #define SMALL_CONC_(x) (float_data[NUM_FLOAT_PROP_+NUM_REACT_+NUM_PROD_+NUM_AERO_PHASE_+x])
-#define INT_DATA_SIZE_ (NUM_INT_PROP_+((NUM_REACT_+NUM_PROD_)*(NUM_REACT_+NUM_PROD_+4)+2)*NUM_AERO_PHASE_)
-#define FLOAT_DATA_SIZE_ (NUM_FLOAT_PROP_+NUM_PROD_+NUM_REACT_+2*NUM_AERO_PHASE_)
 
 /** \brief Flag Jacobian elements used by this reaction
  *
- * \param rxn_data A pointer to the reaction data
+ * \param rxn_int_data Pointer to the reaction integer data
+ * \param rxn_float_data Pointer to the reaction floating-point data
  * \param jac_struct 2D array of flags indicating potentially non-zero
  *                   Jacobian elements
- * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_aqueous_equilibrium_get_used_jac_elem(void *rxn_data,
+void rxn_aqueous_equilibrium_get_used_jac_elem(int *rxn_int_data, double *rxn_float_data,
           bool **jac_struct)
 {
-  int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  int *int_data = rxn_int_data;
+  double *float_data = rxn_float_data;
 
   // Loop over all the instances of the specified phase
   for (int i_phase = 0; i_phase < NUM_AERO_PHASE_; i_phase++) {
@@ -102,7 +100,7 @@ void * rxn_aqueous_equilibrium_get_used_jac_elem(void *rxn_data,
 
   }
 
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
+  return;
 }
 
 /** \brief Update the time derivative and Jacbobian array indices
@@ -110,14 +108,14 @@ void * rxn_aqueous_equilibrium_get_used_jac_elem(void *rxn_data,
  * \param model_data Pointer to the model data
  * \param deriv_ids Id of each state variable in the derivative array
  * \param jac_ids Id of each state variable combo in the Jacobian array
- * \param rxn_data Pointer to the reaction data
- * \return The rxn_data pointer advanced by the size of the reaction data
+ * \param rxn_int_data Pointer to the reaction integer data
+ * \param rxn_float_data Pointer to the reaction floating-point data
  */
-void * rxn_aqueous_equilibrium_update_ids(ModelData *model_data, int *deriv_ids,
-          int **jac_ids, void *rxn_data)
+void rxn_aqueous_equilibrium_update_ids(ModelData *model_data, int *deriv_ids,
+          int **jac_ids, int *rxn_int_data, double *rxn_float_data)
 {
-  int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  int *int_data = rxn_int_data;
+  double *float_data = rxn_float_data;
 
   // Update the time derivative ids
   for (int i_phase = 0, i_deriv = 0; i_phase < NUM_AERO_PHASE_; i_phase++) {
@@ -208,7 +206,7 @@ void * rxn_aqueous_equilibrium_update_ids(ModelData *model_data, int *deriv_ids,
     SMALL_WATER_CONC_(i_phase) = abs_tol[WATER_(i_phase)] / 10.0;
   }
 
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
+  return;
 
 }
 
@@ -218,14 +216,14 @@ void * rxn_aqueous_equilibrium_update_ids(ModelData *model_data, int *deriv_ids,
  * forward rate constant.
  *
  * \param model_data Pointer to the model data
- * \param rxn_data Pointer to the reaction data
- * \return The rxn_data pointer advanced by the size of the reaction data
+ * \param rxn_int_data Pointer to the reaction integer data
+ * \param rxn_float_data Pointer to the reaction floating-point data
  */
-void * rxn_aqueous_equilibrium_update_env_state(double *rate_constants,
-    ModelData *model_data, void *rxn_data)
+void rxn_aqueous_equilibrium_update_env_state(double *rate_constants,
+    ModelData *model_data, int *rxn_int_data, double *rxn_float_data)
 {
-  int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  int *int_data = rxn_int_data;
+  double *float_data = rxn_float_data;
   double *env_data = model_data->grid_cell_env;
 
   // Calculate the equilibrium constant
@@ -243,7 +241,7 @@ void * rxn_aqueous_equilibrium_update_env_state(double *rate_constants,
   // Set forward rate constant (reverse rate constant is constant)
   rate_constants[0] = RATE_CONST_FORWARD_;
 
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
+  return;
 }
 
 /** \brief Calculate the overall per-particle reaction rate [M/s]
@@ -252,21 +250,21 @@ void * rxn_aqueous_equilibrium_update_env_state(double *rate_constants,
  * reaction rate on a per-particle basis, trying to avoid floating-point
  * subtraction errors.
  *
- * \param rxn_data Pointer to the reaction data
+ * \param rxn_int_data Pointer to the reaction integer data
+ * \param rxn_float_data Pointer to the reaction floating-point data
  * \param state State array
  * \param react_fact Product of all reactant concentrations [M^n_react)
  * \param prod_fact Product of all product concentrations [M^n_prod]
  * \param water Water concentration [ug/m3]
  * \param i_phase Index for the aerosol phase being calcualted
- * \return The calculated overall rate [M/s]
  */
 #ifdef PMC_USE_SUNDIALS
-realtype rxn_aqueous_equilibrium_calc_overall_rate(void *rxn_data,
+realtype rxn_aqueous_equilibrium_calc_overall_rate(int *rxn_int_data, double *rxn_float_data,
           realtype *state, realtype react_fact, realtype prod_fact,
           realtype water, int i_phase)
 {
-  int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  int *int_data = rxn_int_data;
+  double *float_data = rxn_float_data;
 
   realtype rate         = ONE;
   realtype rc_forward   = RATE_CONST_FORWARD_;
@@ -320,16 +318,17 @@ realtype rxn_aqueous_equilibrium_calc_overall_rate(void *rxn_data,
  *
  * \param model_data Pointer to the model data, including the state array
  * \param deriv Pointer to the time derivative to add contributions to
- * \param rxn_data Pointer to the reaction data
+ * \param rxn_int_data Pointer to the reaction integer data
+ * \param rxn_float_data Pointer to the reaction floating-point data
  * \param time_step Current time step of the itegrator (s)
- * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-void * rxn_aqueous_equilibrium_calc_deriv_contrib(double *rate_constants, ModelData *model_data,
-          realtype *deriv, void *rxn_data, double time_step)
+void rxn_aqueous_equilibrium_calc_deriv_contrib(double *rate_constants,
+          ModelData *model_data,
+          realtype *deriv, int *rxn_int_data, double *rxn_float_data, double time_step)
 {
-  int *int_data = (int*) rxn_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  int *int_data = rxn_int_data;
+  double *float_data = rxn_float_data;
   double *state    = model_data->grid_cell_state;
   double *env_data = model_data->grid_cell_env;
   int cell_id      = model_data->grid_cell_id;
@@ -363,7 +362,8 @@ void * rxn_aqueous_equilibrium_calc_deriv_contrib(double *rate_constants, ModelD
     if (ACTIVITY_COEFF_(i_phase)>=0) prod_fact *=
             state[ACTIVITY_COEFF_(i_phase)];
 
-    realtype rate = rxn_aqueous_equilibrium_calc_overall_rate(rxn_data,
+    realtype rate = rxn_aqueous_equilibrium_calc_overall_rate(
+                        rxn_int_data, rxn_float_data,
                         state, react_fact, prod_fact, water, i_phase);
     if (rate == ZERO) {
       i_deriv += NUM_REACT_ + NUM_PROD_;
@@ -386,7 +386,7 @@ void * rxn_aqueous_equilibrium_calc_deriv_contrib(double *rate_constants, ModelD
 
   }
 
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
+  return;
 
 }
 #endif
@@ -395,16 +395,17 @@ void * rxn_aqueous_equilibrium_calc_deriv_contrib(double *rate_constants, ModelD
  *
  * \param model_data Pointer to the model data
  * \param J Pointer to the sparse Jacobian matrix to add contributions to
- * \param rxn_data Pointer to the reaction data
+ * \param rxn_int_data Pointer to the reaction integer data
+ * \param rxn_float_data Pointer to the reaction floating-point data
  * \param time_step Current time step of the itegrator (s)
- * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-void * rxn_aqueous_equilibrium_calc_jac_contrib(double *rate_constants, ModelData *model_data,
-          realtype *J, void *rxn_data, double time_step)
+void rxn_aqueous_equilibrium_calc_jac_contrib(double *rate_constants,
+          ModelData *model_data,
+          realtype *J, int *rxn_int_data, double *rxn_float_data, double time_step)
 {
-  int *int_data = (int*) rxn_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  int *int_data = rxn_int_data;
+  double *float_data = rxn_float_data;
   double *state    = model_data->grid_cell_state;
   double *env_data = model_data->grid_cell_env;
   int cell_id      = model_data->grid_cell_id;
@@ -504,67 +505,22 @@ void * rxn_aqueous_equilibrium_calc_jac_contrib(double *rate_constants, ModelDat
 
   }
 
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
+  return;
 
 }
 #endif
 
-/** \brief Advance the reaction data pointer to the next reaction
- *
- * \param rxn_data Pointer to the reaction data
- * \return The rxn_data pointer advanced by the size of the reaction data
- */
-void * rxn_aqueous_equilibrium_skip(void *rxn_data)
-{
-  int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
-
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
-}
-
 /** \brief Print the Aqueous Equilibrium reaction parameters
  *
- * \param rxn_data Pointer to the reaction data
- * \return The rxn_data pointer advanced by the size of the reaction data
+ * \param rxn_int_data Pointer to the reaction integer data
+ * \param rxn_float_data Pointer to the reaction floating-point data
  */
-void * rxn_aqueous_equilibrium_print(void *rxn_data)
+void rxn_aqueous_equilibrium_print(int *rxn_int_data, double *rxn_float_data)
 {
-  int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  int *int_data = rxn_int_data;
+  double *float_data = rxn_float_data;
 
   printf("\n\nAqueous Equilibrium reaction\n");
-  for (int i=0; i<INT_DATA_SIZE_; i++)
-    printf("  int param %d = %d\n", i, int_data[i]);
-  for (int i=0; i<FLOAT_DATA_SIZE_; i++)
-    printf("  float param %d = %le\n", i, float_data[i]);
 
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
+  return;
 }
-
-#undef TEMPERATURE_K_
-#undef PRESSURE_PA_
-
-#undef SMALL_NUMBER_
-
-#undef MIN_WATER_
-
-#undef NUM_REACT_
-#undef NUM_PROD_
-#undef NUM_AERO_PHASE_
-#undef A_
-#undef C_
-#undef RATE_CONST_REVERSE_
-#undef RATE_CONST_FORWARD_
-#undef NUM_INT_PROP_
-#undef NUM_FLOAT_PROP_
-#undef REACT_
-#undef PROD_
-#undef WATER_
-#undef ACTIVITY_COEFF_
-#undef DERIV_ID_
-#undef JAC_ID_
-#undef MASS_FRAC_TO_M_
-#undef SMALL_WATER_CONC_
-#undef SMALL_CONC_
-#undef INT_DATA_SIZE_
-#undef FLOAT_DATA_SIZE_

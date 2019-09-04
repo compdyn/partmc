@@ -34,20 +34,19 @@
 #define DERIV_ID_(x) int_data[NUM_INT_PROP_ + NUM_REACT_ + NUM_PROD_ + x]
 #define JAC_ID_(x) int_data[NUM_INT_PROP_ + 2*(NUM_REACT_+NUM_PROD_) + x]
 #define YIELD_(x) float_data[NUM_FLOAT_PROP_ + x]
-#define INT_DATA_SIZE_ (NUM_INT_PROP_+(NUM_REACT_+2)*(NUM_REACT_+NUM_PROD_))
-#define FLOAT_DATA_SIZE_ (NUM_FLOAT_PROP_+NUM_PROD_)
 
 /** \brief Flag Jacobian elements used by this reaction
  *
- * \param rxn_data A pointer to the reaction data
+ * \param rxn_int_data Pointer to the reaction integer data
+ * \param rxn_float_data Pointer to the reaction floating-point data
  * \param jac_struct 2D array of flags indicating potentially non-zero
  *                   Jacobian elements
- * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_CMAQ_H2O2_get_used_jac_elem(void *rxn_data, bool **jac_struct)
+void rxn_CMAQ_H2O2_get_used_jac_elem(int *rxn_int_data,
+    double *rxn_float_data, bool **jac_struct)
 {
-  int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  int *int_data = rxn_int_data;
+  double *float_data = rxn_float_data;
 
   for (int i_ind = 0; i_ind < NUM_REACT_; i_ind++) {
     for (int i_dep = 0; i_dep < NUM_REACT_; i_dep++) {
@@ -58,7 +57,7 @@ void * rxn_CMAQ_H2O2_get_used_jac_elem(void *rxn_data, bool **jac_struct)
     }
   }
 
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
+  return;
 }
 
 /** \brief Update the time derivative and Jacbobian array indices
@@ -66,14 +65,14 @@ void * rxn_CMAQ_H2O2_get_used_jac_elem(void *rxn_data, bool **jac_struct)
  * \param model_data Pointer to the model data
  * \param deriv_ids Id of each state variable in the derivative array
  * \param jac_ids Id of each state variable combo in the Jacobian array
- * \param rxn_data Pointer to the reaction data
- * \return The rxn_data pointer advanced by the size of the reaction data
+ * \param rxn_int_data Pointer to the reaction integer data
+ * \param rxn_float_data Pointer to the reaction floating-point data
  */
-void * rxn_CMAQ_H2O2_update_ids(ModelData *model_data, int *deriv_ids,
-          int **jac_ids, void *rxn_data)
+void rxn_CMAQ_H2O2_update_ids(ModelData *model_data, int *deriv_ids,
+          int **jac_ids, int *rxn_int_data, double *rxn_float_data)
 {
-  int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  int *int_data = rxn_int_data;
+  double *float_data = rxn_float_data;
 
   // Update the time derivative ids
   for (int i=0; i < NUM_REACT_; i++)
@@ -91,7 +90,7 @@ void * rxn_CMAQ_H2O2_update_ids(ModelData *model_data, int *deriv_ids,
       JAC_ID_(i_jac++) = jac_ids[PROD_(i_dep)][REACT_(i_ind)];
     }
   }
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
+  return;
 }
 
 /** \brief Update reaction data for new environmental conditions
@@ -100,13 +99,15 @@ void * rxn_CMAQ_H2O2_update_ids(ModelData *model_data, int *deriv_ids,
  * constant.
  *
  * \param model_data Pointer to the model data
- * \param rxn_data Pointer to the reaction data
- * \return The rxn_data pointer advanced by the size of the reaction data
+ * \param rxn_int_data Pointer to the reaction integer data
+ * \param rxn_float_data Pointer to the reaction floating-point data
  */
-void * rxn_CMAQ_H2O2_update_env_state(double *rate_constants, ModelData *model_data, void *rxn_data)
+void rxn_CMAQ_H2O2_update_env_state(double *rate_constants,
+    ModelData *model_data, int *rxn_int_data,
+    double *rxn_float_data)
 {
-  int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  int *int_data = rxn_int_data;
+  double *float_data = rxn_float_data;
   double *env_data = model_data->grid_cell_env;
 
   // Calculate the rate constant in (#/cc)
@@ -125,7 +126,7 @@ void * rxn_CMAQ_H2O2_update_env_state(double *rate_constants, ModelData *model_d
 
   rate_constants[0] = RATE_CONSTANT_;
 
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
+  return;
 }
 
 /** \brief Calculate contributions to the time derivative \f$f(t,y)\f$ from
@@ -133,16 +134,17 @@ void * rxn_CMAQ_H2O2_update_env_state(double *rate_constants, ModelData *model_d
  *
  * \param model_data Pointer to the model data
  * \param deriv Pointer to the time derivative to add contributions to
- * \param rxn_data Pointer to the reaction data
+ * \param rxn_int_data Pointer to the reaction integer data
+ * \param rxn_float_data Pointer to the reaction floating-point data
  * \param time_step Current time step being computed (s)
- * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-void * rxn_CMAQ_H2O2_calc_deriv_contrib(double *rate_constants, ModelData *model_data, realtype *deriv,
-          void *rxn_data, double time_step)
+void rxn_CMAQ_H2O2_calc_deriv_contrib(double *rate_constants,
+          ModelData *model_data, realtype *deriv,
+          int *rxn_int_data, double *rxn_float_data, double time_step)
 {
-  int *int_data = (int*) rxn_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  int *int_data = rxn_int_data;
+  double *float_data = rxn_float_data;
   double *state    = model_data->grid_cell_state;
   double *env_data = model_data->grid_cell_env;
   int cell_id      = model_data->grid_cell_id;
@@ -168,7 +170,7 @@ void * rxn_CMAQ_H2O2_calc_deriv_contrib(double *rate_constants, ModelData *model
     }
   }
 
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
+  return;
 
 }
 #endif
@@ -177,16 +179,17 @@ void * rxn_CMAQ_H2O2_calc_deriv_contrib(double *rate_constants, ModelData *model
  *
  * \param model_data Pointer to the model data
  * \param J Pointer to the sparse Jacobian matrix to add contributions to
- * \param rxn_data Pointer to the reaction data
+ * \param rxn_int_data Pointer to the reaction integer data
+ * \param rxn_float_data Pointer to the reaction floating-point data
  * \param time_step Current time step being calculated (s)
- * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-void * rxn_CMAQ_H2O2_calc_jac_contrib(double *rate_constants, ModelData *model_data, realtype *J,
-          void *rxn_data, double time_step)
+void rxn_CMAQ_H2O2_calc_jac_contrib(double *rate_constants,
+          ModelData *model_data, realtype *J,
+          int *rxn_int_data, double *rxn_float_data, double time_step)
 {
-  int *int_data = (int*) rxn_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  int *int_data = rxn_int_data;
+  double *float_data = rxn_float_data;
   double *state    = model_data->grid_cell_state;
   double *env_data = model_data->grid_cell_env;
   int cell_id      = model_data->grid_cell_id;
@@ -215,62 +218,22 @@ void * rxn_CMAQ_H2O2_calc_jac_contrib(double *rate_constants, ModelData *model_d
     }
   }
 
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
+  return;
 
 }
 #endif
 
-/** \brief Advance the reaction data pointer to the next reaction
- *
- * \param rxn_data Pointer to the reaction data
- * \return The rxn_data pointer advanced by the size of the reaction data
- */
-void * rxn_CMAQ_H2O2_skip(void *rxn_data)
-{
-  int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
-
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
-}
-
 /** \brief Print the CMAQ_H2O2 reaction parameters
  *
- * \param rxn_data Pointer to the reaction data
- * \return The rxn_data pointer advanced by the size of the reaction data
+ * \param rxn_int_data Pointer to the reaction integer data
+ * \param rxn_float_data Pointer to the reaction floating-point data
  */
-void * rxn_CMAQ_H2O2_print(void *rxn_data)
+void rxn_CMAQ_H2O2_print(int *rxn_int_data, double *rxn_float_data)
 {
-  int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  int *int_data = rxn_int_data;
+  double *float_data = rxn_float_data;
 
   printf("\n\nCMAQ_H2O2 reaction\n");
-  for (int i=0; i<INT_DATA_SIZE_; i++)
-    printf("  int param %d = %d\n", i, int_data[i]);
-  for (int i=0; i<FLOAT_DATA_SIZE_; i++)
-    printf("  float param %d = %le\n", i, float_data[i]);
 
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
+  return;
 }
-
-#undef TEMPERATURE_K_
-#undef PRESSURE_PA_
-
-#undef NUM_REACT_
-#undef NUM_PROD_
-#undef k1_A_
-#undef k1_B_
-#undef k1_C_
-#undef k2_A_
-#undef k2_B_
-#undef k2_C_
-#undef CONV_
-#undef RATE_CONSTANT_
-#undef NUM_INT_PROP_
-#undef NUM_FLOAT_PROP_
-#undef REACT_
-#undef PROD_
-#undef DERIV_ID_
-#undef JAC_ID_
-#undef YIELD_
-#undef INT_DATA_SIZE_
-#undef FLOAT_DATA_SIZE_

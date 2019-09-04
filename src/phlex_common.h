@@ -95,9 +95,21 @@ typedef struct {
   void *aero_phase_data;         // Pointer to aerosol phase parameters
   void *nxt_aero_phase;          // Pointer to element of aero_phase_data in which
                                  // to store the next set of aerosol phase data
-  void *aero_rep_data;           // Pointer to aerosol representation parameters
-  void *nxt_aero_rep;            // Pointer to element of aero_rep_data in which to
-                                 // store the next set of aerosol representation data
+  int n_added_aero_reps;         // The number of aerosol representations whose
+                                 // data has been added to the aerosol
+                                 // representation data arrays
+  int *aero_rep_int_data;        // Pointer to the aerosol representation integer
+                                 // parameters
+  double *aero_rep_float_data;   // Pointer to the aerosol representation
+                                 // floating-point parameters
+  int *nxt_aero_rep_int;         // Pointer to the next available integer in
+                                 // aero_rep_int_data
+  double *nxt_aero_rep_float;    // Pointer to the next available floating-point
+                                 // number in aero_rep_float_data
+  int **aero_rep_int_ptrs;       // Array of pointers to integer data for each
+                                 // aerosol representation
+  double **aero_rep_float_ptrs;  // Array of pointers to floating-point data for
+                                 // each aerosol representation
   int n_added_sub_models;        // The number of sub models whose data has been
                                  // added to the sub model data arrays
   int *sub_model_int_data;       // Pointer to sub model integer parameters

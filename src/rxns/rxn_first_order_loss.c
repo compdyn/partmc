@@ -184,19 +184,6 @@ void rxn_first_order_loss_calc_jac_contrib(double *rate_constants,
 }
 #endif
 
-/** \brief Advance the reaction data pointer to the next reaction
- *
- * \param rxn_int_data Pointer to the reaction integer data
- * \param rxn_float_data Pointer to the reaction floating-point data
- */
-void rxn_first_order_loss_skip(int *rxn_int_data, double *rxn_float_data)
-{
-  int *int_data = rxn_int_data;
-  double *float_data = rxn_float_data;
-
-  return;
-}
-
 /** \brief Print the reaction parameters
  *
  * \param rxn_int_data Pointer to the reaction integer data

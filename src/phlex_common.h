@@ -110,17 +110,39 @@ typedef struct {
   int *nxt_rxn_int;              // Pointer to the next available integer in
                                  // rxn_int_data
   double *nxt_rxn_float;         // Pointer to the next available floating-point
-                                 // number in sub_model_float_data
+                                 // number in rxn_float_data
   int **rxn_int_ptrs;            // Array of pointers to integer data for each
                                  // reaction
   double **rxn_float_ptrs;       // Array of pointers to floating-point data for
                                  // each reaction
-  void *aero_phase_data;         // Pointer to aerosol phase parameters
-  void *nxt_aero_phase;          // Pointer to element of aero_phase_data in which
-                                 // to store the next set of aerosol phase data
-  void *aero_rep_data;           // Pointer to aerosol representation parameters
-  void *nxt_aero_rep;            // Pointer to element of aero_rep_data in which to
-                                 // store the next set of aerosol representation data
+  int n_added_aero_phases;       // The number of aerosol phases whose data has
+                                 // been added to the aerosol phase data arrays
+  int *aero_phase_int_data;      // Pointer to the aerosol phase integer parameters
+  double *aero_phase_float_data; // Pointer to the aerosol phase floating-point
+                                 // parameters
+  int *nxt_aero_phase_int;       // Pointer the next available integer in
+                                 // aero_phase_int_data
+  double *nxt_aero_phase_float;  // Pointer to the next available floating-point
+                                 // number in aero_phase_float_data
+  int **aero_phase_int_ptrs;     // Array of pointers to the integer data for
+                                 // each aerosol phase
+  double **aero_phase_float_ptrs;// Array of pointers to the floating-point data
+                                 // for each aerosol phase
+  int n_added_aero_reps;         // The number of aerosol representations whose
+                                 // data has been added to the aerosol
+                                 // representation data arrays
+  int *aero_rep_int_data;        // Pointer to the aerosol representation integer
+                                 // parameters
+  double *aero_rep_float_data;   // Pointer to the aerosol representation
+                                 // floating-point parameters
+  int *nxt_aero_rep_int;         // Pointer to the next available integer in
+                                 // aero_rep_int_data
+  double *nxt_aero_rep_float;    // Pointer to the next available floating-point
+                                 // number in aero_rep_float_data
+  int **aero_rep_int_ptrs;       // Array of pointers to integer data for each
+                                 // aerosol representation
+  double **aero_rep_float_ptrs;  // Array of pointers to floating-point data for
+                                 // each aerosol representation
   int n_added_sub_models;        // The number of sub models whose data has been
                                  // added to the sub model data arrays
   int *sub_model_int_data;       // Pointer to sub model integer parameters

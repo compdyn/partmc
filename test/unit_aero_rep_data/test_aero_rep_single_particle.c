@@ -214,7 +214,6 @@ int run_aero_rep_single_particle_c_tests(void *solver_data, double *state, doubl
 #ifdef PMC_USE_SUNDIALS
   SolverData *sd = (SolverData*) solver_data;
   ModelData * model_data = &(sd->model_data);
-  void * aero_rep_data = model_data->aero_rep_data;
   int n_solver_var = NV_LENGTH_S(sd->y);
   N_Vector solver_state = N_VNew_Serial(n_solver_var);
 

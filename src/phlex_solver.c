@@ -256,16 +256,40 @@ void * solver_new(int n_state_var, int *var_type, int n_rxn,
   // Allocate space for the aerosol phase data and st the number
   // of aerosol phases (including one int for the number of
   // phases)
-  sd->model_data.aero_phase_data = (void*) malloc(
-                  (n_aero_phase_int_param + 1) * sizeof(int)
-                  + n_aero_phase_float_param * sizeof(double));
-  if (sd->model_data.aero_phase_data==NULL) {
-    printf("\n\nERROR allocating space for aerosol phase data\n\n");
+  sd->model_data.aero_phase_int_data = (int*) malloc(
+                  (n_aero_phase_int_param + 1) * sizeof(int));
+  if (sd->model_data.aero_phase_int_data==NULL) {
+    printf("\n\nERROR allocating space for aerosol phase integer data\n\n");
     EXIT_FAILURE;
   }
-  ptr = sd->model_data.aero_phase_data;
+  sd->model_data.aero_phase_float_data = (double*) malloc(
+                  n_aero_phase_float_param * sizeof(double));
+  if (sd->model_data.aero_phase_float_data==NULL) {
+    printf("\n\nERROR allocating space for aerosol phase floating-point "
+           "data\n\n");
+    EXIT_FAILURE;
+  }
+  ptr = sd->model_data.aero_phase_int_data;
   ptr[0] = n_aero_phase;
-  sd->model_data.nxt_aero_phase = (void*) &(ptr[1]);
+  sd->model_data.n_added_aero_phases = 0;
+  sd->model_data.nxt_aero_phase_int = (int*) &(ptr[1]);
+  sd->model_data.nxt_aero_phase_float = sd->model_data.aero_phase_float_data;
+
+  // Allocate space for the aerosol phase data pointers
+  sd->model_data.aero_phase_int_ptrs = (int**) malloc(
+                  n_aero_phase * sizeof(int**));
+  if (sd->model_data.aero_phase_int_ptrs==NULL) {
+    printf("\n\nERROR allocating space for aerosol phase integer "
+           "pointers\n\n");
+    EXIT_FAILURE;
+  }
+  sd->model_data.aero_phase_float_ptrs = (double**) malloc(
+                  n_aero_phase * sizeof(double**));
+  if (sd->model_data.aero_phase_float_ptrs==NULL) {
+    printf("\n\nERROR allocating space for aerosol phase "
+           "floating-point pointers\n\n");
+    EXIT_FAILURE;
+  }
 
   // Allocate space for the aerosol representation data and set
   // the number of aerosol representations (including one int
@@ -1695,7 +1719,10 @@ void model_free(ModelData model_data)
   free(model_data.rxn_float_data);
   free(model_data.rxn_int_ptrs);
   free(model_data.rxn_float_ptrs);
-  free(model_data.aero_phase_data);
+  free(model_data.aero_phase_int_data);
+  free(model_data.aero_phase_float_data);
+  free(model_data.aero_phase_int_ptrs);
+  free(model_data.aero_phase_float_ptrs);
   free(model_data.aero_rep_int_data);
   free(model_data.aero_rep_float_data);
   free(model_data.aero_rep_int_ptrs);

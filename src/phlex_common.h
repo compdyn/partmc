@@ -97,7 +97,11 @@ typedef struct {
   double *total_state;           // Total (multi-cell) state array
   double *grid_cell_env;         // Pointer to the current grid cell being solved
                                  // on the total_env state array
-  double *total_env;             // Environmental state array
+  double *total_env;             // Total (multi-cell) environmental state array
+  double *grid_cell_rxn_env_data;// Environmental-dependent parameters for the
+                                 // current grid cell
+  double *rxn_env_data;          // Total (multi-cell) reaction environmental-
+                                 // dependent parameters
 
   // TODO Remove once integrated into rxn data
   double *rate_constants;        // Pointer to the rate constants state array
@@ -111,10 +115,18 @@ typedef struct {
                                  // rxn_int_data
   double *nxt_rxn_float;         // Pointer to the next available floating-point
                                  // number in rxn_float_data
+  int nxt_rxn_env;               // Index for next available environmental-
+                                 // dependent parameter in rxn_env_data
   int **rxn_int_ptrs;            // Array of pointers to integer data for each
                                  // reaction
   double **rxn_float_ptrs;       // Array of pointers to floating-point data for
                                  // each reaction
+  int *rxn_env_idx;              // Array of offsets for the environmental-
+                                 // dependent data for each reaction from the
+                                 // beginning of the environmental dependent data
+                                 // for the current grid cell
+  int n_rxn_env_data;            // Number of reaction environmental parameters
+                                 // from all reactions
   int n_added_aero_phases;       // The number of aerosol phases whose data has
                                  // been added to the aerosol phase data arrays
   int *aero_phase_int_data;      // Pointer to the aerosol phase integer parameters

@@ -112,6 +112,10 @@ module pmc_rxn_data
     !! rate and Jacobian constribution functions that cannot be obtained
     !! from the \c pmc_phlex_state::phlex_state_t object. (integer)
     integer(kind=i_kind), allocatable, public :: condensed_data_int(:)
+    !> Number of environment-dependent parameters
+    !! These are parameters that need updated when environmental conditions
+    !! change
+    integer(kind=i_kind), public :: num_env_params = 0
   contains
     !> Reaction initialization. Takes species, phase and reaction parameters
     !! and packs required information into the condensed data arrays for use

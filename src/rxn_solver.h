@@ -28,8 +28,8 @@ void rxn_calc_jac(ModelData *model_data, double *J_data, double time_step);
 
 /* Setup functions */
 void rxn_add_condensed_data(int rxn_type, int n_int_param,
-	  int n_float_param, int *int_param, double *float_param,
-          void *solver_data);
+	  int n_float_param, int n_env_param, int *int_param,
+          double *float_param, void *solver_data);
 
 /* Update data functions */
 void rxn_update_data(int update_rxn_type, void *update_data, void *solver_data);

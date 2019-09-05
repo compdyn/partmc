@@ -46,6 +46,7 @@ module pmc_phlex_solver_data
     !> Get a new solver
     type(c_ptr) function solver_new(n_state_var, n_cells, var_type, &
                     n_rxn, n_rxn_int_param, n_rxn_float_param, &
+                    n_rxn_env_param, &
                     n_aero_phase, n_aero_phase_int_param, &
                     n_aero_phase_float_param, n_aero_rep, &
                     n_aero_rep_int_param, n_aero_rep_float_param, &
@@ -65,6 +66,8 @@ module pmc_phlex_solver_data
       integer(kind=c_int), value :: n_rxn_int_param
       !> Total number of floating-point parameters for all reactions
       integer(kind=c_int), value :: n_rxn_float_param
+      !> Total number of environment-dependent parameters for all reactions
+      integer(kind=c_int), value :: n_rxn_env_param
       !> Number of aerosol phases
       integer(kind=c_int), value :: n_aero_phase
       !> Total number of integer parameters for all aerosol phases
@@ -175,8 +178,8 @@ module pmc_phlex_solver_data
 
     !> Add condensed reaction data to the solver data block
     subroutine rxn_add_condensed_data(rxn_type, n_int_param, &
-                    n_float_param, int_param, float_param, solver_data) &
-                    bind (c)
+                    n_float_param, n_env_param, int_param, float_param, &
+                    solver_data)  bind (c)
       use iso_c_binding
       !> Reaction type
       integer(kind=c_int), value :: rxn_type
@@ -184,6 +187,8 @@ module pmc_phlex_solver_data
       integer(kind=c_int), value :: n_int_param
       !> Number of floating-point parameters to add
       integer(kind=c_int), value :: n_float_param
+      !> Number of environment-dependent parameters to add
+      integer(kind=c_int), value :: n_env_param
       !> Pointer to the integer parameter array
       type(c_ptr), value :: int_param
       !> Pointer to the floating-point parameter array
@@ -438,6 +443,8 @@ contains
     integer(kind=c_int) :: n_rxn_int_param
     ! Number of floating-point reaction parameters
     integer(kind=c_int) :: n_rxn_float_param
+    ! Number of environment-dependent reaction parameters
+    integer(kind=c_int) :: n_rxn_env_param
     ! Number of aerosol phases
     integer(kind=c_int) :: n_aero_phase
     ! Number of integer aerosol phase  parameters
@@ -478,6 +485,7 @@ contains
     n_rxn = 0
     n_rxn_int_param = 0
     n_rxn_float_param = 0
+    n_rxn_env_param = 0
 
     ! Calculate the number of reactions and the size of the condensed data
     do i_mech=1, size(mechanisms)
@@ -494,6 +502,7 @@ contains
         n_rxn = n_rxn + 1
         n_rxn_int_param = n_rxn_int_param + size(rxn%condensed_data_int)
         n_rxn_float_param = n_rxn_float_param + size(rxn%condensed_data_real)
+        n_rxn_env_param = n_rxn_env_param + rxn%num_env_params
       end do
     end do
     rxn => null()
@@ -546,11 +555,12 @@ contains
     ! Get a new solver object
     this%solver_c_ptr = solver_new( &
             int(size(var_type_c), kind=c_int), & ! Size of the state variable
-            n_cells,                         & ! # of cells computed simultaneosly
+            n_cells,                           & ! # of cells computed at once
             c_loc(var_type_c),                 & ! Variable types
             n_rxn,                             & ! # of reactions
             n_rxn_int_param,                   & ! # of rxn data int params
             n_rxn_float_param,                 & ! # of rxn data real params
+            n_rxn_env_param,                   & ! # of rxn env-dependent params
             n_aero_phase,                      & ! # of aero phases
             n_aero_phase_int_param,            & ! # of aero phase int params
             n_aero_phase_float_param,          & ! # of aero phase real params
@@ -595,6 +605,7 @@ contains
                 int(rxn_factory%get_type(rxn), kind=c_int),& ! Rxn type
                 int(size(int_param), kind=c_int),          & ! Int array size
                 int(size(float_param), kind=c_int),        & ! Real array size
+                rxn%num_env_params,                        & ! Env-dep array size
                 c_loc(int_param),                          & ! Int array ptr
                 c_loc(float_param),                        & ! Real array ptr
                 this%solver_c_ptr                          & ! Solver data ptr

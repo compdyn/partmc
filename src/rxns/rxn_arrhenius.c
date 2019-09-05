@@ -19,21 +19,21 @@
 
 #define NUM_REACT_ int_data[0]
 #define NUM_PROD_ int_data[1]
-#define NUM_CELLS_ int_data[2]
 #define A_ float_data[0]
 #define B_ float_data[1]
 #define C_ float_data[2]
 #define D_ float_data[3]
 #define E_ float_data[4]
 #define CONV_ float_data[5]
-#define NUM_INT_PROP_ 3
+#define RATE_CONSTANT_ rxn_env_data[0]
+#define NUM_INT_PROP_ 2
 #define NUM_FLOAT_PROP_ 6
+#define NUM_ENV_PARAM_ 1
 #define REACT_(x) (int_data[NUM_INT_PROP_ + x]-1)
 #define PROD_(x) (int_data[NUM_INT_PROP_ + NUM_REACT_ + x]-1)
 #define DERIV_ID_(x) int_data[NUM_INT_PROP_ + NUM_REACT_ + NUM_PROD_ + x]
 #define JAC_ID_(x) int_data[NUM_INT_PROP_ + 2*(NUM_REACT_+NUM_PROD_) + x]
 #define YIELD_(x) float_data[NUM_FLOAT_PROP_ + x]
-#define RATE_CONSTANT_(x) float_data[NUM_FLOAT_PROP_ + NUM_PROD_ + x]
 
 /** \brief Flag Jacobian elements used by this reaction
  *
@@ -99,18 +99,18 @@ void rxn_arrhenius_update_ids(ModelData *model_data, int *deriv_ids,
  * \param model_data Pointer to the model data
  * \param rxn_int_data Pointer to the reaction integer data
  * \param rxn_float_data Pointer to the reaction floating-point data
+ * \param rxn_env_data Pointer to the environment-dependent parameters
  */
 void rxn_arrhenius_update_env_state(ModelData *model_data, int *rxn_int_data,
-    double *rxn_float_data)
+    double *rxn_float_data, double *rxn_env_data)
 {
   int *int_data = rxn_int_data;
   double *float_data = rxn_float_data;
   double *env_data = model_data->grid_cell_env;
-  int cell_id = model_data->grid_cell_id;
 
   // Calculate the rate constant in (#/cc)
   // k = A*exp(C/T) * (T/D)^B * (1+E*P)
-  RATE_CONSTANT_(cell_id) = A_ * exp(C_/TEMPERATURE_K_)
+  RATE_CONSTANT_ = A_ * exp(C_/TEMPERATURE_K_)
 	  * (B_==0.0 ? 1.0 : pow(TEMPERATURE_K_/D_, B_))
 	  * (E_==0.0 ? 1.0 : (1.0 + E_*PRESSURE_PA_))
           * pow(CONV_*PRESSURE_PA_/TEMPERATURE_K_, NUM_REACT_-1);
@@ -125,21 +125,21 @@ void rxn_arrhenius_update_env_state(ModelData *model_data, int *rxn_int_data,
  * \param deriv Pointer to the time derivative to add contributions to
  * \param rxn_int_data Pointer to the reaction integer data
  * \param rxn_float_data Pointer to the reaction floating-point data
+ * \param rxn_env_data Pointer to the environment-dependent parameters
  * \param time_step Current time step being computed (s)
  */
 #ifdef PMC_USE_SUNDIALS
 void rxn_arrhenius_calc_deriv_contrib(ModelData *model_data,
           realtype *deriv, int *rxn_int_data, double *rxn_float_data,
-          double time_step)
+          double *rxn_env_data, double time_step)
 {
   int *int_data = rxn_int_data;
   double *float_data = rxn_float_data;
   double *state    = model_data->grid_cell_state;
   double *env_data = model_data->grid_cell_env;
-  int cell_id      = model_data->grid_cell_id;
 
   // Calculate the reaction rate
-  realtype rate = RATE_CONSTANT_(cell_id);
+  realtype rate = RATE_CONSTANT_;
   for (int i_spec=0; i_spec<NUM_REACT_; i_spec++) rate *= state[REACT_(i_spec)];
 
   // Add contributions to the time derivative
@@ -171,24 +171,25 @@ void rxn_arrhenius_calc_deriv_contrib(ModelData *model_data,
  * \param J Pointer to the sparse Jacobian matrix to add contributions to
  * \param rxn_int_data Pointer to the reaction integer data
  * \param rxn_float_data Pointer to the reaction floating-point data
+ * \param rxn_env_data Pointer to the environment-dependent parameters
  * \param time_step Current time step being calculated (s)
  */
 #ifdef PMC_USE_SUNDIALS
 void rxn_arrhenius_calc_jac_contrib(ModelData *model_data, realtype *J,
-          int *rxn_int_data, double *rxn_float_data, double time_step)
+          int *rxn_int_data, double *rxn_float_data, double *rxn_env_data,
+          double time_step)
 {
   int *int_data = rxn_int_data;
   double *float_data = rxn_float_data;
   double *state    = model_data->grid_cell_state;
   double *env_data = model_data->grid_cell_env;
-  int cell_id      = model_data->grid_cell_id;
 
   // Add contributions to the Jacobian
   int i_elem = 0;
   for (int i_ind=0; i_ind<NUM_REACT_; i_ind++) {
 
     // Calculate d_rate / d_i_ind
-    realtype rate = RATE_CONSTANT_(cell_id);
+    realtype rate = RATE_CONSTANT_;
     for (int i_spec=0; i_spec<NUM_REACT_; i_spec++)
      if (i_spec != i_ind)  rate *= state[REACT_(i_spec)];
 

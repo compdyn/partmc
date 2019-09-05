@@ -24,8 +24,6 @@ void rxn_aqueous_equilibrium_update_ids(
 void rxn_aqueous_equilibrium_update_env_state(
           double *rate_constants, ModelData *model_data, int *rxn_int_data,
           double *rxn_float_data);
-void rxn_aqueous_equilibrium_skip(
-          int *rxn_int_data, double *rxn_float_data);
 void rxn_aqueous_equilibrium_print(
           int *rxn_int_data, double *rxn_float_data);
 #ifdef PMC_USE_SUNDIALS
@@ -49,18 +47,17 @@ void rxn_arrhenius_update_ids(
           ModelData *model_data, int *deriv_ids, int **jac_ids,
           int *rxn_int_data, double *rxn_float_data);
 void rxn_arrhenius_update_env_state(
-          ModelData *model_data, int *rxn_int_data, double *rxn_float_data);
-void rxn_arrhenius_skip(
-          int *rxn_int_data, double *rxn_float_data);
+          ModelData *model_data, int *rxn_int_data, double *rxn_float_data,
+          double *rxn_env_data);
 void rxn_arrhenius_print(
           int *rxn_int_data, double *rxn_float_data);
 #ifdef PMC_USE_SUNDIALS
 void rxn_arrhenius_calc_deriv_contrib(
-          ModelData *model_data, realtype *deriv,
-          int *rxn_int_data, double *rxn_float_data, realtype time_step);
+          ModelData *model_data, realtype *deriv, int *rxn_int_data,
+          double *rxn_float_data, double *rxn_env_data, realtype time_step);
 void rxn_arrhenius_calc_jac_contrib(
-          ModelData *model_data, realtype *J,
-          int *rxn_int_data, double *rxn_float_data, realtype time_step);
+          ModelData *model_data, realtype *J, int *rxn_int_data,
+          double *rxn_float_data, double *rxn_env_data, realtype time_step);
 #endif
 
 // CMAQ_H2O2
@@ -72,8 +69,6 @@ void rxn_CMAQ_H2O2_update_ids(
 void rxn_CMAQ_H2O2_update_env_state(
           double *rate_constants, ModelData *model_data, int *rxn_int_data,
           double *rxn_float_data);
-void rxn_CMAQ_H2O2_skip(
-          int *rxn_int_data, double *rxn_float_data);
 void rxn_CMAQ_H2O2_print(
           int *rxn_int_data, double *rxn_float_data);
 #ifdef PMC_USE_SUNDIALS
@@ -96,8 +91,6 @@ void rxn_CMAQ_OH_HNO3_update_ids(
 void rxn_CMAQ_OH_HNO3_update_env_state(
           double *rate_constants, ModelData *model_data, int *rxn_int_data,
           double *rxn_float_data);
-void rxn_CMAQ_OH_HNO3_skip(
-          int *rxn_int_data, double *rxn_float_data);
 void rxn_CMAQ_OH_HNO3_print(
           int *rxn_int_data, double *rxn_float_data);
 #ifdef PMC_USE_SUNDIALS
@@ -120,8 +113,6 @@ void rxn_condensed_phase_arrhenius_update_ids(
 void rxn_condensed_phase_arrhenius_update_env_state(
           double *rate_constants, ModelData *model_data, int *rxn_int_data,
           double *rxn_float_data);
-void rxn_condensed_phase_arrhenius_skip(
-          int *rxn_int_data, double *rxn_float_data);
 void rxn_condensed_phase_arrhenius_print(
           int *rxn_int_data, double *rxn_float_data);
 #ifdef PMC_USE_SUNDIALS
@@ -146,8 +137,6 @@ void rxn_emission_update_env_state(
           double *rxn_float_data);
 void rxn_emission_update_data(
           void *update_data, int *rxn_int_data, double *rxn_float_data);
-void rxn_emission_skip(
-          int *rxn_int_data, double *rxn_float_data);
 void rxn_emission_print(
           int *rxn_int_data, double *rxn_float_data);
 #ifdef PMC_USE_SUNDIALS
@@ -175,8 +164,6 @@ void rxn_first_order_loss_update_env_state(
           double *rxn_float_data);
 void rxn_first_order_loss_update_data(
           void *update_data, int *rxn_int_data, double *rxn_float_data);
-void rxn_first_order_loss_skip(
-          int *rxn_int_data, double *rxn_float_data);
 void rxn_first_order_loss_print(
           int *rxn_int_data, double *rxn_float_data);
 #ifdef PMC_USE_SUNDIALS
@@ -203,8 +190,6 @@ void rxn_HL_phase_transfer_update_ids(
 void rxn_HL_phase_transfer_update_env_state(
           double *rate_constants, ModelData *model_data, int *rxn_int_data,
           double *rxn_float_data);
-void rxn_HL_phase_transfer_skip(
-          int *rxn_int_data, double *rxn_float_data);
 void rxn_HL_phase_transfer_print(
           int *rxn_int_data, double *rxn_float_data);
 #ifdef PMC_USE_SUNDIALS
@@ -233,8 +218,6 @@ void rxn_photolysis_update_env_state(
           double *rxn_float_data);
 void rxn_photolysis_update_data(
           void *update_data, int *rxn_int_data, double *rxn_float_data);
-void rxn_photolysis_skip(
-          int *rxn_int_data, double *rxn_float_data);
 void rxn_photolysis_print(
           int *rxn_int_data, double *rxn_float_data);
 #ifdef PMC_USE_SUNDIALS
@@ -262,8 +245,6 @@ void rxn_SIMPOL_phase_transfer_update_ids(
 void rxn_SIMPOL_phase_transfer_update_env_state(
           double *rate_constants, ModelData *model_data, int *rxn_int_data,
           double *rxn_float_data);
-void rxn_SIMPOL_phase_transfer_skip(
-          int *rxn_int_data, double *rxn_float_data);
 void rxn_SIMPOL_phase_transfer_print(
           int *rxn_int_data, double *rxn_float_data);
 #ifdef PMC_USE_SUNDIALS
@@ -286,8 +267,6 @@ void rxn_troe_update_ids(
 void rxn_troe_update_env_state(
           double *rate_constants, ModelData *model_data, int *rxn_int_data,
           double *rxn_float_data);
-void rxn_troe_skip(
-          int *rxn_int_data, double *rxn_float_data);
 void rxn_troe_print(
           int *rxn_int_data, double *rxn_float_data);
 #ifdef PMC_USE_SUNDIALS
@@ -312,8 +291,6 @@ void rxn_wet_deposition_update_env_state(
           double *rxn_float_data);
 void rxn_wet_deposition_update_data(
           void *update_data, int *rxn_int_data, double *rxn_float_data);
-void rxn_wet_deposition_skip(
-          int *rxn_int_data, double *rxn_float_data);
 void rxn_wet_deposition_print(
           int *rxn_int_data, double *rxn_float_data);
 #ifdef PMC_USE_SUNDIALS

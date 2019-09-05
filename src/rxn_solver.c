@@ -202,6 +202,8 @@ void rxn_update_env_state(ModelData *model_data)
     // Get pointers to the reaction data
     int *rxn_int_data      = model_data->rxn_int_ptrs[i_rxn];
     double *rxn_float_data = model_data->rxn_float_ptrs[i_rxn];
+    double *rxn_env_data   =
+      &(model_data->grid_cell_rxn_env_data[model_data->rxn_env_idx[i_rxn]]);
 
     // Get the reaction type
     int rxn_type = *(rxn_int_data++);
@@ -214,7 +216,7 @@ void rxn_update_env_state(ModelData *model_data)
         break;
       case RXN_ARRHENIUS :
         rxn_arrhenius_update_env_state(
-                model_data, rxn_int_data, rxn_float_data);
+                model_data, rxn_int_data, rxn_float_data, rxn_env_data);
         break;
       case RXN_CMAQ_H2O2 :
         rxn_CMAQ_H2O2_update_env_state(rate_constants,
@@ -284,6 +286,8 @@ void rxn_calc_deriv(ModelData *model_data, double *deriv_data, realtype time_ste
     // Get pointers to the reaction data
     int *rxn_int_data      = model_data->rxn_int_ptrs[i_rxn];
     double *rxn_float_data = model_data->rxn_float_ptrs[i_rxn];
+    double *rxn_env_data   =
+      &(model_data->grid_cell_rxn_env_data[model_data->rxn_env_idx[i_rxn]]);
 
     // Get the reaction type
     int rxn_type = *(rxn_int_data++);
@@ -298,7 +302,7 @@ void rxn_calc_deriv(ModelData *model_data, double *deriv_data, realtype time_ste
       case RXN_ARRHENIUS :
         rxn_arrhenius_calc_deriv_contrib(
                model_data, deriv_data, rxn_int_data, rxn_float_data,
-               time_step);
+               rxn_env_data, time_step);
         break;
       case RXN_CMAQ_H2O2 :
         rxn_CMAQ_H2O2_calc_deriv_contrib(
@@ -381,6 +385,8 @@ void rxn_calc_jac(ModelData *model_data, double *J_data, realtype time_step)
     // Get pointers to the reaction data
     int *rxn_int_data      = model_data->rxn_int_ptrs[i_rxn];
     double *rxn_float_data = model_data->rxn_float_ptrs[i_rxn];
+    double *rxn_env_data   =
+      &(model_data->grid_cell_rxn_env_data[model_data->rxn_env_idx[i_rxn]]);
 
     // Get the reaction type
     int rxn_type = *(rxn_int_data++);
@@ -395,7 +401,7 @@ void rxn_calc_jac(ModelData *model_data, double *J_data, realtype time_step)
       case RXN_ARRHENIUS :
         rxn_arrhenius_calc_jac_contrib(
                  model_data, J_data, rxn_int_data, rxn_float_data,
-                 time_step);
+                 rxn_env_data, time_step);
         break;
       case RXN_CMAQ_H2O2 :
         rxn_CMAQ_H2O2_calc_jac_contrib(
@@ -458,21 +464,25 @@ void rxn_calc_jac(ModelData *model_data, double *J_data, realtype time_step)
  * \param rxn_type Reaction type
  * \param n_int_param Number of integer parameters
  * \param n_float_param Number of floating-point parameters
+ * \param n_env_param Number of environment-dependent parameters
  * \param int_param Pointer to integer parameter array
  * \param float_param Pointer to floating-point parameter array
  * \param solver_data Pointer to solver data
  */
 void rxn_add_condensed_data(int rxn_type, int n_int_param, int n_float_param,
-          int *int_param, double *float_param, void *solver_data)
+          int n_env_param, int *int_param, double *float_param,
+          void *solver_data)
 {
   ModelData *model_data =
           (ModelData*) &(((SolverData*)solver_data)->model_data);
   int *rxn_int_data      = model_data->nxt_rxn_int;
   double *rxn_float_data = model_data->nxt_rxn_float;
+  int rxn_env_idx        = model_data->nxt_rxn_env;
 
   // Save pointers to this reactions data
   model_data->rxn_int_ptrs[model_data->n_added_rxns]   = rxn_int_data;
   model_data->rxn_float_ptrs[model_data->n_added_rxns] = rxn_float_data;
+  model_data->rxn_env_idx[model_data->n_added_rxns]    = rxn_env_idx;
   ++(model_data->n_added_rxns);
 
   // Add the reaction type
@@ -486,8 +496,10 @@ void rxn_add_condensed_data(int rxn_type, int n_int_param, int n_float_param,
           *(rxn_float_data++) = (double) *(float_param++);
 
   // Set the pointers for the next free space the reaction data arrays
-  model_data->nxt_rxn_int   = rxn_int_data;
-  model_data->nxt_rxn_float = rxn_float_data;
+  model_data->nxt_rxn_int    = rxn_int_data;
+  model_data->nxt_rxn_float  = rxn_float_data;
+  model_data->nxt_rxn_env    = rxn_env_idx + n_env_param;
+  model_data->n_rxn_env_data += n_env_param;
 }
 
 /** \brief Update reaction data

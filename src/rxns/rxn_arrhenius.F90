@@ -79,21 +79,20 @@ module pmc_rxn_arrhenius
 
 #define NUM_REACT_ this%condensed_data_int(1)
 #define NUM_PROD_ this%condensed_data_int(2)
-#define NUM_CELLS_ this%condensed_data_int(3)
 #define A_ this%condensed_data_real(1)
 #define B_ this%condensed_data_real(2)
 #define C_ this%condensed_data_real(3)
 #define D_ this%condensed_data_real(4)
 #define E_ this%condensed_data_real(5)
 #define CONV_ this%condensed_data_real(6)
-#define NUM_INT_PROP_ 3
+#define NUM_INT_PROP_ 2
 #define NUM_REAL_PROP_ 6
+#define NUM_ENV_PARAM_ 1
 #define REACT_(x) this%condensed_data_int(NUM_INT_PROP_ + x)
 #define PROD_(x) this%condensed_data_int(NUM_INT_PROP_ + NUM_REACT_ + x)
 #define DERIV_ID_(x) this%condensed_data_int(NUM_INT_PROP_ + NUM_REACT_ + NUM_PROD_ + x)
 #define JAC_ID_(x) this%condensed_data_int(NUM_INT_PROP_ + 2*(NUM_REACT_+NUM_PROD_) + x)
 #define YIELD_(x) this%condensed_data_real(NUM_REAL_PROP_ + x)
-#define RATE_CONSTANT_(x) this%condensed_data_real(NUM_REAL_PROP_ + NUM_PROD_ + x)
 
   public :: rxn_arrhenius_t
 
@@ -176,18 +175,17 @@ contains
     ! Allocate space in the condensed data arrays
     allocate(this%condensed_data_int(NUM_INT_PROP_ + &
             (i_spec + 2) * (i_spec + products%size())))
-    allocate(this%condensed_data_real(NUM_REAL_PROP_ + products%size() + &
-             n_cells))
+    allocate(this%condensed_data_real(NUM_REAL_PROP_ + products%size()))
     this%condensed_data_int(:) = int(0, kind=i_kind)
     this%condensed_data_real(:) = real(0.0, kind=dp)
+
+    ! Save space for the environment dependent parameters
+    this%num_env_params = NUM_ENV_PARAM_
 
     ! Save the size of the reactant and product arrays (for reactions where
     ! these can vary)
     NUM_REACT_ = i_spec
     NUM_PROD_ = products%size()
-
-    ! Save the number of grid cells being solved at once
-    NUM_CELLS_ = n_cells
 
     ! Set the #/cc -> ppm conversion prefactor
     CONV_ = const%avagadro / const%univ_gas_const * 10.0d0**(-12.0d0)

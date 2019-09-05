@@ -90,9 +90,9 @@ module pmc_rxn_CMAQ_H2O2
 #define k2_B_ this%condensed_data_real(5)
 #define k2_C_ this%condensed_data_real(6)
 #define CONV_ this%condensed_data_real(7)
-#define RATE_CONSTANT_ this%condensed_data_real(8)
 #define NUM_INT_PROP_ 2
-#define NUM_REAL_PROP_ 8
+#define NUM_REAL_PROP_ 7
+#define NUM_ENV_PARAM_ 1
 #define REACT_(x) this%condensed_data_int(NUM_INT_PROP_ + x)
 #define PROD_(x) this%condensed_data_int(NUM_INT_PROP_ + NUM_REACT_ + x)
 #define DERIV_ID_(x) this%condensed_data_int(NUM_INT_PROP_ + NUM_REACT_ + NUM_PROD_ + x)
@@ -186,6 +186,9 @@ contains
     allocate(this%condensed_data_real(NUM_REAL_PROP_ + products%size()))
     this%condensed_data_int(:) = int(0, kind=i_kind)
     this%condensed_data_real(:) = real(0.0, kind=dp)
+
+    ! Save space for the environment dependent parameters
+    this%num_env_params = NUM_ENV_PARAM_
 
     ! Save the size of the reactant and product arrays (for reactions where
     ! these can vary)

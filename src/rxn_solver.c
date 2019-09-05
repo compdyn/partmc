@@ -219,8 +219,8 @@ void rxn_update_env_state(ModelData *model_data)
                 model_data, rxn_int_data, rxn_float_data, rxn_env_data);
         break;
       case RXN_CMAQ_H2O2 :
-        rxn_CMAQ_H2O2_update_env_state(rate_constants,
-                model_data, rxn_int_data, rxn_float_data);
+        rxn_CMAQ_H2O2_update_env_state(
+                model_data, rxn_int_data, rxn_float_data, rxn_env_data);
         break;
       case RXN_CMAQ_OH_HNO3 :
         rxn_CMAQ_OH_HNO3_update_env_state(rate_constants,
@@ -306,8 +306,8 @@ void rxn_calc_deriv(ModelData *model_data, double *deriv_data, realtype time_ste
         break;
       case RXN_CMAQ_H2O2 :
         rxn_CMAQ_H2O2_calc_deriv_contrib(
-               rate_constants, model_data, deriv_data,
-               rxn_int_data, rxn_float_data, time_step);
+               model_data, deriv_data, rxn_int_data, rxn_float_data,
+               rxn_env_data, time_step);
         break;
       case RXN_CMAQ_OH_HNO3 :
         rxn_CMAQ_OH_HNO3_calc_deriv_contrib(
@@ -405,8 +405,8 @@ void rxn_calc_jac(ModelData *model_data, double *J_data, realtype time_step)
         break;
       case RXN_CMAQ_H2O2 :
         rxn_CMAQ_H2O2_calc_jac_contrib(
-                 rate_constants, model_data, J_data,
-                 rxn_int_data, rxn_float_data, time_step);
+                 model_data, J_data, rxn_int_data, rxn_float_data,
+                 rxn_env_data, time_step);
         break;
       case RXN_CMAQ_OH_HNO3 :
         rxn_CMAQ_OH_HNO3_calc_jac_contrib(

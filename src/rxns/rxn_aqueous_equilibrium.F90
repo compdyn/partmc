@@ -87,9 +87,9 @@ module pmc_rxn_aqueous_equilibrium
 #define A_ this%condensed_data_real(1)
 #define C_ this%condensed_data_real(2)
 #define RATE_CONST_REVERSE_ this%condensed_data_real(3)
-#define RATE_CONST_FORWARD_ this%condensed_data_real(4)
 #define NUM_INT_PROP_ 3
-#define NUM_REAL_PROP_ 4
+#define NUM_REAL_PROP_ 3
+#define NUM_ENV_PARAM_ 1
 #define REACT_(x) this%condensed_data_int(NUM_INT_PROP_+x)
 #define PROD_(x) this%condensed_data_int(NUM_INT_PROP_+NUM_REACT_*NUM_AERO_PHASE_+x)
 #define WATER_(x) this%condensed_data_int(NUM_INT_PROP_+(NUM_REACT_+NUM_PROD_)*NUM_AERO_PHASE_+x)
@@ -249,6 +249,9 @@ contains
             num_spec_per_phase + 2 * num_phase))
     this%condensed_data_int(:) = int(0, kind=i_kind)
     this%condensed_data_real(:) = real(0.0, kind=dp)
+
+    ! Save space for the environment-dependent parameters
+    this%num_env_params = NUM_ENV_PARAM_
 
     ! Set the number of products, reactants and aerosol phase instances
     NUM_REACT_ = num_react

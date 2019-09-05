@@ -211,8 +211,8 @@ void rxn_update_env_state(ModelData *model_data)
     // Call the appropriate function
     switch (rxn_type) {
       case RXN_AQUEOUS_EQUILIBRIUM :
-        rxn_aqueous_equilibrium_update_env_state(rate_constants,
-                model_data, rxn_int_data, rxn_float_data);
+        rxn_aqueous_equilibrium_update_env_state(
+                model_data, rxn_int_data, rxn_float_data, rxn_env_data);
         break;
       case RXN_ARRHENIUS :
         rxn_arrhenius_update_env_state(
@@ -223,12 +223,12 @@ void rxn_update_env_state(ModelData *model_data)
                 model_data, rxn_int_data, rxn_float_data, rxn_env_data);
         break;
       case RXN_CMAQ_OH_HNO3 :
-        rxn_CMAQ_OH_HNO3_update_env_state(rate_constants,
-                model_data, rxn_int_data, rxn_float_data);
+        rxn_CMAQ_OH_HNO3_update_env_state(
+                model_data, rxn_int_data, rxn_float_data, rxn_env_data);
         break;
       case RXN_CONDENSED_PHASE_ARRHENIUS :
-        rxn_condensed_phase_arrhenius_update_env_state(rate_constants,
-                model_data, rxn_int_data, rxn_float_data);
+        rxn_condensed_phase_arrhenius_update_env_state(
+                model_data, rxn_int_data, rxn_float_data, rxn_env_data);
         break;
       case RXN_EMISSION :
         rxn_emission_update_env_state(rate_constants,
@@ -296,8 +296,8 @@ void rxn_calc_deriv(ModelData *model_data, double *deriv_data, realtype time_ste
     switch (rxn_type) {
       case RXN_AQUEOUS_EQUILIBRIUM :
         rxn_aqueous_equilibrium_calc_deriv_contrib(
-               rate_constants, model_data, deriv_data,
-               rxn_int_data, rxn_float_data, time_step);
+               model_data, deriv_data, rxn_int_data, rxn_float_data,
+               rxn_env_data, time_step);
         break;
       case RXN_ARRHENIUS :
         rxn_arrhenius_calc_deriv_contrib(
@@ -311,13 +311,13 @@ void rxn_calc_deriv(ModelData *model_data, double *deriv_data, realtype time_ste
         break;
       case RXN_CMAQ_OH_HNO3 :
         rxn_CMAQ_OH_HNO3_calc_deriv_contrib(
-               rate_constants, model_data, deriv_data,
-               rxn_int_data, rxn_float_data, time_step);
+               model_data, deriv_data, rxn_int_data, rxn_float_data,
+               rxn_env_data, time_step);
         break;
       case RXN_CONDENSED_PHASE_ARRHENIUS :
         rxn_condensed_phase_arrhenius_calc_deriv_contrib(
-               rate_constants, model_data, deriv_data,
-               rxn_int_data, rxn_float_data, time_step);
+               model_data, deriv_data, rxn_int_data, rxn_float_data,
+               rxn_env_data, time_step);
         break;
       case RXN_EMISSION :
         rxn_emission_calc_deriv_contrib(
@@ -395,8 +395,8 @@ void rxn_calc_jac(ModelData *model_data, double *J_data, realtype time_step)
     switch (rxn_type) {
       case RXN_AQUEOUS_EQUILIBRIUM :
         rxn_aqueous_equilibrium_calc_jac_contrib(
-                 rate_constants, model_data, J_data,
-                 rxn_int_data, rxn_float_data, time_step);
+                 model_data, J_data, rxn_int_data, rxn_float_data,
+                 rxn_env_data, time_step);
         break;
       case RXN_ARRHENIUS :
         rxn_arrhenius_calc_jac_contrib(
@@ -410,13 +410,13 @@ void rxn_calc_jac(ModelData *model_data, double *J_data, realtype time_step)
         break;
       case RXN_CMAQ_OH_HNO3 :
         rxn_CMAQ_OH_HNO3_calc_jac_contrib(
-                 rate_constants, model_data, J_data,
-                 rxn_int_data, rxn_float_data, time_step);
+                 model_data, J_data, rxn_int_data, rxn_float_data,
+                 rxn_env_data, time_step);
         break;
       case RXN_CONDENSED_PHASE_ARRHENIUS :
         rxn_condensed_phase_arrhenius_calc_jac_contrib(
-                 rate_constants, model_data, J_data,
-                 rxn_int_data, rxn_float_data, time_step);
+                 model_data, J_data, rxn_int_data, rxn_float_data,
+                 rxn_env_data, time_step);
         break;
       case RXN_EMISSION :
         rxn_emission_calc_jac_contrib(

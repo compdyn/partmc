@@ -22,22 +22,21 @@ void rxn_aqueous_equilibrium_update_ids(
           ModelData *model_data, int *deriv_ids, int **jac_ids, int *rxn_int_data,
           double *rxn_float_data);
 void rxn_aqueous_equilibrium_update_env_state(
-          double *rate_constants, ModelData *model_data, int *rxn_int_data,
-          double *rxn_float_data);
+          ModelData *model_data, int *rxn_int_data, double *rxn_float_data,
+          double *rxn_env_data);
 void rxn_aqueous_equilibrium_print(
           int *rxn_int_data, double *rxn_float_data);
 #ifdef PMC_USE_SUNDIALS
 realtype rxn_aqueous_equilibrium_calc_overall_rate(
-          int *rxn_int_data, double *rxn_float_data, realtype *state,
-          realtype react_fact, realtype prod_fact, realtype water, int i_phase);
+          int *rxn_int_data, double *rxn_float_data, double *rxn_env_data,
+          realtype *state, realtype react_fact, realtype prod_fact,
+          realtype water, int i_phase);
 void rxn_aqueous_equilibrium_calc_deriv_contrib(
-          double *rate_constants, ModelData *model_data,
-          realtype *deriv, int *rxn_int_data, double *rxn_float_data,
-          realtype time_step);
+          ModelData *model_data, realtype *deriv, int *rxn_int_data,
+          double *rxn_float_data, double *rxn_env_data, realtype time_step);
 void rxn_aqueous_equilibrium_calc_jac_contrib(
-          double *rate_constants, ModelData *model_data,
-          realtype *J, int *rxn_int_data, double *rxn_float_data,
-          realtype time_step);
+          ModelData *model_data, realtype *J, int *rxn_int_data,
+          double *rxn_float_data, double *rxn_env_data, realtype time_step);
 #endif
 
 // arrhenius
@@ -87,19 +86,17 @@ void rxn_CMAQ_OH_HNO3_update_ids(
           ModelData *model_data, int *deriv_ids, int **jac_ids,
           int *rxn_int_data, double *rxn_float_data);
 void rxn_CMAQ_OH_HNO3_update_env_state(
-          double *rate_constants, ModelData *model_data, int *rxn_int_data,
-          double *rxn_float_data);
+          ModelData *model_data, int *rxn_int_data, double *rxn_float_data,
+          double *rxn_env_data);
 void rxn_CMAQ_OH_HNO3_print(
           int *rxn_int_data, double *rxn_float_data);
 #ifdef PMC_USE_SUNDIALS
 void rxn_CMAQ_OH_HNO3_calc_deriv_contrib(
-          double *rate_constants, ModelData *model_data,
-          realtype *deriv, int *rxn_int_data, double *rxn_float_data,
-          realtype time_step);
+          ModelData *model_data, realtype *deriv, int *rxn_int_data,
+          double *rxn_float_data, double *rxn_env_data, realtype time_step);
 void rxn_CMAQ_OH_HNO3_calc_jac_contrib(
-          double *rate_constants, ModelData *model_data,
-          realtype *J, int *rxn_int_data, double *rxn_float_data,
-          realtype time_step);
+          ModelData *model_data, realtype *J, int *rxn_int_data,
+          double *rxn_float_data, double *rxn_env_data, realtype time_step);
 #endif
 
 // condensed_phase_arrhenius
@@ -109,19 +106,17 @@ void rxn_condensed_phase_arrhenius_update_ids(
           ModelData *model_data, int *deriv_ids, int **jac_ids,
           int *rxn_int_data, double *rxn_float_data);
 void rxn_condensed_phase_arrhenius_update_env_state(
-          double *rate_constants, ModelData *model_data, int *rxn_int_data,
-          double *rxn_float_data);
+          ModelData *model_data, int *rxn_int_data, double *rxn_float_data,
+          double *rxn_env_data);
 void rxn_condensed_phase_arrhenius_print(
           int *rxn_int_data, double *rxn_float_data);
 #ifdef PMC_USE_SUNDIALS
 void rxn_condensed_phase_arrhenius_calc_deriv_contrib(
-          double *rate_constants, ModelData *model_data,
-          realtype *deriv, int *rxn_int_data, double *rxn_float_data,
-          realtype time_step);
+          ModelData *model_data, realtype *deriv, int *rxn_int_data,
+          double *rxn_float_data, double *rxn_env_data, realtype time_step);
 void rxn_condensed_phase_arrhenius_calc_jac_contrib(
-          double *rate_constants, ModelData *model_data,
-          realtype *J, int *rxn_int_data, double *rxn_float_data,
-          realtype time_step);
+          ModelData *model_data, realtype *J, int *rxn_int_data,
+          double *rxn_float_data, double *rxn_env_data, realtype time_step);
 #endif
 
 // emission

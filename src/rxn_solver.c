@@ -231,20 +231,20 @@ void rxn_update_env_state(ModelData *model_data)
                 model_data, rxn_int_data, rxn_float_data, rxn_env_data);
         break;
       case RXN_EMISSION :
-        rxn_emission_update_env_state(rate_constants,
-                model_data, rxn_int_data, rxn_float_data);
+        rxn_emission_update_env_state(
+                model_data, rxn_int_data, rxn_float_data, rxn_env_data);
         break;
       case RXN_FIRST_ORDER_LOSS :
-        rxn_first_order_loss_update_env_state(rate_constants,
-                model_data, rxn_int_data, rxn_float_data);
+        rxn_first_order_loss_update_env_state(
+                model_data, rxn_int_data, rxn_float_data, rxn_env_data);
         break;
       case RXN_HL_PHASE_TRANSFER :
-        rxn_HL_phase_transfer_update_env_state(rate_constants,
-                model_data, rxn_int_data, rxn_float_data);
+        rxn_HL_phase_transfer_update_env_state(
+                model_data, rxn_int_data, rxn_float_data, rxn_env_data);
         break;
       case RXN_PHOTOLYSIS :
-        rxn_photolysis_update_env_state(rate_constants,
-                model_data, rxn_int_data, rxn_float_data);
+        rxn_photolysis_update_env_state(
+                model_data, rxn_int_data, rxn_float_data, rxn_env_data);
         break;
       case RXN_SIMPOL_PHASE_TRANSFER :
         rxn_SIMPOL_phase_transfer_update_env_state(rate_constants,
@@ -321,23 +321,23 @@ void rxn_calc_deriv(ModelData *model_data, double *deriv_data, realtype time_ste
         break;
       case RXN_EMISSION :
         rxn_emission_calc_deriv_contrib(
-               rate_constants, model_data, deriv_data,
-               rxn_int_data, rxn_float_data, time_step);
+               model_data, deriv_data, rxn_int_data, rxn_float_data,
+               rxn_env_data, time_step);
         break;
       case RXN_FIRST_ORDER_LOSS :
         rxn_first_order_loss_calc_deriv_contrib(
-               rate_constants, model_data, deriv_data,
-               rxn_int_data, rxn_float_data, time_step);
+               model_data, deriv_data, rxn_int_data, rxn_float_data,
+               rxn_env_data, time_step);
         break;
       case RXN_HL_PHASE_TRANSFER :
         rxn_HL_phase_transfer_calc_deriv_contrib(
-               rate_constants, model_data, deriv_data,
-               rxn_int_data, rxn_float_data, time_step);
+               model_data, deriv_data, rxn_int_data, rxn_float_data,
+               rxn_env_data, time_step);
         break;
       case RXN_PHOTOLYSIS :
         rxn_photolysis_calc_deriv_contrib(
-               rate_constants, model_data, deriv_data,
-               rxn_int_data, rxn_float_data, time_step);
+               model_data, deriv_data, rxn_int_data, rxn_float_data,
+               rxn_env_data, time_step);
         break;
       case RXN_SIMPOL_PHASE_TRANSFER :
         rxn_SIMPOL_phase_transfer_calc_deriv_contrib(
@@ -420,23 +420,23 @@ void rxn_calc_jac(ModelData *model_data, double *J_data, realtype time_step)
         break;
       case RXN_EMISSION :
         rxn_emission_calc_jac_contrib(
-                 rate_constants, model_data, J_data,
-                 rxn_int_data, rxn_float_data, time_step);
+                 model_data, J_data, rxn_int_data, rxn_float_data,
+                 rxn_env_data, time_step);
         break;
       case RXN_FIRST_ORDER_LOSS :
         rxn_first_order_loss_calc_jac_contrib(
-                 rate_constants, model_data, J_data,
-                 rxn_int_data, rxn_float_data, time_step);
+                 model_data, J_data, rxn_int_data, rxn_float_data,
+                 rxn_env_data, time_step);
         break;
       case RXN_HL_PHASE_TRANSFER :
         rxn_HL_phase_transfer_calc_jac_contrib(
-                 rate_constants, model_data, J_data,
-                 rxn_int_data, rxn_float_data, time_step);
+                 model_data, J_data, rxn_int_data, rxn_float_data,
+                 rxn_env_data, time_step);
         break;
       case RXN_PHOTOLYSIS :
         rxn_photolysis_calc_jac_contrib(
-                 rate_constants, model_data, J_data,
-                 rxn_int_data, rxn_float_data, time_step);
+                 model_data, J_data, rxn_int_data, rxn_float_data,
+                 rxn_env_data, time_step);
         break;
       case RXN_SIMPOL_PHASE_TRANSFER :
         rxn_SIMPOL_phase_transfer_calc_jac_contrib(

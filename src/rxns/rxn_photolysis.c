@@ -22,9 +22,10 @@
 #define PHOTO_ID_ int_data[2]
 #define BASE_RATE_ float_data[0]
 #define SCALING_ float_data[1]
-#define RATE_CONSTANT_ float_data[2]
+#define RATE_CONSTANT_ (rxn_env_data[0])
 #define NUM_INT_PROP_ 3
-#define NUM_FLOAT_PROP_ 3
+#define NUM_FLOAT_PROP_ 2
+#define NUM_ENV_PARAM_ 1
 #define REACT_(x) (int_data[NUM_INT_PROP_ + x]-1)
 #define PROD_(x) (int_data[NUM_INT_PROP_ + NUM_REACT_ + x]-1)
 #define DERIV_ID_(x) int_data[NUM_INT_PROP_ + NUM_REACT_ + NUM_PROD_ + x]
@@ -128,9 +129,10 @@ void rxn_photolysis_update_data(void *update_data, int *rxn_int_data,
  * \param model_data Pointer to the model data
  * \param rxn_int_data Pointer to the reaction integer data
  * \param rxn_float_data Pointer to the reaction floating-point data
+ * \param rxn_env_data Pointer to the environment-dependent parameters
  */
-void rxn_photolysis_update_env_state(double *rate_constants,
-    ModelData *model_data, int *rxn_int_data, double *rxn_float_data)
+void rxn_photolysis_update_env_state(ModelData *model_data, int *rxn_int_data,
+    double *rxn_float_data, double *rxn_env_data)
 {
   int *int_data = rxn_int_data;
   double *float_data = rxn_float_data;
@@ -138,8 +140,6 @@ void rxn_photolysis_update_env_state(double *rate_constants,
 
   // Calculate the rate constant in (1/s)
   RATE_CONSTANT_ = SCALING_ * BASE_RATE_;
-
-  rate_constants[0] = RATE_CONSTANT_;
 
   return;
 }
@@ -151,22 +151,21 @@ void rxn_photolysis_update_env_state(double *rate_constants,
  * \param deriv Pointer to the time derivative to add contributions to
  * \param rxn_int_data Pointer to the reaction integer data
  * \param rxn_float_data Pointer to the reaction floating-point data
+ * \param rxn_env_data Pointer to the environment-dependent parameters
  * \param time_step Current time step being computed (s)
  */
 #ifdef PMC_USE_SUNDIALS
-void rxn_photolysis_calc_deriv_contrib(double *rate_constants,
-          ModelData *model_data,
-          realtype *deriv, int *rxn_int_data, double *rxn_float_data,
-          double time_step)
+void rxn_photolysis_calc_deriv_contrib(ModelData *model_data, realtype *deriv,
+    int *rxn_int_data, double *rxn_float_data, double *rxn_env_data,
+    realtype time_step)
 {
   int *int_data = rxn_int_data;
   double *float_data = rxn_float_data;
   double *state    = model_data->grid_cell_state;
   double *env_data = model_data->grid_cell_env;
-  int cell_id      = model_data->grid_cell_id;
 
   // Calculate the reaction rate
-  realtype rate = rate_constants[0];
+  realtype rate = RATE_CONSTANT_;
   for (int i_spec=0; i_spec<NUM_REACT_; i_spec++)
           rate *= state[REACT_(i_spec)];
 
@@ -194,29 +193,29 @@ void rxn_photolysis_calc_deriv_contrib(double *rate_constants,
  * \param J Pointer to the sparse Jacobian matrix to add contributions to
  * \param rxn_int_data Pointer to the reaction integer data
  * \param rxn_float_data Pointer to the reaction floating-point data
+ * \param rxn_env_data Pointer to the environment-dependent parameters
  * \param time_step Current time step being calculated (s)
  */
 #ifdef PMC_USE_SUNDIALS
-void rxn_photolysis_calc_jac_contrib(double *rate_constants,
-          ModelData *model_data, realtype *J,
-          int *rxn_int_data, double *rxn_float_data, double time_step)
+void rxn_photolysis_calc_jac_contrib(ModelData *model_data, realtype *J,
+    int *rxn_int_data, double *rxn_float_data, double *rxn_env_data,
+    realtype time_step)
 {
   int *int_data = rxn_int_data;
   double *float_data = rxn_float_data;
   double *state    = model_data->grid_cell_state;
   double *env_data = model_data->grid_cell_env;
-  int cell_id      = model_data->grid_cell_id;
 
   // Add contributions to the Jacobian
   int i_elem = 0;
   for (int i_ind=0; i_ind<NUM_REACT_; i_ind++) {
     for (int i_dep=0; i_dep<NUM_REACT_; i_dep++, i_elem++) {
       if (JAC_ID_(i_elem) < 0) continue;
-      J[JAC_ID_(i_elem)] -= rate_constants[0];
+      J[JAC_ID_(i_elem)] -= RATE_CONSTANT_;
     }
     for (int i_dep=0; i_dep<NUM_PROD_; i_dep++, i_elem++) {
       if (JAC_ID_(i_elem) < 0) continue;
-      J[JAC_ID_(i_elem)] += YIELD_(i_dep) * rate_constants[0];
+      J[JAC_ID_(i_elem)] += YIELD_(i_dep) * RATE_CONSTANT_;
     }
   }
 

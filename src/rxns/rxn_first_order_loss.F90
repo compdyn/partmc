@@ -71,9 +71,9 @@ module pmc_rxn_first_order_loss
 #define JAC_ID_ this%condensed_data_int(4)
 #define BASE_RATE_ this%condensed_data_real(1)
 #define SCALING_ this%condensed_data_real(2)
-#define RATE_CONSTANT_ this%condensed_data_real(3)
 #define NUM_INT_PROP_ 4
-#define NUM_REAL_PROP_ 3
+#define NUM_REAL_PROP_ 2
+#define NUM_ENV_PARAM_ 1
 
 public :: rxn_first_order_loss_t, rxn_update_data_first_order_loss_rate_t
 
@@ -191,6 +191,9 @@ contains
     allocate(this%condensed_data_real(NUM_REAL_PROP_))
     this%condensed_data_int(:) = int(0, kind=i_kind)
     this%condensed_data_real(:) = real(0.0, kind=dp)
+
+    ! Save space for the environment-dependent parameters
+    this%num_env_params = NUM_ENV_PARAM_
 
     ! Get reaction parameters
     key_name = "rate const"

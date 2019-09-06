@@ -36,16 +36,17 @@
 #define PRE_C_AVG_ float_data[3]
 #define A_ float_data[4]
 #define C_ float_data[5]
-#define C_AVG_ALPHA_ float_data[6]
-#define EQUIL_CONST_ float_data[7]
-#define CONV_ float_data[8]
-#define MW_ float_data[9]
-#define UGM3_TO_PPM_ float_data[10]
-#define SMALL_NUMBER_ float_data[11]
+#define CONV_ float_data[6]
+#define MW_ float_data[7]
+#define SMALL_NUMBER_ float_data[8]
 #define NUM_AERO_PHASE_ int_data[0]
 #define GAS_SPEC_ (int_data[1]-1)
+#define C_AVG_ALPHA_ rxn_env_data[0]
+#define EQUIL_CONST_ rxn_env_data[1]
+#define UGM3_TO_PPM_ rxn_env_data[2]
 #define NUM_INT_PROP_ 2
-#define NUM_FLOAT_PROP_ 12
+#define NUM_FLOAT_PROP_ 9
+#define NUM_ENV_PARAM_ 3
 #define DERIV_ID_(x) int_data[NUM_INT_PROP_ + x]
 #define JAC_ID_(x) int_data[NUM_INT_PROP_ + 1 + NUM_AERO_PHASE_ + x]
 #define PHASE_INT_LOC_(x) (int_data[NUM_INT_PROP_ + 2 + 6*NUM_AERO_PHASE_ + x]-1)
@@ -194,10 +195,10 @@ void rxn_HL_phase_transfer_update_ids(ModelData *model_data, int *deriv_ids,
  * \param model_data Pointer to the model data
  * \param rxn_int_data Pointer to the reaction integer data
  * \param rxn_float_data Pointer to the reaction floating-point data
+ * \param rxn_env_data Pointer to the environment-dependent parameters
  */
-void rxn_HL_phase_transfer_update_env_state(double *rate_constants,
-          ModelData *model_data,
-          int *rxn_int_data, double *rxn_float_data)
+void rxn_HL_phase_transfer_update_env_state(ModelData *model_data,
+    int *rxn_int_data, double *rxn_float_data, double *rxn_env_data)
 {
   int *int_data = rxn_int_data;
   double *float_data = rxn_float_data;
@@ -227,8 +228,6 @@ void rxn_HL_phase_transfer_update_env_state(double *rate_constants,
   // Calculate the conversion from ug/m^3 -> ppm
   UGM3_TO_PPM_ = CONV_ * TEMPERATURE_K_ / PRESSURE_PA_;
 
-  // FIXME This does not work with multi-cell solving yet
-
   return;
 
 }
@@ -241,6 +240,7 @@ void rxn_HL_phase_transfer_update_env_state(double *rate_constants,
  *
  * \param rxn_int_data Pointer to the reaction integer data
  * \param rxn_float_data Pointer to the reaction floating-point data
+ * \param rxn_env_data Pointer to the environment-dependent parameters
  * \param state State array
  * \param cond_rc Condensation rate constant ([ppm]^(-n_react+1)s^-1)
  * \param evap_rc Evaporation rate constant ([ppm]^(-n_prod+1)s^-1)
@@ -248,8 +248,8 @@ void rxn_HL_phase_transfer_update_env_state(double *rate_constants,
  */
 #ifdef PMC_USE_SUNDIALS
 realtype rxn_HL_phase_transfer_calc_overall_rate(int *rxn_int_data,
-    double *rxn_float_data, realtype *state, realtype cond_rc,
-    realtype evap_rc, int i_phase)
+    double *rxn_float_data, double *rxn_env_data, realtype *state,
+    realtype cond_rc, realtype evap_rc, int i_phase)
 {
   int *int_data = rxn_int_data;
   double *float_data = rxn_float_data;
@@ -275,7 +275,7 @@ realtype rxn_HL_phase_transfer_calc_overall_rate(int *rxn_int_data,
     realtype aero_eq = gas_conc * aero_water * ( l_cond_rc / l_evap_rc );
     rate = ( aero_conc - aero_eq ) * ( l_evap_rc / aero_water );
   }
-  return (long double) rate;
+  return (realtype) rate;
 }
 #endif
 
@@ -286,19 +286,18 @@ realtype rxn_HL_phase_transfer_calc_overall_rate(int *rxn_int_data,
  * \param deriv Pointer to the time derivative to add contributions to
  * \param rxn_int_data Pointer to the reaction integer data
  * \param rxn_float_data Pointer to the reaction floating-point data
+ * \param rxn_env_data Pointer to the environment-dependent parameters
  * \param time_step Current time step being computed (s)
  */
 #ifdef PMC_USE_SUNDIALS
-void rxn_HL_phase_transfer_calc_deriv_contrib(double *rate_constants,
-          ModelData *model_data,
-          realtype *deriv, int *rxn_int_data, double *rxn_float_data,
-          double time_step)
+void rxn_HL_phase_transfer_calc_deriv_contrib(ModelData *model_data,
+    realtype *deriv, int *rxn_int_data, double *rxn_float_data,
+    double *rxn_env_data, realtype time_step)
 {
   int *int_data = rxn_int_data;
   double *float_data = rxn_float_data;
   double *state    = model_data->grid_cell_state;
   double *env_data = model_data->grid_cell_env;
-  int cell_id      = model_data->grid_cell_id;
 
   // Calculate derivative contributions for each aerosol phase
   for (int i_phase=0; i_phase<NUM_AERO_PHASE_; i_phase++) {
@@ -349,7 +348,7 @@ void rxn_HL_phase_transfer_calc_deriv_contrib(double *rate_constants,
 
     // Get the overall rate
     realtype rate = rxn_HL_phase_transfer_calc_overall_rate(
-                        rxn_int_data, rxn_float_data, state,
+                        rxn_int_data, rxn_float_data, rxn_env_data, state,
                         cond_rate, evap_rate, i_phase);
 
     // Change in the gas-phase is evaporation - condensation (ppm/s)
@@ -375,19 +374,18 @@ void rxn_HL_phase_transfer_calc_deriv_contrib(double *rate_constants,
  * \param J Pointer to the sparse Jacobian matrix to add contributions to
  * \param rxn_int_data Pointer to the reaction integer data
  * \param rxn_float_data Pointer to the reaction floating-point data
+ * \param rxn_env_data Pointer to the environment-dependent parameters
  * \param time_step Current time step being calculated (s)
  */
 #ifdef PMC_USE_SUNDIALS
-void rxn_HL_phase_transfer_calc_jac_contrib(double *rate_constants,
-          ModelData *model_data,
-          realtype *J, int *rxn_int_data, double *rxn_float_data,
-          double time_step)
+void rxn_HL_phase_transfer_calc_jac_contrib(ModelData *model_data,
+    realtype *J, int *rxn_int_data, double *rxn_float_data,
+    double *rxn_env_data, realtype time_step)
 {
   int *int_data = rxn_int_data;
   double *float_data = rxn_float_data;
   double *state    = model_data->grid_cell_state;
   double *env_data = model_data->grid_cell_env;
-  int cell_id      = model_data->grid_cell_id;
 
   // Calculate derivative contributions for each aerosol phase
   for (int i_phase=0; i_phase<NUM_AERO_PHASE_; i_phase++) {
@@ -440,7 +438,7 @@ void rxn_HL_phase_transfer_calc_jac_contrib(double *rate_constants,
 
     // Get the overall rate for certain Jac elements
     realtype rate = rxn_HL_phase_transfer_calc_overall_rate(
-              rxn_int_data, rxn_float_data, state,
+              rxn_int_data, rxn_float_data, rxn_env_data, state,
               cond_rate, evap_rate, i_phase);
 
     // Update evap rate to be for aerosol species concentrations

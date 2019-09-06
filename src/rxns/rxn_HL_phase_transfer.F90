@@ -103,16 +103,14 @@ module pmc_rxn_HL_phase_transfer
 #define PRE_C_AVG_ this%condensed_data_real(4)
 #define A_ this%condensed_data_real(5)
 #define C_ this%condensed_data_real(6)
-#define C_AVG_ALPHA_ this%condensed_data_real(7)
-#define EQUIL_CONST_ this%condensed_data_real(8)
-#define CONV_ this%condensed_data_real(9)
-#define MW_ this%condensed_data_real(10)
-#define UGM3_TO_PPM_ this%condensed_data_real(11)
-#define SMALL_NUMBER_ this%condensed_data_real(12)
+#define CONV_ this%condensed_data_real(7)
+#define MW_ this%condensed_data_real(8)
+#define SMALL_NUMBER_ this%condensed_data_real(9)
 #define NUM_AERO_PHASE_ this%condensed_data_int(1)
 #define GAS_SPEC_ this%condensed_data_int(2)
 #define NUM_INT_PROP_ 2
-#define NUM_REAL_PROP_ 12
+#define NUM_REAL_PROP_ 9
+#define NUM_ENV_PARAM_ 3
 #define DERIV_ID_(x) this%condensed_data_int(NUM_INT_PROP_+x)
 #define JAC_ID_(x) this%condensed_data_int(NUM_INT_PROP_+1+NUM_AERO_PHASE_+x)
 #define PHASE_INT_LOC_(x) this%condensed_data_int(NUM_INT_PROP_+2+6*NUM_AERO_PHASE_+x)
@@ -258,6 +256,9 @@ contains
                                       n_aero_jac_elem * 2))
     this%condensed_data_int(:) = int(0, kind=i_kind)
     this%condensed_data_real(:) = real(0.0, kind=dp)
+
+    ! Save space for the environment-dependent parameters
+    this%num_env_params = NUM_ENV_PARAM_
 
     ! Set the number of aerosol-species instances
     NUM_AERO_PHASE_ = n_aero_ids

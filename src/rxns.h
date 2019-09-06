@@ -126,21 +126,19 @@ void rxn_emission_update_ids(
           ModelData *model_data, int *deriv_ids, int **jac_ids,
           int *rxn_int_data, double *rxn_float_data);
 void rxn_emission_update_env_state(
-          double *rate_constants, ModelData *model_data, int *rxn_int_data,
-          double *rxn_float_data);
+          ModelData *model_data, int *rxn_int_data, double *rxn_float_data,
+          double *rxn_env_data);
 void rxn_emission_update_data(
           void *update_data, int *rxn_int_data, double *rxn_float_data);
 void rxn_emission_print(
           int *rxn_int_data, double *rxn_float_data);
 #ifdef PMC_USE_SUNDIALS
 void rxn_emission_calc_deriv_contrib(
-          double *rate_constants, ModelData *model_data,
-          realtype *deriv, int *rxn_int_data, double *rxn_float_data,
-          realtype time_step);
+          ModelData *model_data, realtype *deriv, int *rxn_int_data,
+          double *rxn_float_data, double *rxn_env_data, realtype time_step);
 void rxn_emission_calc_jac_contrib(
-          double *rate_constants, ModelData *model_data,
-          realtype *J, int *rxn_int_data, double *rxn_float_data,
-          realtype time_step);
+          ModelData *model_data, realtype *J, int *rxn_int_data,
+          double *rxn_float_data, double *rxn_env_data, realtype time_step);
 #endif
 void * rxn_emission_create_rate_update_data();
 void rxn_emission_set_rate_update_data(
@@ -153,21 +151,19 @@ void rxn_first_order_loss_update_ids(
           ModelData *model_data, int *deriv_ids, int **jac_ids,
           int *rxn_int_data, double *rxn_float_data);
 void rxn_first_order_loss_update_env_state(
-          double *rate_constants, ModelData *model_data, int *rxn_int_data,
-          double *rxn_float_data);
+          ModelData *model_data, int *rxn_int_data, double *rxn_float_data,
+          double *rxn_env_data);
 void rxn_first_order_loss_update_data(
           void *update_data, int *rxn_int_data, double *rxn_float_data);
 void rxn_first_order_loss_print(
           int *rxn_int_data, double *rxn_float_data);
 #ifdef PMC_USE_SUNDIALS
 void rxn_first_order_loss_calc_deriv_contrib(
-          double *rate_constants, ModelData *model_data,
-          realtype *deriv, int *rxn_int_data, double *rxn_float_data,
-          realtype time_step);
+          ModelData *model_data, realtype *deriv, int *rxn_int_data,
+          double *rxn_float_data, double *rxn_env_data, realtype time_step);
 void rxn_first_order_loss_calc_jac_contrib(
-          double *rate_constants, ModelData *model_data,
-          realtype *J, int *rxn_int_data, double *rxn_float_data,
-          realtype time_step);
+          ModelData *model_data, realtype *J, int *rxn_int_data,
+          double *rxn_float_data, double *rxn_env_data, realtype time_step);
 #endif
 void * rxn_first_order_loss_create_rate_update_data();
 void rxn_first_order_loss_set_rate_update_data(
@@ -181,23 +177,20 @@ void rxn_HL_phase_transfer_update_ids(
           ModelData *model_data, int *deriv_ids, int **jac_ids,
           int *rxn_int_data, double *rxn_float_data);
 void rxn_HL_phase_transfer_update_env_state(
-          double *rate_constants, ModelData *model_data, int *rxn_int_data,
-          double *rxn_float_data);
+          ModelData *model_data, int *rxn_int_data, double *rxn_float_data,
+          double *rxn_env_data);
 void rxn_HL_phase_transfer_print(
           int *rxn_int_data, double *rxn_float_data);
 #ifdef PMC_USE_SUNDIALS
 realtype rxn_HL_phase_transfer_calc_overall_rate(
-          int *rxn_int_data, double *rxn_float_data, realtype *state,
-          realtype cond_rc, realtype evap_rc,
-          int i_phase);
+          int *rxn_int_data, double *rxn_float_data, double *rxn_env_data,
+          realtype *state, realtype cond_rc, realtype evap_rc, int i_phase);
 void rxn_HL_phase_transfer_calc_deriv_contrib(
-          double *rate_constants, ModelData *model_data,
-          realtype *deriv, int *rxn_int_data, double *rxn_float_data,
-          realtype time_step);
+          ModelData *model_data, realtype *deriv, int *rxn_int_data,
+          double *rxn_float_data, double *rxn_env_data, realtype time_step);
 void rxn_HL_phase_transfer_calc_jac_contrib(
-          double *rate_constants, ModelData *model_data,
-          realtype *J, int *rxn_int_data, double *rxn_float_data,
-          realtype time_step);
+          ModelData *model_data, realtype *J, int *rxn_int_data,
+          double *rxn_float_data, double *rxn_env_data, realtype time_step);
 #endif
 
 // photolysis
@@ -207,21 +200,19 @@ void rxn_photolysis_update_ids(
           ModelData *model_data, int *deriv_ids, int **jac_ids,
           int *rxn_int_data, double *rxn_float_data);
 void rxn_photolysis_update_env_state(
-          double *rate_constants, ModelData *model_data, int *rxn_int_data,
-          double *rxn_float_data);
+          ModelData *model_data, int *rxn_int_data, double *rxn_float_data,
+          double *rxn_env_data);
 void rxn_photolysis_update_data(
           void *update_data, int *rxn_int_data, double *rxn_float_data);
 void rxn_photolysis_print(
           int *rxn_int_data, double *rxn_float_data);
 #ifdef PMC_USE_SUNDIALS
 void rxn_photolysis_calc_deriv_contrib(
-          double *rate_constants, ModelData *model_data,
-          realtype *deriv, int *rxn_int_data, double *rxn_float_data,
-          realtype time_step);
+          ModelData *model_data, realtype *deriv, int *rxn_int_data,
+          double *rxn_float_data, double *rxn_env_data, realtype time_step);
 void rxn_photolysis_calc_jac_contrib(
-          double *rate_constants, ModelData *model_data,
-          realtype *J, int *rxn_int_data, double *rxn_float_data,
-          realtype time_step);
+          ModelData *model_data, realtype *J, int *rxn_int_data,
+          double *rxn_float_data, double *rxn_env_data, realtype time_step);
 #endif
 void * rxn_photolysis_create_rate_update_data();
 void rxn_photolysis_set_rate_update_data(

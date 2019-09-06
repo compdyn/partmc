@@ -181,9 +181,9 @@ module pmc_sub_model_ZSR_aerosol_water
 #define NUM_ION_PAIR_ this%condensed_data_int(3)
 #define TOTAL_INT_PARAM_ this%condensed_data_int(4)
 #define TOTAL_FLOAT_PARAM_ this%condensed_data_int(5)
-#define PPM_TO_RH_ this%condensed_data_real(1)
 #define NUM_INT_PROP_ 5
-#define NUM_REAL_PROP_ 1
+#define NUM_REAL_PROP_ 0
+#define NUM_ENV_PARAM_ 1
 #define PHASE_ID_(p) this%condensed_data_int(NUM_INT_PROP_+p)
 #define PAIR_INT_PARAM_LOC_(x) this%condensed_data_int(NUM_INT_PROP_+NUM_PHASE_+x)
 #define PAIR_FLOAT_PARAM_LOC_(x) this%condensed_data_int(NUM_INT_PROP_+NUM_PHASE_+NUM_ION_PAIR_+x)
@@ -375,6 +375,9 @@ contains
     allocate(this%condensed_data_real(n_float_param))
     this%condensed_data_int(:) = int(0, kind=i_kind)
     this%condensed_data_real(:) = real(0.0, kind=dp)
+
+    ! Save space for the environment-dependent parameters
+    this%num_env_params = NUM_ENV_PARAM_
 
     ! Set some data dimensions
     NUM_PHASE_  = n_phase

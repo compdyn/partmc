@@ -230,6 +230,8 @@ void sub_model_update_env_state(ModelData *model_data)
 
     int *sub_model_int_data = model_data->sub_model_int_ptrs[i_sub_model];
     double *sub_model_float_data = model_data->sub_model_float_ptrs[i_sub_model];
+    double *sub_model_env_data = &(model_data->grid_cell_sub_model_env_data[
+                                     model_data->sub_model_env_idx[i_sub_model]]);
 
     // Get the sub model type
     int sub_model_type = *(sub_model_int_data++);
@@ -238,15 +240,18 @@ void sub_model_update_env_state(ModelData *model_data)
     switch (sub_model_type) {
       case SUB_MODEL_PDFITE :
         sub_model_PDFiTE_update_env_state(
-                  sub_model_int_data, sub_model_float_data, model_data);
+                  sub_model_int_data, sub_model_float_data, sub_model_env_data,
+                  model_data);
         break;
       case SUB_MODEL_UNIFAC :
         sub_model_UNIFAC_update_env_state(
-                  sub_model_int_data, sub_model_float_data, model_data);
+                  sub_model_int_data, sub_model_float_data, sub_model_env_data,
+                  model_data);
         break;
       case SUB_MODEL_ZSR_AEROSOL_WATER :
         sub_model_ZSR_aerosol_water_update_env_state(
-                  sub_model_int_data, sub_model_float_data, model_data);
+                  sub_model_int_data, sub_model_float_data, sub_model_env_data,
+                  model_data);
         break;
     }
   }
@@ -267,6 +272,8 @@ void sub_model_calculate(ModelData *model_data)
 
     int *sub_model_int_data = model_data->sub_model_int_ptrs[i_sub_model];
     double *sub_model_float_data = model_data->sub_model_float_ptrs[i_sub_model];
+    double *sub_model_env_data = &(model_data->grid_cell_sub_model_env_data[
+                                     model_data->sub_model_env_idx[i_sub_model]]);
 
     // Get the sub model type
     int sub_model_type = *(sub_model_int_data++);
@@ -275,15 +282,18 @@ void sub_model_calculate(ModelData *model_data)
     switch (sub_model_type) {
       case SUB_MODEL_PDFITE :
         sub_model_PDFiTE_calculate(
-                  sub_model_int_data, sub_model_float_data, model_data);
+                  sub_model_int_data, sub_model_float_data, sub_model_env_data,
+                  model_data);
         break;
       case SUB_MODEL_UNIFAC :
         sub_model_UNIFAC_calculate(
-                  sub_model_int_data, sub_model_float_data, model_data);
+                  sub_model_int_data, sub_model_float_data, sub_model_env_data,
+                  model_data);
         break;
       case SUB_MODEL_ZSR_AEROSOL_WATER :
         sub_model_ZSR_aerosol_water_calculate(
-                  sub_model_int_data, sub_model_float_data, model_data);
+                  sub_model_int_data, sub_model_float_data, sub_model_env_data,
+                  model_data);
         break;
     }
   }
@@ -309,6 +319,8 @@ void sub_model_get_jac_contrib(ModelData *model_data, double *J_data,
 
     int *sub_model_int_data = model_data->sub_model_int_ptrs[i_sub_model];
     double *sub_model_float_data = model_data->sub_model_float_ptrs[i_sub_model];
+    double *sub_model_env_data = &(model_data->grid_cell_sub_model_env_data[
+                                     model_data->sub_model_env_idx[i_sub_model]]);
 
     // Get the sub model type
     int sub_model_type = *(sub_model_int_data++);
@@ -317,18 +329,18 @@ void sub_model_get_jac_contrib(ModelData *model_data, double *J_data,
     switch (sub_model_type) {
       case SUB_MODEL_PDFITE :
         sub_model_PDFiTE_get_jac_contrib(
-                  sub_model_int_data, sub_model_float_data, model_data, J_data,
-                  (double) time_step);
+                  sub_model_int_data, sub_model_float_data, sub_model_env_data,
+                  model_data, J_data, (double) time_step);
         break;
       case SUB_MODEL_UNIFAC :
         sub_model_UNIFAC_get_jac_contrib(
-                  sub_model_int_data, sub_model_float_data, model_data, J_data,
-                  (double) time_step);
+                  sub_model_int_data, sub_model_float_data, sub_model_env_data,
+                  model_data, J_data, (double) time_step);
         break;
       case SUB_MODEL_ZSR_AEROSOL_WATER :
         sub_model_ZSR_aerosol_water_get_jac_contrib(
-                  sub_model_int_data, sub_model_float_data, model_data, J_data,
-                  (double) time_step);
+                  sub_model_int_data, sub_model_float_data, sub_model_env_data,
+                  model_data, J_data, (double) time_step);
         break;
     }
   }
@@ -347,22 +359,25 @@ void sub_model_get_jac_contrib(ModelData *model_data, double *J_data,
  * \param sub_model_type Sub model type
  * \param n_int_param Number of integer parameters
  * \param n_float_param Number of floating-point parameters
+ * \param n_env_param Number of environment-dependent parameters
  * \param int_param Pointer to integer parameter array
  * \param float_param Pointer to floating-point parameter array
  * \param solver_data Pointer to solver data
  */
 void sub_model_add_condensed_data(int sub_model_type, int n_int_param,
-          int n_float_param, int *int_param, double *float_param,
-          void *solver_data)
+          int n_float_param, int n_env_param, int *int_param,
+          double *float_param, void *solver_data)
 {
   ModelData *model_data =
           (ModelData*) &(((SolverData*)solver_data)->model_data);
   int *sub_model_int_data      = model_data->nxt_sub_model_int;
   double *sub_model_float_data = model_data->nxt_sub_model_float;
+  int sub_model_env_idx        = model_data->nxt_sub_model_env;
 
   // Save the pointers to this sub model's data
-  model_data->sub_model_int_ptrs[model_data->n_added_sub_models] = sub_model_int_data;
+  model_data->sub_model_int_ptrs[model_data->n_added_sub_models]   = sub_model_int_data;
   model_data->sub_model_float_ptrs[model_data->n_added_sub_models] = sub_model_float_data;
+  model_data->sub_model_env_idx[model_data->n_added_sub_models]    = sub_model_env_idx;
   ++(model_data->n_added_sub_models);
 
   // Add the sub model type
@@ -376,8 +391,10 @@ void sub_model_add_condensed_data(int sub_model_type, int n_int_param,
           *(sub_model_float_data++) = *(float_param++);
 
   // Set the pointers for the next free space in the sub model data arrays
-  model_data->nxt_sub_model_int   = sub_model_int_data;
-  model_data->nxt_sub_model_float = sub_model_float_data;
+  model_data->nxt_sub_model_int     = sub_model_int_data;
+  model_data->nxt_sub_model_float   = sub_model_float_data;
+  model_data->nxt_sub_model_env     = sub_model_env_idx + n_env_param;
+  model_data->n_sub_model_env_data += n_env_param;
 }
 
 /** \brief Update sub-model data

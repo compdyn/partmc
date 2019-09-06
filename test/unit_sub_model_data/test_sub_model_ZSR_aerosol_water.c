@@ -183,6 +183,9 @@ int run_sub_model_zsr_c_tests(void *solver_data, double *state, double *env)
   NV_DATA_S(solver_state)[9] = state[11] = CONC_CA;
                                state[12] = 0.0;
 
+  // Set the environment parameter pointer
+  md->grid_cell_sub_model_env_data = md->sub_model_env_data;
+
   // Update the environmental state
   sub_model_update_env_state(md);
 

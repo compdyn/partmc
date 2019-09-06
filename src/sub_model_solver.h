@@ -35,7 +35,8 @@ void sub_model_print_data(
 /* Setup functions */
 void sub_model_add_condensed_data(
           int sub_model_type, int n_int_param, int n_float_param,
-          int *int_param, double *float_param, void *solver_data);
+          int n_env_param, int *int_param, double *float_param,
+          void *solver_data);
 void sub_model_update_data(
           int update_sub_model_type, void *update_data, void *solver_data);
 

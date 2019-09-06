@@ -71,6 +71,10 @@ module pmc_sub_model_data
     !! sub-model that cannot be obtained from the
     !! pmc_phlex_state::phlex_state_t object. (integer)
     integer(kind=i_kind), allocatable, public :: condensed_data_int(:)
+    !> Number of environment-dependent parameters
+    !! These are parameters that need updated when environmental conditions
+    !! change
+    integer(kind=i_kind), public :: num_env_params = 0
   contains
     !> Initialize the sub-model data, validating input parameters and
     !! loading any required information form the \c

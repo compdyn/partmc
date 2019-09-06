@@ -51,7 +51,7 @@ module pmc_phlex_solver_data
                     n_aero_phase_float_param, n_aero_rep, &
                     n_aero_rep_int_param, n_aero_rep_float_param, &
                     n_sub_model, n_sub_model_int_param, &
-                    n_sub_model_float_param) bind (c)
+                    n_sub_model_float_param, n_sub_model_env_param) bind (c)
       use iso_c_binding
       !> Number of variables on the state array per grid cell
       !! (including const, PSSA, etc.)
@@ -87,6 +87,8 @@ module pmc_phlex_solver_data
       integer(kind=c_int), value :: n_sub_model_int_param
       !> Total number of floating-point parameters for all sub models
       integer(kind=c_int), value :: n_sub_model_float_param
+      !> Total number of environment-dependent parameters for all sub models
+      integer(kind=c_int), value :: n_sub_model_env_param
     end function solver_new
 
     !> Solver initialization
@@ -217,7 +219,8 @@ module pmc_phlex_solver_data
 
     !> Add condensed sub model data to the solver data block
     subroutine sub_model_add_condensed_data(sub_model_type, n_int_param, &
-                  n_float_param, int_param, float_param, solver_data) bind(c)
+                  n_float_param, n_env_param, int_param, float_param, &
+                  solver_data) bind(c)
       use iso_c_binding
       !> Sub model  type
       integer(kind=c_int), value :: sub_model_type
@@ -225,6 +228,8 @@ module pmc_phlex_solver_data
       integer(kind=c_int), value :: n_int_param
       !> Number of floating-point parameters to add
       integer(kind=c_int), value :: n_float_param
+      !> Number of environment-dependent parameters to add
+      integer(kind=c_int), value :: n_env_param
       !> Pointer to the integer parameter array
       type(c_ptr), value :: int_param
       !> Pointer to the floating-point parameter array
@@ -463,6 +468,8 @@ contains
     integer(kind=c_int) :: n_sub_model_int_param
     ! Number of floating-point sub model parameters
     integer(kind=c_int) :: n_sub_model_float_param
+    ! Number of environment-dependent sub model parameters
+    integer(kind=c_int) :: n_sub_model_env_param
 
     if (.not.present(n_cells)) then
       n_cells = 1
@@ -541,6 +548,7 @@ contains
     n_sub_model = size(sub_models)
     n_sub_model_int_param = 0
     n_sub_model_float_param = 0
+    n_sub_model_env_param = 0
 
     ! Calculate the size of the sub model condensed data
     do i_sub_model=1, n_sub_model
@@ -549,6 +557,7 @@ contains
               size(sub_model%condensed_data_int)
       n_sub_model_float_param = n_sub_model_float_param + &
               size(sub_model%condensed_data_real)
+      n_sub_model_env_param = n_sub_model_env_param + sub_model%num_env_params
     end do
     sub_model => null()
 
@@ -569,7 +578,8 @@ contains
             n_aero_rep_float_param,            & ! # of aero rep real params
             n_sub_model,                       & ! # of sub models
             n_sub_model_int_param,             & ! # of sub model int params
-            n_sub_model_float_param            & ! # of sub model real params
+            n_sub_model_float_param,           & ! # of sub model real params
+            n_sub_model_env_param              & ! # of sub model env params
             )
 
     ! Add all the condensed reaction data to the solver data block for
@@ -696,6 +706,7 @@ contains
                                                     ! Sub model type
               int(size(int_param), kind=c_int),   & ! Int array size
               int(size(float_param), kind=c_int), & ! Real array size
+              sub_model%num_env_params,           & ! Env-dep array size
               c_loc(int_param),                   & ! Int array ptr
               c_loc(float_param),                 & ! Real array ptr
               this%solver_c_ptr                   & ! Solver data ptr

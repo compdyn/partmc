@@ -102,6 +102,11 @@ typedef struct {
                                  // current grid cell
   double *rxn_env_data;          // Total (multi-cell) reaction environmental-
                                  // dependent parameters
+  double *grid_cell_sub_model_env_data;
+                                 // Environmental-dependent parameters for the
+                                 // current grid cell
+  double *sub_model_env_data;    // Total (multi-cell) sub-model environmental-
+                                 // dependent parameters
 
   int n_added_rxns;              // The number of reactions whose data has been
                                  // added to the reaction data arrays
@@ -118,7 +123,7 @@ typedef struct {
                                  // reaction
   double **rxn_float_ptrs;       // Array of pointers to floating-point data for
                                  // each reaction
-  int *rxn_env_idx;              // Array of offsets for the environmental-
+  int *rxn_env_idx;              // Array of offsets for the environment-
                                  // dependent data for each reaction from the
                                  // beginning of the environmental dependent data
                                  // for the current grid cell
@@ -160,10 +165,18 @@ typedef struct {
                                  // sub_model_int_data
   double *nxt_sub_model_float;   // Pointer to the next available floating-point
                                  // number in sub_model_float_data
+  int nxt_sub_model_env;         // Index for the next available environment-
+                                 // dependent parameter in sub_model_env_data
   int **sub_model_int_ptrs;      // Array of pointers to integer data for each
                                  // sub model
   double **sub_model_float_ptrs; // Array of pointers to floating-point data for
                                  // each sub model
+  int *sub_model_env_idx;        // Array of offsets for the environment-
+                                 // dependent data for each sub model from the
+                                 // beginning of the environment-dependent data
+                                 // for the current grid cell
+  int n_sub_model_env_data;      // Number of sub model environmental parameters
+                                 // from all sub models
 } ModelData;
 
 /* Solver data structure */

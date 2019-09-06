@@ -73,9 +73,9 @@ module pmc_rxn_wet_deposition
 #define NUM_SPEC_ this%condensed_data_int(2)
 #define BASE_RATE_ this%condensed_data_real(1)
 #define SCALING_ this%condensed_data_real(2)
-#define RATE_CONSTANT_ this%condensed_data_real(3)
 #define NUM_INT_PROP_ 2
-#define NUM_REAL_PROP_ 3
+#define NUM_REAL_PROP_ 2
+#define NUM_ENV_PARAM_ 1
 #define REACT_(s) this%condensed_data_int(NUM_INT_PROP_+s)
 #define DERIV_ID_(s) this%condensed_data_int(NUM_INT_PROP_+NUM_SPEC_+s)
 #define JAC_ID_(s) this%condensed_data_int(NUM_INT_PROP_+2*NUM_SPEC_+s))
@@ -217,6 +217,11 @@ contains
     allocate(this%condensed_data_real(NUM_REAL_PROP_))
     this%condensed_data_int(:) = int(0, kind=i_kind)
     this%condensed_data_real(:) = real(0.0, kind=dp)
+
+    ! Save space for the environment-dependent parameters
+    this%num_env_params = NUM_ENV_PARAM_
+
+    ! Save the number of species
     NUM_SPEC_ = num_spec
 
     ! Get reaction parameters

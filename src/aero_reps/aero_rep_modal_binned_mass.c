@@ -31,6 +31,7 @@
 #define AERO_REP_ID_ (int_data[3])
 #define NUM_INT_PROP_ 4
 #define NUM_FLOAT_PROP_ 0
+#define NUM_ENV_PARAM_ 0
 #define MODE_INT_PROP_LOC_(x) (int_data[NUM_INT_PROP_+x]-1)
 #define MODE_FLOAT_PROP_LOC_(x) (int_data[NUM_INT_PROP_+NUM_SECTION_+x]-1)
 #define SECTION_TYPE_(x) (int_data[MODE_INT_PROP_LOC_(x)])
@@ -140,9 +141,12 @@ void aero_rep_modal_binned_mass_get_dependencies(int *aero_rep_int_data,
  * \param aero_rep_int_data Pointer to the aerosol representation integer data
  * \param aero_rep_float_data Pointer to the aerosol representation
  *                            floating-point data
+ * \param aero_rep_env_data Pointer to the aerosol representation
+ *                          environment-dependent parameters
  */
 void aero_rep_modal_binned_mass_update_env_state(ModelData *model_data,
-          int *aero_rep_int_data, double *aero_rep_float_data)
+          int *aero_rep_int_data, double *aero_rep_float_data,
+          double *aero_rep_env_data)
 {
   int *int_data = aero_rep_int_data;
   double *float_data = aero_rep_float_data;
@@ -160,9 +164,12 @@ void aero_rep_modal_binned_mass_update_env_state(ModelData *model_data,
  * \param aero_rep_int_data Pointer to the aerosol representation integer data
  * \param aero_rep_float_data Pointer to the aerosol representation
  *                            floating-point data
+ * \param aero_rep_env_data Pointer to the aerosol representation
+ *                          environment-dependent parameters
  */
 void aero_rep_modal_binned_mass_update_state(ModelData *model_data,
-          int *aero_rep_int_data, double *aero_rep_float_data)
+          int *aero_rep_int_data, double *aero_rep_float_data,
+          double *aero_rep_env_data)
 {
   int *int_data = aero_rep_int_data;
   double *float_data = aero_rep_float_data;
@@ -277,10 +284,13 @@ void aero_rep_modal_binned_mass_update_state(ModelData *model_data,
  * \param aero_rep_int_data Pointer to the aerosol representation integer data
  * \param aero_rep_float_data Pointer to the aerosol representation
  *                            floating-point data
+ * \param aero_rep_env_data Pointer to the aerosol representation
+ *                          environment-dependent parameters
  */
 void aero_rep_modal_binned_mass_get_effective_radius(ModelData *model_data,
           int aero_phase_idx, double *radius, double *partial_deriv,
-          int *aero_rep_int_data, double *aero_rep_float_data)
+          int *aero_rep_int_data, double *aero_rep_float_data,
+          double *aero_rep_env_data)
 {
   int *int_data = aero_rep_int_data;
   double *float_data = aero_rep_float_data;
@@ -345,10 +355,13 @@ void aero_rep_modal_binned_mass_get_effective_radius(ModelData *model_data,
  * \param aero_rep_int_data Pointer to the aerosol representation integer data
  * \param aero_rep_float_data Pointer to the aerosol representation
  *                            floating-point data
+ * \param aero_rep_env_data Pointer to the aerosol representation
+ *                          environment-dependent parameters
  */
 void aero_rep_modal_binned_mass_get_number_conc(ModelData *model_data,
           int aero_phase_idx, double *number_conc, double *partial_deriv,
-          int *aero_rep_int_data, double *aero_rep_float_data)
+          int *aero_rep_int_data, double *aero_rep_float_data,
+          double *aero_rep_env_data)
 {
   int *int_data = aero_rep_int_data;
   double *float_data = aero_rep_float_data;
@@ -409,10 +422,12 @@ void aero_rep_modal_binned_mass_get_number_conc(ModelData *model_data,
  * \param aero_rep_int_data Pointer to the aerosol representation integer data
  * \param aero_rep_float_data Pointer to the aerosol representation
  *                            floating-point data
+ * \param aero_rep_env_data Pointer to the aerosol representation
+ *                          environment-dependent parameters
  */
 void aero_rep_modal_binned_mass_get_aero_conc_type(int aero_phase_idx,
           int *aero_conc_type, int *aero_rep_int_data,
-          double *aero_rep_float_data)
+          double *aero_rep_float_data, double *aero_rep_env_data)
 {
   int *int_data = aero_rep_int_data;
   double *float_data = aero_rep_float_data;
@@ -433,10 +448,13 @@ void aero_rep_modal_binned_mass_get_aero_conc_type(int aero_phase_idx,
  * \param aero_rep_int_data Pointer to the aerosol representation integer data
  * \param aero_rep_float_data Pointer to the aerosol representation
  *                            floating-point data
+ * \param aero_rep_env_data Pointer to the aerosol representation
+ *                          environment-dependent parameters
  */
 void aero_rep_modal_binned_mass_get_aero_phase_mass(ModelData *model_data,
           int aero_phase_idx, double *aero_phase_mass, double *partial_deriv,
-          int *aero_rep_int_data, double *aero_rep_float_data)
+          int *aero_rep_int_data, double *aero_rep_float_data,
+          double *aero_rep_env_data)
 {
   int *int_data = aero_rep_int_data;
   double *float_data = aero_rep_float_data;
@@ -495,10 +513,13 @@ void aero_rep_modal_binned_mass_get_aero_phase_mass(ModelData *model_data,
  * \param aero_rep_int_data Pointer to the aerosol representation integer data
  * \param aero_rep_float_data Pointer to the aerosol representation
  *                            floating-point data
+ * \param aero_rep_env_data Pointer to the aerosol representation
+ *                          environment-dependent parameters
  */
 void aero_rep_modal_binned_mass_get_aero_phase_avg_MW(ModelData *model_data,
           int aero_phase_idx, double *aero_phase_avg_MW, double *partial_deriv,
-          int *aero_rep_int_data, double *aero_rep_float_data)
+          int *aero_rep_int_data, double *aero_rep_float_data,
+          double *aero_rep_env_data)
 {
   int *int_data = aero_rep_int_data;
   double *float_data = aero_rep_float_data;
@@ -562,9 +583,12 @@ void aero_rep_modal_binned_mass_get_aero_phase_avg_MW(ModelData *model_data,
  * \param aero_rep_int_data Pointer to the aerosol representation integer data
  * \param aero_rep_float_data Pointer to the aerosol representation
  *                            floating-point data
+ * \param aero_rep_env_data Pointer to the aerosol representation
+ *                          environment-dependent parameters
  */
 void aero_rep_modal_binned_mass_update_data(void *update_data,
-          int *aero_rep_int_data, double *aero_rep_float_data)
+          int *aero_rep_int_data, double *aero_rep_float_data,
+          double *aero_rep_env_data)
 {
   int *int_data = aero_rep_int_data;
   double *float_data = aero_rep_float_data;

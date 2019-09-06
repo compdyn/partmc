@@ -87,6 +87,7 @@ module pmc_aero_rep_modal_binned_mass
 #define AERO_REP_ID_ this%condensed_data_int(4)
 #define NUM_INT_PROP_ 4
 #define NUM_REAL_PROP_ 0
+#define NUM_ENV_PARAM_ 0
 #define MODE_INT_PROP_LOC_(x) this%condensed_data_int(NUM_INT_PROP_+x)
 #define MODE_REAL_PROP_LOC_(x) this%condensed_data_int(NUM_INT_PROP_+NUM_SECTION_+x)
 #define SECTION_TYPE_(x) this%condensed_data_int(MODE_INT_PROP_LOC_(x))
@@ -473,6 +474,9 @@ contains
     this%condensed_data_real(:) = real(0.0, kind=dp)
     INT_DATA_SIZE_ = n_int_param
     REAL_DATA_SIZE_ = n_float_param
+
+    ! Save space for the environment-dependent parameters
+    this%num_env_params = NUM_ENV_PARAM_
 
     ! Set the number of sections
     NUM_SECTION_ = sections%size()

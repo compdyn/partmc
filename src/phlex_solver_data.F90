@@ -46,11 +46,10 @@ module pmc_phlex_solver_data
     !> Get a new solver
     type(c_ptr) function solver_new(n_state_var, n_cells, var_type, &
                     n_rxn, n_rxn_int_param, n_rxn_float_param, &
-                    n_rxn_env_param, &
-                    n_aero_phase, n_aero_phase_int_param, &
+                    n_rxn_env_param, n_aero_phase, n_aero_phase_int_param, &
                     n_aero_phase_float_param, n_aero_rep, &
                     n_aero_rep_int_param, n_aero_rep_float_param, &
-                    n_sub_model, n_sub_model_int_param, &
+                    n_aero_rep_env_param, n_sub_model, n_sub_model_int_param,&
                     n_sub_model_float_param, n_sub_model_env_param) bind (c)
       use iso_c_binding
       !> Number of variables on the state array per grid cell
@@ -81,6 +80,9 @@ module pmc_phlex_solver_data
       !> Total number of floating-point parameters for all aerosol
       !! representations
       integer(kind=c_int), value :: n_aero_rep_float_param
+      !> Total number of environment-dependent parameters for all aerosol
+      !> representations
+      integer(kind=c_int), value :: n_aero_rep_env_param
       !> Number of sub models
       integer(kind=c_int), value :: n_sub_model
       !> Total number of integer parameters for all sub models
@@ -282,7 +284,8 @@ module pmc_phlex_solver_data
 
     !> Add condensed aerosol representation data to the solver data block
     subroutine aero_rep_add_condensed_data(aero_rep_type, n_int_param, &
-                  n_float_param, int_param, float_param, solver_data) bind(c)
+                  n_float_param, n_env_param, int_param, float_param, &
+                  solver_data) bind(c)
       use iso_c_binding
       !> Aerosol representation type
       integer(kind=c_int), value :: aero_rep_type
@@ -290,6 +293,8 @@ module pmc_phlex_solver_data
       integer(kind=c_int), value :: n_int_param
       !> Number of floating-point parameters to add
       integer(kind=c_int), value :: n_float_param
+      !> Number of environment-dependent parameters to add
+      integer(kind=c_int), value :: n_env_param
       !> Pointer to the integer parameter array
       type(c_ptr), value :: int_param
       !> Pointer to the floating-point parameter array
@@ -462,6 +467,8 @@ contains
     integer(kind=c_int) :: n_aero_rep_int_param
     ! Number of floating-point aerosol representation parameters
     integer(kind=c_int) :: n_aero_rep_float_param
+    ! Number of environment-dependent aerosol representation parameters
+    integer(kind=c_int) :: n_aero_rep_env_param
     ! Number of sub models
     integer(kind=c_int) :: n_sub_model
     ! Number of integer sub model parameters
@@ -533,6 +540,7 @@ contains
     n_aero_rep = size(aero_reps)
     n_aero_rep_int_param = 0
     n_aero_rep_float_param = 0
+    n_aero_rep_env_param = 0
 
     ! Calculate the size of the aerosol representations condensed data
     do i_aero_rep=1, n_aero_rep
@@ -541,6 +549,8 @@ contains
               size(aero_rep%condensed_data_int)
       n_aero_rep_float_param = n_aero_rep_float_param + &
               size(aero_rep%condensed_data_real)
+      n_aero_rep_env_param = n_aero_rep_env_param + &
+              aero_rep%num_env_params
     end do
     aero_rep => null()
 
@@ -576,6 +586,7 @@ contains
             n_aero_rep,                        & ! # of aero reps
             n_aero_rep_int_param,              & ! # of aero rep int params
             n_aero_rep_float_param,            & ! # of aero rep real params
+            n_aero_rep_env_param,              & ! # of aero rep env params
             n_sub_model,                       & ! # of sub models
             n_sub_model_int_param,             & ! # of sub model int params
             n_sub_model_float_param,           & ! # of sub model real params
@@ -676,6 +687,7 @@ contains
                                                     ! Aero rep type
               int(size(int_param), kind=c_int),   & ! Int array size
               int(size(float_param), kind=c_int), & ! Real array size
+              aero_rep%num_env_params,            & ! Env-dep array size
               c_loc(int_param),                   & ! Int array ptr
               c_loc(float_param),                 & ! Real array ptr
               this%solver_c_ptr                   & ! Solver data ptr

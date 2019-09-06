@@ -180,6 +180,8 @@ void pmc_debug_print_jac(void *solver_data, SUNMatrix J, const char *message)
  *                             parameters
  * \param n_aero_rep_float_param Total number of floating-point aerosol
  *                               representation parameters
+ * \param n_aero_rep_env_param Total number of environment-dependent aerosol
+ *                             representation parameters
  * \param n_sub_model Number of sub models
  * \param n_sub_model_int_param Total number of integer sub model parameters
  * \param n_sub_model_float_param Total number of floating-point sub model
@@ -190,10 +192,11 @@ void pmc_debug_print_jac(void *solver_data, SUNMatrix J, const char *message)
  */
 void * solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
           int n_rxn_int_param, int n_rxn_float_param, int n_rxn_env_param,
-          int n_aero_phase,
-          int n_aero_phase_int_param, int n_aero_phase_float_param,
-          int n_aero_rep, int n_aero_rep_int_param, int n_aero_rep_float_param,
-          int n_sub_model, int n_sub_model_int_param, int n_sub_model_float_param,
+          int n_aero_phase, int n_aero_phase_int_param,
+          int n_aero_phase_float_param, int n_aero_rep,
+          int n_aero_rep_int_param, int n_aero_rep_float_param,
+          int n_aero_rep_env_param, int n_sub_model,
+          int n_sub_model_int_param, int n_sub_model_float_param,
           int n_sub_model_env_param)
 {
   // Create the SolverData object
@@ -350,11 +353,20 @@ void * solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
            "floating-point data\n\n");
     EXIT_FAILURE;
   }
+  sd->model_data.aero_rep_env_data = (double*) malloc(
+                  n_cells * n_aero_rep_env_param * sizeof(double));
+  if (sd->model_data.aero_rep_env_data==NULL) {
+    printf("\n\nERROR allocating space for aerosol representation "
+           "environmental parameters\n\n");
+    EXIT_FAILURE;
+  }
   ptr = sd->model_data.aero_rep_int_data;
   ptr[0] = n_aero_rep;
-  sd->model_data.n_added_aero_reps  = 0;
-  sd->model_data.nxt_aero_rep_int   = (void*) &(ptr[1]);
-  sd->model_data.nxt_aero_rep_float = sd->model_data.aero_rep_float_data;
+  sd->model_data.n_added_aero_reps   = 0;
+  sd->model_data.nxt_aero_rep_int    = (void*) &(ptr[1]);
+  sd->model_data.nxt_aero_rep_float  = sd->model_data.aero_rep_float_data;
+  sd->model_data.nxt_aero_rep_env    = 0;
+  sd->model_data.n_aero_rep_env_data = 0;
 
   // Allocate space for the aerosol representation data pointers
   sd->model_data.aero_rep_int_ptrs = (int**) malloc(
@@ -369,6 +381,13 @@ void * solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
   if (sd->model_data.aero_rep_float_ptrs==NULL) {
     printf("\n\nERROR allocating space for aerosol representation "
            "floating-point pointers\n\n");
+    EXIT_FAILURE;
+  }
+  sd->model_data.aero_rep_env_idx = (int*) malloc(
+                  n_aero_rep * sizeof(int));
+  if (sd->model_data.aero_rep_env_idx==NULL) {
+    printf("\n\nERROR allocating space for aerosol representation "
+           "environment-dependent data pointers\n\n");
     EXIT_FAILURE;
   }
 
@@ -657,6 +676,8 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
     md->grid_cell_env   = &(md->total_env[i_cell*PMC_NUM_ENV_PARAM_]);
     md->grid_cell_rxn_env_data =
       &(md->rxn_env_data[i_cell*md->n_rxn_env_data]);
+    md->grid_cell_aero_rep_env_data =
+      &(md->aero_rep_env_data[i_cell*md->n_aero_rep_env_data]);
     md->grid_cell_sub_model_env_data =
       &(md->sub_model_env_data[i_cell*md->n_sub_model_env_data]);
 
@@ -914,6 +935,8 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data)
     md->grid_cell_env   = &(md->total_env[i_cell*PMC_NUM_ENV_PARAM_]);
     md->grid_cell_rxn_env_data =
       &(md->rxn_env_data[i_cell*md->n_rxn_env_data]);
+    md->grid_cell_aero_rep_env_data =
+      &(md->aero_rep_env_data[i_cell*md->n_aero_rep_env_data]);
     md->grid_cell_sub_model_env_data =
       &(md->sub_model_env_data[i_cell*md->n_sub_model_env_data]);
 
@@ -1045,6 +1068,8 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
     md->grid_cell_env   = &(md->total_env[i_cell*PMC_NUM_ENV_PARAM_]);
     md->grid_cell_rxn_env_data =
       &(md->rxn_env_data[i_cell*md->n_rxn_env_data]);
+    md->grid_cell_aero_rep_env_data =
+      &(md->aero_rep_env_data[i_cell*md->n_aero_rep_env_data]);
     md->grid_cell_sub_model_env_data =
       &(md->sub_model_env_data[i_cell*md->n_sub_model_env_data]);
 
@@ -2023,8 +2048,10 @@ void model_free(ModelData model_data)
   free(model_data.aero_phase_float_ptrs);
   free(model_data.aero_rep_int_data);
   free(model_data.aero_rep_float_data);
+  free(model_data.aero_rep_env_data);
   free(model_data.aero_rep_int_ptrs);
   free(model_data.aero_rep_float_ptrs);
+  free(model_data.aero_rep_env_idx);
   free(model_data.sub_model_int_data);
   free(model_data.sub_model_float_data);
   free(model_data.sub_model_env_data);

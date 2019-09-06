@@ -27,6 +27,7 @@
 #define NUMBER_CONC_ float_data[1]
 #define NUM_INT_PROP_ 2
 #define NUM_FLOAT_PROP_ 2
+#define NUM_ENV_PARAM_ 0
 #define PHASE_STATE_ID_(x) (int_data[NUM_INT_PROP_+x]-1)
 #define PHASE_MODEL_DATA_ID_(x) (int_data[NUM_INT_PROP_+NUM_PHASE_+x]-1)
 #define PHASE_NUM_JAC_ELEM_(x) int_data[NUM_INT_PROP_+2*NUM_PHASE_+x]
@@ -95,9 +96,12 @@ void aero_rep_single_particle_get_dependencies(int *aero_rep_int_data,
  * \param aero_rep_int_data Pointer to the aerosol representation integer data
  * \param aero_rep_float_data Pointer to the aerosol representation
  *                            floating-point data
+ * \param aero_rep_env_data Pointer to the aerosol representation
+ *                          environment-dependent parameters
  */
 void aero_rep_single_particle_update_env_state(ModelData *model_data,
-          int *aero_rep_int_data, double *aero_rep_float_data)
+          int *aero_rep_int_data, double *aero_rep_float_data,
+          double *aero_rep_env_data)
 {
   int *int_data = aero_rep_int_data;
   double *float_data = aero_rep_float_data;
@@ -116,9 +120,12 @@ void aero_rep_single_particle_update_env_state(ModelData *model_data,
  * \param aero_rep_int_data Pointer to the aerosol representation integer data
  * \param aero_rep_float_data Pointer to the aerosol representation
  *                            floating-point data
+ * \param aero_rep_env_data Pointer to the aerosol representation
+ *                          environment-dependent parameters
  */
 void aero_rep_single_particle_update_state(ModelData *model_data,
-          int *aero_rep_int_data, double *aero_rep_float_data)
+          int *aero_rep_int_data, double *aero_rep_float_data,
+          double *aero_rep_env_data)
 {
   int *int_data = aero_rep_int_data;
   double *float_data = aero_rep_float_data;
@@ -154,10 +161,13 @@ void aero_rep_single_particle_update_state(ModelData *model_data,
  * \param aero_rep_int_data Pointer to the aerosol representation integer data
  * \param aero_rep_float_data Pointer to the aerosol representation
  *                            floating-point data
+ * \param aero_rep_env_data Pointer to the aerosol representation
+ *                          environment-dependent parameters
  */
 void aero_rep_single_particle_get_effective_radius(ModelData *model_data,
           int aero_phase_idx, double *radius, double *partial_deriv,
-          int *aero_rep_int_data, double *aero_rep_float_data)
+          int *aero_rep_int_data, double *aero_rep_float_data,
+          double *aero_rep_env_data)
 {
   int *int_data = aero_rep_int_data;
   double *float_data = aero_rep_float_data;
@@ -190,10 +200,13 @@ void aero_rep_single_particle_get_effective_radius(ModelData *model_data,
  * \param aero_rep_int_data Pointer to the aerosol representation integer data
  * \param aero_rep_float_data Pointer to the aerosol representation
  *                            floating-point data
+ * \param aero_rep_env_data Pointer to the aerosol representation
+ *                          environment-dependent parameters
  */
 void aero_rep_single_particle_get_number_conc(ModelData *model_data,
           int aero_phase_idx, double *number_conc, double *partial_deriv,
-          int *aero_rep_int_data, double *aero_rep_float_data)
+          int *aero_rep_int_data, double *aero_rep_float_data,
+          double *aero_rep_env_data)
 {
   int *int_data = aero_rep_int_data;
   double *float_data = aero_rep_float_data;
@@ -219,10 +232,12 @@ void aero_rep_single_particle_get_number_conc(ModelData *model_data,
  * \param aero_rep_int_data Pointer to the aerosol representation integer data
  * \param aero_rep_float_data Pointer to the aerosol representation
  *                            floating-point data
+ * \param aero_rep_env_data Pointer to the aerosol representation
+ *                          environment-dependent parameters
  */
 void aero_rep_single_particle_get_aero_conc_type(int aero_phase_idx,
           int *aero_conc_type, int *aero_rep_int_data,
-          double *aero_rep_float_data)
+          double *aero_rep_float_data, double *aero_rep_env_data)
 {
   int *int_data = aero_rep_int_data;
   double *float_data = aero_rep_float_data;
@@ -246,10 +261,13 @@ void aero_rep_single_particle_get_aero_conc_type(int aero_phase_idx,
  * \param aero_rep_int_data Pointer to the aerosol representation integer data
  * \param aero_rep_float_data Pointer to the aerosol representation
  *                            floating-point data
+ * \param aero_rep_env_data Pointer to the aerosol representation
+ *                          environment-dependent parameters
  */
 void aero_rep_single_particle_get_aero_phase_mass(ModelData *model_data,
           int aero_phase_idx, double *aero_phase_mass, double *partial_deriv,
-          int *aero_rep_int_data, double *aero_rep_float_data)
+          int *aero_rep_int_data, double *aero_rep_float_data,
+          double *aero_rep_env_data)
 {
   int *int_data = aero_rep_int_data;
   double *float_data = aero_rep_float_data;
@@ -290,10 +308,13 @@ void aero_rep_single_particle_get_aero_phase_mass(ModelData *model_data,
  * \param aero_rep_int_data Pointer to the aerosol representation integer data
  * \param aero_rep_float_data Pointer to the aerosol representation
  *                            floating-point data
+ * \param aero_rep_env_data Pointer to the aerosol representation
+ *                          environment-dependent parameters
  */
 void aero_rep_single_particle_get_aero_phase_avg_MW(ModelData *model_data,
           int aero_phase_idx, double *aero_phase_avg_MW, double *partial_deriv,
-          int *aero_rep_int_data, double *aero_rep_float_data)
+          int *aero_rep_int_data, double *aero_rep_float_data,
+          double *aero_rep_env_data)
 {
   int *int_data = aero_rep_int_data;
   double *float_data = aero_rep_float_data;
@@ -336,9 +357,12 @@ void aero_rep_single_particle_get_aero_phase_avg_MW(ModelData *model_data,
  * \param aero_rep_int_data Pointer to the aerosol representation integer data
  * \param aero_rep_float_data Pointer to the aerosol representation
  *                            floating-point data
+ * \param aero_rep_env_data Pointer to the aerosol representation
+ *                          environment-dependent parameters
  */
 void aero_rep_single_particle_update_data(void *update_data,
-          int *aero_rep_int_data, double *aero_rep_float_data)
+          int *aero_rep_int_data, double *aero_rep_float_data,
+          double *aero_rep_env_data)
 {
   int *int_data = aero_rep_int_data;
   double *float_data = aero_rep_float_data;

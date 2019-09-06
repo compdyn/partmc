@@ -18,9 +18,9 @@ void *solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
                  int n_rxn_env_param, int n_aero_phase,
                  int n_aero_phase_int_param, int n_aero_phase_float_param,
                  int n_aero_rep, int n_aero_rep_int_param,
-                 int n_aero_rep_float_param, int n_sub_model,
-                 int n_sub_model_int_param, int n_sub_model_float_param,
-                 int n_sub_model_env_param);
+                 int n_aero_rep_float_param, int n_aero_rep_env_param,
+                 int n_sub_model, int n_sub_model_int_param,
+                 int n_sub_model_float_param, int n_sub_model_env_param);
 void solver_initialize(void *solver_data, double *abs_tol, double rel_tol,
           int max_steps, int max_conv_fails);
 #ifdef PMC_DEBUG

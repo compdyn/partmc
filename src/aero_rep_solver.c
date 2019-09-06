@@ -112,6 +112,8 @@ void aero_rep_update_env_state(ModelData *model_data)
     // Get pointers to the aerosol data
     int *aero_rep_int_data      = model_data->aero_rep_int_ptrs[i_aero_rep];
     double *aero_rep_float_data = model_data->aero_rep_float_ptrs[i_aero_rep];
+    double *aero_rep_env_data   = &(model_data->grid_cell_aero_rep_env_data[
+                                      model_data->aero_rep_env_idx[i_aero_rep]]);
 
     // Get the aerosol representation type
     int aero_rep_type = *(aero_rep_int_data++);
@@ -120,11 +122,13 @@ void aero_rep_update_env_state(ModelData *model_data)
     switch (aero_rep_type) {
       case AERO_REP_MODAL_BINNED_MASS :
 	aero_rep_modal_binned_mass_update_env_state(
-                  model_data, aero_rep_int_data, aero_rep_float_data);
+                  model_data, aero_rep_int_data, aero_rep_float_data,
+                  aero_rep_env_data);
         break;
       case AERO_REP_SINGLE_PARTICLE :
 	aero_rep_single_particle_update_env_state(
-                  model_data, aero_rep_int_data, aero_rep_float_data);
+                  model_data, aero_rep_int_data, aero_rep_float_data,
+                  aero_rep_env_data);
         break;
     }
   }
@@ -147,6 +151,8 @@ void aero_rep_update_state(ModelData *model_data)
     // Get pointers to the aerosol data
     int *aero_rep_int_data      = model_data->aero_rep_int_ptrs[i_aero_rep];
     double *aero_rep_float_data = model_data->aero_rep_float_ptrs[i_aero_rep];
+    double *aero_rep_env_data   = &(model_data->grid_cell_aero_rep_env_data[
+                                      model_data->aero_rep_env_idx[i_aero_rep]]);
 
     // Get the aerosol representation type
     int aero_rep_type = *(aero_rep_int_data++);
@@ -155,11 +161,11 @@ void aero_rep_update_state(ModelData *model_data)
     switch (aero_rep_type) {
       case AERO_REP_MODAL_BINNED_MASS :
 	aero_rep_modal_binned_mass_update_state(model_data,
-                  aero_rep_int_data, aero_rep_float_data);
+                  aero_rep_int_data, aero_rep_float_data, aero_rep_env_data);
         break;
       case AERO_REP_SINGLE_PARTICLE :
 	aero_rep_single_particle_update_state(model_data,
-                  aero_rep_int_data, aero_rep_float_data);
+                  aero_rep_int_data, aero_rep_float_data, aero_rep_env_data);
         break;
     }
   }
@@ -187,6 +193,8 @@ void aero_rep_get_effective_radius(ModelData *model_data, int aero_rep_idx,
   // Get pointers to the aerosol data
   int *aero_rep_int_data      = model_data->aero_rep_int_ptrs[aero_rep_idx];
   double *aero_rep_float_data = model_data->aero_rep_float_ptrs[aero_rep_idx];
+  double *aero_rep_env_data   = &(model_data->grid_cell_aero_rep_env_data[
+                                    model_data->aero_rep_env_idx[aero_rep_idx]]);
 
   // Get the aerosol representation type
   int aero_rep_type = *(aero_rep_int_data++);
@@ -196,12 +204,12 @@ void aero_rep_get_effective_radius(ModelData *model_data, int aero_rep_idx,
     case AERO_REP_MODAL_BINNED_MASS :
       aero_rep_modal_binned_mass_get_effective_radius(
                 model_data, aero_phase_idx, radius, partial_deriv,
-                aero_rep_int_data, aero_rep_float_data);
+                aero_rep_int_data, aero_rep_float_data, aero_rep_env_data);
       break;
     case AERO_REP_SINGLE_PARTICLE :
       aero_rep_single_particle_get_effective_radius(
                 model_data, aero_phase_idx, radius, partial_deriv,
-                aero_rep_int_data, aero_rep_float_data);
+                aero_rep_int_data, aero_rep_float_data, aero_rep_env_data);
       break;
   }
   return;
@@ -231,6 +239,8 @@ void aero_rep_get_number_conc(ModelData *model_data, int aero_rep_idx,
   // Get pointers to the aerosol data
   int *aero_rep_int_data      = model_data->aero_rep_int_ptrs[aero_rep_idx];
   double *aero_rep_float_data = model_data->aero_rep_float_ptrs[aero_rep_idx];
+  double *aero_rep_env_data   = &(model_data->grid_cell_aero_rep_env_data[
+                                    model_data->aero_rep_env_idx[aero_rep_idx]]);
 
   // Get the aerosol representation type
   int aero_rep_type = *(aero_rep_int_data++);
@@ -240,12 +250,12 @@ void aero_rep_get_number_conc(ModelData *model_data, int aero_rep_idx,
     case AERO_REP_MODAL_BINNED_MASS :
       aero_rep_modal_binned_mass_get_number_conc(
                 model_data, aero_phase_idx, number_conc, partial_deriv,
-                aero_rep_int_data, aero_rep_float_data);
+                aero_rep_int_data, aero_rep_float_data, aero_rep_env_data);
       break;
     case AERO_REP_SINGLE_PARTICLE :
       aero_rep_single_particle_get_number_conc(
 		model_data, aero_phase_idx, number_conc, partial_deriv,
-                aero_rep_int_data, aero_rep_float_data);
+                aero_rep_int_data, aero_rep_float_data, aero_rep_env_data);
       break;
   }
   return;
@@ -269,6 +279,8 @@ int aero_rep_get_aero_conc_type(ModelData *model_data, int aero_rep_idx,
   // Get pointers to the aerosol data
   int *aero_rep_int_data      = model_data->aero_rep_int_ptrs[aero_rep_idx];
   double *aero_rep_float_data = model_data->aero_rep_float_ptrs[aero_rep_idx];
+  double *aero_rep_env_data   = &(model_data->grid_cell_aero_rep_env_data[
+                                    model_data->aero_rep_env_idx[aero_rep_idx]]);
 
   // Get the aerosol representation type
   int aero_rep_type = *(aero_rep_int_data++);
@@ -278,12 +290,12 @@ int aero_rep_get_aero_conc_type(ModelData *model_data, int aero_rep_idx,
     case AERO_REP_MODAL_BINNED_MASS :
       aero_rep_modal_binned_mass_get_aero_conc_type(
                 aero_phase_idx, &aero_conc_type, aero_rep_int_data,
-                aero_rep_float_data);
+                aero_rep_float_data, aero_rep_env_data);
       break;
     case AERO_REP_SINGLE_PARTICLE :
       aero_rep_single_particle_get_aero_conc_type(
 		aero_phase_idx, &aero_conc_type, aero_rep_int_data,
-                aero_rep_float_data);
+                aero_rep_float_data, aero_rep_env_data);
       break;
   }
   return aero_conc_type;
@@ -315,6 +327,8 @@ void aero_rep_get_aero_phase_mass(ModelData *model_data, int aero_rep_idx,
   // Get pointers to the aerosol data
   int *aero_rep_int_data      = model_data->aero_rep_int_ptrs[aero_rep_idx];
   double *aero_rep_float_data = model_data->aero_rep_float_ptrs[aero_rep_idx];
+  double *aero_rep_env_data   = &(model_data->grid_cell_aero_rep_env_data[
+                                    model_data->aero_rep_env_idx[aero_rep_idx]]);
 
   // Get the aerosol representation type
   int aero_rep_type = *(aero_rep_int_data++);
@@ -324,12 +338,14 @@ void aero_rep_get_aero_phase_mass(ModelData *model_data, int aero_rep_idx,
     case AERO_REP_MODAL_BINNED_MASS :
       aero_rep_modal_binned_mass_get_aero_phase_mass(
 		      model_data, aero_phase_idx, aero_phase_mass,
-                      partial_deriv, aero_rep_int_data, aero_rep_float_data);
+                      partial_deriv, aero_rep_int_data, aero_rep_float_data,
+                      aero_rep_env_data);
       break;
     case AERO_REP_SINGLE_PARTICLE :
       aero_rep_single_particle_get_aero_phase_mass(
 		      model_data, aero_phase_idx, aero_phase_mass,
-                      partial_deriv, aero_rep_int_data, aero_rep_float_data);
+                      partial_deriv, aero_rep_int_data, aero_rep_float_data,
+                      aero_rep_env_data);
       break;
   }
 }
@@ -359,6 +375,8 @@ void aero_rep_get_aero_phase_avg_MW(ModelData *model_data, int aero_rep_idx,
   // Get pointers to the aerosol data
   int *aero_rep_int_data      = model_data->aero_rep_int_ptrs[aero_rep_idx];
   double *aero_rep_float_data = model_data->aero_rep_float_ptrs[aero_rep_idx];
+  double *aero_rep_env_data   = &(model_data->grid_cell_aero_rep_env_data[
+                                    model_data->aero_rep_env_idx[aero_rep_idx]]);
 
   // Get the aerosol representation type
   int aero_rep_type = *(aero_rep_int_data++);
@@ -368,12 +386,14 @@ void aero_rep_get_aero_phase_avg_MW(ModelData *model_data, int aero_rep_idx,
     case AERO_REP_MODAL_BINNED_MASS :
       aero_rep_modal_binned_mass_get_aero_phase_avg_MW(
 		      model_data, aero_phase_idx, aero_phase_avg_MW,
-                      partial_deriv, aero_rep_int_data, aero_rep_float_data);
+                      partial_deriv, aero_rep_int_data, aero_rep_float_data,
+                      aero_rep_env_data);
       break;
     case AERO_REP_SINGLE_PARTICLE :
       aero_rep_single_particle_get_aero_phase_avg_MW(
 		      model_data, aero_phase_idx, aero_phase_avg_MW,
-                      partial_deriv, aero_rep_int_data, aero_rep_float_data);
+                      partial_deriv, aero_rep_int_data, aero_rep_float_data,
+                      aero_rep_env_data);
       break;
   }
 }
@@ -383,24 +403,28 @@ void aero_rep_get_aero_phase_avg_MW(ModelData *model_data, int aero_rep_idx,
  * \param aero_rep_type Aerosol representation type
  * \param n_int_param Number of integer parameters
  * \param n_float_param Number of floating-point parameters
+ * \param n_env_param Number of environment-dependent parameters
  * \param int_param Pointer to integer parameter array
  * \param float_param Pointer to floating-point parameter array
  * \param solver_data Pointer to solver data
  */
 void aero_rep_add_condensed_data(int aero_rep_type, int n_int_param,
-          int n_float_param, int *int_param, double *float_param,
-          void *solver_data)
+          int n_float_param, int n_env_param, int *int_param,
+          double *float_param, void *solver_data)
 {
   ModelData *model_data = (ModelData*)
           &(((SolverData*)solver_data)->model_data);
   int *aero_rep_int_data      = model_data->nxt_aero_rep_int;
   double *aero_rep_float_data = model_data->nxt_aero_rep_float;
+  int aero_rep_env_idx        = model_data->nxt_aero_rep_env;
 
   // Save the pointers to this aerosol representation's data
   model_data->aero_rep_int_ptrs[model_data->n_added_aero_reps] =
     aero_rep_int_data;
   model_data->aero_rep_float_ptrs[model_data->n_added_aero_reps] =
     aero_rep_float_data;
+  model_data->aero_rep_env_idx[model_data->n_added_aero_reps] =
+    aero_rep_env_idx;
   ++(model_data->n_added_aero_reps);
 
   // Add the aerosol representation type
@@ -415,8 +439,10 @@ void aero_rep_add_condensed_data(int aero_rep_type, int n_int_param,
     *(aero_rep_float_data++) = *(float_param++);
 
   // Set the pointers for the next free space in aero_rep_data
-  model_data->nxt_aero_rep_int   = aero_rep_int_data;
-  model_data->nxt_aero_rep_float = aero_rep_float_data;
+  model_data->nxt_aero_rep_int     = aero_rep_int_data;
+  model_data->nxt_aero_rep_float   = aero_rep_float_data;
+  model_data->nxt_aero_rep_env     = aero_rep_env_idx + n_env_param;
+  model_data->n_aero_rep_env_data += n_env_param;
 }
 
 /** \brief Update aerosol representation data
@@ -440,6 +466,8 @@ void aero_rep_update_data(int update_aero_rep_type, void *update_data,
     // Get pointers to the aerosol data
     int *aero_rep_int_data      = model_data->aero_rep_int_ptrs[i_aero_rep];
     double *aero_rep_float_data = model_data->aero_rep_float_ptrs[i_aero_rep];
+    double *aero_rep_env_data   = &(model_data->grid_cell_aero_rep_env_data[
+                                      model_data->aero_rep_env_idx[i_aero_rep]]);
 
     // Get the aerosol representation type
     int aero_rep_type = *(aero_rep_int_data++);
@@ -450,12 +478,12 @@ void aero_rep_update_data(int update_aero_rep_type, void *update_data,
         case AERO_REP_MODAL_BINNED_MASS :
           aero_rep_modal_binned_mass_update_data(
 	    		  (void*)update_data, aero_rep_int_data,
-                          aero_rep_float_data);
+                          aero_rep_float_data, aero_rep_env_data);
           break;
         case AERO_REP_SINGLE_PARTICLE :
           aero_rep_single_particle_update_data(
 	    		  (void*)update_data, aero_rep_int_data,
-                          aero_rep_float_data);
+                          aero_rep_float_data, aero_rep_env_data);
           break;
       }
     }

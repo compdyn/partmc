@@ -249,6 +249,9 @@ int run_aero_rep_single_particle_c_tests(void *solver_data, double *state, doubl
   NV_DATA_S(solver_state)[6] = state[6] = CONC_3B; // phase one, species a
   NV_DATA_S(solver_state)[7] = state[7] = CONC_3E; // phase one, species a
 
+  // Set the environment-dependent parameter pointer to the first grid cell
+  model_data->grid_cell_aero_rep_env_data = model_data->aero_rep_env_data;
+
   // Update the environmental and concentration states
   aero_rep_update_env_state(model_data);
   aero_rep_update_state(model_data);

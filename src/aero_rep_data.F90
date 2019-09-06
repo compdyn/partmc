@@ -77,6 +77,10 @@ module pmc_aero_rep_data
     !! functions of the aerosol representation that cannot be obtained
     !! from the pmc_phlex_state::phlex_state_t object. (integer)
     integer(kind=i_kind), allocatable, public ::  condensed_data_int(:)
+    !> Number of environment-dependent parameters
+    !! These are parameters that need updated when environmental conditions
+    !! change
+    integer(kind=i_kind), public :: num_env_params = 0
   contains
     !> Initialize the aerosol representation data, validating component data and
     !! loading any required information from the \c

@@ -334,6 +334,9 @@ int run_aero_rep_modal_c_tests(void *solver_data, double *state, double *env) {
   NV_DATA_S(solver_state)[ 4] = state[ 4] = CONC_2_2D; // phase two, species d
   NV_DATA_S(solver_state)[ 5] = state[ 5] = CONC_2_2E; // phase two, species e
 
+  // Set the environment-dependent parameter pointer to the first grid cell
+  model_data->grid_cell_aero_rep_env_data = model_data->aero_rep_env_data;
+
   // Update the environmental and concentration states
   aero_rep_update_env_state(model_data);
   aero_rep_update_state(model_data);

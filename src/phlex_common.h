@@ -98,14 +98,19 @@ typedef struct {
   double *grid_cell_env;         // Pointer to the current grid cell being solved
                                  // on the total_env state array
   double *total_env;             // Total (multi-cell) environmental state array
-  double *grid_cell_rxn_env_data;// Environmental-dependent parameters for the
+  double *grid_cell_rxn_env_data;// Environment-dependent parameters for the
                                  // current grid cell
-  double *rxn_env_data;          // Total (multi-cell) reaction environmental-
+  double *rxn_env_data;          // Total (multi-cell) reaction environment-
                                  // dependent parameters
-  double *grid_cell_sub_model_env_data;
-                                 // Environmental-dependent parameters for the
+  double *grid_cell_aero_rep_env_data;
+                                 // Environment-dependent parameters for the
                                  // current grid cell
-  double *sub_model_env_data;    // Total (multi-cell) sub-model environmental-
+  double *aero_rep_env_data;     // Total (multi-cell) aerosol representation
+                                 // environment-dependent parameters
+  double *grid_cell_sub_model_env_data;
+                                 // Environment-dependent parameters for the
+                                 // current grid cell
+  double *sub_model_env_data;    // Total (multi-cell) sub-model environment-
                                  // dependent parameters
 
   int n_added_rxns;              // The number of reactions whose data has been
@@ -153,10 +158,18 @@ typedef struct {
                                  // aero_rep_int_data
   double *nxt_aero_rep_float;    // Pointer to the next available floating-point
                                  // number in aero_rep_float_data
+  int nxt_aero_rep_env;          // Index for the next available environment-
+                                 // dependent parameter in aero_rep_env_data
   int **aero_rep_int_ptrs;       // Array of pointers to integer data for each
                                  // aerosol representation
   double **aero_rep_float_ptrs;  // Array of pointers to floating-point data for
                                  // each aerosol representation
+  int *aero_rep_env_idx;         // Array of offsets for the environment-
+                                 // dependent data for each aerosol representation
+                                 // from the beginning of the environment-
+                                 // dependent data for the current grid cell
+  int n_aero_rep_env_data;       // Number of aerosol representation environmental
+                                 // parameters for all aerosol representations
   int n_added_sub_models;        // The number of sub models whose data has been
                                  // added to the sub model data arrays
   int *sub_model_int_data;       // Pointer to sub model integer parameters

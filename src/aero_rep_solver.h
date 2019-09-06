@@ -43,8 +43,8 @@ void aero_rep_print_data(
 
 /* Setup functions */
 void aero_rep_add_condensed_data(
-    int aero_rep_type, int n_int_param, int n_float_param, int *int_param,
-    double *float_param, void *solver_data);
+    int aero_rep_type, int n_int_param, int n_float_param, int n_env_param,
+    int *int_param, double *float_param, void *solver_data);
 
 /* Update data functions */
 void aero_rep_update_data(

@@ -192,10 +192,6 @@ void rxn_update_env_state(ModelData *model_data)
   // Get the number of reactions
   int n_rxn = *(model_data->rxn_int_data);
 
-  // TODO remove once rate constants moved to rxn data
-  double *rate_constants =
-    &(model_data->rate_constants[model_data->grid_cell_id * n_rxn]);
-
   // Loop through the reactions advancing the rxn_data pointer each time
   for (int i_rxn = 0; i_rxn < n_rxn; i_rxn++) {
 
@@ -259,7 +255,6 @@ void rxn_update_env_state(ModelData *model_data)
                 model_data, rxn_int_data, rxn_float_data, rxn_env_data);
         break;
     }
-    rate_constants++;
   }
 }
 
@@ -275,10 +270,6 @@ void rxn_calc_deriv(ModelData *model_data, double *deriv_data, realtype time_ste
 
   // Get the number of reactions
   int n_rxn = *(model_data->rxn_int_data);
-
-  // TODO remove once rate constants moved to rxn data
-  double *rate_constants =
-    &(model_data->rate_constants[model_data->grid_cell_id * n_rxn]);
 
   // Loop through the reactions advancing the rxn_data pointer each time
   for (int i_rxn=0; i_rxn<n_rxn; i_rxn++) {
@@ -355,7 +346,6 @@ void rxn_calc_deriv(ModelData *model_data, double *deriv_data, realtype time_ste
                rxn_env_data, time_step);
         break;
     }
-    rate_constants++;
   }
 }
 #endif
@@ -374,10 +364,6 @@ void rxn_calc_jac(ModelData *model_data, double *J_data, realtype time_step)
 
   // Get the number of reactions
   int n_rxn = *(model_data->rxn_int_data);
-
-  // TODO remove once rate constants moved to rxn data
-  double *rate_constants =
-    &(model_data->rate_constants[model_data->grid_cell_id * n_rxn]);
 
   // Loop through the reactions advancing the rxn_data pointer each time
   for (int i_rxn=0; i_rxn<n_rxn; i_rxn++) {
@@ -454,7 +440,6 @@ void rxn_calc_jac(ModelData *model_data, double *J_data, realtype time_step)
                  rxn_env_data, time_step);
         break;
     }
-    rate_constants++;
   }
 }
 #endif

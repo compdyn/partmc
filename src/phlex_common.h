@@ -103,9 +103,6 @@ typedef struct {
   double *rxn_env_data;          // Total (multi-cell) reaction environmental-
                                  // dependent parameters
 
-  // TODO Remove once integrated into rxn data
-  double *rate_constants;        // Pointer to the rate constants state array
-
   int n_added_rxns;              // The number of reactions whose data has been
                                  // added to the reaction data arrays
   int *rxn_int_data;             // Pointer to the reaction integer parameters

@@ -290,10 +290,6 @@ void * solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
   // If there are no reactions, flag the solver not to run
   sd->no_solve = (n_rxn==0);
 
-  // TODO Move this to rxn_data
-  sd->model_data.rate_constants = (void*) malloc(
-          (n_rxn*n_cells)*sizeof(double));
-
   // Allocate space for the aerosol phase data and st the number
   // of aerosol phases (including one int for the number of
   // phases)
@@ -1915,8 +1911,6 @@ void solver_free(void *solver_data)
   // free the linear solver
   SUNLinSolFree(sd->ls);
 #endif
-
-  free(sd->model_data.rate_constants);
 
   // Free the allocated ModelData
   model_free(sd->model_data);

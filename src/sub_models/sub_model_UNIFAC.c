@@ -30,6 +30,7 @@
 #define NUM_FLOAT_PROP_ 0
 #define PHASE_INT_LOC_(p) (int_data[NUM_INT_PROP_+p]-1)
 #define PHASE_FLOAT_LOC_(p) (int_data[NUM_INT_PROP_+NUM_UNIQUE_PHASE_+p]-1)
+#define PHASE_ENV_LOC_(p) (int_data[NUM_INT_PROP_+2*NUM_UNIQUE_PHASE_+p]-1)
 #define NUM_PHASE_INSTANCE_(p) (int_data[PHASE_INT_LOC_(p)])
 #define NUM_SPEC_(p) (int_data[PHASE_INT_LOC_(p)+1])
 #define PHASE_INST_ID_(p,c) (int_data[PHASE_INT_LOC_(p)+2+c]-1)
@@ -40,19 +41,20 @@
 
 #define Q_K_(k) (float_data[k])
 #define R_K_(k) (float_data[NUM_GROUP_+k])
-#define THETA_M_(m) (float_data[2*NUM_GROUP_+m])
-#define X_K_(m) (float_data[3*NUM_GROUP_+m])
-#define DTHETA_M_DC_I_(m) (float_data[4*NUM_GROUP_+m])
-#define XI_M_(m) (float_data[5*NUM_GROUP_+m])
-#define LN_GAMMA_K_(m) (float_data[6*NUM_GROUP_+m])
-#define A_MN_(m,n) (float_data[(m+7)*NUM_GROUP_+n])
-#define PSI_MN_(m,n) (float_data[(m+7+NUM_GROUP_)*NUM_GROUP_+n])
+#define X_K_(m) (float_data[2*NUM_GROUP_+m])
+#define DTHETA_M_DC_I_(m) (float_data[3*NUM_GROUP_+m])
+#define XI_M_(m) (float_data[4*NUM_GROUP_+m])
+#define LN_GAMMA_K_(m) (float_data[5*NUM_GROUP_+m])
+#define A_MN_(m,n) (float_data[(m+6)*NUM_GROUP_+n])
 #define R_I_(p,i) (float_data[PHASE_FLOAT_LOC_(p)+i])
 #define Q_I_(p,i) (float_data[PHASE_FLOAT_LOC_(p)+NUM_SPEC_(p)+i])
 #define L_I_(p,i) (float_data[PHASE_FLOAT_LOC_(p)+2*NUM_SPEC_(p)+i])
 #define MW_I_(p,i) (float_data[PHASE_FLOAT_LOC_(p)+3*NUM_SPEC_(p)+i])
 #define X_I_(p,i) (float_data[PHASE_FLOAT_LOC_(p)+4*NUM_SPEC_(p)+i])
-#define LN_GAMMA_IK_(p,i,k) (float_data[PHASE_FLOAT_LOC_(p)+i*NUM_GROUP_+5*NUM_SPEC_(p)+k])
+
+#define THETA_M_(m) (sub_model_env_data[m])
+#define PSI_MN_(m,n) (sub_model_env_data[(m+1)*NUM_GROUP_+n])
+#define LN_GAMMA_IK_(p,i,k) (sub_model_env_data[PHASE_ENV_LOC_(p)+i*NUM_GROUP_+k])
 
 #define INT_DATA_SIZE_ (TOTAL_INT_PROP_)
 #define FLOAT_DATA_SIZE_ (TOTAL_FLOAT_PROP_)
@@ -107,13 +109,16 @@ void sub_model_UNIFAC_update_ids(int *sub_model_int_data,
  *
  * \param sub_model_int_data Pointer to the sub model integer data
  * \param sub_model_float_data Pointer to the sub model floating-point data
- * \param env_data Pointer to the environmental state array
+ * \param sub_model_env_data Pointer to the sub model environment-dependent data
+ * \param model_data Pointer to the model data
  */
 void sub_model_UNIFAC_update_env_state(int *sub_model_int_data,
-    double *sub_model_float_data, double *env_data)
+    double *sub_model_float_data, double *sub_model_env_data,
+    ModelData *model_data)
 {
   int *int_data = sub_model_int_data;
   double *float_data = sub_model_float_data;
+  double *env_data = model_data->grid_cell_env;
 
   // Update the interaction parameters
   for (int m=0; m<NUM_GROUP_; m++)
@@ -201,16 +206,18 @@ void sub_model_UNIFAC_update_env_state(int *sub_model_int_data,
  *
  * \param sub_model_int_data Pointer to the sub model integer data
  * \param sub_model_float_data Pointer to the sub model floating-point data
+ * \param sub_model_env_data Pointer to the sub model environment-dependent data
  * \param model_data Pointer to the model data including the current state and
  *                   environmental conditions
  */
 void sub_model_UNIFAC_calculate(int *sub_model_int_data,
-    double *sub_model_float_data, ModelData *model_data)
+    double *sub_model_float_data, double *sub_model_env_data,
+    ModelData *model_data)
 {
   int *int_data = sub_model_int_data;
   double *float_data = sub_model_float_data;
 
-  double *state = model_data->state;
+  double *state = model_data->grid_cell_state;
 
   // Loop through each instance of each phase to calculate activity
   for (int i_phase=0; i_phase<NUM_UNIQUE_PHASE_; ++i_phase) {
@@ -549,19 +556,20 @@ void sub_model_UNIFAC_calculate(int *sub_model_int_data,
  *
  * \param sub_model_int_data Pointer to the sub model integer data
  * \param sub_model_float_data Pointer to the sub model floating-point data
+ * \param sub_model_env_data Pointer to the sub model environment-dependent data
  * \param model_data Pointer to the model data
  * \param J Jacobian to be calculated
  * \param time_step Current time step [s]
  */
 #ifdef PMC_USE_SUNDIALS
 void sub_model_UNIFAC_get_jac_contrib(int *sub_model_int_data,
-    double *sub_model_float_data, ModelData *model_data, realtype *J,
-    double time_step)
+    double *sub_model_float_data, double *sub_model_env_data,
+    ModelData *model_data, realtype *J, double time_step)
 {
   int *int_data = sub_model_int_data;
   double *float_data = sub_model_float_data;
-
-  double *state = model_data->state;
+  double *state    = model_data->grid_cell_state;
+  double *env_data = model_data->grid_cell_env;
 
   // Loop through each instance of each phase to calculate activity
   for (int i_phase=0; i_phase<NUM_UNIQUE_PHASE_; ++i_phase) {
@@ -776,17 +784,14 @@ void sub_model_UNIFAC_print(int *sub_model_int_data,
   printf("\n*** General group data ***");
   for (int i_group=0; i_group<NUM_GROUP_; ++i_group) {
     printf("\nGroup %d:", i_group);
-    printf("\n  Q_K: %le R_K: %le Theta_M: %le X_k: %le",
-           Q_K_(i_group), R_K_(i_group), THETA_M_(i_group), X_K_(i_group));
+    printf("\n  Q_K: %le R_K: %le X_k: %le",
+           Q_K_(i_group), R_K_(i_group), X_K_(i_group));
     printf("\n  Xi_M: %le ln(Gamma_k): %le", XI_M_(i_group),
            LN_GAMMA_K_(i_group));
     printf("\n  dTheta_n / dc_i): %le", DTHETA_M_DC_I_(i_group));
     printf("\n A_MN (by group):");
     for (int j_group=0; j_group<NUM_GROUP_; ++j_group)
       printf(" %le", A_MN_(i_group, j_group));
-    printf("\n Psi_MN (by group):");
-    for (int j_group=0; j_group<NUM_GROUP_; ++j_group)
-      printf(" %le", PSI_MN_(i_group, j_group));
   }
   printf("\n\n*** Phase data ***");
   for (int i_phase=0; i_phase<NUM_UNIQUE_PHASE_; ++i_phase) {
@@ -836,9 +841,6 @@ void sub_model_UNIFAC_print(int *sub_model_int_data,
       printf("\n    v_ik (by species):");
       for (int i_spec=0; i_spec<NUM_SPEC_(i_phase); ++i_spec)
         printf(" %d", V_IK_(i_phase, i_spec, i_group));
-      printf("\n    ln_gamma_ik (by species):");
-      for (int i_spec=0; i_spec<NUM_SPEC_(i_phase); ++i_spec)
-        printf(" %le", LN_GAMMA_IK_(i_phase, i_spec, i_group));
     }
   }
 }

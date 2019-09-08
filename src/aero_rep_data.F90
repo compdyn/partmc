@@ -77,6 +77,10 @@ module pmc_aero_rep_data
     !! functions of the aerosol representation that cannot be obtained
     !! from the pmc_phlex_state::phlex_state_t object. (integer)
     integer(kind=i_kind), allocatable, public ::  condensed_data_int(:)
+    !> Number of environment-dependent parameters
+    !! These are parameters that need updated when environmental conditions
+    !! change
+    integer(kind=i_kind), public :: num_env_params = 0
   contains
     !> Initialize the aerosol representation data, validating component data and
     !! loading any required information from the \c
@@ -147,11 +151,15 @@ module pmc_aero_rep_data
   type, abstract :: aero_rep_update_data_t
     !> Aerosol representation type
     integer(kind=c_int) :: aero_rep_type
+    !> Grid cell to update
+    integer(kind=c_int) :: cell_id = 1
     !> Update data
     type(c_ptr) :: update_data
   contains
     !> Get the aerosol representation type
     procedure :: get_type => aero_rep_update_data_get_type
+    !> Get the grid cell to update
+    procedure :: get_cell_id => aero_rep_update_data_get_cell_id
     !> Get the update data
     procedure :: get_data => aero_rep_update_data_get_data
   end type aero_rep_update_data_t
@@ -572,6 +580,20 @@ contains
     aero_rep_type = this%aero_rep_type
 
   end function aero_rep_update_data_get_type
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Get the grid cell id to update
+  function aero_rep_update_data_get_cell_id(this) result(cell_id)
+
+    !> Grid cell id
+    integer(kind=c_int) :: cell_id
+    !> Update data
+    class(aero_rep_update_data_t), intent(in) :: this
+
+    cell_id = this%cell_id
+
+  end function aero_rep_update_data_get_cell_id
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

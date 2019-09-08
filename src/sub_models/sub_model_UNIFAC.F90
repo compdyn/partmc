@@ -165,6 +165,7 @@ module pmc_sub_model_UNIFAC
 #define NUM_REAL_PROP_ 0
 #define PHASE_INT_LOC_(p) this%condensed_data_int(NUM_INT_PROP_+p)
 #define PHASE_FLOAT_LOC_(p) this%condensed_data_int(NUM_INT_PROP_+NUM_UNIQUE_PHASE_+p)
+#define PHASE_ENV_LOC_(p) this%condensed_data_int(NUM_INT_PROP_+2*NUM_UNIQUE_PHASE_+p)
 #define NUM_PHASE_INSTANCE_(p) this%condensed_data_int(PHASE_INT_LOC_(p))
 #define NUM_SPEC_(p) this%condensed_data_int(PHASE_INT_LOC_(p)+1)
 #define PHASE_INST_ID_(p,c) this%condensed_data_int(PHASE_INT_LOC_(p)+1+c)
@@ -175,19 +176,16 @@ module pmc_sub_model_UNIFAC
 
 #define Q_K_(k) this%condensed_data_real(k)
 #define R_K_(k) this%condensed_data_real(NUM_GROUP_+k)
-#define THETA_M_(m) this%condensed_data_real(2*NUM_GROUP_+m)
-#define X_K_(m) this%condensed_data_real(3*NUM_GROUP_+m)
-#define DTHETA_M_DC_I_(m) this%condensed_data_real(4*NUM_GROUP_+m)
-#define XI_M_(m) this%condensed_data_real(5*NUM_GROUP_+m)
-#define LN_GAMMA_K_(m) this%condensed_data_real(6*NUM_GROUP_+m)
-#define A_MN_(m,n) this%condensed_data_real((m+6)*NUM_GROUP_+n)
-#define PSI_MN_(m,n) this%condensed_data_real((m+6+NUM_GROUP_)*NUM_GROUP_+n)
+#define X_K_(m) this%condensed_data_real(2*NUM_GROUP_+m)
+#define DTHETA_M_DC_I_(m) this%condensed_data_real(3*NUM_GROUP_+m)
+#define XI_M_(m) this%condensed_data_real(4*NUM_GROUP_+m)
+#define LN_GAMMA_K_(m) this%condensed_data_real(5*NUM_GROUP_+m)
+#define A_MN_(m,n) this%condensed_data_real((m+5)*NUM_GROUP_+n)
 #define R_I_(p,i) this%condensed_data_real(PHASE_FLOAT_LOC_(p)+i-1)
 #define Q_I_(p,i) this%condensed_data_real(PHASE_FLOAT_LOC_(p)+NUM_SPEC_(p)+i-1)
 #define L_I_(p,i) this%condensed_data_real(PHASE_FLOAT_LOC_(p)+2*NUM_SPEC_(p)+i-1)
 #define MW_I_(p,i) this%condensed_data_real(PHASE_FLOAT_LOC_(p)+3*NUM_SPEC_(p)+i-1)
 #define X_I_(p,i) this%condensed_data_real(PHASE_FLOAT_LOC_(p)+4*NUM_SPEC_(p)+i-1)
-#define LN_GAMMA_IK_(p,i,k) this%condensed_data_real(PHASE_FLOAT_LOC_(p)+(i-1)*NUM_GROUP_+5*NUM_SPEC_(p)+k-1)
 
   ! Update types (These must match values in sub_model_UNIFAC.c)
   ! (none for now)
@@ -264,8 +262,8 @@ contains
     integer(kind=i_kind) :: i_group, i_inter_group
     integer(kind=i_kind) :: i_UNIFAC_phase
     integer(kind=i_kind) :: num_unique_phase, num_group, num_main_group
-    integer(kind=i_kind) :: num_int_data, num_real_data, num_spec_group
-    integer(kind=i_kind) :: curr_spec_id, curr_phase_inst_id
+    integer(kind=i_kind) :: num_int_data, num_real_data, num_env_data
+    integer(kind=i_kind) :: num_spec_group, curr_spec_id, curr_phase_inst_id
     integer(kind=i_kind) :: m, n, spec_type
     integer(kind=i_kind), allocatable :: num_phase_inst(:)
     integer(kind=i_kind), allocatable :: num_phase_spec(:)
@@ -359,11 +357,14 @@ contains
 
     ! Size of condensed data arrays
     num_int_data =   NUM_INT_PROP_            & ! int props
-                     + 2*num_unique_phase       ! PHASE_INT_LOC, PHASE_REAL_LOC
+                     + 3*num_unique_phase       ! PHASE_INT_LOC, PHASE_REAL_LOC,
+                                                !    PHASE_ENV_LOC
     num_real_data =  NUM_REAL_PROP_           & ! real props
-                     + 7*num_group            & ! Q_k, R_k, THETA_m, X_k,
+                     + 6*num_group            & ! Q_k, R_k, X_k,
                                                 ! dTheta_n / dc_i, ln(gamma_k), Xi_m
-                     + 2*num_group*num_group    ! a_mn, PSI_mn
+                     + num_group*num_group      ! a_mn
+    num_env_data =   num_group                & ! THETA_m
+                     + num_group*num_group      ! PSI_mn
     do i_UNIFAC_phase = 1, num_unique_phase
       num_int_data = num_int_data + 2                    & ! NUM_PHASE_INSTANCE, NUM_SPEC
                      + num_phase_inst(i_UNIFAC_phase)    & ! PHASE_INST_ID
@@ -374,7 +375,8 @@ contains
                        num_phase_spec(i_UNIFAC_phase)    & ! SPEC_JAC_ID
                      + num_phase_spec(i_UNIFAC_phase) * num_group ! v_ik
       num_real_data = num_real_data &
-                     + 5*num_phase_spec(i_UNIFAC_phase)  & ! r_i, q_i, l_i, MW_i, X_i
+                     + 5*num_phase_spec(i_UNIFAC_phase)    ! r_i, q_i, l_i, MW_i, X_i
+      num_env_data = num_env_data &
                      + num_phase_spec(i_UNIFAC_phase) * num_group ! ln_GAMMA_ik
     end do
 
@@ -384,6 +386,9 @@ contains
     this%condensed_data_int(:) = int(999999, kind=i_kind)
     this%condensed_data_real(:) = real(999999.0, kind=dp)
 
+    ! Save space for the environment-dependent parameters
+    this%num_env_params = num_env_data
+
     ! Set sub model dimensions
     NUM_UNIQUE_PHASE_ = num_unique_phase
     NUM_GROUP_ = num_group
@@ -392,14 +397,18 @@ contains
 
     ! Set data locations
     num_int_data =   NUM_INT_PROP_               & ! int props
-                     + 2*num_unique_phase          ! PHASE_INT_LOC, PHASE_REAL_LOC
+                     + 3*num_unique_phase          ! PHASE_INT_LOC, PHASE_REAL_LOC,
+                                                   !    PHASE_ENV_LOC
     num_real_data =  NUM_REAL_PROP_              & ! real props
-                     + 7*num_group               & ! Q_k, R_k, THETA_m, X_k,
+                     + 6*num_group               & ! Q_k, R_k, THETA_m, X_k,
                                                    ! dTheta_n / dc_i, ln(Gamma_k), Xi_m
-                     + 2*num_group*num_group       ! a_mn, PSI_mn
+                     + num_group*num_group         ! a_mn, PSI_mn
+    num_env_data =   num_group                   & ! THETA_m
+                     + num_group*num_group         ! PSI_mn
     do i_UNIFAC_phase = 1, num_unique_phase
       PHASE_INT_LOC_(i_UNIFAC_phase) = num_int_data + 1
       PHASE_FLOAT_LOC_(i_UNIFAC_phase) = num_real_data + 1
+      PHASE_ENV_LOC_(i_UNIFAC_phase) = num_env_data + 1
       num_int_data = num_int_data + 2                    & ! NUM_PHASE_INSTANCE, NUM_SPEC
                      + num_phase_inst(i_UNIFAC_phase)    & ! PHASE_INST_ID
                      + num_phase_spec(i_UNIFAC_phase)    & ! SPEC_ID
@@ -409,7 +418,8 @@ contains
                        num_phase_spec(i_UNIFAC_phase)    & ! SPEC_JAC_ID
                      + num_phase_spec(i_UNIFAC_phase) * num_group ! v_ik
       num_real_data = num_real_data &
-                     + 5*num_phase_spec(i_UNIFAC_phase)  & ! r_i, q_i, l_i, MW_i, X_i
+                     + 5*num_phase_spec(i_UNIFAC_phase)    ! r_i, q_i, l_i, MW_i, X_i
+      num_env_data = num_env_data &
                      + num_phase_spec(i_UNIFAC_phase) * num_group ! ln_GAMMA_ik
     end do
 

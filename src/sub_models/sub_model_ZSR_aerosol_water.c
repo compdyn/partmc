@@ -14,8 +14,8 @@
 #include "../sub_models.h"
 
 // TODO Lookup environmental indices during initialization
-#define TEMPERATURE_K_ env_state[0]
-#define PRESSURE_PA_ env_state[1]
+#define TEMPERATURE_K_ env_data[0]
+#define PRESSURE_PA_ env_data[1]
 
 #define SMALL_NUMBER_ 1.0e-30
 
@@ -27,9 +27,10 @@
 #define NUM_ION_PAIR_ (int_data[2])
 #define INT_DATA_SIZE_ (int_data[3])
 #define FLOAT_DATA_SIZE_ (int_data[4])
-#define PPM_TO_RH_ (float_data[0])
+#define PPM_TO_RH_ (sub_model_env_data[0])
 #define NUM_INT_PROP_ 5
-#define NUM_REAL_PROP_ 1
+#define NUM_REAL_PROP_ 0
+#define NUM_ENV_PARAM_ 1
 #define PHASE_ID_(p) (int_data[NUM_INT_PROP_+p]-1)
 #define PAIR_INT_PARAM_LOC_(x) (int_data[NUM_INT_PROP_+NUM_PHASE_+x]-1)
 #define PAIR_FLOAT_PARAM_LOC_(x) (int_data[NUM_INT_PROP_+NUM_PHASE_+NUM_ION_PAIR_+x]-1)
@@ -174,13 +175,16 @@ void sub_model_ZSR_aerosol_water_update_ids(int *sub_model_int_data,
  *
  * \param sub_model_int_data Pointer to the sub model integer data
  * \param sub_model_float_data Pointer to the sub model floating-point data
- * \param env_state Pointer to the environmental state array
+ * \param sub_model_env_data Pointer to the sub model environment-dependent data
+ * \param model_data Pointer to the model data
  */
 void sub_model_ZSR_aerosol_water_update_env_state(int *sub_model_int_data,
-    double *sub_model_float_data, double *env_state)
+    double *sub_model_float_data, double *sub_model_env_data,
+    ModelData *model_data)
 {
   int *int_data = sub_model_int_data;
   double *float_data = sub_model_float_data;
+  double *env_data = model_data->grid_cell_env;
 
   // Calculate PPM_TO_RH_
   // From MOSAIC code - reference to Seinfeld & Pandis page 181
@@ -198,12 +202,14 @@ void sub_model_ZSR_aerosol_water_update_env_state(int *sub_model_int_data,
  *
  * \param sub_model_int_data Pointer to the sub model integer data
  * \param sub_model_float_data Pointer to the sub model floating-point data
+ * \param sub_model_env_data Pointer to the sub model environment-dependent data
  * \param model_data Pointer to the model data, including the state array
  */
 void sub_model_ZSR_aerosol_water_calculate(int *sub_model_int_data,
-    double *sub_model_float_data, ModelData *model_data)
+    double *sub_model_float_data, double *sub_model_env_data,
+    ModelData *model_data)
 {
-  double *state = model_data->state;
+  double *state = model_data->grid_cell_state;
   int *int_data = sub_model_int_data;
   double *float_data = sub_model_float_data;
 
@@ -284,18 +290,20 @@ void sub_model_ZSR_aerosol_water_calculate(int *sub_model_int_data,
  *
  * \param sub_model_int_data Pointer to the sub model integer data
  * \param sub_model_float_data Pointer to the sub model floating-point data
+ * \param sub_model_env_data Pointer to the sub model environment-dependent data
  * \param model_data Pointer to the model data
  * \param J Jacobian to be calculated
  * \param time_step Current time step [s]
  */
 #ifdef PMC_USE_SUNDIALS
 void sub_model_ZSR_aerosol_water_get_jac_contrib(int *sub_model_int_data,
-    double *sub_model_float_data, ModelData *model_data, realtype *J,
-    double time_step)
+    double *sub_model_float_data, double *sub_model_env_data,
+    ModelData *model_data, realtype *J, double time_step)
 {
-  double *state = model_data->state;
   int *int_data = sub_model_int_data;
   double *float_data = sub_model_float_data;
+  double *state    = model_data->grid_cell_state;
+  double *env_data = model_data->grid_cell_env;
 
   // Calculate the water activity---i.e., relative humidity (0-1)
   double a_w = PPM_TO_RH_ * state[GAS_WATER_ID_];
@@ -436,7 +444,6 @@ void sub_model_ZSR_aerosol_water_print(int *sub_model_int_data,
   printf("\nNumber of phases: %d", NUM_PHASE_);
   printf("\nGas-phase water state id: %d", GAS_WATER_ID_);
   printf("\nNumber of ion pairs: %d", NUM_ION_PAIR_);
-  printf("\nPPM-to-RH conversion: %lf", PPM_TO_RH_);
   printf("\n*** Phase state ids (index of water in each phase) ***");
   for (int i_phase=0; i_phase<NUM_PHASE_; ++i_phase) {
     printf("\n  phase %d: %d", i_phase, PHASE_ID_(i_phase));

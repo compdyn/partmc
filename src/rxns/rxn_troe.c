@@ -29,9 +29,9 @@
 #define N_ float_data[7]
 #define SCALING_ float_data[8]
 #define CONV_ float_data[9]
-#define RATE_CONSTANT_ float_data[10]
+#define RATE_CONSTANT_ (rxn_env_data[0])
 #define NUM_INT_PROP_ 2
-#define NUM_FLOAT_PROP_ 11
+#define NUM_FLOAT_PROP_ 10
 #define REACT_(x) (int_data[NUM_INT_PROP_ + x]-1)
 #define PROD_(x) (int_data[NUM_INT_PROP_ + NUM_REACT_ + x]-1)
 #define DERIV_ID_(x) int_data[NUM_INT_PROP_ + NUM_REACT_ + NUM_PROD_ + x]
@@ -101,15 +101,17 @@ void rxn_troe_update_ids(ModelData *model_data, int *deriv_ids,
  * For Troe reaction this only involves recalculating the rate
  * constant.
  *
- * \param env_data Pointer to the environmental state array
+ * \param model_data Pointer to the model data
  * \param rxn_int_data Pointer to the reaction integer data
  * \param rxn_float_data Pointer to the reaction floating-point data
+ * \param rxn_env_data Pointer to the environment-dependent parameters
  */
-void rxn_troe_update_env_state(double *env_data, int *rxn_int_data,
-    double *rxn_float_data)
+void rxn_troe_update_env_state(ModelData *model_data, int *rxn_int_data,
+    double *rxn_float_data, double *rxn_env_data)
 {
   int *int_data = rxn_int_data;
   double *float_data = rxn_float_data;
+  double *env_data = model_data->grid_cell_env;
 
   // Calculate the rate constant in (#/cc)
   // k = (k0[M] / (1 + k0[M]/kinf)) * Fc^(1/(1+(1/N*log(k0[M]/kinf))^2))
@@ -139,15 +141,18 @@ void rxn_troe_update_env_state(double *env_data, int *rxn_int_data,
  * \param deriv Pointer to the time derivative to add contributions to
  * \param rxn_int_data Pointer to the reaction integer data
  * \param rxn_float_data Pointer to the reaction floating-point data
+ * \param rxn_env_data Pointer to the environment-dependent parameters
  * \param time_step Current time step being computed (s)
  */
 #ifdef PMC_USE_SUNDIALS
 void rxn_troe_calc_deriv_contrib(ModelData *model_data, realtype *deriv,
-          int *rxn_int_data, double *rxn_float_data, double time_step)
+    int *rxn_int_data, double *rxn_float_data, double *rxn_env_data,
+    realtype time_step)
 {
-  realtype *state = model_data->state;
   int *int_data = rxn_int_data;
   double *float_data = rxn_float_data;
+  double *state    = model_data->grid_cell_state;
+  double *env_data = model_data->grid_cell_env;
 
   // Calculate the reaction rate
   realtype rate = RATE_CONSTANT_;
@@ -182,15 +187,18 @@ void rxn_troe_calc_deriv_contrib(ModelData *model_data, realtype *deriv,
  * \param J Pointer to the sparse Jacobian matrix to add contributions to
  * \param rxn_int_data Pointer to the reaction integer data
  * \param rxn_float_data Pointer to the reaction floating-point data
+ * \param rxn_env_data Pointer to the environment-dependent parameters
  * \param time_step Current time step being calculated (s)
  */
 #ifdef PMC_USE_SUNDIALS
 void rxn_troe_calc_jac_contrib(ModelData *model_data, realtype *J,
-          int *rxn_int_data, double *rxn_float_data, double time_step)
+    int *rxn_int_data, double *rxn_float_data, double *rxn_env_data,
+    realtype time_step)
 {
-  realtype *state = model_data->state;
   int *int_data = rxn_int_data;
   double *float_data = rxn_float_data;
+  double *state    = model_data->grid_cell_state;
+  double *env_data = model_data->grid_cell_env;
 
   // Add contributions to the Jacobian
   int i_elem = 0;

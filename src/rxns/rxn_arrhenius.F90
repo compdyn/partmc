@@ -85,9 +85,9 @@ module pmc_rxn_arrhenius
 #define D_ this%condensed_data_real(4)
 #define E_ this%condensed_data_real(5)
 #define CONV_ this%condensed_data_real(6)
-#define RATE_CONSTANT_ this%condensed_data_real(7)
 #define NUM_INT_PROP_ 2
-#define NUM_REAL_PROP_ 7
+#define NUM_REAL_PROP_ 6
+#define NUM_ENV_PARAM_ 1
 #define REACT_(x) this%condensed_data_int(NUM_INT_PROP_ + x)
 #define PROD_(x) this%condensed_data_int(NUM_INT_PROP_ + NUM_REACT_ + x)
 #define DERIV_ID_(x) this%condensed_data_int(NUM_INT_PROP_ + NUM_REACT_ + NUM_PROD_ + x)
@@ -130,7 +130,7 @@ contains
   !> Initialize the reaction data, validating component data and loading
   !! any required information into the condensed data arrays for use during
   !! solving
-  subroutine initialize(this, chem_spec_data, aero_rep)
+  subroutine initialize(this, chem_spec_data, aero_rep, n_cells)
 
     !> Reaction data
     class(rxn_arrhenius_t), intent(inout) :: this
@@ -138,6 +138,8 @@ contains
     type(chem_spec_data_t), intent(in) :: chem_spec_data
     !> Aerosol representations
     type(aero_rep_data_ptr), pointer, intent(in) :: aero_rep(:)
+    !> Number of grid cells being solved simultaneously
+    integer(kind=i_kind), intent(in) :: n_cells
 
     type(property_t), pointer :: spec_props, reactants, products
     character(len=:), allocatable :: key_name, spec_name, string_val
@@ -176,6 +178,9 @@ contains
     allocate(this%condensed_data_real(NUM_REAL_PROP_ + products%size()))
     this%condensed_data_int(:) = int(0, kind=i_kind)
     this%condensed_data_real(:) = real(0.0, kind=dp)
+
+    ! Save space for the environment dependent parameters
+    this%num_env_params = NUM_ENV_PARAM_
 
     ! Save the size of the reactant and product arrays (for reactions where
     ! these can vary)

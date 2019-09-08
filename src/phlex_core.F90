@@ -136,8 +136,10 @@ module pmc_phlex_core
     type(aero_rep_data_ptr), pointer :: aero_rep(:) => null()
     !> Aerosol phases
     type(aero_phase_data_ptr), pointer :: aero_phase(:) => null()
-    !> Size of the state array
-    integer(kind=i_kind) :: state_array_size
+    !> Size of the state array per grid cell
+    integer(kind=i_kind) :: size_state_per_cell
+    !> Number of cells to compute
+    integer(kind=i_kind) :: n_cells = 1
     !> Initial state values
     real(kind=dp), allocatable :: init_state(:)
     !> Flag to split gas- and aerosol-phase reactions
@@ -183,6 +185,8 @@ module pmc_phlex_core
     procedure :: new_state
     !> Get the size of the state array
     procedure :: state_size
+    !> Get the size of the state array per grid cell
+    procedure :: state_size_per_cell
     !> Initialize the solver
     procedure :: solver_initialize
     !> Free the solver
@@ -227,12 +231,14 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Constructor for phlex_core_t
-  function constructor(input_file_path) result(new_obj)
+  function constructor(input_file_path, n_cells) result(new_obj)
 
     !> A new set of model parameters
     type(phlex_core_t), pointer :: new_obj
     !> Part-MC input file paths
     character(len=*), intent(in), optional :: input_file_path
+    !> Num cells to compute simulatenously
+    integer(kind=i_kind), optional :: n_cells
 
     allocate(new_obj)
     allocate(new_obj%mechanism(0))
@@ -240,6 +246,10 @@ contains
     allocate(new_obj%aero_phase(0))
     allocate(new_obj%aero_rep(0))
     allocate(new_obj%sub_model(0))
+
+    if (present(n_cells)) then
+      new_obj%n_cells=n_cells
+    end if
 
     if (present(input_file_path)) then
       call new_obj%load_files(trim(input_file_path))
@@ -399,7 +409,7 @@ contains
     !> Part-MC input file paths
     type(string_t), allocatable, intent(in) :: input_file_path(:)
 
-    integer(kind=i_kind) :: i_file
+    integer(kind=i_kind) :: i_file, cell
 #ifdef PMC_USE_JSON
     type(json_core), pointer :: json
     type(json_file) :: j_file
@@ -632,7 +642,7 @@ contains
 
     ! Indices for iteration
     integer(kind=i_kind) :: i_mech, i_phase, i_aero_rep, i_sub_model
-    integer(kind=i_kind) :: i_state_var, i_spec
+    integer(kind=i_kind) :: i_state_var, i_spec, i_cell
 
     ! Variables for setting initial state values
     class(aero_rep_data_t), pointer :: rep
@@ -676,18 +686,18 @@ contains
                 this%aero_phase, this%chem_spec_data)
     end do
 
-    ! Set the size of the state array
-    this%state_array_size = i_state_var - 1
+    ! Set the size of the state array per grid cell
+    this%size_state_per_cell = i_state_var - 1
 
     ! Initialize the mechanisms
     do i_mech = 1, size(this%mechanism)
       call this%mechanism(i_mech)%val%initialize(this%chem_spec_data, &
-              this%aero_rep)
+              this%aero_rep, this%n_cells)
     end do
 
     ! Allocate space for the variable types and absolute tolerances
-    allocate(this%abs_tol(this%state_array_size))
-    allocate(this%var_type(this%state_array_size))
+    allocate(this%abs_tol(this%size_state_per_cell))
+    allocate(this%var_type(this%size_state_per_cell))
 
     ! Start at the first state array element
     i_state_var = 0
@@ -729,36 +739,39 @@ contains
 
     ! Make sure absolute tolerance and variable type arrays are completely
     ! filled
-    call assert_msg(501609702, i_state_var.eq.this%state_array_size, &
+    call assert_msg(501609702, i_state_var.eq.this%size_state_per_cell, &
             "Internal error. Filled "//trim(to_string(i_state_var))// &
-            " of "//trim(to_string(this%state_array_size))// &
+            " of "//trim(to_string(this%size_state_per_cell))// &
             " elements of absolute tolerance and variable type arrays")
 
     this%core_is_initialized = .true.
 
     ! Set the initial state values
-    allocate(this%init_state(this%state_array_size))
+    allocate(this%init_state(this%size_state_per_cell * this%n_cells))
 
     ! Set species concentrations to zero
     this%init_state(:) = 0.0
 
     ! Set activity coefficients to 1.0
-    do i_aero_rep = 1, size(this%aero_rep)
+      do i_cell = 0, this%n_cells - 1
+        do i_aero_rep = 1, size(this%aero_rep)
 
-      rep => this%aero_rep(i_aero_rep)%val
+          rep => this%aero_rep(i_aero_rep)%val
 
-      ! Get the ion pairs for which activity coefficients can be calculated
-      unique_names = rep%unique_names(tracer_type = CHEM_SPEC_ACTIVITY_COEFF)
+          ! Get the ion pairs for which activity coefficients can be calculated
+          unique_names = rep%unique_names(tracer_type = CHEM_SPEC_ACTIVITY_COEFF)
 
-      ! Set the activity coefficients to 1.0 as default
-      do i_name = 1, size(unique_names)
-        i_state_elem = rep%spec_state_id(unique_names(i_name)%string)
-        this%init_state(i_state_elem) = real(1.0d0, kind=dp)
+          ! Set the activity coefficients to 1.0 as default
+          do i_name = 1, size(unique_names)
+            i_state_elem = rep%spec_state_id(unique_names(i_name)%string)
+            this%init_state(i_state_elem + i_cell * this%size_state_per_cell) = &
+                    real(1.0d0, kind=dp)
+          end do
+
+          deallocate(unique_names)
+
+        end do
       end do
-
-      deallocate(unique_names)
-
-    end do
 
   end subroutine initialize
 
@@ -810,7 +823,7 @@ contains
     !> Model data
     class(phlex_core_t), intent(in) :: this
     !> Aerosol representation name to search for
-    character(len=:), allocatable, intent(in) :: aero_rep_name
+    character(len=*), intent(in) :: aero_rep_name
     !> Aerosol representation
     class(aero_rep_data_t), pointer, intent(out) :: aero_rep
 
@@ -820,7 +833,7 @@ contains
     aero_rep => null()
     if (.not.associated(this%aero_rep)) return
     do i_aero_rep = 1, size(this%aero_rep)
-      if (this%aero_rep(i_aero_rep)%val%name().eq.aero_rep_name) then
+      if (this%aero_rep(i_aero_rep)%val%name().eq.trim(aero_rep_name)) then
         aero_rep => this%aero_rep(i_aero_rep)%val
         found = .true.
         return
@@ -909,10 +922,12 @@ contains
     type(phlex_state_t), pointer :: new_state
     !> Chemical model
     class(phlex_core_t), intent(in) :: this
-    !> Environmental state
+    !> Environmental state array
+    !! (one element per grid cell to solve simultaneously)
     type(env_state_t), optional, target, intent(in) :: env_state
 
-    new_state => phlex_state_t(env_state)
+    ! Initialize phlex_state
+    new_state => phlex_state_t(env_state,this%n_cells)
 
     ! Set up the state variable array
     allocate(new_state%state_var, source=this%init_state)
@@ -936,6 +951,24 @@ contains
     state_size = size(this%init_state)
 
   end function state_size
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Get the size of the state array for each grid cell
+  function state_size_per_cell(this) result(state_size)
+
+    !> State size
+    integer(kind=i_kind) :: state_size
+    !> Chemical model
+    class(phlex_core_t), intent(in) :: this
+
+    call assert_msg(175845182, allocated(this%init_state), &
+                    "Trying to get the size of the state array before "// &
+                    "initializing the phlex_core")
+
+    state_size = this%size_state_per_cell
+
+  end function state_size_per_cell
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -969,7 +1002,8 @@ contains
                 this%aero_phase, & ! Pointer to the aerosol phases
                 this%aero_rep,   & ! Pointer to the aerosol representations
                 this%sub_model,  & ! Pointer to the sub-models
-                GAS_RXN          & ! Reaction phase
+                GAS_RXN,         & ! Reaction phase
+                this%n_cells   & ! # of cells computed simultaneosly
                 )
       call this%solver_data_aero%initialize( &
                 this%var_type,   & ! State array variable types
@@ -978,7 +1012,8 @@ contains
                 this%aero_phase, & ! Pointer to the aerosol phases
                 this%aero_rep,   & ! Pointer to the aerosol representations
                 this%sub_model,  & ! Pointer to the sub-models
-                AERO_RXN         & ! Reaction phase
+                AERO_RXN,        & ! Reaction phase
+                this%n_cells   & ! # of cells computed simultaneosly
                 )
     else
 
@@ -998,7 +1033,8 @@ contains
                 this%aero_phase, & ! Pointer to the aerosol phases
                 this%aero_rep,   & ! Pointer to the aerosol representations
                 this%sub_model,  & ! Pointer to the sub-models
-                GAS_AERO_RXN     & ! Reaction phase
+                GAS_AERO_RXN,    & ! Reaction phase
+                this%n_cells   & ! # of cells computed simultaneosly
                 )
 
     end if
@@ -1138,11 +1174,6 @@ contains
               "solver: "//to_string(phase))
     end if
 
-    ! Update the environmental state array
-    ! TODO May move this into the solver functions to allow user to vary
-    ! environmental parameters with time during the chemistry time step
-    call phlex_state%update_env_state()
-
     ! Make sure the requested solver was loaded
     call assert_msg(730097030, associated(solver), "Invalid solver requested")
 
@@ -1153,6 +1184,7 @@ contains
     else
       call solver%solve(phlex_state, real(0.0, kind=dp), time_step)
     end if
+
   end subroutine solve
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -1202,7 +1234,7 @@ contains
       sub_model => null()
     end do
     pack_size = pack_size + &
-                pmc_mpi_pack_size_integer(this%state_array_size, l_comm) + &
+                pmc_mpi_pack_size_integer(this%size_state_per_cell, l_comm) + &
                 pmc_mpi_pack_size_logical(this%split_gas_aero, l_comm) + &
                 pmc_mpi_pack_size_real(this%rel_tol, l_comm) + &
                 pmc_mpi_pack_size_real_array(this%abs_tol, l_comm) + &
@@ -1265,7 +1297,7 @@ contains
       call sub_model_factory%bin_pack(sub_model, buffer, pos, l_comm)
       sub_model => null()
     end do
-    call pmc_mpi_pack_integer(buffer, pos, this%state_array_size, l_comm)
+    call pmc_mpi_pack_integer(buffer, pos, this%size_state_per_cell, l_comm)
     call pmc_mpi_pack_logical(buffer, pos, this%split_gas_aero, l_comm)
     call pmc_mpi_pack_real(buffer, pos, this%rel_tol, l_comm)
     call pmc_mpi_pack_real_array(buffer, pos, this%abs_tol, l_comm)
@@ -1331,7 +1363,7 @@ contains
       this%sub_model(i_sub_model)%val => &
               sub_model_factory%bin_unpack(buffer, pos, l_comm)
     end do
-    call pmc_mpi_unpack_integer(buffer, pos, this%state_array_size, l_comm)
+    call pmc_mpi_unpack_integer(buffer, pos, this%size_state_per_cell, l_comm)
     call pmc_mpi_unpack_logical(buffer, pos, this%split_gas_aero, l_comm)
     call pmc_mpi_unpack_real(buffer, pos, this%rel_tol, l_comm)
     call pmc_mpi_unpack_real_array(buffer, pos, this%abs_tol, l_comm)
@@ -1369,6 +1401,8 @@ contains
     write(f_unit,*) "** Phlex core data **"
     write(f_unit,*) "*********************"
     if (.not.sd_only ) then
+      write(f_unit,*) "Number of grid cells to solve simultaneously: ", &
+                      this%n_cells
       write(f_unit,*) "Relative integration tolerance: ", this%rel_tol
       call this%chem_spec_data%print(f_unit)
       write(f_unit,*) "*** Aerosol Phases ***"
@@ -1391,9 +1425,9 @@ contains
         call this%mechanism(i_mech)%val%print(f_unit)
       end do
       write(f_unit,*) "*** State Array ***"
-      write(f_unit,*) "Number of species on the state array: ", &
-              this%state_array_size
-      allocate(state_names(this%state_array_size))
+      write(f_unit,*) "Number of species on the state array per grid cell: ", &
+                      this%size_state_per_cell
+      allocate(state_names(this%size_state_per_cell))
       i_spec = 0
       do i_gas_spec = 1, &
               this%chem_spec_data%size(spec_phase=CHEM_SPEC_GAS_PHASE)
@@ -1511,6 +1545,7 @@ contains
     type(aero_rep_data_ptr), pointer :: new_aero_rep(:)
     type(aero_rep_factory_t) :: aero_rep_factory
 
+    !TODO: Improve this multiple reallocation
     allocate(new_aero_rep(size(this%aero_rep)+1))
 
     new_aero_rep(1:size(this%aero_rep)) = &

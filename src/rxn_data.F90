@@ -112,6 +112,10 @@ module pmc_rxn_data
     !! rate and Jacobian constribution functions that cannot be obtained
     !! from the \c pmc_phlex_state::phlex_state_t object. (integer)
     integer(kind=i_kind), allocatable, public :: condensed_data_int(:)
+    !> Number of environment-dependent parameters
+    !! These are parameters that need updated when environmental conditions
+    !! change
+    integer(kind=i_kind), public :: num_env_params = 0
   contains
     !> Reaction initialization. Takes species, phase and reaction parameters
     !! and packs required information into the condensed data arrays for use
@@ -153,11 +157,15 @@ module pmc_rxn_data
   type, abstract :: rxn_update_data_t
     !> Reaction type
     integer(kind=c_int) :: rxn_type
+    !> Grid cell to update
+    integer(kind=c_int) :: cell_id = 1
     !> Update data
     type(c_ptr) :: update_data
   contains
     !> Get the reaction type
     procedure :: get_type => rxn_update_data_get_type
+    !> Get the grid cell to update
+    procedure :: get_cell_id => rxn_update_data_get_cell_id
     !> Get the update data
     procedure :: get_data => rxn_update_data_get_data
   end type rxn_update_data_t
@@ -173,7 +181,8 @@ interface
   !! This routine should be called once for each reaction
   !! at the beginning of a model run after all the input files have been
   !! read in.
-  subroutine initialize(this, chem_spec_data, aero_rep)
+  subroutine initialize(this, chem_spec_data, aero_rep, n_cells)
+    use pmc_util,                                only : i_kind
     import :: rxn_data_t, chem_spec_data_t, aero_rep_data_ptr
 
     !> Reaction data
@@ -182,6 +191,8 @@ interface
     type(chem_spec_data_t), intent(in) :: chem_spec_data
     !> Aerosol representations
     type(aero_rep_data_ptr), pointer, intent(in) :: aero_rep(:)
+    !> Number of grid cells to solve simultaneously
+    integer(kind=i_kind), intent(in) :: n_cells
 
   end subroutine initialize
 
@@ -458,6 +469,20 @@ contains
     rxn_type = this%rxn_type
 
   end function rxn_update_data_get_type
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Get the grid cell id to update
+  function rxn_update_data_get_cell_id(this) result(cell_id)
+
+    !> Grid cell id
+    integer(kind=c_int) :: cell_id
+    !> Update data
+    class(rxn_update_data_t), intent(in) :: this
+
+    cell_id = this%cell_id
+
+  end function rxn_update_data_get_cell_id
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

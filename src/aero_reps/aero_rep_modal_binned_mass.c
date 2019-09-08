@@ -31,6 +31,7 @@
 #define AERO_REP_ID_ (int_data[3])
 #define NUM_INT_PROP_ 4
 #define NUM_FLOAT_PROP_ 0
+#define NUM_ENV_PARAM_ 0
 #define MODE_INT_PROP_LOC_(x) (int_data[NUM_INT_PROP_+x]-1)
 #define MODE_FLOAT_PROP_LOC_(x) (int_data[NUM_INT_PROP_+NUM_SECTION_+x]-1)
 #define SECTION_TYPE_(x) (int_data[MODE_INT_PROP_LOC_(x)])
@@ -48,24 +49,24 @@
 // Number of Jacobian elements in a phase
 #define PHASE_NUM_JAC_ELEM_(x,y,b) int_data[MODE_INT_PROP_LOC_(x)+3+2*NUM_BINS_(x)*NUM_PHASE_(x)+b*NUM_PHASE_(x)+y]
 
-// GMD and bin diameter are stored in the same position - for modes, b=0
-#define GMD_(x,b) (float_data[MODE_FLOAT_PROP_LOC_(x)+b*4])
-#define BIN_DP_(x,b) (float_data[MODE_FLOAT_PROP_LOC_(x)+b*4])
+// Bin diameter (for bins)
+#define BIN_DP_(x,b) (float_data[MODE_FLOAT_PROP_LOC_(x)+b*3])
 
-// GSD - only used for modes, b=0
-#define GSD_(x,b) (float_data[MODE_FLOAT_PROP_LOC_(x)+b*4+1])
+// GMD and GSD - only used for modes
+#define GMD_(x) (aero_rep_env_data[x])
+#define GSD_(x) (aero_rep_env_data[NUM_SECTION_+x])
 
 // Real-time number concentration - used for modes and bins - for modes, b=0
-#define NUMBER_CONC_(x,b) (float_data[MODE_FLOAT_PROP_LOC_(x)+b*4+2])
+#define NUMBER_CONC_(x,b) (float_data[MODE_FLOAT_PROP_LOC_(x)+b*3+1])
 
 // Real-time effective radius - only used for modes, b=0
-#define EFFECTIVE_RADIUS_(x,b) (float_data[MODE_FLOAT_PROP_LOC_(x)+b*4+3])
+#define EFFECTIVE_RADIUS_(x,b) (float_data[MODE_FLOAT_PROP_LOC_(x)+b*3+2])
 
 // Real-time phase mass (ug/m^3) - used for modes and bins - for modes, b=0
-#define PHASE_MASS_(x,y,b) (float_data[MODE_FLOAT_PROP_LOC_(x)+4*NUM_BINS_(x)+b*NUM_PHASE_(x)+y])
+#define PHASE_MASS_(x,y,b) (float_data[MODE_FLOAT_PROP_LOC_(x)+3*NUM_BINS_(x)+b*NUM_PHASE_(x)+y])
 
 // Real-time phase average MW (kg/mol) - used for modes and bins - for modes, b=0
-#define PHASE_AVG_MW_(x,y,b) (float_data[MODE_FLOAT_PROP_LOC_(x)+(4+NUM_PHASE_(x))*NUM_BINS_(x)+b*NUM_PHASE_(x)+y])
+#define PHASE_AVG_MW_(x,y,b) (float_data[MODE_FLOAT_PROP_LOC_(x)+(3+NUM_PHASE_(x))*NUM_BINS_(x)+b*NUM_PHASE_(x)+y])
 
 /** \brief Flag Jacobian elements used in calcualtions of mass and volume
  *
@@ -136,16 +137,20 @@ void aero_rep_modal_binned_mass_get_dependencies(int *aero_rep_int_data,
  * The modal mass aerosol representation is not updated for new environmental
  * conditions
  *
- * \param env_data Pointer to the environmental state array
+ * \param model_data Pointer to the model data
  * \param aero_rep_int_data Pointer to the aerosol representation integer data
  * \param aero_rep_float_data Pointer to the aerosol representation
  *                            floating-point data
+ * \param aero_rep_env_data Pointer to the aerosol representation
+ *                          environment-dependent parameters
  */
-void aero_rep_modal_binned_mass_update_env_state(double *env_data,
-          int *aero_rep_int_data, double *aero_rep_float_data)
+void aero_rep_modal_binned_mass_update_env_state(ModelData *model_data,
+          int *aero_rep_int_data, double *aero_rep_float_data,
+          double *aero_rep_env_data)
 {
   int *int_data = aero_rep_int_data;
   double *float_data = aero_rep_float_data;
+  double *env_data = model_data->grid_cell_env;
 
   return;
 }
@@ -159,9 +164,12 @@ void aero_rep_modal_binned_mass_update_env_state(double *env_data,
  * \param aero_rep_int_data Pointer to the aerosol representation integer data
  * \param aero_rep_float_data Pointer to the aerosol representation
  *                            floating-point data
+ * \param aero_rep_env_data Pointer to the aerosol representation
+ *                          environment-dependent parameters
  */
 void aero_rep_modal_binned_mass_update_state(ModelData *model_data,
-          int *aero_rep_int_data, double *aero_rep_float_data)
+          int *aero_rep_int_data, double *aero_rep_float_data,
+          double *aero_rep_env_data)
 {
   int *int_data = aero_rep_int_data;
   double *float_data = aero_rep_float_data;
@@ -181,7 +189,7 @@ void aero_rep_modal_binned_mass_update_state(ModelData *model_data,
         for (int i_phase=0; i_phase<NUM_PHASE_(i_section); i_phase++) {
 
           // Get a pointer to the phase on the state array
-          double *state = (double*) (model_data->state);
+          double *state = (double*) (model_data->grid_cell_state);
           state += PHASE_STATE_ID_(i_section, i_phase, 0);
 
           // Set the aerosol-phase mass and average MW
@@ -202,8 +210,8 @@ void aero_rep_modal_binned_mass_update_state(ModelData *model_data,
         // Calculate the number concentration based on the total mode volume
         // (see aero_rep_modal_binned_mass_get_number_conc for details)
         NUMBER_CONC_(i_section,0) = volume * 6.0 /
-                (M_PI * pow(GMD_(i_section,0),3) *
-                exp(9.0/2.0*pow(GSD_(i_section,0),2)));
+                (M_PI * pow(GMD_(i_section),3) *
+                exp(9.0/2.0*pow(GSD_(i_section),2)));
 
         break;
 
@@ -218,7 +226,7 @@ void aero_rep_modal_binned_mass_update_state(ModelData *model_data,
           for (int i_phase=0; i_phase<NUM_PHASE_(i_section); i_phase++) {
 
             // Get a pointer to the phase on the state array
-            double *state = (double*) (model_data->state);
+            double *state = (double*) (model_data->grid_cell_state);
             state += PHASE_STATE_ID_(i_section, i_phase, i_bin);
 
             // Set the aerosol-phase mass and average MW
@@ -276,10 +284,13 @@ void aero_rep_modal_binned_mass_update_state(ModelData *model_data,
  * \param aero_rep_int_data Pointer to the aerosol representation integer data
  * \param aero_rep_float_data Pointer to the aerosol representation
  *                            floating-point data
+ * \param aero_rep_env_data Pointer to the aerosol representation
+ *                          environment-dependent parameters
  */
 void aero_rep_modal_binned_mass_get_effective_radius(ModelData *model_data,
           int aero_phase_idx, double *radius, double *partial_deriv,
-          int *aero_rep_int_data, double *aero_rep_float_data)
+          int *aero_rep_int_data, double *aero_rep_float_data,
+          double *aero_rep_env_data)
 {
   int *int_data = aero_rep_int_data;
   double *float_data = aero_rep_float_data;
@@ -344,10 +355,13 @@ void aero_rep_modal_binned_mass_get_effective_radius(ModelData *model_data,
  * \param aero_rep_int_data Pointer to the aerosol representation integer data
  * \param aero_rep_float_data Pointer to the aerosol representation
  *                            floating-point data
+ * \param aero_rep_env_data Pointer to the aerosol representation
+ *                          environment-dependent parameters
  */
 void aero_rep_modal_binned_mass_get_number_conc(ModelData *model_data,
           int aero_phase_idx, double *number_conc, double *partial_deriv,
-          int *aero_rep_int_data, double *aero_rep_float_data)
+          int *aero_rep_int_data, double *aero_rep_float_data,
+          double *aero_rep_env_data)
 {
   int *int_data = aero_rep_int_data;
   double *float_data = aero_rep_float_data;
@@ -363,7 +377,7 @@ void aero_rep_modal_binned_mass_get_number_conc(ModelData *model_data,
           for (int i_phase = 0; i_phase < NUM_PHASE_(i_section); ++i_phase) {
 
             // Get a pointer to the phase on the state array
-            double *state = (double*) (model_data->state);
+            double *state = (double*) (model_data->grid_cell_state);
             state += PHASE_STATE_ID_(i_section, i_phase, i_bin);
 
             // Get the aerosol phase volume
@@ -378,8 +392,8 @@ void aero_rep_modal_binned_mass_get_number_conc(ModelData *model_data,
                  ++i_elem) {
               switch (SECTION_TYPE_(i_section)) {
                 case (MODAL) :
-                  *(partial_deriv++) *= 6.0 / (M_PI * pow(GMD_(i_section,0),3) *
-                                        exp(9.0/2.0*pow(GSD_(i_section,0),2)));
+                  *(partial_deriv++) *= 6.0 / (M_PI * pow(GMD_(i_section),3) *
+                                        exp(9.0/2.0*pow(GSD_(i_section),2)));
                   break;
                 case (BINNED) :
                   *(partial_deriv++) *= 3.0 / (4.0*M_PI) /
@@ -408,10 +422,12 @@ void aero_rep_modal_binned_mass_get_number_conc(ModelData *model_data,
  * \param aero_rep_int_data Pointer to the aerosol representation integer data
  * \param aero_rep_float_data Pointer to the aerosol representation
  *                            floating-point data
+ * \param aero_rep_env_data Pointer to the aerosol representation
+ *                          environment-dependent parameters
  */
 void aero_rep_modal_binned_mass_get_aero_conc_type(int aero_phase_idx,
           int *aero_conc_type, int *aero_rep_int_data,
-          double *aero_rep_float_data)
+          double *aero_rep_float_data, double *aero_rep_env_data)
 {
   int *int_data = aero_rep_int_data;
   double *float_data = aero_rep_float_data;
@@ -432,10 +448,13 @@ void aero_rep_modal_binned_mass_get_aero_conc_type(int aero_phase_idx,
  * \param aero_rep_int_data Pointer to the aerosol representation integer data
  * \param aero_rep_float_data Pointer to the aerosol representation
  *                            floating-point data
+ * \param aero_rep_env_data Pointer to the aerosol representation
+ *                          environment-dependent parameters
  */
 void aero_rep_modal_binned_mass_get_aero_phase_mass(ModelData *model_data,
           int aero_phase_idx, double *aero_phase_mass, double *partial_deriv,
-          int *aero_rep_int_data, double *aero_rep_float_data)
+          int *aero_rep_int_data, double *aero_rep_float_data,
+          double *aero_rep_env_data)
 {
   int *int_data = aero_rep_int_data;
   double *float_data = aero_rep_float_data;
@@ -454,7 +473,7 @@ void aero_rep_modal_binned_mass_get_aero_phase_mass(ModelData *model_data,
           if (partial_deriv) {
 
             // Get a pointer to the phase on the state array
-            double *state = (double*) (model_data->state);
+            double *state = (double*) (model_data->grid_cell_state);
             state += PHASE_STATE_ID_(i_section, i_phase, i_bin);
 
             // Get d_mass / d_conc
@@ -494,10 +513,13 @@ void aero_rep_modal_binned_mass_get_aero_phase_mass(ModelData *model_data,
  * \param aero_rep_int_data Pointer to the aerosol representation integer data
  * \param aero_rep_float_data Pointer to the aerosol representation
  *                            floating-point data
+ * \param aero_rep_env_data Pointer to the aerosol representation
+ *                          environment-dependent parameters
  */
 void aero_rep_modal_binned_mass_get_aero_phase_avg_MW(ModelData *model_data,
           int aero_phase_idx, double *aero_phase_avg_MW, double *partial_deriv,
-          int *aero_rep_int_data, double *aero_rep_float_data)
+          int *aero_rep_int_data, double *aero_rep_float_data,
+          double *aero_rep_env_data)
 {
   int *int_data = aero_rep_int_data;
   double *float_data = aero_rep_float_data;
@@ -516,7 +538,7 @@ void aero_rep_modal_binned_mass_get_aero_phase_avg_MW(ModelData *model_data,
           if (partial_deriv) {
 
             // Get a pointer to the phase on the state array
-            double *state = (double*) (model_data->state);
+            double *state = (double*) (model_data->grid_cell_state);
             state += PHASE_STATE_ID_(i_section, i_phase, i_bin);
 
             // Get d_MW / d_conc
@@ -561,9 +583,12 @@ void aero_rep_modal_binned_mass_get_aero_phase_avg_MW(ModelData *model_data,
  * \param aero_rep_int_data Pointer to the aerosol representation integer data
  * \param aero_rep_float_data Pointer to the aerosol representation
  *                            floating-point data
+ * \param aero_rep_env_data Pointer to the aerosol representation
+ *                          environment-dependent parameters
  */
 void aero_rep_modal_binned_mass_update_data(void *update_data,
-          int *aero_rep_int_data, double *aero_rep_float_data)
+          int *aero_rep_int_data, double *aero_rep_float_data,
+          double *aero_rep_env_data)
 {
   int *int_data = aero_rep_int_data;
   double *float_data = aero_rep_float_data;
@@ -576,11 +601,16 @@ void aero_rep_modal_binned_mass_update_data(void *update_data,
   // Set the new GMD or GSD for matching aerosol representations
   if (*aero_rep_id==AERO_REP_ID_ && AERO_REP_ID_!=0) {
     if (*update_type==UPDATE_GMD) {
-      GMD_(*section_id,0) = (double) *new_value;
+      GMD_(*section_id) = (double) *new_value;
     } else if (*update_type==UPDATE_GSD) {
-      GSD_(*section_id,0) = (double) *new_value;
+      GSD_(*section_id) = (double) *new_value;
     }
   }
+
+  // Recalculation the effective radius
+  double gsd = GSD_(*section_id);
+  EFFECTIVE_RADIUS_(*section_id,0) =
+    GMD_(*section_id) / 2.0 * exp(9.0/2.0*gsd*gsd);
 
   return;
 }

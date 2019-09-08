@@ -19,11 +19,12 @@
 
 #define RXN_ID_ (int_data[0])
 #define NUM_SPEC_ (int_data[1])
-#define BASE_RATE_ float_data[0]
-#define SCALING_ float_data[1]
-#define RATE_CONSTANT_ float_data[2]
+#define SCALING_ float_data[0]
+#define RATE_CONSTANT_ (rxn_env_data[0])
+#define BASE_RATE_ (rxn_env_data[1])
 #define NUM_INT_PROP_ 2
-#define NUM_FLOAT_PROP_ 3
+#define NUM_FLOAT_PROP_ 1
+#define NUM_ENV_PARAM_ 2
 #define REACT_(s) (int_data[NUM_INT_PROP_+s]-1)
 #define DERIV_ID_(s) int_data[NUM_INT_PROP_+NUM_SPEC_+s]
 #define JAC_ID_(s) int_data[NUM_INT_PROP_+2*NUM_SPEC_+s]
@@ -90,9 +91,10 @@ void rxn_wet_deposition_update_ids(ModelData *model_data, int *deriv_ids,
  * \param update_data Pointer to the updated reaction data
  * \param rxn_int_data Pointer to the reaction integer data
  * \param rxn_float_data Pointer to the reaction floating-point data
+ * \param rxn_env_data Pointer to the environment-dependent data
  */
 void rxn_wet_deposition_update_data(void *update_data, int *rxn_int_data,
-    double *rxn_float_data)
+    double *rxn_float_data, double *rxn_env_data)
 {
   int *int_data = rxn_int_data;
   double *float_data = rxn_float_data;
@@ -112,15 +114,17 @@ void rxn_wet_deposition_update_data(void *update_data, int *rxn_int_data,
  * For wet deposition reactions this only involves recalculating the rate
  * constant.
  *
- * \param env_data Pointer to the environmental state array
+ * \param model_data Pointer to the model data
  * \param rxn_int_data Pointer to the reaction integer data
  * \param rxn_float_data Pointer to the reaction floating-point data
+ * \param rxn_env_data Pointer to the environment-dependent parameters
  */
-void rxn_wet_deposition_update_env_state(double *env_data, int *rxn_int_data,
-    double *rxn_float_data)
+void rxn_wet_deposition_update_env_state(ModelData *model_data,
+    int *rxn_int_data, double *rxn_float_data, double *rxn_env_data)
 {
   int *int_data = rxn_int_data;
   double *float_data = rxn_float_data;
+  double *env_data = model_data->grid_cell_env;
 
   // Calculate the rate constant in (1/s)
   RATE_CONSTANT_ = SCALING_ * BASE_RATE_;
@@ -135,21 +139,23 @@ void rxn_wet_deposition_update_env_state(double *env_data, int *rxn_int_data,
  * \param deriv Pointer to the time derivative to add contributions to
  * \param rxn_int_data Pointer to the reaction integer data
  * \param rxn_float_data Pointer to the reaction floating-point data
+ * \param rxn_env_data Pointer to the environment-dependent parameters
  * \param time_step Current time step being computed (s)
  */
 #ifdef PMC_USE_SUNDIALS
 void rxn_wet_deposition_calc_deriv_contrib(ModelData *model_data,
-          realtype *deriv, int *rxn_int_data, double *rxn_float_data,
-          double time_step)
+    realtype *deriv, int *rxn_int_data, double *rxn_float_data,
+    double *rxn_env_data, realtype time_step)
 {
-  realtype *state = model_data->state;
   int *int_data = rxn_int_data;
   double *float_data = rxn_float_data;
+  double *state    = model_data->grid_cell_state;
+  double *env_data = model_data->grid_cell_env;
 
   // Add contributions to the time derivative
   for (int i_spec = 0; i_spec < NUM_SPEC_; i_spec++) {
     if (DERIV_ID_(i_spec) >= 0 )
-        deriv[DERIV_ID_(i_spec)] -= RATE_CONSTANT_ * state[REACT_(i_spec)];
+      deriv[DERIV_ID_(i_spec)] -= RATE_CONSTANT_ * state[REACT_(i_spec)];
   }
 
   return;
@@ -163,15 +169,18 @@ void rxn_wet_deposition_calc_deriv_contrib(ModelData *model_data,
  * \param J Pointer to the sparse Jacobian matrix to add contributions to
  * \param rxn_int_data Pointer to the reaction integer data
  * \param rxn_float_data Pointer to the reaction floating-point data
+ * \param rxn_env_data Pointer to the environment-dependent parameters
  * \param time_step Current time step being calculated (s)
  */
 #ifdef PMC_USE_SUNDIALS
 void rxn_wet_deposition_calc_jac_contrib(ModelData *model_data, realtype *J,
-          int *rxn_int_data, double *rxn_float_data, double time_step)
+    int *rxn_int_data, double *rxn_float_data, double *rxn_env_data,
+    realtype time_step)
 {
-  realtype *state = model_data->state;
   int *int_data = rxn_int_data;
   double *float_data = rxn_float_data;
+  double *state    = model_data->grid_cell_state;
+  double *env_data = model_data->grid_cell_env;
 
   // Add contributions to the Jacobian
   for (int i_spec = 0; i_spec < NUM_SPEC_; i_spec++) {

@@ -49,10 +49,9 @@ module pmc_aero_rep_single_particle
 
 #define NUM_PHASE_ this%condensed_data_int(1)
 #define AERO_REP_ID_ this%condensed_data_int(2)
-#define RADIUS_ this%condensed_data_real(1)
-#define NUMBER_CONC_ this%condensed_data_real(2)
 #define NUM_INT_PROP_ 2
-#define NUM_REAL_PROP_ 2
+#define NUM_REAL_PROP_ 0
+#define NUM_ENV_PARAM_ 2
 #define PHASE_STATE_ID_(x) this%condensed_data_int(NUM_INT_PROP_+x)
 #define PHASE_MODEL_DATA_ID_(x) this%condensed_data_int(NUM_INT_PROP_+NUM_PHASE_+x)
 #define PHASE_NUM_JAC_ELEM_(x) this%condensed_data_int(NUM_INT_PROP_+2*NUM_PHASE_+x)
@@ -263,6 +262,9 @@ contains
     allocate(this%condensed_data_real(num_float_param))
     this%condensed_data_int(:) = int(0, kind=i_kind)
     this%condensed_data_real(:) = real(0.0, kind=dp)
+
+    ! Save space for the environment-dependent parameters
+    this%num_env_params = NUM_ENV_PARAM_
 
     ! Set phase state and model data ids
     NUM_PHASE_ = size(this%aero_phase)
@@ -653,16 +655,5 @@ contains
   end subroutine update_data_number_finalize
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-#undef NUM_PHASE_
-#undef AERO_REP_ID_
-#undef RADIUS_
-#undef NUMBER_CONC_
-#undef NUM_INT_PROP_
-#undef NUM_REAL_PROP_
-#undef PHASE_STATE_ID_
-#undef PHASE_MODEL_DATA_ID_
-#undef PHASE_MASS_
-#undef PHASE_AVG_MW_
 
 end module pmc_aero_rep_single_particle

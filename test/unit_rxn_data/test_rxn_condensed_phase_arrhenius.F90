@@ -18,6 +18,7 @@ program pmc_test_condensed_phase_arrhenius
   use pmc_aero_rep_data
   use pmc_aero_rep_factory
   use pmc_aero_rep_single_particle
+  use pmc_aero_rep_modal_binned_mass
   use pmc_solver_stats
 #ifdef PMC_USE_JSON
   use json_module
@@ -109,6 +110,12 @@ contains
 
     type(solver_stats_t), target :: solver_stats
 
+    integer(kind=i_kind), parameter :: aero_rep_id = 83921
+    integer(kind=i_kind) :: i_sect_unused, i_sect_the_mode
+    type(aero_rep_factory_t) :: aero_rep_factory
+    type(aero_rep_update_data_modal_binned_mass_GMD_t) :: update_data_GMD
+    type(aero_rep_update_data_modal_binned_mass_GSD_t) :: update_data_GSD
+
     call assert_msg(619416982, scenario.ge.1 .and. scenario.le.2, &
                     "Invalid scenario specified: "//to_string( scenario ))
 
@@ -172,6 +179,25 @@ contains
       key = "my aero rep 2"
       call assert(421062613, phlex_core%get_aero_rep(key, aero_rep_ptr))
 
+      if (scenario.eq.2) then
+
+        ! Set the aerosol representation id
+        select type (aero_rep_ptr)
+          type is (aero_rep_modal_binned_mass_t)
+            call aero_rep_ptr%set_id(aero_rep_id)
+            call assert_msg(126380597, &
+                  aero_rep_ptr%get_section_id("unused mode", i_sect_unused), &
+                  "Could not get section id for the unused mode")
+            call assert_msg(573748443, &
+                  aero_rep_ptr%get_section_id("the mode", i_sect_the_mode), &
+                  "Could not get section id for the unused mode")
+
+          class default
+            call die_msg(403591539, "Wrong aero rep type")
+        end select
+
+      end if
+
       ! Get species indices
       if (scenario.eq.1) then
         idx_prefix = ""
@@ -227,6 +253,8 @@ contains
     call pmc_mpi_bcast_integer(idx_B_org)
     call pmc_mpi_bcast_integer(idx_C_org)
     call pmc_mpi_bcast_integer(idx_D_org)
+    call pmc_mpi_bcast_integer(i_sect_unused)
+    call pmc_mpi_bcast_integer(i_sect_the_mode)
 
     ! broadcast the buffer size
     call pmc_mpi_bcast_integer(pack_size)
@@ -262,6 +290,23 @@ contains
 
       ! Get a model state variable
       phlex_state => phlex_core%new_state()
+
+      ! Update the GMD and GSD for the aerosol modes
+      if (scenario.eq.2) then
+        ! Initialize the update data object
+        call aero_rep_factory%initialize_update_data(update_data_GMD)
+        call aero_rep_factory%initialize_update_data(update_data_GSD)
+        ! unused mode
+        call update_data_GMD%set_GMD(aero_rep_id, i_sect_unused, 1.2d-6)
+        call update_data_GSD%set_GSD(aero_rep_id, i_sect_unused, 1.2d0)
+        call phlex_core%update_aero_rep_data(update_data_GMD)
+        call phlex_core%update_aero_rep_data(update_data_GSD)
+        ! the mode
+        call update_data_GMD%set_GMD(aero_rep_id, i_sect_the_mode, 9.3d-7)
+        call update_data_GSD%set_GSD(aero_rep_id, i_sect_the_mode, 0.9d0)
+        call phlex_core%update_aero_rep_data(update_data_GMD)
+        call phlex_core%update_aero_rep_data(update_data_GSD)
+      end if
 
       ! Check the size of the state array
       state_size = size(phlex_state%state_var)

@@ -19,7 +19,7 @@
 !! Wet deposition rate constants can be constant or set from an external
 !! module using the
 !! \c pmc_rxn_wet_deposition::rxn_update_data_wet_deposition_rate_t object.
-!! External modules can use the
+!! External modules should use the
 !! \c pmc_rxn_wet_deposition::rxn_wet_deposition_t::get_property_set()
 !! function during initilialization to access any needed reaction parameters
 !! to identify certain wet deposition reactions. The
@@ -33,7 +33,6 @@
 !!   {
 !!     "type" : "WET_DEPOSITION",
 !!     "aerosol phase" : "my aero phase",
-!!     "rate const" : 12.5,
 !!     "scaling factor" : 1.2,
 !!     ...
 !!   }
@@ -41,13 +40,12 @@
 !! The key-value pair \b aerosol \b phase is required and its value must be
 !! the name of the aerosol phase undergoing wet deposition. All species within
 !! the aerosol phase in all instances of the aerosol phase will be removed
-!! according the first-order loss rate constant. The key-value pair \b rate
-!! \b const is optional and can be used to set a rate constant that remains
-!! constant throughout the model run. The \b scaling \b factor is also
+!! according the first-order loss rate constant. The \b scaling \b factor is
 !! optional, and can be used to set a constant scaling factor for the rate
 !! constant. When a \b scaling \b factor is not provided, it is assumed to be
 !! 1.0. All other data is optional and will be available to external modules
-!! during initialization. Rate constants are in units of \f$s^{-1}\f$.
+!! during initialization. Rate constants are in units of \f$s^{-1}\f$, and
+!! must be set using a \c rxn_wet_deposition_update_data_t object.
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -71,11 +69,10 @@ module pmc_rxn_wet_deposition
 
 #define RXN_ID_ this%condensed_data_int(1)
 #define NUM_SPEC_ this%condensed_data_int(2)
-#define BASE_RATE_ this%condensed_data_real(1)
-#define SCALING_ this%condensed_data_real(2)
-#define RATE_CONSTANT_ this%condensed_data_real(3)
+#define SCALING_ this%condensed_data_real(1)
 #define NUM_INT_PROP_ 2
-#define NUM_REAL_PROP_ 3
+#define NUM_REAL_PROP_ 1
+#define NUM_ENV_PARAM_ 2
 #define REACT_(s) this%condensed_data_int(NUM_INT_PROP_+s)
 #define DERIV_ID_(s) this%condensed_data_int(NUM_INT_PROP_+NUM_SPEC_+s)
 #define JAC_ID_(s) this%condensed_data_int(NUM_INT_PROP_+2*NUM_SPEC_+s))
@@ -165,7 +162,7 @@ contains
   !> Initialize the reaction data, validating component data and loading
   !! any required information into the condensed data arrays for use during
   !! solving
-  subroutine initialize(this, chem_spec_data, aero_rep)
+  subroutine initialize(this, chem_spec_data, aero_rep, n_cells)
 
     !> Reaction data
     class(rxn_wet_deposition_t), intent(inout) :: this
@@ -173,6 +170,8 @@ contains
     type(chem_spec_data_t), intent(in) :: chem_spec_data
     !> Aerosol representations
     type(aero_rep_data_ptr), pointer, intent(in) :: aero_rep(:)
+    !> Number of grid cells to solve simultaneously
+    integer(kind=i_kind), intent(in) :: n_cells
 
     type(property_t), pointer :: spec_props
     type(string_t), allocatable :: unique_names(:)
@@ -215,13 +214,14 @@ contains
     allocate(this%condensed_data_real(NUM_REAL_PROP_))
     this%condensed_data_int(:) = int(0, kind=i_kind)
     this%condensed_data_real(:) = real(0.0, kind=dp)
+
+    ! Save space for the environment-dependent parameters
+    this%num_env_params = NUM_ENV_PARAM_
+
+    ! Save the number of species
     NUM_SPEC_ = num_spec
 
     ! Get reaction parameters
-    key_name = "rate const"
-    if (.not. this%property_set%get_real(key_name, BASE_RATE_)) then
-      BASE_RATE_ = real(0.0, kind=dp)
-    end if
     key_name = "scaling factor"
     if (.not. this%property_set%get_real(key_name, SCALING_)) then
       SCALING_ = real(1.0, kind=dp)
@@ -337,14 +337,4 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-#undef RXN_ID_
-#undef NUM_SPEC_
-#undef BASE_RATE_
-#undef SCALING_
-#undef RATE_CONSTANT_
-#undef NUM_INT_PROP_
-#undef NUM_REAL_PROP_
-#undef REACT_
-#undef DERIV_ID_
-#undef JAC_ID_
 end module pmc_rxn_wet_deposition

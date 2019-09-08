@@ -119,7 +119,7 @@ int test_sub_model_zsr_jac_calc(void *solver_data, double *state, double *env,
   J_CL  += 1.0 / MW_CL / molality;
 
   // Call the sub-model Jac calculation function
-  sub_model_get_jac_contrib(md, J, 0.0);
+  sub_model_get_jac_contrib(md, SM_DATA_S(J), 0.0);
 
   // (The first Jacobian element is a dummy element)
   ret_val += ASSERT_MSG(SM_DATA_S(J)[1]==J_H2O, "gas-phase water Jac element");
@@ -159,7 +159,11 @@ int run_sub_model_zsr_c_tests(void *solver_data, double *state, double *env)
   ret_val += ASSERT_MSG(n_solver_var==N_STATE_VAR-3,
                         "Bad number of state variables");
 
-  md->state = state;
+  md->grid_cell_id    = 0;
+  md->total_state     = state;
+  md->grid_cell_state = md->total_state;
+  md->total_env       = env;
+  md->grid_cell_env   = md->total_env;
 
   ret_val += ASSERT_MSG(SM_NNZ_S(J)-1==N_JAC_ELEM,
                         "Wrong number of flagged Jac elements");
@@ -179,8 +183,11 @@ int run_sub_model_zsr_c_tests(void *solver_data, double *state, double *env)
   NV_DATA_S(solver_state)[9] = state[11] = CONC_CA;
                                state[12] = 0.0;
 
+  // Set the environment parameter pointer
+  md->grid_cell_sub_model_env_data = md->sub_model_env_data;
+
   // Update the environmental state
-  sub_model_update_env_state(md, env);
+  sub_model_update_env_state(md);
 
   // Run the calculation tests
   ret_val += test_sub_model_zsr_jac_calc(solver_data, state, env, J);

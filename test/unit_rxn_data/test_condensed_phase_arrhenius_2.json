@@ -93,21 +93,17 @@
     "name" : "my aero rep 2",
     "modes/bins" :
     {
-      "ununsed mode" :
+      "unused mode" :
       {
         "type" : "MODAL",
         "phases" : ["that other phase"],
-        "shape" : "LOG_NORMAL",
-        "geometric mean diameter [m]" : 1.2e-6,
-        "geometric standard deviation" : 1.2
+        "shape" : "LOG_NORMAL"
       },
       "the mode" :
       {
         "type" : "MODAL",
         "phases" : ["aqueous aerosol", "organic aerosol"],
-        "shape" : "LOG_NORMAL",
-        "geometric mean diameter [m]" : 9.3e-7,
-        "geometric standard deviation" : 0.9
+        "shape" : "LOG_NORMAL"
       }
     }
   },

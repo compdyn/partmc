@@ -109,16 +109,14 @@ module pmc_rxn_SIMPOL_phase_transfer
 #define B2_ this%condensed_data_real(6)
 #define B3_ this%condensed_data_real(7)
 #define B4_ this%condensed_data_real(8)
-#define C_AVG_ALHPA_ this%condensed_data_real(9)
-#define EQUIL_CONST_ this%condensed_data_real(10)
-#define CONV_ this%condensed_data_real(11)
-#define MW_ this%condensed_data_real(12)
-#define UGM3_TO_PPM_ this%condensed_data_real(13)
-#define SMALL_NUMBER_ this%condensed_data_real(14)
+#define CONV_ this%condensed_data_real(9)
+#define MW_ this%condensed_data_real(10)
+#define SMALL_NUMBER_ this%condensed_data_real(11)
 #define NUM_AERO_PHASE_ this%condensed_data_int(1)
 #define GAS_SPEC_ this%condensed_data_int(2)
 #define NUM_INT_PROP_ 2
-#define NUM_REAL_PROP_ 14
+#define NUM_REAL_PROP_ 11
+#define NUM_ENV_PARAM_ 3
 #define AERO_SPEC_(x) this%condensed_data_int(NUM_INT_PROP_+x)
 #define AERO_ACT_ID_(x) this%condensed_data_int(NUM_INT_PROP_+NUM_AERO_PHASE_+x)
 #define AERO_PHASE_ID_(x) this%condensed_data_int(NUM_INT_PROP_+2*NUM_AERO_PHASE_+x)
@@ -172,7 +170,7 @@ contains
   !> Initialize the reaction data, validating component data and loading
   !! any required information into the condensed data arrays for use during
   !! solving
-  subroutine initialize(this, chem_spec_data, aero_rep)
+  subroutine initialize(this, chem_spec_data, aero_rep, n_cells)
 
     !> Reaction data
     class(rxn_SIMPOL_phase_transfer_t), intent(inout) :: this
@@ -180,6 +178,8 @@ contains
     type(chem_spec_data_t), intent(in) :: chem_spec_data
     !> Aerosol representations
     type(aero_rep_data_ptr), pointer, intent(in) :: aero_rep(:)
+    !> Number of grid cells to solve simultaneously
+    integer(kind=i_kind), intent(in) :: n_cells
 
     type(property_t), pointer :: spec_props, b_params
     character(len=:), allocatable :: key_name, spec_name, phase_name
@@ -251,6 +251,9 @@ contains
     allocate(this%condensed_data_real(NUM_REAL_PROP_ + n_aero_jac_elem * 4))
     this%condensed_data_int(:) = int(0, kind=i_kind)
     this%condensed_data_real(:) = real(0.0, kind=dp)
+
+    ! Save space for the environment-dependent parameters
+    this%num_env_params = NUM_ENV_PARAM_
 
     ! Set the number of aerosol-species instances
     NUM_AERO_PHASE_ = n_aero_ids

@@ -1,0 +1,78 @@
+{
+  "pmc-data" : [
+    {
+      "name" : "A",
+      "type" : "CHEM_SPEC"
+    },
+    {
+      "name" : "B",
+      "type" : "CHEM_SPEC"
+    },
+    {
+      "name" : "C",
+      "type" : "CHEM_SPEC"
+    },
+	  {
+		  "name" : "A2",
+		  "type" : "CHEM_SPEC"
+	  },
+	  {
+		  "name" : "B2",
+		  "type" : "CHEM_SPEC"
+	  },
+	  {
+		  "name" : "C2",
+		  "type" : "CHEM_SPEC"
+	  },
+    {
+      "name" : "consecutive",
+      "type" : "MECHANISM",
+      "reactions" : [
+	{
+	  "type" : "ARRHENIUS",
+	  "reactants" : {
+	    "A" : {}
+	  },
+	  "products" : {
+	    "B" : {}
+	  },
+	  "A" : 12.0,
+	  "Ea" : 1.0e-20
+	},
+	{
+	  "type" : "ARRHENIUS",
+	  "reactants" : {
+	    "B" : {}
+	  },
+	  "products" : {
+	    "C" : {}
+	  },
+	  "A" : 13.0,
+	  "Ea" : 2.0e-20
+	},
+		  {
+			  "type" : "ARRHENIUS",
+			  "reactants" : {
+				  "A2" : {}
+			  },
+			  "products" : {
+				  "B2" : {}
+			  },
+			  "A" : 12.0,
+			  "Ea" : 1.0e-20
+		  },
+		  {
+			  "type" : "ARRHENIUS",
+			  "reactants" : {
+				  "B2" : {}
+			  },
+			  "products" : {
+				  "C2" : {}
+			  },
+			  "A" : 13.0,
+			  "Ea" : 2.0e-20
+		  }
+      ]
+    }
+  ]
+}

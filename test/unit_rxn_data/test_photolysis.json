@@ -41,7 +41,6 @@
 	"products" : {
 	  "C" : {}
 	},
-	"rate const" : 1.0e-2,
 	"photo id" : "photo B",
 	"scaling factor" : 12.3
       }

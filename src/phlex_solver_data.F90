@@ -44,16 +44,19 @@ module pmc_phlex_solver_data
   !> Interface to c ODE solver functions
   interface
     !> Get a new solver
-    type(c_ptr) function solver_new(n_state_var, var_type, &
+    type(c_ptr) function solver_new(n_state_var, n_cells, var_type, &
                     n_rxn, n_rxn_int_param, n_rxn_float_param, &
-                    n_aero_phase, n_aero_phase_int_param, &
+                    n_rxn_env_param, n_aero_phase, n_aero_phase_int_param, &
                     n_aero_phase_float_param, n_aero_rep, &
                     n_aero_rep_int_param, n_aero_rep_float_param, &
-                    n_sub_model, n_sub_model_int_param, &
-                    n_sub_model_float_param) bind (c)
+                    n_aero_rep_env_param, n_sub_model, n_sub_model_int_param,&
+                    n_sub_model_float_param, n_sub_model_env_param) bind (c)
       use iso_c_binding
-      !> Number of variables on the state array (including const, PSSA, etc.)
+      !> Number of variables on the state array per grid cell
+      !! (including const, PSSA, etc.)
       integer(kind=c_int), value :: n_state_var
+      !> Number of cells to compute
+      integer(kind=c_int), value :: n_cells
       !> Pointer to array of state variable types (solver, constant, PSSA)
       type(c_ptr), value :: var_type
       !> Number of reactions to solve
@@ -62,6 +65,8 @@ module pmc_phlex_solver_data
       integer(kind=c_int), value :: n_rxn_int_param
       !> Total number of floating-point parameters for all reactions
       integer(kind=c_int), value :: n_rxn_float_param
+      !> Total number of environment-dependent parameters for all reactions
+      integer(kind=c_int), value :: n_rxn_env_param
       !> Number of aerosol phases
       integer(kind=c_int), value :: n_aero_phase
       !> Total number of integer parameters for all aerosol phases
@@ -75,12 +80,17 @@ module pmc_phlex_solver_data
       !> Total number of floating-point parameters for all aerosol
       !! representations
       integer(kind=c_int), value :: n_aero_rep_float_param
+      !> Total number of environment-dependent parameters for all aerosol
+      !> representations
+      integer(kind=c_int), value :: n_aero_rep_env_param
       !> Number of sub models
       integer(kind=c_int), value :: n_sub_model
       !> Total number of integer parameters for all sub models
       integer(kind=c_int), value :: n_sub_model_int_param
       !> Total number of floating-point parameters for all sub models
       integer(kind=c_int), value :: n_sub_model_float_param
+      !> Total number of environment-dependent parameters for all sub models
+      integer(kind=c_int), value :: n_sub_model_env_param
     end function solver_new
 
     !> Solver initialization
@@ -172,8 +182,8 @@ module pmc_phlex_solver_data
 
     !> Add condensed reaction data to the solver data block
     subroutine rxn_add_condensed_data(rxn_type, n_int_param, &
-                    n_float_param, int_param, float_param, solver_data) &
-                    bind (c)
+                    n_float_param, n_env_param, int_param, float_param, &
+                    solver_data)  bind (c)
       use iso_c_binding
       !> Reaction type
       integer(kind=c_int), value :: rxn_type
@@ -181,6 +191,8 @@ module pmc_phlex_solver_data
       integer(kind=c_int), value :: n_int_param
       !> Number of floating-point parameters to add
       integer(kind=c_int), value :: n_float_param
+      !> Number of environment-dependent parameters to add
+      integer(kind=c_int), value :: n_env_param
       !> Pointer to the integer parameter array
       type(c_ptr), value :: int_param
       !> Pointer to the floating-point parameter array
@@ -190,8 +202,11 @@ module pmc_phlex_solver_data
     end subroutine rxn_add_condensed_data
 
     !> Update reaction data
-    subroutine rxn_update_data(rxn_type, update_data, solver_data) bind(c)
+    subroutine rxn_update_data(cell_id, rxn_type, update_data, solver_data) &
+        bind(c)
       use iso_c_binding
+      !> Grid cell to update
+      integer(kind=c_int), value :: cell_id
       !> Reaction type to updateto update
       integer(kind=c_int), value :: rxn_type
       !> Data required by reaction for updates
@@ -209,7 +224,8 @@ module pmc_phlex_solver_data
 
     !> Add condensed sub model data to the solver data block
     subroutine sub_model_add_condensed_data(sub_model_type, n_int_param, &
-                  n_float_param, int_param, float_param, solver_data) bind(c)
+                  n_float_param, n_env_param, int_param, float_param, &
+                  solver_data) bind(c)
       use iso_c_binding
       !> Sub model  type
       integer(kind=c_int), value :: sub_model_type
@@ -217,6 +233,8 @@ module pmc_phlex_solver_data
       integer(kind=c_int), value :: n_int_param
       !> Number of floating-point parameters to add
       integer(kind=c_int), value :: n_float_param
+      !> Number of environment-dependent parameters to add
+      integer(kind=c_int), value :: n_env_param
       !> Pointer to the integer parameter array
       type(c_ptr), value :: int_param
       !> Pointer to the floating-point parameter array
@@ -226,9 +244,11 @@ module pmc_phlex_solver_data
     end subroutine sub_model_add_condensed_data
 
     !> Update reaction data
-    subroutine sub_model_update_data(sub_model_type, update_data, &
+    subroutine sub_model_update_data(cell_id, sub_model_type, update_data, &
               solver_data) bind(c)
       use iso_c_binding
+      !> Grid cell to update
+      integer(kind=c_int), value :: cell_id
       !> Reaction type to updateto update
       integer(kind=c_int), value :: sub_model_type
       !> Data required by reaction for updates
@@ -269,7 +289,8 @@ module pmc_phlex_solver_data
 
     !> Add condensed aerosol representation data to the solver data block
     subroutine aero_rep_add_condensed_data(aero_rep_type, n_int_param, &
-                  n_float_param, int_param, float_param, solver_data) bind(c)
+                  n_float_param, n_env_param, int_param, float_param, &
+                  solver_data) bind(c)
       use iso_c_binding
       !> Aerosol representation type
       integer(kind=c_int), value :: aero_rep_type
@@ -277,6 +298,8 @@ module pmc_phlex_solver_data
       integer(kind=c_int), value :: n_int_param
       !> Number of floating-point parameters to add
       integer(kind=c_int), value :: n_float_param
+      !> Number of environment-dependent parameters to add
+      integer(kind=c_int), value :: n_env_param
       !> Pointer to the integer parameter array
       type(c_ptr), value :: int_param
       !> Pointer to the floating-point parameter array
@@ -286,9 +309,11 @@ module pmc_phlex_solver_data
     end subroutine aero_rep_add_condensed_data
 
     !> Update aerosol representation data
-    subroutine aero_rep_update_data(aero_rep_type, update_data, solver_data) &
-              bind(c)
+    subroutine aero_rep_update_data(cell_id, aero_rep_type, update_data, &
+        solver_data)  bind(c)
       use iso_c_binding
+      !> Grid cell to update
+      integer(kind=c_int), value :: cell_id
       !> Aerosol representation type to updateto update
       integer(kind=c_int), value :: aero_rep_type
       !> Data required by aerosol representation for updates
@@ -377,7 +402,7 @@ contains
 
   !> Initialize the solver
   subroutine initialize(this, var_type, abs_tol, mechanisms, aero_phases, &
-                  aero_reps, sub_models, rxn_phase)
+                  aero_reps, sub_models, rxn_phase, n_cells)
 
     !> Solver data
     class(phlex_solver_data_t), intent(inout) :: this
@@ -405,6 +430,8 @@ contains
     integer(kind=c_int), pointer :: var_type_c(:)
     ! Absolute tolerances
     real(kind=c_double), pointer :: abs_tol_c(:)
+    !> Number of cells to compute
+    integer(kind=i_kind), optional :: n_cells
     ! Indices for iteration
     integer(kind=i_kind) :: i_mech, i_rxn, i_aero_phase, i_aero_rep, &
             i_sub_model
@@ -433,6 +460,8 @@ contains
     integer(kind=c_int) :: n_rxn_int_param
     ! Number of floating-point reaction parameters
     integer(kind=c_int) :: n_rxn_float_param
+    ! Number of environment-dependent reaction parameters
+    integer(kind=c_int) :: n_rxn_env_param
     ! Number of aerosol phases
     integer(kind=c_int) :: n_aero_phase
     ! Number of integer aerosol phase  parameters
@@ -445,12 +474,20 @@ contains
     integer(kind=c_int) :: n_aero_rep_int_param
     ! Number of floating-point aerosol representation parameters
     integer(kind=c_int) :: n_aero_rep_float_param
+    ! Number of environment-dependent aerosol representation parameters
+    integer(kind=c_int) :: n_aero_rep_env_param
     ! Number of sub models
     integer(kind=c_int) :: n_sub_model
     ! Number of integer sub model parameters
     integer(kind=c_int) :: n_sub_model_int_param
     ! Number of floating-point sub model parameters
     integer(kind=c_int) :: n_sub_model_float_param
+    ! Number of environment-dependent sub model parameters
+    integer(kind=c_int) :: n_sub_model_env_param
+
+    if (.not.present(n_cells)) then
+      n_cells = 1
+    end if
 
     ! Make sure the variable type and absolute tolerance arrays are of
     ! equal length
@@ -469,6 +506,7 @@ contains
     n_rxn = 0
     n_rxn_int_param = 0
     n_rxn_float_param = 0
+    n_rxn_env_param = 0
 
     ! Calculate the number of reactions and the size of the condensed data
     do i_mech=1, size(mechanisms)
@@ -485,6 +523,7 @@ contains
         n_rxn = n_rxn + 1
         n_rxn_int_param = n_rxn_int_param + size(rxn%condensed_data_int)
         n_rxn_float_param = n_rxn_float_param + size(rxn%condensed_data_real)
+        n_rxn_env_param = n_rxn_env_param + rxn%num_env_params
       end do
     end do
     rxn => null()
@@ -508,6 +547,7 @@ contains
     n_aero_rep = size(aero_reps)
     n_aero_rep_int_param = 0
     n_aero_rep_float_param = 0
+    n_aero_rep_env_param = 0
 
     ! Calculate the size of the aerosol representations condensed data
     do i_aero_rep=1, n_aero_rep
@@ -516,6 +556,8 @@ contains
               size(aero_rep%condensed_data_int)
       n_aero_rep_float_param = n_aero_rep_float_param + &
               size(aero_rep%condensed_data_real)
+      n_aero_rep_env_param = n_aero_rep_env_param + &
+              aero_rep%num_env_params
     end do
     aero_rep => null()
 
@@ -523,6 +565,7 @@ contains
     n_sub_model = size(sub_models)
     n_sub_model_int_param = 0
     n_sub_model_float_param = 0
+    n_sub_model_env_param = 0
 
     ! Calculate the size of the sub model condensed data
     do i_sub_model=1, n_sub_model
@@ -531,25 +574,30 @@ contains
               size(sub_model%condensed_data_int)
       n_sub_model_float_param = n_sub_model_float_param + &
               size(sub_model%condensed_data_real)
+      n_sub_model_env_param = n_sub_model_env_param + sub_model%num_env_params
     end do
     sub_model => null()
 
     ! Get a new solver object
     this%solver_c_ptr = solver_new( &
             int(size(var_type_c), kind=c_int), & ! Size of the state variable
+            n_cells,                           & ! # of cells computed at once
             c_loc(var_type_c),                 & ! Variable types
             n_rxn,                             & ! # of reactions
             n_rxn_int_param,                   & ! # of rxn data int params
             n_rxn_float_param,                 & ! # of rxn data real params
+            n_rxn_env_param,                   & ! # of rxn env-dependent params
             n_aero_phase,                      & ! # of aero phases
             n_aero_phase_int_param,            & ! # of aero phase int params
             n_aero_phase_float_param,          & ! # of aero phase real params
             n_aero_rep,                        & ! # of aero reps
             n_aero_rep_int_param,              & ! # of aero rep int params
             n_aero_rep_float_param,            & ! # of aero rep real params
+            n_aero_rep_env_param,              & ! # of aero rep env params
             n_sub_model,                       & ! # of sub models
             n_sub_model_int_param,             & ! # of sub model int params
-            n_sub_model_float_param            & ! # of sub model real params
+            n_sub_model_float_param,           & ! # of sub model real params
+            n_sub_model_env_param              & ! # of sub model env params
             )
 
     ! Add all the condensed reaction data to the solver data block for
@@ -585,6 +633,7 @@ contains
                 int(rxn_factory%get_type(rxn), kind=c_int),& ! Rxn type
                 int(size(int_param), kind=c_int),          & ! Int array size
                 int(size(float_param), kind=c_int),        & ! Real array size
+                rxn%num_env_params,                        & ! Env-dep array size
                 c_loc(int_param),                          & ! Int array ptr
                 c_loc(float_param),                        & ! Real array ptr
                 this%solver_c_ptr                          & ! Solver data ptr
@@ -645,6 +694,7 @@ contains
                                                     ! Aero rep type
               int(size(int_param), kind=c_int),   & ! Int array size
               int(size(float_param), kind=c_int), & ! Real array size
+              aero_rep%num_env_params,            & ! Env-dep array size
               c_loc(int_param),                   & ! Int array ptr
               c_loc(float_param),                 & ! Real array ptr
               this%solver_c_ptr                   & ! Solver data ptr
@@ -675,6 +725,7 @@ contains
                                                     ! Sub model type
               int(size(int_param), kind=c_int),   & ! Int array size
               int(size(float_param), kind=c_int), & ! Real array size
+              sub_model%num_env_params,           & ! Env-dep array size
               c_loc(int_param),                   & ! Int array ptr
               c_loc(float_param),                 & ! Real array ptr
               this%solver_c_ptr                   & ! Solver data ptr
@@ -716,6 +767,7 @@ contains
     class(sub_model_update_data_t), intent(in) :: update_data
 
     call sub_model_update_data( &
+            update_data%get_cell_id()-1,& ! Grid cell to update
             update_data%get_type(),     & ! Sub-model type to update
             update_data%get_data(),     & ! Data needed to perform update
             this%solver_c_ptr           & ! Pointer to solver data
@@ -734,6 +786,7 @@ contains
     class(rxn_update_data_t), intent(in) :: update_data
 
     call rxn_update_data( &
+            update_data%get_cell_id()-1,& ! Grid cell to update
             update_data%get_type(),     & ! Reaction type to update
             update_data%get_data(),     & ! Data needed to perform update
             this%solver_c_ptr           & ! Pointer to solver data
@@ -753,6 +806,7 @@ contains
     class(aero_rep_update_data_t), intent(in) :: update_data
 
     call aero_rep_update_data( &
+            update_data%get_cell_id()-1,& ! Grid cell to update
             update_data%get_type(),     & ! Aerosol representation type
             update_data%get_data(),     & ! Data needed to perform update
             this%solver_c_ptr           & ! Pointer to solver data

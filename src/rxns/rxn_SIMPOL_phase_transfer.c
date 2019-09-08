@@ -36,16 +36,17 @@
 #define B2_ float_data[5]
 #define B3_ float_data[6]
 #define B4_ float_data[7]
-#define C_AVG_ALPHA_ float_data[8]
-#define EQUIL_CONST_ float_data[9]
-#define CONV_ float_data[10]
-#define MW_ float_data[11]
-#define UGM3_TO_PPM_ float_data[12]
-#define SMALL_NUMBER_ float_data[13]
+#define CONV_ float_data[8]
+#define MW_ float_data[9]
+#define SMALL_NUMBER_ float_data[10]
 #define NUM_AERO_PHASE_ int_data[0]
 #define GAS_SPEC_ (int_data[1]-1)
+#define C_AVG_ALPHA_ rxn_env_data[0]
+#define EQUIL_CONST_ rxn_env_data[1]
+#define UGM3_TO_PPM_ rxn_env_data[2]
 #define NUM_INT_PROP_ 2
-#define NUM_FLOAT_PROP_ 14
+#define NUM_FLOAT_PROP_ 11
+#define NUM_ENV_PARAM_ 3
 #define AERO_SPEC_(x) (int_data[NUM_INT_PROP_ + x]-1)
 #define AERO_ACT_ID_(x) (int_data[NUM_INT_PROP_ + NUM_AERO_PHASE_ + x]-1)
 #define AERO_PHASE_ID_(x) (int_data[NUM_INT_PROP_ + 2*(NUM_AERO_PHASE_) + x]-1)
@@ -77,7 +78,8 @@ void rxn_SIMPOL_phase_transfer_get_used_jac_elem(ModelData *model_data,
   int *int_data = rxn_int_data;
   double *float_data = rxn_float_data;
 
-  bool *aero_jac_elem = (bool*) malloc(sizeof(bool) * model_data->n_state_var);
+  bool *aero_jac_elem = (bool*) malloc(sizeof(bool) *
+                                       model_data->n_per_cell_state_var);
   if (aero_jac_elem==NULL) {
     printf("\n\nERROR allocating space for 1D Jacobian structure array for "
            "SIMPOL phase transfer reaction\n\n");
@@ -95,7 +97,7 @@ void rxn_SIMPOL_phase_transfer_get_used_jac_elem(ModelData *model_data,
       jac_struct[AERO_SPEC_(i_aero_phase)][AERO_ACT_ID_(i_aero_phase)] = true;
     }
 
-    for (int i_elem = 0; i_elem < model_data->n_state_var; ++i_elem)
+    for (int i_elem = 0; i_elem < model_data->n_per_cell_state_var; ++i_elem)
       aero_jac_elem[i_elem] = false;
 
     int n_jac_elem = aero_rep_get_used_jac_elem( model_data,
@@ -103,7 +105,7 @@ void rxn_SIMPOL_phase_transfer_get_used_jac_elem(ModelData *model_data,
                                                  AERO_PHASE_ID_(i_aero_phase),
                                                  aero_jac_elem );
     int i_used_elem = 0;
-    for (int i_elem = 0; i_elem < model_data->n_state_var; ++i_elem) {
+    for (int i_elem = 0; i_elem < model_data->n_per_cell_state_var; ++i_elem) {
       if (aero_jac_elem[i_elem] == true ) {
         jac_struct[GAS_SPEC_][i_elem] = true;
         jac_struct[AERO_SPEC_(i_aero_phase)][i_elem] = true;
@@ -196,15 +198,17 @@ void rxn_SIMPOL_phase_transfer_update_ids(ModelData *model_data,
  * For Phase Transfer reaction this only involves recalculating the rate
  * constant.
  *
- * \param env_data Pointer to the environmental state array
+ * \param model_data Pointer to the model data
  * \param rxn_int_data Pointer to the reaction integer data
  * \param rxn_float_data Pointer to the reaction floating-point data
+ * \param rxn_env_data Pointer to the environment-dependent parameters
  */
-void rxn_SIMPOL_phase_transfer_update_env_state(double *env_data,
-          int *rxn_int_data, double *rxn_float_data)
+void rxn_SIMPOL_phase_transfer_update_env_state(ModelData *model_data,
+    int *rxn_int_data, double *rxn_float_data, double *rxn_env_data)
 {
   int *int_data = rxn_int_data;
   double *float_data = rxn_float_data;
+  double *env_data = model_data->grid_cell_env;
 
   // Calculate the mass accomodation coefficient if the N* parameter
   // was provided, otherwise set it to 1.0
@@ -249,6 +253,7 @@ void rxn_SIMPOL_phase_transfer_update_env_state(double *env_data,
  *
  * \param rxn_int_data Pointer to the reaction integer data
  * \param rxn_float_data Pointer to the reaction floating-point data
+ * \param rxn_env_data Pointer to the environment-dependent parameters
  * \param state State array
  * \param cond_rc Condensation rate constant ([ppm]^(-n_react+1)s^-1)
  * \param evap_rc Evaporation rate constant ([ppm]^(-n_prod+1)s^-1)
@@ -256,8 +261,8 @@ void rxn_SIMPOL_phase_transfer_update_env_state(double *env_data,
  */
 #ifdef PMC_USE_SUNDIALS
 realtype rxn_SIMPOL_phase_transfer_calc_overall_rate(int *rxn_int_data,
-    double *rxn_float_data, realtype *state, realtype cond_rc,
-    realtype evap_rc, int i_phase)
+    double *rxn_float_data, double *rxn_env_data, realtype *state,
+    realtype cond_rc, realtype evap_rc, int i_phase)
 {
   int *int_data = rxn_int_data;
   double *float_data = rxn_float_data;
@@ -293,17 +298,18 @@ realtype rxn_SIMPOL_phase_transfer_calc_overall_rate(int *rxn_int_data,
  * \param deriv Pointer to the time derivative to add contributions to
  * \param rxn_int_data Pointer to the reaction integer data
  * \param rxn_float_data Pointer to the reaction floating-point data
+ * \param rxn_env_data Pointer to the environment-dependent parameters
  * \param time_step Current time step being computed (s)
  */
 #ifdef PMC_USE_SUNDIALS
 void rxn_SIMPOL_phase_transfer_calc_deriv_contrib(ModelData *model_data,
-          realtype *deriv, int *rxn_int_data, double *rxn_float_data,
-          double time_step)
+    realtype *deriv, int *rxn_int_data, double *rxn_float_data,
+    double *rxn_env_data, realtype time_step)
 {
-  realtype *state = model_data->state;
-  realtype *env_data = model_data->env;
   int *int_data = rxn_int_data;
   double *float_data = rxn_float_data;
+  double *state    = model_data->grid_cell_state;
+  double *env_data = model_data->grid_cell_env;
 
   // Calculate derivative contributions for each aerosol phase
   for (int i_phase=0; i_phase<NUM_AERO_PHASE_; i_phase++) {
@@ -378,7 +384,7 @@ void rxn_SIMPOL_phase_transfer_calc_deriv_contrib(ModelData *model_data,
 
     // Calculate the overall rate
     realtype rate = rxn_SIMPOL_phase_transfer_calc_overall_rate(
-                        rxn_int_data, rxn_float_data,
+                        rxn_int_data, rxn_float_data, rxn_env_data,
                         state, cond_rate, evap_rate, i_phase);
 
     // Change in the gas-phase is evaporation - condensation (ppm/s)
@@ -402,17 +408,18 @@ void rxn_SIMPOL_phase_transfer_calc_deriv_contrib(ModelData *model_data,
  * \param J Pointer to the sparse Jacobian matrix to add contributions to
  * \param rxn_int_data Pointer to the reaction integer data
  * \param rxn_float_data Pointer to the reaction floating-point data
+ * \param rxn_env_data Pointer to the environment-dependent parameters
  * \param time_step Current time step being calculated (s)
  */
 #ifdef PMC_USE_SUNDIALS
 void rxn_SIMPOL_phase_transfer_calc_jac_contrib(ModelData *model_data,
-          realtype *J, int *rxn_int_data, double *rxn_float_data,
-          double time_step)
+    realtype *J, int *rxn_int_data, double *rxn_float_data,
+    double *rxn_env_data, realtype time_step)
 {
-  realtype *state = model_data->state;
-  realtype *env_data = model_data->env;
   int *int_data = rxn_int_data;
   double *float_data = rxn_float_data;
+  double *state    = model_data->grid_cell_state;
+  double *env_data = model_data->grid_cell_env;
 
   // Calculate derivative contributions for each aerosol phase
   for (int i_phase=0; i_phase<NUM_AERO_PHASE_; i_phase++) {
@@ -508,7 +515,7 @@ void rxn_SIMPOL_phase_transfer_calc_jac_contrib(ModelData *model_data,
     // Get the overall rates
     evap_rate *= act_coeff;
     realtype rate = rxn_SIMPOL_phase_transfer_calc_overall_rate(
-        rxn_int_data, rxn_float_data,
+        rxn_int_data, rxn_float_data, rxn_env_data,
         state, cond_rate, evap_rate, i_phase);
     cond_rate *= state[GAS_SPEC_];
     evap_rate *= state[AERO_SPEC_(i_phase)];
@@ -589,9 +596,8 @@ void rxn_SIMPOL_phase_transfer_print(int *rxn_int_data,
   printf("\ndelta H: %le delta S: %le diffusion coeff: %le preC_avg: %le",
          DELTA_H_, DELTA_S_, DIFF_COEFF_, PRE_C_AVG_);
   printf("\nB1: %le B2: %le B3:%le B4: %le", B1_, B2_, B3_, B4_);
-  printf("\nC_avg_alpha: %le K_eq: %le conv: %le MW: %le ug-to-ppm: %le"
-         " small num: %le", C_AVG_ALPHA_, EQUIL_CONST_, CONV_, MW_,
-         UGM3_TO_PPM_, SMALL_NUMBER_);
+  printf("\nconv: %le MW: %le"
+         " small num: %le", CONV_, MW_, SMALL_NUMBER_);
   printf("\nNumber of aerosol phases: %d", NUM_AERO_PHASE_);
   printf("\nGas-phase species id: %d", GAS_SPEC_);
   printf("\nGas-phase derivative id: %d", DERIV_ID_(0));

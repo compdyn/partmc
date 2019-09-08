@@ -7,6 +7,8 @@
 
 !> The phlex_state_t structure and associated subroutines.
 module pmc_phlex_state
+
+! Define array size for contain temperature and pressure
 #define PHLEX_STATE_NUM_ENV_PARAM 2
 
 #ifdef PMC_USE_MPI
@@ -72,10 +74,12 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Constructor for phlex_state_t
-  function constructor(env_state) result (new_obj)
+  function constructor(env_state, n_cells) result (new_obj)
 
     !> New model state
     type(phlex_state_t), pointer :: new_obj
+    !> Num cells to compute simulatenously
+    integer(kind=i_kind), optional :: n_cells
     !> Environmental state
     type(env_state_t), target, intent(in), optional :: env_state
 
@@ -91,21 +95,31 @@ contains
     end if
 
     ! Set up the environmental state array
-    allocate(new_obj%env_var(PHLEX_STATE_NUM_ENV_PARAM))
+    allocate(new_obj%env_var(PHLEX_STATE_NUM_ENV_PARAM*n_cells))
 
   end function constructor
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Update the environmental state array
-  !! TODO make the environmental parameters part of the input data
-  subroutine update_env_state(this)
+  subroutine update_env_state(this, grid_cell)
 
     !> Model state
     class(phlex_state_t), intent(inout) :: this
+    !> Grid cell to update
+    integer, optional :: grid_cell
 
-    this%env_var(1) = this%env_state%temp               ! Temperature (K)
-    this%env_var(2) = this%env_state%pressure           ! Pressure (Pa)
+    integer :: grid_offset = 0
+
+    if (present(grid_cell)) &
+      grid_offset = (grid_cell-1)*PHLEX_STATE_NUM_ENV_PARAM
+
+    call assert_msg(618562571, grid_offset >= 0 .and. &
+                               grid_offset <= size(this%env_var)-2, &
+                    "Invalid env state offset: "//trim(to_string(grid_offset)))
+
+    this%env_var(grid_offset+1) = this%env_state%temp     ! Temperature (K)
+    this%env_var(grid_offset+2) = this%env_state%pressure ! Pressure (Pa)
 
   end subroutine update_env_state
 

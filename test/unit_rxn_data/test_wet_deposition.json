@@ -59,7 +59,6 @@
 	"type" : "WET_DEPOSITION",
 	"aerosol phase" : "cloud",
 	"rxn id" : "rxn cloud",
-        "rate const" : 0.01,
         "scaling factor" : 12.3
       }
     ]

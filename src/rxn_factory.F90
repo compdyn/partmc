@@ -163,6 +163,9 @@
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+!TODO: Add a function to reorder data reaction types on rxn_data (arrhenius first, troe second...)
+!This will improve data acces and performance
+
 !> The abstract rxn_factory_t structure and associated subroutines.
 module pmc_rxn_factory
 

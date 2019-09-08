@@ -48,12 +48,12 @@ program pmc_test_cb05cl_ae5
   integer(kind=i_kind), parameter :: NUM_EBI_PHOTO_RXN = 23
   ! Small number for minimum concentrations
   real(kind=dp), parameter :: SMALL_NUM = 1.0d-30
-  ! Used to check availability of a solver  
+  ! Used to check availability of a solver
   type(phlex_solver_data_t), pointer :: phlex_solver_data
 
 #ifdef DEBUG
   integer(kind=i_kind), parameter :: DEBUG_UNIT = 13
-   
+
   open(unit=DEBUG_UNIT, file="out/debug_cb05cl_ae.txt", status="replace", action="write")
 #endif
 
@@ -86,7 +86,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Run the cb05cl_ae5 mechanism under standard conditions using the original 
+  !> Run the cb05cl_ae5 mechanism under standard conditions using the original
   !! MONARCH ebi-solver code, the KPP CB5 module and the Phlex-chem version
   logical function run_standard_cb05cl_ae5_test() result(passed)
 
@@ -146,7 +146,7 @@ contains
     real :: pressure = 0.8
     ! Water vapor concentration (ppmV)
     real :: water_conc = 0.0 ! (Set by Phlex-chem initial concentration)
-    
+
     ! Phlex-chem core
     type(phlex_core_t), pointer :: phlex_core
     ! Phlex-chem state
@@ -186,7 +186,7 @@ contains
 
     ! D
     passed = .false.
-   
+
     ! Set the #/cc -> ppm conversion factor
     conv = 1.0d0/ (const%avagadro /const%univ_gas_const * 10.0d0**(-12.0d0) * &
             (pressure*101325.d0) /temperature)
@@ -232,7 +232,7 @@ contains
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !!! Initialize the KPP CB5 module !!!
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    
+
     call cpu_time(comp_start)
     ! Set the step limits
     KPP_STEPMIN = 0.0d0
@@ -251,14 +251,14 @@ contains
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !!! Initialize phlex-chem !!!
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    
+
     call cpu_time(comp_start)
     phlex_input_file = "config_cb05cl_ae5.json"
     phlex_core => phlex_core_t(phlex_input_file)
-    
+
     ! Initialize the model
     call phlex_core%initialize()
-   
+
     ! Find the CB5 mechanism
     key = "cb05cl_ae5"
     call assert(418262750, phlex_core%get_mechanism(key, mechanism))
@@ -267,7 +267,7 @@ contains
     key = "rxn id"
     do i_rxn = 1, mechanism%size()
       rxn => mechanism%get_rxn(i_rxn)
-      select type(rxn) 
+      select type(rxn)
         type is (rxn_photolysis_t)
           call assert(265614917, rxn%property_set%get_string(key, string_val))
           if (trim(string_val).eq."jo2") then
@@ -284,7 +284,7 @@ contains
 
     ! Get an new state variable
     phlex_state => phlex_core%new_state()
-    
+
     ! Set the environmental conditions
     phlex_state%env_state%temp = temperature
     phlex_state%env_state%pressure = pressure * const%air_std_press
@@ -298,7 +298,7 @@ contains
     phlex_state_comp%env_state%temp = phlex_state%env_state%temp
     phlex_state_comp%env_state%pressure = phlex_state%env_state%pressure
     call phlex_state_comp%update_env_state()
-  
+
     ! Get the chemical species data
     call assert(298481296, phlex_core%get_chem_spec_data(chem_spec_data))
 
@@ -348,7 +348,7 @@ contains
       call assert(787326679, chem_spec_data%get_property_set( &
               ebi_spec_names(i_spec)%string, prop_set))
       if (prop_set%get_real(key, real_val)) then
-        
+
         ! Set the EBI solver concetration (ppm)
         YC(i_spec) = real_val
 
@@ -365,7 +365,7 @@ contains
                 ebi_spec_names(i_spec)%string
 #endif
       end if
-      
+
       ! Set KPP species concentrations (#/cc)
       do j_spec = 1, KPP_NSPEC
         if (trim(ebi_spec_names(i_spec)%string).eq.trim(KPP_SPC_NAMES(j_spec))) then
@@ -373,7 +373,7 @@ contains
         end if
       end do
     end do
-    
+
     ! Set EBI solver constant species concentrations in Phlex-chem
     spec_name = "M"
     call assert(273497194, chem_spec_data%get_property_set(spec_name, prop_set))
@@ -388,7 +388,7 @@ contains
     phlex_state%state_var(i_O2) = real_val
     KPP_O2 = real_val / conv
     KPP_C(KPP_IND_O2) = real_val / conv
-    ! KPP has variable O2 concentration  
+    ! KPP has variable O2 concentration
     do j_spec = 1, KPP_NSPEC
       if (trim(KPP_SPC_NAMES(j_spec)).eq.'O2') then
         KPP_C(j_spec) = real_val / conv
@@ -412,7 +412,7 @@ contains
     call assert(780257521, prop_set%get_real(key, real_val))
     phlex_state%state_var(i_CH4) = real_val
     KPP_CH4 = real_val / conv
-    ! KPP has variable CH4 concentration  
+    ! KPP has variable CH4 concentration
     do j_spec = 1, KPP_NSPEC
       if (trim(KPP_SPC_NAMES(j_spec)).eq.'CH4') then
         KPP_C(j_spec) = real_val / conv
@@ -469,7 +469,7 @@ contains
       rxn => mechanism%get_rxn(i_rxn)
       call assert_msg(917216189, associated(rxn), "Missing rxn "//to_string(i_rxn))
       call assert(656034097, rxn%property_set%get_string(key, string_val))
-      do i_ebi_rxn = 1, NRXNS 
+      do i_ebi_rxn = 1, NRXNS
         if (trim(RXLABEL(i_ebi_rxn)).eq.trim(string_val)) then
           ebi_rxn_map(i_rxn) = i_ebi_rxn
           exit
@@ -486,7 +486,7 @@ contains
       end do
       call assert_msg(360769001, kpp_rxn_map(i_rxn).ne.0, "KPP missing rxn "//string_val)
     end do
-  
+
     ! Set up the species map between phlex-chem, kpp and ebi solvers
     allocate(ebi_spec_map(chem_spec_data%size()))
     allocate(kpp_spec_map(chem_spec_data%size()))
@@ -619,7 +619,7 @@ contains
       if (i_repeat.eq.1) call solver_stats%print()
 #endif
 
-    end do 
+    end do
     end do
 
     ! Output final timestep
@@ -709,7 +709,7 @@ contains
               trim(spec_names(i_spec)%string)//" (phlex)'"
     end do
     close(PHLEX_FILE_UNIT)
-  
+
     deallocate(photo_rates)
     deallocate(phlex_spec_names)
     deallocate(ebi_rxn_map)
@@ -820,7 +820,7 @@ contains
 
     type(string_t), allocatable :: kpp_rxn_labels(:)
     integer(kind=i_kind) :: i_rxn = 1
- 
+
     allocate(kpp_rxn_labels(NREACT))
 
      kpp_rxn_labels(i_rxn)%string = 'R1'
@@ -1236,7 +1236,7 @@ contains
     !> Reaction map KPP <-> phlex
     integer(kind=i_kind), allocatable :: kpp_rxn_map(:)
 
-    real(kind=dp) :: KPP_VDOT(KPP_NVAR)               
+    real(kind=dp) :: KPP_VDOT(KPP_NVAR)
     integer(kind=i_kind) :: i_ebi_spec, i_kpp_spec, i_phlex_spec, i_rxn
     type(string_t) :: spec_name
 
@@ -1255,17 +1255,17 @@ contains
       do i_kpp_spec = 1, KPP_NVAR
         ! Skip EBI PSSA species
         if (trim(ebi_spec_names(i_ebi_spec)%string).eq.'NO2' .or. &
-            trim(ebi_spec_names(i_ebi_spec)%string).eq.'NO' .or. &    
-            trim(ebi_spec_names(i_ebi_spec)%string).eq.'O' .or. &    
-            trim(ebi_spec_names(i_ebi_spec)%string).eq.'O3' .or. &    
-            trim(ebi_spec_names(i_ebi_spec)%string).eq.'NO3' .or. &    
-            trim(ebi_spec_names(i_ebi_spec)%string).eq.'O1D' .or. &    
-            trim(ebi_spec_names(i_ebi_spec)%string).eq.'OH' .or. &    
-            trim(ebi_spec_names(i_ebi_spec)%string).eq.'HO2' .or. &    
-            trim(ebi_spec_names(i_ebi_spec)%string).eq.'N2O5' .or. &    
-            trim(ebi_spec_names(i_ebi_spec)%string).eq.'HONO' .or. &    
-            trim(ebi_spec_names(i_ebi_spec)%string).eq.'C2O3' .or. &    
-            trim(ebi_spec_names(i_ebi_spec)%string).eq.'PAN' .or. &    
+            trim(ebi_spec_names(i_ebi_spec)%string).eq.'NO' .or. &
+            trim(ebi_spec_names(i_ebi_spec)%string).eq.'O' .or. &
+            trim(ebi_spec_names(i_ebi_spec)%string).eq.'O3' .or. &
+            trim(ebi_spec_names(i_ebi_spec)%string).eq.'NO3' .or. &
+            trim(ebi_spec_names(i_ebi_spec)%string).eq.'O1D' .or. &
+            trim(ebi_spec_names(i_ebi_spec)%string).eq.'OH' .or. &
+            trim(ebi_spec_names(i_ebi_spec)%string).eq.'HO2' .or. &
+            trim(ebi_spec_names(i_ebi_spec)%string).eq.'N2O5' .or. &
+            trim(ebi_spec_names(i_ebi_spec)%string).eq.'HONO' .or. &
+            trim(ebi_spec_names(i_ebi_spec)%string).eq.'C2O3' .or. &
+            trim(ebi_spec_names(i_ebi_spec)%string).eq.'PAN' .or. &
             trim(ebi_spec_names(i_ebi_spec)%string).eq.'PNA') cycle
         if (trim(ebi_spec_names(i_ebi_spec)%string).eq.trim(KPP_SPC_NAMES(i_kpp_spec))) then
           call warn_assert_msg(616862348, almost_equal(real(KPP_VDOT(i_kpp_spec)*60.0d0*conv, kind=dp), &

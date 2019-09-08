@@ -16,7 +16,7 @@ do
 
 if ! ../../../test_chemistry_cb05cl_ae5; then 
 	  echo Failure "$counter"
-	  if [ "$counter" -gt 10 ]
+	  if [ "$counter" -gt 1 ]
 	  then
 		  echo FAIL
 		  exit 1

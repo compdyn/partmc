@@ -257,8 +257,8 @@ void * solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
     printf("\n\nERROR allocating space for reaction float data\n\n");
     EXIT_FAILURE;
   }
-  sd->model_data.rxn_env_data = (double*) malloc(
-                  n_cells * n_rxn_env_param * sizeof(double));
+  sd->model_data.rxn_env_data = (double*) calloc(
+                  n_cells * n_rxn_env_param, sizeof(double));
   if (sd->model_data.rxn_env_data==NULL) {
     printf("\n\nERROR allocating space for environment-dependent "
            "data\n\n");
@@ -353,8 +353,8 @@ void * solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
            "floating-point data\n\n");
     EXIT_FAILURE;
   }
-  sd->model_data.aero_rep_env_data = (double*) malloc(
-                  n_cells * n_aero_rep_env_param * sizeof(double));
+  sd->model_data.aero_rep_env_data = (double*) calloc(
+                  n_cells * n_aero_rep_env_param, sizeof(double));
   if (sd->model_data.aero_rep_env_data==NULL) {
     printf("\n\nERROR allocating space for aerosol representation "
            "environmental parameters\n\n");
@@ -406,8 +406,8 @@ void * solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
     printf("\n\nERROR allocating space for sub model floating-point data\n\n");
     EXIT_FAILURE;
   }
-  sd->model_data.sub_model_env_data = (double*) malloc(
-                 n_cells * n_sub_model_env_param * sizeof(double));
+  sd->model_data.sub_model_env_data = (double*) calloc(
+                 n_cells * n_sub_model_env_param, sizeof(double));
   if (sd->model_data.sub_model_env_data==NULL) {
     printf("\n\nERROR allocating space for sub model environment-dependent "
            "data\n\n");

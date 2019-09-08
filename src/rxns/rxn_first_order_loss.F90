@@ -23,7 +23,7 @@
 !! function during initilialization to access any needed reaction parameters
 !! to identify certain first-order loss reactions. The
 !! \c pmc_rxn_first_order_loss::rxn_first_order_loss_t::set_rxn_id() function
-!! can be used during initialization to set an integer id for a particular
+!! should be used during initialization to set an integer id for a particular
 !! reaction that can be used during solving to update the first-order loss
 !! rate from an external module.
 !!
@@ -32,20 +32,19 @@
 !!   {
 !!     "type" : "FIRST_ORDER_LOSS",
 !!     "species" : "species_name",
-!!     "rate const" : 12.5,
 !!     "scaling factor" : 1.2,
 !!     ...
 !!   }
 !! \endcode
 !! The key-value pairs \b species is required and its value must be the name
-!! of the species being removed by the reaction. The \b rate \b const is
-!! optional and can be used to set a rate constant that remains constant
-!! throughout the model run. The \b scaling \b factor is also optional, and
+!! of the species being removed by the reaction. The \b scaling \b factor is
+!! optional, and
 !! can be used to set a constant scaling factor for the rate constant. When a
 !! \b scaling \b factor is not provided, it is assumed to be 1.0. All other
 !! data is optional and will be available to external modules during
-!! initialization. Rate constants are in units of \f$s^{-1}\f$.
-
+!! initialization. Rate constants are in units of \f$s^{-1}\f$, and must be
+!! set using a \c rxn_first_order_loss_update_data_t object.
+!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 !> The rxn_first_order_loss_t type and associated functions.
@@ -69,11 +68,10 @@ module pmc_rxn_first_order_loss
 #define REACT_ this%condensed_data_int(2)
 #define DERIV_ID_ this%condensed_data_int(3)
 #define JAC_ID_ this%condensed_data_int(4)
-#define BASE_RATE_ this%condensed_data_real(1)
-#define SCALING_ this%condensed_data_real(2)
+#define SCALING_ this%condensed_data_real(1)
 #define NUM_INT_PROP_ 4
-#define NUM_REAL_PROP_ 2
-#define NUM_ENV_PARAM_ 1
+#define NUM_REAL_PROP_ 1
+#define NUM_ENV_PARAM_ 2
 
 public :: rxn_first_order_loss_t, rxn_update_data_first_order_loss_rate_t
 
@@ -196,10 +194,6 @@ contains
     this%num_env_params = NUM_ENV_PARAM_
 
     ! Get reaction parameters
-    key_name = "rate const"
-    if (.not. this%property_set%get_real(key_name, BASE_RATE_)) then
-      BASE_RATE_ = real(0.0, kind=dp)
-    end if
     key_name = "scaling factor"
     if (.not. this%property_set%get_real(key_name, SCALING_)) then
       SCALING_ = real(1.0, kind=dp)
@@ -309,13 +303,4 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-#undef RXN_ID_
-#undef REACT_
-#undef DERIV_ID_
-#undef JAC_ID_
-#undef BASE_RATE_
-#undef SCALING_
-#undef RATE_CONSTANT_
-#undef NUM_INT_PROP_
-#undef NUM_REAL_PROP_
 end module pmc_rxn_first_order_loss

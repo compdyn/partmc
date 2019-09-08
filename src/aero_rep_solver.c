@@ -447,15 +447,20 @@ void aero_rep_add_condensed_data(int aero_rep_type, int n_int_param,
 
 /** \brief Update aerosol representation data
  *
+ * \param cell_id Id of the grid cell to update
  * \param update_aero_rep_type Aerosol representation type to update
  * \param update_data Pointer to data needed for update
  * \param solver_data Pointer to solver data
  */
-void aero_rep_update_data(int update_aero_rep_type, void *update_data,
-		void *solver_data)
+void aero_rep_update_data(int cell_id, int update_aero_rep_type,
+    void *update_data,void *solver_data)
 {
   ModelData *model_data = (ModelData*)
           &(((SolverData*)solver_data)->model_data);
+
+  // Point to the environment-dependent data for the grid cell
+  model_data->grid_cell_aero_rep_env_data =
+    &(model_data->aero_rep_env_data[cell_id * model_data->n_aero_rep_env_data]);
 
   // Get the number of aerosol representations
   int n_aero_rep = model_data->aero_rep_int_data[0];

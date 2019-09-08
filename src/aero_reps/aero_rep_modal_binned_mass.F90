@@ -32,8 +32,6 @@
 !!          "type" : "MODAL",
 !!          "phases" : [ "moody", "listless" ],
 !!          "shape" : "LOG_NORMAL",
-!!          "geometric mean diameter [m]" : 1.2e-6,
-!!          "geometric standard deviation" : 1.2
 !!        }
 !!      }
 !!    },
@@ -50,8 +48,11 @@
 !!
 !! Modes must also specify a distribution \b shape which must be \b LOG_NORMAL
 !! (the available shapes may be expanded in the future). Log-normal sections
-!! must include a \b geometric \b mean \b diameter (m) and a \b geometric
-!! \b standard \b deviation (unitless) that will be used along with the mass
+!! have \b geometric \b mean \b diameter (m) and a \b geometric
+!! \b standard \b deviation (unitless) properties that must be set using an
+!! \c aero_rep_update_data_modal_binned_mass_GMD_t or and
+!! \c aero_rep_update_data_modal_binned_mass_GSD_t object and will be used along
+!! with the mass
 !! concentration of species in each phase and their densities to calculate a
 !! lognormal distribution for each mode at runtime.
 !!
@@ -105,24 +106,20 @@ module pmc_aero_rep_modal_binned_mass
 ! Number of Jacobian elements in a phase
 #define PHASE_NUM_JAC_ELEM_(x,y,b) this%condensed_data_int(MODE_INT_PROP_LOC_(x)+2+2*NUM_BINS_(x)*NUM_PHASE_(x)+(b-1)*NUM_PHASE_(x)+y)
 
-! GMD and bin diameter are stored in the same position - for modes, b=1
-#define GMD_(x,b) this%condensed_data_real(MODE_REAL_PROP_LOC_(x)+(b-1)*4)
-#define BIN_DP_(x,b) this%condensed_data_real(MODE_REAL_PROP_LOC_(x)+(b-1)*4)
-
-! GSD - only used for modes, b=1
-#define GSD_(x,b) this%condensed_data_real(MODE_REAL_PROP_LOC_(x)+(b-1)*4+1)
+! Bin diameter (bins only)
+#define BIN_DP_(x,b) this%condensed_data_real(MODE_REAL_PROP_LOC_(x)+(b-1)*3)
 
 ! Real-time number concetration - used for modes and bins - for modes, b=1
-#define NUMBER_CONC_(x,b) this%condensed_data_real(MODE_REAL_PROP_LOC_(x)+(b-1)*4+2)
+#define NUMBER_CONC_(x,b) this%condensed_data_real(MODE_REAL_PROP_LOC_(x)+(b-1)*3+1)
 
 ! Real-time effective radius - only used for modesi, b=1
-#define EFFECTIVE_RADIUS_(x,b) this%condensed_data_real(MODE_REAL_PROP_LOC_(x)+(b-1)*4+3)
+#define EFFECTIVE_RADIUS_(x,b) this%condensed_data_real(MODE_REAL_PROP_LOC_(x)+(b-1)*3+2)
 
 ! Real-time aerosol phase mass - used for modes and bins - for modes, b=1
-#define PHASE_MASS_(x,y,b) this%condensed_data_real(MODE_REAL_PROP_LOC_(x)+4*NUM_BINS_(x)+(b-1)*NUM_PHASE_(x)+y-1)
+#define PHASE_MASS_(x,y,b) this%condensed_data_real(MODE_REAL_PROP_LOC_(x)+3*NUM_BINS_(x)+(b-1)*NUM_PHASE_(x)+y-1)
 
 ! Real-time aerosol phase average MW - used for modes and bins - for modes, b=0
-#define PHASE_AVG_MW_(x,y,b) this%condensed_data_real(MODE_REAL_PROP_LOC_(x)+(4+NUM_PHASE_(x))*NUM_BINS_(x)+(b-1)*NUM_PHASE_(x)+y-1)
+#define PHASE_AVG_MW_(x,y,b) this%condensed_data_real(MODE_REAL_PROP_LOC_(x)+(3+NUM_PHASE_(x))*NUM_BINS_(x)+(b-1)*NUM_PHASE_(x)+y-1)
 
   ! Update types (These must match values in aero_rep_modal_binned_mass.c)
   integer(kind=i_kind), parameter, public :: UPDATE_GMD = 0
@@ -210,16 +207,13 @@ module pmc_aero_rep_modal_binned_mass
   private
     logical :: is_malloced = .false.
   contains
+    !> Initialize the update data
+    procedure :: initialize => update_data_init_GMD
     !> Update the GMD
     procedure :: set_GMD => update_data_set_GMD
     !> Finalize the GMD update data
     final :: update_data_GMD_finalize
   end type aero_rep_update_data_modal_binned_mass_GMD_t
-
-  !> Constructor for aero_rep_update_data_modal_binned_mass_GMD_t
-  interface aero_rep_update_data_modal_binned_mass_GMD_t
-    procedure :: update_data_GMD_constructor
-  end interface aero_rep_update_data_modal_binned_mass_GMD_t
 
   !> Update GSD object
   type, extends(aero_rep_update_data_t) :: &
@@ -227,16 +221,13 @@ module pmc_aero_rep_modal_binned_mass
   private
     logical :: is_malloced = .false.
   contains
+    !> Initialize the update data
+    procedure :: initialize => update_data_init_GSD
     !> Update the GSD
     procedure :: set_GSD => update_data_set_GSD
     !> Finalize the GSD update data
     final :: update_data_GSD_finalize
   end type aero_rep_update_data_modal_binned_mass_GSD_t
-
-  !> Constructor for aero_rep_update_data_modal_binned_mass_GSD_t
-  interface aero_rep_update_data_modal_binned_mass_GSD_t
-    procedure :: update_data_GSD_constructor
-  end interface aero_rep_update_data_modal_binned_mass_GSD_t
 
   !> Interface to c aerosol representation functions
   interface
@@ -406,8 +397,9 @@ contains
       ! and parameter locations
       n_int_param = n_int_param + 5
 
-      ! Add space for the GMD, GSD, number concentration, and effective radius
-      n_float_param = n_float_param + 4*num_bin
+      ! Add space for the bin diameter, number concentration, and
+      ! effective radius
+      n_float_param = n_float_param + 3*num_bin
 
       ! Get the set of phases
       key_name = "phases"
@@ -475,11 +467,11 @@ contains
     INT_DATA_SIZE_ = n_int_param
     REAL_DATA_SIZE_ = n_float_param
 
-    ! Save space for the environment-dependent parameters
-    this%num_env_params = NUM_ENV_PARAM_
-
     ! Set the number of sections
     NUM_SECTION_ = sections%size()
+
+    ! Save space for the environment-dependent parameters (GMD and GSD)
+    this%num_env_params = 2 * NUM_SECTION_
 
     ! Loop through the sections, adding names and distribution parameters and
     ! counting the phases in each section
@@ -518,31 +510,7 @@ contains
       ! Get mode parameters
       if (SECTION_TYPE_(i_section).eq.MODAL) then
 
-        ! Get the geometric mean diameter
-        key_name = "geometric mean diameter [m]"
-        call assert_msg(414771933, &
-                section%get_real(key_name, &
-                GMD_(i_section, NUM_BINS_(i_section))), &
-                "Missing geometric mean diameter in mode '"// &
-                this%section_name(i_section)%string// &
-                "' in modal/binned mass aerosol representation '"// &
-                this%rep_name//"'")
-
-        ! Get the geometric standard deviation
-        key_name = "geometric standard deviation"
-        call assert_msg(163265059, &
-                section%get_real(key_name, &
-                GSD_(i_section, NUM_BINS_(i_section))), &
-                "Missing geometric standard deviation in mode '"// &
-                this%section_name(i_section)%string// &
-                "' in modal/binned mass aerosol representation '"// &
-                this%rep_name//"'")
-
-        ! Calculate the effective radius (m)
-        ! (See aero_rep_modal_binned_mass_get_effective_radius for details)
-        EFFECTIVE_RADIUS_(i_section, NUM_BINS_(i_section)) = &
-                GMD_(i_section, NUM_BINS_(i_section)) / 2.0d0 * &
-                exp(9.0d0/2.0d0*(GSD_(i_section, NUM_BINS_(i_section)))**2)
+        ! Currently no mode parameters
 
       ! Get bin parameters
       else if (SECTION_TYPE_(i_section).eq.BINNED) then
@@ -606,8 +574,8 @@ contains
       ! Add space for the mode/bin type, number of bins, and number of phases
       n_int_param = n_int_param + 3
 
-      ! Add space for GMD, GSD, number concentration and effective radius
-      n_float_param = n_float_param + 4 * NUM_BINS_(i_section)
+      ! Add space for bin diameter, number concentration and effective radius
+      n_float_param = n_float_param + 3 * NUM_BINS_(i_section)
 
       ! Loop through the phase names, look them up, and add them to the list
       call phases%iter_reset()
@@ -692,19 +660,19 @@ contains
     !> Aerosol representation
     class(aero_rep_modal_binned_mass_t), intent(in) :: this
     !> Section name
-    character(len=:), allocatable, intent(in) :: section_name
+    character(len=*), intent(in) :: section_name
     !> Section id
     integer(kind=i_kind), intent(out) :: section_id
 
     integer(kind=i_kind) :: i_section
 
-    call assert_msg(194186171, allocated(this%section_name), &
-            "Trying to get section id of uninitialized aerosol "// &
+    call assert_msg(194186171, len(trim(section_name)).gt.0, &
+            "Trying to get section id of unnamed aerosol "// &
             "representation.")
 
     found = .false.
     do i_section = 1, size(this%section_name)
-      if (this%section_name(i_section)%string.eq.section_name) then
+      if (this%section_name(i_section)%string.eq.trim(section_name)) then
         found = .true.
         section_id = i_section
         return
@@ -1042,19 +1010,19 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Constructor for aero_rep_modal_binned_mass_GMD_t
-  function update_data_GMD_constructor(aero_rep_type) result(new_obj)
+  !> Initialize a GMD update object
+  subroutine update_data_init_GMD(this, aero_rep_type)
 
-    !> New update data object
-    type(aero_rep_update_data_modal_binned_mass_GMD_t) :: new_obj
+    !> Update data object
+    class(aero_rep_update_data_modal_binned_mass_GMD_t) :: this
     !> Aerosol representation id
     integer(kind=i_kind), intent(in) :: aero_rep_type
 
-    new_obj%aero_rep_type = int(aero_rep_type, kind=c_int)
-    new_obj%update_data = aero_rep_modal_binned_mass_create_gmd_update_data()
-    new_obj%is_malloced = .true.
+    this%aero_rep_type = int(aero_rep_type, kind=c_int)
+    this%update_data = aero_rep_modal_binned_mass_create_gmd_update_data()
+    this%is_malloced = .true.
 
-  end function update_data_GMD_constructor
+  end subroutine update_data_init_GMD
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -1073,7 +1041,7 @@ contains
     real(kind=dp), intent(in) :: GMD
 
     call aero_rep_modal_binned_mass_set_gmd_update_data(this%get_data(), &
-            aero_rep_id, section_id, GMD)
+            aero_rep_id, section_id-1, GMD)
 
   end subroutine update_data_set_GMD
 
@@ -1091,19 +1059,19 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Constructor for aero_rep_modal_binned_mass_GSD_t
-  function update_data_GSD_constructor(aero_rep_type) result(new_obj)
+  !> Initialize a GSD update data object
+  subroutine update_data_init_GSD(this, aero_rep_type)
 
-    !> New update data object
-    type(aero_rep_update_data_modal_binned_mass_GSD_t) :: new_obj
+    !> Update data object
+    class(aero_rep_update_data_modal_binned_mass_GSD_t) :: this
     !> Aerosol representation id
     integer(kind=i_kind), intent(in) :: aero_rep_type
 
-    new_obj%aero_rep_type = int(aero_rep_type, kind=c_int)
-    new_obj%update_data = aero_rep_modal_binned_mass_create_gsd_update_data()
-    new_obj%is_malloced = .true.
+    this%aero_rep_type = int(aero_rep_type, kind=c_int)
+    this%update_data = aero_rep_modal_binned_mass_create_gsd_update_data()
+    this%is_malloced = .true.
 
-  end function update_data_GSD_constructor
+  end subroutine update_data_init_GSD
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -1122,7 +1090,7 @@ contains
     real(kind=dp), intent(in) :: GSD
 
     call aero_rep_modal_binned_mass_set_gsd_update_data(this%get_data(), &
-            aero_rep_id, section_id, GSD)
+            aero_rep_id, section_id-1, GSD)
 
   end subroutine update_data_set_GSD
 
@@ -1139,29 +1107,5 @@ contains
   end subroutine update_data_GSD_finalize
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-#undef BINNED
-#undef MODAL
-#undef NUM_SECTION_
-#undef INT_DATA_SIZE_
-#undef REAL_DATA_SIZE_
-#undef AERO_REP_ID_
-#undef NUM_INT_PROP_
-#undef NUM_REAL_PROP_
-#undef MODE_INT_PROP_LOC_
-#undef MODE_REAL_PROP_LOC_
-#undef SECTION_TYPE_
-#undef NUM_BINS_
-#undef NUM_PHASE_
-#undef PHASE_STATE_ID_
-#undef PHASE_MODEL_DATA_ID_
-#undef SPEC_STATE_ID_
-#undef GMD_
-#undef BIN_DP_
-#undef GSD_
-#undef NUMBER_CONC_
-#undef EFFECTIVE_RADIUS_
-#undef PHASE_MASS_
-#undef PHASE_AVG_MW_
 
 end module pmc_aero_rep_modal_binned_mass

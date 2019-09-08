@@ -129,7 +129,8 @@ void rxn_emission_update_env_state(
           ModelData *model_data, int *rxn_int_data, double *rxn_float_data,
           double *rxn_env_data);
 void rxn_emission_update_data(
-          void *update_data, int *rxn_int_data, double *rxn_float_data);
+          void *update_data, int *rxn_int_data, double *rxn_float_data,
+          double *rxn_env_data);
 void rxn_emission_print(
           int *rxn_int_data, double *rxn_float_data);
 #ifdef PMC_USE_SUNDIALS
@@ -154,7 +155,8 @@ void rxn_first_order_loss_update_env_state(
           ModelData *model_data, int *rxn_int_data, double *rxn_float_data,
           double *rxn_env_data);
 void rxn_first_order_loss_update_data(
-          void *update_data, int *rxn_int_data, double *rxn_float_data);
+          void *update_data, int *rxn_int_data, double *rxn_float_data,
+          double *rxn_env_data);
 void rxn_first_order_loss_print(
           int *rxn_int_data, double *rxn_float_data);
 #ifdef PMC_USE_SUNDIALS
@@ -203,7 +205,8 @@ void rxn_photolysis_update_env_state(
           ModelData *model_data, int *rxn_int_data, double *rxn_float_data,
           double *rxn_env_data);
 void rxn_photolysis_update_data(
-          void *update_data, int *rxn_int_data, double *rxn_float_data);
+          void *update_data, int *rxn_int_data, double *rxn_float_data,
+          double *rxn_env_data);
 void rxn_photolysis_print(
           int *rxn_int_data, double *rxn_float_data);
 #ifdef PMC_USE_SUNDIALS
@@ -273,7 +276,8 @@ void rxn_wet_deposition_update_env_state(
           ModelData *model_data, int *rxn_int_data, double *rxn_float_data,
           double *rxn_env_data);
 void rxn_wet_deposition_update_data(
-          void *update_data, int *rxn_int_data, double *rxn_float_data);
+          void *update_data, int *rxn_int_data, double *rxn_float_data,
+          double *rxn_env_data);
 void rxn_wet_deposition_print(
           int *rxn_int_data, double *rxn_float_data);
 #ifdef PMC_USE_SUNDIALS

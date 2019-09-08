@@ -118,7 +118,11 @@ contains
     type(aero_rep_factory_t) :: aero_rep_factory
     type(aero_rep_update_data_single_particle_radius_t) :: radius_update
     type(aero_rep_update_data_single_particle_number_t) :: number_update
-    integer(kind=i_kind), parameter :: aero_rep_external_id = 12
+    integer(kind=i_kind), parameter :: aero_rep_ext_id = 12
+
+    integer(kind=i_kind) :: i_sect_unused, i_sect_the_mode
+    type(aero_rep_update_data_modal_binned_mass_GMD_t) :: update_data_GMD
+    type(aero_rep_update_data_modal_binned_mass_GSD_t) :: update_data_GSD
 
     call assert_msg(144071521, scenario.ge.1 .and. scenario.le.2, &
                     "Invalid scenario specified: "//to_string( scenario ) )
@@ -173,14 +177,20 @@ contains
       if (scenario.eq.1) then
         select type (aero_rep_ptr)
           type is (aero_rep_single_particle_t)
-            call aero_rep_ptr%set_id(aero_rep_external_id)
+            call aero_rep_ptr%set_id(aero_rep_ext_id)
           class default
             call die_msg(866102326, "Incorrect aerosol representation type")
         end select
       else if (scenario.eq.2) then
         select type (aero_rep_ptr)
           type is (aero_rep_modal_binned_mass_t)
-            call aero_rep_ptr%set_id(aero_rep_external_id)
+            call aero_rep_ptr%set_id(aero_rep_ext_id)
+            call assert_msg(879021282, &
+                  aero_rep_ptr%get_section_id("unused mode", i_sect_unused), &
+                  "Could not get section id for the unused mode")
+            call assert_msg(426389129, &
+                  aero_rep_ptr%get_section_id("the mode", i_sect_the_mode), &
+                  "Could not get section id for the unused mode")
           class default
             call die_msg(290304323, "Incorrect aerosol representation type")
         end select
@@ -253,6 +263,8 @@ contains
     call pmc_mpi_bcast_integer(idx_H2O2)
     call pmc_mpi_bcast_integer(idx_H2O2_aq)
     call pmc_mpi_bcast_integer(idx_H2O_aq)
+    call pmc_mpi_bcast_integer(i_sect_unused)
+    call pmc_mpi_bcast_integer(i_sect_the_mode)
 
     ! broadcast the buffer size
     call pmc_mpi_bcast_integer(pack_size)
@@ -338,10 +350,27 @@ contains
       if (scenario.eq.1) then
         call aero_rep_factory%initialize_update_data(radius_update)
         call aero_rep_factory%initialize_update_data(number_update)
-        call radius_update%set_radius(aero_rep_external_id, radius)
-        call number_update%set_number(aero_rep_external_id, number_conc)
+        call radius_update%set_radius(aero_rep_ext_id, radius)
+        call number_update%set_number(aero_rep_ext_id, number_conc)
         call phlex_core%update_aero_rep_data(radius_update)
         call phlex_core%update_aero_rep_data(number_update)
+      end if
+
+      ! Update the GMD and GSD for the aerosol modes
+      if (scenario.eq.2) then
+        ! Initialize the update data object
+        call aero_rep_factory%initialize_update_data(update_data_GMD)
+        call aero_rep_factory%initialize_update_data(update_data_GSD)
+        ! unused mode
+        call update_data_GMD%set_GMD(aero_rep_ext_id, i_sect_unused, 1.2d-6)
+        call update_data_GSD%set_GSD(aero_rep_ext_id, i_sect_unused, 1.2d0)
+        call phlex_core%update_aero_rep_data(update_data_GMD)
+        call phlex_core%update_aero_rep_data(update_data_GSD)
+        ! the mode
+        call update_data_GMD%set_GMD(aero_rep_ext_id, i_sect_the_mode, 9.3d-7)
+        call update_data_GSD%set_GSD(aero_rep_ext_id, i_sect_the_mode, 0.9d0)
+        call phlex_core%update_aero_rep_data(update_data_GMD)
+        call phlex_core%update_aero_rep_data(update_data_GSD)
       end if
 
       ! Determine the M -> ppm conversion using the total aerosol water

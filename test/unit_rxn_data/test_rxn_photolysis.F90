@@ -87,9 +87,10 @@ contains
     type(string_t), allocatable, dimension(:) :: output_file_path
 
     real(kind=dp), dimension(0:NUM_TIME_STEP, 3) :: model_conc, true_conc
-    integer(kind=i_kind) :: idx_A, idx_B, idx_C, i_time, i_spec, &
-            i_rxn_photo_A, i_rxn, i_photo_A
-    real(kind=dp) :: time_step, time, k1, k2, temp, pressure, photo_rate_1
+    integer(kind=i_kind) :: idx_A, idx_B, idx_C, i_time, i_spec, i_rxn
+    integer(kind=i_kind) :: i_rxn_photo_A, i_rxn_photo_B, i_photo_A, i_photo_B
+    real(kind=dp) :: time_step, time, k1, k2, temp, pressure
+    real(kind=dp) :: photo_rate_A, photo_rate_B
     type(chem_spec_data_t), pointer :: chem_spec_data
     class(rxn_data_t), pointer :: rxn
 #ifdef PMC_USE_MPI
@@ -102,16 +103,16 @@ contains
     ! For setting rates
     type(mechanism_data_t), pointer :: mechanism
     type(rxn_factory_t) :: rxn_factory
-    type(rxn_update_data_photolysis_rate_t) :: rate_update
+    type(rxn_update_data_photolysis_rate_t) :: rate_update_A, rate_update_B
 
     run_photolysis_test = .true.
 
     ! Set the rate constants (for calculating the true value)
     temp = 272.5d0
     pressure = 101253.3d0
-    photo_rate_1 = 0.954d0
-    k1 = photo_rate_1
-    k2 = 1.0d-02 * 12.3d0
+    photo_rate_A = 0.954d0
+    k1 = photo_rate_A
+    k2 = photo_rate_B * 12.3d0
 
     ! Set output time step (s)
     time_step = 1.0
@@ -139,7 +140,9 @@ contains
       ! Find the photo A reaction
       key = "photo id"
       i_photo_A = 342
+      i_photo_B = 9240
       i_rxn_photo_A = 0
+      i_rxn_photo_B = 0
       do i_rxn = 1, mechanism%size()
         rxn => mechanism%get_rxn(i_rxn)
         if (rxn%property_set%get_string(key, str_val)) then
@@ -150,9 +153,17 @@ contains
                 call rxn_photo%set_photo_id(i_photo_A)
             end select
           end if
+          if (trim(str_val).eq."photo B") then
+            i_rxn_photo_B = i_rxn
+            select type (rxn_photo => rxn)
+              class is (rxn_photolysis_t)
+                call rxn_photo%set_photo_id(i_photo_B)
+            end select
+          end if
         end if
       end do
       call assert(350883249, i_rxn_photo_A.eq.1)
+      call assert(962715074, i_rxn_photo_B.eq.2)
 
       ! Get the chemical species data
       call assert(109337870, phlex_core%get_chem_spec_data(chem_spec_data))
@@ -184,6 +195,7 @@ contains
     call pmc_mpi_bcast_integer(idx_B)
     call pmc_mpi_bcast_integer(idx_C)
     call pmc_mpi_bcast_integer(i_photo_A)
+    call pmc_mpi_bcast_integer(i_photo_B)
 
     ! broadcast the buffer size
     call pmc_mpi_bcast_integer(pack_size)
@@ -235,9 +247,12 @@ contains
       phlex_state%state_var(:) = model_conc(0,:)
 
       ! Set the photo B rate
-      call rxn_factory%initialize_update_data(rate_update)
-      call rate_update%set_rate(i_photo_A, photo_rate_1)
-      call phlex_core%update_rxn_data(rate_update)
+      call rxn_factory%initialize_update_data(rate_update_A)
+      call rxn_factory%initialize_update_data(rate_update_B)
+      call rate_update_A%set_rate(i_photo_A, photo_rate_A)
+      call rate_update_B%set_rate(i_photo_B, photo_rate_B)
+      call phlex_core%update_rxn_data(rate_update_A)
+      call phlex_core%update_rxn_data(rate_update_B)
 
 #ifdef PMC_DEBUG
       ! Evaluate the Jacobian during solving

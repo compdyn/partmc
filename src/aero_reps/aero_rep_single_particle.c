@@ -23,11 +23,11 @@
 
 #define NUM_PHASE_ int_data[0]
 #define AERO_REP_ID_ int_data[1]
-#define RADIUS_ float_data[0]
-#define NUMBER_CONC_ float_data[1]
+#define RADIUS_ aero_rep_env_data[0]
+#define NUMBER_CONC_ aero_rep_env_data[1]
 #define NUM_INT_PROP_ 2
-#define NUM_FLOAT_PROP_ 2
-#define NUM_ENV_PARAM_ 0
+#define NUM_FLOAT_PROP_ 0
+#define NUM_ENV_PARAM_ 2
 #define PHASE_STATE_ID_(x) (int_data[NUM_INT_PROP_+x]-1)
 #define PHASE_MODEL_DATA_ID_(x) (int_data[NUM_INT_PROP_+NUM_PHASE_+x]-1)
 #define PHASE_NUM_JAC_ELEM_(x) int_data[NUM_INT_PROP_+2*NUM_PHASE_+x]

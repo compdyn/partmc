@@ -49,24 +49,24 @@
 // Number of Jacobian elements in a phase
 #define PHASE_NUM_JAC_ELEM_(x,y,b) int_data[MODE_INT_PROP_LOC_(x)+3+2*NUM_BINS_(x)*NUM_PHASE_(x)+b*NUM_PHASE_(x)+y]
 
-// GMD and bin diameter are stored in the same position - for modes, b=0
-#define GMD_(x,b) (float_data[MODE_FLOAT_PROP_LOC_(x)+b*4])
-#define BIN_DP_(x,b) (float_data[MODE_FLOAT_PROP_LOC_(x)+b*4])
+// Bin diameter (for bins)
+#define BIN_DP_(x,b) (float_data[MODE_FLOAT_PROP_LOC_(x)+b*3])
 
-// GSD - only used for modes, b=0
-#define GSD_(x,b) (float_data[MODE_FLOAT_PROP_LOC_(x)+b*4+1])
+// GMD and GSD - only used for modes
+#define GMD_(x) (aero_rep_env_data[x])
+#define GSD_(x) (aero_rep_env_data[NUM_SECTION_+x])
 
 // Real-time number concentration - used for modes and bins - for modes, b=0
-#define NUMBER_CONC_(x,b) (float_data[MODE_FLOAT_PROP_LOC_(x)+b*4+2])
+#define NUMBER_CONC_(x,b) (float_data[MODE_FLOAT_PROP_LOC_(x)+b*3+1])
 
 // Real-time effective radius - only used for modes, b=0
-#define EFFECTIVE_RADIUS_(x,b) (float_data[MODE_FLOAT_PROP_LOC_(x)+b*4+3])
+#define EFFECTIVE_RADIUS_(x,b) (float_data[MODE_FLOAT_PROP_LOC_(x)+b*3+2])
 
 // Real-time phase mass (ug/m^3) - used for modes and bins - for modes, b=0
-#define PHASE_MASS_(x,y,b) (float_data[MODE_FLOAT_PROP_LOC_(x)+4*NUM_BINS_(x)+b*NUM_PHASE_(x)+y])
+#define PHASE_MASS_(x,y,b) (float_data[MODE_FLOAT_PROP_LOC_(x)+3*NUM_BINS_(x)+b*NUM_PHASE_(x)+y])
 
 // Real-time phase average MW (kg/mol) - used for modes and bins - for modes, b=0
-#define PHASE_AVG_MW_(x,y,b) (float_data[MODE_FLOAT_PROP_LOC_(x)+(4+NUM_PHASE_(x))*NUM_BINS_(x)+b*NUM_PHASE_(x)+y])
+#define PHASE_AVG_MW_(x,y,b) (float_data[MODE_FLOAT_PROP_LOC_(x)+(3+NUM_PHASE_(x))*NUM_BINS_(x)+b*NUM_PHASE_(x)+y])
 
 /** \brief Flag Jacobian elements used in calcualtions of mass and volume
  *
@@ -210,8 +210,8 @@ void aero_rep_modal_binned_mass_update_state(ModelData *model_data,
         // Calculate the number concentration based on the total mode volume
         // (see aero_rep_modal_binned_mass_get_number_conc for details)
         NUMBER_CONC_(i_section,0) = volume * 6.0 /
-                (M_PI * pow(GMD_(i_section,0),3) *
-                exp(9.0/2.0*pow(GSD_(i_section,0),2)));
+                (M_PI * pow(GMD_(i_section),3) *
+                exp(9.0/2.0*pow(GSD_(i_section),2)));
 
         break;
 
@@ -392,8 +392,8 @@ void aero_rep_modal_binned_mass_get_number_conc(ModelData *model_data,
                  ++i_elem) {
               switch (SECTION_TYPE_(i_section)) {
                 case (MODAL) :
-                  *(partial_deriv++) *= 6.0 / (M_PI * pow(GMD_(i_section,0),3) *
-                                        exp(9.0/2.0*pow(GSD_(i_section,0),2)));
+                  *(partial_deriv++) *= 6.0 / (M_PI * pow(GMD_(i_section),3) *
+                                        exp(9.0/2.0*pow(GSD_(i_section),2)));
                   break;
                 case (BINNED) :
                   *(partial_deriv++) *= 3.0 / (4.0*M_PI) /
@@ -601,11 +601,16 @@ void aero_rep_modal_binned_mass_update_data(void *update_data,
   // Set the new GMD or GSD for matching aerosol representations
   if (*aero_rep_id==AERO_REP_ID_ && AERO_REP_ID_!=0) {
     if (*update_type==UPDATE_GMD) {
-      GMD_(*section_id,0) = (double) *new_value;
+      GMD_(*section_id) = (double) *new_value;
     } else if (*update_type==UPDATE_GSD) {
-      GSD_(*section_id,0) = (double) *new_value;
+      GSD_(*section_id) = (double) *new_value;
     }
   }
+
+  // Recalculation the effective radius
+  double gsd = GSD_(*section_id);
+  EFFECTIVE_RADIUS_(*section_id,0) =
+    GMD_(*section_id) / 2.0 * exp(9.0/2.0*gsd*gsd);
 
   return;
 }

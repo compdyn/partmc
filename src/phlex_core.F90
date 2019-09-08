@@ -823,7 +823,7 @@ contains
     !> Model data
     class(phlex_core_t), intent(in) :: this
     !> Aerosol representation name to search for
-    character(len=:), allocatable, intent(in) :: aero_rep_name
+    character(len=*), intent(in) :: aero_rep_name
     !> Aerosol representation
     class(aero_rep_data_t), pointer, intent(out) :: aero_rep
 
@@ -833,7 +833,7 @@ contains
     aero_rep => null()
     if (.not.associated(this%aero_rep)) return
     do i_aero_rep = 1, size(this%aero_rep)
-      if (this%aero_rep(i_aero_rep)%val%name().eq.aero_rep_name) then
+      if (this%aero_rep(i_aero_rep)%val%name().eq.trim(aero_rep_name)) then
         aero_rep => this%aero_rep(i_aero_rep)%val
         found = .true.
         return

@@ -26,7 +26,6 @@
       {
 	"type" : "EMISSION",
 	"species" : "B",
-	"rate" : 1.0e-2,
 	"rxn id" : "rxn B",
 	"scaling factor" : 12.3
       }

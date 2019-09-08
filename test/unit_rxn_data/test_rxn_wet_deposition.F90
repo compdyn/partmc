@@ -93,10 +93,11 @@ contains
     real(kind=dp), dimension(0:NUM_TIME_STEP, 8) :: model_conc, true_conc
     integer(kind=i_kind) :: idx_1RA, idx_1RB, idx_1CB, idx_1CC
     integer(kind=i_kind) :: idx_2RA, idx_2RB, idx_2CB, idx_2CC
-    integer(kind=i_kind) :: i_time, i_spec, i_rxn, i_rxn_rain, &
-                            i_mech_rxn_rain
+    integer(kind=i_kind) :: i_time, i_spec, i_rxn
+    integer(kind=i_kind) :: i_rxn_rain, i_rxn_cloud
+    integer(kind=i_kind) :: i_mech_rxn_rain, i_mech_rxn_cloud
     real(kind=dp) :: time_step, time, k_rain, k_cloud, temp, pressure, &
-                     rate_rain
+                     rate_rain, rate_cloud
     class(rxn_data_t), pointer :: rxn
     class(aero_rep_data_t), pointer :: aero_rep
     type(string_t), allocatable :: unique_names(:)
@@ -111,7 +112,8 @@ contains
     ! For setting rates
     type(mechanism_data_t), pointer :: mechanism
     type(rxn_factory_t) :: rxn_factory
-    type(rxn_update_data_wet_deposition_rate_t) :: rate_update
+    type(rxn_update_data_wet_deposition_rate_t) :: rate_update_rain
+    type(rxn_update_data_wet_deposition_rate_t) :: rate_update_cloud
 
     run_wet_deposition_test = .true.
 
@@ -120,7 +122,7 @@ contains
     pressure = 101253.3d0
     rate_rain = 0.954d0
     k_rain = rate_rain
-    k_cloud = 1.0d-02 * 12.3d0
+    k_cloud = rate_cloud * 12.3d0
 
     ! Set output time step (s)
     time_step = 1.0
@@ -148,7 +150,9 @@ contains
       ! Find the A wet_deposition reaction
       key = "rxn id"
       i_rxn_rain = 342
+      i_rxn_cloud = 9240
       i_mech_rxn_rain = 0
+      i_mech_rxn_cloud = 0
       do i_rxn = 1, mechanism%size()
         rxn => mechanism%get_rxn(i_rxn)
         if (rxn%property_set%get_string(key, str_val)) then
@@ -159,9 +163,17 @@ contains
                 call rxn_loss%set_rxn_id(i_rxn_rain)
             end select
           end if
+          if (trim(str_val).eq."rxn cloud") then
+            i_mech_rxn_cloud = i_rxn
+            select type (rxn_loss => rxn)
+              class is (rxn_wet_deposition_t)
+                call rxn_loss%set_rxn_id(i_rxn_cloud)
+            end select
+          end if
         end if
       end do
       call assert(300573108, i_mech_rxn_rain.eq.1)
+      call assert(222343365, i_mech_rxn_cloud.eq.2)
 
       ! Find species in the first aerosol representation
       rep_name = "my first particle"
@@ -309,9 +321,12 @@ contains
       phlex_state%state_var(:) = model_conc(0,:)
 
       ! Set the rain rxn rate
-      call rxn_factory%initialize_update_data(rate_update)
-      call rate_update%set_rate(i_rxn_rain, rate_rain)
-      call phlex_core%update_rxn_data(rate_update)
+      call rxn_factory%initialize_update_data(rate_update_rain)
+      call rxn_factory%initialize_update_data(rate_update_cloud)
+      call rate_update_rain%set_rate(i_rxn_rain, rate_rain)
+      call rate_update_cloud%set_rate(i_rxn_cloud, rate_cloud)
+      call phlex_core%update_rxn_data(rate_update_rain)
+      call phlex_core%update_rxn_data(rate_update_cloud)
 
 #ifdef PMC_DEBUG
       ! Evaluate the Jacobian during solving
@@ -388,7 +403,7 @@ contains
         results = 1
       end if
     end if
-    
+
     ! Send the results back to the primary process
     call pmc_mpi_transfer_integer(results, results, 1, 0)
 

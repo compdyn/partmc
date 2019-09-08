@@ -32,7 +32,8 @@ void rxn_add_condensed_data(int rxn_type, int n_int_param,
           double *float_param, void *solver_data);
 
 /* Update data functions */
-void rxn_update_data(int update_rxn_type, void *update_data, void *solver_data);
+void rxn_update_data(int cell_id, int update_rxn_type, void *update_data,
+          void *solver_data);
 void rxn_free_update_data(void *update_data);
 
 #endif

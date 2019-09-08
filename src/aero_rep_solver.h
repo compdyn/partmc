@@ -48,7 +48,8 @@ void aero_rep_add_condensed_data(
 
 /* Update data functions */
 void aero_rep_update_data(
-    int update_aero_rep_type, void *update_data, void *solver_data);
+    int cell_id, int update_aero_rep_type, void *update_data,
+    void *solver_data);
 void aero_rep_free_update_data(
     void *update_data);
 

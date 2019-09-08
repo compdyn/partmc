@@ -494,16 +494,22 @@ void rxn_add_condensed_data(int rxn_type, int n_int_param, int n_float_param,
  * by the reaction type. This data could be used to find specific reactions of
  * the specified type and, for example, update rate constants.
  *
+ * \param cell_id Id of the grid cell to update
  * \param update_rxn_type Type of the reaction
  * \param update_data Pointer to updated data to pass to the reaction
  * \param solver_data Pointer to solver data
  */
 // FIXME This will need to be updated to allow the host model to update
 //       data for specific grid cells
-void rxn_update_data(int update_rxn_type, void *update_data, void *solver_data)
+void rxn_update_data(int cell_id, int update_rxn_type, void *update_data,
+    void *solver_data)
 {
   ModelData *model_data =
           (ModelData*) &(((SolverData*)solver_data)->model_data);
+
+  // Point to the environment-dependent data for the grid cell
+  model_data->grid_cell_rxn_env_data =
+    &(model_data->rxn_env_data[cell_id * model_data->n_rxn_env_data]);
 
   // Get the number of reactions
   int n_rxn = *(model_data->rxn_int_data);
@@ -514,6 +520,8 @@ void rxn_update_data(int update_rxn_type, void *update_data, void *solver_data)
     // Get pointers to the reaction data
     int *rxn_int_data      = model_data->rxn_int_ptrs[i_rxn];
     double *rxn_float_data = model_data->rxn_float_ptrs[i_rxn];
+    double *rxn_env_data   =
+      &(model_data->grid_cell_rxn_env_data[model_data->rxn_env_idx[i_rxn]]);
 
     // Get the reaction type
     int rxn_type = *(rxn_int_data++);
@@ -523,19 +531,23 @@ void rxn_update_data(int update_rxn_type, void *update_data, void *solver_data)
       switch (rxn_type) {
         case RXN_EMISSION :
           rxn_emission_update_data(
-                    (void*) update_data, rxn_int_data, rxn_float_data);
+                    (void*) update_data, rxn_int_data, rxn_float_data,
+                    rxn_env_data);
           break;
         case RXN_FIRST_ORDER_LOSS :
           rxn_first_order_loss_update_data(
-                    (void*) update_data, rxn_int_data, rxn_float_data);
+                    (void*) update_data, rxn_int_data, rxn_float_data,
+                    rxn_env_data);
           break;
         case RXN_PHOTOLYSIS :
           rxn_photolysis_update_data(
-                    (void*) update_data, rxn_int_data, rxn_float_data);
+                    (void*) update_data, rxn_int_data, rxn_float_data,
+                    rxn_env_data);
           break;
         case RXN_WET_DEPOSITION :
           rxn_wet_deposition_update_data(
-                    (void*) update_data, rxn_int_data, rxn_float_data);
+                    (void*) update_data, rxn_int_data, rxn_float_data,
+                    rxn_env_data);
           break;
       }
     }

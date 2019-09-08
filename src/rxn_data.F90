@@ -157,11 +157,15 @@ module pmc_rxn_data
   type, abstract :: rxn_update_data_t
     !> Reaction type
     integer(kind=c_int) :: rxn_type
+    !> Grid cell to update
+    integer(kind=c_int) :: cell_id = 1
     !> Update data
     type(c_ptr) :: update_data
   contains
     !> Get the reaction type
     procedure :: get_type => rxn_update_data_get_type
+    !> Get the grid cell to update
+    procedure :: get_cell_id => rxn_update_data_get_cell_id
     !> Get the update data
     procedure :: get_data => rxn_update_data_get_data
   end type rxn_update_data_t
@@ -465,6 +469,20 @@ contains
     rxn_type = this%rxn_type
 
   end function rxn_update_data_get_type
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Get the grid cell id to update
+  function rxn_update_data_get_cell_id(this) result(cell_id)
+
+    !> Grid cell id
+    integer(kind=c_int) :: cell_id
+    !> Update data
+    class(rxn_update_data_t), intent(in) :: this
+
+    cell_id = this%cell_id
+
+  end function rxn_update_data_get_cell_id
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

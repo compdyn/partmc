@@ -14,6 +14,8 @@ module pmc_monarch_interface
   use pmc_phlex_core
   use pmc_phlex_state
   use pmc_aero_rep_data
+  use pmc_aero_rep_factory
+  use pmc_aero_rep_modal_binned_mass
   use pmc_chem_spec_data
   use pmc_property
   use pmc_phlex_solver_data
@@ -128,6 +130,13 @@ contains
     integer(kind=i_kind) :: i_spec
     type(string_t), allocatable :: unique_names(:)
 
+    class(aero_rep_data_t), pointer :: aero_rep
+    integer(kind=i_kind), parameter :: aero_rep_id = 92547
+    integer(kind=i_kind) :: i_sect_om, i_sect_bc, i_sect_sulf, i_sect_opm
+    type(aero_rep_factory_t) :: aero_rep_factory
+    type(aero_rep_update_data_modal_binned_mass_GMD_t) :: update_data_GMD
+    type(aero_rep_update_data_modal_binned_mass_GSD_t) :: update_data_GSD
+
     ! Computation time variable
     real(kind=dp) :: comp_start, comp_end
 
@@ -181,6 +190,31 @@ contains
       new_obj%phlex_core => phlex_core_t(phlex_config_file, new_obj%n_cells)
       call new_obj%phlex_core%initialize()
 
+      ! Set the aerosol representation id
+      if (new_obj%phlex_core%get_aero_rep("MONARCH mass-based", aero_rep)) then
+        select type (aero_rep)
+          type is (aero_rep_modal_binned_mass_t)
+            call aero_rep%set_id(aero_rep_id)
+            call assert(889473105, &
+                        aero_rep%get_section_id("organic matter", i_sect_om))
+            call assert(648042550, &
+                        aero_rep%get_section_id("black carbon", i_sect_bc))
+            call assert(760360895, &
+                        aero_rep%get_section_id("sulfate", i_sect_sulf))
+            call assert(307728742, &
+                        aero_rep%get_section_id("other PM", i_sect_opm))
+          class default
+            call die_msg(351392791, &
+                         "Wrong type for aerosol representation "// &
+                         "'MONARCH mass-based'")
+        end select
+      else
+        i_sect_om = -1
+        i_sect_bc = -1
+        i_sect_sulf = -1
+        i_sect_opm = -1
+      end if
+
       ! Set the MONARCH tracer array bounds
       new_obj%tracer_starting_id = starting_id
       new_obj%tracer_ending_id = ending_id
@@ -197,7 +231,11 @@ contains
               pmc_mpi_pack_size_integer_array(new_obj%map_phlex_id) + &
               pmc_mpi_pack_size_integer_array(new_obj%init_conc_phlex_id) + &
               pmc_mpi_pack_size_real_array(new_obj%init_conc) + &
-              pmc_mpi_pack_size_integer(new_obj%gas_phase_water_id)
+              pmc_mpi_pack_size_integer(new_obj%gas_phase_water_id) + &
+              pmc_mpi_pack_size_integer(i_sect_om) + &
+              pmc_mpi_pack_size_integer(i_sect_bc) + &
+              pmc_mpi_pack_size_integer(i_sect_sulf) + &
+              pmc_mpi_pack_size_integer(i_sect_opm)
       allocate(buffer(pack_size))
       pos = 0
       call new_obj%phlex_core%bin_pack(buffer, pos)
@@ -206,6 +244,10 @@ contains
       call pmc_mpi_pack_integer_array(buffer, pos, new_obj%init_conc_phlex_id)
       call pmc_mpi_pack_real_array(buffer, pos, new_obj%init_conc)
       call pmc_mpi_pack_integer(buffer, pos, new_obj%gas_phase_water_id)
+      call pmc_mpi_pack_integer(buffer, pos, i_sect_om)
+      call pmc_mpi_pack_integer(buffer, pos, i_sect_bc)
+      call pmc_mpi_pack_integer(buffer, pos, i_sect_sulf)
+      call pmc_mpi_pack_integer(buffer, pos, i_sect_opm)
     endif
 
     ! broadcast the buffer size
@@ -229,6 +271,10 @@ contains
       call pmc_mpi_unpack_integer_array(buffer, pos, new_obj%init_conc_phlex_id)
       call pmc_mpi_unpack_real_array(buffer, pos, new_obj%init_conc)
       call pmc_mpi_unpack_integer(buffer, pos, new_obj%gas_phase_water_id)
+      call pmc_mpi_unpack_integer(buffer, pos, i_sect_om)
+      call pmc_mpi_unpack_integer(buffer, pos, i_sect_bc)
+      call pmc_mpi_unpack_integer(buffer, pos, i_sect_sulf)
+      call pmc_mpi_unpack_integer(buffer, pos, i_sect_opm)
 #endif
     end if
 
@@ -236,11 +282,46 @@ contains
     deallocate(buffer)
 #endif
 
+    ! Initialize the update data object
+    call aero_rep_factory%initialize_update_data(update_data_GMD)
+    call aero_rep_factory%initialize_update_data(update_data_GSD)
+
     ! Initialize the solver on all nodes
     call new_obj%phlex_core%solver_initialize()
 
     ! Create a state variable on each node
     new_obj%phlex_state => new_obj%phlex_core%new_state()
+
+    ! Set the aerosol mode dimensions
+
+    ! organic matter
+    if (i_sect_om.gt.0) then
+      call update_data_GMD%set_GMD(aero_rep_id, i_sect_om, 2.12d-8)
+      call update_data_GSD%set_GSD(aero_rep_id, i_sect_om, 2.24d0)
+      call new_obj%phlex_core%update_aero_rep_data(update_data_GMD)
+      call new_obj%phlex_core%update_aero_rep_data(update_data_GSD)
+    end if
+    if (i_sect_bc.gt.0) then
+    ! black carbon
+      call update_data_GMD%set_GMD(aero_rep_id, i_sect_bc, 1.18d-8)
+      call update_data_GSD%set_GSD(aero_rep_id, i_sect_bc, 2.00d0)
+      call new_obj%phlex_core%update_aero_rep_data(update_data_GMD)
+      call new_obj%phlex_core%update_aero_rep_data(update_data_GSD)
+    end if
+    if (i_sect_sulf.gt.0) then
+    ! sulfate
+      call update_data_GMD%set_GMD(aero_rep_id, i_sect_sulf, 6.95d-8)
+      call update_data_GSD%set_GSD(aero_rep_id, i_sect_sulf, 2.12d0)
+      call new_obj%phlex_core%update_aero_rep_data(update_data_GMD)
+      call new_obj%phlex_core%update_aero_rep_data(update_data_GSD)
+    end if
+    if (i_sect_opm.gt.0) then
+    ! other PM
+      call update_data_GMD%set_GMD(aero_rep_id, i_sect_opm, 2.12d-8)
+      call update_data_GSD%set_GSD(aero_rep_id, i_sect_opm, 2.24d0)
+      call new_obj%phlex_core%update_aero_rep_data(update_data_GMD)
+      call new_obj%phlex_core%update_aero_rep_data(update_data_GSD)
+    end if
 
     ! Calculate the intialization time
     if (MONARCH_PROCESS.eq.0) then

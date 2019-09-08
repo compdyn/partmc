@@ -348,6 +348,10 @@ contains
         call update_data%initialize(AERO_REP_SINGLE_PARTICLE)
       type is (aero_rep_update_data_single_particle_number_t)
         call update_data%initialize(AERO_REP_SINGLE_PARTICLE)
+      type is (aero_rep_update_data_modal_binned_mass_GMD_t)
+        call update_data%initialize(AERO_REP_MODAL_BINNED_MASS)
+      type is (aero_rep_update_data_modal_binned_mass_GSD_t)
+        call update_data%initialize(AERO_REP_MODAL_BINNED_MASS)
       class default
         call die_msg(916635086, "Internal error - update data type missing.")
     end select

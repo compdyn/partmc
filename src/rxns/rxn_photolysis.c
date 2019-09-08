@@ -20,12 +20,12 @@
 #define NUM_REACT_ int_data[0]
 #define NUM_PROD_ int_data[1]
 #define PHOTO_ID_ int_data[2]
-#define BASE_RATE_ float_data[0]
-#define SCALING_ float_data[1]
+#define SCALING_ float_data[0]
 #define RATE_CONSTANT_ (rxn_env_data[0])
+#define BASE_RATE_ (rxn_env_data[1])
 #define NUM_INT_PROP_ 3
-#define NUM_FLOAT_PROP_ 2
-#define NUM_ENV_PARAM_ 1
+#define NUM_FLOAT_PROP_ 1
+#define NUM_ENV_PARAM_ 2
 #define REACT_(x) (int_data[NUM_INT_PROP_ + x]-1)
 #define PROD_(x) (int_data[NUM_INT_PROP_ + NUM_REACT_ + x]-1)
 #define DERIV_ID_(x) int_data[NUM_INT_PROP_ + NUM_REACT_ + NUM_PROD_ + x]
@@ -104,9 +104,10 @@ void rxn_photolysis_update_ids(ModelData *model_data, int *deriv_ids,
  * \param update_data Pointer to the updated reaction data
  * \param rxn_int_data Pointer to the reaction integer data
  * \param rxn_float_data Pointer to the reaction floating-point data
+ * \param rxn_env_data Pointer to the environment-dependent data
  */
 void rxn_photolysis_update_data(void *update_data, int *rxn_int_data,
-    double *rxn_float_data)
+    double *rxn_float_data, double *rxn_env_data)
 {
   int *int_data = rxn_int_data;
   double *float_data = rxn_float_data;

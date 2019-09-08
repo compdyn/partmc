@@ -404,15 +404,20 @@ void sub_model_add_condensed_data(int sub_model_type, int n_int_param,
  * by the sub-model type. This data could be used to find specific sub-models
  * of the specified type and change some model parameter(s).
  *
+ * \param cell_id Id of the grid cell to update
  * \param update_sub_model_type Type of the sub-model
  * \param update_data Pointer to updated data to pass to the sub-model
  * \param solver_data Pointer to solver data
  */
-void sub_model_update_data(int update_sub_model_type, void *update_data,
-          void *solver_data)
+void sub_model_update_data(int cell_id, int update_sub_model_type,
+          void *update_data, void *solver_data)
 {
   ModelData *model_data =
           (ModelData*) &(((SolverData*)solver_data)->model_data);
+
+  // Point to the environment-dependent data for the grid cell
+  model_data->grid_cell_sub_model_env_data =
+    &(model_data->sub_model_env_data[cell_id * model_data->n_sub_model_env_data]);
 
   // Get the number of sub models
   int n_sub_model = model_data->sub_model_int_data[0];
@@ -422,6 +427,9 @@ void sub_model_update_data(int update_sub_model_type, void *update_data,
 
     int *sub_model_int_data = model_data->sub_model_int_ptrs[i_sub_model];
     double *sub_model_float_data = model_data->sub_model_float_ptrs[i_sub_model];
+    double *sub_model_env_data   =
+      &(model_data->grid_cell_sub_model_env_data[
+          model_data->sub_model_env_idx[i_sub_model]]);
 
     // Get the sub model type
     int sub_model_type = *(sub_model_int_data++);

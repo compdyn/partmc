@@ -115,11 +115,15 @@ module pmc_sub_model_data
   type, abstract :: sub_model_update_data_t
     !> Sub-model type
     integer(kind=c_int) :: sub_model_type
+    !> Grid cell to update
+    integer(kind=c_int) :: cell_id = 1
     !> Update data
     type(c_ptr) :: update_data
   contains
     !> Get the sub-model type
     procedure :: get_type => sub_model_update_data_get_type
+    !> Get the grid cell to update
+    procedure :: get_cell_id => sub_model_update_data_get_cell_id
     !> Get the update data
     procedure :: get_data => sub_model_update_data_get_data
   end type sub_model_update_data_t
@@ -403,6 +407,20 @@ contains
     sub_model_type = this%sub_model_type
 
   end function sub_model_update_data_get_type
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Get the grid cell id to update
+  function sub_model_update_data_get_cell_id(this) result(cell_id)
+
+    !> Grid cell id
+    integer(kind=c_int) :: cell_id
+    !> Update data
+    class(sub_model_update_data_t), intent(in) :: this
+
+    cell_id = this%cell_id
+
+  end function sub_model_update_data_get_cell_id
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

@@ -103,6 +103,7 @@ contains
     character, allocatable :: buffer(:)
     integer(kind=i_kind) :: pos, pack_size, i_prop, i_rep
 #endif
+
     build_aero_rep_data_set_test = .true.
 
     phlex_core => phlex_core_t()
@@ -276,13 +277,57 @@ contains
     integer(kind=i_kind), allocatable :: phase_ids(:)
     character(len=:), allocatable :: rep_name, phase_name
 
+    character(len=:), allocatable :: section_name
+    integer(kind=i_kind), parameter :: aero_rep_id = 8261
+    integer(kind=i_kind) :: i_sect_mixed, i_sect_single
+    type(aero_rep_factory_t) :: aero_rep_factory
+    type(aero_rep_update_data_modal_binned_mass_GMD_t) :: update_data_GMD
+    type(aero_rep_update_data_modal_binned_mass_GSD_t) :: update_data_GSD
+
     rep_name = "my modal/binned mass aerosol rep"
     call assert_msg(940125461, phlex_core%get_aero_rep(rep_name, aero_rep),  &
                     rep_name)
+    call assert_msg(636914093, associated(aero_rep), rep_name)
 
+    ! Set the aerosol representation id
+    select type (aero_rep)
+      type is (aero_rep_modal_binned_mass_t)
+        call aero_rep%set_id(aero_rep_id)
+      class default
+        call die_msg(587271916, rep_name)
+    end select
+
+    ! Initialize the update data object
+    call aero_rep_factory%initialize_update_data(update_data_GMD)
+    call aero_rep_factory%initialize_update_data(update_data_GSD)
+
+    ! Initialize the solver
     call phlex_core%solver_initialize()
 
     phlex_state => phlex_core%new_state()
+
+    ! Update the GMD and GSD for the two modes
+    select type (aero_rep)
+      type is (aero_rep_modal_binned_mass_t)
+        section_name = "mixed mode"
+        call assert_msg(207793351, &
+                        aero_rep%get_section_id(section_name, i_sect_mixed), &
+                        "Could not get section id for the mixed mode")
+        call update_data_GMD%set_GMD(aero_rep_id, i_sect_mixed, 1.2d-6)
+        call update_data_GSD%set_GSD(aero_rep_id, i_sect_mixed, 1.2d0)
+        call phlex_core%update_aero_rep_data(update_data_GMD)
+        call phlex_core%update_aero_rep_data(update_data_GSD)
+        call assert_msg(937636446, &
+                        aero_rep%get_section_id("single phase mode", &
+                                                 i_sect_single), &
+                        "Could not get section id for the single phase mode")
+        call update_data_GMD%set_GMD(aero_rep_id, i_sect_single, 9.3d-7)
+        call update_data_GSD%set_GSD(aero_rep_id, i_sect_single, 0.9d0)
+        call phlex_core%update_aero_rep_data(update_data_GMD)
+        call phlex_core%update_aero_rep_data(update_data_GSD)
+      class default
+        call die_msg(570113680, rep_name)
+    end select
 
     ! Tests will use bin 4 phase one
     phase_name = "my test phase one"

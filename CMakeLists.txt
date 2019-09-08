@@ -17,7 +17,7 @@ set(PACKAGE_VERSION "2.4.0")
 option(ENABLE_GSL "Enable GSL library for random number generation" OFF)
 option(ENABLE_MOSAIC "Enable MOSAIC chemistry support" OFF)
 option(ENABLE_MPI "Enable MPI parallel support" OFF)
-option(ENABLE_SUNDIALS "Enable SUNDIALS solver for condensation support" ON)
+option(ENABLE_SUNDIALS "Enable SUNDIALS solver for condensation support" OFF)
 option(ENABLE_C_SORT "Enable C sorting routines" OFF)
 option(ENABLE_JSON "Enable json-fortran support" ON)
 option(ENABLE_TESTS "Enable tests" ON)
@@ -163,13 +163,8 @@ endif()
 ##CXX
 
 if(ENABLE_CXX)
-add_definitions(-DPMC_USE_CXX)
-enable_language(CXX)
-#set(STD_CXX_FLAGS "-O3 -fpermissive")#-std=c++11
-#set(STD_CXX_FLAGS "-fpermissive -I /gpfs/scratch/bsc32/bsc32815/gpupartmc/partmc/src/solver_odeint/include/")
-
-else()
-#message([WARNING] "CXX NOT ENABLE")
+  add_definitions(-DPMC_USE_CXX)
+  enable_language(CXX)
 endif()
 
 ######################################################################
@@ -494,15 +489,7 @@ set(PHLEX_C_SRC
 set_source_files_properties(${PHLEX_C_SRC} PROPERTIES COMPILE_FLAGS
         ${STD_C_FLAGS})
 
-if(ENABLE_CXX)
-
-    set(PHLEX_CXX_SRC "")
-  #set_source_files_properties(${PHLEX_CXX_SRC} PROPERTIES COMPILE_FLAGS
-  #      ${STD_CXX_FLAGS})
-  #set_source_files_properties(${PHLEX_CXX_SRC} PROPERTIES LANGUAGE CXX)
-else()
-  set(PHLEX_CXX_SRC "")
-endif()
+set(PHLEX_CXX_SRC "")
 
 if(ENABLE_GPU)
   set(PHLEX_CUDA_SRC

@@ -102,7 +102,6 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Update the environmental state array
-  !! TODO make the environmental parameters part of the input data
   subroutine update_env_state(this, grid_cell)
 
     !> Model state
@@ -113,20 +112,14 @@ contains
     integer :: grid_offset = 0
 
     if (present(grid_cell)) &
-      grid_offset = (grid_cell)*PHLEX_STATE_NUM_ENV_PARAM
+      grid_offset = (grid_cell-1)*PHLEX_STATE_NUM_ENV_PARAM
 
-#ifdef PMC_DEBUG
     call assert_msg(618562571, grid_offset >= 0 .and. &
                                grid_offset <= size(this%env_var)-2, &
                     "Invalid env state offset: "//trim(to_string(grid_offset)))
-#endif
 
-    !Prevent grid_offsets greater than env size
-    if(grid_offset.lt.size(this%env_var)) then
-      this%env_var(grid_offset+1) = this%env_state%temp     ! Temperature (K)
-      this%env_var(grid_offset+2) = this%env_state%pressure ! Pressure (Pa)
-    end if
-
+    this%env_var(grid_offset+1) = this%env_state%temp     ! Temperature (K)
+    this%env_var(grid_offset+2) = this%env_state%pressure ! Pressure (Pa)
 
   end subroutine update_env_state
 

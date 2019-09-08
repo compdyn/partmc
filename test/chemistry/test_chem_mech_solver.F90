@@ -199,6 +199,7 @@ contains
       ! Set the environmental conditions
       phlex_state%env_state%temp = temp
       phlex_state%env_state%pressure = pressure
+      call phlex_state%update_env_state()
 
       ! Save the initial concentrations
       true_conc(0,idx_A) = 1.0

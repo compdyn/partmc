@@ -33,17 +33,17 @@ program mock_monarch
   !> Number of vertical cells in mock MONARCH
   integer, parameter :: NUM_VERT_CELLS = 5
   !> Starting W-E cell for phlex-chem call
-  integer, parameter :: I_W = 1!9
+  integer, parameter :: I_W = 1
   !> Ending W-E cell for phlex-chem call
-  integer, parameter :: I_E = 15!15!11
+  integer, parameter :: I_E = 15
   !> Starting S-N cell for phlex-chem call
-  integer, parameter :: I_S = 1!14
+  integer, parameter :: I_S = 1
   !> Ending S-N cell for phlex-chem call
-  integer, parameter :: I_N = 15!15!16
+  integer, parameter :: I_N = 15
   !> Number of W-E cells in mock MONARCH
-  integer, parameter :: NUM_WE_CELLS = I_E-I_W+1 !20
+  integer, parameter :: NUM_WE_CELLS = I_E-I_W+1
   !> Number of S-N cells in mock MONARCH
-  integer, parameter :: NUM_SN_CELLS = I_N-I_S+1 !30
+  integer, parameter :: NUM_SN_CELLS = I_N-I_S+1
   !> Starting index for phlex-chem species in tracer array
   integer, parameter :: START_PHLEX_ID = 100
   !> Ending index for phlex-chem species in tracer array
@@ -51,7 +51,7 @@ program mock_monarch
   !> Time step (min)
   real, parameter :: TIME_STEP = 1.6
   !> Number of time steps to integrate over
-  integer, parameter :: NUM_TIME_STEP = 5!100
+  integer, parameter :: NUM_TIME_STEP = 5
   !> Index for water vapor in water_conc()
   integer, parameter :: WATER_VAPOR_ID = 5
   !> Start time
@@ -60,7 +60,7 @@ program mock_monarch
   !integer :: n_cells = 1
   integer :: n_cells = (I_E - I_W+1)*(I_N - I_S+1)*NUM_VERT_CELLS
   !> Check multiple cells results are correct?
-  logical :: check_multiple_cells = .false. !.true. .false.
+  logical :: check_multiple_cells = .false.
 
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   ! State variables for mock MONARCH model !
@@ -254,11 +254,6 @@ program mock_monarch
   end do
 #endif
 
-  !#ifdef DEBUG
-  !print*, "SPECIES CONC", species_conc(:,1,1,100)
-  !print*, "SPECIES CONC COPY", species_conc_copy(:,1,1,100)
-  !#endif
-
   ! Deallocation
   deallocate(phlex_input_file)
   deallocate(interface_input_file)
@@ -304,27 +299,27 @@ contains
 
     !Initialize different axis values
     !TODO: Varying the pressure is not affecting the system, is that normal?
+    ! The last loop overwrites entirely the values set by the first two loops
 
     do i=I_W, I_E
       species_conc(i,:,:,:) = &
               species_conc(i,:,:,:) + 0.1*i
       temperature(i,:,:) = temperature(i,:,:) + 0.1*i
-      !Reduce slighty the pressure to avoid fails!
-      pressure(i,:,:) = pressure(i,:,:) - 0.001*i
+      pressure(i,:,:) = pressure(i,:,:) - 0.1*i
     end do
 
     do j=I_S, I_N
       species_conc(:,j,:,:) = &
               species_conc(:,j,:,:) + 0.3*j
       temperature(:,j,:) = temperature(:,j,:) + 0.3*j
-      pressure(:,:,j) = pressure(:,:,j) - 0.003*j
+      pressure(:,:,j) = pressure(:,:,j) - 0.3*j
     end do
 
     do k=1, NUM_VERT_CELLS
       species_conc(:,:,k,:) = &
               species_conc(:,:,k,:) + 0.6*k
       temperature(:,:,k) = temperature(:,:,k) + 0.6*k
-      pressure(:,k,:) = pressure(:,k,:) - 0.006*k
+      pressure(:,k,:) = pressure(:,k,:) - 0.6*k
     end do
 
     deallocate(file_name)
@@ -360,13 +355,11 @@ contains
     real, intent(in) :: curr_time
 
     write(RESULTS_FILE_UNIT, *) curr_time, &
-            species_conc(2,2,1,START_PHLEX_ID:END_PHLEX_ID), &
-            water_conc(2,2,1,WATER_VAPOR_ID)
-    !            species_conc(10,15,1,START_PHLEX_ID:END_PHLEX_ID), &
-    !        water_conc(10,15,1,WATER_VAPOR_ID)
+            species_conc(10,15,1,START_PHLEX_ID:END_PHLEX_ID), &
+            water_conc(10,15,1,WATER_VAPOR_ID)
 
   end subroutine output_results
-!Tolerance -E4
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Create a gnuplot script for viewing species concentrations

@@ -1174,13 +1174,6 @@ contains
               "solver: "//to_string(phase))
     end if
 
-    ! Update the environmental state array
-    ! TODO May move this into the solver functions to allow user to vary
-    ! environmental parameters with time during the chemistry time step
-    if (this%n_cells.eq.1) then ! Make this not necessary -> discuss with matt
-      call phlex_state%update_env_state(0)
-    end if
-
     ! Make sure the requested solver was loaded
     call assert_msg(730097030, associated(solver), "Invalid solver requested")
 
@@ -1191,6 +1184,7 @@ contains
     else
       call solver%solve(phlex_state, real(0.0, kind=dp), time_step)
     end if
+
   end subroutine solve
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

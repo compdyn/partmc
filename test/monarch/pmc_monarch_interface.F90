@@ -356,7 +356,7 @@ contains
 
     !> NMMB style arrays (W->E, S->N, top->bottom, ...)
     !> Temperature (K)
-    real, intent(inout) :: temperature(:,:,:)
+    real, intent(in) :: temperature(:,:,:)
     !> MONARCH species concentration (ppm or ug/m^3)
     real, intent(inout) :: MONARCH_conc(:,:,:,:)
     !> Atmospheric water concentrations (kg_H2O/kg_air)
@@ -368,7 +368,7 @@ contains
     !> Air density (kg_air/m^3)
     real, intent(in) :: air_density(:,:,:)
     !> Pressure (Pa)
-    real, intent(inout) :: pressure(:,:,:)
+    real, intent(in) :: pressure(:,:,:)
 
     integer :: i, j, k, k_flip, i_spec, z, o, i2
     integer :: k_end
@@ -474,7 +474,7 @@ contains
             ! Update the environmental state
             this%phlex_state%env_state%temp = temperature(i,j,k_flip)
             this%phlex_state%env_state%pressure = pressure(i,k,j)
-            call this%phlex_state%update_env_state(z)
+            call this%phlex_state%update_env_state(z+1)
 
             !Reset state conc
             this%phlex_state%state_var(this%map_phlex_id(:) + &

@@ -13,7 +13,7 @@ module pmc_aero_data
   use pmc_util
   use pmc_fractal
   use pmc_netcdf
-  use pmc_phlex_core
+  use pmc_camp_core
   use pmc_chem_spec_data
   use pmc_aero_rep_data
   use pmc_aero_rep_single_particle
@@ -63,12 +63,12 @@ module pmc_aero_data
      character(len=AERO_SOURCE_NAME_LEN), allocatable :: source_name(:)
      !> Fractal particle parameters.
      type(fractal_t) :: fractal
-     !> Phlexible chemistry aerosol representation pointer
+     !> CAMP aerosol representation pointer
      class(aero_rep_data_t), pointer :: aero_rep_ptr
-     !> Aerosol species ids on the phlex chem state array
-     integer, allocatable :: phlex_spec_id(:)
+     !> Aerosol species ids on the camp chem state array
+     integer, allocatable :: camp_spec_id(:)
   contains
-     !> Initialize the aero_data_t variable with phlex chem data
+     !> Initialize the aero_data_t variable with camp chem data
      procedure :: initialize => aero_data_initialize
   end type aero_data_t
 
@@ -813,13 +813,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Initialize the aero_data_t variable with phlex chem data
-  subroutine aero_data_initialize(this, phlex_core)
+  !> Initialize the aero_data_t variable with camp chem data
+  subroutine aero_data_initialize(this, camp_core)
 
     !> Aerosol data
     class(aero_data_t), intent(inout) :: this
-    !> Phlexible chemistry core
-    type(phlex_core_t), intent(in) :: phlex_core
+    !> CAMP core
+    type(camp_core_t), intent(in) :: camp_core
 
     character(len=:), allocatable :: rep_name, prop_name
     type(string_t), allocatable :: spec_names(:)
@@ -828,14 +828,14 @@ contains
     type(property_t), pointer :: property_set
 
     rep_name = "PartMC single particle"
-    if (.not.phlex_core%get_aero_rep(rep_name, this%aero_rep_ptr)) then
+    if (.not.camp_core%get_aero_rep(rep_name, this%aero_rep_ptr)) then
       call die_msg(418509983, "Missing 'PartMC single particle' aerosol "// &
               "representation.")
     end if
 
     call assert_msg(935419266, &
-            phlex_core%get_chem_spec_data(chem_spec_data), &
-            "No chemical species data in phlex_core.")
+            camp_core%get_chem_spec_data(chem_spec_data), &
+            "No chemical species data in camp_core.")
 
     spec_names = this%aero_rep_ptr%unique_names()
     num_spec = size(spec_names)
@@ -845,7 +845,7 @@ contains
     allocate(this%num_ions(num_spec))
     allocate(this%molec_weight(num_spec))
     allocate(this%kappa(num_spec))
-    allocate(this%phlex_spec_id(num_spec))
+    allocate(this%camp_spec_id(num_spec))
 
     do i_spec = 1, num_spec
       this%name(i_spec) = spec_names(i_spec)%string
@@ -875,7 +875,7 @@ contains
         call die_msg(944207343, "Missing kappa for aerosol species "//&
              spec_names(i_spec)%string)
       end if
-      this%phlex_spec_id(i_spec) = &
+      this%camp_spec_id(i_spec) = &
           this%aero_rep_ptr%spec_state_id(spec_names(i_spec)%string)
     end do
 

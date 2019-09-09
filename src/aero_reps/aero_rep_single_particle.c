@@ -12,7 +12,7 @@
 #include <stdlib.h>
 #include "../aero_phase_solver.h"
 #include "../aero_reps.h"
-#include "../phlex_solver.h"
+#include "../camp_solver.h"
 
 // TODO Lookup environmental indicies during initialization
 #define TEMPERATURE_K_ env_data[0]

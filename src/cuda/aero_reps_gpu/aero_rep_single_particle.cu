@@ -13,7 +13,7 @@ extern "C" {
 #include <stdlib.h>
 #include "../aeros_gpu/aero_phase_solver_gpu.h"
 #include "../aeros_gpu/aero_reps_gpu.h"
-#include "../phlex_gpu_solver.h"
+#include "../camp_gpu_solver.h"
 
 // TODO Lookup environmental indicies during initialization
 #define TEMPERATURE_K_ env_data[0]

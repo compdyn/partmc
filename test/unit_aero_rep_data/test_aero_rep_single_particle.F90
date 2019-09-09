@@ -18,8 +18,8 @@ program pmc_test_aero_rep_data
   use pmc_aero_rep_factory
   use pmc_aero_rep_single_particle
   use pmc_mpi
-  use pmc_phlex_core
-  use pmc_phlex_state
+  use pmc_camp_core
+  use pmc_camp_state
   use pmc_property
   use pmc_util,                         only: i_kind, dp, assert, &
                                               almost_equal
@@ -72,20 +72,20 @@ contains
   !> Run all pmc_aero_rep_data tests
   logical function run_pmc_aero_rep_data_tests() result(passed)
 
-    use pmc_phlex_solver_data
+    use pmc_camp_solver_data
 
-    type(phlex_solver_data_t), pointer :: phlex_solver_data
+    type(camp_solver_data_t), pointer :: camp_solver_data
 
-    phlex_solver_data => phlex_solver_data_t()
+    camp_solver_data => camp_solver_data_t()
 
-    if (phlex_solver_data%is_solver_available()) then
+    if (camp_solver_data%is_solver_available()) then
       passed = build_aero_rep_data_set_test()
     else
       call warn_msg(594028423, "No solver available")
       passed = .true.
     end if
 
-    deallocate(phlex_solver_data)
+    deallocate(camp_solver_data)
 
   end function run_pmc_aero_rep_data_tests
 
@@ -94,8 +94,8 @@ contains
   !> Build aero_rep_data set
   logical function build_aero_rep_data_set_test()
 
-    type(phlex_core_t), pointer :: phlex_core
-    type(phlex_state_t), pointer :: phlex_state
+    type(camp_core_t), pointer :: camp_core
+    type(camp_state_t), pointer :: camp_state
     class(aero_rep_data_t), pointer :: aero_rep
 
 #ifdef PMC_USE_JSON
@@ -112,15 +112,15 @@ contains
 #endif
     build_aero_rep_data_set_test = .false.
 
-    phlex_core => phlex_core_t()
+    camp_core => camp_core_t()
 
     allocate(file_list(1))
     file_list(1)%string = &
             'test_run/unit_aero_rep_data/test_aero_rep_single_particle.json'
 
-    call phlex_core%load(file_list)
-    call phlex_core%initialize()
-    phlex_state => phlex_core%new_state()
+    call camp_core%load(file_list)
+    call camp_core%initialize()
+    camp_state => camp_core%new_state()
 
     ! Set up the list of aerosol representation names
     ! !!! Add new aero_rep_data_t extending types here !!!
@@ -133,7 +133,7 @@ contains
       ! Check the aerosol representation getter functions
       rep_name = rep_names(i_rep)%string
       call assert_msg(253854173, &
-              phlex_core%get_aero_rep(rep_name, aero_rep), rep_name)
+              camp_core%get_aero_rep(rep_name, aero_rep), rep_name)
       call assert_msg(362813745, associated(aero_rep), rep_name)
       select type (aero_rep)
         type is (aero_rep_single_particle_t)
@@ -163,70 +163,70 @@ contains
               spec_name = spec_name)
       i_spec = aero_rep%spec_state_id(unique_names(1)%string)
       call assert_msg(258227897, i_spec.gt.0, rep_name)
-      phlex_state%state_var(i_spec) = 1.5
+      camp_state%state_var(i_spec) = 1.5
       spec_name = "species b"
       unique_names = aero_rep%unique_names(phase_name = phase_name, &
               spec_name = spec_name)
       i_spec = aero_rep%spec_state_id(unique_names(1)%string)
       call assert_msg(418308482, i_spec.gt.0, rep_name)
-      phlex_state%state_var(i_spec) = 2.5
+      camp_state%state_var(i_spec) = 2.5
       spec_name = "species c"
       unique_names = aero_rep%unique_names(phase_name = phase_name, &
               spec_name = spec_name)
       i_spec = aero_rep%spec_state_id(unique_names(1)%string)
       call assert_msg(420214016, i_spec.gt.0, rep_name)
-      phlex_state%state_var(i_spec) = 3.5
+      camp_state%state_var(i_spec) = 3.5
       phase_name = "my test phase two"
       spec_name = "species c"
       unique_names = aero_rep%unique_names(phase_name = phase_name, &
               spec_name = spec_name)
       i_spec = aero_rep%spec_state_id(unique_names(1)%string)
       call assert_msg(416855243, i_spec.gt.0, rep_name)
-      phlex_state%state_var(i_spec) = 4.5
+      camp_state%state_var(i_spec) = 4.5
       spec_name = "species d"
       unique_names = aero_rep%unique_names(phase_name = phase_name, &
               spec_name = spec_name)
       i_spec = aero_rep%spec_state_id(unique_names(1)%string)
       call assert_msg(578389067, i_spec.gt.0, rep_name)
-      phlex_state%state_var(i_spec) = 5.5
+      camp_state%state_var(i_spec) = 5.5
       spec_name = "species e"
       unique_names = aero_rep%unique_names(phase_name = phase_name, &
               spec_name = spec_name)
       i_spec = aero_rep%spec_state_id(unique_names(1)%string)
       call assert_msg(147314014, i_spec.gt.0, rep_name)
-      phlex_state%state_var(i_spec) = 6.5
+      camp_state%state_var(i_spec) = 6.5
       phase_name = "my last test phase"
       spec_name = "species b"
       unique_names = aero_rep%unique_names(phase_name = phase_name, &
               spec_name = spec_name)
       i_spec = aero_rep%spec_state_id(unique_names(1)%string)
       call assert_msg(401514617, i_spec.gt.0, rep_name)
-      phlex_state%state_var(i_spec) = 7.5
+      camp_state%state_var(i_spec) = 7.5
       spec_name = "species e"
       unique_names = aero_rep%unique_names(phase_name = phase_name, &
               spec_name = spec_name)
       i_spec = aero_rep%spec_state_id(unique_names(1)%string)
       call assert_msg(291101806, i_spec.gt.0, rep_name)
-      phlex_state%state_var(i_spec) = 8.5
+      camp_state%state_var(i_spec) = 8.5
 
     end do
 
     rep_name = "AERO_REP_BAD_NAME"
-    call assert(676257369, .not.phlex_core%get_aero_rep(rep_name, aero_rep))
+    call assert(676257369, .not.camp_core%get_aero_rep(rep_name, aero_rep))
     call assert(453526213, .not.associated(aero_rep))
 
 #ifdef PMC_USE_MPI
     pack_size = 0
     do i_rep = 1, size(rep_names)
       call assert(778520709, &
-              phlex_core%get_aero_rep(rep_names(i_rep)%string, aero_rep))
+              camp_core%get_aero_rep(rep_names(i_rep)%string, aero_rep))
       pack_size = pack_size + aero_rep_factory%pack_size(aero_rep, MPI_COMM_WORLD)
     end do
     allocate(buffer(pack_size))
     pos = 0
     do i_rep = 1, size(rep_names)
       call assert(543807700, &
-              phlex_core%get_aero_rep(rep_names(i_rep)%string, aero_rep))
+              camp_core%get_aero_rep(rep_names(i_rep)%string, aero_rep))
       call aero_rep_factory%bin_pack(aero_rep, buffer, pos, MPI_COMM_WORLD)
     end do
     allocate(aero_rep_passed_data_set(size(rep_names)))
@@ -238,7 +238,7 @@ contains
     do i_rep = 1, size(rep_names)
       associate (passed_aero_rep => aero_rep_passed_data_set(i_rep)%val)
         call assert(744932979, &
-                phlex_core%get_aero_rep(rep_names(i_rep)%string, aero_rep))
+                camp_core%get_aero_rep(rep_names(i_rep)%string, aero_rep))
         call assert(860610097, size(aero_rep%condensed_data_real) .eq. &
                 size(passed_aero_rep%condensed_data_real))
         do i_prop = 1, size(aero_rep%condensed_data_real)
@@ -261,10 +261,10 @@ contains
 #endif
 
     ! Evaluate the aerosol representation c functions
-    build_aero_rep_data_set_test = eval_c_func(phlex_core)
+    build_aero_rep_data_set_test = eval_c_func(camp_core)
 
-    deallocate(phlex_state)
-    deallocate(phlex_core)
+    deallocate(camp_state)
+    deallocate(camp_core)
 
 #endif
 
@@ -273,13 +273,13 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Evaluate the aerosol representation c functions
-  logical function eval_c_func(phlex_core) result(passed)
+  logical function eval_c_func(camp_core) result(passed)
 
-    !> Phlex-core
-    type(phlex_core_t), intent(inout) :: phlex_core
+    !> CAMP-core
+    type(camp_core_t), intent(inout) :: camp_core
 
     class(aero_rep_data_t), pointer :: aero_rep
-    type(phlex_state_t), pointer :: phlex_state
+    type(camp_state_t), pointer :: camp_state
     integer(kind=i_kind), allocatable :: phase_ids(:)
     character(len=:), allocatable :: rep_name, phase_name
     type(aero_rep_factory_t) :: aero_rep_factory
@@ -288,7 +288,7 @@ contains
 
     rep_name = "AERO_REP_SINGLE_PARTICLE"
 
-    call assert_msg(264314298, phlex_core%get_aero_rep(rep_name, aero_rep), &
+    call assert_msg(264314298, camp_core%get_aero_rep(rep_name, aero_rep), &
                     rep_name)
 
     select type( aero_rep )
@@ -298,31 +298,31 @@ contains
         call die_msg(766425873, "Wrong aero rep type")
     end select
 
-    call phlex_core%solver_initialize()
+    call camp_core%solver_initialize()
 
-    phlex_state => phlex_core%new_state()
+    camp_state => camp_core%new_state()
 
-    phlex_state%state_var(:) = 0.0
-    phlex_state%env_state%temp = 298.0
-    phlex_state%env_state%pressure = 101325.0
+    camp_state%state_var(:) = 0.0
+    camp_state%env_state%temp = 298.0
+    camp_state%env_state%pressure = 101325.0
 
     ! Update external properties
     call aero_rep_factory%initialize_update_data( update_radius )
     call aero_rep_factory%initialize_update_data( update_number )
     call update_radius%set_radius( AERO_REP_ID, PART_RADIUS )
     call update_number%set_number( AERO_REP_ID, PART_NUM_CONC )
-    call phlex_core%update_aero_rep_data( update_radius )
-    call phlex_core%update_aero_rep_data( update_number )
+    call camp_core%update_aero_rep_data( update_radius )
+    call camp_core%update_aero_rep_data( update_number )
 
-    call phlex_state%update_env_state()
+    call camp_state%update_env_state()
 
     passed = run_aero_rep_single_particle_c_tests(                           &
-                 phlex_core%solver_data_gas_aero%solver_c_ptr,               &
-                 c_loc(phlex_state%state_var),                               &
-                 c_loc(phlex_state%env_var)                                  &
+                 camp_core%solver_data_gas_aero%solver_c_ptr,               &
+                 c_loc(camp_state%state_var),                               &
+                 c_loc(camp_state%env_var)                                  &
                  ) .eq. 0
 
-    deallocate(phlex_state)
+    deallocate(camp_state)
 
   end function eval_c_func
 

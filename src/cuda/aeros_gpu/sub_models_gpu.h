@@ -9,7 +9,7 @@
  */
 #ifndef SUB_MODELS_H
 #define SUB_MODELS_H
-#include "../phlex_gpu_solver.h"
+#include "../camp_gpu_solver.h"
 /*
 // UNIFAC
 void * sub_model_gpu_UNIFAC_get_used_jac_elem(

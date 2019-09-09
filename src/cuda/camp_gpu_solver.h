@@ -6,12 +6,12 @@
  *
  */
 
-#ifndef PHLEX_GPU_SOLVER_H_
-#define PHLEX_GPU_SOLVER_H_
+#ifndef CAMP_GPU_SOLVER_H_
+#define CAMP_GPU_SOLVER_H_
 #include <cuda.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "../phlex_common.h"
+#include "../camp_common.h"
 
 //Value to consider data size too big -> Memory optimization will change below and under the limit
 #define DATA_SIZE_LIMIT_OPT 2000

@@ -10,7 +10,7 @@
  */
 #ifndef AERO_REPS_H_
 #define AERO_REPS_H_
-#include "phlex_common.h"
+#include "camp_common.h"
 
 // binned/modal mass
 int aero_rep_modal_binned_mass_get_used_jac_elem(

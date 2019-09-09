@@ -5,23 +5,23 @@
 !> \file
 !> The pmc_aero_rep_data module.
 
-!> \page phlex_aero_rep Phlexible Module for Chemistry: Aerosol Representation (general)
+!> \page camp_aero_rep CAMP: Aerosol Representation (general)
 !!
 !! An aerosol representation acts as an interface between an aerosol
-!! micro-physics model and the \ref phlex_chem "phlex-chem" chemistry module.
+!! micro-physics model and the \ref camp_chem "camp-chem" chemistry module.
 !! Types that extend the abstract \c aero_rep_data_t type should be developed
 !! for each type of aerosol representation used by an external model (e.g.,
 !! binned, modal, single particle).
 !!
 !! The available aerosol representations are:
-!!  - \subpage phlex_aero_rep_single_particle "Single Particle"
-!!  - \subpage phlex_aero_rep_modal_binned_mass "Mass-only Binned/Modal"
+!!  - \subpage camp_aero_rep_single_particle "Single Particle"
+!!  - \subpage camp_aero_rep_modal_binned_mass "Mass-only Binned/Modal"
 !!
 !! The general input format for an aerosol representation can be found
 !! \subpage input_format_aero_rep "here".
 !!
 !! General instructions for adding a new aerosol representation can be found
-!! \subpage phlex_aero_rep_add "here".
+!! \subpage camp_aero_rep_add "here".
 
 !> The abstract aero_rep_data_t structure and associated subroutines.
 module pmc_aero_rep_data
@@ -36,7 +36,7 @@ module pmc_aero_rep_data
   use pmc_chem_spec_data
   use pmc_constants,                  only : i_kind, dp
   use pmc_mpi
-  use pmc_phlex_state
+  use pmc_camp_state
   use pmc_property
   use pmc_util,                       only : die_msg, string_t
 
@@ -53,14 +53,14 @@ module pmc_aero_rep_data
   !! extending aero_rep_data_t should describe specific types of aerosol
   !! schemes (e.g., binned, modal, particle-resolved).
   !!
-  !! See \ref phlex_aero_rep "Aerosol Representations" for details.
+  !! See \ref camp_aero_rep "Aerosol Representations" for details.
   type, abstract :: aero_rep_data_t
     private
     !> Name of the aerosol representation
     character(len=:), allocatable, public :: rep_name
     !> Aerosol phases associated with this aerosol scheme
     !!
-    !! See \ref phlex_aero_phase "Aerosol Phases" for details.
+    !! See \ref camp_aero_phase "Aerosol Phases" for details.
     type(aero_phase_data_ptr), allocatable, public :: aero_phase(:)
     !> Aerosol representation parameters. These will be available during
     !! initialization, but not during solving. All information required
@@ -70,12 +70,12 @@ module pmc_aero_rep_data
     !> Condensed representation data. Theses arrays will be available during
     !! solving, and should contain any information required by the
     !! functions of the aerosol representation that cannot be obtained
-    !! from the pmc_phlex_state::phlex_state_t object. (floating-point)
+    !! from the pmc_camp_state::camp_state_t object. (floating-point)
     real(kind=dp), allocatable, public :: condensed_data_real(:)
     !> Condensed representation data. Theses arrays will be available during
     !! solving, and should contain any information required by the
     !! functions of the aerosol representation that cannot be obtained
-    !! from the pmc_phlex_state::phlex_state_t object. (integer)
+    !! from the pmc_camp_state::camp_state_t object. (integer)
     integer(kind=i_kind), allocatable, public ::  condensed_data_int(:)
     !> Number of environment-dependent parameters
     !! These are parameters that need updated when environmental conditions
@@ -90,24 +90,24 @@ module pmc_aero_rep_data
     !! the model run are included in the condensed data arrays.
     procedure(initialize), deferred :: initialize
     !> Get the size of the section of the
-    !! \c pmc_phlex_state::phlex_state_t::state_var array required for this
+    !! \c pmc_camp_state::camp_state_t::state_var array required for this
     !! aerosol representation
     procedure(get_size), deferred :: size
     !> Get a list of unique names for each element on the
-    !! \c pmc_phlex_state::phlex_state_t::state_var array for this aerosol
+    !! \c pmc_camp_state::camp_state_t::state_var array for this aerosol
     !! representation. The list may be restricted to a particular phase and/or
     !! aerosol species by including the phase_name and spec_name arguments.
     procedure(unique_names), deferred :: unique_names
-    !> Get a species id on the \c pmc_phlex_state::phlex_state_t::state_var
+    !> Get a species id on the \c pmc_camp_state::camp_state_t::state_var
     !! array by its unique name. These are unique ids for each element on the
-    !! state array for this \ref phlex_aero_rep "aerosol representation" and
+    !! state array for this \ref camp_aero_rep "aerosol representation" and
     !! are numbered:
     !!
     !!   \f[x_u \in x_f ... (x_f+n-1)\f]
     !!
     !! where \f$x_u\f$ is the id of the element corresponding to the species
     !! with unique name \f$u\f$ on the \c
-    !! pmc_phlex_state::phlex_state_t::state_var array, \f$x_f\f$ is the index
+    !! pmc_camp_state::camp_state_t::state_var array, \f$x_f\f$ is the index
     !! of the first element for this aerosol representation on the state array
     !! and \f$n\f$ is the total number of variables on the state array from
     !! this aerosol representation.
@@ -185,7 +185,7 @@ interface
     !! implement any number of instances of each phase.
     type(aero_phase_data_ptr), pointer, intent(in) :: aero_phase_set(:)
     !> Beginning state id for this aerosol representation in the
-    !! \c pmc_phlex_state::phlex_state_t::state_var array
+    !! \c pmc_camp_state::camp_state_t::state_var array
     integer(kind=i_kind), intent(in) :: spec_state_id
 
   end subroutine initialize
@@ -193,7 +193,7 @@ interface
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Get the size of the section of the
-  !! \c pmc_phlex_state::phlex_state_t::state_var array required for this
+  !! \c pmc_camp_state::camp_state_t::state_var array required for this
   !! aerosol representation
   function get_size(this) result (state_size)
     use pmc_util,                                     only : i_kind
@@ -209,7 +209,7 @@ interface
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Get a list of unique names for each element on the
-  !! \c pmc_phlex_state::phlex_state_t::state_var array for this aerosol
+  !! \c pmc_camp_state::camp_state_t::state_var array for this aerosol
   !! representation.
   function unique_names(this, phase_name, tracer_type, spec_name)
     use pmc_util,                                     only : string_t, i_kind
@@ -230,16 +230,16 @@ interface
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Get a species id on the \c pmc_phlex_state::phlex_state_t::state_var
+  !> Get a species id on the \c pmc_camp_state::camp_state_t::state_var
   !! array by unique name. These are unique ids for each element on the
-  !! state array for this \ref phlex_aero_rep "aerosol representation" and
+  !! state array for this \ref camp_aero_rep "aerosol representation" and
   !! are numbered:
   !!
   !!   \f[x_u \in x_f ... (x_f+n-1)\f]
   !!
   !! where \f$x_u\f$ is the id of the element corresponding to the species
   !! with unique name \f$u\f$ on the \c
-  !! pmc_phlex_state::phlex_state_t::state_var array, \f$x_f\f$ is the index
+  !! pmc_camp_state::camp_state_t::state_var array, \f$x_f\f$ is the index
   !! of the first element for this aerosol representation on the state array
   !! and \f$n\f$ is the total number of variables on the state array from
   !! this aerosol representation.
@@ -317,7 +317,7 @@ contains
 
   !> \page input_format_aero_rep Input JSON Object Format: Aerosol Representation (general)
   !!
-  !! A \c json object containing information about an \ref phlex_aero_rep
+  !! A \c json object containing information about an \ref camp_aero_rep
   !! "aerosol representation" has the following format:
   !! \code{.json}
   !! { "pmc-data" : [
@@ -341,8 +341,8 @@ contains
   !! pair \b type is also required and must correspond to a valid aerosol
   !! representation type. These include:
   !!
-  !!   - \subpage phlex_aero_rep_single_particle "AERO_REP_SINGLE_PARTICLE"
-  !!   - \subpage phlex_aero_rep_modal_binned_mass
+  !!   - \subpage camp_aero_rep_single_particle "AERO_REP_SINGLE_PARTICLE"
+  !!   - \subpage camp_aero_rep_modal_binned_mass
   !!                    "AERO_REP_MODAL_BINNED_MASS"
   !!
   !! All remaining data are optional and may include any valid \c json value.

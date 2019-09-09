@@ -5,28 +5,28 @@
 !> \file
 !> The pmc_rxn_data module.
 
-!> \page phlex_rxn Phlexible Module for Chemistry: Reactions (general)
+!> \page camp_rxn CAMP: Reactions (general)
 !!
 !! A reaction represents a transformation of the model state due to a physical
 !! or chemical process that occurs within a phase (gas or \ref
-!! phlex_aero_phase "aerosol") or across the interface between two phases. In
-!! the \ref phlex_chem "phlex-chem" model, reactions are grouped into \ref
-!! phlex_mechanism "mechanisms", which are solved over time-steps specified by
+!! camp_aero_phase "aerosol") or across the interface between two phases. In
+!! the \ref camp_chem "camp-chem" model, reactions are grouped into \ref
+!! camp_mechanism "mechanisms", which are solved over time-steps specified by
 !! the host model.
 !!
-!! The primary function of a reaction in the \ref phlex_chem "phlex-chem"
+!! The primary function of a reaction in the \ref camp_chem "camp-chem"
 !! model is to provide the solver with contributions to the time derivative
-!! and Jacobian matrix for \ref phlex_species "chemical species"
+!! and Jacobian matrix for \ref camp_species "chemical species"
 !! concentrations based on the current model state described in a \c
-!! pmc_phlex_state::phlex_state_t object.
+!! pmc_camp_state::camp_state_t object.
 !!
 !! Specific reaction types extend the abstract \c pmc_rxn_data::rxn_data_t
 !! type and generally accept a set of reactants and products whose names
-!! correspond to \ref phlex_species "chemical species" names, as well as a
+!! correspond to \ref camp_species "chemical species" names, as well as a
 !! set of reaction parameters needed to describe a particular reaction.
 !! During initialization, a reaction will have access to its set of parameters
-!! as well as the parameters of any \ref phlex_species "species" and \ref
-!! phlex_aero_rep "aerosol phase" in the \ref phlex_chem "phlex-chem" model,
+!! as well as the parameters of any \ref camp_species "species" and \ref
+!! camp_aero_rep "aerosol phase" in the \ref camp_chem "camp-chem" model,
 !! however this information will not be available during a model run. The
 !! information required by the reaction instance to calculate its contribution
 !! to the time derivatve and Jacobian matrix must therefore be packed into
@@ -35,24 +35,24 @@
 !!
 !! Valid reaction types include:
 !!
-!!   - \subpage phlex_rxn_aqueous_equilibrium "aqueous-phase equilibrium"
-!!   - \subpage phlex_rxn_arrhenius "Arrhenius"
-!!   - \subpage phlex_rxn_CMAQ_H2O2 "CMAQ special reaction type for 2HO2 (+ H2O) -> H2O2"
-!!   - \subpage phlex_rxn_CMAQ_OH_HNO3 "CMAQ special reaction type for OH + HNO3 -> NO3 + H2O"
-!!   - \subpage phlex_rxn_condensed_phase_arrhenius "condensed-chase Arrhenius"
-!!   - \subpage phlex_rxn_emission "emission"
-!!   - \subpage phlex_rxn_first_order_loss "first-order loss"
-!!   - \subpage phlex_rxn_HL_phase_transfer "Henry's Law phase transfer"
-!!   - \subpage phlex_rxn_photolysis "photolysis"
-!!   - \subpage phlex_rxn_SIMPOL_phase_transfer "SIMPOL.1 phase transfer"
-!!   - \subpage phlex_rxn_troe "Troe (fall-off)"
-!!   - \subpage phlex_rxn_wet_deposition "wet deposition"
+!!   - \subpage camp_rxn_aqueous_equilibrium "aqueous-phase equilibrium"
+!!   - \subpage camp_rxn_arrhenius "Arrhenius"
+!!   - \subpage camp_rxn_CMAQ_H2O2 "CMAQ special reaction type for 2HO2 (+ H2O) -> H2O2"
+!!   - \subpage camp_rxn_CMAQ_OH_HNO3 "CMAQ special reaction type for OH + HNO3 -> NO3 + H2O"
+!!   - \subpage camp_rxn_condensed_phase_arrhenius "condensed-chase Arrhenius"
+!!   - \subpage camp_rxn_emission "emission"
+!!   - \subpage camp_rxn_first_order_loss "first-order loss"
+!!   - \subpage camp_rxn_HL_phase_transfer "Henry's Law phase transfer"
+!!   - \subpage camp_rxn_photolysis "photolysis"
+!!   - \subpage camp_rxn_SIMPOL_phase_transfer "SIMPOL.1 phase transfer"
+!!   - \subpage camp_rxn_troe "Troe (fall-off)"
+!!   - \subpage camp_rxn_wet_deposition "wet deposition"
 !!
 !! The general input format for a reaction can be found
 !! \subpage input_format_rxn "here".
 !!
 !! General instructions for adding a new reaction type can be found
-!! \subpage phlex_rxn_add "here".
+!! \subpage camp_rxn_add "here".
 
 !> The rxn_data_t structure and associated subroutines.
 module pmc_rxn_data
@@ -67,7 +67,7 @@ module pmc_rxn_data
   use pmc_chem_spec_data
   use pmc_constants,                  only : i_kind, dp
   use pmc_mpi
-  use pmc_phlex_state
+  use pmc_camp_state
   use pmc_property
   use pmc_util,                       only : die_msg, string_t
 
@@ -87,7 +87,7 @@ module pmc_rxn_data
 
   !> Abstract reaction data type
   !!
-  !! Time-invariant data related to a \ref phlex_rxn "reaction". Types
+  !! Time-invariant data related to a \ref camp_rxn "reaction". Types
   !! extending \c rxn_data_t should represent specific reaction types, with
   !! unique rate equations. Extending types should not have data members, as
   !! these will not be passed to the child nodes after initialization. Instead
@@ -105,12 +105,12 @@ module pmc_rxn_data
     !> Condensed reaction data. Theses arrays will be available during
     !! integration, and should contain any information required by the
     !! rate and Jacobian constribution functions that cannot be obtained
-    !! from the \c pmc_phlex_state::phlex_state_t object. (floating-point)
+    !! from the \c pmc_camp_state::camp_state_t object. (floating-point)
     real(kind=dp), allocatable, public :: condensed_data_real(:)
     !> Condensed reaction data. Theses arrays will be available during
     !! integration, and should contain any information required by the
     !! rate and Jacobian constribution functions that cannot be obtained
-    !! from the \c pmc_phlex_state::phlex_state_t object. (integer)
+    !! from the \c pmc_camp_state::camp_state_t object. (integer)
     integer(kind=i_kind), allocatable, public :: condensed_data_int(:)
     !> Number of environment-dependent parameters
     !! These are parameters that need updated when environmental conditions
@@ -207,9 +207,9 @@ contains
   !> \page input_format_rxn Input JSON Object Format: Reaction (general)
   !!
   !! A \c json object containing information about a chemical reaction or
-  !! physical process in the gas phase, in an \ref phlex_aero_phase
-  !! "aerosol phase", or between two phases (phase-transfer). \ref phlex_rxn
-  !! "Reactions" are used to build \ref phlex_mechanism "mechanisms" and are
+  !! physical process in the gas phase, in an \ref camp_aero_phase
+  !! "aerosol phase", or between two phases (phase-transfer). \ref camp_rxn
+  !! "Reactions" are used to build \ref camp_mechanism "mechanisms" and are
   !! only found within an input \ref input_format_mechanism "mechanism object"
   !! in an array labelled \b reactions.
   !! \code{.json}
@@ -252,15 +252,15 @@ contains
   !! The key-value pair \b type is required and its value must correspond
   !! to a valid reaction type. Valid reaction types include:
   !!
-  !!   - \subpage phlex_rxn_arrhenius "ARRHENIUS"
-  !!   - \subpage phlex_rxn_aqueous_equilibrium "AQUEOUS_EQUILIBRIUM"
-  !!   - \subpage phlex_rxn_CMAQ_H2O2 "CMAQ_H2O2"
-  !!   - \subpage phlex_rxn_CMAQ_OH_HNO3 "CMAQ_OH_HNO3"
-  !!   - \subpage phlex_rxn_condensed_phase_arrhenius "CONDENSED_PHASE_ARRHENIUS"
-  !!   - \subpage phlex_rxn_HL_phase_transfer "HL_PHASE_TRANSFER"
-  !!   - \subpage phlex_rxn_SIMPOL_phase_transfer "SIMPOL_PHASE_TRANSFER"
-  !!   - \subpage phlex_rxn_photolysis "PHOTOLYSIS"
-  !!   - \subpage phlex_rxn_troe "TROE"
+  !!   - \subpage camp_rxn_arrhenius "ARRHENIUS"
+  !!   - \subpage camp_rxn_aqueous_equilibrium "AQUEOUS_EQUILIBRIUM"
+  !!   - \subpage camp_rxn_CMAQ_H2O2 "CMAQ_H2O2"
+  !!   - \subpage camp_rxn_CMAQ_OH_HNO3 "CMAQ_OH_HNO3"
+  !!   - \subpage camp_rxn_condensed_phase_arrhenius "CONDENSED_PHASE_ARRHENIUS"
+  !!   - \subpage camp_rxn_HL_phase_transfer "HL_PHASE_TRANSFER"
+  !!   - \subpage camp_rxn_SIMPOL_phase_transfer "SIMPOL_PHASE_TRANSFER"
+  !!   - \subpage camp_rxn_photolysis "PHOTOLYSIS"
+  !!   - \subpage camp_rxn_troe "TROE"
   !!
   !! All remaining data are optional and may include any valid \c json value,
   !! including nested objects. However, extending types (i.e. reactions) will

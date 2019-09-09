@@ -12,7 +12,7 @@ module pmc_gas_data
   use pmc_mpi
   use pmc_util
   use pmc_netcdf
-  use pmc_phlex_core
+  use pmc_camp_core
   use pmc_chem_spec_data
 #ifdef PMC_USE_MPI
   use mpi
@@ -44,13 +44,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Initialize the gas_data_t instance from phlex_core data
-  subroutine gas_data_initialize(this, phlex_core)
+  !> Initialize the gas_data_t instance from camp_core data
+  subroutine gas_data_initialize(this, camp_core)
 
     !> Gas-phase species data
     class(gas_data_t), intent(inout) :: this
-    !> Phlexible chemistry core
-    class(phlex_core_t), intent(in) :: phlex_core
+    !> CAMP core
+    class(camp_core_t), intent(in) :: camp_core
 
     type(chem_spec_data_t), pointer :: chem_spec_data
     integer :: i_spec
@@ -58,8 +58,8 @@ contains
 
     ! Get the chemical species data
     call assert_msg(139566827, &
-            phlex_core%get_chem_spec_data(chem_spec_data), &
-            "No chemical species data in phlex core.")
+            camp_core%get_chem_spec_data(chem_spec_data), &
+            "No chemical species data in camp core.")
 
     ! Get the gas-phase species names
     gas_spec_names = chem_spec_data%get_spec_names( &

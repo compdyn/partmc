@@ -11,7 +11,7 @@
 #include "../test_common.h"
 #include "../../src/aero_rep_solver.h"
 #include "../../src/aero_reps.h"
-#include "../../src/phlex_common.h"
+#include "../../src/camp_common.h"
 
 // index for the test aerosol representation
 #define AERO_REP_IDX 0

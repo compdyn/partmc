@@ -10,7 +10,7 @@
  */
 #ifndef SUB_MODEL_SOLVER_H
 #define SUB_MODEL_SOLVER_H
-#include "phlex_common.h"
+#include "camp_common.h"
 
 /** Public sub model functions **/
 

@@ -5,7 +5,7 @@
 !> \file
 !> The pmc_rxn_arrhenius module.
 
-!> \page phlex_rxn_arrhenius Phlexible Module for Chemistry: Arrhenius Reaction
+!> \page camp_rxn_arrhenius CAMP: Arrhenius Reaction
 !!
 !! Arrhenius-like reaction rate constant equations are calculated as follows:
 !!
@@ -68,7 +68,7 @@ module pmc_rxn_arrhenius
   use pmc_aero_rep_data
   use pmc_chem_spec_data
   use pmc_constants,                        only: const
-  use pmc_phlex_state
+  use pmc_camp_state
   use pmc_property
   use pmc_rxn_data
   use pmc_util,                             only: i_kind, dp, to_string, &
@@ -305,20 +305,4 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-#undef NUM_REACT_
-#undef NUM_PROD_
-#undef A_
-#undef B_
-#undef C_
-#undef D_
-#undef E_
-#undef CONV_
-#undef RATE_CONSTANT_
-#undef NUM_INT_PROP_
-#undef NUM_REAL_PROP_
-#undef REACT_
-#undef PROD_
-#undef DERIV_ID_
-#undef JAC_ID_
-#undef YIELD_
 end module pmc_rxn_arrhenius

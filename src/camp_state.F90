@@ -3,13 +3,13 @@
 ! option) any later version. See the file COPYING for details.
 
 !> \file
-!> The pmc_phlex_state module.
+!> The pmc_camp_state module.
 
-!> The phlex_state_t structure and associated subroutines.
-module pmc_phlex_state
+!> The camp_state_t structure and associated subroutines.
+module pmc_camp_state
 
 ! Define array size for contain temperature and pressure
-#define PHLEX_STATE_NUM_ENV_PARAM 2
+#define CAMP_STATE_NUM_ENV_PARAM 2
 
 #ifdef PMC_USE_MPI
   use mpi
@@ -22,12 +22,12 @@ module pmc_phlex_state
   implicit none
   private
 
-  public :: phlex_state_t, phlex_state_ptr
+  public :: camp_state_t, camp_state_ptr
 
   !> Model state
   !!
   !! Temporal state of the model
-  type phlex_state_t
+  type camp_state_t
     !> Environmental state array. This array will include one entry
     !! for every environmental variable requried to solve the
     !! chemical mechanism(s)
@@ -52,32 +52,32 @@ module pmc_phlex_state
     procedure :: bin_unpack
     !> Finalize the state
     final :: finalize
-  end type phlex_state_t
+  end type camp_state_t
 
-  ! Constructor for phlex_state_t
-  interface phlex_state_t
+  ! Constructor for camp_state_t
+  interface camp_state_t
     procedure :: constructor
-  end interface phlex_state_t
+  end interface camp_state_t
 
   !> Pointer type for building arrays
-  type phlex_state_ptr
-    type(phlex_state_t), pointer :: val => null()
+  type camp_state_ptr
+    type(camp_state_t), pointer :: val => null()
   contains
     !> Dereference the pointer
     procedure :: dereference
     !> Finalize the pointer
     final :: ptr_finalize
-  end type phlex_state_ptr
+  end type camp_state_ptr
 
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Constructor for phlex_state_t
+  !> Constructor for camp_state_t
   function constructor(env_state, n_cells) result (new_obj)
 
     !> New model state
-    type(phlex_state_t), pointer :: new_obj
+    type(camp_state_t), pointer :: new_obj
     !> Num cells to compute simulatenously
     integer(kind=i_kind), optional :: n_cells
     !> Environmental state
@@ -95,7 +95,7 @@ contains
     end if
 
     ! Set up the environmental state array
-    allocate(new_obj%env_var(PHLEX_STATE_NUM_ENV_PARAM*n_cells))
+    allocate(new_obj%env_var(CAMP_STATE_NUM_ENV_PARAM*n_cells))
 
   end function constructor
 
@@ -105,14 +105,14 @@ contains
   subroutine update_env_state(this, grid_cell)
 
     !> Model state
-    class(phlex_state_t), intent(inout) :: this
+    class(camp_state_t), intent(inout) :: this
     !> Grid cell to update
     integer, optional :: grid_cell
 
     integer :: grid_offset = 0
 
     if (present(grid_cell)) &
-      grid_offset = (grid_cell-1)*PHLEX_STATE_NUM_ENV_PARAM
+      grid_offset = (grid_cell-1)*CAMP_STATE_NUM_ENV_PARAM
 
     call assert_msg(618562571, grid_offset >= 0 .and. &
                                grid_offset <= size(this%env_var)-2, &
@@ -129,7 +129,7 @@ contains
   integer(kind=i_kind) function pack_size(this)
 
     !> Chemical species states
-    class(phlex_state_t), intent(in) :: this
+    class(camp_state_t), intent(in) :: this
 
     pack_size = &
             this%env_state%pack_size()
@@ -142,7 +142,7 @@ contains
   subroutine bin_pack(this, buffer, pos)
 
     !> Chemical species states
-    class(phlex_state_t), intent(in) :: this
+    class(camp_state_t), intent(in) :: this
     !> Memory buffer
     character, intent(inout) :: buffer(:)
     !> Current buffer position
@@ -165,7 +165,7 @@ contains
   subroutine bin_unpack(this, buffer, pos)
 
     !> Chemical species states
-    class(phlex_state_t), intent(inout) :: this
+    class(camp_state_t), intent(inout) :: this
     !> Memory buffer
     character, intent(inout) :: buffer(:)
     !> Current buffer position
@@ -187,8 +187,8 @@ contains
   !> Finalize the state
   elemental subroutine finalize(this)
 
-    !> Phlex model state
-    type(phlex_state_t), intent(inout) :: this
+    !> CAMP model state
+    type(camp_state_t), intent(inout) :: this
 
     if (allocated(this%env_var)) deallocate(this%env_var)
     if (allocated(this%state_var)) deallocate(this%state_var)
@@ -199,11 +199,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Deference a pointer to a phlex state
+  !> Deference a pointer to a camp state
   elemental subroutine dereference(this)
 
-    !> Pointer to the phlex state
-    class(phlex_state_ptr), intent(inout) :: this
+    !> Pointer to the camp state
+    class(camp_state_ptr), intent(inout) :: this
 
     this%val => null()
 
@@ -211,11 +211,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Finalize a pointer to a phlex state
+  !> Finalize a pointer to a camp state
   elemental subroutine ptr_finalize(this)
 
-    !> Pointer to the phlex state
-    type(phlex_state_ptr), intent(inout) :: this
+    !> Pointer to the camp state
+    type(camp_state_ptr), intent(inout) :: this
 
     if (associated(this%val)) deallocate(this%val)
 
@@ -223,5 +223,4 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-#undef PHLEX_STATE_NUM_ENV_PARAM
-end module pmc_phlex_state
+end module pmc_camp_state

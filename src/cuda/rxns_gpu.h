@@ -11,7 +11,7 @@
 */
 #ifndef RXNS_H_
 #define RXNS_H_
-#include "phlex_gpu_solver.h"
+#include "camp_gpu_solver.h"
 
 //#define PMC_USE_SUNDIALS
 

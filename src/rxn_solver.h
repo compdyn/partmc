@@ -10,7 +10,7 @@
  */
 #ifndef RXN_SOLVER_H
 #define RXN_SOLVER_H
-#include "phlex_common.h"
+#include "camp_common.h"
 
 /** Public reaction functions **/
 

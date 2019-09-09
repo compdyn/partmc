@@ -13,7 +13,7 @@
 */
 #ifndef RXNS_H_
 #define RXNS_H_
-#include "phlex_common.h"
+#include "camp_common.h"
 
 // aqueous_equilibrium
 void rxn_aqueous_equilibrium_get_used_jac_elem(

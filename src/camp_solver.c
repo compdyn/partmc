@@ -16,12 +16,12 @@
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
-#include "phlex_solver.h"
+#include "camp_solver.h"
 #include "aero_rep_solver.h"
 #include "rxn_solver.h"
 #include "sub_model_solver.h"
 #ifdef PMC_USE_GPU
-#include "cuda/phlex_gpu_solver.h"
+#include "cuda/camp_gpu_solver.h"
 #endif
 #ifdef PMC_USE_GSL
 #include <gsl/gsl_deriv.h>
@@ -154,9 +154,9 @@ void pmc_debug_print_jac(void *solver_data, SUNMatrix J, const char *message)
 // Guess advance scaling factor
 #define GUESS_ADV_SCALE 0.618
 
-// Status codes for calls to phlex_solver functions
-#define PHLEX_SOLVER_SUCCESS 0
-#define PHLEX_SOLVER_FAIL 1
+// Status codes for calls to camp_solver functions
+#define CAMP_SOLVER_SUCCESS 0
+#define CAMP_SOLVER_FAIL 1
 
 /** \brief Get a new solver object
  *
@@ -591,7 +591,7 @@ int solver_set_debug_out(void *solver_data, bool do_output)
   SolverData *sd = (SolverData*) solver_data;
 
   sd->debug_out = do_output == true ? SUNTRUE : SUNFALSE;
-  return PHLEX_SOLVER_SUCCESS;
+  return CAMP_SOLVER_SUCCESS;
 #else
   return 0;
 #endif
@@ -612,7 +612,7 @@ int solver_set_eval_jac(void *solver_data, bool eval_Jac)
   SolverData *sd = (SolverData*) solver_data;
 
   sd->eval_Jac = eval_Jac == true ? SUNTRUE : SUNFALSE;
-  return PHLEX_SOLVER_SUCCESS;
+  return CAMP_SOLVER_SUCCESS;
 #else
   return 0;
 #endif
@@ -627,7 +627,7 @@ int solver_set_eval_jac(void *solver_data, bool eval_Jac)
  *            (all grid cells)
  * \param t_initial Initial time (s)
  * \param t_final (s)
- * \return Flag indicating PHLEX_SOLVER_SUCCESS or PHLEX_SOLVER_FAIL
+ * \return Flag indicating CAMP_SOLVER_SUCCESS or CAMP_SOLVER_FAIL
  */
 int solver_run(void *solver_data, double *state, double *env, double t_initial,
 		double t_final)
@@ -699,7 +699,7 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   // Check whether there is anything to solve (filters empty air masses with no
   // emissions)
   if( is_anything_going_on_here( sd, t_initial, t_final ) == false )
-    return PHLEX_SOLVER_SUCCESS;
+    return CAMP_SOLVER_SUCCESS;
 
   // Reinitialize the solver
   flag = CVodeReInit(sd->cvode_mem, t_initial, sd->y);
@@ -720,7 +720,7 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
 #ifndef FAILURE_DETAIL
     if (flag < 0 ) {
 #else
-    if (check_flag(&flag, "CVode", 1)==PHLEX_SOLVER_FAIL) {
+    if (check_flag(&flag, "CVode", 1)==CAMP_SOLVER_FAIL) {
       N_Vector deriv = N_VClone(sd->y);
       flag = f(t_initial, sd->y, deriv, sd);
       if (flag!=0) printf("\nCall to f() at failed state failed with flag %d\n", flag);
@@ -740,7 +740,7 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
           }
         solver_print_stats(sd->cvode_mem);
 #endif
-      return PHLEX_SOLVER_FAIL;
+      return CAMP_SOLVER_FAIL;
     }
   }
 
@@ -760,9 +760,9 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   // and apply adjustments to final state
   sub_model_calculate(md);
 
-  return PHLEX_SOLVER_SUCCESS;
+  return CAMP_SOLVER_SUCCESS;
 #else
-  return PHLEX_SOLVER_FAIL;
+  return CAMP_SOLVER_FAIL;
 #endif
 }
 
@@ -803,43 +803,43 @@ void solver_get_statistics( void *solver_data, int *num_steps, int *RHS_evals,
   int flag;
 
   flag = CVodeGetNumSteps(sd->cvode_mem, &nst);
-  if (check_flag(&flag, "CVodeGetNumSteps", 1)==PHLEX_SOLVER_FAIL)
+  if (check_flag(&flag, "CVodeGetNumSteps", 1)==CAMP_SOLVER_FAIL)
           return;
   *num_steps = (int) nst;
   flag = CVodeGetNumRhsEvals(sd->cvode_mem, &nfe);
-  if (check_flag(&flag, "CVodeGetNumRhsEvals", 1)==PHLEX_SOLVER_FAIL)
+  if (check_flag(&flag, "CVodeGetNumRhsEvals", 1)==CAMP_SOLVER_FAIL)
           return;
   *RHS_evals = (int) nfe;
   flag = CVodeGetNumLinSolvSetups(sd->cvode_mem, &nsetups);
-  if (check_flag(&flag, "CVodeGetNumLinSolveSetups", 1)==PHLEX_SOLVER_FAIL)
+  if (check_flag(&flag, "CVodeGetNumLinSolveSetups", 1)==CAMP_SOLVER_FAIL)
           return;
   *LS_setups = (int) nsetups;
   flag = CVodeGetNumErrTestFails(sd->cvode_mem, &netf);
-  if (check_flag(&flag, "CVodeGetNumErrTestFails", 1)==PHLEX_SOLVER_FAIL)
+  if (check_flag(&flag, "CVodeGetNumErrTestFails", 1)==CAMP_SOLVER_FAIL)
           return;
   *error_test_fails = (int) netf;
   flag = CVodeGetNumNonlinSolvIters(sd->cvode_mem, &nni);
-  if (check_flag(&flag, "CVodeGetNonlinSolvIters", 1)==PHLEX_SOLVER_FAIL)
+  if (check_flag(&flag, "CVodeGetNonlinSolvIters", 1)==CAMP_SOLVER_FAIL)
           return;
   *NLS_iters = (int) nni;
   flag = CVodeGetNumNonlinSolvConvFails(sd->cvode_mem, &ncfn);
-  if (check_flag(&flag, "CVodeGetNumNonlinSolvConvFails", 1)==PHLEX_SOLVER_FAIL)
+  if (check_flag(&flag, "CVodeGetNumNonlinSolvConvFails", 1)==CAMP_SOLVER_FAIL)
           return;
   *NLS_convergence_fails = ncfn;
   flag = CVDlsGetNumJacEvals(sd->cvode_mem, &nje);
-  if (check_flag(&flag, "CVDlsGetNumJacEvals", 1)==PHLEX_SOLVER_FAIL)
+  if (check_flag(&flag, "CVDlsGetNumJacEvals", 1)==CAMP_SOLVER_FAIL)
           return;
   *DLS_Jac_evals = (int) nje;
   flag = CVDlsGetNumRhsEvals(sd->cvode_mem, &nfeLS);
-  if (check_flag(&flag, "CVDlsGetNumRhsEvals", 1)==PHLEX_SOLVER_FAIL)
+  if (check_flag(&flag, "CVDlsGetNumRhsEvals", 1)==CAMP_SOLVER_FAIL)
           return;
   *DLS_RHS_evals = (int) nfeLS;
   flag = CVodeGetLastStep(sd->cvode_mem, &last_h);
-  if (check_flag(&flag, "CVodeGetLastStep", 1)==PHLEX_SOLVER_FAIL)
+  if (check_flag(&flag, "CVodeGetLastStep", 1)==CAMP_SOLVER_FAIL)
           return;
   *last_time_step__s = (double) last_h;
   flag = CVodeGetCurrentStep(sd->cvode_mem, &curr_h);
-  if (check_flag(&flag, "CVodeGetCurrentStep", 1)==PHLEX_SOLVER_FAIL)
+  if (check_flag(&flag, "CVodeGetCurrentStep", 1)==CAMP_SOLVER_FAIL)
           return;
   *next_time_step__s = (double) curr_h;
   *Jac_eval_fails = sd->Jac_eval_fails;
@@ -856,10 +856,10 @@ void solver_get_statistics( void *solver_data, int *num_steps, int *RHS_evals,
  * \param threshhold A lower limit for model concentrations below which the
  *                   solver value is replaced with a replacement value
  * \param replacement_value Replacement value for low concentrations
- * \return PHLEX_SOLVER_SUCCESS for successful update or
- *         PHLEX_SOLVER_FAIL for negative concentration
+ * \return CAMP_SOLVER_SUCCESS for successful update or
+ *         CAMP_SOLVER_FAIL for negative concentration
  */
-int phlex_solver_update_model_state(N_Vector solver_state,
+int camp_solver_update_model_state(N_Vector solver_state,
           ModelData *model_data, realtype threshhold,
           realtype replacement_value)
 {
@@ -875,7 +875,7 @@ int phlex_solver_update_model_state(N_Vector solver_state,
           printf("\nFailed model state update: [spec %d] = %le", i_spec,
               NV_DATA_S(solver_state)[i_dep_var]);
 #endif
-          return PHLEX_SOLVER_FAIL;
+          return CAMP_SOLVER_FAIL;
         }
         //Assign model state to solver_state
         model_data->total_state[i_spec+i_cell*n_state_var] =
@@ -885,7 +885,7 @@ int phlex_solver_update_model_state(N_Vector solver_state,
       }
     }
   }
-  return PHLEX_SOLVER_SUCCESS;
+  return CAMP_SOLVER_SUCCESS;
 }
 
 /** \brief Compute the time derivative f(t,y)
@@ -920,8 +920,8 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data)
   // Update the state array with the current dependent variable values.
   // Signal a recoverable error (positive return value) for negative
   // concentrations.
-  if (phlex_solver_update_model_state(y, md, ZERO, ZERO)
-      != PHLEX_SOLVER_SUCCESS) return 1;
+  if (camp_solver_update_model_state(y, md, ZERO, ZERO)
+      != CAMP_SOLVER_SUCCESS) return 1;
 
   // Reset the derivative vector
   N_VConst(ZERO, deriv);
@@ -1039,8 +1039,8 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
   // Update the state array with the current dependent variable values
   // Signal a recoverable error (positive return value) for negative
   // concentrations.
-  if (phlex_solver_update_model_state(y, md, ZERO, ZERO)
-      != PHLEX_SOLVER_SUCCESS) return 1;
+  if (camp_solver_update_model_state(y, md, ZERO, ZERO)
+      != CAMP_SOLVER_SUCCESS) return 1;
 
   // Get the current integrator time step (s)
   CVodeGetCurrentStep(sd->cvode_mem, &time_step);
@@ -1785,7 +1785,7 @@ SUNMatrix get_jac_init(SolverData *solver_data)
  * \param func_name A string giving the function name returning this result code
  * \param opt A flag indicating the type of check to perform (0 for NULL
  *            pointer check; 1 for integer flag check)
- * \return Flag indicating PHLEX_SOLVER_SUCCESS or PHLEX_SOLVER_FAIL
+ * \return Flag indicating CAMP_SOLVER_SUCCESS or CAMP_SOLVER_FAIL
  */
 int check_flag(void *flag_value, char *func_name, int opt)
 {
@@ -1795,7 +1795,7 @@ int check_flag(void *flag_value, char *func_name, int opt)
   if (opt==0 && flag_value == NULL) {
     fprintf(stderr, "\nSUNDIALS_ERROR: %s() failed - returned NULL pointer\n\n",
 		    func_name);
-    return PHLEX_SOLVER_FAIL;
+    return CAMP_SOLVER_FAIL;
   }
 
   /* Check if flag < 0 */
@@ -1804,10 +1804,10 @@ int check_flag(void *flag_value, char *func_name, int opt)
     if (*err_flag < 0) {
       fprintf(stderr, "\nSUNDIALS_ERROR: %s() failed with flag = %d\n\n",
 		      func_name, *err_flag);
-      return PHLEX_SOLVER_FAIL;
+      return CAMP_SOLVER_FAIL;
     }
   }
-  return PHLEX_SOLVER_SUCCESS;
+  return CAMP_SOLVER_SUCCESS;
 }
 
 /** \brief Check the return value of a SUNDIALS function and exit on failure
@@ -1820,7 +1820,7 @@ int check_flag(void *flag_value, char *func_name, int opt)
  */
 void check_flag_fail(void *flag_value, char *func_name, int opt)
 {
-  if (check_flag(flag_value, func_name, opt)==PHLEX_SOLVER_FAIL) {
+  if (check_flag(flag_value, func_name, opt)==CAMP_SOLVER_FAIL) {
     exit(EXIT_FAILURE);
   }
 }
@@ -1836,37 +1836,37 @@ static void solver_print_stats(void *cvode_mem)
   int flag;
 
   flag = CVodeGetNumSteps(cvode_mem, &nst);
-  if (check_flag(&flag, "CVodeGetNumSteps", 1)==PHLEX_SOLVER_FAIL)
+  if (check_flag(&flag, "CVodeGetNumSteps", 1)==CAMP_SOLVER_FAIL)
           return;
   flag = CVodeGetNumRhsEvals(cvode_mem, &nfe);
-  if (check_flag(&flag, "CVodeGetNumRhsEvals", 1)==PHLEX_SOLVER_FAIL)
+  if (check_flag(&flag, "CVodeGetNumRhsEvals", 1)==CAMP_SOLVER_FAIL)
           return;
   flag = CVodeGetNumLinSolvSetups(cvode_mem, &nsetups);
-  if (check_flag(&flag, "CVodeGetNumLinSolveSetups", 1)==PHLEX_SOLVER_FAIL)
+  if (check_flag(&flag, "CVodeGetNumLinSolveSetups", 1)==CAMP_SOLVER_FAIL)
           return;
   flag = CVodeGetNumErrTestFails(cvode_mem, &netf);
-  if (check_flag(&flag, "CVodeGetNumErrTestFails", 1)==PHLEX_SOLVER_FAIL)
+  if (check_flag(&flag, "CVodeGetNumErrTestFails", 1)==CAMP_SOLVER_FAIL)
           return;
   flag = CVodeGetNumNonlinSolvIters(cvode_mem, &nni);
-  if (check_flag(&flag, "CVodeGetNonlinSolvIters", 1)==PHLEX_SOLVER_FAIL)
+  if (check_flag(&flag, "CVodeGetNonlinSolvIters", 1)==CAMP_SOLVER_FAIL)
           return;
   flag = CVodeGetNumNonlinSolvConvFails(cvode_mem, &ncfn);
-  if (check_flag(&flag, "CVodeGetNumNonlinSolvConvFails", 1)==PHLEX_SOLVER_FAIL)
+  if (check_flag(&flag, "CVodeGetNumNonlinSolvConvFails", 1)==CAMP_SOLVER_FAIL)
           return;
   flag = CVDlsGetNumJacEvals(cvode_mem, &nje);
-  if (check_flag(&flag, "CVDlsGetNumJacEvals", 1)==PHLEX_SOLVER_FAIL)
+  if (check_flag(&flag, "CVDlsGetNumJacEvals", 1)==CAMP_SOLVER_FAIL)
           return;
   flag = CVDlsGetNumRhsEvals(cvode_mem, &nfeLS);
-  if (check_flag(&flag, "CVDlsGetNumRhsEvals", 1)==PHLEX_SOLVER_FAIL)
+  if (check_flag(&flag, "CVDlsGetNumRhsEvals", 1)==CAMP_SOLVER_FAIL)
           return;
   flag = CVodeGetNumGEvals(cvode_mem, &nge);
-  if (check_flag(&flag, "CVodeGetNumGEvals", 1)==PHLEX_SOLVER_FAIL)
+  if (check_flag(&flag, "CVodeGetNumGEvals", 1)==CAMP_SOLVER_FAIL)
           return;
   flag = CVodeGetLastStep(cvode_mem, &last_h);
-  if (check_flag(&flag, "CVodeGetLastStep", 1)==PHLEX_SOLVER_FAIL)
+  if (check_flag(&flag, "CVodeGetLastStep", 1)==CAMP_SOLVER_FAIL)
           return;
   flag = CVodeGetCurrentStep(cvode_mem, &curr_h);
-  if (check_flag(&flag, "CVodeGetCurrentStep", 1)==PHLEX_SOLVER_FAIL)
+  if (check_flag(&flag, "CVodeGetCurrentStep", 1)==CAMP_SOLVER_FAIL)
           return;
 
   printf("\nSUNDIALS Solver Statistics:\n");
@@ -1879,7 +1879,7 @@ static void solver_print_stats(void *cvode_mem)
   printf("Last time step = %le Next time step = %le\n", last_h, curr_h);
 }
 
-/** \brief Print some phlex-chem data sizes
+/** \brief Print some camp-chem data sizes
  *
  * \param md Pointer to the model data
  */

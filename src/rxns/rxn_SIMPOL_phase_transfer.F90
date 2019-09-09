@@ -5,7 +5,7 @@
 !> \file
 !> The pmc_rxn_SIMPOL_phase_transfer module.
 
-!> \page phlex_rxn_SIMPOL_phase_transfer Phlexible Module for Chemistry: SIMPOL.1 Phase-Transfer Reaction
+!> \page camp_rxn_SIMPOL_phase_transfer CAMP: SIMPOL.1 Phase-Transfer Reaction
 !!
 !! SIMPOL phase transfer reactions are based on the SIMPOL.1 model
 !! calculations of vapor pressure described by Pankow and Asher (2008)
@@ -91,7 +91,7 @@ module pmc_rxn_SIMPOL_phase_transfer
   use pmc_aero_rep_data
   use pmc_chem_spec_data
   use pmc_constants,                        only: const
-  use pmc_phlex_state
+  use pmc_camp_state
   use pmc_property
   use pmc_rxn_data
   use pmc_util,                             only: i_kind, dp, to_string, &

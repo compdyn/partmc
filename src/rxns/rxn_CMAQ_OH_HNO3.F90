@@ -5,7 +5,7 @@
 !> \file
 !> The pmc_rxn_CMAQ_OH_HNO3 module.
 
-!> \page phlex_rxn_CMAQ_OH_HNO3 Phlexible Module for Chemistry: Special CMAQ Reaction for OH+HNO3
+!> \page camp_rxn_CMAQ_OH_HNO3 CAMP: Special CMAQ Reaction for OH+HNO3
 !!
 !! For the reaction:
 !!
@@ -19,7 +19,7 @@
 !!   k=k_0+(\frac{k_3[\mbox{M}]}{1+k_3[\mbox{M}]/k_2})
 !! \f]
 !!
-!! where \f$k_0\f$, \f$k_2\f$ and \f$k_3\f$ are \ref phlex_rxn_arrhenius
+!! where \f$k_0\f$, \f$k_2\f$ and \f$k_3\f$ are \ref camp_rxn_arrhenius
 !! "Arrhenius" rate constants with \f$D=300\f$ and \f$E=0\f$, and
 !! \f$[\mbox{M}]\f$ is the concentration of air (\f$10^6\f$ ppm)
 !! \cite Gipson.
@@ -57,7 +57,7 @@
 !! 1.0.
 !!
 !! The three sets of parameters beginning with \b k0_, \b k2_, and \b k3_, are
-!! the \ref phlex_rxn_arrhenius "Arrhenius" parameters for the \f$k_0\f$,
+!! the \ref camp_rxn_arrhenius "Arrhenius" parameters for the \f$k_0\f$,
 !! \f$k_2\f$ and \f$k_3\f$ rate constants, respectively. When not present,
 !! \b _A parameters are assumed to be 1.0, \b _B to be 0.0, and \b _C to be
 !! 0.0.
@@ -74,7 +74,7 @@ module pmc_rxn_CMAQ_OH_HNO3
   use pmc_aero_rep_data
   use pmc_chem_spec_data
   use pmc_constants,                        only: const
-  use pmc_phlex_state
+  use pmc_camp_state
   use pmc_property
   use pmc_rxn_data
   use pmc_util,                             only: i_kind, dp, to_string, &
@@ -326,25 +326,4 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-#undef NUM_REACT_
-#undef NUM_PROD_
-#undef k0_A_
-#undef k0_B_
-#undef k0_C_
-#undef k2_A_
-#undef k2_B_
-#undef k2_C_
-#undef k3_A_
-#undef k3_B_
-#undef k3_C_
-#undef SCALING_
-#undef CONV_
-#undef RATE_CONSTANT_
-#undef NUM_INT_PROP_
-#undef NUM_REAL_PROP_
-#undef REACT_
-#undef PROD_
-#undef DERIV_ID_
-#undef JAC_ID_
-#undef YIELD_
 end module pmc_rxn_CMAQ_OH_HNO3

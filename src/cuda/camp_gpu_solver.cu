@@ -6,7 +6,7 @@
  *
  */
 extern "C" {
-#include "phlex_gpu_solver.h"
+#include "camp_gpu_solver.h"
 #include "rxns_gpu.h"
 
 // Reaction types (Must match parameters defined in pmc_rxn_factory)

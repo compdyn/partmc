@@ -16,8 +16,8 @@ program pmc_test_first_order_loss
   use pmc_rxn_factory
   use pmc_mechanism_data
   use pmc_chem_spec_data
-  use pmc_phlex_core
-  use pmc_phlex_state
+  use pmc_camp_core
+  use pmc_camp_state
   use pmc_solver_stats
 #ifdef PMC_USE_JSON
   use json_module
@@ -53,20 +53,20 @@ contains
   !> Run all pmc_chem_mech_solver tests
   logical function run_first_order_loss_tests() result(passed)
 
-    use pmc_phlex_solver_data
+    use pmc_camp_solver_data
 
-    type(phlex_solver_data_t), pointer :: phlex_solver_data
+    type(camp_solver_data_t), pointer :: camp_solver_data
 
-    phlex_solver_data => phlex_solver_data_t()
+    camp_solver_data => camp_solver_data_t()
 
-    if (phlex_solver_data%is_solver_available()) then
+    if (camp_solver_data%is_solver_available()) then
       passed = run_first_order_loss_test()
     else
       call warn_msg(366534359, "No solver available")
       passed = .true.
     end if
 
-    deallocate(phlex_solver_data)
+    deallocate(camp_solver_data)
 
   end function run_first_order_loss_tests
 
@@ -84,8 +84,8 @@ contains
 
     use pmc_constants
 
-    type(phlex_core_t), pointer :: phlex_core
-    type(phlex_state_t), pointer :: phlex_state
+    type(camp_core_t), pointer :: camp_core
+    type(camp_state_t), pointer :: camp_state
     character(len=:), allocatable :: input_file_path, key, str_val
     type(string_t), allocatable, dimension(:) :: output_file_path
 
@@ -127,17 +127,17 @@ contains
       ! Get the first_order_loss reaction mechanism json file
       input_file_path = 'test_first_order_loss_config.json'
 
-      ! Construct a phlex_core variable
-      phlex_core => phlex_core_t(input_file_path)
+      ! Construct a camp_core variable
+      camp_core => camp_core_t(input_file_path)
 
       deallocate(input_file_path)
 
       ! Initialize the model
-      call phlex_core%initialize()
+      call camp_core%initialize()
 
       ! Find the mechanism
       key = "first order loss"
-      call assert(158978657, phlex_core%get_mechanism(key, mechanism))
+      call assert(158978657, camp_core%get_mechanism(key, mechanism))
 
       ! Find the A loss reaction
       key = "rxn id"
@@ -168,7 +168,7 @@ contains
       call assert(853755502, i_mech_rxn_B.eq.2)
 
       ! Get the chemical species data
-      call assert(533619613, phlex_core%get_chem_spec_data(chem_spec_data))
+      call assert(533619613, camp_core%get_chem_spec_data(chem_spec_data))
 
       ! Get species indices
       key = "A"
@@ -181,11 +181,11 @@ contains
       call assert(982892993, idx_B.gt.0)
 
 #ifdef PMC_USE_MPI
-      ! pack the phlex core
-      pack_size = phlex_core%pack_size()
+      ! pack the camp core
+      pack_size = camp_core%pack_size()
       allocate(buffer(pack_size))
       pos = 0
-      call phlex_core%bin_pack(buffer, pos)
+      call camp_core%bin_pack(buffer, pos)
       call assert(642579185, pos.eq.pack_size)
     end if
 
@@ -208,13 +208,13 @@ contains
 
     if (pmc_mpi_rank().eq.1) then
       ! unpack the data
-      phlex_core => phlex_core_t()
+      camp_core => camp_core_t()
       pos = 0
-      call phlex_core%bin_unpack(buffer, pos)
+      call camp_core%bin_unpack(buffer, pos)
       call assert(320136977, pos.eq.pack_size)
       allocate(buffer_copy(pack_size))
       pos = 0
-      call phlex_core%bin_pack(buffer_copy, pos)
+      call camp_core%bin_pack(buffer_copy, pos)
       call assert(356745163, pos.eq.pack_size)
       do i_elem = 1, pack_size
         call assert_msg(981439754, buffer(i_elem).eq.buffer_copy(i_elem), &
@@ -225,15 +225,15 @@ contains
 #endif
 
       ! Initialize the solver
-      call phlex_core%solver_initialize()
+      call camp_core%solver_initialize()
 
       ! Get a model state variable
-      phlex_state => phlex_core%new_state()
+      camp_state => camp_core%new_state()
 
       ! Set the environmental conditions
-      phlex_state%env_state%temp = temp
-      phlex_state%env_state%pressure = pressure
-      call phlex_state%update_env_state()
+      camp_state%env_state%temp = temp
+      camp_state%env_state%pressure = pressure
+      call camp_state%update_env_state()
 
       ! Save the initial concentrations
       true_conc(0,idx_A) = 1.0
@@ -241,15 +241,15 @@ contains
       model_conc(0,:) = true_conc(0,:)
 
       ! Set the initial concentrations in the model
-      phlex_state%state_var(:) = model_conc(0,:)
+      camp_state%state_var(:) = model_conc(0,:)
 
       ! Set the rxn B rate
       call rxn_factory%initialize_update_data(rate_update_A)
       call rxn_factory%initialize_update_data(rate_update_B)
       call rate_update_A%set_rate(i_rxn_A, rate_A)
       call rate_update_B%set_rate(i_rxn_B, rate_B)
-      call phlex_core%update_rxn_data(rate_update_A)
-      call phlex_core%update_rxn_data(rate_update_B)
+      call camp_core%update_rxn_data(rate_update_A)
+      call camp_core%update_rxn_data(rate_update_B)
 
 #ifdef PMC_DEBUG
       ! Evaluate the Jacobian during solving
@@ -260,9 +260,9 @@ contains
       do i_time = 1, NUM_TIME_STEP
 
         ! Get the modeled conc
-        call phlex_core%solve(phlex_state, time_step, &
+        call camp_core%solve(camp_state, time_step, &
                               solver_stats = solver_stats)
-        model_conc(i_time,:) = phlex_state%state_var(:)
+        model_conc(i_time,:) = camp_state%state_var(:)
 
 #ifdef PMC_DEBUG
         ! Check the Jacobian evaluations
@@ -304,7 +304,7 @@ contains
         end do
       end do
 
-      deallocate(phlex_state)
+      deallocate(camp_state)
 
 #ifdef PMC_USE_MPI
       ! convert the results to an integer
@@ -314,7 +314,7 @@ contains
         results = 1
       end if
     end if
-    
+
     ! Send the results back to the primary process
     call pmc_mpi_transfer_integer(results, results, 1, 0)
 
@@ -330,7 +330,7 @@ contains
     deallocate(buffer)
 #endif
 
-    deallocate(phlex_core)
+    deallocate(camp_core)
 
   end function run_first_order_loss_test
 

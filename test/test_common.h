@@ -8,7 +8,7 @@
 #ifndef PMC_TEST_COMMON_H
 #define PMC_TEST_COMMON_H
 
-#include "../src/phlex_common.h"
+#include "../src/camp_common.h"
 
 // Assert function
 #define ASSERT_MSG(y, z) pmc_assert(__func__, __LINE__, y, z);

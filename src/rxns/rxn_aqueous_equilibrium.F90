@@ -5,7 +5,7 @@
 !> \file
 !> The pmc_rxn_aqueous_equilibrium module.
 
-!> \page phlex_rxn_aqueous_equilibrium Phlexible Module for Chemistry: Aqueous-Phase Equilibrium
+!> \page camp_rxn_aqueous_equilibrium CAMP: Aqueous-Phase Equilibrium
 !!
 !! Aqueous equilibrium reactions are calculated as forward and reverse
 !! reactions. The reverse rate constant must be provided as part of the input
@@ -71,7 +71,7 @@ module pmc_rxn_aqueous_equilibrium
   use pmc_aero_rep_data
   use pmc_chem_spec_data
   use pmc_constants,                        only: const
-  use pmc_phlex_state
+  use pmc_camp_state
   use pmc_property
   use pmc_rxn_data
   use pmc_util,                             only: i_kind, dp, to_string, &
@@ -505,22 +505,4 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-#undef NUM_REACT_
-#undef NUM_PROD_
-#undef NUM_AERO_PHASE_
-#undef A_
-#undef C_
-#undef RATE_CONST_REVERSE_
-#undef RATE_CONST_FORWARD_
-#undef NUM_INT_PROP_
-#undef NUM_REAL_PROP_
-#undef REACT_
-#undef PROD_
-#undef WATER_
-#undef ACTIVITY_COEFF_
-#undef DERIV_ID_
-#undef JAC_ID_
-#undef MASS_FRAC_TO_M_
-#undef SMALL_WATER_CONC_
-#undef SMALL_CONC_
 end module pmc_rxn_aqueous_equilibrium

@@ -5,7 +5,7 @@
 !> \file
 !> The pmc_rxn_troe module.
 
-!> \page phlex_rxn_troe Phlexible Module for Chemistry: Troe Reaction
+!> \page camp_rxn_troe CAMP: Troe Reaction
 !!
 !! Troe (fall-off) reaction rate constant equations take the form:
 !!
@@ -18,7 +18,7 @@
 !! density of air (\f$10^6\f$ ppm), and \f$F_C\f$ and \f$N\f$ are parameters
 !! that determine the shape of the fall-off curve, and are typically 0.6 and
 !! 1.0, respectively \cite Finlayson-Pitts2000 \cite Gipson. \f$k_0\f$ and
-!! \f$k_{\inf}\f$ are calculated as \ref phlex_rxn_arrhenius "Arrhenius" rate
+!! \f$k_{\inf}\f$ are calculated as \ref camp_rxn_arrhenius "Arrhenius" rate
 !! constants with \f$D=300\f$ and \f$E=0\f$.
 !!
 !! Input data for Troe reactions have the following format :
@@ -52,7 +52,7 @@
 !! 1.0.
 !!
 !! The two sets of parameters beginning with \b k0_ and \b kinf_ are the
-!! \ref phlex_rxn_arrhenius "Arrhenius" parameters for the \f$k_0\f$ and
+!! \ref camp_rxn_arrhenius "Arrhenius" parameters for the \f$k_0\f$ and
 !! \f$k_{\inf}\f$ rate constants, respectively. When not present, \b _A
 !! parameters are assumed to be 1.0, \b _B to be 0.0, \b _C to be 0.0, \b Fc
 !! to be 0.6 and \b N to be 1.0.
@@ -69,7 +69,7 @@ module pmc_rxn_troe
   use pmc_aero_rep_data
   use pmc_chem_spec_data
   use pmc_constants,                        only: const
-  use pmc_phlex_state
+  use pmc_camp_state
   use pmc_property
   use pmc_rxn_data
   use pmc_util,                             only: i_kind, dp, to_string, &
@@ -316,24 +316,4 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-#undef NUM_REACT_
-#undef NUM_PROD_
-#undef K0_A_
-#undef K0_B_
-#undef K0_C_
-#undef KINF_A_
-#undef KINF_B_
-#undef KINF_C_
-#undef FC_
-#undef N_
-#undef SCALING_
-#undef CONV_
-#undef RATE_CONSTANT_
-#undef NUM_INT_PROP_
-#undef NUM_REAL_PROP_
-#undef REACT_
-#undef PROD_
-#undef DERIV_ID_
-#undef JAC_ID_
-#undef YIELD_
 end module pmc_rxn_troe

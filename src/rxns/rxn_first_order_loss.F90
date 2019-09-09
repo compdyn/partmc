@@ -5,7 +5,7 @@
 !> \file
 !> The pmc_rxn_first_order_loss module.
 
-!> \page phlex_rxn_first_order_loss Phlexible Module for Chemistry: First-Order Loss
+!> \page camp_rxn_first_order_loss CAMP: First-Order Loss
 !!
 !! First-Order Loss reactions take the form:
 !!
@@ -53,7 +53,7 @@ module pmc_rxn_first_order_loss
   use pmc_aero_rep_data
   use pmc_chem_spec_data
   use pmc_constants,                        only: const
-  use pmc_phlex_state
+  use pmc_camp_state
   use pmc_property
   use pmc_rxn_data
   use pmc_util,                             only: i_kind, dp, to_string, &

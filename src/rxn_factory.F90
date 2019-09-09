@@ -5,11 +5,11 @@
 !> \file
 !> The pmc_rxn_factory module.
 
-!> \page phlex_rxn_add Phlexible Module for Chemistry: Adding a Reaction Type
+!> \page camp_rxn_add CAMP: Adding a Reaction Type
 !!
 !! \b Note: these instructions are out-of-date. TODO update
 !!
-!! Adding a \ref phlex_rxn "reaction" to the \ref phlex_chem "phlex-chem"
+!! Adding a \ref camp_rxn "reaction" to the \ref camp_chem "camp-chem"
 !! module can be done in the following steps:
 !!
 !! ## Step 1. Create a new reaction module ##
@@ -135,10 +135,10 @@
 !! TODO finish...
 !!
 !! ## Usage ##
-!! The new \ref phlex_rxn "reaction type" is now ready to use. To include a
-!! reaction of this type in a \ref phlex_mechanism "mechanism", add a \ref
+!! The new \ref camp_rxn "reaction type" is now ready to use. To include a
+!! reaction of this type in a \ref camp_mechanism "mechanism", add a \ref
 !! input_format_rxn "reaction object" to a new or existing \ref
-!! input_format_phlex_config "phlex-chem configuration file" as part of a
+!! input_format_camp_config "camp-chem configuration file" as part of a
 !! \ref input_format_mechanism "mechanism object". The reaction should have a
 !! \b type corresponding to the newly created reaction type, along with any
 !! required parameters:

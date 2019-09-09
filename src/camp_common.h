@@ -8,8 +8,8 @@
 /** \file
  * \brief Header file for common constants and structures
 */
-#ifndef PHLEX_COMMON_H
-#define PHLEX_COMMON_H
+#ifndef CAMP_COMMON_H
+#define CAMP_COMMON_H
 
 /* SUNDIALS Header files with a description of contents used */
 #ifdef PMC_USE_SUNDIALS
@@ -42,11 +42,11 @@
 #endif
 
 /* Number of environmental parameters */
-#define PMC_NUM_ENV_PARAM_ 2 // !!! Must match the value in phlex_state.f90 !!!
+#define PMC_NUM_ENV_PARAM_ 2 // !!! Must match the value in camp_state.f90 !!!
 
 /* boolean definition */
 //CUDA/C++ already has bool definition: Avoid issues disabling it for GPU
-#ifndef PHLEX_GPU_SOLVER_H_
+#ifndef CAMP_GPU_SOLVER_H_
 typedef enum {false, true} bool;
 #endif
 

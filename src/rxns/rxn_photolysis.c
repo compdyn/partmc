@@ -19,7 +19,7 @@
 
 #define NUM_REACT_ int_data[0]
 #define NUM_PROD_ int_data[1]
-#define PHOTO_ID_ int_data[2]
+#define RXN_ID_ int_data[2]
 #define SCALING_ float_data[0]
 #define RATE_CONSTANT_ (rxn_env_data[0])
 #define BASE_RATE_ (rxn_env_data[1])
@@ -116,8 +116,10 @@ void rxn_photolysis_update_data(void *update_data, int *rxn_int_data,
   double *base_rate = (double*) &(photo_id[1]);
 
   // Set the base photolysis rate constants for matching reactions
-  if (*photo_id==PHOTO_ID_ && PHOTO_ID_!=0)
-          BASE_RATE_ = (double) *base_rate;
+  if (*photo_id==RXN_ID_ && RXN_ID_>0) {
+    BASE_RATE_ = (double) *base_rate;
+    RATE_CONSTANT_ = SCALING_ * BASE_RATE_;
+  }
 
   return;
 }

@@ -246,8 +246,12 @@ contains
       call rxn_factory%initialize_update_data(rate_update_A)
       call rxn_factory%initialize_update_data(rate_update_B)
       call rate_update_A%set_rate(i_rxn_A, rate_A)
-      call rate_update_B%set_rate(i_rxn_B, rate_B)
+      call rate_update_B%set_rate(i_rxn_B, 42.11d0)
       call camp_core%update_rxn_data(rate_update_A)
+      call camp_core%update_rxn_data(rate_update_B)
+
+      ! Test re-setting of the rxn B rate
+      call rate_update_B%set_rate(i_rxn_B, rate_B)
       call camp_core%update_rxn_data(rate_update_B)
 
 #ifdef PMC_DEBUG

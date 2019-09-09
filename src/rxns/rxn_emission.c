@@ -90,8 +90,10 @@ void rxn_emission_update_data(void *update_data, int *rxn_int_data,
   double *base_rate = (double*) &(rxn_id[1]);
 
   // Set the base emission rate for matching reactions
-  if (*rxn_id==RXN_ID_ && RXN_ID_!=0)
-          BASE_RATE_ = (double) *base_rate;
+  if (*rxn_id==RXN_ID_ && RXN_ID_>0) {
+    BASE_RATE_ = (double) *base_rate;
+    RATE_ = SCALING_ * BASE_RATE_;
+  }
 
   return;
 }

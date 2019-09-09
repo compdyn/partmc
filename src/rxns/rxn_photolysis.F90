@@ -23,7 +23,7 @@
 !! \c pmc_rxn_photolysis::rxn_photolysis_t::get_property_set() function during
 !! initilialization to access any needed reaction parameters to identify
 !! certain photolysis reactions. The
-!! \c pmc_rxn_photolysis::rxn_photolysis_t::set_photo_id() function should be
+!! \c pmc_rxn_photolysis::rxn_photolysis_t::generate_rxn_id() function should be
 !! used during initialization to set an integer id for a particular reaction
 !! that can be used during solving to update the photolysis rate from an
 !! external module.
@@ -77,7 +77,7 @@ module pmc_rxn_photolysis
 
 #define NUM_REACT_ this%condensed_data_int(1)
 #define NUM_PROD_ this%condensed_data_int(2)
-#define PHOTO_ID_ this%condensed_data_int(3)
+#define RXN_ID_ this%condensed_data_int(3)
 #define SCALING_ this%condensed_data_real(1)
 #define NUM_INT_PROP_ 3
 #define NUM_REAL_PROP_ 1
@@ -95,8 +95,8 @@ public :: rxn_photolysis_t, rxn_update_data_photolysis_rate_t
   contains
     !> Reaction initialization
     procedure :: initialize
-    !> Set the photo id for this reaction
-    procedure :: set_photo_id
+    !> Generate a reaction id for this reaction
+    procedure :: generate_rxn_id
     !> Get the reaction property set
     procedure :: get_property_set
     !> Finalize the reaction
@@ -138,7 +138,7 @@ public :: rxn_photolysis_t, rxn_update_data_photolysis_rate_t
       use iso_c_binding
       !> Update data
       type(c_ptr), value :: update_data
-      !> Photo id from pmc_rxn_photolysis::rxn_photolysis_t::set_photo_id
+      !> Photo id from pmc_rxn_photolysis::rxn_photolysis_t::generate_rxn_id
       integer(kind=c_int), value :: photo_id
       !> New pre-scaling base photolysis rate
       real(kind=c_double), value :: base_rate
@@ -296,22 +296,33 @@ contains
       i_spec = i_spec + 1
     end do
 
+    ! Initialize the reaction id
+    RXN_ID_ = -1
+
   end subroutine initialize
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Set an id for this reaction that can be used by an external photolysis
-  !! module to update the base (unscaled) rate constant during the model run.
-  subroutine set_photo_id(this, photo_id)
+  !> Generate an id for this reaction
+  !! This id can be used by an external module to update the base (un-scaled)
+  !! rate constant during the model run.
+  function generate_rxn_id(this) result(rxn_id)
 
+    use pmc_rand,                                only : generate_int_id
+
+    !> Reaction id
+    integer(kind=i_kind) :: rxn_id
     !> Reaction data
     class(rxn_photolysis_t), intent(inout) :: this
-    !> Photo id
-    integer(kind=i_kind), intent(in) :: photo_id
 
-    PHOTO_ID_ = photo_id
+    ! If a reaction id has not yet been generated, do it now
+    if (RXN_ID_.eq.-1) then
+      RXN_ID_ = generate_int_id()
+    endif
 
-  end subroutine set_photo_id
+    rxn_id = RXN_ID_
+
+  end function generate_rxn_id
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -351,7 +362,7 @@ contains
 
     !> Update data
     class(rxn_update_data_photolysis_rate_t), intent(inout) :: this
-    !> Photo id from pmc_rxn_photolysis::rxn_photolysis_t::set_photo_id
+    !> Photo id from pmc_rxn_photolysis::rxn_photolysis_t::generate_rxn_id
     integer(kind=i_kind), intent(in) :: photo_id
     !> Updated pre-scaling photolysis rate
     real(kind=dp), intent(in) :: base_rate

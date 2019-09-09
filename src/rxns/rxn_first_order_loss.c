@@ -96,8 +96,10 @@ void rxn_first_order_loss_update_data(void *update_data, int *rxn_int_data,
   double *base_rate = (double*) &(rxn_id[1]);
 
   // Set the base first-order loss rate constants for matching reactions
-  if (*rxn_id==RXN_ID_ && RXN_ID_!=0)
-          BASE_RATE_ = (double) *base_rate;
+  if (*rxn_id==RXN_ID_ && RXN_ID_>0) {
+    BASE_RATE_ = (double) *base_rate;
+    RATE_CONSTANT_ = SCALING_ * BASE_RATE_;
+  }
 
   return;
 }
@@ -176,7 +178,7 @@ void rxn_first_order_loss_calc_jac_contrib(ModelData *model_data,
   double *env_data = model_data->grid_cell_env;
 
   // Add contributions to the Jacobian
-  if (JAC_ID_ >= 0) J[JAC_ID_] -= RATE_CONSTANT_; 
+  if (JAC_ID_ >= 0) J[JAC_ID_] -= RATE_CONSTANT_;
 
   return;
 

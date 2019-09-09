@@ -103,8 +103,10 @@ void rxn_wet_deposition_update_data(void *update_data, int *rxn_int_data,
   double *base_rate = (double*) &(rxn_id[1]);
 
   // Set the base wet deposition rate constants for matching reactions
-  if (*rxn_id==RXN_ID_ && RXN_ID_!=0)
-          BASE_RATE_ = (double) *base_rate;
+  if (*rxn_id==RXN_ID_ && RXN_ID_>0) {
+    BASE_RATE_ = (double) *base_rate;
+    RATE_CONSTANT_ = SCALING_ * BASE_RATE_;
+  }
 
   return;
 }

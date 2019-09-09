@@ -23,7 +23,7 @@
 !! \c pmc_rxn_wet_deposition::rxn_wet_deposition_t::get_property_set()
 !! function during initilialization to access any needed reaction parameters
 !! to identify certain wet deposition reactions. The
-!! \c pmc_rxn_wet_deposition::rxn_wet_deposition_t::set_rxn_id() function
+!! \c pmc_rxn_wet_deposition::rxn_wet_deposition_t::generate_rxn_id() function
 !! can be used during initialization to set an integer id for a particular
 !! reaction that can be used during solving to update the wet deposition
 !! rate from an external module.
@@ -84,8 +84,8 @@ public :: rxn_wet_deposition_t, rxn_update_data_wet_deposition_rate_t
   contains
     !> Reaction initialization
     procedure :: initialize
-    !> Set the reaction id for this reaction
-    procedure :: set_rxn_id
+    !> Generate a reaction id for this reaction
+    procedure :: generate_rxn_id
     !> Get the reaction property set
     procedure :: get_property_set
     !> Finalize the reaction
@@ -127,7 +127,7 @@ public :: rxn_wet_deposition_t, rxn_update_data_wet_deposition_rate_t
       use iso_c_binding
       !> Update data
       type(c_ptr), value :: update_data
-      !> Reaction id from pmc_rxn_wet_deposition::rxn_wet_deposition_t::set_rxn_id
+      !> Reaction id from pmc_rxn_wet_deposition::rxn_wet_deposition_t::generate_rxn_id
       integer(kind=c_int), value :: rxn_id
       !> New pre-scaling base wet_deposition rate
       real(kind=c_double), value :: base_rate
@@ -241,22 +241,33 @@ contains
     end do
     call assert(312643342, i_spec .eq. NUM_SPEC_)
 
+    ! Initialize the reaction id
+    RXN_ID_ = -1
+
   end subroutine initialize
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Set an id for this reaction that can be used by an external
-  !! module to update the base (unscaled) rate constant during the model run.
-  subroutine set_rxn_id(this, rxn_id)
+  !> Generate an id for this reaction
+  !! This id can be used by an external module to update the base (un-scaled)
+  !! rate constant during the model run.
+  function generate_rxn_id(this) result(rxn_id)
 
+    use pmc_rand,                                only : generate_int_id
+
+    !> Reaction id
+    integer(kind=i_kind) :: rxn_id
     !> Reaction data
     class(rxn_wet_deposition_t), intent(inout) :: this
-    !> Reaction id
-    integer(kind=i_kind), intent(in) :: rxn_id
 
-    RXN_ID_ = rxn_id
+    ! If a reaction id has not yet been generated, do it now
+    if (RXN_ID_.eq.-1) then
+      RXN_ID_ = generate_int_id()
+    endif
 
-  end subroutine set_rxn_id
+    rxn_id = RXN_ID_
+
+  end function generate_rxn_id
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -297,7 +308,7 @@ contains
     !> Update data
     class(rxn_update_data_wet_deposition_rate_t), intent(inout) :: this
     !> Reaction id from
-    !! \c pmc_rxn_wet_deposition::rxn_wet_deposition_t::set_rxn_id
+    !! \c pmc_rxn_wet_deposition::rxn_wet_deposition_t::generate_rxn_id
     integer(kind=i_kind), intent(in) :: rxn_id
     !> Updated pre-scaling wet_deposition rate
     real(kind=dp), intent(in) :: base_rate

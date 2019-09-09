@@ -121,6 +121,7 @@ contains
     temp = 272.5d0
     pressure = 101253.3d0
     rate_rain = 0.954d0
+    rate_cloud = 1.0d-2
     k_rain = rate_rain
     k_cloud = rate_cloud * 12.3d0
 
@@ -149,8 +150,6 @@ contains
 
       ! Find the A wet_deposition reaction
       key = "rxn id"
-      i_rxn_rain = 342
-      i_rxn_cloud = 9240
       i_mech_rxn_rain = 0
       i_mech_rxn_cloud = 0
       do i_rxn = 1, mechanism%size()
@@ -160,14 +159,14 @@ contains
             i_mech_rxn_rain = i_rxn
             select type (rxn_loss => rxn)
               class is (rxn_wet_deposition_t)
-                call rxn_loss%set_rxn_id(i_rxn_rain)
+                i_rxn_rain = rxn_loss%generate_rxn_id()
             end select
           end if
           if (trim(str_val).eq."rxn cloud") then
             i_mech_rxn_cloud = i_rxn
             select type (rxn_loss => rxn)
               class is (rxn_wet_deposition_t)
-                call rxn_loss%set_rxn_id(i_rxn_cloud)
+                i_rxn_cloud = rxn_loss%generate_rxn_id()
             end select
           end if
         end if
@@ -324,8 +323,12 @@ contains
       call rxn_factory%initialize_update_data(rate_update_rain)
       call rxn_factory%initialize_update_data(rate_update_cloud)
       call rate_update_rain%set_rate(i_rxn_rain, rate_rain)
-      call rate_update_cloud%set_rate(i_rxn_cloud, rate_cloud)
+      call rate_update_cloud%set_rate(i_rxn_cloud, 43912.5d0)
       call camp_core%update_rxn_data(rate_update_rain)
+      call camp_core%update_rxn_data(rate_update_cloud)
+
+      ! Test re-setting of the rxn B rate
+      call rate_update_cloud%set_rate(i_rxn_cloud, rate_cloud)
       call camp_core%update_rxn_data(rate_update_cloud)
 
 #ifdef PMC_DEBUG

@@ -113,6 +113,7 @@ contains
     temp = 272.5d0
     pressure = 101253.3d0
     rate_A = 0.954d0
+    rate_B = 1.0d-2
     k1 = rate_A
     k2 = rate_B * 12.3d0
 
@@ -141,8 +142,6 @@ contains
 
       ! Find the A loss reaction
       key = "rxn id"
-      i_rxn_A = 342
-      i_rxn_B = 9240
       i_mech_rxn_A = 0
       i_mech_rxn_B = 0
       do i_rxn = 1, mechanism%size()
@@ -152,14 +151,14 @@ contains
             i_mech_rxn_A = i_rxn
             select type (rxn_loss => rxn)
               class is (rxn_first_order_loss_t)
-                call rxn_loss%set_rxn_id(i_rxn_A)
+                i_rxn_A = rxn_loss%generate_rxn_id()
             end select
           end if
           if (trim(str_val).eq."rxn B") then
             i_mech_rxn_B = i_rxn
             select type (rxn_loss => rxn)
               class is (rxn_first_order_loss_t)
-                call rxn_loss%set_rxn_id(i_rxn_B)
+                i_rxn_B = rxn_loss%generate_rxn_id()
             end select
           end if
         end if
@@ -243,12 +242,16 @@ contains
       ! Set the initial concentrations in the model
       camp_state%state_var(:) = model_conc(0,:)
 
-      ! Set the rxn B rate
+      ! Set the rxn rates
       call rxn_factory%initialize_update_data(rate_update_A)
       call rxn_factory%initialize_update_data(rate_update_B)
       call rate_update_A%set_rate(i_rxn_A, rate_A)
-      call rate_update_B%set_rate(i_rxn_B, rate_B)
+      call rate_update_B%set_rate(i_rxn_B, 432.3d0)
       call camp_core%update_rxn_data(rate_update_A)
+      call camp_core%update_rxn_data(rate_update_B)
+
+      ! Test re-setting of the rxn B rate
+      call rate_update_B%set_rate(i_rxn_B, rate_B)
       call camp_core%update_rxn_data(rate_update_B)
 
 #ifdef PMC_DEBUG

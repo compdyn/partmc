@@ -191,6 +191,8 @@ contains
     ! Variables to set photolysis rates
     type(rxn_factory_t) :: rxn_factory
     type(rxn_update_data_photolysis_rate_t) :: rate_update
+    integer(kind=i_kind), allocatable :: rxn_ids(:)
+    integer(kind=i_kind) :: i_rxn_jo2
 
     ! Arrays to hold starting concentrations
     real(kind=dp), allocatable :: ebi_init(:), kpp_init(:), camp_init(:)
@@ -281,6 +283,8 @@ contains
     call assert(418262750, camp_core%get_mechanism(key, mechanism))
 
     ! Set the photolysis rate ids
+    allocate(rxn_ids(mechanism%size()))
+    rxn_ids(:) = -1
     key = "rxn id"
     do i_rxn = 1, mechanism%size()
       rxn => mechanism%get_rxn(i_rxn)
@@ -289,9 +293,9 @@ contains
         call assert(265614917, rxn%property_set%get_string(key, string_val))
         if (trim(string_val).eq."jo2") then
           ! Set O2 + hv rate constant to 0 (not present in ebi version)
-          call rxn%set_photo_id(0)
+          i_rxn_jo2 = rxn%generate_rxn_id()
         else
-          call rxn%set_photo_id(1)
+          rxn_ids(i_rxn) = rxn%generate_rxn_id()
         end if
       end select
     end do
@@ -342,8 +346,15 @@ contains
     KPP_PHOTO_RATES(1) = 0.0
     ! Set the camp-chem photolysis rate constants
     call rxn_factory%initialize_update_data(rate_update)
-    call rate_update%set_rate(1, real(0.0001, kind=dp))
+    ! Set the O2 + hv rate constant to 0 (not present in ebi version)
+    call rate_update%set_rate(i_rxn_jo2, real(0.0, kind=dp))
     call camp_core%update_rxn_data(rate_update)
+    ! Set the remaining rates
+    do i_rxn = 1, size(rxn_ids)
+      if (rxn_ids(i_rxn).eq.-1) continue
+      call rate_update%set_rate(rxn_ids(i_rxn), real(0.0001, kind=dp))
+      call camp_core%update_rxn_data(rate_update)
+    end do
 
     ! Make sure the right number of reactions is present
     ! (KPP includes two Cl rxns with rate constants set to zero that are not
@@ -652,6 +663,7 @@ contains
     close(CAMP_FILE_UNIT)
 
     deallocate(photo_rates)
+    deallocate(rxn_ids)
     deallocate(camp_spec_names)
     deallocate(ebi_rxn_map)
     deallocate(kpp_rxn_map)

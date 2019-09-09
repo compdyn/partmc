@@ -111,6 +111,7 @@ contains
     temp = 272.5d0
     pressure = 101253.3d0
     photo_rate_A = 0.954d0
+    photo_rate_B = 1.0d-2
     k1 = photo_rate_A
     k2 = photo_rate_B * 12.3d0
 
@@ -139,8 +140,6 @@ contains
 
       ! Find the photo A reaction
       key = "photo id"
-      i_photo_A = 342
-      i_photo_B = 9240
       i_rxn_photo_A = 0
       i_rxn_photo_B = 0
       do i_rxn = 1, mechanism%size()
@@ -150,14 +149,14 @@ contains
             i_rxn_photo_A = i_rxn
             select type (rxn_photo => rxn)
               class is (rxn_photolysis_t)
-                call rxn_photo%set_photo_id(i_photo_A)
+                i_photo_A = rxn_photo%generate_rxn_id()
             end select
           end if
           if (trim(str_val).eq."photo B") then
             i_rxn_photo_B = i_rxn
             select type (rxn_photo => rxn)
               class is (rxn_photolysis_t)
-                call rxn_photo%set_photo_id(i_photo_B)
+                i_photo_B = rxn_photo%generate_rxn_id()
             end select
           end if
         end if
@@ -250,8 +249,12 @@ contains
       call rxn_factory%initialize_update_data(rate_update_A)
       call rxn_factory%initialize_update_data(rate_update_B)
       call rate_update_A%set_rate(i_photo_A, photo_rate_A)
-      call rate_update_B%set_rate(i_photo_B, photo_rate_B)
+      call rate_update_B%set_rate(i_photo_B, 924.9d0)
       call camp_core%update_rxn_data(rate_update_A)
+      call camp_core%update_rxn_data(rate_update_B)
+
+      ! Test re-setting of the rxn B rate
+      call rate_update_B%set_rate(i_photo_B, photo_rate_B)
       call camp_core%update_rxn_data(rate_update_B)
 
 #ifdef PMC_DEBUG

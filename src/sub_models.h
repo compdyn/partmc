@@ -9,7 +9,7 @@
  */
 #ifndef SUB_MODELS_H
 #define SUB_MODELS_H
-#include "phlex_common.h"
+#include "camp_common.h"
 
 // PD-FiTE activity
 void sub_model_PDFiTE_get_used_jac_elem(

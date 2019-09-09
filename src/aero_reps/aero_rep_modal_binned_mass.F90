@@ -5,11 +5,11 @@
 !> \file
 !> The pmc_aero_rep_modal_binned_mass module.
 
-!> \page phlex_aero_rep_modal_binned_mass Phlexible Module for Chemistry: Modal/Binned Mass Aerosol Representation
+!> \page camp_aero_rep_modal_binned_mass CAMP: Modal/Binned Mass Aerosol Representation
 !!
 !! The modal/binned mass aerosol representation includes a set of sections/bins
-!! that are made up of one or more \ref phlex_aero_phase "aerosol phases." The
-!! \c json object for this \ref phlex_aero_rep "aerosol representation" has the
+!! that are made up of one or more \ref camp_aero_phase "aerosol phases." The
+!! \c json object for this \ref camp_aero_rep "aerosol representation" has the
 !! following format:
 !! \code{.json}
 !!  { "pmc-data" : [
@@ -43,7 +43,7 @@
 !! required and must contain a set of at least one uniquely named mode or
 !! bin-set key-value pair whose value(s) specify a \b type that must be either
 !! \b MODAL or \b BINNED and an array of \b phases that correspond to existing
-!! \ref phlex_aero_phase "aerosol phase" objects. Each phase will be present
+!! \ref camp_aero_phase "aerosol phase" objects. Each phase will be present
 !! once within a mode or once within each bin in a bin-set.
 !!
 !! Modes must also specify a distribution \b shape which must be \b LOG_NORMAL
@@ -68,7 +68,7 @@ module pmc_aero_rep_modal_binned_mass
   use pmc_aero_phase_data
   use pmc_aero_rep_data
   use pmc_chem_spec_data
-  use pmc_phlex_state
+  use pmc_camp_state
   use pmc_property
   use pmc_util,                               only: dp, i_kind, &
                                                     string_t, assert_msg, &
@@ -152,7 +152,7 @@ module pmc_aero_rep_modal_binned_mass
     !! use with updates from external modules
     procedure :: get_section_id
     !> Get the size of the section of the
-    !! \c pmc_phlex_state::phlex_state_t::state_var array required for this
+    !! \c pmc_camp_state::camp_state_t::state_var array required for this
     !! aerosol representation.
     !!
     !! For a modal/binned mass representation, the size will correspond to the
@@ -160,7 +160,7 @@ module pmc_aero_rep_modal_binned_mass
     !! provided to \c aero_rep_modal_binned_mass::initialize()
     procedure :: size => get_size
     !> Get a list of unique names for each element on the
-    !! \c pmc_phlex_state::phlex_state_t::state_var array for this aerosol
+    !! \c pmc_camp_state::camp_state_t::state_var array for this aerosol
     !! representation. The list may be restricted to a particular phase and/or
     !! aerosol species by including the phase_name and spec_name arguments.
     !!
@@ -170,16 +170,16 @@ module pmc_aero_rep_modal_binned_mass
     !! ... and for modes are:
     !!   - "mode name.phase name.species name"
     procedure :: unique_names
-    !> Get a species id on the \c pmc_phlex_state::phlex_state_t::state_var
+    !> Get a species id on the \c pmc_camp_state::camp_state_t::state_var
     !! array by its unique name. These are unique ids for each element on the
-    !! state array for this \ref phlex_aero_rep "aerosol representation" and
+    !! state array for this \ref camp_aero_rep "aerosol representation" and
     !! are numbered:
     !!
     !!   \f[x_u \in x_f ... (x_f+n-1)\f]
     !!
     !! where \f$x_u\f$ is the id of the element corresponding to the species
     !! with unique name \f$u\f$ on the \c
-    !! pmc_phlex_state::phlex_state_t::state_var array, \f$x_f\f$ is the index
+    !! pmc_camp_state::camp_state_t::state_var array, \f$x_f\f$ is the index
     !! of the first element for this aerosol representation on the state array
     !! and \f$n\f$ is the total number of variables on the state array from
     !! this aerosol representation.
@@ -684,7 +684,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Get the size of the section of the
-  !! \c pmc_phlex_state::phlex_state_t::state_var array required for this
+  !! \c pmc_camp_state::camp_state_t::state_var array required for this
   !! aerosol representation.
   !!
   !! For a modal/binned mass representation, the size will correspond to the
@@ -710,7 +710,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Get a list of unique names for each element on the
-  !! \c pmc_phlex_state::phlex_state_t::state_var array for this aerosol
+  !! \c pmc_camp_state::camp_state_t::state_var array for this aerosol
   !! representation. The list may be restricted to a particular phase and/or
   !! aerosol species by including the phase_name and spec_name arguments.
   !!
@@ -847,16 +847,16 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Get a species id on the \c pmc_phlex_state::phlex_state_t::state_var
+  !> Get a species id on the \c pmc_camp_state::camp_state_t::state_var
   !! array by its unique name. These are unique ids for each element on the
-  !! state array for this \ref phlex_aero_rep "aerosol representation" and
+  !! state array for this \ref camp_aero_rep "aerosol representation" and
   !! are numbered:
   !!
   !!   \f[x_u \in x_f ... (x_f+n-1)\f]
   !!
   !! where \f$x_u\f$ is the id of the element corresponding to the species
   !! with unique name \f$u\f$ on the \c
-  !! pmc_phlex_state::phlex_state_t::state_var array, \f$x_f\f$ is the index
+  !! pmc_camp_state::camp_state_t::state_var array, \f$x_f\f$ is the index
   !! of the first element for this aerosol representation on the state array
   !! and \f$n\f$ is the total number of variables on the state array from
   !! this aerosol representation.

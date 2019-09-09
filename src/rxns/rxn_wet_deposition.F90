@@ -5,7 +5,7 @@
 !> \file
 !> The pmc_rxn_wet_deposition module.
 
-!> \page phlex_rxn_wet_deposition Phlexible Module for Chemistry: Wet Deposition
+!> \page camp_rxn_wet_deposition CAMP: Wet Deposition
 !!
 !! Wet Deposition reactions take the form:
 !!
@@ -55,7 +55,7 @@ module pmc_rxn_wet_deposition
   use pmc_aero_rep_data
   use pmc_chem_spec_data
   use pmc_constants,                        only: const
-  use pmc_phlex_state
+  use pmc_camp_state
   use pmc_property
   use pmc_rxn_data
   use pmc_util,                             only: i_kind, dp, string_t, &

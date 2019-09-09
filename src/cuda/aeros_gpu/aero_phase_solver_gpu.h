@@ -10,7 +10,7 @@
  */
 #ifndef AERO_PHASE_SOLVER_H
 #define AERO_PHASE_SOLVER_H
-#include "../phlex_gpu_solver.h"
+#include "../camp_gpu_solver.h"
 
 /* Public aerosol phase functions*/
 

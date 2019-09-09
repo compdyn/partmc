@@ -6,16 +6,16 @@
 !> The pmc_test_cb05cl_ae5 program
 
 !> Test for the cb05cl_ae5 mechanism from MONARCH. This program runs the
-!! MONARCH CB5 code and the Phlex-chem version and compares the output.
+!! MONARCH CB5 code and the CAMP-chem version and compares the output.
 program pmc_test_cb05cl_ae5
 
   use pmc_constants,                    only: const
   use pmc_util,                         only: i_kind, dp, assert, assert_msg, &
                                               almost_equal, string_t, &
                                               to_string, warn_assert_msg
-  use pmc_phlex_core
-  use pmc_phlex_state
-  use pmc_phlex_solver_data
+  use pmc_camp_core
+  use pmc_camp_state
+  use pmc_camp_solver_data
   use pmc_solver_stats
   use pmc_chem_spec_data
   use pmc_mechanism_data
@@ -38,8 +38,8 @@ program pmc_test_cb05cl_ae5
   integer(kind=i_kind), parameter :: EBI_FILE_UNIT = 10
   ! KPP solver output file unit
   integer(kind=i_kind), parameter :: KPP_FILE_UNIT = 11
-  ! Phlex-chem output file unit
-  integer(kind=i_kind), parameter :: PHLEX_FILE_UNIT = 12
+  ! CAMP-chem output file unit
+  integer(kind=i_kind), parameter :: CAMP_FILE_UNIT = 12
   ! Number of timesteps to integrate over
   integer(kind=i_kind), parameter :: NUM_TIME_STEPS = 100
   ! Number of EBI-solver species
@@ -49,7 +49,7 @@ program pmc_test_cb05cl_ae5
   ! Small number for minimum concentrations
   real(kind=dp), parameter :: SMALL_NUM = 1.0d-30
   ! Used to check availability of a solver
-  type(phlex_solver_data_t), pointer :: phlex_solver_data
+  type(camp_solver_data_t), pointer :: camp_solver_data
 
 #ifdef DEBUG
   integer(kind=i_kind), parameter :: DEBUG_UNIT = 13
@@ -57,9 +57,9 @@ program pmc_test_cb05cl_ae5
   open(unit=DEBUG_UNIT, file="out/debug_cb05cl_ae.txt", status="replace", action="write")
 #endif
 
-  phlex_solver_data => phlex_solver_data_t()
+  camp_solver_data => camp_solver_data_t()
 
-  if (.not.phlex_solver_data%is_solver_available()) then
+  if (.not.camp_solver_data%is_solver_available()) then
     write(*,*) "CB5 mechanism test - no solver available - PASS"
   else if (run_cb05cl_ae5_tests()) then
     write(*,*) "CB5 mechanism tests - PASS"
@@ -67,7 +67,7 @@ program pmc_test_cb05cl_ae5
     write(*,*) "CB5 mechanism tests - FAIL"
   end if
 
-  deallocate(phlex_solver_data)
+  deallocate(camp_solver_data)
 
 #ifdef DEBUG
   close(DEBUG_UNIT)
@@ -87,7 +87,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Run the cb05cl_ae5 mechanism under standard conditions using the original
-  !! MONARCH ebi-solver code, the KPP CB5 module and the Phlex-chem version
+  !! MONARCH ebi-solver code, the KPP CB5 module and the CAMP-chem version
   logical function run_standard_cb05cl_ae5_test() result(passed)
 
     ! EBI Solver
@@ -145,25 +145,25 @@ contains
     ! Pressure (atm)
     real :: pressure = 0.8
     ! Water vapor concentration (ppmV)
-    real :: water_conc = 0.0 ! (Set by Phlex-chem initial concentration)
+    real :: water_conc = 0.0 ! (Set by CAMP-chem initial concentration)
 
-    ! Phlex-chem core
-    type(phlex_core_t), pointer :: phlex_core
-    ! Phlex-chem state
-    type(phlex_state_t), pointer :: phlex_state, phlex_state_comp
-    ! Phlex-chem species names
-    type(string_t), allocatable :: phlex_spec_names(:)
-    ! EBI -> Phlex-chem species map
+    ! CAMP-chem core
+    type(camp_core_t), pointer :: camp_core
+    ! CAMP-chem state
+    type(camp_state_t), pointer :: camp_state, camp_state_comp
+    ! CAMP-chem species names
+    type(string_t), allocatable :: camp_spec_names(:)
+    ! EBI -> CAMP-chem species map
     integer(kind=i_kind), dimension(NUM_EBI_SPEC) :: spec_map
 
     ! Computation timer variables
-    real(kind=dp) :: comp_start, comp_end, comp_ebi, comp_kpp, comp_phlex
+    real(kind=dp) :: comp_start, comp_end, comp_ebi, comp_kpp, comp_camp
 
     type(chem_spec_data_t), pointer :: chem_spec_data
     class(rxn_data_t), pointer :: rxn
     type(property_t), pointer :: prop_set
-    character(len=:), allocatable :: key, spec_name, string_val, phlex_input_file
-    real(kind=dp) :: real_val, phlex_rate, phlex_rate_const
+    character(len=:), allocatable :: key, spec_name, string_val, camp_input_file
+    real(kind=dp) :: real_val, camp_rate, camp_rate_const
     integer(kind=i_kind) :: i_spec, j_spec, i_rxn, i_ebi_rxn, i_kpp_rxn, &
             i_time, i_repeat, n_gas_spec
 
@@ -182,7 +182,7 @@ contains
     type(rxn_update_data_photolysis_rate_t) :: rate_update
 
     ! Arrays to hold starting concentrations
-    real(kind=dp), allocatable :: ebi_init(:), kpp_init(:), phlex_init(:)
+    real(kind=dp), allocatable :: ebi_init(:), kpp_init(:), camp_init(:)
 
     ! D
     passed = .false.
@@ -249,19 +249,19 @@ contains
 
 
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    !!! Initialize phlex-chem !!!
+    !!! Initialize camp-chem !!!
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     call cpu_time(comp_start)
-    phlex_input_file = "config_cb05cl_ae5.json"
-    phlex_core => phlex_core_t(phlex_input_file)
+    camp_input_file = "config_cb05cl_ae5.json"
+    camp_core => camp_core_t(camp_input_file)
 
     ! Initialize the model
-    call phlex_core%initialize()
+    call camp_core%initialize()
 
     ! Find the CB5 mechanism
     key = "cb05cl_ae5"
-    call assert(418262750, phlex_core%get_mechanism(key, mechanism))
+    call assert(418262750, camp_core%get_mechanism(key, mechanism))
 
     ! Set the photolysis rate ids
     key = "rxn id"
@@ -280,27 +280,27 @@ contains
     end do
 
     ! Initialize the solver
-    call phlex_core%solver_initialize()
+    call camp_core%solver_initialize()
 
     ! Get an new state variable
-    phlex_state => phlex_core%new_state()
+    camp_state => camp_core%new_state()
 
     ! Set the environmental conditions
-    phlex_state%env_state%temp = temperature
-    phlex_state%env_state%pressure = pressure * const%air_std_press
-    call phlex_state%update_env_state()
+    camp_state%env_state%temp = temperature
+    camp_state%env_state%pressure = pressure * const%air_std_press
+    call camp_state%update_env_state()
 
     call cpu_time(comp_end)
-    write(*,*) "Phlex-chem initialization time: ", comp_end-comp_start," s"
+    write(*,*) "CAMP-chem initialization time: ", comp_end-comp_start," s"
 
-    ! Get a phlex-state for rate comparisons
-    phlex_state_comp => phlex_core%new_state()
-    phlex_state_comp%env_state%temp = phlex_state%env_state%temp
-    phlex_state_comp%env_state%pressure = phlex_state%env_state%pressure
-    call phlex_state_comp%update_env_state()
+    ! Get a camp-state for rate comparisons
+    camp_state_comp => camp_core%new_state()
+    camp_state_comp%env_state%temp = camp_state%env_state%temp
+    camp_state_comp%env_state%pressure = camp_state%env_state%pressure
+    call camp_state_comp%update_env_state()
 
     ! Get the chemical species data
-    call assert(298481296, phlex_core%get_chem_spec_data(chem_spec_data))
+    call assert(298481296, camp_core%get_chem_spec_data(chem_spec_data))
 
     ! Find the constant species in the CB5 mechanism
     spec_name = "M"
@@ -323,28 +323,28 @@ contains
     KPP_PHOTO_RATES(:) = 0.0001
     ! Set O2 + hv rate constant to 0 in KPP (not present in ebi version)
     KPP_PHOTO_RATES(1) = 0.0
-    ! Set the phlex-chem photolysis rate constants
+    ! Set the camp-chem photolysis rate constants
     call rxn_factory%initialize_update_data(rate_update)
     call rate_update%set_rate(1, real(0.0001, kind=dp))
-    call phlex_core%update_rxn_data(rate_update)
+    call camp_core%update_rxn_data(rate_update)
 
     ! Make sure the right number of reactions is present
     ! (KPP includes two Cl rxns with rate constants set to zero that are not
-    !  present in phlex-chem)
+    !  present in camp-chem)
     call assert_msg(396732632, mechanism%size().eq.186, &
-            "Wrong number of phlex-chem reactions: "// &
+            "Wrong number of camp-chem reactions: "// &
             trim(to_string(mechanism%size())))
 
     ! Set the initial concentrations
     key = "init conc"
     YC(:) = 0.0
     KPP_C(:) = 0.0
-    phlex_state%state_var(:) = 0.0
+    camp_state%state_var(:) = 0.0
 
     ! Set the initial concentrations in each module
     do i_spec = 1, NUM_EBI_SPEC
 
-      ! Get initial concentrations from phlex-chem input data
+      ! Get initial concentrations from camp-chem input data
       call assert(787326679, chem_spec_data%get_property_set( &
               ebi_spec_names(i_spec)%string, prop_set))
       if (prop_set%get_real(key, real_val)) then
@@ -352,13 +352,13 @@ contains
         ! Set the EBI solver concetration (ppm)
         YC(i_spec) = real_val
 
-        ! Set the phlex-chem concetration (ppm)
-        phlex_state%state_var( &
+        ! Set the camp-chem concetration (ppm)
+        camp_state%state_var( &
                 chem_spec_data%gas_state_id( &
                 ebi_spec_names(i_spec)%string)) = real_val
 #ifdef DEBUG
         write(DEBUG_UNIT,*) "Species ", ebi_spec_names(i_spec)%string, &
-                ", Phlex-chem id: ", chem_spec_data%gas_state_id( &
+                ", CAMP-chem id: ", chem_spec_data%gas_state_id( &
                 ebi_spec_names(i_spec)%string), ", init conc: ", real_val
       else
         write(DEBUG_UNIT,*) "No initial concentration for species ", &
@@ -374,18 +374,18 @@ contains
       end do
     end do
 
-    ! Set EBI solver constant species concentrations in Phlex-chem
+    ! Set EBI solver constant species concentrations in CAMP-chem
     spec_name = "M"
     call assert(273497194, chem_spec_data%get_property_set(spec_name, prop_set))
     call assert(740666066, associated(prop_set))
     call assert(907464197, prop_set%get_real(key, real_val))
-    phlex_state%state_var(i_M) = real_val
+    camp_state%state_var(i_M) = real_val
     KPP_M = real_val / conv
     spec_name = "O2"
     call assert(557877977, chem_spec_data%get_property_set(spec_name, prop_set))
     call assert(729136508, associated(prop_set))
     call assert(223930103, prop_set%get_real(key, real_val))
-    phlex_state%state_var(i_O2) = real_val
+    camp_state%state_var(i_O2) = real_val
     KPP_O2 = real_val / conv
     KPP_C(KPP_IND_O2) = real_val / conv
     ! KPP has variable O2 concentration
@@ -398,19 +398,19 @@ contains
     call assert(329882514, chem_spec_data%get_property_set(spec_name, prop_set))
     call assert(553715297, associated(prop_set))
     call assert(666033642, prop_set%get_real(key, real_val))
-    phlex_state%state_var(i_N2) = real_val
+    camp_state%state_var(i_N2) = real_val
     KPP_N2 = real_val / conv
     spec_name = "H2O"
     call assert(101887051, chem_spec_data%get_property_set(spec_name, prop_set))
     call assert(160827237, associated(prop_set))
     call assert(273145582, prop_set%get_real(key, real_val))
-    phlex_state%state_var(i_H2O) = real_val
+    camp_state%state_var(i_H2O) = real_val
     KPP_H2O = real_val / conv
     spec_name = "CH4"
     call assert(208941089, chem_spec_data%get_property_set(spec_name, prop_set))
     call assert(667939176, associated(prop_set))
     call assert(780257521, prop_set%get_real(key, real_val))
-    phlex_state%state_var(i_CH4) = real_val
+    camp_state%state_var(i_CH4) = real_val
     KPP_CH4 = real_val / conv
     ! KPP has variable CH4 concentration
     do j_spec = 1, KPP_NSPEC
@@ -422,21 +422,21 @@ contains
     call assert(663478776, chem_spec_data%get_property_set(spec_name, prop_set))
     call assert(892575866, associated(prop_set))
     call assert(722418962, prop_set%get_real(key, real_val))
-    phlex_state%state_var(i_H2) = real_val
+    camp_state%state_var(i_H2) = real_val
     KPP_H2 = real_val / conv
 
     ! Set the water concentration for EBI solver (ppmV)
-    water_conc = phlex_state%state_var(i_H2O)
+    water_conc = camp_state%state_var(i_H2O)
 
 #ifdef DEBUG
-    call phlex_core%print(DEBUG_UNIT)
+    call camp_core%print(DEBUG_UNIT)
     write(DEBUG_UNIT,*) "*** Constant species concentrations ***"
-    write(DEBUG_UNIT,*) "[M] = ", phlex_state%state_var(i_M), i_M
-    write(DEBUG_UNIT,*) "[O2] = ", phlex_state%state_var(i_O2), i_O2
-    write(DEBUG_UNIT,*) "[N2] = ", phlex_state%state_var(i_N2), i_N2
-    write(DEBUG_UNIT,*) "[H2O] = ", phlex_state%state_var(i_H2O), i_H2O
-    write(DEBUG_UNIT,*) "[CH4] = ", phlex_state%state_var(i_CH4), i_CH4
-    write(DEBUG_UNIT,*) "[H2] = ", phlex_state%state_var(i_H2), i_H2
+    write(DEBUG_UNIT,*) "[M] = ", camp_state%state_var(i_M), i_M
+    write(DEBUG_UNIT,*) "[O2] = ", camp_state%state_var(i_O2), i_O2
+    write(DEBUG_UNIT,*) "[N2] = ", camp_state%state_var(i_N2), i_N2
+    write(DEBUG_UNIT,*) "[H2O] = ", camp_state%state_var(i_H2O), i_H2O
+    write(DEBUG_UNIT,*) "[CH4] = ", camp_state%state_var(i_CH4), i_CH4
+    write(DEBUG_UNIT,*) "[H2] = ", camp_state%state_var(i_H2), i_H2
 #endif
 
     ! Set up the output files
@@ -444,21 +444,21 @@ contains
             action="write")
     open(KPP_FILE_UNIT, file="out/cb05cl_ae5_kpp_results.txt", status="replace", &
             action="write")
-    open(PHLEX_FILE_UNIT, file="out/cb05cl_ae5_phlex_results.txt", status="replace", &
+    open(CAMP_FILE_UNIT, file="out/cb05cl_ae5_camp_results.txt", status="replace", &
             action="write")
     n_gas_spec = chem_spec_data%size(spec_phase=CHEM_SPEC_GAS_PHASE)
-    allocate(phlex_spec_names(n_gas_spec))
+    allocate(camp_spec_names(n_gas_spec))
     do i_spec = 1, n_gas_spec
-      phlex_spec_names(i_spec)%string = chem_spec_data%gas_state_name(i_spec)
+      camp_spec_names(i_spec)%string = chem_spec_data%gas_state_name(i_spec)
     end do
     write(EBI_FILE_UNIT,*) "time ", (ebi_spec_names(i_spec)%string//" ", i_spec=1, &
             NUM_EBI_SPEC)
     write(KPP_FILE_UNIT,*) "time ", (trim(KPP_SPC_NAMES(i_spec))//" ", i_spec=1, &
             KPP_NSPEC)
-    write(PHLEX_FILE_UNIT,*) "time ", (phlex_spec_names(i_spec)%string//" ", i_spec=1, &
-            size(phlex_spec_names))
+    write(CAMP_FILE_UNIT,*) "time ", (camp_spec_names(i_spec)%string//" ", i_spec=1, &
+            size(camp_spec_names))
 
-    ! Set up the reaction map between phlex-chem, kpp and ebi solvers
+    ! Set up the reaction map between camp-chem, kpp and ebi solvers
     key = "rxn id"
     allocate(ebi_rxn_map(mechanism%size()))
     ebi_rxn_map(:) = 0
@@ -487,7 +487,7 @@ contains
       call assert_msg(360769001, kpp_rxn_map(i_rxn).ne.0, "KPP missing rxn "//string_val)
     end do
 
-    ! Set up the species map between phlex-chem, kpp and ebi solvers
+    ! Set up the species map between camp-chem, kpp and ebi solvers
     allocate(ebi_spec_map(chem_spec_data%size()))
     allocate(kpp_spec_map(chem_spec_data%size()))
     ebi_spec_map(:) = 0
@@ -507,7 +507,7 @@ contains
     ! Reset the computation timers
     comp_ebi = 0.0
     comp_kpp = 0.0
-    comp_phlex = 0.0
+    comp_camp = 0.0
 
     ! Compare the rates for the initial conditions
     call EXT_HRCALCKS( NUM_EBI_PHOTO_RXN,       & ! Number of EBI solver photolysis reactions
@@ -522,24 +522,24 @@ contains
     KPP_TEMP = temperature
     KPP_PRESS = pressure * 1013.25 ! KPP pressure in hPa
     CALL KPP_Update_RCONST()
-    phlex_state_comp%state_var(:) = phlex_state%state_var(:)
-    call compare_rates(phlex_core, phlex_state_comp, ebi_spec_names, conv, &
+    camp_state_comp%state_var(:) = camp_state%state_var(:)
+    call compare_rates(camp_core, camp_state_comp, ebi_spec_names, conv, &
             ebi_rxn_map, kpp_rxn_map)
 
     ! Save the initial states for repeat calls
     allocate(ebi_init(size(YC)))
     allocate(kpp_init(size(KPP_C)))
-    allocate(phlex_init(size(phlex_state%state_var)))
+    allocate(camp_init(size(camp_state%state_var)))
     ebi_init(:) = YC(:)
     kpp_init(:) = KPP_C(:)
-    phlex_init(:) = phlex_state%state_var(:)
+    camp_init(:) = camp_state%state_var(:)
 
     ! Repeatedly solve the mechanism
     do i_repeat = 1, 100
 
     YC(:) = ebi_init(:)
     KPP_C(:) = kpp_init(:)
-    phlex_state%state_var(:) = phlex_init(:)
+    camp_state%state_var(:) = camp_init(:)
 
     ! Solve the mechanism
     do i_time = 1, NUM_TIME_STEPS
@@ -551,21 +551,21 @@ contains
               YC(i_spec), i_spec=1,size(YC))
       write(DEBUG_UNIT,*) "KPP state: ", (TRIM(KPP_SPC_NAMES(i_spec)), &
               KPP_C(i_spec)*conv, i_spec=1,size(KPP_C))
-      write(DEBUG_UNIT,*) "Phlex state: ", (phlex_spec_names(i_spec)%string, &
-              phlex_state%state_var(i_spec), i_spec=1,size(phlex_state%state_var))
+      write(DEBUG_UNIT,*) "CAMP state: ", (camp_spec_names(i_spec)%string, &
+              camp_state%state_var(i_spec), i_spec=1,size(camp_state%state_var))
       end if
 #endif
 
       ! Set minimum concentrations in all solvers
       YC(:) = MAX(YC(:), SMALL_NUM)
       KPP_C(:) = MAX(KPP_C(:), SMALL_NUM/conv)
-      phlex_state%state_var(:) = max(phlex_state%state_var(:), SMALL_NUM)
+      camp_state%state_var(:) = max(camp_state%state_var(:), SMALL_NUM)
 
       ! Output current time step
       if (i_repeat.eq.1) then
       write(EBI_FILE_UNIT,*) i_time*EBI_TMSTEP, YC(:)
       write(KPP_FILE_UNIT,*) i_time*KPP_DT/60.0d0, KPP_C(:)*conv
-      write(PHLEX_FILE_UNIT,*) i_time*EBI_TMSTEP, phlex_state%state_var(:)
+      write(CAMP_FILE_UNIT,*) i_time*EBI_TMSTEP, camp_state%state_var(:)
       end if
 
       ! EBI solver
@@ -581,7 +581,7 @@ contains
       call cpu_time(comp_end)
       comp_ebi = comp_ebi + (comp_end-comp_start)
 
-      ! Set KPP and phlex-chem concentrations to those of EBI at first time step to match steady-state
+      ! Set KPP and camp-chem concentrations to those of EBI at first time step to match steady-state
       ! EBI species
       if (i_time.eq.1) then
         ! Set KPP species in #/cc
@@ -591,7 +591,7 @@ contains
               KPP_C(j_spec) = YC(i_spec) / conv
             end if
           end do
-          phlex_state%state_var( &
+          camp_state%state_var( &
                   chem_spec_data%gas_state_id( &
                   ebi_spec_names(i_spec)%string)) = YC(i_spec)
         end do
@@ -608,12 +608,12 @@ contains
       call cpu_time(comp_end)
       comp_kpp = comp_kpp + (comp_end-comp_start)
 
-      ! Phlex-chem
+      ! CAMP-chem
       call cpu_time(comp_start)
-      call phlex_core%solve(phlex_state, real(EBI_TMSTEP*60.0, kind=dp), &
+      call camp_core%solve(camp_state, real(EBI_TMSTEP*60.0, kind=dp), &
                             solver_stats = solver_stats)
       call cpu_time(comp_end)
-      comp_phlex = comp_phlex + (comp_end-comp_start)
+      comp_camp = comp_camp + (comp_end-comp_start)
 
 #ifdef DEBUG
       if (i_repeat.eq.1) call solver_stats%print()
@@ -625,55 +625,55 @@ contains
     ! Output final timestep
     write(EBI_FILE_UNIT,*) i_time*EBI_TMSTEP, YC(:)
     write(KPP_FILE_UNIT,*) i_time*EBI_TMSTEP, KPP_C(:)*conv
-    write(PHLEX_FILE_UNIT,*) i_time*EBI_TMSTEP, phlex_state%state_var(:)
+    write(CAMP_FILE_UNIT,*) i_time*EBI_TMSTEP, camp_state%state_var(:)
 
     ! Output the computational time
     write(*,*) "EBI calculation time: ", comp_ebi," s"
     write(*,*) "KPP calculation time: ", comp_kpp," s"
-    write(*,*) "Phlex-chem calculation time: ", comp_phlex," s"
+    write(*,*) "CAMP-chem calculation time: ", comp_camp," s"
 
     ! Compare the results
-    ! EBI <-> Phlex-chem
+    ! EBI <-> CAMP-chem
     do i_spec = 1, NUM_EBI_SPEC
       call assert_msg(749090387, almost_equal(real(YC(i_spec), kind=dp), &
-          phlex_state%state_var( &
+          camp_state%state_var( &
                   chem_spec_data%gas_state_id( &
                   ebi_spec_names(i_spec)%string)), 1.0d-4, 1.0d-3) .or. &
           (YC(i_spec).lt.ebi_init(i_spec)*1.0d-2 .and. &
-           phlex_state%state_var(chem_spec_data%gas_state_id( &
+           camp_state%state_var(chem_spec_data%gas_state_id( &
                   ebi_spec_names(i_spec)%string)) .lt. &
-           phlex_init(chem_spec_data%gas_state_id( &
+           camp_init(chem_spec_data%gas_state_id( &
                   ebi_spec_names(i_spec)%string))*1.0d-2), &
           "Species "//ebi_spec_names(i_spec)%string//" has different result. "// &
           "EBI solver: "//trim(to_string(real(YC(i_spec), kind=dp)))// &
-          "; Phlex-chem: "// &
-          trim(to_string( phlex_state%state_var( &
+          "; CAMP-chem: "// &
+          trim(to_string( camp_state%state_var( &
                   chem_spec_data%gas_state_id( &
                   ebi_spec_names(i_spec)%string)))) // "; ebi init: "// &
-          trim(to_string(real(ebi_init(i_spec), kind=dp)))//"; phlex init: "// &
-          trim(to_string(phlex_init(chem_spec_data%gas_state_id( &
+          trim(to_string(real(ebi_init(i_spec), kind=dp)))//"; camp init: "// &
+          trim(to_string(camp_init(chem_spec_data%gas_state_id( &
                   ebi_spec_names(i_spec)%string)))))
     end do
-    ! KPP <-> Phlex-chem
+    ! KPP <-> CAMP-chem
     do i_spec = 1, KPP_NSPEC
       str_temp%string = trim(KPP_SPC_NAMES(i_spec))
       call assert_msg(749090436, almost_equal(real(KPP_C(i_spec)*conv, kind=dp), &
-          phlex_state%state_var( &
+          camp_state%state_var( &
                   chem_spec_data%gas_state_id( &
                   str_temp%string)), 1.0d-4, 1.0d-3) .or. &
           (KPP_C(i_spec) .lt. KPP_init(i_spec)*1.0d-2 .and. &
-           phlex_state%state_var(chem_spec_data%gas_state_id( &
+           camp_state%state_var(chem_spec_data%gas_state_id( &
                   str_temp%string)) .lt. &
-           phlex_init(chem_spec_data%gas_state_id( &
+           camp_init(chem_spec_data%gas_state_id( &
                   str_temp%string))*1.0d-2), &
           "Species "//str_temp%string//" has different result. "// &
           "KPP solver: "//trim(to_string(real(KPP_C(i_spec)*conv, kind=dp)))// &
-          "; Phlex-chem: "// &
-          trim(to_string( phlex_state%state_var( &
+          "; CAMP-chem: "// &
+          trim(to_string( camp_state%state_var( &
                   chem_spec_data%gas_state_id( &
                   str_temp%string))))//"; KPP init: "// &
           trim(to_string(real(kpp_init(i_spec)*conv, kind=dp)))// &
-          "; phlex init: "//trim(to_string(phlex_init( &
+          "; camp init: "//trim(to_string(camp_init( &
                   chem_spec_data%gas_state_id( &
                   str_temp%string)))))
 
@@ -682,36 +682,36 @@ contains
     ! Close the output files
     close(EBI_FILE_UNIT)
     close(KPP_FILE_UNIT)
-    close(PHLEX_FILE_UNIT)
+    close(CAMP_FILE_UNIT)
 
     ! Create the gnuplot script
-    open(unit=PHLEX_FILE_UNIT, file="out/plot_cb05cl_ae.conf", status="replace", action="write")
-    write(PHLEX_FILE_UNIT,*) "# plot_cb05cl_ae5.conf"
-    write(PHLEX_FILE_UNIT,*) "# Run as: gnuplot plot_cb05cl_ae5.conf"
-    write(PHLEX_FILE_UNIT,*) "set terminal png truecolor"
-    write(PHLEX_FILE_UNIT,*) "set autoscale"
+    open(unit=CAMP_FILE_UNIT, file="out/plot_cb05cl_ae.conf", status="replace", action="write")
+    write(CAMP_FILE_UNIT,*) "# plot_cb05cl_ae5.conf"
+    write(CAMP_FILE_UNIT,*) "# Run as: gnuplot plot_cb05cl_ae5.conf"
+    write(CAMP_FILE_UNIT,*) "set terminal png truecolor"
+    write(CAMP_FILE_UNIT,*) "set autoscale"
     spec_names = chem_spec_data%get_spec_names()
     do i_spec = 1, size(spec_names)
-      write(PHLEX_FILE_UNIT,*) "set output 'cb05cl_ae5_"//trim(spec_names(i_spec)%string)//".png'"
-      write(PHLEX_FILE_UNIT,*) "plot\"
+      write(CAMP_FILE_UNIT,*) "set output 'cb05cl_ae5_"//trim(spec_names(i_spec)%string)//".png'"
+      write(CAMP_FILE_UNIT,*) "plot\"
       if (ebi_spec_map(i_spec).gt.0) then
-        write(PHLEX_FILE_UNIT,*) " 'cb05cl_ae5_ebi_results.txt'\"
-        write(PHLEX_FILE_UNIT,*) " using 1:"//trim(to_string(ebi_spec_map(i_spec)+1))//" title '"// &
+        write(CAMP_FILE_UNIT,*) " 'cb05cl_ae5_ebi_results.txt'\"
+        write(CAMP_FILE_UNIT,*) " using 1:"//trim(to_string(ebi_spec_map(i_spec)+1))//" title '"// &
               trim(spec_names(i_spec)%string)//" (ebi)',\"
       end if
       if (kpp_spec_map(i_spec).gt.0) then
-        write(PHLEX_FILE_UNIT,*) " 'cb05cl_ae5_kpp_results.txt'\"
-        write(PHLEX_FILE_UNIT,*) " using 1:"//trim(to_string(kpp_spec_map(i_spec)+1))//" title '"// &
+        write(CAMP_FILE_UNIT,*) " 'cb05cl_ae5_kpp_results.txt'\"
+        write(CAMP_FILE_UNIT,*) " using 1:"//trim(to_string(kpp_spec_map(i_spec)+1))//" title '"// &
               trim(spec_names(i_spec)%string)//" (kpp)',\"
       end if
-      write(PHLEX_FILE_UNIT,*) " 'cb05cl_ae5_phlex_results.txt'\"
-      write(PHLEX_FILE_UNIT,*) " using 1:"//trim(to_string(i_spec+1))//" title '"// &
-              trim(spec_names(i_spec)%string)//" (phlex)'"
+      write(CAMP_FILE_UNIT,*) " 'cb05cl_ae5_camp_results.txt'\"
+      write(CAMP_FILE_UNIT,*) " using 1:"//trim(to_string(i_spec+1))//" title '"// &
+              trim(spec_names(i_spec)%string)//" (camp)'"
     end do
-    close(PHLEX_FILE_UNIT)
+    close(CAMP_FILE_UNIT)
 
     deallocate(photo_rates)
-    deallocate(phlex_spec_names)
+    deallocate(camp_spec_names)
     deallocate(ebi_rxn_map)
     deallocate(kpp_rxn_map)
     deallocate(kpp_rxn_labels)
@@ -719,10 +719,10 @@ contains
     deallocate(kpp_spec_map)
     deallocate(ebi_init)
     deallocate(kpp_init)
-    deallocate(phlex_init)
-    deallocate(phlex_state_comp)
-    deallocate(phlex_state)
-    deallocate(phlex_core)
+    deallocate(camp_init)
+    deallocate(camp_state_comp)
+    deallocate(camp_state)
+    deallocate(camp_core)
 
     passed = .true.
 
@@ -1207,7 +1207,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Compare calculated rates between the modules
-  subroutine compare_rates(phlex_core, phlex_state, ebi_spec_names, conv, &
+  subroutine compare_rates(camp_core, camp_state, ebi_spec_names, conv, &
                   ebi_rxn_map, kpp_rxn_map)
 
     use EXT_RXCM,                               only : NRXNS, RXLABEL
@@ -1223,21 +1223,21 @@ contains
                                                        KPP_FIX => FIX, &
                                                        KPP_RCONST => RCONST
 
-    !> Phlex-chem core
-    type(phlex_core_t), pointer :: phlex_core
-    !> Phlex-chem state
-    type(phlex_state_t), pointer :: phlex_state
-    !> Species map Phlex-chem <-> EBI
+    !> CAMP-chem core
+    type(camp_core_t), pointer :: camp_core
+    !> CAMP-chem state
+    type(camp_state_t), pointer :: camp_state
+    !> Species map CAMP-chem <-> EBI
     type(string_t), intent(in) :: ebi_spec_names(:)
     !> Coversion factor #/cc -> ppm
     real(kind=dp), intent(in) :: conv
-    !> Reaction map EBI <-> phlex
+    !> Reaction map EBI <-> camp
     integer(kind=i_kind), allocatable :: ebi_rxn_map(:)
-    !> Reaction map KPP <-> phlex
+    !> Reaction map KPP <-> camp
     integer(kind=i_kind), allocatable :: kpp_rxn_map(:)
 
     real(kind=dp) :: KPP_VDOT(KPP_NVAR)
-    integer(kind=i_kind) :: i_ebi_spec, i_kpp_spec, i_phlex_spec, i_rxn
+    integer(kind=i_kind) :: i_ebi_spec, i_kpp_spec, i_camp_spec, i_rxn
     type(string_t) :: spec_name
 
     character(len=:), allocatable :: key

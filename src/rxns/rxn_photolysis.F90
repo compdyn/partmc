@@ -5,7 +5,7 @@
 !> \file
 !> The pmc_rxn_photolysis module.
 
-!> \page phlex_rxn_photolysis Phlexible Module for Chemistry: Photolysis
+!> \page camp_rxn_photolysis CAMP: Photolysis
 !!
 !! Photolysis reactions take the form:
 !!
@@ -64,7 +64,7 @@ module pmc_rxn_photolysis
   use pmc_aero_rep_data
   use pmc_chem_spec_data
   use pmc_constants,                        only: const
-  use pmc_phlex_state
+  use pmc_camp_state
   use pmc_property
   use pmc_rxn_data
   use pmc_util,                             only: i_kind, dp, to_string, &

@@ -5,7 +5,7 @@
 !> \file
 !> The pmc_rxn_HL_phase_transfer module.
 
-!> \page phlex_rxn_HL_phase_transfer Phlexible Module for Chemistry: Henry's Law Phase-Transfer Reaction
+!> \page camp_rxn_HL_phase_transfer CAMP: Henry's Law Phase-Transfer Reaction
 !!
 !! Henry's Law phase-trasfer reactions use equilibrium rate constants that
 !! are calculated as:
@@ -87,7 +87,7 @@ module pmc_rxn_HL_phase_transfer
   use pmc_aero_rep_data
   use pmc_chem_spec_data
   use pmc_constants,                        only: const
-  use pmc_phlex_state
+  use pmc_camp_state
   use pmc_property
   use pmc_rxn_data
   use pmc_util,                             only: i_kind, dp, to_string, &

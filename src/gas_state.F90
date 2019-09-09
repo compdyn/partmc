@@ -14,7 +14,7 @@ module pmc_gas_state
   use pmc_env_state
   use pmc_mpi
   use pmc_netcdf
-  use pmc_phlex_state
+  use pmc_camp_state
 #ifdef PMC_USE_MPI
   use mpi
 #endif
@@ -32,41 +32,41 @@ module pmc_gas_state
      !> Length n_spec, mixing ratio (ppb).
      real(kind=dp), allocatable :: mix_rat(:)
   contains
-     !> Set Phlexible chemistry gas-phase species concentrations
-     procedure :: set_phlex_conc => gas_state_set_phlex_conc
-     !> Get Phlexible chemistry gas-phase species concentrations
-     procedure :: get_phlex_conc => gas_state_get_phlex_conc
+     !> Set CAMP gas-phase species concentrations
+     procedure :: set_camp_conc => gas_state_set_camp_conc
+     !> Get CAMP gas-phase species concentrations
+     procedure :: get_camp_conc => gas_state_get_camp_conc
   end type gas_state_t
 
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Set Phlexible chemistry gas-phase species concentrations
-  subroutine gas_state_set_phlex_conc(this, phlex_state)
+  !> Set CAMP gas-phase species concentrations
+  subroutine gas_state_set_camp_conc(this, camp_state)
 
     !> Gas state
     class(gas_state_t), intent(in) :: this
-    !> Phlexible chemisty state
-    type(phlex_state_t), intent(inout) :: phlex_state
+    !> CAMP state
+    type(camp_state_t), intent(inout) :: camp_state
 
-    phlex_state%state_var(1:size(this%mix_rat)) = this%mix_rat(:)
+    camp_state%state_var(1:size(this%mix_rat)) = this%mix_rat(:)
 
-  end subroutine gas_state_set_phlex_conc
+  end subroutine gas_state_set_camp_conc
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Get Phlexible chemistry gas-phase species concentrations
-  subroutine gas_state_get_phlex_conc(this, phlex_state)
+  !> Get CAMP gas-phase species concentrations
+  subroutine gas_state_get_camp_conc(this, camp_state)
 
     !> Gas state
     class(gas_state_t), intent(inout) :: this
-    !> Phlexible chemistry state
-    type(phlex_state_t), intent(in) :: phlex_state
+    !> CAMP state
+    type(camp_state_t), intent(in) :: camp_state
 
-    this%mix_rat(:) = phlex_state%state_var(1:size(this%mix_rat))
+    this%mix_rat(:) = camp_state%state_var(1:size(this%mix_rat))
 
-  end subroutine gas_state_get_phlex_conc
+  end subroutine gas_state_get_camp_conc
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

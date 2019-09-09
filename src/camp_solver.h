@@ -8,11 +8,11 @@
 /** \file
  * \brief Header file for solver functions
 */
-#ifndef PHLEX_SOLVER_H_
-#define PHLEX_SOLVER_H_
-#include "phlex_common.h"
+#ifndef CAMP_SOLVER_H_
+#define CAMP_SOLVER_H_
+#include "camp_common.h"
 
-/* Functions called by phlex-chem */
+/* Functions called by camp-chem */
 void *solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
                  int n_rxn_int_param, int n_rxn_float_param,
                  int n_rxn_env_param, int n_aero_phase,
@@ -50,7 +50,7 @@ void error_handler(int error_code, const char *module,
           const char *function, char *msg, void *sd);
 
 /* SUNDIALS support functions */
-int phlex_solver_update_model_state(N_Vector solver_state,
+int camp_solver_update_model_state(N_Vector solver_state,
           ModelData *model_data, realtype threshhold,
           realtype replacement_value);
 SUNMatrix get_jac_init(SolverData *solver_data);

@@ -3,19 +3,19 @@
 ! option) any later version. See the file COPYING for details.
 
 !> \file
-!> The pmc_phlex_solver_data module.
+!> The pmc_camp_solver_data module.
 
-!> The phlex_solver_data_t structure and associated subroutines.
-module pmc_phlex_solver_data
-#define PHLEX_SOLVER_SUCCESS 0
-#define PHLEX_SOLVER_FAIL 1
+!> The camp_solver_data_t structure and associated subroutines.
+module pmc_camp_solver_data
+#define CAMP_SOLVER_SUCCESS 0
+#define CAMP_SOLVER_FAIL 1
 
   use pmc_aero_phase_data
   use pmc_aero_rep_data
   use pmc_aero_rep_factory
   use pmc_constants,                   only : i_kind, dp
   use pmc_mechanism_data
-  use pmc_phlex_state
+  use pmc_camp_state
   use pmc_rxn_data
   use pmc_rxn_factory
   use pmc_solver_stats
@@ -29,7 +29,7 @@ module pmc_phlex_solver_data
   implicit none
   private
 
-  public :: phlex_solver_data_t
+  public :: camp_solver_data_t
 
   !> Default relative tolerance for integration
   real(kind=dp), parameter :: PMC_SOLVER_DEFAULT_REL_TOL = 1.0D-8
@@ -340,11 +340,11 @@ module pmc_phlex_solver_data
 
   !> Solver data
   !!
-  !! Acts as the interface between the phlex-chem module and the solver.
+  !! Acts as the interface between the camp-chem module and the solver.
   !! Instances of the type hold a pointer to a solver c object and provide
   !! functions to initialize the solver with model data and run the solver
   !! over a specified time step.
-  type :: phlex_solver_data_t
+  type :: camp_solver_data_t
     private
     !> C Solver object
     type(c_ptr), public :: solver_c_ptr
@@ -376,22 +376,22 @@ module pmc_phlex_solver_data
     procedure :: print => do_print
     !> Finalize the solver data
     final :: finalize
-  end type phlex_solver_data_t
+  end type camp_solver_data_t
 
-  ! Constructor for phlex_solver_data_t
-  interface phlex_solver_data_t
+  ! Constructor for camp_solver_data_t
+  interface camp_solver_data_t
     procedure :: constructor
-  end interface phlex_solver_data_t
+  end interface camp_solver_data_t
 
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Constructor for phlex_solver_data_t
+  !> Constructor for camp_solver_data_t
   function constructor() result (new_obj)
 
     !> New solver variable
-    type(phlex_solver_data_t), pointer :: new_obj
+    type(camp_solver_data_t), pointer :: new_obj
 
     !> Allocate space for the new object
     allocate(new_obj)
@@ -405,7 +405,7 @@ contains
                   aero_reps, sub_models, rxn_phase, n_cells)
 
     !> Solver data
-    class(phlex_solver_data_t), intent(inout) :: this
+    class(camp_solver_data_t), intent(inout) :: this
     !> Variable type for each species in the state array. This array must be
     !! of the same length as the state array.
     integer(kind=i_kind), allocatable, intent(in) :: var_type(:)
@@ -762,7 +762,7 @@ contains
   subroutine update_sub_model_data(this, update_data)
 
     !> Solver data
-    class(phlex_solver_data_t), intent(inout) :: this
+    class(camp_solver_data_t), intent(inout) :: this
     !> Update data
     class(sub_model_update_data_t), intent(in) :: update_data
 
@@ -781,7 +781,7 @@ contains
   subroutine update_rxn_data(this, update_data)
 
     !> Solver data
-    class(phlex_solver_data_t), intent(inout) :: this
+    class(camp_solver_data_t), intent(inout) :: this
     !> Update data
     class(rxn_update_data_t), intent(in) :: update_data
 
@@ -801,7 +801,7 @@ contains
   subroutine update_aero_rep_data(this, update_data)
 
     !> Solver data
-    class(phlex_solver_data_t), intent(inout) :: this
+    class(camp_solver_data_t), intent(inout) :: this
     !> Update data
     class(aero_rep_update_data_t), intent(in) :: update_data
 
@@ -817,12 +817,12 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Solve the mechanism(s) for a specified timestep
-  subroutine solve(this, phlex_state, t_initial, t_final, solver_stats)
+  subroutine solve(this, camp_state, t_initial, t_final, solver_stats)
 
     !> Solver data
-    class(phlex_solver_data_t), intent(inout) :: this
+    class(camp_solver_data_t), intent(inout) :: this
     !> Model state
-    type(phlex_state_t), target, intent(inout) :: phlex_state
+    type(camp_state_t), target, intent(inout) :: camp_state
     !> Start time (s)
     real(kind=dp), intent(in) :: t_initial
     !> End time (s)
@@ -864,8 +864,8 @@ contains
     ! Run the solver
     solver_status = solver_run( &
             this%solver_c_ptr,              & ! Pointer to intialized solver
-            c_loc(phlex_state%state_var),   & ! Pointer to state array
-            c_loc(phlex_state%env_var),     & ! Pointer to environmental vars
+            c_loc(camp_state%state_var),   & ! Pointer to state array
+            c_loc(camp_state%env_var),     & ! Pointer to environmental vars
             real(t_initial, kind=c_double), & ! Start time (s)
             real(t_final, kind=c_double)    & ! Final time (s)
             )
@@ -888,7 +888,7 @@ contains
   subroutine get_solver_stats( this, solver_stats )
 
     !> Solver data
-    class(phlex_solver_data_t), intent(inout) :: this
+    class(camp_solver_data_t), intent(inout) :: this
     !> Solver statistics
     type(solver_stats_t), intent(inout), target :: solver_stats
 
@@ -914,7 +914,7 @@ contains
   logical function is_solver_available(this)
 
     !> Solver data
-    class(phlex_solver_data_t), intent(in) :: this
+    class(camp_solver_data_t), intent(in) :: this
 
 #ifdef PMC_USE_SUNDIALS
     is_solver_available = .true.
@@ -930,7 +930,7 @@ contains
   subroutine do_print(this)
 
     !> Solver data
-    class(phlex_solver_data_t), intent(in) :: this
+    class(camp_solver_data_t), intent(in) :: this
 
     call rxn_print_data(this%solver_c_ptr)
     call aero_phase_print_data(this%solver_c_ptr)
@@ -945,7 +945,7 @@ contains
   elemental subroutine finalize(this)
 
     !> Solver data
-    type(phlex_solver_data_t), intent(inout) :: this
+    type(camp_solver_data_t), intent(inout) :: this
 
     if (this%initialized) call solver_free(this%solver_c_ptr)
 
@@ -953,6 +953,4 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-#undef PHLEX_SOLVER_SUCCESS
-#undef PHLEX_SOLVER_FAIL
-end module pmc_phlex_solver_data
+end module pmc_camp_solver_data

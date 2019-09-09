@@ -13,8 +13,8 @@ program pmc_test_aqueous_equilibrium
   use pmc_util,                         only: i_kind, dp, assert, &
                                               almost_equal, string_t, &
                                               warn_msg
-  use pmc_phlex_core
-  use pmc_phlex_state
+  use pmc_camp_core
+  use pmc_camp_state
   use pmc_aero_rep_data
   use pmc_aero_rep_factory
   use pmc_aero_rep_single_particle
@@ -52,13 +52,13 @@ contains
   !> Run all pmc_chem_mech_solver tests
   logical function run_aqueous_equilibrium_tests() result(passed)
 
-    use pmc_phlex_solver_data
+    use pmc_camp_solver_data
 
-    type(phlex_solver_data_t), pointer :: phlex_solver_data
+    type(camp_solver_data_t), pointer :: camp_solver_data
 
-    phlex_solver_data => phlex_solver_data_t()
+    camp_solver_data => camp_solver_data_t()
 
-    if (phlex_solver_data%is_solver_available()) then
+    if (camp_solver_data%is_solver_available()) then
       passed = run_aqueous_equilibrium_test(1)
       passed = passed .and. run_aqueous_equilibrium_test(2)
     else
@@ -66,7 +66,7 @@ contains
       passed = .true.
     end if
 
-    deallocate(phlex_solver_data)
+    deallocate(camp_solver_data)
 
   end function run_aqueous_equilibrium_tests
 
@@ -84,8 +84,8 @@ contains
     !> Scenario flag
     integer, intent(in) :: scenario
 
-    type(phlex_core_t), pointer :: phlex_core
-    type(phlex_state_t), pointer :: phlex_state
+    type(camp_core_t), pointer :: camp_core
+    type(camp_state_t), pointer :: camp_state
     character(len=:), allocatable :: input_file_path, key, idx_prefix
     type(string_t), allocatable, dimension(:) :: output_file_path
 
@@ -145,17 +145,17 @@ contains
         input_file_path = 'test_aqueous_equilibrium_config_2.json'
       end if
 
-      ! Construct a phlex_core variable
-      phlex_core => phlex_core_t(input_file_path)
+      ! Construct a camp_core variable
+      camp_core => camp_core_t(input_file_path)
 
       deallocate(input_file_path)
 
       ! Initialize the model
-      call phlex_core%initialize()
+      call camp_core%initialize()
 
       ! Find the aerosol representation
       key = "my aero rep 2"
-      call assert(750324390, phlex_core%get_aero_rep(key, aero_rep_ptr))
+      call assert(750324390, camp_core%get_aero_rep(key, aero_rep_ptr))
 
       if (scenario.eq.2) then
 
@@ -216,11 +216,11 @@ contains
       call assert(446243264, idx_H2O.gt.0)
 
 #ifdef PMC_USE_MPI
-      ! pack the phlex core
-      pack_size = phlex_core%pack_size()
+      ! pack the camp core
+      pack_size = camp_core%pack_size()
       allocate(buffer(pack_size))
       pos = 0
-      call phlex_core%bin_pack(buffer, pos)
+      call camp_core%bin_pack(buffer, pos)
       call assert(672194140, pos.eq.pack_size)
     end if
 
@@ -251,13 +251,13 @@ contains
 
     if (pmc_mpi_rank().eq.1) then
       ! unpack the data
-      phlex_core => phlex_core_t()
+      camp_core => camp_core_t()
       pos = 0
-      call phlex_core%bin_unpack(buffer, pos)
+      call camp_core%bin_unpack(buffer, pos)
       call assert(101979335, pos.eq.pack_size)
       allocate(buffer_copy(pack_size))
       pos = 0
-      call phlex_core%bin_pack(buffer_copy, pos)
+      call camp_core%bin_pack(buffer_copy, pos)
       call assert(161723428, pos.eq.pack_size)
       do i_elem = 1, pack_size
         call assert_msg(556517022, buffer(i_elem).eq.buffer_copy(i_elem), &
@@ -268,10 +268,10 @@ contains
 #endif
 
       ! Initialize the solver
-      call phlex_core%solver_initialize()
+      call camp_core%solver_initialize()
 
       ! Get a model state variable
-      phlex_state => phlex_core%new_state()
+      camp_state => camp_core%new_state()
 
       ! Update the GMD and GSD for the aerosol modes
       if (scenario.eq.2) then
@@ -281,19 +281,19 @@ contains
         ! unused mode
         call update_data_GMD%set_GMD(aero_rep_id, i_sect_unused, 1.2d-6)
         call update_data_GSD%set_GSD(aero_rep_id, i_sect_unused, 1.2d0)
-        call phlex_core%update_aero_rep_data(update_data_GMD)
-        call phlex_core%update_aero_rep_data(update_data_GSD)
+        call camp_core%update_aero_rep_data(update_data_GMD)
+        call camp_core%update_aero_rep_data(update_data_GSD)
         ! the mode
         call update_data_GMD%set_GMD(aero_rep_id, i_sect_the_mode, 9.3d-7)
         call update_data_GSD%set_GSD(aero_rep_id, i_sect_the_mode, 0.9d0)
-        call phlex_core%update_aero_rep_data(update_data_GMD)
-        call phlex_core%update_aero_rep_data(update_data_GSD)
+        call camp_core%update_aero_rep_data(update_data_GMD)
+        call camp_core%update_aero_rep_data(update_data_GSD)
       end if
 
       ! Set the environmental conditions
-      phlex_state%env_state%temp = temp
-      phlex_state%env_state%pressure = pressure
-      call phlex_state%update_env_state()
+      camp_state%env_state%temp = temp
+      camp_state%env_state%pressure = pressure
+      call camp_state%update_env_state()
 
       ! Save the initial concentrations
       true_conc(:,:) = 0.0
@@ -367,7 +367,7 @@ contains
               true_conc(0,idx_H2O) * 35.67d0 / 1000.0d0
 
       ! Set the initial state in the model
-      phlex_state%state_var(:) = model_conc(0,:)
+      camp_state%state_var(:) = model_conc(0,:)
 
 #ifdef PMC_DEBUG
       ! Evaluate the Jacobian during solving
@@ -378,9 +378,9 @@ contains
       do i_time = 1, NUM_TIME_STEP
 
         ! Get the modeled conc
-        call phlex_core%solve(phlex_state, time_step, &
+        call camp_core%solve(camp_state, time_step, &
                               solver_stats = solver_stats)
-        model_conc(i_time,:) = phlex_state%state_var(:)
+        model_conc(i_time,:) = camp_state%state_var(:)
 
 #ifdef PMC_DEBUG
         ! Check the Jacobian evaluations
@@ -472,7 +472,7 @@ contains
         end do
       end if
 
-      deallocate(phlex_state)
+      deallocate(camp_state)
 
 #ifdef PMC_USE_MPI
       ! convert the results to an integer
@@ -498,7 +498,7 @@ contains
     deallocate(buffer)
 #endif
 
-    deallocate(phlex_core)
+    deallocate(camp_core)
   end function run_aqueous_equilibrium_test
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

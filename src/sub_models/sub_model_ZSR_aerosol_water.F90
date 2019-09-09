@@ -7,7 +7,7 @@
 
 ! TODO Incorporate deliquesence calculations
 
-!> \page phlex_sub_model_ZSR_aerosol_water Phlexible Module for Chemistry: ZSR Aerosol Water
+!> \page camp_sub_model_ZSR_aerosol_water CAMP: ZSR Aerosol Water
 !!
 !! ZSR aerosol water calculates equilibrium aerosol water content
 !! based on the Zdanovski-Stokes-Robinson mixing rule \cite Jacobson1996 in
@@ -164,7 +164,7 @@ module pmc_sub_model_ZSR_aerosol_water
   use pmc_aero_rep_data
   use pmc_chem_spec_data
   use pmc_constants,                        only: const
-  use pmc_phlex_state
+  use pmc_camp_state
   use pmc_property
   use pmc_sub_model_data
   use pmc_util,                             only: i_kind, dp, to_string, &

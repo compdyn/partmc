@@ -22,9 +22,9 @@ module pmc_run_part
   use pmc_coag_kernel
   use pmc_nucleate
   use pmc_mpi
-  use pmc_phlex_core
-  use pmc_phlex_state
-  use pmc_phlex_interface
+  use pmc_camp_core
+  use pmc_camp_state
+  use pmc_camp_interface
 #ifdef PMC_USE_SUNDIALS
   use pmc_condense
 #endif
@@ -97,8 +97,8 @@ module pmc_run_part
      logical :: env_average
      !> Parallel coagulation method type.
      integer :: parallel_coag_type
-     !> Whether to do phlexible chemistry
-     logical :: do_phlex_chem
+     !> Whether to run CAMP
+     logical :: do_camp_chem
      !> UUID for this simulation.
      character(len=PMC_UUID_LEN) :: uuid
   end type run_part_opt_t
@@ -109,7 +109,7 @@ contains
 
   !> Do a particle-resolved Monte Carlo simulation.
   subroutine run_part(scenario, env_state, aero_data, aero_state, gas_data, &
-       gas_state, run_part_opt, phlex_core)
+       gas_state, run_part_opt, camp_core)
 
     !> Environment state.
     type(scenario_t), intent(in) :: scenario
@@ -125,11 +125,11 @@ contains
     type(gas_state_t), intent(inout) :: gas_state
     !> Monte Carlo options.
     type(run_part_opt_t), intent(in) :: run_part_opt
-    !> Phlexible chemistry core
-    type(phlex_core_t), pointer, intent(in), optional :: phlex_core
+    !> CAMP chemistry core
+    type(camp_core_t), pointer, intent(in), optional :: camp_core
 
 
-    type(phlex_state_t), pointer :: phlex_state
+    type(camp_state_t), pointer :: camp_state
     real(kind=dp) :: time, pre_time, pre_del_t, prop_done
     real(kind=dp) :: last_output_time, last_progress_time
     integer :: rank, n_proc, pre_index, ncid
@@ -169,8 +169,8 @@ contains
     call check_time_multiple("t_progress", run_part_opt%t_progress, &
          "del_t", run_part_opt%del_t)
 
-    if (run_part_opt%do_phlex_chem) then
-       phlex_state => phlex_core%new_state(env_state)
+    if (run_part_opt%do_camp_chem) then
+       camp_state => camp_core%new_state(env_state)
     end if
 
     if (run_part_opt%do_mosaic) then
@@ -272,8 +272,8 @@ contains
        progress_n_dil_out = progress_n_dil_out + n_dil_out
 
 #ifdef PMC_USE_SUNDIALS
-       if (run_part_opt%do_phlex_chem) then
-          call pmc_phlex_interface_solve(phlex_core, phlex_state, aero_data, &
+       if (run_part_opt%do_camp_chem) then
+          call pmc_camp_interface_solve(camp_core, camp_state, aero_data, &
                aero_state, gas_state, run_part_opt%del_t)
        end if
 #endif

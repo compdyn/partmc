@@ -119,7 +119,7 @@ if(ENABLE_SUNDIALS)
           /opt/local/include /usr/local/include)
   find_library(SUITE_SPARSE_KLU_LIB klu
     DOC "SuiteSparse klu library"
-    PATHS $ENV{SUITE_SPARSE_HOME}/lib $ENV{SUNDIALS_HOME}/lib 
+    PATHS $ENV{SUITE_SPARSE_HOME}/lib $ENV{SUNDIALS_HOME}/lib
           /opt/local/lib /usr/local/lib)
   find_path(SUNDIALS_INCLUDE_DIR cvode/cvode.h
     DOC "SUNDIALS include directory (must have cvode/, sundials/, nvector/ subdirs)"
@@ -132,13 +132,13 @@ if(ENABLE_SUNDIALS)
     PATHS $ENV{SUNDIALS_HOME}/lib /opt/local/lib /usr/local/lib)
   find_library(SUNDIALS_KLU_LIB sundials_sunlinsolklu
     DOC "SUNDIALS KLU library"
-    PATHS $ENV{SUITE_SPARSE_HOME}/lib $ENV{SUNDIALS_HOME}/lib 
+    PATHS $ENV{SUITE_SPARSE_HOME}/lib $ENV{SUNDIALS_HOME}/lib
           /opt/local/lib /usr/local/lib)
   find_library(SUNDIALS_SUNMATRIX_SPARSE_LIB sundials_sunmatrixsparse
     DOC "SUNDIALS SUNMatrixSparse library"
-    PATHS $ENV{SUITE_SPARSE_HOME}/lib $ENV{SUNDIALS_HOME}/lib 
+    PATHS $ENV{SUITE_SPARSE_HOME}/lib $ENV{SUNDIALS_HOME}/lib
           /opt/local/lib /usr/local/lib)
-  set(SUNDIALS_LIBS ${SUNDIALS_NVECSERIAL_LIB} ${SUNDIALS_CVODE_LIB} 
+  set(SUNDIALS_LIBS ${SUNDIALS_NVECSERIAL_LIB} ${SUNDIALS_CVODE_LIB}
     ${SUITE_SPARSE_KLU_LIB} ${SUNDIALS_KLU_LIB} ${SUNDIALS_SUNMATRIX_SPARSE_LIB})
   set(SUNDIALS_SRC src/condense_solver.c)
   include_directories(${SUNDIALS_INCLUDE_DIR} ${SUITE_SPARSE_INCLUDE_DIR})
@@ -224,7 +224,7 @@ do_unit_test(aero_phase_data "PASS")
 if(ENABLE_JSON)
   do_unit_test(aero_rep_single_particle "PASS")
   do_unit_test(aero_rep_modal_binned_mass "PASS")
-  do_unit_test(phlex_core "PASS")
+  do_unit_test(camp_core "PASS")
 endif()
 
 if (ENABLE_MPI)
@@ -482,18 +482,18 @@ set_source_files_properties(${SUB_MODELS_C_SRC} PROPERTIES COMPILE_FLAGS
 
 set(SUB_MODELS_SRC ${SUB_MODELS_F_SRC} ${SUB_MODELS_C_SRC})
 
-set(PHLEX_C_SRC
-        src/phlex_solver.c src/rxn_solver.c src/aero_phase_solver.c
+set(CAMP_C_SRC
+        src/camp_solver.c src/rxn_solver.c src/aero_phase_solver.c
         src/aero_rep_solver.c src/sub_model_solver.c)
 
-set_source_files_properties(${PHLEX_C_SRC} PROPERTIES COMPILE_FLAGS
+set_source_files_properties(${CAMP_C_SRC} PROPERTIES COMPILE_FLAGS
         ${STD_C_FLAGS})
 
-set(PHLEX_CXX_SRC "")
+set(CAMP_CXX_SRC "")
 
 if(ENABLE_GPU)
-  set(PHLEX_CUDA_SRC
-          src/cuda/phlex_gpu_solver.cu
+  set(CAMP_CUDA_SRC
+          src/cuda/camp_gpu_solver.cu
           src/cuda/rxns_gpu/rxn_aqueous_equilibrium.cu
           src/cuda/rxns_gpu/rxn_arrhenius.cu
           src/cuda/rxns_gpu/rxn_CMAQ_H2O2.cu
@@ -514,11 +514,11 @@ if(ENABLE_GPU)
           src/cuda/aero_reps_gpu/aero_rep_modal_binned_mass.cu
           src/cuda/aero_reps_gpu/aero_rep_single_particle.cu)
 
-  set_source_files_properties(${PHLEX_CUDA_SRC} PROPERTIES COMPILE_FLAGS
+  set_source_files_properties(${CAMP_CUDA_SRC} PROPERTIES COMPILE_FLAGS
         ${STD_CUDA_FLAGS})
-  set_source_files_properties(${PHLEX_CUDA_SRC} PROPERTIES LANGUAGE CUDA)
+  set_source_files_properties(${CAMP_CUDA_SRC} PROPERTIES LANGUAGE CUDA)
 else()
-  set(PHLEX_CUDA_SRC "")
+  set(CAMP_CUDA_SRC "")
 endif()
 
 add_library(partmclib src/aero_state.F90 src/integer_varray.F90
@@ -538,13 +538,13 @@ add_library(partmclib src/aero_state.F90 src/integer_varray.F90
   src/netcdf.F90 src/aero_info.F90 src/aero_info_array.F90
   src/nucleate.F90 src/condense.F90 src/fractal.F90 src/chamber.F90
   src/property.F90 src/chem_spec_data.F90
-  src/rxn_data.F90 src/phlex_state.F90 src/mechanism_data.F90
-  src/phlex_core.F90 src/phlex_solver_data.F90 src/aero_rep_data.F90
-  src/aero_phase_data.F90 src/aero_rep_factory.F90 src/phlex_interface.F90
+  src/rxn_data.F90 src/camp_state.F90 src/mechanism_data.F90
+  src/camp_core.F90 src/camp_solver_data.F90 src/aero_rep_data.F90
+  src/aero_phase_data.F90 src/aero_rep_factory.F90 src/camp_interface.F90
   src/rxn_factory.F90 src/sub_model_data.F90 src/sub_model_factory.F90
   src/solver_stats.F90
-  ${PHLEX_C_SRC} ${AEROSOL_REPS_SRC} ${SUB_MODELS_SRC} ${REACTIONS_SRC}
-  ${SUNDIALS_SRC} ${GSL_SRC} ${C_SORT_SRC} ${PHLEX_CUDA_SRC} ${PHLEX_CXX_SRC} )
+  ${CAMP_C_SRC} ${AEROSOL_REPS_SRC} ${SUB_MODELS_SRC} ${REACTIONS_SRC}
+  ${SUNDIALS_SRC} ${GSL_SRC} ${C_SORT_SRC} ${CAMP_CUDA_SRC} ${CAMP_CXX_SRC} )
 
 target_link_libraries(partmclib ${NETCDF_LIBS} ${SUNDIALS_LIBS}
   ${MOSAIC_LIB} ${GSL_LIBS} ${JSON_LIB})
@@ -559,16 +559,16 @@ add_executable(partmc src/partmc.F90)
 target_link_libraries(partmc partmclib)
 
 ######################################################################
-# phlex-chem box model
+# camp-chem box model
 
-add_executable(phlex_box_model test/chemistry/phlex_box_model.F90)
+add_executable(camp_box_model test/chemistry/camp_box_model.F90)
 
-target_link_libraries(phlex_box_model partmclib)
+target_link_libraries(camp_box_model partmclib)
 
 ######################################################################
 # test_chemistry_cb05cl_ae5
 
-set(CB5_EBI_SOLVER 
+set(CB5_EBI_SOLVER
 	test/chemistry/cb05cl_ae5/EXT-CONST_mod.F90
 	test/chemistry/cb05cl_ae5/ext-hrg2.F90
 	test/chemistry/cb05cl_ae5/ext-hrcalcks.F90
@@ -703,11 +703,11 @@ add_executable(test_sub_model_ZSR_aerosol_water
 target_link_libraries(test_sub_model_ZSR_aerosol_water partmclib)
 
 ######################################################################
-# test_phlex_core
+# test_camp_core
 
-add_executable(unit_test_phlex_core test/unit_phlex_core/test_phlex_core.F90)
+add_executable(unit_test_camp_core test/unit_camp_core/test_camp_core.F90)
 
-target_link_libraries(unit_test_phlex_core partmclib)
+target_link_libraries(unit_test_camp_core partmclib)
 
 ######################################################################
 # test_aero_phase_data

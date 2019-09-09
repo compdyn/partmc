@@ -9,21 +9,21 @@ del_t 60                        # timestep (s)
 t_output 60                   # output interval (0 disables) (s)
 t_progress 60                  # progress printing interval (0 disables) (s)
 
-do_phlex_chem yes
-phlex_config config_1.json
-gas_init gas_init_phlex.dat           # initial gas concentrations
+do_camp_chem yes
+camp_config config_1.json
+gas_init gas_init_camp.dat           # initial gas concentrations
 
 do_fractal no                   # whether to do fractal treatment
-aerosol_init aero_init_dist_phlex.dat # aerosol initial condition file
+aerosol_init aero_init_dist_camp.dat # aerosol initial condition file
 
-temp_profile temp_phlex.dat           # temperature profile file
-pressure_profile pres.dat       # pressure profile file
-height_profile height_phlex.dat       # height profile file
-gas_emissions gas_emit_phlex.dat      # gas emissions file
-gas_background gas_back_phlex.dat     # background gas concentrations file
-aero_emissions aero_emit_phlex.dat    # aerosol emissions file
-aero_background aero_back_phlex.dat   # aerosol background file
-loss_function none              # loss function specification
+temp_profile temp_camp.dat           # temperature profile file
+pressure_profile pres.dat            # pressure profile file
+height_profile height_camp.dat       # height profile file
+gas_emissions gas_emit_camp.dat      # gas emissions file
+gas_background gas_back_camp.dat     # background gas concentrations file
+aero_emissions aero_emit_camp.dat    # aerosol emissions file
+aero_background aero_back_camp.dat   # aerosol background file
+loss_function none                   # loss function specification
 
 rel_humidity 0.95               # initial relative humidity (1)
 latitude 0                      # latitude (degrees, -90 to 90)

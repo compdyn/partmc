@@ -5,21 +5,21 @@
 !> \file
 !> The pmc_mechanism_data module.
 
-!> \page phlex_mechanism Phlexible Module for Chemistry: Chemical Mechanism
+!> \page camp_mechanism CAMP: Chemical Mechanism
 !!
-!! A mechanism in the \ref phlex_chem "phlex-chem" module is a set of
-!! \ref phlex_rxn "reactions" that occur in the gas-phase or within one of
-!! several \ref phlex_aero_phase "aerosol phases" or across an interface
+!! A mechanism in the \ref camp_chem "camp-chem" module is a set of
+!! \ref camp_rxn "reactions" that occur in the gas-phase or within one of
+!! several \ref camp_aero_phase "aerosol phases" or across an interface
 !! between two phases (gas or aerosol). One or several mechanisms may be
-!! included in a \ref phlex_chem "phlex-chem" model run.
+!! included in a \ref camp_chem "camp-chem" model run.
 !!
-!! Every mechanism in a \ref phlex_chem "phlex-chem" run will have access to
-!! the same set of \ref phlex_species "chemical species" and \ref
-!! phlex_aero_phase "aerosol phases", so phase and species names must be
+!! Every mechanism in a \ref camp_chem "camp-chem" run will have access to
+!! the same set of \ref camp_species "chemical species" and \ref
+!! camp_aero_phase "aerosol phases", so phase and species names must be
 !! consistent across all concurrently loaded mechanisms. The division of \ref
-!! phlex_rxn "reactions" into distinct mechanisms permits a host model to
+!! camp_rxn "reactions" into distinct mechanisms permits a host model to
 !! specificy which mechanisms should be solved during a call to
-!! \c pmc_phlex_core::phlex_core_t::solve().
+!! \c pmc_camp_core::camp_core_t::solve().
 !!
 !! The input format for mechanism data can be found \ref
 !! input_format_mechanism "here".
@@ -37,7 +37,7 @@ module pmc_mechanism_data
   use pmc_chem_spec_data
   use pmc_constants,                  only : i_kind, dp
   use pmc_mpi
-  use pmc_phlex_state
+  use pmc_camp_state
   use pmc_rxn_data
   use pmc_rxn_factory
   use pmc_util,                       only : die_msg, string_t
@@ -54,7 +54,7 @@ module pmc_mechanism_data
 
   !> A chemical mechanism
   !!
-  !! Instances of mechanism_data_t represent complete \ref phlex_mechanism
+  !! Instances of mechanism_data_t represent complete \ref camp_mechanism
   !! chemical mechanism. Multiple mechanisms  may be used during one model run
   !! and will be solved simultaneously.
   type :: mechanism_data_t
@@ -165,7 +165,7 @@ contains
 
   !> \page input_format_mechanism Input JSON Object Format: Mechanism
   !!
-  !! A \c json object containing information about a \ref phlex_mechanism
+  !! A \c json object containing information about a \ref camp_mechanism
   !! "chemical mechanism" has the following format :
   !! \code{.json}
   !! { "pmc-data" : [
@@ -178,7 +178,7 @@ contains
   !!   }
   !! ]}
   !! \endcode
-  !! A \ref phlex_mechanism "mechanism" object must have a unique \b name,
+  !! A \ref camp_mechanism "mechanism" object must have a unique \b name,
   !! a \b type of \b MECHANISM and an array of \ref input_format_rxn
   !! "reaction objects" labelled \b reactions. Mechanism data may be split
   !! into multiple mechanism objects across input files - they will be

@@ -5,20 +5,20 @@
 !> \file
 !> The monarch_interface_t object and related functions
 
-!> Interface for the MONACH model and PartMC-phlex
+!> Interface for the MONACH model and PartMC-camp
 module pmc_monarch_interface
 
   use pmc_constants,                  only : i_kind
   use pmc_mpi
   use pmc_util,                       only : assert_msg, string_t
-  use pmc_phlex_core
-  use pmc_phlex_state
+  use pmc_camp_core
+  use pmc_camp_state
   use pmc_aero_rep_data
   use pmc_aero_rep_factory
   use pmc_aero_rep_modal_binned_mass
   use pmc_chem_spec_data
   use pmc_property
-  use pmc_phlex_solver_data
+  use pmc_camp_solver_data
   use pmc_solver_stats
 #ifdef PMC_USE_MPI
   use mpi
@@ -38,16 +38,16 @@ module pmc_monarch_interface
   !! and map state variables between PartMC and MONARCH
   type :: monarch_interface_t
     private
-    !> Phlex-chem core
-    type(phlex_core_t), pointer :: phlex_core
-    !> Phlex-chem state
-    type(phlex_state_t), pointer :: phlex_state
+    !> CAMP-chem core
+    type(camp_core_t), pointer :: camp_core
+    !> CAMP-chem state
+    type(camp_state_t), pointer :: camp_state
     !> MONARCH species names
     type(string_t), allocatable :: monarch_species_names(:)
     !> MONARCH <-> PartMC species map
-    integer(kind=i_kind), allocatable :: map_monarch_id(:), map_phlex_id(:)
-    !> PartMC-phlex ids for initial concentrations
-    integer(kind=i_kind), allocatable :: init_conc_phlex_id(:)
+    integer(kind=i_kind), allocatable :: map_monarch_id(:), map_camp_id(:)
+    !> PartMC-camp ids for initial concentrations
+    integer(kind=i_kind), allocatable :: init_conc_camp_id(:)
     !> Initial species concentrations
     real(kind=dp), allocatable :: init_conc(:)
     !> Number of cells to compute simultaneously
@@ -56,9 +56,9 @@ module pmc_monarch_interface
     integer(kind=i_kind) :: tracer_starting_id
     !> Ending index for PartMC species on the MONARCH tracer array
     integer(kind=i_kind) :: tracer_ending_id
-    !> PartMC-phlex <-> MONARCH species map input data
+    !> PartMC-camp <-> MONARCH species map input data
     type(property_t), pointer :: species_map_data
-    !> Gas-phase water id in PartMC-phlex
+    !> Gas-phase water id in PartMC-camp
     integer(kind=i_kind) :: gas_phase_water_id
     !> Initial concentration data
     type(property_t), pointer :: init_conc_data
@@ -73,7 +73,7 @@ module pmc_monarch_interface
     procedure :: get_init_conc
     !> Get monarch species names and ids (for testing only)
     procedure :: get_MONARCH_species
-    !> Print the PartMC-phlex data
+    !> Print the PartMC-camp data
     procedure :: print => do_print
     !> Load interface data from a set of input files
     procedure, private :: load
@@ -106,14 +106,14 @@ contains
   !! to the PartMC confirguration file list, the path to the interface
   !! configuration file and the starting and ending indices for chemical
   !! species in the tracer array.
-  function constructor(phlex_config_file, interface_config_file, &
+  function constructor(camp_config_file, interface_config_file, &
                        starting_id, ending_id, n_cells, mpi_comm) result (new_obj)
 
     !> A new MONARCH interface
     type(monarch_interface_t), pointer :: new_obj
-    !> Path to the PartMC-phlex configuration file list
-    character(len=:), allocatable, optional :: phlex_config_file
-    !> Path to the PartMC-phlex <-> MONARCH interface input file
+    !> Path to the PartMC-camp configuration file list
+    character(len=:), allocatable, optional :: camp_config_file
+    !> Path to the PartMC-camp <-> MONARCH interface input file
     character(len=:), allocatable, optional :: interface_config_file
     !> Starting index for chemical species in the MONARCH tracer array
     integer, optional :: starting_id
@@ -124,7 +124,7 @@ contains
     !> Num cells to compute simulatenously
     integer, optional :: n_cells
 
-    type(phlex_solver_data_t), pointer :: phlex_solver_data
+    type(camp_solver_data_t), pointer :: camp_solver_data
     character, allocatable :: buffer(:)
     integer(kind=i_kind) :: pos, pack_size
     integer(kind=i_kind) :: i_spec
@@ -163,10 +163,10 @@ contains
     end if
 
     ! Check for an available solver
-    phlex_solver_data => phlex_solver_data_t()
-    call assert_msg(332298164, phlex_solver_data%is_solver_available(), &
+    camp_solver_data => camp_solver_data_t()
+    call assert_msg(332298164, camp_solver_data%is_solver_available(), &
             "No solver available")
-    deallocate(phlex_solver_data)
+    deallocate(camp_solver_data)
 
     ! Initialize the time-invariant model data on each node
     if (MONARCH_PROCESS.eq.0) then
@@ -174,10 +174,10 @@ contains
       ! Start the computation timer on the primary node
       call cpu_time(comp_start)
 
-      call assert_msg(304676624, present(phlex_config_file), &
-              "Missing PartMC-phlex configuration file list")
+      call assert_msg(304676624, present(camp_config_file), &
+              "Missing PartMC-camp configuration file list")
       call assert_msg(194027509, present(interface_config_file), &
-              "Missing MartMC-phlex <-> MONARCH interface configuration file")
+              "Missing MartMC-camp <-> MONARCH interface configuration file")
       call assert_msg(937567597, present(starting_id), &
               "Missing starting tracer index for chemical species")
       call assert_msg(593895016, present(ending_id), &
@@ -186,12 +186,12 @@ contains
       ! Load the interface data
       call new_obj%load(interface_config_file)
 
-      ! Initialize the phlex-chem core
-      new_obj%phlex_core => phlex_core_t(phlex_config_file, new_obj%n_cells)
-      call new_obj%phlex_core%initialize()
+      ! Initialize the camp-chem core
+      new_obj%camp_core => camp_core_t(camp_config_file, new_obj%n_cells)
+      call new_obj%camp_core%initialize()
 
       ! Set the aerosol representation id
-      if (new_obj%phlex_core%get_aero_rep("MONARCH mass-based", aero_rep)) then
+      if (new_obj%camp_core%get_aero_rep("MONARCH mass-based", aero_rep)) then
         select type (aero_rep)
           type is (aero_rep_modal_binned_mass_t)
             call aero_rep%set_id(aero_rep_id)
@@ -219,17 +219,17 @@ contains
       new_obj%tracer_starting_id = starting_id
       new_obj%tracer_ending_id = ending_id
 
-      ! Generate the PartMC-phlex <-> MONARCH species map
+      ! Generate the PartMC-camp <-> MONARCH species map
       call new_obj%create_map()
 
       ! Load the initial concentrations
       call new_obj%load_init_conc()
 
 #ifdef PMC_USE_MPI
-      pack_size = new_obj%phlex_core%pack_size() + &
+      pack_size = new_obj%camp_core%pack_size() + &
               pmc_mpi_pack_size_integer_array(new_obj%map_monarch_id) + &
-              pmc_mpi_pack_size_integer_array(new_obj%map_phlex_id) + &
-              pmc_mpi_pack_size_integer_array(new_obj%init_conc_phlex_id) + &
+              pmc_mpi_pack_size_integer_array(new_obj%map_camp_id) + &
+              pmc_mpi_pack_size_integer_array(new_obj%init_conc_camp_id) + &
               pmc_mpi_pack_size_real_array(new_obj%init_conc) + &
               pmc_mpi_pack_size_integer(new_obj%gas_phase_water_id) + &
               pmc_mpi_pack_size_integer(i_sect_om) + &
@@ -238,10 +238,10 @@ contains
               pmc_mpi_pack_size_integer(i_sect_opm)
       allocate(buffer(pack_size))
       pos = 0
-      call new_obj%phlex_core%bin_pack(buffer, pos)
+      call new_obj%camp_core%bin_pack(buffer, pos)
       call pmc_mpi_pack_integer_array(buffer, pos, new_obj%map_monarch_id)
-      call pmc_mpi_pack_integer_array(buffer, pos, new_obj%map_phlex_id)
-      call pmc_mpi_pack_integer_array(buffer, pos, new_obj%init_conc_phlex_id)
+      call pmc_mpi_pack_integer_array(buffer, pos, new_obj%map_camp_id)
+      call pmc_mpi_pack_integer_array(buffer, pos, new_obj%init_conc_camp_id)
       call pmc_mpi_pack_real_array(buffer, pos, new_obj%init_conc)
       call pmc_mpi_pack_integer(buffer, pos, new_obj%gas_phase_water_id)
       call pmc_mpi_pack_integer(buffer, pos, i_sect_om)
@@ -263,12 +263,12 @@ contains
 
     if (MONARCH_PROCESS.ne.0) then
       ! unpack the data
-      new_obj%phlex_core => phlex_core_t()
+      new_obj%camp_core => camp_core_t()
       pos = 0
-      call new_obj%phlex_core%bin_unpack(buffer, pos)
+      call new_obj%camp_core%bin_unpack(buffer, pos)
       call pmc_mpi_unpack_integer_array(buffer, pos, new_obj%map_monarch_id)
-      call pmc_mpi_unpack_integer_array(buffer, pos, new_obj%map_phlex_id)
-      call pmc_mpi_unpack_integer_array(buffer, pos, new_obj%init_conc_phlex_id)
+      call pmc_mpi_unpack_integer_array(buffer, pos, new_obj%map_camp_id)
+      call pmc_mpi_unpack_integer_array(buffer, pos, new_obj%init_conc_camp_id)
       call pmc_mpi_unpack_real_array(buffer, pos, new_obj%init_conc)
       call pmc_mpi_unpack_integer(buffer, pos, new_obj%gas_phase_water_id)
       call pmc_mpi_unpack_integer(buffer, pos, i_sect_om)
@@ -287,10 +287,10 @@ contains
     call aero_rep_factory%initialize_update_data(update_data_GSD)
 
     ! Initialize the solver on all nodes
-    call new_obj%phlex_core%solver_initialize()
+    call new_obj%camp_core%solver_initialize()
 
     ! Create a state variable on each node
-    new_obj%phlex_state => new_obj%phlex_core%new_state()
+    new_obj%camp_state => new_obj%camp_core%new_state()
 
     ! Set the aerosol mode dimensions
 
@@ -298,36 +298,36 @@ contains
     if (i_sect_om.gt.0) then
       call update_data_GMD%set_GMD(aero_rep_id, i_sect_om, 2.12d-8)
       call update_data_GSD%set_GSD(aero_rep_id, i_sect_om, 2.24d0)
-      call new_obj%phlex_core%update_aero_rep_data(update_data_GMD)
-      call new_obj%phlex_core%update_aero_rep_data(update_data_GSD)
+      call new_obj%camp_core%update_aero_rep_data(update_data_GMD)
+      call new_obj%camp_core%update_aero_rep_data(update_data_GSD)
     end if
     if (i_sect_bc.gt.0) then
     ! black carbon
       call update_data_GMD%set_GMD(aero_rep_id, i_sect_bc, 1.18d-8)
       call update_data_GSD%set_GSD(aero_rep_id, i_sect_bc, 2.00d0)
-      call new_obj%phlex_core%update_aero_rep_data(update_data_GMD)
-      call new_obj%phlex_core%update_aero_rep_data(update_data_GSD)
+      call new_obj%camp_core%update_aero_rep_data(update_data_GMD)
+      call new_obj%camp_core%update_aero_rep_data(update_data_GSD)
     end if
     if (i_sect_sulf.gt.0) then
     ! sulfate
       call update_data_GMD%set_GMD(aero_rep_id, i_sect_sulf, 6.95d-8)
       call update_data_GSD%set_GSD(aero_rep_id, i_sect_sulf, 2.12d0)
-      call new_obj%phlex_core%update_aero_rep_data(update_data_GMD)
-      call new_obj%phlex_core%update_aero_rep_data(update_data_GSD)
+      call new_obj%camp_core%update_aero_rep_data(update_data_GMD)
+      call new_obj%camp_core%update_aero_rep_data(update_data_GSD)
     end if
     if (i_sect_opm.gt.0) then
     ! other PM
       call update_data_GMD%set_GMD(aero_rep_id, i_sect_opm, 2.12d-8)
       call update_data_GSD%set_GSD(aero_rep_id, i_sect_opm, 2.24d0)
-      call new_obj%phlex_core%update_aero_rep_data(update_data_GMD)
-      call new_obj%phlex_core%update_aero_rep_data(update_data_GSD)
+      call new_obj%camp_core%update_aero_rep_data(update_data_GMD)
+      call new_obj%camp_core%update_aero_rep_data(update_data_GSD)
     end if
 
     ! Calculate the intialization time
     if (MONARCH_PROCESS.eq.0) then
       call cpu_time(comp_end)
       write(*,*) "Initialization time: ", comp_end-comp_start, " s"
-      call new_obj%phlex_core%print()
+      call new_obj%camp_core%print()
     end if
 
   end function constructor
@@ -339,7 +339,7 @@ contains
                   j_end, temperature, MONARCH_conc, water_conc, &
                   water_vapor_index, air_density, pressure)
 
-    !> PartMC-phlex <-> MONARCH interface
+    !> PartMC-camp <-> MONARCH interface
     class(monarch_interface_t) :: this
     !> Integration start time (min since midnight)
     real, intent(in) :: start_time
@@ -382,7 +382,7 @@ contains
     if(this%n_cells.eq.1) then
       state_size_per_cell = 0
     else
-      state_size_per_cell = this%phlex_core%state_size_per_cell()
+      state_size_per_cell = this%camp_core%state_size_per_cell()
     end if
 
 #if 0
@@ -405,16 +405,16 @@ contains
             k_flip = size(MONARCH_conc,3) - k + 1
 
             ! Update the environmental state
-            this%phlex_state%env_state%temp = temperature(i,j,k_flip)
-            this%phlex_state%env_state%pressure = pressure(i,k,j)
-            call this%phlex_state%update_env_state()
+            this%camp_state%env_state%temp = temperature(i,j,k_flip)
+            this%camp_state%env_state%pressure = pressure(i,k,j)
+            call this%camp_state%update_env_state()
 
-            this%phlex_state%state_var(:) = 0.0
+            this%camp_state%state_var(:) = 0.0
 
-            this%phlex_state%state_var(this%map_phlex_id(:)) = &
-                    this%phlex_state%state_var(this%map_phlex_id(:)) + &
+            this%camp_state%state_var(this%map_camp_id(:)) = &
+                    this%camp_state%state_var(this%map_camp_id(:)) + &
                             MONARCH_conc(i,j,k_flip,this%map_monarch_id(:))
-            this%phlex_state%state_var(this%gas_phase_water_id) = &
+            this%camp_state%state_var(this%gas_phase_water_id) = &
                     water_conc(i,j,k_flip,water_vapor_index) * &
                     air_density(i,k,j) * 1.0d9
 
@@ -427,7 +427,7 @@ contains
             end if
 
             ! Integrate the PMC mechanism
-            call this%phlex_core%solve(this%phlex_state, &
+            call this%camp_core%solve(this%camp_state, &
                     real(time_step, kind=dp), solver_stats = solver_stats)
 #if 0
 #ifdef PMC_DEBUG
@@ -441,7 +441,7 @@ contains
 
             ! Update the MONARCH tracer array with new species concentrations
             MONARCH_conc(i,j,k_flip,this%map_monarch_id(:)) = &
-                    this%phlex_state%state_var(this%map_phlex_id(:))
+                    this%camp_state%state_var(this%map_camp_id(:))
 
           end do
         end do
@@ -472,20 +472,20 @@ contains
             k_flip = size(MONARCH_conc,3) - k + 1
 
             ! Update the environmental state
-            this%phlex_state%env_state%temp = temperature(i,j,k_flip)
-            this%phlex_state%env_state%pressure = pressure(i,k,j)
-            call this%phlex_state%update_env_state(z+1)
+            this%camp_state%env_state%temp = temperature(i,j,k_flip)
+            this%camp_state%env_state%pressure = pressure(i,k,j)
+            call this%camp_state%update_env_state(z+1)
 
             !Reset state conc
-            this%phlex_state%state_var(this%map_phlex_id(:) + &
+            this%camp_state%state_var(this%map_camp_id(:) + &
                                        (z*state_size_per_cell)) = 0.0
 
-            this%phlex_state%state_var(this%map_phlex_id(:) + &
+            this%camp_state%state_var(this%map_camp_id(:) + &
                                        (z*state_size_per_cell)) = &
-                    this%phlex_state%state_var(this%map_phlex_id(:) + &
+                    this%camp_state%state_var(this%map_camp_id(:) + &
                                                (z*state_size_per_cell)) + &
                     MONARCH_conc(i,j,k_flip,this%map_monarch_id(:))
-            this%phlex_state%state_var(this%gas_phase_water_id + &
+            this%camp_state%state_var(this%gas_phase_water_id + &
                                        (z*state_size_per_cell)) = &
                     water_conc(i,j,k_flip,water_vapor_index) * &
                           air_density(i,k,j) * 1.0d9
@@ -495,7 +495,7 @@ contains
       end do
 
       ! Integrate the PMC mechanism
-      call this%phlex_core%solve(this%phlex_state, &
+      call this%camp_core%solve(this%camp_state, &
               real(time_step, kind=dp), solver_stats = solver_stats)
 
       do i=i_start, i_end
@@ -506,7 +506,7 @@ contains
 
             k_flip = size(MONARCH_conc,3) - k + 1
             MONARCH_conc(i,j,k_flip,this%map_monarch_id(:)) = &
-                    this%phlex_state%state_var(this%map_phlex_id(:) + &
+                    this%camp_state%state_var(this%map_camp_id(:) + &
                                                (z*state_size_per_cell))
           end do
         end do
@@ -523,10 +523,10 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Load the MONARCH <-> PartMC-phlex interface input data
+  !> Load the MONARCH <-> PartMC-camp interface input data
   subroutine load(this, config_file)
 
-    !> PartMC-phlex <-> MONARCH interface
+    !> PartMC-camp <-> MONARCH interface
     class(monarch_interface_t) :: this
     !> Interface configuration file path
     character(len=:), allocatable :: config_file
@@ -621,7 +621,7 @@ contains
     deallocate(json)
 
 #else
-    call die_msg(635417227, "PartMC-phlex <-> MONARCH interface requires "// &
+    call die_msg(635417227, "PartMC-camp <-> MONARCH interface requires "// &
                   "JSON file support.")
 #endif
 
@@ -629,10 +629,10 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Create the PartMC-phlex <-> MONARCH species map
+  !> Create the PartMC-camp <-> MONARCH species map
   subroutine create_map(this)
 
-    !> PartMC-phlex <-> MONARCH interface
+    !> PartMC-camp <-> MONARCH interface
     class(monarch_interface_t) :: this
 
     type(chem_spec_data_t), pointer :: chem_spec_data
@@ -658,12 +658,12 @@ contains
     ! Set up the species map and MONARCH names array
     allocate(this%monarch_species_names(num_spec))
     allocate(this%map_monarch_id(num_spec))
-    allocate(this%map_phlex_id(num_spec))
+    allocate(this%map_camp_id(num_spec))
 
     ! Get the chemical species data
     call assert_msg(731700229, &
-            this%phlex_core%get_chem_spec_data(chem_spec_data), &
-            "No chemical species data in phlex_core.")
+            this%camp_core%get_chem_spec_data(chem_spec_data), &
+            "No chemical species data in camp_core.")
 
     ! Set the gas-phase water id
     key_name = "gas-phase water"
@@ -683,14 +683,14 @@ contains
 
       call assert_msg(599522862, &
               gas_species_list%get_property_t(val=species_data), &
-              "Missing species data for '"//spec_name//"' in PartMC-phlex "// &
+              "Missing species data for '"//spec_name//"' in PartMC-camp "// &
               "<-> MONARCH species map.")
 
       key_name = "monarch id"
       call assert_msg(643926329, &
               species_data%get_int(key_name, this%map_monarch_id(i_spec)), &
               "Missing monarch id for species '"//spec_name//" in "// &
-              "PartMC-phlex <-> MONARCH species map.")
+              "PartMC-camp <-> MONARCH species map.")
       this%map_monarch_id(i_spec) = this%map_monarch_id(i_spec) + &
               this%tracer_starting_id - 1
       call assert_msg(450258014, &
@@ -698,9 +698,9 @@ contains
               "Monarch id for species '"//spec_name//"' out of specified "// &
               "tracer array bounds.")
 
-      this%map_phlex_id(i_spec) = chem_spec_data%gas_state_id(spec_name)
-      call assert_msg(916977002, this%map_phlex_id(i_spec).gt.0, &
-                "Could not find species '"//spec_name//"' in PartMC-phlex.")
+      this%map_camp_id(i_spec) = chem_spec_data%gas_state_id(spec_name)
+      call assert_msg(916977002, this%map_camp_id(i_spec).gt.0, &
+                "Could not find species '"//spec_name//"' in PartMC-camp.")
 
       call gas_species_list%iter_next()
       i_spec = i_spec + 1
@@ -717,13 +717,13 @@ contains
         call assert_msg(567689501, &
                 aero_species_list%get_property_t(val=species_data), &
                 "Missing species data for '"//spec_name//"' in " //&
-                "PartMC-phlex <-> MONARCH species map.")
+                "PartMC-camp <-> MONARCH species map.")
 
         key_name = "monarch id"
         call assert_msg(615451741, &
                 species_data%get_int(key_name, this%map_monarch_id(i_spec)), &
                 "Missing monarch id for species '"//spec_name//"' in "// &
-                "PartMC-phlex <-> MONARCH species map.")
+                "PartMC-camp <-> MONARCH species map.")
         this%map_monarch_id(i_spec) = this%map_monarch_id(i_spec) + &
                 this%tracer_starting_id - 1
         call assert_msg(382644266, &
@@ -735,15 +735,15 @@ contains
         call assert_msg(963222513, &
                 species_data%get_string(key_name, rep_name), &
                 "Missing aerosol representation name for species '"// &
-                spec_name//"' in PartMC-phlex <-> MONARCH species map.")
+                spec_name//"' in PartMC-camp <-> MONARCH species map.")
 
         ! Find the species PartMC id
-        this%map_phlex_id(i_spec) = 0
+        this%map_camp_id(i_spec) = 0
         call assert_msg(377850668, &
-                this%phlex_core%get_aero_rep(rep_name, aero_rep_ptr), &
+                this%camp_core%get_aero_rep(rep_name, aero_rep_ptr), &
                 "Could not find aerosol representation '"//rep_name//"'")
-        this%map_phlex_id(i_spec) = aero_rep_ptr%spec_state_id(spec_name)
-        call assert_msg(887136850, this%map_phlex_id(i_spec) .gt. 0, &
+        this%map_camp_id(i_spec) = aero_rep_ptr%spec_state_id(spec_name)
+        call assert_msg(887136850, this%map_camp_id(i_spec) .gt. 0, &
                 "Could not find aerosol species '"//spec_name//"' in "// &
                 "aerosol representation '"//rep_name//"'.")
 
@@ -759,7 +759,7 @@ contains
   !> Load initial concentrations
   subroutine load_init_conc(this)
 
-    !> PartMC-phlex <-> MONARCH interface
+    !> PartMC-camp <-> MONARCH interface
     class(monarch_interface_t) :: this
 
     type(chem_spec_data_t), pointer :: chem_spec_data
@@ -784,11 +784,11 @@ contains
 
     ! Get the chemical species data
     call assert_msg(885063268, &
-            this%phlex_core%get_chem_spec_data(chem_spec_data), &
-            "No chemical species data in phlex_core.")
+            this%camp_core%get_chem_spec_data(chem_spec_data), &
+            "No chemical species data in camp_core.")
 
     ! Allocate space for the initial concentrations and indices
-    allocate(this%init_conc_phlex_id(num_spec))
+    allocate(this%init_conc_camp_id(num_spec))
     allocate(this%init_conc(num_spec))
 
     ! Add the gas-phase initial concentrations
@@ -802,18 +802,18 @@ contains
         call assert_msg(325582312, &
                 gas_species_list%get_property_t(val=species_data), &
                 "Missing species data for '"//spec_name//"' for "// &
-                "PartMC-phlex initial concentrations.")
+                "PartMC-camp initial concentrations.")
 
         key_name = "init conc"
         call assert_msg(445070498, &
                 species_data%get_real(key_name, this%init_conc(i_spec)), &
                 "Missing 'init conc' for species '"//spec_name//" for "// &
-                "PartMC-phlex initial concentrations.")
+                "PartMC-camp initial concentrations.")
 
-        this%init_conc_phlex_id(i_spec) = &
+        this%init_conc_camp_id(i_spec) = &
                 chem_spec_data%gas_state_id(spec_name)
-        call assert_msg(940200584, this%init_conc_phlex_id(i_spec).gt.0, &
-                "Could not find species '"//spec_name//"' in PartMC-phlex.")
+        call assert_msg(940200584, this%init_conc_camp_id(i_spec).gt.0, &
+                "Could not find species '"//spec_name//"' in PartMC-camp.")
 
         call gas_species_list%iter_next()
         i_spec = i_spec + 1
@@ -830,28 +830,28 @@ contains
         call assert_msg(331096555, &
                 aero_species_list%get_property_t(val=species_data), &
                 "Missing species data for '"//spec_name//"' for " //&
-                "PartMC-phlex initial concentrations.")
+                "PartMC-camp initial concentrations.")
 
         key_name = "init conc"
         call assert_msg(782275469, &
                 species_data%get_real(key_name, this%init_conc(i_spec)), &
                 "Missing 'init conc' for species '"//spec_name//"' for "// &
-                "PartMC-phlex initial concentrations.")
+                "PartMC-camp initial concentrations.")
 
         key_name = "aerosol representation name"
         call assert_msg(150863332, &
                 species_data%get_string(key_name, rep_name), &
                 "Missing aerosol representation name for species '"// &
-                spec_name//"' for PartMC-phlex initial concentrations.")
+                spec_name//"' for PartMC-camp initial concentrations.")
 
         ! Find the species PartMC id
-        this%init_conc_phlex_id(i_spec) = 0
+        this%init_conc_camp_id(i_spec) = 0
         call assert_msg(258814777, &
-                this%phlex_core%get_aero_rep(rep_name, aero_rep_ptr), &
+                this%camp_core%get_aero_rep(rep_name, aero_rep_ptr), &
                 "Could not find aerosol representation '"//rep_name//"'")
-        this%init_conc_phlex_id(i_spec) = &
+        this%init_conc_camp_id(i_spec) = &
                 aero_rep_ptr%spec_state_id(spec_name)
-        call assert_msg(437149649, this%init_conc_phlex_id(i_spec) .gt. 0, &
+        call assert_msg(437149649, this%init_conc_camp_id(i_spec) .gt. 0, &
                 "Could not find aerosol species '"//spec_name//"' in "// &
                 "aerosol representation '"//rep_name//"'.")
 
@@ -868,7 +868,7 @@ contains
   subroutine get_init_conc(this, MONARCH_conc, MONARCH_water_conc, &
       WATER_VAPOR_ID, MONARCH_air_density)
 
-    !> PartMC-phlex <-> MONARCH interface
+    !> PartMC-camp <-> MONARCH interface
     class(monarch_interface_t) :: this
     !> MONARCH species concentrations to update
     real, intent(inout) :: MONARCH_conc(:,:,:,:)
@@ -882,7 +882,7 @@ contains
     integer(kind=i_kind) :: i_spec, water_id
 
     ! Reset the species concentrations in PMC and MONARCH
-    this%phlex_state%state_var(:) = 0.0
+    this%camp_state%state_var(:) = 0.0
     MONARCH_conc(:,:,:,:) = 0.0
     MONARCH_water_conc(:,:,:,WATER_VAPOR_ID) = 0.0
 
@@ -890,18 +890,18 @@ contains
     MONARCH_air_density(:,:,:) = 1.225
 
     ! Set initial concentrations in PMC
-    this%phlex_state%state_var(this%init_conc_phlex_id(:)) = &
+    this%camp_state%state_var(this%init_conc_camp_id(:)) = &
             this%init_conc(:)
 
     ! Copy species concentrations to MONARCH array
     forall (i_spec = 1:size(this%map_monarch_id))
       MONARCH_conc(:,:,:,this%map_monarch_id(i_spec)) = &
-              this%phlex_state%state_var(this%map_phlex_id(i_spec))
+              this%camp_state%state_var(this%map_camp_id(i_spec))
     end forall
 
     ! Set the relative humidity
     MONARCH_water_conc(:,:,:,WATER_VAPOR_ID) = &
-            this%phlex_state%state_var(this%gas_phase_water_id) * &
+            this%camp_state%state_var(this%gas_phase_water_id) * &
             1.0d-9 / 1.225d0
 
   end subroutine get_init_conc
@@ -911,7 +911,7 @@ contains
   !> Get the MONARCH species names and indices (for testing only)
   subroutine get_MONARCH_species(this, species_names, MONARCH_ids)
 
-    !> PartMC-phlex <-> MONARCH interface
+    !> PartMC-camp <-> MONARCH interface
     class(monarch_interface_t) :: this
     !> Set of MONARCH species names
     type(string_t), allocatable, intent(out) :: species_names(:)
@@ -925,13 +925,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Print the PartMC-phlex data
+  !> Print the PartMC-camp data
   subroutine do_print(this)
 
-    !> PartMC-phlex <-> MONARCH interface
+    !> PartMC-camp <-> MONARCH interface
     class(monarch_interface_t) :: this
 
-    call this%phlex_core%print()
+    call this%camp_core%print()
 
   end subroutine do_print
 
@@ -940,21 +940,21 @@ contains
   !> Finalize the interface
   elemental subroutine finalize(this)
 
-    !> PartMC-phlex <-> MONARCH interface
+    !> PartMC-camp <-> MONARCH interface
     type(monarch_interface_t), intent(inout) :: this
 
-    if (associated(this%phlex_core)) &
-            deallocate(this%phlex_core)
-    if (associated(this%phlex_state)) &
-            deallocate(this%phlex_state)
+    if (associated(this%camp_core)) &
+            deallocate(this%camp_core)
+    if (associated(this%camp_state)) &
+            deallocate(this%camp_state)
     if (allocated(this%monarch_species_names)) &
             deallocate(this%monarch_species_names)
     if (allocated(this%map_monarch_id)) &
             deallocate(this%map_monarch_id)
-    if (allocated(this%map_phlex_id)) &
-            deallocate(this%map_phlex_id)
-    if (allocated(this%init_conc_phlex_id)) &
-            deallocate(this%init_conc_phlex_id)
+    if (allocated(this%map_camp_id)) &
+            deallocate(this%map_camp_id)
+    if (allocated(this%init_conc_camp_id)) &
+            deallocate(this%init_conc_camp_id)
     if (allocated(this%init_conc)) &
             deallocate(this%init_conc)
     if (associated(this%species_map_data)) &

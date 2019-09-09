@@ -5,7 +5,7 @@
 !> \file
 !> The pmc_sub_model_PDFiTE module.
 
-!> \page phlex_sub_model_PDFiTE Phlexible Module for Chemistry: PD-FiTE Activity
+!> \page camp_sub_model_PDFiTE CAMP: PD-FiTE Activity
 !!
 !! PD-FiTE activity calculates aerosol-phase species activities using
 !! Taylor series to describe partial derivatives of mean activity coefficients
@@ -172,7 +172,7 @@ module pmc_sub_model_PDFiTE
   use pmc_aero_rep_data
   use pmc_chem_spec_data
   use pmc_constants,                        only: const
-  use pmc_phlex_state
+  use pmc_camp_state
   use pmc_property
   use pmc_sub_model_data
   use pmc_util,                             only: i_kind, dp, to_string, &
@@ -874,33 +874,5 @@ contains
   end function priority
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-#undef NUM_PHASE_
-#undef GAS_WATER_ID_
-#undef NUM_ION_PAIRS_
-#undef TOTAL_INT_PARAM_
-#undef TOTAL_FLOAT_PARAM_
-#undef PPM_TO_RH_
-#undef NUM_INT_PROP_
-#undef NUM_REAL_PROP_
-#undef PHASE_ID_
-#undef PAIR_INT_PARAM_LOC_
-#undef PAIR_FLOAT_PARAM_LOC_
-#undef ION_PAIR_ACT_ID_
-#undef NUM_CATION_
-#undef NUM_ANION_
-#undef CATION_ID_
-#undef ANION_ID_
-#undef NUM_INTER_
-#undef NUM_B_
-#undef INTER_SPEC_ID_
-#undef INTER_SPEC_LOC_
-#undef CATION_MW_
-#undef ANION_MW_
-#undef CATION_N_
-#undef ANION_N_
-#undef MIN_RH_
-#undef MAX_RH_
-#undef B_Z_
 
 end module pmc_sub_model_PDFiTE

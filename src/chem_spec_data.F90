@@ -5,16 +5,16 @@
 !> \file
 !> The pmc_chem_spec_data module.
 
-!> \page phlex_species Phlexible Module for Chemistry: Chemical Species
+!> \page camp_species CAMP: Chemical Species
 !!
-!! Chemical species in the \ref phlex_chem "phlex-chem" module are gas- or
+!! Chemical species in the \ref camp_chem "camp-chem" module are gas- or
 !! aerosol-phase species that can participate in chemical or phase-transfer
-!! reactions in the \ref phlex_mechanism "mechanism(s)". Each species must
+!! reactions in the \ref camp_mechanism "mechanism(s)". Each species must
 !! have a unique name (the same name cannot be used for a gas-phase
 !! species and an aerosol-phase species). Chemical species may be present
-!! either in the gas-phase or any number of \ref phlex_aero_phase
+!! either in the gas-phase or any number of \ref camp_aero_phase
 !! "aerosol phases". For example, an aerosol-phase chemical species may be
-!! present in an "organic" and an "aqueous" \ref phlex_aero_phase
+!! present in an "organic" and an "aqueous" \ref camp_aero_phase
 !! "aerosol phase".
 !!
 !! Chemical species data include physical constants and species-specific
@@ -22,7 +22,7 @@
 !! and sub-model data for use during solving. Note that chemical species data
 !! are  **only** available during initialization, and when using MPI are not
 !! passed to child nodes. The primary node will, however, have access to data
-!! in the \c pmc_phlex_core::phlex_core_t::chem_spec_data object for outputing
+!! in the \c pmc_camp_core::camp_core_t::chem_spec_data object for outputing
 !! model data (e.g., species names).
 !!
 !! The input format for chemical species can be found \ref
@@ -45,7 +45,7 @@ module pmc_chem_spec_data
 
   public :: chem_spec_data_t
 
-  !> State variable types (Must match values in phlex_solver.c)
+  !> State variable types (Must match values in camp_solver.c)
   integer(kind=i_kind), parameter, public :: CHEM_SPEC_UNKNOWN_TYPE = 0
   integer(kind=i_kind), parameter, public :: CHEM_SPEC_VARIABLE = 1
   integer(kind=i_kind), parameter, public :: CHEM_SPEC_CONSTANT = 2
@@ -64,7 +64,7 @@ module pmc_chem_spec_data
 
   !> Chemical species data
   !!
-  !! Time-invariant data related to a \ref phlex_species "chemical species"
+  !! Time-invariant data related to a \ref camp_species "chemical species"
   type chem_spec_data_t
     private
     !> Number of species
@@ -97,18 +97,18 @@ module pmc_chem_spec_data
     !> Get the absolute integration tolerance of a species
     procedure :: get_abs_tol
     !> Get a gas-phase species index in the \c
-    !! pmc_phlex_state::phlex_state_t::state_var array.  Note that
+    !! pmc_camp_state::camp_state_t::state_var array.  Note that
     !! aerosol-phase species indices on the \c
-    !! pmc_phlex_state::phlex_state_t::state_var array must be accessed from
+    !! pmc_camp_state::camp_state_t::state_var array must be accessed from
     !! \c pmc_aero_rep_data::aero_rep_data_t::spec_state_id() for a
-    !! particular \ref phlex_aero_rep "aerosol representation".
+    !! particular \ref camp_aero_rep "aerosol representation".
     procedure :: gas_state_id
     !> Get the name of a gas-phase species in the \c
-    !! pmc_phlex_state::phlex_state_t::state_var array.  Note that
+    !! pmc_camp_state::camp_state_t::state_var array.  Note that
     !! aerosol-phase species names on the \c
-    !! pmc_phlex_state::phlex_state_t::state_var array must be accessed from
+    !! pmc_camp_state::camp_state_t::state_var array must be accessed from
     !! \c pmc_aero_rep_data::aero_rep_data_t::spec_state_id() for a
-    !! particular \ref phlex_aero_rep "aerosol representation".
+    !! particular \ref camp_aero_rep "aerosol representation".
     procedure :: gas_state_name
     !> Print out the species data
     procedure :: print => do_print
@@ -157,7 +157,7 @@ contains
 
   !> \page input_format_species Input JSON Object Format: Chemical Species
   !!
-  !! A \c json object containing information about a \ref phlex_species
+  !! A \c json object containing information about a \ref camp_species
   !! "chemical species" has the following format:
   !! \code{.json}
   !! { "pmc-data" : [
@@ -540,11 +540,11 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Get a gas-phase species index in the \c
-  !! pmc_phlex_state::phlex_state_t::state_var array.  Note that
+  !! pmc_camp_state::camp_state_t::state_var array.  Note that
   !! aerosol-phase species indices on the \c
-  !! pmc_phlex_state::phlex_state_t::state_var array must be accessed from
+  !! pmc_camp_state::camp_state_t::state_var array must be accessed from
   !! \c pmc_aero_rep_data::aero_rep_data_t::spec_state_id() for a
-  !! particular \ref phlex_aero_rep "aerosol representation". Returns a valid
+  !! particular \ref camp_aero_rep "aerosol representation". Returns a valid
   !! state array index if the species is found, or 0 otherwise
   integer(kind=i_kind) function gas_state_id(this, spec_name)
 
@@ -569,11 +569,11 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Get a gas-phase species name in the \c
-  !! pmc_phlex_state::phlex_state_t::state_var array.  Note that
+  !! pmc_camp_state::camp_state_t::state_var array.  Note that
   !! aerosol-phase species names on the \c
-  !! pmc_phlex_state::phlex_state_t::state_var array must be accessed from
+  !! pmc_camp_state::camp_state_t::state_var array must be accessed from
   !! \c pmc_aero_rep_data::aero_rep_data_t::spec_state_id() for a
-  !! particular \ref phlex_aero_rep "aerosol representation". Returns a valid
+  !! particular \ref camp_aero_rep "aerosol representation". Returns a valid
   !! state array index if the species is found, or 0 otherwise
   function gas_state_name(this, spec_id) result(spec_name)
 

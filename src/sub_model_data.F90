@@ -5,21 +5,21 @@
 !> \file
 !> The pmc_sub_model_data module.
 
-!> \page phlex_sub_model Phlexible Module for Chemistry: Sub-Model (general)
+!> \page camp_sub_model CAMP: Sub-Model (general)
 !!
 !! A sub-model is used during solving to calculate parameters based on the
 !! current model state for use by reactions.
 !!
 !! The available sub-models are:
-!!  - \subpage phlex_sub_model_PDFiTE "PDFiTE Activity Coefficients"
-!!  - \subpage phlex_sub_model_UNIFAC "UNIFAC Activity Coefficients"
-!!  - \subpage phlex_sub_model_ZSR_aerosol_water "ZSR Aerosol Water"
+!!  - \subpage camp_sub_model_PDFiTE "PDFiTE Activity Coefficients"
+!!  - \subpage camp_sub_model_UNIFAC "UNIFAC Activity Coefficients"
+!!  - \subpage camp_sub_model_ZSR_aerosol_water "ZSR Aerosol Water"
 !!
 !! The general input format for a sub-model can be found
 !! \subpage input_format_sub_model "here".
 !!
 !! General instructions for adding a new sub-model can be found
-!! \subpage phlex_sub_model_add "here".
+!! \subpage camp_sub_model_add "here".
 
 !> The abstract sub_model_data_t structure and associated subroutines.
 module pmc_sub_model_data
@@ -51,7 +51,7 @@ module pmc_sub_model_data
   !! be able to modify state variables or contribute to derivative arrays
   !! directly (this must be done by reactions).
   !!
-  !! See \ref phlex_sub_model "Sub Models" for details.
+  !! See \ref camp_sub_model "Sub Models" for details.
   type, abstract :: sub_model_data_t
     private
     !> Name of the sub-model
@@ -64,12 +64,12 @@ module pmc_sub_model_data
     !> Condensed sub-model data. These arrays will be available during
     !! integration, and should contain any information required by the
     !! sub-model that cannot be obtained from the
-    !! pmc_phlex_state::phlex_state_t object. (floating point)
+    !! pmc_camp_state::camp_state_t object. (floating point)
     real(kind=dp), allocatable, public :: condensed_data_real(:)
     !> Condensed sub-model data. These arrays will be available during
     !! integration, and should contain any information required by the
     !! sub-model that cannot be obtained from the
-    !! pmc_phlex_state::phlex_state_t object. (integer)
+    !! pmc_camp_state::camp_state_t object. (integer)
     integer(kind=i_kind), allocatable, public :: condensed_data_int(:)
     !> Number of environment-dependent parameters
     !! These are parameters that need updated when environmental conditions
@@ -198,7 +198,7 @@ contains
   !> \page input_format_sub_model Input JSON Object Format: Sub-Model (general)
   !!
   !! A \c json object containing the information required by a \ref
-  !! phlex_sub_model "sub-model" of the form:
+  !! camp_sub_model "sub-model" of the form:
   !! \code{.json}
   !! { "pmc-data" : [
   !!   {
@@ -218,9 +218,9 @@ contains
   !! Sub-models must have a unique \b type that corresponds to a valid
   !! sub-model type. These include:
   !!
-  !!   - \subpage phlex_sub_model_PDFiTE "SUB_MODEL_PDFITE"
-  !!   - \subpage phlex_sub_model_UNIFAC "SUB_MODEL_UNIFAC"
-  !!   - \subpage phlex_sub_model_ZSR_aerosol_water "SUB_MODEL_ZSR_AEROSOL_WATER"
+  !!   - \subpage camp_sub_model_PDFiTE "SUB_MODEL_PDFITE"
+  !!   - \subpage camp_sub_model_UNIFAC "SUB_MODEL_UNIFAC"
+  !!   - \subpage camp_sub_model_ZSR_aerosol_water "SUB_MODEL_ZSR_AEROSOL_WATER"
   !!
   !! All remaining data are optional and may include and valid \b json value,
   !! including nested objects. However, extending types will have specific

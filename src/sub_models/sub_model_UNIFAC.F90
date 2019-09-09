@@ -5,12 +5,12 @@
 !> \file
 !> The pmc_sub_model_UNIFAC module.
 
-!> \page phlex_sub_model_UNIFAC Phlexible Module for Chemistry: UNIFAC Activity Coefficients
+!> \page camp_sub_model_UNIFAC CAMP: UNIFAC Activity Coefficients
 !!
 !! The UNIFAC activity coefficient sub model calculates activity coefficients
 !! for species in an aerosol phase based on the current aerosol phase
 !! composition \cite Marcolli2005. The \c json object for this
-!! \ref phlex_sub_model "sub model" has the following format :
+!! \ref camp_sub_model "sub model" has the following format :
 !! \code{.json}
 !!  { "pmc-data" : [
 !!    {
@@ -56,7 +56,7 @@
 !! The key-value pair \b type is required and must be \b SUB_MODEL_UNIFAC.
 !! The key-value pair \b phases is also required, and its value must be an
 !! array of strings that correspond to valid
-!! \ref phlex_aero_phase "aerosol phases". The key-value pair \b functional
+!! \ref camp_aero_phase "aerosol phases". The key-value pair \b functional
 !! \b groups is also required, and must contain a set of key-value pairs whose
 !! keys are the names of UNIFAC functions groups, and whose values are a set
 !! of key value pairs that contain, at minimum:
@@ -146,7 +146,7 @@ module pmc_sub_model_UNIFAC
   use pmc_aero_phase_data
   use pmc_aero_rep_data
   use pmc_chem_spec_data
-  use pmc_phlex_state
+  use pmc_camp_state
   use pmc_property
   use pmc_sub_model_data
   use pmc_util,                                 only : dp, i_kind, &

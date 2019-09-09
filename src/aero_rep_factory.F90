@@ -5,12 +5,12 @@
 !> \file
 !> The pmc_aero_rep_factory module.
 
-!> \page phlex_aero_rep_add Phlexible Module for Chemistry: Adding an Aerosol Representation
+!> \page camp_aero_rep_add CAMP: Adding an Aerosol Representation
 !!
 !! NOTE: These instructions are out-of-date. TODO update
 !!
-!! Adding an \ref phlex_aero_rep "aerosol representation" to the \ref
-!! phlex_chem "phlex-chem" module can be done in the following steps:
+!! Adding an \ref camp_aero_rep "aerosol representation" to the \ref
+!! camp_chem "camp-chem" module can be done in the following steps:
 !!
 !! ## Step 1. Create a new aerosol representation module ##
 !!   The module should be placed in the \c /src/aero_reps folder and
@@ -165,10 +165,10 @@
 !! the \c /src/test folder
 !!
 !! ## Usage ##
-!! The new \ref phlex_aero_rep "aerosol representation" is now ready to use.
-!! To include it in a \c pmc_phlex_core::phlex_core_t instance, add an \ref
+!! The new \ref camp_aero_rep "aerosol representation" is now ready to use.
+!! To include it in a \c pmc_camp_core::camp_core_t instance, add an \ref
 !! input_format_aero_rep "aerosol representation object" to a new or existing
-!! \ref input_format_phlex_config "phlex-chem configuration file" with a
+!! \ref input_format_camp_config "camp-chem configuration file" with a
 !! \b type corresponding to the newly created type, along with any required
 !! parameters:
 !!

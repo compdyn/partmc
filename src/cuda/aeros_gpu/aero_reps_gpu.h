@@ -10,7 +10,7 @@
  */
 #ifndef AERO_REPS_H_
 #define AERO_REPS_H_
-#include "../phlex_gpu_solver.h"
+#include "../camp_gpu_solver.h"
 
 // binned/modal mass
 /*int aero_rep_gpu_modal_binned_mass_get_used_jac_elem(

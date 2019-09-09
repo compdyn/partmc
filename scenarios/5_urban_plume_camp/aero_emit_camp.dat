@@ -3,4 +3,4 @@
 # aerosol distribution filename   
 time    0   43200 
 rate    1   0  
-dist    aero_emit_dist_phlex.dat aero_emit_dist_phlex.dat
+dist    aero_emit_dist_camp.dat aero_emit_dist_camp.dat

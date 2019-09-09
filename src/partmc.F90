@@ -19,7 +19,7 @@
 !!
 !! \subpage publications - Publications about PartMC.
 !!
-!! \subpage phlex_chem - Description of the module for incorporation of chemical
+!! \subpage camp_chem - Description of the module for incorporation of chemical
 !!   mechanisms in PartMC.
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -49,26 +49,26 @@
 !!
 !! \section ss_json JSON File Format
 !!
-!! Beginning with the \ref phlex_chem "Phlexible Module for Chemistry",
+!! Beginning with the \ref camp_chem "Chemistry Across Multiple Phases (CAMP)",
 !! \c json format is used as an alternative input file format:
 !!
 !! <a href="https://www.json.org">www.json.org</a>
 !!
-!! Two types of \c json input files are used by \ref phlex_chem
-!! "phlex-chem":
+!! Two types of \c json input files are used by \ref camp_chem
+!! "camp-chem":
 !!
-!! \ref input_format_phlex_file_list "Phlex-chem file list"
+!! \ref input_format_camp_file_list "CAMP file list"
 !!
-!! \ref input_format_phlex_config "Phlex-chem configuration data"
+!! \ref input_format_camp_config "CMAP configuration data"
 !!
-!! Typically, one \ref input_format_phlex_file_list "file list" file is
+!! Typically, one \ref input_format_camp_file_list "file list" file is
 !! used for a PartMC run, which includes paths to multiple \ref
-!! input_format_phlex_config "configuration" files containing the \ref
-!! phlex_chem "phlex-chem" configuration data. When running stand-alone
-!! PartMC, the path to the \ref input_format_phlex_file_list "file list"
+!! input_format_camp_config "configuration" files containing the \ref
+!! camp_chem "camp-chem" configuration data. When running stand-alone
+!! PartMC, the path to the \ref input_format_camp_file_list "file list"
 !! file is included in the spec file. When  using the PartMC library, the path
-!! to the \ref input_format_phlex_file_list "file list" file can be passed
-!! as an argument to the \c pmc_phlex_core::phlex_core_t constructor.
+!! to the \ref input_format_camp_file_list "file list" file can be passed
+!! as an argument to the \c pmc_camp_core::camp_core_t constructor.
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -100,11 +100,12 @@
 !!
 !! \subsection update_2017 2017 Updates
 !!
-!! Some changes were made beginning with the \ref phlex_chem
-!! "Phlexible Module for Chemistry" to take advantage of Fortran 2003 and 2008
-!! features. In general, modules are \c private and expose functionality
-!! through type-bound procedures. \c public module functions, variables and
-!! parameters are discouraged, as are \c public derived-type variables.
+!! Some changes were made beginning with the \ref camp_chem
+!! "Chemistry Across Multiple Phases" module to take advantage of Fortran
+!! 2003 and 2008 features. In general, modules are \c private and expose
+!! functionality through type-bound procedures. \c public module functions,
+!! variables and parameters are discouraged, as are \c public derived-type
+!! variables.
 !!
 !! Constructors that return a pointer to a newly allocated instance of a
 !! module's primary derived type are typically included in each module. In
@@ -221,7 +222,7 @@ program partmc
   use pmc_gas_data
   use pmc_gas_state
   use pmc_util
-  use pmc_phlex_core
+  use pmc_camp_core
 #ifdef PMC_USE_SUNDIALS
   use pmc_condense
 #endif
@@ -313,7 +314,7 @@ contains
     type(env_state_t), target  :: env_state
     type(env_state_t) :: env_state_init
     type(run_part_opt_t) :: run_part_opt
-    type(phlex_core_t), pointer :: phlex_core
+    type(camp_core_t), pointer :: camp_core
     integer :: i_repeat, i_group
     integer :: rand_init
     character, allocatable :: buffer(:)
@@ -325,7 +326,7 @@ contains
     real(kind=dp) :: dummy_time, dummy_del_t, n_part
     character(len=PMC_MAX_FILENAME_LEN) :: sub_filename
     type(spec_file_t) :: sub_file
-    character(len=PMC_MAX_FILENAME_LEN) :: phlex_config_filename
+    character(len=PMC_MAX_FILENAME_LEN) :: camp_config_filename
 
     !> \page input_format_particle Input File Format: Particle-Resolved Simulation
     !!
@@ -351,15 +352,15 @@ contains
     !!   output data to disk (see \ref output_format)
     !! - \b t_progress (real, unit s): the interval on which to
     !!   write summary information to the screen while running
-    !! - \b do_phlex_chem (logical): whether to run the <b>Phlexible module
-    !!   for Chemistry</b> (requires JSON and SUNDIALS support to be compiled
-    !!   in). If \c do_phlex_chem is \c yes, then the following parameters
+    !! - \b do_camp_chem (logical): whether to run <b>CAMP
+    !!   </b> (requires JSON and SUNDIALS support to be compiled
+    !!   in). If \c do_camp_chem is \c yes, then the following parameters
     !!   must also be provided:
-    !!   - \b phlex_config (string): name of file containing a list of \b
-    !!     phlex-chem configuration files. File format should be \ref
-    !!     input_format_phlex_config
+    !!   - \b camp_config (string): name of file containing a list of \b
+    !!     camp-chem configuration files. File format should be \ref
+    !!     input_format_camp_config
     !! - \b gas_data (string): name of file from which to read the gas
-    !!   material data (only provide if \c restart and \c do_phlex_chem
+    !!   material data (only provide if \c restart and \c do_camp_chem
     !!   are \c no) --- the file format should be \subpage
     !!   input_format_gas_data
     !! - \b gas_init (string): name of file from which to read the
@@ -367,7 +368,7 @@ contains
     !!   provide option if \c restart is \c no) --- the file format
     !!   should be \subpage input_format_gas_state
     !! - \b aerosol_data (string): name of file from which to read the
-    !!   aerosol material data (only provide if \c restart and do_phlex_chem
+    !!   aerosol material data (only provide if \c restart and do_camp_chem
     !!   are \c no) --- the file format should be \subpage
     !!   input_format_aero_data
     !! - \b do_fractal (logical): whether to consider particles
@@ -458,23 +459,23 @@ contains
        call spec_file_read_real(file, 't_output', run_part_opt%t_output)
        call spec_file_read_real(file, 't_progress', run_part_opt%t_progress)
 
-       call spec_file_read_logical(file, 'do_phlex_chem', &
-               run_part_opt%do_phlex_chem)
-       if (run_part_opt%do_phlex_chem) then
+       call spec_file_read_logical(file, 'do_camp_chem', &
+               run_part_opt%do_camp_chem)
+       if (run_part_opt%do_camp_chem) then
 #ifndef PMC_USE_JSON
          call spec_file_die_msg(581685398, file, &
-                 'cannot do phlex chem, JSON support not compiled in')
+                 'cannot do camp chem, JSON support not compiled in')
 #endif
 #ifndef PMC_USE_SUNDIALS
          call spec_file_die_msg(905205341, file, &
-                 'cannot do phlex chem, SUNDIALS support not compiled in')
+                 'cannot do camp chem, SUNDIALS support not compiled in')
 #endif
-         call spec_file_read_string(file, 'phlex_config', &
-                 phlex_config_filename)
-         phlex_core => phlex_core_t(phlex_config_filename)
-         call phlex_core%initialize()
+         call spec_file_read_string(file, 'camp_config', &
+                 camp_config_filename)
+         camp_core => camp_core_t(camp_config_filename)
+         call camp_core%initialize()
          ! FIXME: Temporary print state of the data
-         call phlex_core%print()
+         call camp_core%print()
        end if
 
        if (do_restart) then
@@ -486,13 +487,13 @@ contains
        if (.not. do_restart) then
           env_state_init%elapsed_time = 0d0
 
-          if (.not. run_part_opt%do_phlex_chem) then
+          if (.not. run_part_opt%do_camp_chem) then
             call spec_file_read_string(file, 'gas_data', sub_filename)
             call spec_file_open(sub_filename, sub_file)
             call spec_file_read_gas_data(sub_file, gas_data)
             call spec_file_close(sub_file)
           else
-            call gas_data%initialize(phlex_core)
+            call gas_data%initialize(camp_core)
           end if
 
           call spec_file_read_string(file, 'gas_init', sub_filename)
@@ -501,13 +502,13 @@ contains
                gas_state_init)
           call spec_file_close(sub_file)
 
-          if (.not. run_part_opt%do_phlex_chem) then
+          if (.not. run_part_opt%do_camp_chem) then
             call spec_file_read_string(file, 'aerosol_data', sub_filename)
             call spec_file_open(sub_filename, sub_file)
             call spec_file_read_aero_data(sub_file, aero_data)
             call spec_file_close(sub_file)
           else
-            call aero_data%initialize(phlex_core)
+            call aero_data%initialize(camp_core)
           end if
 
           call spec_file_read_fractal(file, aero_data%fractal)
@@ -537,9 +538,9 @@ contains
             run_part_opt%do_condensation .eqv. .false., &
             "cannot use condensation, SUNDIALS support is not compiled in")
 #endif
-       if (run_part_opt%do_condensation .and. run_part_opt%do_phlex_chem) then
+       if (run_part_opt%do_condensation .and. run_part_opt%do_camp_chem) then
           call spec_file_die_msg(556720748, file, &
-              'cannot do condensation with phlex chem')
+              'cannot do condensation with camp chem')
        end if
        if (run_part_opt%do_condensation) then
           call spec_file_read_logical(file, 'do_init_equilibriate', &
@@ -557,9 +558,9 @@ contains
           call spec_file_die_msg(599877804, file, &
                'cannot use MOSAIC and condensation simultaneously')
        end if
-       if (run_part_opt%do_mosaic .and. run_part_opt%do_phlex_chem) then
+       if (run_part_opt%do_mosaic .and. run_part_opt%do_camp_chem) then
           call spec_file_die_msg(952967581, file, &
-               'cannot use MOSAIC with phlex chem')
+               'cannot use MOSAIC with camp chem')
        end if
        if (run_part_opt%do_mosaic) then
           call spec_file_read_logical(file, 'do_optical', &
@@ -660,9 +661,9 @@ contains
             + pmc_mpi_pack_size_logical(do_init_equilibriate)
        max_buffer_size = max_buffer_size &
             + pmc_mpi_pack_size_aero_state(aero_state_init)
-       if (run_part_opt%do_phlex_chem) then
+       if (run_part_opt%do_camp_chem) then
          max_buffer_size = max_buffer_size &
-              + phlex_core%pack_size()
+              + camp_core%pack_size()
        end if
 
        allocate(buffer(max_buffer_size))
@@ -680,8 +681,8 @@ contains
        call pmc_mpi_pack_logical(buffer, position, do_restart)
        call pmc_mpi_pack_logical(buffer, position, do_init_equilibriate)
        call pmc_mpi_pack_aero_state(buffer, position, aero_state_init)
-       if (run_part_opt%do_phlex_chem) then
-         call phlex_core%bin_pack(buffer, position)
+       if (run_part_opt%do_camp_chem) then
+         call camp_core%bin_pack(buffer, position)
        end if
        call assert(181905491, position <= max_buffer_size)
        buffer_size = position ! might be less than we allocated
@@ -713,11 +714,11 @@ contains
        call pmc_mpi_unpack_logical(buffer, position, do_restart)
        call pmc_mpi_unpack_logical(buffer, position, do_init_equilibriate)
        call pmc_mpi_unpack_aero_state(buffer, position, aero_state_init)
-       if (run_part_opt%do_phlex_chem) then
-         ! set up the phlex chem core
-         phlex_core => phlex_core_t()
-         ! upack the phlex chem core
-         call phlex_core%bin_unpack(buffer, position)
+       if (run_part_opt%do_camp_chem) then
+         ! set up the camp chem core
+         camp_core => camp_core_t()
+         ! upack the camp chem core
+         call camp_core%bin_unpack(buffer, position)
        end if
        call assert(143770146, position == buffer_size)
     end if
@@ -727,8 +728,8 @@ contains
 #endif
 
     ! initialize the chemistry solver
-    if (run_part_opt%do_phlex_chem) then
-      call phlex_core%solver_initialize()
+    if (run_part_opt%do_camp_chem) then
+      call camp_core%solver_initialize()
     end if
 
     ! re-initialize RNG with the given seed
@@ -774,9 +775,9 @@ contains
           call condense_equilib_particles(env_state, aero_data, aero_state)
        end if
 #endif
-       if (run_part_opt%do_phlex_chem) then
+       if (run_part_opt%do_camp_chem) then
           call run_part(scenario, env_state, aero_data, aero_state, gas_data, &
-               gas_state, run_part_opt, phlex_core=phlex_core)
+               gas_state, run_part_opt, camp_core=camp_core)
        else
           call run_part(scenario, env_state, aero_data, aero_state, gas_data, &
                gas_state, run_part_opt)

@@ -5,7 +5,7 @@
 !> \file
 !> The pmc_sub_model_factory module.
 
-!> \page phlex_sub_model_add Phlexible Module for Chemistry: Adding a Sub Model
+!> \page camp_sub_model_add CAMP: Adding a Sub Model
 !!
 !! TODO write instructions
 !!

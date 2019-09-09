@@ -3,29 +3,29 @@
 ! option) any later version. See the file COPYING for details.
 
 !> \file
-!> The pmc_phlex_core module.
+!> The pmc_camp_core module.
 
-!> \page phlex_chem Phlexible Module for Chemistry
+!> \page camp_chem Chemistry Across Multiple Phases (CAMP)
 !!
-!! The Phlexible Module for Chemistry (\ref phlex_chem "phlex-chem") is a
+!! Chemistry Across Multiple Phases (CAMP) is a
 !! module within PartMC designed to provide a flexible framework for
 !! incorporating chemical mechanisms into PartMC or another host model. In
-!! general, the \ref phlex_chem "phlex-chem" module solves one or more
-!! \ref phlex_mechanism "mechanisms" composed of a set of \ref phlex_rxn
-!! "reactions" over a time-step specified by the host model. \ref phlex_rxn
+!! general, \ref camp_chem "CAMP" solves one or more
+!! \ref camp_mechanism "mechanisms" composed of a set of \ref camp_rxn
+!! "reactions" over a time-step specified by the host model. \ref camp_rxn
 !! "Reactions" can take place in the gas phase, in one of several \ref
-!! phlex_aero_phase "aerosol phases", or across an interface between phases
-!! (gas or aerosol). The \ref phlex_chem "phlex-chem" module is designed to
-!! work with any \ref phlex_aero_rep "aerosol representation" used by the
+!! camp_aero_phase "aerosol phases", or across an interface between phases
+!! (gas or aerosol). \ref camp_chem "CAMP" is designed to
+!! work with any \ref camp_aero_rep "aerosol representation" used by the
 !! host model (e.g., binned, modal, single particle) by abstracting the
-!! chemistry from the \ref phlex_aero_rep "aerosol representation" through the
+!! chemistry from the \ref camp_aero_rep "aerosol representation" through the
 !! use of custom extending types of the abstract
 !! \c pmc_aero_rep_data::aero_rep_data_t type that implement a set of
-!! \ref phlex_aero_phase "aerosol phases" based on the configuration of the
-!! host model. A set of \ref phlex_sub_model "sub-models" may also be included
-!! to calculate parameters needed by \ref phlex_rxn "reactions" during solving.
+!! \ref camp_aero_phase "aerosol phases" based on the configuration of the
+!! host model. A set of \ref camp_sub_model "sub-models" may also be included
+!! to calculate parameters needed by \ref camp_rxn "reactions" during solving.
 !!
-!! The \ref phlex_chem "phlex-chem" module uses \ref ss_json
+!! \ref camp_chem "CAMP" uses \ref ss_json
 !! "json input files" to load \ref input_format_species "chemical species",
 !! \ref input_format_mechanism "mechanisms", \ref input_format_aero_phase
 !! "aerosol phases", \ref input_format_aero_rep "aerosol representations",
@@ -34,20 +34,20 @@
 !! models to choose which mechanisms to solve based on model conditions, and
 !! allows multiple mechanisms to be solved simultaneously.
 !!
-!! # Phlex-Chem Input Classes #
+!! # CAMP Input Classes #
 !!
-!!  - \subpage phlex_aero_phase "Aerosol Phases"
-!!  - \subpage phlex_aero_rep "Aerosol Representations"
-!!  - \subpage phlex_species "Chemical Species"
-!!  - \subpage phlex_mechanism "Mechanisms"
-!!  - \subpage phlex_rxn "Reactions"
-!!  - \subpage phlex_sub_model "Sub-Models"
+!!  - \subpage camp_aero_phase "Aerosol Phases"
+!!  - \subpage camp_aero_rep "Aerosol Representations"
+!!  - \subpage camp_species "Chemical Species"
+!!  - \subpage camp_mechanism "Mechanisms"
+!!  - \subpage camp_rxn "Reactions"
+!!  - \subpage camp_sub_model "Sub-Models"
 !!
 !! # Usage #
 !!
 !! ## Compiling ##
 !!
-!! To include the \ref phlex_chem "phlex-chem" module in the PartMC library,
+!! To include \ref camp_chem "CAMP" in a PartMC library installation,
 !! set the ccmake flags \c ENABLE_JSON and \c ENABLE_SUNDIALS to \c ON.
 !! (<a href="http://www.llnl.gov/casc/sundials/">SUNDIALS</a> and
 !! <a href="https://github.com/jacobwilliams/json-fortran">json-fortran</a>
@@ -55,42 +55,42 @@
 !!
 !! ## Input files ##
 !!
-!! The \ref phlex_chem "phlex-chem" module uses two types of input files:
+!! \ref camp_chem "CAMP" uses two types of input files:
 !!
-!!  - \subpage input_format_phlex_file_list "File List" A \c json file
-!!             containing a list of \ref phlex_chem "phlex-chem" configuration
+!!  - \subpage input_format_camp_file_list "File List" A \c json file
+!!             containing a list of \ref camp_chem "CAMP" configuration
 !!             file names.
-!!  - \subpage input_format_phlex_config "Configuration File" One or more
-!!             \c json files containing all the \ref phlex_chem "phlex-chem"
+!!  - \subpage input_format_camp_config "Configuration File" One or more
+!!             \c json files containing all the \ref camp_chem "CAMP"
 !!             configuration data.
 !!
-!! To initialize the \ref phlex_chem "phlex-chem" module, the path to the
-!! \ref input_format_phlex_file_list "file list" must be passed to the
-!! \ref pmc_phlex_core::phlex_core_t constructor. The method by which this is
+!! To initialize \ref camp_chem "CAMP" , the path to the
+!! \ref input_format_camp_file_list "file list" must be passed to the
+!! \ref pmc_camp_core::camp_core_t constructor. The method by which this is
 !! done depends on the host model configuration.
 !!
 !! ## PartMC scenarios ##
 !!
-!! Using \ref phlex_chem "phlex-chem" in a PartMC scenario requires modifying
+!! Using \ref camp_chem "CAMP" in a PartMC scenario requires modifying
 !! the \ref input_format "spec file" and providing a \ref
-!! input_format_phlex_file_list "phlex-chem file list" file and one or more
-!! \ref input_format_phlex_config "phlex-chem configuration" files that
-!! describe the \ref phlex_species "chemical species", \ref phlex_mechanism
-!! "mechanism(s)", \ref phlex_aero_phase "aerosol phase(s)", \ref
-!! phlex_aero_rep "aerosol representation", and \ref phlex_sub_model
+!! input_format_camp_file_list "CAMP file list" file and one or more
+!! \ref input_format_camp_config "CAMP configuration" files that
+!! describe the \ref camp_species "chemical species", \ref camp_mechanism
+!! "mechanism(s)", \ref camp_aero_phase "aerosol phase(s)", \ref
+!! camp_aero_rep "aerosol representation", and \ref camp_sub_model
 !! "sub-model(s)". A description of the input files required for a PartMC run
 !! can be found \ref input_format "here".
 !!
-!! ## Phlex-chem in another host model ##
+!! ## CAMP-chem in another host model ##
 !!
-!! Incorporating the \ref phlex_chem "phlex-chem" module into another host
+!! Incorporating \ref camp_chem "CAMP" into another host
 !! model can be done in the following steps:
 !!
 !! TODO: Finish
 !!
 
-!> The phlex_core_t structure and associated subroutines.
-module pmc_phlex_core
+!> The camp_core_t structure and associated subroutines.
+module pmc_camp_core
 
 #ifdef PMC_USE_JSON
   use json_module
@@ -106,8 +106,8 @@ module pmc_phlex_core
   use pmc_env_state
   use pmc_mechanism_data
   use pmc_mpi
-  use pmc_phlex_solver_data
-  use pmc_phlex_state
+  use pmc_camp_solver_data
+  use pmc_camp_state
   use pmc_rxn_data
   use pmc_solver_stats
   use pmc_sub_model_data
@@ -117,12 +117,12 @@ module pmc_phlex_core
   implicit none
   private
 
-  public :: phlex_core_t
+  public :: camp_core_t
 
   !> Part-MC model data
   !!
   !! Contains all time-invariant data for a Part-MC model run.
-  type :: phlex_core_t
+  type :: camp_core_t
   private
     !> Chemical mechanisms
     !! FIXME set up an iterator for external modules to use and
@@ -153,11 +153,11 @@ module pmc_phlex_core
     ! Variable types
     integer(kind=i_kind), allocatable :: var_type(:)
     !> Solver data (gas-phase reactions)
-    type(phlex_solver_data_t), pointer, public :: solver_data_gas => null()
+    type(camp_solver_data_t), pointer, public :: solver_data_gas => null()
     !> Solver data (aerosol-phase reactions)
-    type(phlex_solver_data_t), pointer, public :: solver_data_aero => null()
+    type(camp_solver_data_t), pointer, public :: solver_data_aero => null()
     !> Solver data (mixed gas- and aerosol-phase reactions)
-    type(phlex_solver_data_t), pointer, public :: solver_data_gas_aero => null()
+    type(camp_solver_data_t), pointer, public :: solver_data_gas_aero => null()
     !> Flag indicating the model data has been initialized
     logical :: core_is_initialized = .false.
     !> Flag indicating the solver has been initialized
@@ -219,22 +219,22 @@ module pmc_phlex_core
     procedure, private :: add_mechanism
     !> Add a sub-model to the model
     procedure, private :: add_sub_model
-  end type phlex_core_t
+  end type camp_core_t
 
-  !> Constructor for phlex_core_t
-  interface phlex_core_t
+  !> Constructor for camp_core_t
+  interface camp_core_t
     procedure :: constructor
-  end interface phlex_core_t
+  end interface camp_core_t
 
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Constructor for phlex_core_t
+  !> Constructor for camp_core_t
   function constructor(input_file_path, n_cells) result(new_obj)
 
     !> A new set of model parameters
-    type(phlex_core_t), pointer :: new_obj
+    type(camp_core_t), pointer :: new_obj
     !> Part-MC input file paths
     character(len=*), intent(in), optional :: input_file_path
     !> Num cells to compute simulatenously
@@ -259,10 +259,10 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> \page input_format_phlex_file_list Input File Format: Phlex-Chem Configuration File List
+  !> \page input_format_camp_file_list Input File Format: CAMP-Chem Configuration File List
   !!
-  !! A list of files containing configuration data for the \ref phlex_chem
-  !! "Phlexible Module for Chemistry". The file should be in \c json format
+  !! A list of files containing configuration data for the \ref camp_chem
+  !! "CAMP". The file should be in \c json format
   !! and the general structure should be the following:
   !! \code{.json}
   !! { "pmc-files" : [
@@ -273,18 +273,18 @@ contains
   !! \endcode
   !! The file should contain a single key-value pair named \b pmc-files whose
   !! value is an array of \b strings with paths to the set of \ref
-  !! input_format_phlex_config "configuration" files to load. Input files
+  !! input_format_camp_config "configuration" files to load. Input files
   !! should be in \c json format.
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Load a set of model data files.
   !!
-  !! See \ref input_format_phlex_file_list for the input file format.
+  !! See \ref input_format_camp_file_list for the input file format.
   subroutine load_files(this, input_file_path)
 
     !> Model data
-    class(phlex_core_t), intent(inout) :: this
+    class(camp_core_t), intent(inout) :: this
     !> Part-MC input file paths
     character(len=*), intent(in) :: input_file_path
 
@@ -352,10 +352,10 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> \page input_format_phlex_config Input File Format: Phlex-Chem Configuration Data
+  !> \page input_format_camp_config Input File Format: CAMP-Chem Configuration Data
   !!
   !! Configuration data for the
-  !! \ref phlex_chem "Phlexible Module for Chemistry". The files are in
+  !! \ref camp_chem "CAMP". The files are in
   !! \c json format and their general structure should be the following:
   !! \code{.json}
   !! { "pmc-data" : [
@@ -401,11 +401,11 @@ contains
 
   !> Load model data from input files
   !!
-  !! See \ref input_format_phlex_config for the input file format.
+  !! See \ref input_format_camp_config for the input file format.
   subroutine load(this, input_file_path)
 
     !> Model data
-    class(phlex_core_t), intent(inout) :: this
+    class(camp_core_t), intent(inout) :: this
     !> Part-MC input file paths
     type(string_t), allocatable, intent(in) :: input_file_path(:)
 
@@ -463,7 +463,7 @@ contains
               input_file_path(i_file)%string)
       call j_file%load_file(filename = input_file_path(i_file)%string)
 
-      ! get the phlex-chem objects
+      ! get the CAMP objects
       call j_file%get('pmc-data(1)', j_obj)
       call json%validate(j_obj, valid, json_err_msg)
       if (.not.valid) then
@@ -473,7 +473,7 @@ contains
       end if
       do while (associated(j_obj))
 
-        ! get the object type and load data into the appropriate phlex-chem
+        ! get the object type and load data into the appropriate CAMP
         ! derived type
         call json%get(j_obj, 'type', unicode_str_val, found)
         call assert_msg(689470331, found, &
@@ -638,7 +638,7 @@ contains
     use iso_c_binding
 
     !> Model data
-    class(phlex_core_t), target, intent(inout) :: this
+    class(camp_core_t), target, intent(inout) :: this
 
     ! Indices for iteration
     integer(kind=i_kind) :: i_mech, i_phase, i_aero_rep, i_sub_model
@@ -657,7 +657,7 @@ contains
 
     ! make sure the core has not already been initialized
     call assert_msg(157261665, .not.this%core_is_initialized, &
-            "Attempting to initialize a phlex_core_t object twice.")
+            "Attempting to initialize a camp_core_t object twice.")
 
     ! Initialize the species database
     call this%chem_spec_data%initialize()
@@ -781,7 +781,7 @@ contains
   logical function is_initialized(this)
 
     !> Model data
-    class(phlex_core_t), intent(in) :: this
+    class(camp_core_t), intent(in) :: this
 
     is_initialized = this%core_is_initialized
 
@@ -794,7 +794,7 @@ contains
             result (found)
 
     !> Model data
-    class(phlex_core_t), intent(in) :: this
+    class(camp_core_t), intent(in) :: this
     !> Aerosol phase name to search for
     character(len=:), allocatable, intent(in) :: aero_phase_name
     !> Pointer to the aerosol phase
@@ -821,7 +821,7 @@ contains
   logical function get_aero_rep(this, aero_rep_name, aero_rep) result (found)
 
     !> Model data
-    class(phlex_core_t), intent(in) :: this
+    class(camp_core_t), intent(in) :: this
     !> Aerosol representation name to search for
     character(len=*), intent(in) :: aero_rep_name
     !> Aerosol representation
@@ -848,7 +848,7 @@ contains
   logical function get_chem_spec_data(this, chem_spec_data) result (found)
 
     !> Model data
-    class(phlex_core_t), intent(in) :: this
+    class(camp_core_t), intent(in) :: this
     !> Pointer to the chemical species data
     type(chem_spec_data_t), pointer :: chem_spec_data
 
@@ -864,7 +864,7 @@ contains
   logical function get_mechanism(this, mech_name, mechanism) result (found)
 
     !> Model data
-    class(phlex_core_t), intent(in) :: this
+    class(camp_core_t), intent(in) :: this
     !> Mechanism name to search for
     character(len=:), allocatable, intent(in) :: mech_name
     !> Pointer to the mechanism
@@ -892,7 +892,7 @@ contains
             result (found)
 
     !> Model data
-    class(phlex_core_t), intent(in) :: this
+    class(camp_core_t), intent(in) :: this
     !> Sub model name to search for
     character(len=:), allocatable, intent(in) :: sub_model_name
     !> Sub model
@@ -919,15 +919,15 @@ contains
   function new_state(this, env_state)
 
     !> New model state
-    type(phlex_state_t), pointer :: new_state
+    type(camp_state_t), pointer :: new_state
     !> Chemical model
-    class(phlex_core_t), intent(in) :: this
+    class(camp_core_t), intent(in) :: this
     !> Environmental state array
     !! (one element per grid cell to solve simultaneously)
     type(env_state_t), optional, target, intent(in) :: env_state
 
-    ! Initialize phlex_state
-    new_state => phlex_state_t(env_state,this%n_cells)
+    ! Initialize camp_state
+    new_state => camp_state_t(env_state,this%n_cells)
 
     ! Set up the state variable array
     allocate(new_state%state_var, source=this%init_state)
@@ -942,11 +942,11 @@ contains
     !> State size
     integer(kind=i_kind) :: state_size
     !> Chemical model
-    class(phlex_core_t), intent(in) :: this
+    class(camp_core_t), intent(in) :: this
 
     call assert_msg(629102639, allocated(this%init_state), &
                     "Trying to get the size of the state array before "// &
-                    "initializing the phlex_core")
+                    "initializing the camp_core")
 
     state_size = size(this%init_state)
 
@@ -960,11 +960,11 @@ contains
     !> State size
     integer(kind=i_kind) :: state_size
     !> Chemical model
-    class(phlex_core_t), intent(in) :: this
+    class(camp_core_t), intent(in) :: this
 
     call assert_msg(175845182, allocated(this%init_state), &
                     "Trying to get the size of the state array before "// &
-                    "initializing the phlex_core")
+                    "initializing the camp_core")
 
     state_size = this%size_state_per_cell
 
@@ -976,7 +976,7 @@ contains
   subroutine solver_initialize(this)
 
     !> Chemical model
-    class(phlex_core_t), intent(inout) :: this
+    class(camp_core_t), intent(inout) :: this
 
     call assert_msg(662920365, .not.this%solver_is_initialized, &
             "Attempting to initialize the solver twice.")
@@ -985,8 +985,8 @@ contains
     if (this%split_gas_aero) then
 
       ! Create the new solver data objects
-      this%solver_data_gas => phlex_solver_data_t()
-      this%solver_data_aero => phlex_solver_data_t()
+      this%solver_data_gas => camp_solver_data_t()
+      this%solver_data_aero => camp_solver_data_t()
 
       ! Set custom relative integration tolerance, if present
       if (this%rel_tol.ne.real(0.0, kind=dp)) then
@@ -1018,7 +1018,7 @@ contains
     else
 
       ! Create a new solver data object
-      this%solver_data_gas_aero => phlex_solver_data_t()
+      this%solver_data_gas_aero => camp_solver_data_t()
 
       ! Set custom relative integration tolerance, if present
       if (this%rel_tol.ne.0.0) then
@@ -1048,8 +1048,8 @@ contains
   !> Free the solver memory
   subroutine free_solver(this)
 
-    !> Phlex-core
-    class(phlex_core_t), intent(inout) :: this
+    !> CAMP-core
+    class(camp_core_t), intent(inout) :: this
 
     if( associated( this%solver_data_gas ) )  &
         deallocate( this%solver_data_gas )
@@ -1070,7 +1070,7 @@ contains
   subroutine update_aero_rep_data(this, update_data)
 
     !> Chemical model
-    class(phlex_core_t), intent(in) :: this
+    class(camp_core_t), intent(in) :: this
     !> Update data
     class(aero_rep_update_data_t), intent(in) :: update_data
 
@@ -1092,7 +1092,7 @@ contains
   subroutine update_rxn_data(this, update_data)
 
     !> Chemical model
-    class(phlex_core_t), intent(in) :: this
+    class(camp_core_t), intent(in) :: this
     !> Update data
     class(rxn_update_data_t), intent(in) :: update_data
 
@@ -1112,7 +1112,7 @@ contains
   subroutine update_sub_model_data(this, update_data)
 
     !> Chemical model
-    class(phlex_core_t), intent(in) :: this
+    class(camp_core_t), intent(in) :: this
     !> Update data
     class(sub_model_update_data_t), intent(in) :: update_data
 
@@ -1128,16 +1128,16 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Integrate the chemical mechanism
-  subroutine solve(this, phlex_state, time_step, rxn_phase, solver_stats)
+  subroutine solve(this, camp_state, time_step, rxn_phase, solver_stats)
 
     use pmc_rxn_data
     use pmc_solver_stats
     use iso_c_binding
 
     !> Chemical model
-    class(phlex_core_t), intent(in) :: this
+    class(camp_core_t), intent(in) :: this
     !> Current model state
-    type(phlex_state_t), intent(inout), target :: phlex_state
+    type(camp_state_t), intent(inout), target :: camp_state
     !> Time step over which to integrate (s)
     real(kind=dp), intent(in) :: time_step
     !> Phase to solve - gas, aerosol, or both (default)
@@ -1150,7 +1150,7 @@ contains
     ! Phase to solve
     integer(kind=i_kind) :: phase
     ! Pointer to solver data
-    type(phlex_solver_data_t), pointer :: solver
+    type(camp_solver_data_t), pointer :: solver
 
     call assert_msg(593328365, this%solver_is_initialized,                   &
                     "Trying to solve system with uninitialized solver" )
@@ -1179,10 +1179,10 @@ contains
 
     ! Run the integration
     if (present(solver_stats)) then
-      call solver%solve(phlex_state, real(0.0, kind=dp), time_step,          &
+      call solver%solve(camp_state, real(0.0, kind=dp), time_step,          &
                         solver_stats)
     else
-      call solver%solve(phlex_state, real(0.0, kind=dp), time_step)
+      call solver%solve(camp_state, real(0.0, kind=dp), time_step)
     end if
 
   end subroutine solve
@@ -1193,7 +1193,7 @@ contains
   integer(kind=i_kind) function pack_size(this, comm)
 
     !> Chemical model
-    class(phlex_core_t), intent(in) :: this
+    class(camp_core_t), intent(in) :: this
     !> MPI communicator
     integer, intent(in), optional :: comm
 
@@ -1251,7 +1251,7 @@ contains
   subroutine bin_pack(this, buffer, pos, comm)
 
     !> Chemical model
-    class(phlex_core_t), intent(in) :: this
+    class(camp_core_t), intent(in) :: this
     !> Memory buffer
     character, intent(inout) :: buffer(:)
     !> Current buffer position
@@ -1315,7 +1315,7 @@ contains
   subroutine bin_unpack(this, buffer, pos, comm)
 
     !> Chemical model
-    class(phlex_core_t), intent(inout) :: this
+    class(camp_core_t), intent(inout) :: this
     !> Memory buffer
     character, intent(inout) :: buffer(:)
     !> Current buffer position
@@ -1382,7 +1382,7 @@ contains
   subroutine do_print(this, file_unit, solver_data_only)
 
     !> Core data
-    class(phlex_core_t), intent(in) :: this
+    class(camp_core_t), intent(in) :: this
     !> File unit for output
     integer(kind=i_kind), intent(in), optional :: file_unit
     !> Print only the solver data (can be used during runtime for debugging)
@@ -1398,7 +1398,7 @@ contains
     if (present(solver_data_only)) sd_only = solver_data_only
 
     write(f_unit,*) "*********************"
-    write(f_unit,*) "** Phlex core data **"
+    write(f_unit,*) "** CAMP core data **"
     write(f_unit,*) "*********************"
     if (.not.sd_only ) then
       write(f_unit,*) "Number of grid cells to solve simultaneously: ", &
@@ -1482,8 +1482,8 @@ contains
   !> Finalize the core
   elemental subroutine finalize(this)
 
-    !> Phlex-core data
-    type(phlex_core_t), intent(inout) :: this
+    !> CAMP-core data
+    type(camp_core_t), intent(inout) :: this
 
     if (associated(this%mechanism)) &
             deallocate(this%mechanism)
@@ -1514,7 +1514,7 @@ contains
   subroutine add_aero_phase(this, phase_name)
 
     !> Model data
-    class(phlex_core_t), intent(inout) :: this
+    class(camp_core_t), intent(inout) :: this
     !> Aerosol phase name
     character(len=:), allocatable, intent(in) :: phase_name
 
@@ -1538,7 +1538,7 @@ contains
   subroutine add_aero_rep(this, rep_name)
 
     !> Model data
-    class(phlex_core_t), intent(inout) :: this
+    class(camp_core_t), intent(inout) :: this
     !> Aerosol representation name
     character(len=:), allocatable, intent(in) :: rep_name
 
@@ -1564,7 +1564,7 @@ contains
   subroutine add_mechanism(this, mech_name)
 
     !> Model data
-    class(phlex_core_t), intent(inout) :: this
+    class(camp_core_t), intent(inout) :: this
     !> Mechanism name
     character(len=:), allocatable, intent(in) :: mech_name
 
@@ -1589,7 +1589,7 @@ contains
   subroutine add_sub_model(this, sub_model_name)
 
     !> Model data
-    class(phlex_core_t), intent(inout) :: this
+    class(camp_core_t), intent(inout) :: this
     !> Sub model name
     character(len=:), allocatable, intent(in) :: sub_model_name
 
@@ -1610,4 +1610,4 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-end module pmc_phlex_core
+end module pmc_camp_core

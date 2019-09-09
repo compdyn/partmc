@@ -32,22 +32,22 @@ program mock_monarch
   integer, parameter :: NUM_MONARCH_SPEC = 800
   !> Number of vertical cells in mock MONARCH
   integer, parameter :: NUM_VERT_CELLS = 5
-  !> Starting W-E cell for phlex-chem call
+  !> Starting W-E cell for camp-chem call
   integer, parameter :: I_W = 1
-  !> Ending W-E cell for phlex-chem call
+  !> Ending W-E cell for camp-chem call
   integer, parameter :: I_E = 15
-  !> Starting S-N cell for phlex-chem call
+  !> Starting S-N cell for camp-chem call
   integer, parameter :: I_S = 1
-  !> Ending S-N cell for phlex-chem call
+  !> Ending S-N cell for camp-chem call
   integer, parameter :: I_N = 15
   !> Number of W-E cells in mock MONARCH
   integer, parameter :: NUM_WE_CELLS = I_E-I_W+1
   !> Number of S-N cells in mock MONARCH
   integer, parameter :: NUM_SN_CELLS = I_N-I_S+1
-  !> Starting index for phlex-chem species in tracer array
-  integer, parameter :: START_PHLEX_ID = 100
-  !> Ending index for phlex-chem species in tracer array
-  integer, parameter :: END_PHLEX_ID = 650
+  !> Starting index for camp-chem species in tracer array
+  integer, parameter :: START_CAMP_ID = 100
+  !> Ending index for camp-chem species in tracer array
+  integer, parameter :: END_CAMP_ID = 650
   !> Time step (min)
   real, parameter :: TIME_STEP = 1.6
   !> Number of time steps to integrate over
@@ -99,9 +99,9 @@ program mock_monarch
   ! Mock model setup and evaluation variables !
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Phlex-chem input file file
-  character(len=:), allocatable :: phlex_input_file
-  !> PartMC-phlex <-> MONARCH interface configuration file
+  !> CAMP-chem input file file
+  character(len=:), allocatable :: camp_input_file
+  !> PartMC-camp <-> MONARCH interface configuration file
   character(len=:), allocatable :: interface_input_file
   !> Results file prefix
   character(len=:), allocatable :: output_file_prefix
@@ -114,7 +114,7 @@ program mock_monarch
 
   ! Check the command line arguments
   call assert_msg(129432506, command_argument_count().eq.3, "Usage: "// &
-          "./mock_monarch phlex_input_file_list.json "// &
+          "./mock_monarch camp_input_file_list.json "// &
           "interface_input_file.json output_file_prefix")
 
   ! initialize mpi (to take the place of a similar MONARCH call)
@@ -133,13 +133,13 @@ program mock_monarch
   ! **** Add to MONARCH during initialization **** !
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  ! Initialize PartMC-phlex
+  ! Initialize PartMC-camp
   call get_command_argument(1, arg, status=status_code)
-  call assert_msg(678165802, status_code.eq.0, "Error getting PartMC-phlex "//&
+  call assert_msg(678165802, status_code.eq.0, "Error getting PartMC-camp "//&
           "configuration file name")
-  phlex_input_file = trim(arg)
+  camp_input_file = trim(arg)
   call get_command_argument(2, arg, status=status_code)
-  call assert_msg(664104564, status_code.eq.0, "Error getting PartMC-phlex "//&
+  call assert_msg(664104564, status_code.eq.0, "Error getting PartMC-camp "//&
           "<-> MONARCH interface configuration file name")
   interface_input_file = trim(arg)
 
@@ -152,8 +152,8 @@ program mock_monarch
   !Repeat in case we want create a checksum
   do i=1, pmc_cases
 
-    pmc_interface => monarch_interface_t(phlex_input_file, interface_input_file, &
-            START_PHLEX_ID, END_PHLEX_ID, n_cells)!, n_cells
+    pmc_interface => monarch_interface_t(camp_input_file, interface_input_file, &
+            START_CAMP_ID, END_CAMP_ID, n_cells)!, n_cells
 
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ! **** end initialization modification **** !
@@ -212,7 +212,7 @@ program mock_monarch
     do i = I_W, I_E
       do j = I_S, I_N
         do k = 1, NUM_VERT_CELLS
-          do i_spec = START_PHLEX_ID, END_PHLEX_ID
+          do i_spec = START_CAMP_ID, END_CAMP_ID
             call assert_msg( 394742768, &
               almost_equal( real( species_conc(i,j,k,i_spec), kind=dp ), &
                   real( species_conc_copy(i,j,k,i_spec), kind=dp ), &
@@ -241,7 +241,7 @@ program mock_monarch
   ! few solver modifications. It is used to make sure future modifications
   ! to the solver do not affect the results
 #if 0
-  do i_spec = START_PHLEX_ID, END_PHLEX_ID
+  do i_spec = START_CAMP_ID, END_CAMP_ID
     call assert_msg( 394742768, &
         almost_equal( real( species_conc(10,15,1,i_spec), kind=dp ), &
                       real( comp_species_conc(i_time,i_spec), kind=dp ), &
@@ -255,7 +255,7 @@ program mock_monarch
 #endif
 
   ! Deallocation
-  deallocate(phlex_input_file)
+  deallocate(camp_input_file)
   deallocate(interface_input_file)
 
   ! Free the interface and the solver
@@ -340,7 +340,7 @@ contains
 
     do i_time = 0, NUM_TIME_STEP + 1
       read(COMPARE_FILE_UNIT, *) time, &
-             comp_species_conc(i_time, START_PHLEX_ID:END_PHLEX_ID), &
+             comp_species_conc(i_time, START_CAMP_ID:END_CAMP_ID), &
              water
     end do
 
@@ -355,7 +355,7 @@ contains
     real, intent(in) :: curr_time
 
     write(RESULTS_FILE_UNIT, *) curr_time, &
-            species_conc(10,15,1,START_PHLEX_ID:END_PHLEX_ID), &
+            species_conc(10,15,1,START_CAMP_ID:END_CAMP_ID), &
             water_conc(10,15,1,WATER_VAPOR_ID)
 
   end subroutine output_results
@@ -366,7 +366,7 @@ contains
   subroutine create_gnuplot_script(pmc_interface, file_prefix, start_time, &
             end_time)
 
-    !> PartMC-phlex <-> MONARCH interface
+    !> PartMC-camp <-> MONARCH interface
     type(monarch_interface_t), intent(in) :: pmc_interface
     !> File prefix for gnuplot script
     character(len=:), allocatable :: file_prefix
@@ -384,7 +384,7 @@ contains
     call pmc_interface%get_MONARCH_species(species_names, tracer_ids)
 
     ! Adjust the tracer ids to match the results file
-    tracer_ids(:) = tracer_ids(:) - START_PHLEX_ID + 2
+    tracer_ids(:) = tracer_ids(:) - START_CAMP_ID + 2
 
     ! Create the gnuplot script
     file_name = file_prefix//".conf"
@@ -406,7 +406,7 @@ contains
               trim(to_string(tracer_ids(i_spec)))//" title '"// &
               species_names(i_spec)%string//" (MONARCH)'"
     end do
-    tracer_id = END_PHLEX_ID - START_PHLEX_ID + 3
+    tracer_id = END_CAMP_ID - START_CAMP_ID + 3
     write(SCRIPTS_FILE_UNIT,*) "set output '"//file_prefix//"_H2O.png'"
     write(SCRIPTS_FILE_UNIT,*) "plot\"
     write(SCRIPTS_FILE_UNIT,*) " '"//file_prefix//"_results.txt'\"

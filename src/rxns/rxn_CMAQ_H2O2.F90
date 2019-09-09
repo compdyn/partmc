@@ -5,7 +5,7 @@
 !> \file
 !> The pmc_rxn_CMAQ_H2O2 module.
 
-!> \page phlex_rxn_CMAQ_H2O2 Phlexible Module for Chemistry: Special CMAQ Reaction for H2O2
+!> \page camp_rxn_CMAQ_H2O2 CAMP: Special CMAQ Reaction for H2O2
 !!
 !! For the reactions:
 !!
@@ -22,7 +22,7 @@
 !!   k=k_1+k_2[\mbox{M}]
 !! \f]
 !!
-!! where \f$k_1\f$ and \f$k_2\f$ are \ref phlex_rxn_arrhenius "Arrhenius" rate
+!! where \f$k_1\f$ and \f$k_2\f$ are \ref camp_rxn_arrhenius "Arrhenius" rate
 !! constants with \f$D=300\f$ and \f$E=0\f$, and \f$[\mbox{M}]\f$ is the
 !! concentration of air (\f$10^6\f$ ppm) \cite Gipson.
 !!
@@ -56,7 +56,7 @@
 !! 1.0.
 !!
 !! The two sets of parameters beginning with \b k1_ and \b k2_ are the
-!! \ref phlex_rxn_arrhenius "Arrhenius" parameters for the \f$k_1\f$ and
+!! \ref camp_rxn_arrhenius "Arrhenius" parameters for the \f$k_1\f$ and
 !! \f$k_2\f$ rate constants, respectively. When not present, \b _A
 !! parameters are assumed to be 1.0, \b _B to be 0.0, and \b _C to be 0.0.
 !!
@@ -72,7 +72,7 @@ module pmc_rxn_CMAQ_H2O2
   use pmc_aero_rep_data
   use pmc_chem_spec_data
   use pmc_constants,                        only: const
-  use pmc_phlex_state
+  use pmc_camp_state
   use pmc_property
   use pmc_rxn_data
   use pmc_util,                             only: i_kind, dp, to_string, &
@@ -308,21 +308,4 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-#undef NUM_REACT_
-#undef NUM_PROD_
-#undef k1_A_
-#undef k1_B_
-#undef k1_C_
-#undef k2_A_
-#undef k2_B_
-#undef k2_C_
-#undef CONV_
-#undef RATE_CONSTANT_
-#undef NUM_INT_PROP_
-#undef NUM_REAL_PROP_
-#undef REACT_
-#undef PROD_
-#undef DERIV_ID_
-#undef JAC_ID_
-#undef YIELD_
 end module pmc_rxn_CMAQ_H2O2

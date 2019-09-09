@@ -5,37 +5,37 @@
 !> \file
 !> The pmc_aero_phase_data module.
 
-!> \page phlex_aero_phase Phlexible Module for Chemistry: Aerosol Phase
+!> \page camp_aero_phase CAMP: Aerosol Phase
 !!
 !! An \c pmc_aero_phase_data::aero_phase_data_t object describes a distinct
 !! chemical phase within an aerosol. It is designed to allow the
 !! implementation of the chemical and mass transfer processes to be
-!! independent of the particular \ref phlex_aero_rep "aerosol representation"
+!! independent of the particular \ref camp_aero_rep "aerosol representation"
 !! used (e.g., bins, modes, single particles).
 !!
-!! A single \ref phlex_aero_phase "aerosol phase" may be present in several
-!! \ref phlex_aero_rep "aerosol representations" (e.g., an aqueous phase in a
-!! binned and a single-particle representation), but the \ref phlex_species
+!! A single \ref camp_aero_phase "aerosol phase" may be present in several
+!! \ref camp_aero_rep "aerosol representations" (e.g., an aqueous phase in a
+!! binned and a single-particle representation), but the \ref camp_species
 !! "chemical species" associated with a particular phase are constant
-!! throughout the model run. Once loaded, \ref phlex_aero_phase
+!! throughout the model run. Once loaded, \ref camp_aero_phase
 !! "aerosol phases" are made available to any \ref input_format_aero_rep
 !! "aerosol representations" that want to implement them.
-!! \ref phlex_aero_rep "Aerosol representations" are able to specify which
+!! \ref camp_aero_rep "Aerosol representations" are able to specify which
 !! phases they implement and how many instances of that phase are present in
-!! the \ref phlex_aero_rep "aerosol representation". For example, a binned
+!! the \ref camp_aero_rep "aerosol representation". For example, a binned
 !! representation with 10 bins may implement 10 aqueous phases and 10 organic
 !! phases, whereas a single  particle representation with a concentric shell
 !! structure of 3 layers may implement 3 of each phase (assuming the chemistry
 !! is solved for each particle individually).
 !!
-!! The set of \ref phlex_aero_phase "aerosol phases" is made available to the
-!! \ref phlex_mechanism "mechanism(s)" during model intialization. Reactions
+!! The set of \ref camp_aero_phase "aerosol phases" is made available to the
+!! \ref camp_mechanism "mechanism(s)" during model intialization. Reactions
 !! in the chemical mechanism are able to specify, by name, the phase
 !! in which they take place, and which species in that phase are involved.
-!! (How they decide this is up to the particular \ref  phlex_rxn
+!! (How they decide this is up to the particular \ref  camp_rxn
 !! "reaction type".)  Any physical aerosol parameters, such as the surface
 !! area between phases, the particle radius, or the number concentration,
-!! required by a chemical reaction will be provided by the \ref phlex_aero_rep
+!! required by a chemical reaction will be provided by the \ref camp_aero_rep
 !! "aerosol representation" at run time.
 !!
 !! The input format for an aerosol phase can be found \ref
@@ -53,7 +53,7 @@ module pmc_aero_phase_data
   use pmc_chem_spec_data
   use pmc_constants,                  only : i_kind, dp
   use pmc_mpi
-  use pmc_phlex_state
+  use pmc_camp_state
   use pmc_property
   use pmc_util,                       only : die_msg, string_t
 
@@ -74,7 +74,7 @@ module pmc_aero_phase_data
 
   !> Aerosol phase data type
   !!
-  !! \ref phlex_aero_phase "Aerosol phase" information.
+  !! \ref camp_aero_phase "Aerosol phase" information.
   type :: aero_phase_data_t
     private
     !> Name of the aerosol phase
@@ -83,7 +83,7 @@ module pmc_aero_phase_data
     integer(kind=i_kind) :: num_spec = 0
     !> Species names. These are species that are present in the aerosol
     !! phase. These species must exist in the \c
-    !! pmc_phlex_core::phlex_core_t::chem_spec_data variable during
+    !! pmc_camp_core::camp_core_t::chem_spec_data variable during
     !! initialization.
     type(string_t), pointer :: spec_name(:) => null()
     !> Aerosol phase parameters. These will be available during
@@ -92,12 +92,12 @@ module pmc_aero_phase_data
     !> Condensed phase data. Theses arrays will be available during
     !! solving, and should contain any information required by the
     !! functions of the aerosol phase that cannot be obtained
-    !! from the \c pmc_phlex_state::phlex_state_t object. (floating-point)
+    !! from the \c pmc_camp_state::camp_state_t object. (floating-point)
     real(kind=dp), allocatable, public :: condensed_data_real(:)
     !> Condensed phase data. Theses arrays will be available during
     !! solving, and should contain any information required by the
     !! functions of the aerosol phase that cannot be obtained
-    !! from the \c pmc_phlex_state::phlex_state_t object. (integer)
+    !! from the \c pmc_camp_state::camp_state_t object. (integer)
     integer(kind=i_kind), allocatable, public ::  condensed_data_int(:)
     !> Pointer to the set of chemical species data
     type(chem_spec_data_t), pointer :: chem_spec_data
@@ -185,7 +185,7 @@ contains
 
   !> \page input_format_aero_phase Input JSON Object Format: Aerosol Phase
   !!
-  !! A \c json object containing information about an \ref phlex_aero_phase
+  !! A \c json object containing information about an \ref camp_aero_phase
   !! "aerosol phase" has the following format:
   !! \code{.json}
   !! { "pmc-data" : [
@@ -203,7 +203,7 @@ contains
   !! ]}
   !! \endcode
   !! The key-value pair \b name is required and must contain the unique name
-  !! used for this \ref phlex_aero_phase "aerosol phase" in the \ref
+  !! used for this \ref camp_aero_phase "aerosol phase" in the \ref
   !! input_format_mechanism "mechanism". The key-value pair \b type is also
   !! required and its value must be \b AERO_PHASE.
   !!

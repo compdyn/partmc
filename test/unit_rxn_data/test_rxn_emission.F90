@@ -142,8 +142,6 @@ contains
 
       ! Find the A emission reaction
       key = "rxn id"
-      i_rxn_A = 342
-      i_rxn_B = 9240
       i_mech_rxn_A = 0
       i_mech_rxn_B = 0
       do i_rxn = 1, mechanism%size()
@@ -151,16 +149,16 @@ contains
         if (rxn%property_set%get_string(key, str_val)) then
           if (trim(str_val).eq."rxn A") then
             i_mech_rxn_A = i_rxn
-            select type (rxn_loss => rxn)
+            select type (rxn_emis => rxn)
               class is (rxn_emission_t)
-                call rxn_loss%set_rxn_id(i_rxn_A)
+                i_rxn_A = rxn_emis%generate_rxn_id()
             end select
           end if
           if (trim(str_val).eq."rxn B") then
             i_mech_rxn_B = i_rxn
-            select type (rxn_loss => rxn)
+            select type (rxn_emis => rxn)
               class is (rxn_emission_t)
-                call rxn_loss%set_rxn_id(i_rxn_B)
+                i_rxn_B = rxn_emis%generate_rxn_id()
             end select
           end if
         end if

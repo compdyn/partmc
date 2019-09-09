@@ -21,7 +21,7 @@
 !! \c pmc_rxn_emission::rxn_emission_t::get_property_set()
 !! function during initilialization to access any needed reaction parameters
 !! to identify certain emission reactions. The
-!! \c pmc_rxn_emission::rxn_emission_t::set_rxn_id() function
+!! \c pmc_rxn_emission::rxn_emission_t::generate_rxn_id() function
 !! should be used during initialization to set an integer id for a particular
 !! reaction that can be used during solving to update the emission
 !! rate from an external module.
@@ -78,8 +78,8 @@ public :: rxn_emission_t, rxn_update_data_emission_rate_t
   contains
     !> Reaction initialization
     procedure :: initialize
-    !> Set the reaction id for this reaction
-    procedure :: set_rxn_id
+    !> Generate a reaction id for this reaction
+    procedure :: generate_rxn_id
     !> Get the reaction property set
     procedure :: get_property_set
     !> Finalize the reaction
@@ -121,7 +121,7 @@ public :: rxn_emission_t, rxn_update_data_emission_rate_t
       use iso_c_binding
       !> Update data
       type(c_ptr), value :: update_data
-      !> Reaction id from pmc_rxn_emission::rxn_emission_t::set_rxn_id
+      !> Reaction id from pmc_rxn_emission::rxn_emission_t::generate_rxn_id
       integer(kind=c_int), value :: rxn_id
       !> New pre-scaling base emission rate
       real(kind=c_double), value :: base_rate
@@ -204,23 +204,33 @@ contains
     call assert_msg(814240522, SPECIES_.gt.0, &
             "Missing emission species: "//spec_name)
 
+    ! Initialize the rxn id
+    RXN_ID_ = -1
 
   end subroutine initialize
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Set an id for this reaction that can be used by an external
-  !! module to update the base (unscaled) rate constant during the model run.
-  subroutine set_rxn_id(this, rxn_id)
+  !> Generate an id for this reaction
+  !! This id can be used by an external module to update the base (unscaled)
+  !! rate constant during the model run.
+  function generate_rxn_id(this) result(rxn_id)
 
+    use pmc_rand,                                only : generate_int_id
+
+    !> Reaction id
+    integer(kind=i_kind) :: rxn_id
     !> Reaction data
     class(rxn_emission_t), intent(inout) :: this
-    !> Reaction id
-    integer(kind=i_kind), intent(in) :: rxn_id
 
-    RXN_ID_ = rxn_id
+    ! If a reaction id has not yet been generated, do it now
+    if (RXN_ID_.eq.-1) then
+      RXN_ID_ = generate_int_id()
+    endif
 
-  end subroutine set_rxn_id
+    rxn_id = RXN_ID_
+
+  end function generate_rxn_id
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -261,7 +271,7 @@ contains
     !> Update data
     class(rxn_update_data_emission_rate_t), intent(inout) :: this
     !> Reaction id from
-    !! \c pmc_rxn_emission::rxn_emission_t::set_rxn_id
+    !! \c pmc_rxn_emission::rxn_emission_t::generate_rxn_id
     integer(kind=i_kind), intent(in) :: rxn_id
     !> Updated pre-scaling emission rate
     real(kind=dp), intent(in) :: base_rate

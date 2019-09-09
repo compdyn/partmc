@@ -278,11 +278,11 @@ contains
     character(len=:), allocatable :: rep_name, phase_name
 
     character(len=:), allocatable :: section_name
-    integer(kind=i_kind), parameter :: aero_rep_id = 8261
     integer(kind=i_kind) :: i_sect_mixed, i_sect_single
     type(aero_rep_factory_t) :: aero_rep_factory
     type(aero_rep_update_data_modal_binned_mass_GMD_t) :: update_data_GMD
     type(aero_rep_update_data_modal_binned_mass_GSD_t) :: update_data_GSD
+    integer(kind=i_kind) :: aero_rep_id
 
     rep_name = "my modal/binned mass aerosol rep"
     call assert_msg(940125461, camp_core%get_aero_rep(rep_name, aero_rep),  &
@@ -292,7 +292,7 @@ contains
     ! Set the aerosol representation id
     select type (aero_rep)
       type is (aero_rep_modal_binned_mass_t)
-        call aero_rep%set_id(aero_rep_id)
+        aero_rep_id = aero_rep%generate_id()
       class default
         call die_msg(587271916, rep_name)
     end select

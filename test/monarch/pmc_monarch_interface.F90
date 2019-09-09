@@ -131,7 +131,7 @@ contains
     type(string_t), allocatable :: unique_names(:)
 
     class(aero_rep_data_t), pointer :: aero_rep
-    integer(kind=i_kind), parameter :: aero_rep_id = 92547
+    integer(kind=i_kind) :: aero_rep_id
     integer(kind=i_kind) :: i_sect_om, i_sect_bc, i_sect_sulf, i_sect_opm
     type(aero_rep_factory_t) :: aero_rep_factory
     type(aero_rep_update_data_modal_binned_mass_GMD_t) :: update_data_GMD
@@ -194,7 +194,7 @@ contains
       if (new_obj%camp_core%get_aero_rep("MONARCH mass-based", aero_rep)) then
         select type (aero_rep)
           type is (aero_rep_modal_binned_mass_t)
-            call aero_rep%set_id(aero_rep_id)
+            aero_rep_id = aero_rep%generate_id()
             call assert(889473105, &
                         aero_rep%get_section_id("organic matter", i_sect_om))
             call assert(648042550, &

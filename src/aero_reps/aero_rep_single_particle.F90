@@ -80,9 +80,9 @@ module pmc_aero_rep_single_particle
     !! the input files have been read in. It ensures all data required during
     !! the model run are included in the condensed data arrays.
     procedure :: initialize
-    !> Set an id for this aerosol representation for use with updates from
-    !! external modules
-    procedure :: set_id
+    !> Generate an id for this aerosol representation for use with updates
+    !! from external modules
+    procedure :: generate_id
     !> Get the size of the section of the
     !! \c pmc_camp_state::camp_state_t::state_var array required for this
     !! aerosol representation.
@@ -176,7 +176,7 @@ module pmc_aero_rep_single_particle
       !> Update data
       type(c_ptr), value :: update_data
       !> Aerosol representation id from
-      !! pmc_aero_rep_single_particle::aero_rep_single_particle_t::set_id
+      !! pmc_aero_rep_single_particle::aero_rep_single_particle_t::generate_id
       integer(kind=c_int), value :: aero_rep_id
       !> New radius (m)
       real(kind=c_double), value :: radius
@@ -197,7 +197,7 @@ module pmc_aero_rep_single_particle
       !> Update data
       type(c_ptr), value :: update_data
       !> Aerosol representation id from
-      !! pmc_aero_rep_single_particle::aero_rep_single_particle_t::set_id
+      !! pmc_aero_rep_single_particle::aero_rep_single_particle_t::generate_id
       integer(kind=c_int), value :: aero_rep_id
       !> New number (m)
       real(kind=c_double), value :: number_conc
@@ -277,22 +277,33 @@ contains
       PHASE_MODEL_DATA_ID_(i_phase) = i_phase
     end do
 
+    ! Initialize the aerosol representation id
+    AERO_REP_ID_ = -1
+
   end subroutine initialize
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Set an id for this aerosol representation that can be used by external
-  !! modules to update the particle radius and number concentration
-  subroutine set_id(this, new_id)
+  !> Generate an id for this aerosol representation
+  !! This id can be used by an external module to update the particle radius
+  !! and number concentration during model runs
+  function generate_id(this) result(aero_rep_id)
 
+    use pmc_rand,                                only : generate_int_id
+
+    !> Aerosol representation id
+    integer(kind=i_kind) :: aero_rep_id
     !> Aerosol representation data
     class(aero_rep_single_particle_t), intent(inout) :: this
-    !> New id
-    integer(kind=i_kind), intent(in) :: new_id
 
-    AERO_REP_ID_ = new_id
+    ! If an id has not yet been generated, do it now
+    if (AERO_REP_ID_.eq.-1) then
+      AERO_REP_ID_ = generate_int_id()
+    endif
 
-  end subroutine set_id
+    aero_rep_id = AERO_REP_ID_
+
+  end function generate_id
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -578,7 +589,7 @@ contains
     class(aero_rep_update_data_single_particle_radius_t), intent(inout) :: &
             this
     !> Aerosol representation id from
-    !! pmc_aero_rep_single_particle::aero_rep_single_particle_t::set_id
+    !! pmc_aero_rep_single_particle::aero_rep_single_particle_t::generate_id
     integer(kind=i_kind), intent(in) :: aero_rep_id
     !> Updated radius
     real(kind=dp), intent(in) :: radius
@@ -630,7 +641,7 @@ contains
     class(aero_rep_update_data_single_particle_number_t), intent(inout) :: &
             this
     !> Aerosol representation id from
-    !! pmc_aero_rep_single_particle::aero_rep_single_particle_t::set_id
+    !! pmc_aero_rep_single_particle::aero_rep_single_particle_t::generate_id
     integer(kind=i_kind), intent(in) :: aero_rep_id
     !> Updated number
     real(kind=dp), intent(in) :: number_conc

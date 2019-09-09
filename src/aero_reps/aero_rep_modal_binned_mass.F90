@@ -145,9 +145,9 @@ module pmc_aero_rep_modal_binned_mass
     !! the input files have been read in. It ensures all data required during
     !! the model run are included in the condensed data arrays.
     procedure :: initialize
-    !> Set an id for this aerosol representation for use with updates from
-    !! external modules
-    procedure :: set_id
+    !> Generate an id for this aerosol representation for use with updates
+    !! from external modules
+    procedure :: generate_id
     !> Get an id for a mode or bin in the aerosol representation by name for
     !! use with updates from external modules
     procedure :: get_section_id
@@ -247,7 +247,7 @@ module pmc_aero_rep_modal_binned_mass
       !> Update data
       type(c_ptr), value :: update_data
       !> Aerosol representation id from
-      !! pmc_aero_rep_modal_binned_mass::aero_rep_modal_binned_mass_t::set_id
+      !! pmc_aero_rep_modal_binned_mass::aero_rep_modal_binned_mass_t::generate_id
       integer(kind=c_int), value :: aero_rep_id
       !> Section id from
       !! pmc_aero_rep_modal_binned_mass::aero_rep_modal_binned_mass_t::get_section_id
@@ -271,7 +271,7 @@ module pmc_aero_rep_modal_binned_mass
       !> Update data
       type(c_ptr), value :: update_data
       !> Aerosol representation id from
-      !! pmc_aero_rep_modal_binned_mass::aero_rep_modal_binned_mass_t::set_id
+      !! pmc_aero_rep_modal_binned_mass::aero_rep_modal_binned_mass_t::generate_id
       integer(kind=c_int), value :: aero_rep_id
       !> Section id from
       !! pmc_aero_rep_modal_binned_mass::aero_rep_modal_binned_mass_t::get_section_id
@@ -627,6 +627,9 @@ contains
       call sections%iter_next()
     end do
 
+    ! Initialize the aerosol representation id
+    AERO_REP_ID_ = -1
+
     ! Check the data sizes
     call assert(951534966, i_phase-1.eq.num_phase)
     call assert(951534966, n_int_param.eq.INT_DATA_SIZE_+1)
@@ -636,18 +639,26 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Set an id for this aerosol representation that can be used by external
-  !! modules to update the GMD or GSD of a mode
-  subroutine set_id(this, new_id)
+  !> Generate an id for this aerosol representation
+  !! This id can be used by an external module to update the particle GMD
+  !! and GSD during model runs
+  function generate_id(this) result(aero_rep_id)
 
+    use pmc_rand,                                only : generate_int_id
+
+    !> Aerosol representation id
+    integer(kind=i_kind) :: aero_rep_id
     !> Aerosol representation data
     class(aero_rep_modal_binned_mass_t), intent(inout) :: this
-    !> New id
-    integer(kind=i_kind), intent(in) :: new_id
 
-    AERO_REP_ID_ = new_id
+    ! If an id has not yet been generated, do it now
+    if (AERO_REP_ID_.eq.-1) then
+      AERO_REP_ID_ = generate_int_id()
+    endif
 
-  end subroutine set_id
+    aero_rep_id = AERO_REP_ID_
+
+  end function generate_id
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -1032,7 +1043,7 @@ contains
     !> Update data
     class(aero_rep_update_data_modal_binned_mass_GMD_t), intent(inout) :: this
     !> Aerosol representation id from
-    !! pmc_aero_rep_modal_binned_mass::aero_rep_modal_binned_mass_t::set_id
+    !! pmc_aero_rep_modal_binned_mass::aero_rep_modal_binned_mass_t::generate_id
     integer(kind=i_kind), intent(in) :: aero_rep_id
     !> Aerosol section id from
     !! pmc_aero_rep_modal_binned_mass::aero_rep_modal_binned_mass_t::get_section_id
@@ -1081,7 +1092,7 @@ contains
     !> Update data
     class(aero_rep_update_data_modal_binned_mass_GSD_t), intent(inout) :: this
     !> Aerosol representation id from
-    !! pmc_aero_rep_modal_binned_mass::aero_rep_modal_binned_mass_t::set_id
+    !! pmc_aero_rep_modal_binned_mass::aero_rep_modal_binned_mass_t::generate_id
     integer(kind=i_kind), intent(in) :: aero_rep_id
     !> Aerosol section id from
     !! pmc_aero_rep_modal_binned_mass::aero_rep_modal_binned_mass_t::get_section_id

@@ -31,9 +31,6 @@ program pmc_test_aero_rep_data
   real(kind=dp), parameter :: PART_NUM_CONC = 1.23e3
   real(kind=dp), parameter :: PART_RADIUS   = 2.43e-7
 
-  ! Aerosol rep id for update functions
-  integer(kind=i_kind), parameter :: AERO_REP_ID = 234
-
   !> Interface to c ODE solver and test functions
   interface
     !> Run the c function tests
@@ -285,6 +282,7 @@ contains
     type(aero_rep_factory_t) :: aero_rep_factory
     type(aero_rep_update_data_single_particle_radius_t) :: update_radius
     type(aero_rep_update_data_single_particle_number_t) :: update_number
+    integer(kind=i_kind) :: aero_rep_id
 
     rep_name = "AERO_REP_SINGLE_PARTICLE"
 
@@ -293,7 +291,7 @@ contains
 
     select type( aero_rep )
       type is(aero_rep_single_particle_t)
-        call aero_rep%set_id( AERO_REP_ID )
+        aero_rep_id = aero_rep%generate_id()
       class default
         call die_msg(766425873, "Wrong aero rep type")
     end select
@@ -309,17 +307,21 @@ contains
     ! Update external properties
     call aero_rep_factory%initialize_update_data( update_radius )
     call aero_rep_factory%initialize_update_data( update_number )
-    call update_radius%set_radius( AERO_REP_ID, PART_RADIUS )
-    call update_number%set_number( AERO_REP_ID, PART_NUM_CONC )
+    call update_radius%set_radius( aero_rep_id, PART_RADIUS )
+    call update_number%set_number( aero_rep_id, 12.3d0 )
     call camp_core%update_aero_rep_data( update_radius )
+    call camp_core%update_aero_rep_data( update_number )
+
+    ! Test re-setting number concentration
+    call update_number%set_number( aero_rep_id, PART_NUM_CONC )
     call camp_core%update_aero_rep_data( update_number )
 
     call camp_state%update_env_state()
 
     passed = run_aero_rep_single_particle_c_tests(                           &
-                 camp_core%solver_data_gas_aero%solver_c_ptr,               &
-                 c_loc(camp_state%state_var),                               &
-                 c_loc(camp_state%env_var)                                  &
+                 camp_core%solver_data_gas_aero%solver_c_ptr,                &
+                 c_loc(camp_state%state_var),                                &
+                 c_loc(camp_state%env_var)                                   &
                  ) .eq. 0
 
     deallocate(camp_state)

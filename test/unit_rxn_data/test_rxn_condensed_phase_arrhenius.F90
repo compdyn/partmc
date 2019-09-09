@@ -110,7 +110,7 @@ contains
 
     type(solver_stats_t), target :: solver_stats
 
-    integer(kind=i_kind), parameter :: aero_rep_id = 83921
+    integer(kind=i_kind) :: aero_rep_id
     integer(kind=i_kind) :: i_sect_unused, i_sect_the_mode
     type(aero_rep_factory_t) :: aero_rep_factory
     type(aero_rep_update_data_modal_binned_mass_GMD_t) :: update_data_GMD
@@ -184,7 +184,7 @@ contains
         ! Set the aerosol representation id
         select type (aero_rep_ptr)
           type is (aero_rep_modal_binned_mass_t)
-            call aero_rep_ptr%set_id(aero_rep_id)
+            aero_rep_id = aero_rep_ptr%generate_id()
             call assert_msg(126380597, &
                   aero_rep_ptr%get_section_id("unused mode", i_sect_unused), &
                   "Could not get section id for the unused mode")

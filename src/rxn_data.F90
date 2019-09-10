@@ -157,6 +157,8 @@ module pmc_rxn_data
   type, abstract :: rxn_update_data_t
     !> Reaction type
     integer(kind=c_int) :: rxn_type
+    !> Index for this reaction in the solver data
+    integer(kind=c_int)  :: rxn_solver_id = 0
     !> Grid cell to update
     integer(kind=c_int) :: cell_id = 1
     !> Update data

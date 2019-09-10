@@ -94,7 +94,6 @@ contains
     integer(kind=i_kind) :: idx_1RA, idx_1RB, idx_1CB, idx_1CC
     integer(kind=i_kind) :: idx_2RA, idx_2RB, idx_2CB, idx_2CC
     integer(kind=i_kind) :: i_time, i_spec, i_rxn
-    integer(kind=i_kind) :: i_rxn_rain, i_rxn_cloud
     integer(kind=i_kind) :: i_mech_rxn_rain, i_mech_rxn_cloud
     real(kind=dp) :: time_step, time, k_rain, k_cloud, temp, pressure, &
                      rate_rain, rate_cloud
@@ -112,8 +111,8 @@ contains
     ! For setting rates
     type(mechanism_data_t), pointer :: mechanism
     type(rxn_factory_t) :: rxn_factory
-    type(rxn_update_data_wet_deposition_rate_t) :: rate_update_rain
-    type(rxn_update_data_wet_deposition_rate_t) :: rate_update_cloud
+    type(rxn_update_data_wet_deposition_t) :: rate_update_rain
+    type(rxn_update_data_wet_deposition_t) :: rate_update_cloud
 
     run_wet_deposition_test = .true.
 
@@ -159,14 +158,16 @@ contains
             i_mech_rxn_rain = i_rxn
             select type (rxn_loss => rxn)
               class is (rxn_wet_deposition_t)
-                i_rxn_rain = rxn_loss%generate_rxn_id()
+                call rxn_factory%initialize_update_data(rxn_loss, &
+                                                        rate_update_rain)
             end select
           end if
           if (trim(str_val).eq."rxn cloud") then
             i_mech_rxn_cloud = i_rxn
             select type (rxn_loss => rxn)
               class is (rxn_wet_deposition_t)
-                i_rxn_cloud = rxn_loss%generate_rxn_id()
+                call rxn_factory%initialize_update_data(rxn_loss, &
+                                                        rate_update_cloud)
             end select
           end if
         end if
@@ -320,15 +321,13 @@ contains
       camp_state%state_var(:) = model_conc(0,:)
 
       ! Set the rain rxn rate
-      call rxn_factory%initialize_update_data(rate_update_rain)
-      call rxn_factory%initialize_update_data(rate_update_cloud)
-      call rate_update_rain%set_rate(i_rxn_rain, rate_rain)
-      call rate_update_cloud%set_rate(i_rxn_cloud, 43912.5d0)
+      call rate_update_rain%set_rate(rate_rain)
+      call rate_update_cloud%set_rate(43912.5d0)
       call camp_core%update_rxn_data(rate_update_rain)
       call camp_core%update_rxn_data(rate_update_cloud)
 
       ! Test re-setting of the rxn B rate
-      call rate_update_cloud%set_rate(i_rxn_cloud, rate_cloud)
+      call rate_update_cloud%set_rate(rate_cloud)
       call camp_core%update_rxn_data(rate_update_cloud)
 
 #ifdef PMC_DEBUG

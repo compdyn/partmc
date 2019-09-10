@@ -202,11 +202,13 @@ module pmc_camp_solver_data
     end subroutine rxn_add_condensed_data
 
     !> Update reaction data
-    subroutine rxn_update_data(cell_id, rxn_type, update_data, solver_data) &
-        bind(c)
+    subroutine rxn_update_data(cell_id, rxn_id, rxn_type, update_data, &
+        solver_data) bind(c)
       use iso_c_binding
       !> Grid cell to update
       integer(kind=c_int), value :: cell_id
+      !> Reaction id
+      integer(kind=c_int) :: rxn_id
       !> Reaction type to updateto update
       integer(kind=c_int), value :: rxn_type
       !> Data required by reaction for updates
@@ -787,6 +789,7 @@ contains
 
     call rxn_update_data( &
             update_data%get_cell_id()-1,& ! Grid cell to update
+            update_data%rxn_solver_id,  & ! Solver's reaction id
             update_data%get_type(),     & ! Reaction type to update
             update_data%get_data(),     & ! Data needed to perform update
             this%solver_c_ptr           & ! Pointer to solver data

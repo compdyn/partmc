@@ -91,7 +91,7 @@ contains
 
     real(kind=dp), dimension(0:NUM_TIME_STEP, 2) :: model_conc, true_conc
     integer(kind=i_kind) :: idx_A, idx_B, i_time, i_spec, i_rxn
-    integer(kind=i_kind) ::  i_rxn_A, i_rxn_B, i_mech_rxn_A, i_mech_rxn_B
+    integer(kind=i_kind) ::  i_mech_rxn_A, i_mech_rxn_B
     real(kind=dp) :: time_step, time, k1, k2, temp, pressure, rate_A, rate_B
     type(chem_spec_data_t), pointer :: chem_spec_data
     class(rxn_data_t), pointer :: rxn
@@ -105,7 +105,7 @@ contains
     ! For setting rates
     type(mechanism_data_t), pointer :: mechanism
     type(rxn_factory_t) :: rxn_factory
-    type(rxn_update_data_emission_rate_t) :: rate_update_A, rate_update_B
+    type(rxn_update_data_emission_t) :: rate_update_A, rate_update_B
 
     run_emission_test = .true.
 
@@ -151,14 +151,16 @@ contains
             i_mech_rxn_A = i_rxn
             select type (rxn_emis => rxn)
               class is (rxn_emission_t)
-                i_rxn_A = rxn_emis%generate_rxn_id()
+                call rxn_factory%initialize_update_data(rxn_emis, &
+                                                        rate_update_A)
             end select
           end if
           if (trim(str_val).eq."rxn B") then
             i_mech_rxn_B = i_rxn
             select type (rxn_emis => rxn)
               class is (rxn_emission_t)
-                i_rxn_B = rxn_emis%generate_rxn_id()
+                call rxn_factory%initialize_update_data(rxn_emis, &
+                                                        rate_update_B)
             end select
           end if
         end if
@@ -191,8 +193,6 @@ contains
     ! broadcast the species ids
     call pmc_mpi_bcast_integer(idx_A)
     call pmc_mpi_bcast_integer(idx_B)
-    call pmc_mpi_bcast_integer(i_rxn_A)
-    call pmc_mpi_bcast_integer(i_rxn_B)
 
     ! broadcast the buffer size
     call pmc_mpi_bcast_integer(pack_size)
@@ -243,15 +243,13 @@ contains
       camp_state%state_var(:) = model_conc(0,:)
 
       ! Set the rxn rates
-      call rxn_factory%initialize_update_data(rate_update_A)
-      call rxn_factory%initialize_update_data(rate_update_B)
-      call rate_update_A%set_rate(i_rxn_A, rate_A)
-      call rate_update_B%set_rate(i_rxn_B, 42.11d0)
+      call rate_update_A%set_rate(rate_A)
+      call rate_update_B%set_rate(42.11d0)
       call camp_core%update_rxn_data(rate_update_A)
       call camp_core%update_rxn_data(rate_update_B)
 
       ! Test re-setting of the rxn B rate
-      call rate_update_B%set_rate(i_rxn_B, rate_B)
+      call rate_update_B%set_rate(rate_B)
       call camp_core%update_rxn_data(rate_update_B)
 
 #ifdef PMC_DEBUG

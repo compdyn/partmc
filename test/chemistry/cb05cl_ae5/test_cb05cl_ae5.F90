@@ -179,9 +179,9 @@ contains
 
     ! Variables to set photolysis rates
     type(rxn_factory_t) :: rxn_factory
-    type(rxn_update_data_photolysis_rate_t) :: rate_update
-    integer(kind=i_kind), allocatable :: rxn_ids(:)
-    integer(kind=i_kind) :: i_rxn_jo2
+    integer(kind=i_kind) :: n_photo_rxn, i_photo_rxn
+    type(rxn_update_data_photolysis_t), allocatable :: rate_update(:)
+    type(rxn_update_data_photolysis_t) :: jo2_rate_update
 
     ! Arrays to hold starting concentrations
     real(kind=dp), allocatable :: ebi_init(:), kpp_init(:), camp_init(:)
@@ -266,9 +266,20 @@ contains
     call assert(418262750, camp_core%get_mechanism(key, mechanism))
 
     ! Set the photolysis rate ids
-    allocate(rxn_ids(mechanism%size()))
-    rxn_ids(:) = -1
     key = "rxn id"
+    n_photo_rxn = 0
+    do i_rxn = 1, mechanism%size()
+      rxn => mechanism%get_rxn(i_rxn)
+      select type(rxn)
+        type is (rxn_photolysis_t)
+          call assert(265614917, rxn%property_set%get_string(key, string_val))
+          if (trim(string_val).ne."jo2") then
+            n_photo_rxn = n_photo_rxn + 1
+          end if
+      end select
+    end do
+    allocate(rate_update(n_photo_rxn))
+    i_photo_rxn = 0
     do i_rxn = 1, mechanism%size()
       rxn => mechanism%get_rxn(i_rxn)
       select type(rxn)
@@ -276,12 +287,15 @@ contains
           call assert(265614917, rxn%property_set%get_string(key, string_val))
           if (trim(string_val).eq."jo2") then
             ! Set O2 + hv rate constant to 0 (not present in ebi version)
-            i_rxn_jo2 = rxn%generate_rxn_id()
+            call rxn_factory%initialize_update_data(rxn, jo2_rate_update)
           else
-            rxn_ids(i_rxn) = rxn%generate_rxn_id()
+            i_photo_rxn = i_photo_rxn + 1
+            call rxn_factory%initialize_update_data(rxn, &
+                                                    rate_update(i_photo_rxn))
           end if
       end select
     end do
+    call assert(322300770, n_photo_rxn.eq.i_photo_rxn)
 
     ! Initialize the solver
     call camp_core%solver_initialize()
@@ -327,16 +341,13 @@ contains
     KPP_PHOTO_RATES(:) = 0.0001
     ! Set O2 + hv rate constant to 0 in KPP (not present in ebi version)
     KPP_PHOTO_RATES(1) = 0.0
-    ! Set the camp-chem photolysis rate constants
-    call rxn_factory%initialize_update_data(rate_update)
     ! Set the O2 + hv rate constant to 0 (not present in ebi version)
-    call rate_update%set_rate(i_rxn_jo2, real(0.0, kind=dp))
-    call camp_core%update_rxn_data(rate_update)
+    call jo2_rate_update%set_rate(real(0.0, kind=dp))
+    call camp_core%update_rxn_data(jo2_rate_update)
     ! Set the remaining rates
-    do i_rxn = 1, size(rxn_ids)
-      if (rxn_ids(i_rxn).eq.-1) continue
-      call rate_update%set_rate(rxn_ids(i_rxn), real(0.0001, kind=dp))
-      call camp_core%update_rxn_data(rate_update)
+    do i_photo_rxn = 1, n_photo_rxn
+      call rate_update(i_photo_rxn)%set_rate(real(0.0001, kind=dp))
+      call camp_core%update_rxn_data(rate_update(i_photo_rxn))
     end do
 
     ! Make sure the right number of reactions is present
@@ -722,7 +733,7 @@ contains
     close(CAMP_FILE_UNIT)
 
     deallocate(photo_rates)
-    deallocate(rxn_ids)
+    deallocate(rate_update)
     deallocate(camp_spec_names)
     deallocate(ebi_rxn_map)
     deallocate(kpp_rxn_map)

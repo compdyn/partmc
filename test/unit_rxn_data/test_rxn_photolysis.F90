@@ -184,10 +184,14 @@ contains
 
 #ifdef PMC_USE_MPI
       ! pack the camp core
-      pack_size = camp_core%pack_size()
+      pack_size = camp_core%pack_size() &
+                + rate_update_A%pack_size() &
+                + rate_update_B%pack_size()
       allocate(buffer(pack_size))
       pos = 0
       call camp_core%bin_pack(buffer, pos)
+      call rate_update_A%bin_pack(buffer, pos)
+      call rate_update_B%bin_pack(buffer, pos)
       call assert(730746520, pos.eq.pack_size)
     end if
 
@@ -212,10 +216,14 @@ contains
       camp_core => camp_core_t()
       pos = 0
       call camp_core%bin_unpack(buffer, pos)
+      call rate_update_A%bin_unpack(buffer, pos)
+      call rate_update_B%bin_unpack(buffer, pos)
       call assert(172965863, pos.eq.pack_size)
       allocate(buffer_copy(pack_size))
       pos = 0
       call camp_core%bin_pack(buffer_copy, pos)
+      call rate_update_A%bin_pack(buffer_copy, pos)
+      call rate_update_B%bin_pack(buffer_copy, pos)
       call assert(502751057, pos.eq.pack_size)
       do i_elem = 1, pack_size
         call assert_msg(897544651, buffer(i_elem).eq.buffer_copy(i_elem), &

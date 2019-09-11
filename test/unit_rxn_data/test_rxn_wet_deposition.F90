@@ -248,10 +248,14 @@ contains
 
 #ifdef PMC_USE_MPI
       ! pack the camp core
-      pack_size = camp_core%pack_size()
+      pack_size = camp_core%pack_size() &
+                + rate_update_rain%pack_size() &
+                + rate_update_cloud%pack_size()
       allocate(buffer(pack_size))
       pos = 0
       call camp_core%bin_pack(buffer, pos)
+      call rate_update_rain%bin_pack(buffer, pos)
+      call rate_update_cloud%bin_pack(buffer, pos)
       call assert(768884204, pos.eq.pack_size)
     end if
 
@@ -264,7 +268,6 @@ contains
     call pmc_mpi_bcast_integer(idx_2RB)
     call pmc_mpi_bcast_integer(idx_2CB)
     call pmc_mpi_bcast_integer(idx_2CC)
-    call pmc_mpi_bcast_integer(i_rxn_rain)
 
     ! broadcast the buffer size
     call pmc_mpi_bcast_integer(pack_size)
@@ -282,10 +285,14 @@ contains
       camp_core => camp_core_t()
       pos = 0
       call camp_core%bin_unpack(buffer, pos)
+      call rate_update_rain%bin_unpack(buffer, pos)
+      call rate_update_cloud%bin_unpack(buffer, pos)
       call assert(413229770, pos.eq.pack_size)
       allocate(buffer_copy(pack_size))
       pos = 0
       call camp_core%bin_pack(buffer_copy, pos)
+      call rate_update_rain%bin_pack(buffer_copy, pos)
+      call rate_update_cloud%bin_pack(buffer_copy, pos)
       call assert(243072866, pos.eq.pack_size)
       do i_elem = 1, pack_size
         call assert_msg(809928898, buffer(i_elem).eq.buffer_copy(i_elem), &

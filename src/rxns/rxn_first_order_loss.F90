@@ -54,6 +54,7 @@ module pmc_rxn_first_order_loss
   use pmc_chem_spec_data
   use pmc_constants,                        only: const
   use pmc_camp_state
+  use pmc_mpi
   use pmc_property
   use pmc_rxn_data
   use pmc_util,                             only: i_kind, dp, to_string, &
@@ -103,6 +104,12 @@ public :: rxn_first_order_loss_t, rxn_update_data_first_order_loss_t
   contains
     !> Update the rate data
     procedure :: set_rate => update_data_rate_set
+    !> Determine the pack size of the local update data
+    procedure :: internal_pack_size
+    !> Pack the local update data to a binary
+    procedure :: internal_bin_pack
+    !> Unpack the local update data from a binary
+    procedure :: internal_bin_unpack
     !> Finalize the rate update data
     final :: update_data_finalize
   end type rxn_update_data_first_order_loss_t
@@ -283,6 +290,76 @@ contains
     update_data%is_malloced = .true.
 
   end subroutine update_data_initialize
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Determine the size of a binary required to pack the reaction data
+  integer(kind=i_kind) function internal_pack_size(this, comm) &
+      result(pack_size)
+
+    !> Reaction update data
+    class(rxn_update_data_first_order_loss_t), intent(in) :: this
+    !> MPI communicator
+    integer, intent(in) :: comm
+
+    pack_size = &
+      pmc_mpi_pack_size_logical(this%is_malloced, comm) + &
+      pmc_mpi_pack_size_integer(this%rxn_unique_id, comm)
+
+  end function internal_pack_size
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Pack the given value to the buffer, advancing position
+  subroutine internal_bin_pack(this, buffer, pos, comm)
+
+    !> Reaction update data
+    class(rxn_update_data_first_order_loss_t), intent(in) :: this
+    !> Memory buffer
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position
+    integer, intent(inout) :: pos
+    !> MPI communicator
+    integer, intent(in) :: comm
+
+#ifdef PMC_USE_MPI
+    integer :: prev_position
+
+    prev_position = pos
+    call pmc_mpi_pack_logical(buffer, pos, this%is_malloced, comm)
+    call pmc_mpi_pack_integer(buffer, pos, this%rxn_unique_id, comm)
+    call assert(373785697, &
+         pos - prev_position <= this%pack_size(comm))
+#endif
+
+  end subroutine internal_bin_pack
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Unpack the given value from the buffer, advancing position
+  subroutine internal_bin_unpack(this, buffer, pos, comm)
+
+    !> Reaction update data
+    class(rxn_update_data_first_order_loss_t), intent(inout) :: this
+    !> Memory buffer
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position
+    integer, intent(inout) :: pos
+    !> MPI communicator
+    integer, intent(in) :: comm
+
+#ifdef PMC_USE_MPI
+    integer :: prev_position
+
+    prev_position = pos
+    call pmc_mpi_unpack_logical(buffer, pos, this%is_malloced, comm)
+    call pmc_mpi_unpack_integer(buffer, pos, this%rxn_unique_id, comm)
+    call assert(368521390, &
+         pos - prev_position <= this%pack_size(comm))
+    this%update_data = rxn_first_order_loss_create_rate_update_data()
+#endif
+
+  end subroutine internal_bin_unpack
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

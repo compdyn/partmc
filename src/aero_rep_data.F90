@@ -464,7 +464,8 @@ contains
 
     pack_size = &
             pmc_mpi_pack_size_real_array(this%condensed_data_real, comm) + &
-            pmc_mpi_pack_size_integer_array(this%condensed_data_int, comm)
+            pmc_mpi_pack_size_integer_array(this%condensed_data_int, comm) + &
+            pmc_mpi_pack_size_integer(this%num_env_params, comm)
 
   end function pack_size
 
@@ -488,6 +489,7 @@ contains
     prev_position = pos
     call pmc_mpi_pack_real_array(buffer, pos, this%condensed_data_real, comm)
     call pmc_mpi_pack_integer_array(buffer, pos, this%condensed_data_int,comm)
+    call pmc_mpi_pack_integer(buffer, pos, this%num_env_params,comm)
     call assert(257024095, &
          pos - prev_position <= this%pack_size(comm))
 #endif
@@ -515,6 +517,7 @@ contains
     call pmc_mpi_unpack_real_array(buffer, pos, this%condensed_data_real,comm)
     call pmc_mpi_unpack_integer_array(buffer, pos, this%condensed_data_int,  &
                                                                          comm)
+    call pmc_mpi_unpack_integer(buffer, pos, this%num_env_params,comm)
     call assert(954732699, &
          pos - prev_position <= this%pack_size(comm))
 #endif

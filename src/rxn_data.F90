@@ -170,6 +170,20 @@ module pmc_rxn_data
     procedure :: get_cell_id => rxn_update_data_get_cell_id
     !> Get the update data
     procedure :: get_data => rxn_update_data_get_data
+    !> Determine the number of bytes required to pack the given value
+    procedure :: pack_size => rxn_update_data_pack_size
+    !> Packs the given value into the buffer, advancing position
+    procedure :: bin_pack => rxn_update_data_bin_pack
+    !> Unpacks the given value from the buffer, advancing position
+    procedure :: bin_unpack => rxn_update_data_bin_unpack
+    !> Extending type pack size (internal use only)
+    procedure(internal_pack_size), deferred :: internal_pack_size
+    !> Extending type bin pack (internal use only)
+    procedure(internal_bin_pack), deferred :: internal_bin_pack
+    !> Extending type bin unpack (internal use only)
+    procedure(internal_bin_unpack), deferred :: internal_bin_unpack
+    !> Print the update data
+    procedure :: print => do_rxn_update_data_print
   end type rxn_update_data_t
 
 interface
@@ -197,6 +211,54 @@ interface
     integer(kind=i_kind), intent(in) :: n_cells
 
   end subroutine initialize
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Extending-type binary pack size (internal use only)
+  integer(kind=i_kind) function internal_pack_size(this, comm)
+    use pmc_util,                                only : i_kind
+    import :: rxn_update_data_t
+
+    !> Reaction data
+    class(rxn_update_data_t), intent(in) :: this
+    !> MPI communicator
+    integer, intent(in) :: comm
+
+  end function internal_pack_size
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Extending-type binary pack function (Internal use only)
+  subroutine internal_bin_pack(this, buffer, pos, comm)
+    import :: rxn_update_data_t
+
+    !> Reaction data
+    class(rxn_update_data_t), intent(in) :: this
+    !> Memory buffer
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position
+    integer, intent(inout) :: pos
+    !> MPI communicator
+    integer, intent(in) :: comm
+
+  end subroutine internal_bin_pack
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Extending-type binary unpack function (Internal use only)
+  subroutine internal_bin_unpack(this, buffer, pos, comm)
+    import :: rxn_update_data_t
+
+    !> Reaction data
+    class(rxn_update_data_t), intent(inout) :: this
+    !> Memory buffer
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position
+    integer, intent(inout) :: pos
+    !> MPI communicator
+    integer, intent(in) :: comm
+
+  end subroutine internal_bin_unpack
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -353,8 +415,10 @@ contains
     integer, intent(in) :: comm
 
     pack_size = &
+            pmc_mpi_pack_size_integer(this%rxn_phase, comm) + &
             pmc_mpi_pack_size_real_array(this%condensed_data_real, comm) + &
-            pmc_mpi_pack_size_integer_array(this%condensed_data_int, comm)
+            pmc_mpi_pack_size_integer_array(this%condensed_data_int, comm) + &
+            pmc_mpi_pack_size_integer(this%num_env_params, comm)
 
   end function pack_size
 
@@ -376,8 +440,10 @@ contains
     integer :: prev_position
 
     prev_position = pos
+    call pmc_mpi_pack_integer(buffer, pos, this%rxn_phase, comm)
     call pmc_mpi_pack_real_array(buffer, pos, this%condensed_data_real, comm)
     call pmc_mpi_pack_integer_array(buffer, pos, this%condensed_data_int, comm)
+    call pmc_mpi_pack_integer(buffer, pos, this%num_env_params, comm)
     call assert(149359274, &
          pos - prev_position <= this%pack_size(comm))
 #endif
@@ -402,9 +468,11 @@ contains
     integer :: prev_position
 
     prev_position = pos
+    call pmc_mpi_unpack_integer(buffer, pos, this%rxn_phase, comm)
     call pmc_mpi_unpack_real_array(buffer, pos, this%condensed_data_real,comm)
     call pmc_mpi_unpack_integer_array(buffer, pos, this%condensed_data_int,  &
                                                                          comm)
+    call pmc_mpi_unpack_integer(buffer, pos, this%num_env_params, comm)
     call assert(168345796, &
          pos - prev_position <= this%pack_size(comm))
 #endif
@@ -499,6 +567,122 @@ contains
     update_data = this%update_data
 
   end function rxn_update_data_get_data
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Determine the size of a binary required to pack the reaction data
+  integer(kind=i_kind) function rxn_update_data_pack_size(this, comm) &
+      result(pack_size)
+
+    !> Reaction update data
+    class(rxn_update_data_t), intent(in) :: this
+    !> MPI communicator
+    integer, intent(in), optional :: comm
+
+#ifdef PMC_USE_MPI
+    integer :: l_comm
+
+    if (present(comm)) then
+      l_comm = comm
+    else
+      l_comm = MPI_COMM_WORLD
+    endif
+
+    pack_size = &
+      pmc_mpi_pack_size_integer(int(this%rxn_type, kind=i_kind), l_comm) +   &
+      pmc_mpi_pack_size_integer(int(this%rxn_solver_id, kind=i_kind),        &
+                                                                   l_comm) + &
+      this%internal_pack_size(l_comm)
+#else
+    pack_size = 0
+#endif
+
+  end function rxn_update_data_pack_size
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Pack the given value to the buffer, advancing position
+  subroutine rxn_update_data_bin_pack(this, buffer, pos, comm)
+
+    !> Reaction update data
+    class(rxn_update_data_t), intent(in) :: this
+    !> Memory buffer
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position
+    integer, intent(inout) :: pos
+    !> MPI communicator
+    integer, intent(in), optional :: comm
+
+#ifdef PMC_USE_MPI
+    integer :: prev_position, l_comm
+
+    if (present(comm)) then
+      l_comm = comm
+    else
+      l_comm = MPI_COMM_WORLD
+    endif
+
+    prev_position = pos
+    call pmc_mpi_pack_integer(buffer, pos, &
+                              int(this%rxn_type, kind=i_kind), l_comm)
+    call pmc_mpi_pack_integer(buffer, pos, &
+                              int(this%rxn_solver_id, kind=i_kind), l_comm)
+    call this%internal_bin_pack(buffer, pos, l_comm)
+    call assert(713360087, &
+         pos - prev_position <= this%pack_size(l_comm))
+#endif
+
+  end subroutine rxn_update_data_bin_pack
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Unpack the given value from the buffer, advancing position
+  subroutine rxn_update_data_bin_unpack(this, buffer, pos, comm)
+
+    !> Reaction update data
+    class(rxn_update_data_t), intent(out) :: this
+    !> Memory buffer
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position
+    integer, intent(inout) :: pos
+    !> MPI communicator
+    integer, intent(in), optional :: comm
+
+#ifdef PMC_USE_MPI
+    integer :: prev_position, l_comm
+    integer(kind=i_kind) :: temp_int
+
+    if (present(comm)) then
+      l_comm = comm
+    else
+      l_comm = MPI_COMM_WORLD
+    endif
+
+    prev_position = pos
+    call pmc_mpi_unpack_integer(buffer, pos, temp_int, l_comm)
+    this%rxn_type = int(temp_int, kind=c_int)
+    call pmc_mpi_unpack_integer(buffer, pos, temp_int, l_comm)
+    this%rxn_solver_id = int(temp_int, kind=c_int)
+    call this%internal_bin_unpack(buffer, pos, l_comm)
+    call assert(107364895, &
+         pos - prev_position <= this%pack_size(l_comm))
+#endif
+
+  end subroutine rxn_update_data_bin_unpack
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Print the update data
+  subroutine do_rxn_update_data_print(this)
+
+    !> Reaction update data
+    class(rxn_update_data_t), intent(in) :: this
+
+    write(*,*) "*** Reaction update data ***"
+    write(*,*) "Rxn type", this%rxn_type
+    write(*,*) "Rxn solver id", this%rxn_solver_id
+
+  end subroutine do_rxn_update_data_print
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

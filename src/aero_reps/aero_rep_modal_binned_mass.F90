@@ -61,6 +61,12 @@
 !! \b LINEAR. The number concentration will be calculated at run-time based on
 !! the total mass of each bin, the species densities and the diameter of
 !! particles in that bin.
+!!
+!! The GMD and GSD for each mode must be set from an external model using
+!! \c pmc_aero_rep_modal_binned_mass::aero_rep_update_data_modal_binned_mass_GMD_t
+!! and
+!! \c pmc_aero_rep_modal_binned_mass::aero_rep_update_data_modal_binned_mass_GSD_t
+!! objects.
 
 !> The abstract aero_rep_modal_binned_mass_t structure and associated subroutines.
 module pmc_aero_rep_modal_binned_mass
@@ -145,9 +151,10 @@ module pmc_aero_rep_modal_binned_mass
     !! the input files have been read in. It ensures all data required during
     !! the model run are included in the condensed data arrays.
     procedure :: initialize
-    !> Generate an id for this aerosol representation for use with updates
-    !! from external modules
-    procedure :: generate_id
+    !> Initialize an update data GSD object
+    procedure :: update_data_initialize_GSD => update_data_init_GSD
+    !> Initialize an update data GMD object
+    procedure :: update_data_initialize_GMD => update_data_init_GMD
     !> Get an id for a mode or bin in the aerosol representation by name for
     !! use with updates from external modules
     procedure :: get_section_id
@@ -205,10 +212,11 @@ module pmc_aero_rep_modal_binned_mass
   type, extends(aero_rep_update_data_t) :: &
             aero_rep_update_data_modal_binned_mass_GMD_t
   private
+    !> Flag indicating whether the update data has been allocated
     logical :: is_malloced = .false.
+    !> Unique id for finding aerosol representations during initialization
+    integer(kind=i_kind) :: aero_rep_unique_id = 0
   contains
-    !> Initialize the update data
-    procedure :: initialize => update_data_init_GMD
     !> Update the GMD
     procedure :: set_GMD => update_data_set_GMD
     !> Finalize the GMD update data
@@ -219,10 +227,11 @@ module pmc_aero_rep_modal_binned_mass
   type, extends(aero_rep_update_data_t) :: &
             aero_rep_update_data_modal_binned_mass_GSD_t
   private
+    !> Flag indicating whether the update data has been allocated
     logical :: is_malloced = .false.
+    !> Unique id for finding aerosol representations during initialization
+    integer(kind=i_kind) :: aero_rep_unique_id = 0
   contains
-    !> Initialize the update data
-    procedure :: initialize => update_data_init_GSD
     !> Update the GSD
     procedure :: set_GSD => update_data_set_GSD
     !> Finalize the GSD update data
@@ -242,13 +251,12 @@ module pmc_aero_rep_modal_binned_mass
 
     !> Set a new mode GMD
     subroutine aero_rep_modal_binned_mass_set_gmd_update_data(update_data, &
-              aero_rep_id, section_id, gmd) bind (c)
+              aero_rep_unique_id, section_id, gmd) bind (c)
       use iso_c_binding
       !> Update data
       type(c_ptr), value :: update_data
-      !> Aerosol representation id from
-      !! pmc_aero_rep_modal_binned_mass::aero_rep_modal_binned_mass_t::generate_id
-      integer(kind=c_int), value :: aero_rep_id
+      !> Aerosol representation unique id
+      integer(kind=c_int), value :: aero_rep_unique_id
       !> Section id from
       !! pmc_aero_rep_modal_binned_mass::aero_rep_modal_binned_mass_t::get_section_id
       integer(kind=c_int), value :: section_id
@@ -266,13 +274,12 @@ module pmc_aero_rep_modal_binned_mass
 
     !> Set a new mode GSD
     subroutine aero_rep_modal_binned_mass_set_gsd_update_data(update_data, &
-              aero_rep_id, section_id, gsd) bind (c)
+              aero_rep_unique_id, section_id, gsd) bind (c)
       use iso_c_binding
       !> Update data
       type(c_ptr), value :: update_data
-      !> Aerosol representation id from
-      !! pmc_aero_rep_modal_binned_mass::aero_rep_modal_binned_mass_t::generate_id
-      integer(kind=c_int), value :: aero_rep_id
+      !> Aerosol representation unique id
+      integer(kind=c_int), value :: aero_rep_unique_id
       !> Section id from
       !! pmc_aero_rep_modal_binned_mass::aero_rep_modal_binned_mass_t::get_section_id
       integer(kind=c_int), value :: section_id
@@ -639,29 +646,6 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Generate an id for this aerosol representation
-  !! This id can be used by an external module to update the particle GMD
-  !! and GSD during model runs
-  function generate_id(this) result(aero_rep_id)
-
-    use pmc_rand,                                only : generate_int_id
-
-    !> Aerosol representation id
-    integer(kind=i_kind) :: aero_rep_id
-    !> Aerosol representation data
-    class(aero_rep_modal_binned_mass_t), intent(inout) :: this
-
-    ! If an id has not yet been generated, do it now
-    if (AERO_REP_ID_.eq.-1) then
-      AERO_REP_ID_ = generate_int_id()
-    endif
-
-    aero_rep_id = AERO_REP_ID_
-
-  end function generate_id
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   !> Get an id for a mode or bin by name for use with updates from external
   !! modules
   function get_section_id(this, section_name, section_id) result (found)
@@ -1022,29 +1006,37 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Initialize a GMD update object
-  subroutine update_data_init_GMD(this, aero_rep_type)
+  subroutine update_data_init_GMD(this, update_data, aero_rep_type)
 
+    use pmc_rand,                                only : generate_int_id
+
+    !> Aerosol representation to update
+    class(aero_rep_modal_binned_mass_t), intent(inout) :: this
     !> Update data object
-    class(aero_rep_update_data_modal_binned_mass_GMD_t) :: this
+    class(aero_rep_update_data_modal_binned_mass_GMD_t), intent(out) :: &
+        update_data
     !> Aerosol representation id
     integer(kind=i_kind), intent(in) :: aero_rep_type
 
-    this%aero_rep_type = int(aero_rep_type, kind=c_int)
-    this%update_data = aero_rep_modal_binned_mass_create_gmd_update_data()
-    this%is_malloced = .true.
+    ! If an aerosol representation id has not been generated, do it now
+    if (AERO_REP_ID_.eq.-1) then
+      AERO_REP_ID_ = generate_int_id()
+    end if
+
+    update_data%aero_rep_unique_id = AERO_REP_ID_
+    update_data%aero_rep_type = int(aero_rep_type, kind=c_int)
+    update_data%update_data = aero_rep_modal_binned_mass_create_gmd_update_data()
+    update_data%is_malloced = .true.
 
   end subroutine update_data_init_GMD
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Set packed update data for mode GMD
-  subroutine update_data_set_GMD(this, aero_rep_id, section_id, GMD)
+  subroutine update_data_set_GMD(this, section_id, GMD)
 
     !> Update data
     class(aero_rep_update_data_modal_binned_mass_GMD_t), intent(inout) :: this
-    !> Aerosol representation id from
-    !! pmc_aero_rep_modal_binned_mass::aero_rep_modal_binned_mass_t::generate_id
-    integer(kind=i_kind), intent(in) :: aero_rep_id
     !> Aerosol section id from
     !! pmc_aero_rep_modal_binned_mass::aero_rep_modal_binned_mass_t::get_section_id
     integer(kind=i_kind), intent(in) :: section_id
@@ -1052,7 +1044,7 @@ contains
     real(kind=dp), intent(in) :: GMD
 
     call aero_rep_modal_binned_mass_set_gmd_update_data(this%get_data(), &
-            aero_rep_id, section_id-1, GMD)
+            this%aero_rep_unique_id, section_id-1, GMD)
 
   end subroutine update_data_set_GMD
 
@@ -1071,29 +1063,37 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Initialize a GSD update data object
-  subroutine update_data_init_GSD(this, aero_rep_type)
+  subroutine update_data_init_GSD(this, update_data, aero_rep_type)
 
+    use pmc_rand,                                only : generate_int_id
+
+    !> Aerosol representation to update
+    class(aero_rep_modal_binned_mass_t), intent(inout) :: this
     !> Update data object
-    class(aero_rep_update_data_modal_binned_mass_GSD_t) :: this
+    class(aero_rep_update_data_modal_binned_mass_GSD_t), intent(out) :: &
+        update_data
     !> Aerosol representation id
     integer(kind=i_kind), intent(in) :: aero_rep_type
 
-    this%aero_rep_type = int(aero_rep_type, kind=c_int)
-    this%update_data = aero_rep_modal_binned_mass_create_gsd_update_data()
-    this%is_malloced = .true.
+    ! If an aerosol representation id has not been generated, do it now
+    if (AERO_REP_ID_.eq.-1) then
+      AERO_REP_ID_ = generate_int_id()
+    end if
+
+    update_data%aero_rep_unique_id = AERO_REP_ID_
+    update_data%aero_rep_type = int(aero_rep_type, kind=c_int)
+    update_data%update_data = aero_rep_modal_binned_mass_create_gsd_update_data()
+    update_data%is_malloced = .true.
 
   end subroutine update_data_init_GSD
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Set packed update data for mode GSD
-  subroutine update_data_set_GSD(this, aero_rep_id, section_id, GSD)
+  subroutine update_data_set_GSD(this, section_id, GSD)
 
     !> Update data
     class(aero_rep_update_data_modal_binned_mass_GSD_t), intent(inout) :: this
-    !> Aerosol representation id from
-    !! pmc_aero_rep_modal_binned_mass::aero_rep_modal_binned_mass_t::generate_id
-    integer(kind=i_kind), intent(in) :: aero_rep_id
     !> Aerosol section id from
     !! pmc_aero_rep_modal_binned_mass::aero_rep_modal_binned_mass_t::get_section_id
     integer(kind=i_kind), intent(in) :: section_id
@@ -1101,7 +1101,7 @@ contains
     real(kind=dp), intent(in) :: GSD
 
     call aero_rep_modal_binned_mass_set_gsd_update_data(this%get_data(), &
-            aero_rep_id, section_id-1, GSD)
+            this%aero_rep_unique_id, section_id-1, GSD)
 
   end subroutine update_data_set_GSD
 

@@ -115,6 +115,8 @@ module pmc_sub_model_data
   type, abstract :: sub_model_update_data_t
     !> Sub-model type
     integer(kind=c_int) :: sub_model_type
+    !> Sub-model solver id
+    integer(kind=c_int) :: sub_model_solver_id = 0
     !> Grid cell to update
     integer(kind=c_int) :: cell_id = 1
     !> Update data

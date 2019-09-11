@@ -105,7 +105,6 @@ contains
 
     type(solver_stats_t), target :: solver_stats
 
-    integer(kind=i_kind) :: aero_rep_id
     integer(kind=i_kind) :: i_sect_unused, i_sect_the_mode
     type(aero_rep_factory_t) :: aero_rep_factory
     type(aero_rep_update_data_modal_binned_mass_GMD_t) :: update_data_GMD
@@ -162,7 +161,10 @@ contains
         ! Set the aerosol representation id
         select type (aero_rep_ptr)
           type is (aero_rep_modal_binned_mass_t)
-            aero_rep_id = aero_rep_ptr%generate_id()
+            call aero_rep_factory%initialize_update_data( aero_rep_ptr, &
+                                                          update_data_GMD)
+            call aero_rep_factory%initialize_update_data( aero_rep_ptr, &
+                                                          update_data_GSD)
             call assert_msg(225977671, &
                   aero_rep_ptr%get_section_id("unused mode", i_sect_unused), &
                   "Could not get section id for the unused mode")
@@ -275,17 +277,14 @@ contains
 
       ! Update the GMD and GSD for the aerosol modes
       if (scenario.eq.2) then
-        ! Initialize the update data object
-        call aero_rep_factory%initialize_update_data(update_data_GMD)
-        call aero_rep_factory%initialize_update_data(update_data_GSD)
         ! unused mode
-        call update_data_GMD%set_GMD(aero_rep_id, i_sect_unused, 1.2d-6)
-        call update_data_GSD%set_GSD(aero_rep_id, i_sect_unused, 1.2d0)
+        call update_data_GMD%set_GMD(i_sect_unused, 1.2d-6)
+        call update_data_GSD%set_GSD(i_sect_unused, 1.2d0)
         call camp_core%update_aero_rep_data(update_data_GMD)
         call camp_core%update_aero_rep_data(update_data_GSD)
         ! the mode
-        call update_data_GMD%set_GMD(aero_rep_id, i_sect_the_mode, 9.3d-7)
-        call update_data_GSD%set_GSD(aero_rep_id, i_sect_the_mode, 0.9d0)
+        call update_data_GMD%set_GMD(i_sect_the_mode, 9.3d-7)
+        call update_data_GSD%set_GSD(i_sect_the_mode, 0.9d0)
         call camp_core%update_aero_rep_data(update_data_GMD)
         call camp_core%update_aero_rep_data(update_data_GSD)
       end if

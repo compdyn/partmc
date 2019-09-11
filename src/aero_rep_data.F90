@@ -151,6 +151,8 @@ module pmc_aero_rep_data
   type, abstract :: aero_rep_update_data_t
     !> Aerosol representation type
     integer(kind=c_int) :: aero_rep_type
+    !> Aerosol representation solver id
+    integer(kind=c_int) :: aero_rep_solver_id = 0
     !> Grid cell to update
     integer(kind=c_int) :: cell_id = 1
     !> Update data

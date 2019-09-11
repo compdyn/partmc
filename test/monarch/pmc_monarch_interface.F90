@@ -131,7 +131,6 @@ contains
     type(string_t), allocatable :: unique_names(:)
 
     class(aero_rep_data_t), pointer :: aero_rep
-    integer(kind=i_kind) :: aero_rep_id
     integer(kind=i_kind) :: i_sect_om, i_sect_bc, i_sect_sulf, i_sect_opm
     type(aero_rep_factory_t) :: aero_rep_factory
     type(aero_rep_update_data_modal_binned_mass_GMD_t) :: update_data_GMD
@@ -194,7 +193,10 @@ contains
       if (new_obj%camp_core%get_aero_rep("MONARCH mass-based", aero_rep)) then
         select type (aero_rep)
           type is (aero_rep_modal_binned_mass_t)
-            aero_rep_id = aero_rep%generate_id()
+            call aero_rep_factory%initialize_update_data( aero_rep, &
+                                                          update_data_GMD)
+            call aero_rep_factory%initialize_update_data( aero_rep, &
+                                                          update_data_GSD)
             call assert(889473105, &
                         aero_rep%get_section_id("organic matter", i_sect_om))
             call assert(648042550, &
@@ -282,10 +284,6 @@ contains
     deallocate(buffer)
 #endif
 
-    ! Initialize the update data object
-    call aero_rep_factory%initialize_update_data(update_data_GMD)
-    call aero_rep_factory%initialize_update_data(update_data_GSD)
-
     ! Initialize the solver on all nodes
     call new_obj%camp_core%solver_initialize()
 
@@ -296,29 +294,29 @@ contains
 
     ! organic matter
     if (i_sect_om.gt.0) then
-      call update_data_GMD%set_GMD(aero_rep_id, i_sect_om, 2.12d-8)
-      call update_data_GSD%set_GSD(aero_rep_id, i_sect_om, 2.24d0)
+      call update_data_GMD%set_GMD(i_sect_om, 2.12d-8)
+      call update_data_GSD%set_GSD(i_sect_om, 2.24d0)
       call new_obj%camp_core%update_aero_rep_data(update_data_GMD)
       call new_obj%camp_core%update_aero_rep_data(update_data_GSD)
     end if
     if (i_sect_bc.gt.0) then
     ! black carbon
-      call update_data_GMD%set_GMD(aero_rep_id, i_sect_bc, 1.18d-8)
-      call update_data_GSD%set_GSD(aero_rep_id, i_sect_bc, 2.00d0)
+      call update_data_GMD%set_GMD(i_sect_bc, 1.18d-8)
+      call update_data_GSD%set_GSD(i_sect_bc, 2.00d0)
       call new_obj%camp_core%update_aero_rep_data(update_data_GMD)
       call new_obj%camp_core%update_aero_rep_data(update_data_GSD)
     end if
     if (i_sect_sulf.gt.0) then
     ! sulfate
-      call update_data_GMD%set_GMD(aero_rep_id, i_sect_sulf, 6.95d-8)
-      call update_data_GSD%set_GSD(aero_rep_id, i_sect_sulf, 2.12d0)
+      call update_data_GMD%set_GMD(i_sect_sulf, 6.95d-8)
+      call update_data_GSD%set_GSD(i_sect_sulf, 2.12d0)
       call new_obj%camp_core%update_aero_rep_data(update_data_GMD)
       call new_obj%camp_core%update_aero_rep_data(update_data_GSD)
     end if
     if (i_sect_opm.gt.0) then
     ! other PM
-      call update_data_GMD%set_GMD(aero_rep_id, i_sect_opm, 2.12d-8)
-      call update_data_GSD%set_GSD(aero_rep_id, i_sect_opm, 2.24d0)
+      call update_data_GMD%set_GMD(i_sect_opm, 2.12d-8)
+      call update_data_GSD%set_GSD(i_sect_opm, 2.24d0)
       call new_obj%camp_core%update_aero_rep_data(update_data_GMD)
       call new_obj%camp_core%update_aero_rep_data(update_data_GSD)
     end if

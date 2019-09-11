@@ -359,8 +359,9 @@ void aero_rep_single_particle_get_aero_phase_avg_MW(ModelData *model_data,
  *                            floating-point data
  * \param aero_rep_env_data Pointer to the aerosol representation
  *                          environment-dependent parameters
+ * \return Flag indicating whether this is the aerosol representation to update
  */
-void aero_rep_single_particle_update_data(void *update_data,
+bool aero_rep_single_particle_update_data(void *update_data,
           int *aero_rep_int_data, double *aero_rep_float_data,
           double *aero_rep_env_data)
 {
@@ -376,12 +377,14 @@ void aero_rep_single_particle_update_data(void *update_data,
   if (*aero_rep_id==AERO_REP_ID_ && AERO_REP_ID_!=0) {
     if (*update_type==UPDATE_RADIUS) {
       RADIUS_ = (double) *new_value;
+      return true;
     } else if (*update_type==UPDATE_NUMBER) {
       NUMBER_CONC_ = (double) *new_value;
+      return true;
     }
   }
 
-  return;
+  return false;
 }
 
 /** \brief Print the Single Particle reaction parameters

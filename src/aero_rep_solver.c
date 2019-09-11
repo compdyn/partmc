@@ -448,12 +448,13 @@ void aero_rep_add_condensed_data(int aero_rep_type, int n_int_param,
 /** \brief Update aerosol representation data
  *
  * \param cell_id Id of the grid cell to update
+ * \param aero_rep_id Aerosol representation id (or 0 if unknown)
  * \param update_aero_rep_type Aerosol representation type to update
  * \param update_data Pointer to data needed for update
  * \param solver_data Pointer to solver data
  */
-void aero_rep_update_data(int cell_id, int update_aero_rep_type,
-    void *update_data,void *solver_data)
+void aero_rep_update_data(int cell_id, int *aero_rep_id,
+    int update_aero_rep_type, void *update_data,void *solver_data)
 {
   ModelData *model_data = (ModelData*)
           &(((SolverData*)solver_data)->model_data);
@@ -466,31 +467,34 @@ void aero_rep_update_data(int cell_id, int update_aero_rep_type,
   int n_aero_rep = model_data->aero_rep_int_data[0];
 
   // Loop through the aerosol representations advancing the pointer each time
-  for (int i_aero_rep=0; i_aero_rep<n_aero_rep; i_aero_rep++) {
+  for (; (*aero_rep_id)<n_aero_rep; (*aero_rep_id)++) {
 
     // Get pointers to the aerosol data
-    int *aero_rep_int_data      = model_data->aero_rep_int_ptrs[i_aero_rep];
-    double *aero_rep_float_data = model_data->aero_rep_float_ptrs[i_aero_rep];
+    int *aero_rep_int_data      = model_data->aero_rep_int_ptrs[*aero_rep_id];
+    double *aero_rep_float_data = model_data->aero_rep_float_ptrs[*aero_rep_id];
     double *aero_rep_env_data   = &(model_data->grid_cell_aero_rep_env_data[
-                                      model_data->aero_rep_env_idx[i_aero_rep]]);
+                                      model_data->aero_rep_env_idx[*aero_rep_id]]);
 
     // Get the aerosol representation type
     int aero_rep_type = *(aero_rep_int_data++);
+
+    bool found = false;
 
     // Find aerosol representations of the correct type
     if (aero_rep_type==update_aero_rep_type) {
       switch (aero_rep_type) {
         case AERO_REP_MODAL_BINNED_MASS :
-          aero_rep_modal_binned_mass_update_data(
+          found = aero_rep_modal_binned_mass_update_data(
 	    		  (void*)update_data, aero_rep_int_data,
                           aero_rep_float_data, aero_rep_env_data);
           break;
         case AERO_REP_SINGLE_PARTICLE :
-          aero_rep_single_particle_update_data(
+          found = aero_rep_single_particle_update_data(
 	    		  (void*)update_data, aero_rep_int_data,
                           aero_rep_float_data, aero_rep_env_data);
           break;
       }
+      if (found) return;
     }
   }
 }

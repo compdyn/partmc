@@ -44,7 +44,7 @@ void aero_rep_modal_binned_mass_get_aero_phase_avg_MW(
           ModelData *model_data, int aero_phase_idx, double *aero_phase_avg_MW,
           double *partial_deriv, int *aero_rep_int_data,
           double *aero_rep_float_data, double *aero_rep_env_data);
-void aero_rep_modal_binned_mass_update_data(
+bool aero_rep_modal_binned_mass_update_data(
           void *update_data, int *aero_rep_int_data,
           double *aero_rep_float_data, double *aero_rep_env_data);
 void aero_rep_modal_binned_mass_print(
@@ -89,7 +89,7 @@ void aero_rep_single_particle_get_aero_phase_avg_MW(
           ModelData *model_data, int aero_phase_idx, double *aero_phase_avg_MW,
           double *partial_deriv, int *aero_rep_int_data,
           double *aero_rep_float_data, double *aero_rep_env_data);
-void aero_rep_single_particle_update_data(
+bool aero_rep_single_particle_update_data(
           void *update_data, int *aero_rep_int_data,
           double *aero_rep_float_data, double *aero_rep_env_data);
 void aero_rep_single_particle_print(

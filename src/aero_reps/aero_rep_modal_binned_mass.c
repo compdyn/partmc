@@ -585,8 +585,9 @@ void aero_rep_modal_binned_mass_get_aero_phase_avg_MW(ModelData *model_data,
  *                            floating-point data
  * \param aero_rep_env_data Pointer to the aerosol representation
  *                          environment-dependent parameters
+ * \return Flag indicating whether this is the aerosol representation to update
  */
-void aero_rep_modal_binned_mass_update_data(void *update_data,
+bool aero_rep_modal_binned_mass_update_data(void *update_data,
           int *aero_rep_int_data, double *aero_rep_float_data,
           double *aero_rep_env_data)
 {
@@ -597,22 +598,27 @@ void aero_rep_modal_binned_mass_update_data(void *update_data,
   int *update_type = (int*) &(aero_rep_id[1]);
   int *section_id = (int*) &(update_type[1]);
   double *new_value = (double*) &(section_id[1]);
+  bool ret_val = false;
 
   // Set the new GMD or GSD for matching aerosol representations
   if (*aero_rep_id==AERO_REP_ID_ && AERO_REP_ID_!=0) {
     if (*update_type==UPDATE_GMD) {
       GMD_(*section_id) = (double) *new_value;
+      ret_val = true;
     } else if (*update_type==UPDATE_GSD) {
       GSD_(*section_id) = (double) *new_value;
+      ret_val = true;
     }
   }
 
-  // Recalculation the effective radius
-  double gsd = GSD_(*section_id);
-  EFFECTIVE_RADIUS_(*section_id,0) =
-    GMD_(*section_id) / 2.0 * exp(9.0/2.0*gsd*gsd);
+  if (ret_val==true) {
+    // Recalculate the effective radius
+    double gsd = GSD_(*section_id);
+    EFFECTIVE_RADIUS_(*section_id,0) =
+      GMD_(*section_id) / 2.0 * exp(9.0/2.0*gsd*gsd);
+  }
 
-  return;
+  return ret_val;
 }
 
 /** \brief Print the mass-only modal/binned reaction parameters

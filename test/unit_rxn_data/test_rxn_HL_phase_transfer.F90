@@ -256,9 +256,25 @@ contains
 #ifdef PMC_USE_MPI
       ! pack the camp core
       pack_size = camp_core%pack_size()
+      if (scenario.eq.1) then
+        pack_size = pack_size &
+                  + radius_update%pack_size() &
+                  + number_update%pack_size()
+      else if (scenario.eq.2) then
+        pack_size = pack_size &
+                  + update_data_GMD%pack_size() &
+                  + update_data_GSD%pack_size()
+      end if
       allocate(buffer(pack_size))
       pos = 0
       call camp_core%bin_pack(buffer, pos)
+      if (scenario.eq.1) then
+        call radius_update%bin_pack(buffer, pos)
+        call number_update%bin_pack(buffer, pos)
+      else if (scenario.eq.2) then
+        call update_data_GMD%bin_pack(buffer, pos)
+        call update_data_GSD%bin_pack(buffer, pos)
+      end if
       call assert(947937853, pos.eq.pack_size)
     end if
 
@@ -267,6 +283,16 @@ contains
     call pmc_mpi_bcast_integer(idx_O3_aq)
     call pmc_mpi_bcast_integer(idx_H2O2)
     call pmc_mpi_bcast_integer(idx_H2O2_aq)
+    if (scenario.eq.2) then
+      call pmc_mpi_bcast_integer(idx_HNO3)
+      call pmc_mpi_bcast_integer(idx_HNO3_aq)
+      call pmc_mpi_bcast_integer(idx_NH3)
+      call pmc_mpi_bcast_integer(idx_NH3_aq)
+      call pmc_mpi_bcast_integer(idx_H2O)
+      call pmc_mpi_bcast_integer(idx_Na_p)
+      call pmc_mpi_bcast_integer(idx_Cl_m)
+      call pmc_mpi_bcast_integer(idx_Ca_pp)
+    end if
     call pmc_mpi_bcast_integer(idx_H2O_aq)
     call pmc_mpi_bcast_integer(i_sect_unused)
     call pmc_mpi_bcast_integer(i_sect_the_mode)
@@ -287,10 +313,24 @@ contains
       camp_core => camp_core_t()
       pos = 0
       call camp_core%bin_unpack(buffer, pos)
+      if (scenario.eq.1) then
+        call radius_update%bin_unpack(buffer, pos)
+        call number_update%bin_unpack(buffer, pos)
+      else if (scenario.eq.2) then
+        call update_data_GMD%bin_unpack(buffer, pos)
+        call update_data_GSD%bin_unpack(buffer, pos)
+      end if
       call assert(711319310, pos.eq.pack_size)
       allocate(buffer_copy(pack_size))
       pos = 0
       call camp_core%bin_pack(buffer_copy, pos)
+      if (scenario.eq.1) then
+        call radius_update%bin_pack(buffer_copy, pos)
+        call number_update%bin_pack(buffer_copy, pos)
+      else if (scenario.eq.2) then
+        call update_data_GMD%bin_pack(buffer_copy, pos)
+        call update_data_GSD%bin_pack(buffer_copy, pos)
+      end if
       call assert(206112905, pos.eq.pack_size)
       do i_elem = 1, pack_size
         call assert_msg(265856998, buffer(i_elem).eq.buffer_copy(i_elem), &

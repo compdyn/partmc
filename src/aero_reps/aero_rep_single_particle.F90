@@ -43,6 +43,7 @@ module pmc_aero_rep_single_particle
   use pmc_aero_rep_data
   use pmc_chem_spec_data
   use pmc_camp_state
+  use pmc_mpi
   use pmc_property
   use pmc_util,                                  only: dp, i_kind, &
                                                        string_t, assert_msg, &
@@ -149,6 +150,12 @@ module pmc_aero_rep_single_particle
   contains
     !> Update the radius
     procedure :: set_radius => update_data_set_radius
+    !> Determine the pack size of the local update data
+    procedure :: internal_pack_size => internal_pack_size_radius
+    !> Pack the local update data to a binary
+    procedure :: internal_bin_pack => internal_bin_pack_radius
+    !> Unpack the local update data from a binary
+    procedure :: internal_bin_unpack => internal_bin_unpack_radius
     !> Finalize the radius update data
     final :: update_data_radius_finalize
   end type aero_rep_update_data_single_particle_radius_t
@@ -164,6 +171,12 @@ module pmc_aero_rep_single_particle
   contains
     !> Update the number
     procedure :: set_number => update_data_set_number
+    !> Determine the pack size of the local update data
+    procedure :: internal_pack_size => internal_pack_size_number
+    !> Pack the local update data to a binary
+    procedure :: internal_bin_pack => internal_bin_pack_number
+    !> Unpack the local update data from a binary
+    procedure :: internal_bin_unpack => internal_bin_unpack_number
     !> Finalize the number update data
     final :: update_data_number_finalize
   end type aero_rep_update_data_single_particle_number_t
@@ -594,6 +607,76 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Determine the size of a binary required to pack the reaction data
+  integer(kind=i_kind) function internal_pack_size_radius(this, comm) &
+      result(pack_size)
+
+    !> Aerosol representation update data
+    class(aero_rep_update_data_single_particle_radius_t), intent(in) :: this
+    !> MPI communicator
+    integer, intent(in) :: comm
+
+    pack_size = &
+      pmc_mpi_pack_size_logical(this%is_malloced, comm) + &
+      pmc_mpi_pack_size_integer(this%aero_rep_unique_id, comm)
+
+  end function internal_pack_size_radius
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Pack the given value to the buffer, advancing position
+  subroutine internal_bin_pack_radius(this, buffer, pos, comm)
+
+    !> Aerosol representation update data
+    class(aero_rep_update_data_single_particle_radius_t), intent(in) :: this
+    !> Memory buffer
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position
+    integer, intent(inout) :: pos
+    !> MPI communicator
+    integer, intent(in) :: comm
+
+#ifdef PMC_USE_MPI
+    integer :: prev_position
+
+    prev_position = pos
+    call pmc_mpi_pack_logical(buffer, pos, this%is_malloced, comm)
+    call pmc_mpi_pack_integer(buffer, pos, this%aero_rep_unique_id, comm)
+    call assert(575109735, &
+         pos - prev_position <= this%pack_size(comm))
+#endif
+
+  end subroutine internal_bin_pack_radius
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Unpack the given value from the buffer, advancing position
+  subroutine internal_bin_unpack_radius(this, buffer, pos, comm)
+
+    !> Aerosol representation update data
+    class(aero_rep_update_data_single_particle_radius_t), intent(inout) :: this
+    !> Memory buffer
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position
+    integer, intent(inout) :: pos
+    !> MPI communicator
+    integer, intent(in) :: comm
+
+#ifdef PMC_USE_MPI
+    integer :: prev_position
+
+    prev_position = pos
+    call pmc_mpi_unpack_logical(buffer, pos, this%is_malloced, comm)
+    call pmc_mpi_unpack_integer(buffer, pos, this%aero_rep_unique_id, comm)
+    call assert(687428080, &
+         pos - prev_position <= this%pack_size(comm))
+    this%update_data = aero_rep_single_particle_create_radius_update_data()
+#endif
+
+  end subroutine internal_bin_unpack_radius
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Finalize a radius update data object
   elemental subroutine update_data_radius_finalize(this)
 
@@ -649,6 +732,76 @@ contains
             this%aero_rep_unique_id, number_conc)
 
   end subroutine update_data_set_number
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Determine the size of a binary required to pack the reaction data
+  integer(kind=i_kind) function internal_pack_size_number(this, comm) &
+      result(pack_size)
+
+    !> Aerosol representation update data
+    class(aero_rep_update_data_single_particle_number_t), intent(in) :: this
+    !> MPI communicator
+    integer, intent(in) :: comm
+
+    pack_size = &
+      pmc_mpi_pack_size_logical(this%is_malloced, comm) + &
+      pmc_mpi_pack_size_integer(this%aero_rep_unique_id, comm)
+
+  end function internal_pack_size_number
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Pack the given value to the buffer, advancing position
+  subroutine internal_bin_pack_number(this, buffer, pos, comm)
+
+    !> Aerosol representation update data
+    class(aero_rep_update_data_single_particle_number_t), intent(in) :: this
+    !> Memory buffer
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position
+    integer, intent(inout) :: pos
+    !> MPI communicator
+    integer, intent(in) :: comm
+
+#ifdef PMC_USE_MPI
+    integer :: prev_position
+
+    prev_position = pos
+    call pmc_mpi_pack_logical(buffer, pos, this%is_malloced, comm)
+    call pmc_mpi_pack_integer(buffer, pos, this%aero_rep_unique_id, comm)
+    call assert(964639022, &
+         pos - prev_position <= this%pack_size(comm))
+#endif
+
+  end subroutine internal_bin_pack_number
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Unpack the given value from the buffer, advancing position
+  subroutine internal_bin_unpack_number(this, buffer, pos, comm)
+
+    !> Aerosol representation update data
+    class(aero_rep_update_data_single_particle_number_t), intent(inout) :: this
+    !> Memory buffer
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position
+    integer, intent(inout) :: pos
+    !> MPI communicator
+    integer, intent(in) :: comm
+
+#ifdef PMC_USE_MPI
+    integer :: prev_position
+
+    prev_position = pos
+    call pmc_mpi_unpack_logical(buffer, pos, this%is_malloced, comm)
+    call pmc_mpi_unpack_integer(buffer, pos, this%aero_rep_unique_id, comm)
+    call assert(459432617, &
+         pos - prev_position <= this%pack_size(comm))
+    this%update_data = aero_rep_single_particle_create_number_update_data()
+#endif
+
+  end subroutine internal_bin_unpack_number
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

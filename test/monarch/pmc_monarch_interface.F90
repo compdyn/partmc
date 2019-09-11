@@ -229,6 +229,8 @@ contains
 
 #ifdef PMC_USE_MPI
       pack_size = new_obj%camp_core%pack_size() + &
+              update_data_GMD%pack_size() + &
+              update_data_GSD%pack_size() + &
               pmc_mpi_pack_size_integer_array(new_obj%map_monarch_id) + &
               pmc_mpi_pack_size_integer_array(new_obj%map_camp_id) + &
               pmc_mpi_pack_size_integer_array(new_obj%init_conc_camp_id) + &
@@ -241,6 +243,8 @@ contains
       allocate(buffer(pack_size))
       pos = 0
       call new_obj%camp_core%bin_pack(buffer, pos)
+      call update_data_GMD%bin_pack(buffer, pos)
+      call update_data_GSD%bin_pack(buffer, pos)
       call pmc_mpi_pack_integer_array(buffer, pos, new_obj%map_monarch_id)
       call pmc_mpi_pack_integer_array(buffer, pos, new_obj%map_camp_id)
       call pmc_mpi_pack_integer_array(buffer, pos, new_obj%init_conc_camp_id)
@@ -268,6 +272,8 @@ contains
       new_obj%camp_core => camp_core_t()
       pos = 0
       call new_obj%camp_core%bin_unpack(buffer, pos)
+      call update_data_GMD%bin_unpack(buffer, pos)
+      call update_data_GSD%bin_unpack(buffer, pos)
       call pmc_mpi_unpack_integer_array(buffer, pos, new_obj%map_monarch_id)
       call pmc_mpi_unpack_integer_array(buffer, pos, new_obj%map_camp_id)
       call pmc_mpi_unpack_integer_array(buffer, pos, new_obj%init_conc_camp_id)

@@ -242,9 +242,25 @@ contains
 #ifdef PMC_USE_MPI
       ! pack the camp core
       pack_size = camp_core%pack_size()
+      if (scenario.eq.1) then
+        pack_size = pack_size &
+                  + radius_update%pack_size() &
+                  + number_update%pack_size()
+      else if (scenario.eq.2) then
+        pack_size = pack_size &
+                  + update_data_GMD%pack_size() &
+                  + update_data_GSD%pack_size()
+      end if
       allocate(buffer(pack_size))
       pos = 0
       call camp_core%bin_pack(buffer, pos)
+      if (scenario.eq.1) then
+        call radius_update%bin_pack(buffer, pos)
+        call number_update%bin_pack(buffer, pos)
+      else if (scenario.eq.2) then
+        call update_data_GMD%bin_pack(buffer, pos)
+        call update_data_GSD%bin_pack(buffer, pos)
+      end if
       call assert(325888214, pos.eq.pack_size)
     end if
 
@@ -271,10 +287,24 @@ contains
       camp_core => camp_core_t()
       pos = 0
       call camp_core%bin_unpack(buffer, pos)
+      if (scenario.eq.1) then
+        call radius_update%bin_unpack(buffer, pos)
+        call number_update%bin_unpack(buffer, pos)
+      else if (scenario.eq.2) then
+        call update_data_GMD%bin_unpack(buffer, pos)
+        call update_data_GSD%bin_unpack(buffer, pos)
+      end if
       call assert(320623907, pos.eq.pack_size)
       allocate(buffer_copy(pack_size))
       pos = 0
       call camp_core%bin_pack(buffer_copy, pos)
+      if (scenario.eq.1) then
+        call radius_update%bin_pack(buffer_copy, pos)
+        call number_update%bin_pack(buffer_copy, pos)
+      else if (scenario.eq.2) then
+        call update_data_GMD%bin_pack(buffer_copy, pos)
+        call update_data_GSD%bin_pack(buffer_copy, pos)
+      end if
       call assert(432942252, pos.eq.pack_size)
       do i_elem = 1, pack_size
         call assert_msg(827735846, buffer(i_elem).eq.buffer_copy(i_elem), &

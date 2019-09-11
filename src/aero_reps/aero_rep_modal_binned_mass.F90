@@ -75,6 +75,7 @@ module pmc_aero_rep_modal_binned_mass
   use pmc_aero_rep_data
   use pmc_chem_spec_data
   use pmc_camp_state
+  use pmc_mpi
   use pmc_property
   use pmc_util,                               only: dp, i_kind, &
                                                     string_t, assert_msg, &
@@ -219,6 +220,12 @@ module pmc_aero_rep_modal_binned_mass
   contains
     !> Update the GMD
     procedure :: set_GMD => update_data_set_GMD
+    !> Determine the pack size of the local update data
+    procedure :: internal_pack_size => internal_pack_size_GMD
+    !> Pack the local update data to a binary
+    procedure :: internal_bin_pack => internal_bin_pack_GMD
+    !> Unpack the local update data from a binary
+    procedure :: internal_bin_unpack => internal_bin_unpack_GMD
     !> Finalize the GMD update data
     final :: update_data_GMD_finalize
   end type aero_rep_update_data_modal_binned_mass_GMD_t
@@ -234,6 +241,12 @@ module pmc_aero_rep_modal_binned_mass
   contains
     !> Update the GSD
     procedure :: set_GSD => update_data_set_GSD
+    !> Determine the pack size of the local update data
+    procedure :: internal_pack_size => internal_pack_size_GSD
+    !> Pack the local update data to a binary
+    procedure :: internal_bin_pack => internal_bin_pack_GSD
+    !> Unpack the local update data from a binary
+    procedure :: internal_bin_unpack => internal_bin_unpack_GSD
     !> Finalize the GSD update data
     final :: update_data_GSD_finalize
   end type aero_rep_update_data_modal_binned_mass_GSD_t
@@ -1050,6 +1063,76 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Determine the size of a binary required to pack the reaction data
+  integer(kind=i_kind) function internal_pack_size_GMD(this, comm) &
+      result(pack_size)
+
+    !> Aerosol representation update data
+    class(aero_rep_update_data_modal_binned_mass_GMD_t), intent(in) :: this
+    !> MPI communicator
+    integer, intent(in) :: comm
+
+    pack_size = &
+      pmc_mpi_pack_size_logical(this%is_malloced, comm) + &
+      pmc_mpi_pack_size_integer(this%aero_rep_unique_id, comm)
+
+  end function internal_pack_size_GMD
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Pack the given value to the buffer, advancing position
+  subroutine internal_bin_pack_GMD(this, buffer, pos, comm)
+
+    !> Aerosol representation update data
+    class(aero_rep_update_data_modal_binned_mass_GMD_t), intent(in) :: this
+    !> Memory buffer
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position
+    integer, intent(inout) :: pos
+    !> MPI communicator
+    integer, intent(in) :: comm
+
+#ifdef PMC_USE_MPI
+    integer :: prev_position
+
+    prev_position = pos
+    call pmc_mpi_pack_logical(buffer, pos, this%is_malloced, comm)
+    call pmc_mpi_pack_integer(buffer, pos, this%aero_rep_unique_id, comm)
+    call assert(685522546, &
+         pos - prev_position <= this%pack_size(comm))
+#endif
+
+  end subroutine internal_bin_pack_GMD
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Unpack the given value from the buffer, advancing position
+  subroutine internal_bin_unpack_GMD(this, buffer, pos, comm)
+
+    !> Aerosol representation update data
+    class(aero_rep_update_data_modal_binned_mass_GMD_t), intent(inout) :: this
+    !> Memory buffer
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position
+    integer, intent(inout) :: pos
+    !> MPI communicator
+    integer, intent(in) :: comm
+
+#ifdef PMC_USE_MPI
+    integer :: prev_position
+
+    prev_position = pos
+    call pmc_mpi_unpack_logical(buffer, pos, this%is_malloced, comm)
+    call pmc_mpi_unpack_integer(buffer, pos, this%aero_rep_unique_id, comm)
+    call assert(855679450, &
+         pos - prev_position <= this%pack_size(comm))
+    this%update_data = aero_rep_modal_binned_mass_create_GMD_update_data()
+#endif
+
+  end subroutine internal_bin_unpack_GMD
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Finalize a GMD update data object
   elemental subroutine update_data_GMD_finalize(this)
 
@@ -1104,6 +1187,76 @@ contains
             this%aero_rep_unique_id, section_id-1, GSD)
 
   end subroutine update_data_set_GSD
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Determine the size of a binary required to pack the reaction data
+  integer(kind=i_kind) function internal_pack_size_GSD(this, comm) &
+      result(pack_size)
+
+    !> Aerosol representation update data
+    class(aero_rep_update_data_modal_binned_mass_GSD_t), intent(in) :: this
+    !> MPI communicator
+    integer, intent(in) :: comm
+
+    pack_size = &
+      pmc_mpi_pack_size_logical(this%is_malloced, comm) + &
+      pmc_mpi_pack_size_integer(this%aero_rep_unique_id, comm)
+
+  end function internal_pack_size_GSD
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Pack the given value to the buffer, advancing position
+  subroutine internal_bin_pack_GSD(this, buffer, pos, comm)
+
+    !> Aerosol representation update data
+    class(aero_rep_update_data_modal_binned_mass_GSD_t), intent(in) :: this
+    !> Memory buffer
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position
+    integer, intent(inout) :: pos
+    !> MPI communicator
+    integer, intent(in) :: comm
+
+#ifdef PMC_USE_MPI
+    integer :: prev_position
+
+    prev_position = pos
+    call pmc_mpi_pack_logical(buffer, pos, this%is_malloced, comm)
+    call pmc_mpi_pack_integer(buffer, pos, this%aero_rep_unique_id, comm)
+    call assert(295993259, &
+         pos - prev_position <= this%pack_size(comm))
+#endif
+
+  end subroutine internal_bin_pack_GSD
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Unpack the given value from the buffer, advancing position
+  subroutine internal_bin_unpack_GSD(this, buffer, pos, comm)
+
+    !> Aerosol representation update data
+    class(aero_rep_update_data_modal_binned_mass_GSD_t), intent(inout) :: this
+    !> Memory buffer
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position
+    integer, intent(inout) :: pos
+    !> MPI communicator
+    integer, intent(in) :: comm
+
+#ifdef PMC_USE_MPI
+    integer :: prev_position
+
+    prev_position = pos
+    call pmc_mpi_unpack_logical(buffer, pos, this%is_malloced, comm)
+    call pmc_mpi_unpack_integer(buffer, pos, this%aero_rep_unique_id, comm)
+    call assert(518724415, &
+         pos - prev_position <= this%pack_size(comm))
+    this%update_data = aero_rep_modal_binned_mass_create_GSD_update_data()
+#endif
+
+  end subroutine internal_bin_unpack_GSD
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

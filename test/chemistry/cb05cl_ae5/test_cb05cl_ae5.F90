@@ -19,6 +19,7 @@ program pmc_test_cb05cl_ae5
   use pmc_solver_stats
   use pmc_chem_spec_data
   use pmc_mechanism_data
+  use pmc_mpi
   use pmc_rxn_data
   use pmc_rxn_photolysis
   use pmc_rxn_factory
@@ -56,6 +57,8 @@ program pmc_test_cb05cl_ae5
 
   open(unit=DEBUG_UNIT, file="out/debug_cb05cl_ae.txt", status="replace", action="write")
 #endif
+
+  call pmc_mpi_init()
 
   camp_solver_data => camp_solver_data_t()
 

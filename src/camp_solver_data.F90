@@ -202,11 +202,13 @@ module pmc_camp_solver_data
     end subroutine rxn_add_condensed_data
 
     !> Update reaction data
-    subroutine rxn_update_data(cell_id, rxn_type, update_data, solver_data) &
-        bind(c)
+    subroutine rxn_update_data(cell_id, rxn_id, rxn_type, update_data, &
+        solver_data) bind(c)
       use iso_c_binding
       !> Grid cell to update
       integer(kind=c_int), value :: cell_id
+      !> Reaction id
+      integer(kind=c_int) :: rxn_id
       !> Reaction type to updateto update
       integer(kind=c_int), value :: rxn_type
       !> Data required by reaction for updates
@@ -244,11 +246,13 @@ module pmc_camp_solver_data
     end subroutine sub_model_add_condensed_data
 
     !> Update reaction data
-    subroutine sub_model_update_data(cell_id, sub_model_type, update_data, &
-              solver_data) bind(c)
+    subroutine sub_model_update_data(cell_id, sub_model_id, sub_model_type, &
+        update_data, solver_data) bind(c)
       use iso_c_binding
       !> Grid cell to update
       integer(kind=c_int), value :: cell_id
+      !> Sub model solver id
+      integer(kind=c_int) :: sub_model_id
       !> Reaction type to updateto update
       integer(kind=c_int), value :: sub_model_type
       !> Data required by reaction for updates
@@ -309,11 +313,13 @@ module pmc_camp_solver_data
     end subroutine aero_rep_add_condensed_data
 
     !> Update aerosol representation data
-    subroutine aero_rep_update_data(cell_id, aero_rep_type, update_data, &
-        solver_data)  bind(c)
+    subroutine aero_rep_update_data(cell_id, aero_rep_id, aero_rep_type, &
+        update_data, solver_data)  bind(c)
       use iso_c_binding
       !> Grid cell to update
       integer(kind=c_int), value :: cell_id
+      !> Aerosol representation solver id
+      integer(kind=c_int) :: aero_rep_id
       !> Aerosol representation type to updateto update
       integer(kind=c_int), value :: aero_rep_type
       !> Data required by aerosol representation for updates
@@ -767,10 +773,11 @@ contains
     class(sub_model_update_data_t), intent(in) :: update_data
 
     call sub_model_update_data( &
-            update_data%get_cell_id()-1,& ! Grid cell to update
-            update_data%get_type(),     & ! Sub-model type to update
-            update_data%get_data(),     & ! Data needed to perform update
-            this%solver_c_ptr           & ! Pointer to solver data
+            update_data%get_cell_id()-1,     & ! Grid cell to update
+            update_data%sub_model_solver_id, & ! Solver's sub model id
+            update_data%get_type(),          & ! Sub-model type to update
+            update_data%get_data(),          & ! Data needed to perform update
+            this%solver_c_ptr                & ! Pointer to solver data
             )
 
   end subroutine update_sub_model_data
@@ -786,10 +793,11 @@ contains
     class(rxn_update_data_t), intent(in) :: update_data
 
     call rxn_update_data( &
-            update_data%get_cell_id()-1,& ! Grid cell to update
-            update_data%get_type(),     & ! Reaction type to update
-            update_data%get_data(),     & ! Data needed to perform update
-            this%solver_c_ptr           & ! Pointer to solver data
+            update_data%get_cell_id()-1,     & ! Grid cell to update
+            update_data%rxn_solver_id,       & ! Solver's reaction id
+            update_data%get_type(),          & ! Reaction type to update
+            update_data%get_data(),          & ! Data needed to perform update
+            this%solver_c_ptr                & ! Pointer to solver data
             )
 
   end subroutine update_rxn_data
@@ -806,10 +814,11 @@ contains
     class(aero_rep_update_data_t), intent(in) :: update_data
 
     call aero_rep_update_data( &
-            update_data%get_cell_id()-1,& ! Grid cell to update
-            update_data%get_type(),     & ! Aerosol representation type
-            update_data%get_data(),     & ! Data needed to perform update
-            this%solver_c_ptr           & ! Pointer to solver data
+            update_data%get_cell_id()-1,     & ! Grid cell to update
+            update_data%aero_rep_solver_id,  & ! Solver's aero rep id
+            update_data%get_type(),          & ! Aerosol representation type
+            update_data%get_data(),          & ! Data needed to perform update
+            this%solver_c_ptr                & ! Pointer to solver data
             )
 
   end subroutine update_aero_rep_data

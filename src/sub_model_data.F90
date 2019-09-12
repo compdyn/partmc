@@ -115,6 +115,8 @@ module pmc_sub_model_data
   type, abstract :: sub_model_update_data_t
     !> Sub-model type
     integer(kind=c_int) :: sub_model_type
+    !> Sub-model solver id
+    integer(kind=c_int) :: sub_model_solver_id = 0
     !> Grid cell to update
     integer(kind=c_int) :: cell_id = 1
     !> Update data
@@ -126,6 +128,20 @@ module pmc_sub_model_data
     procedure :: get_cell_id => sub_model_update_data_get_cell_id
     !> Get the update data
     procedure :: get_data => sub_model_update_data_get_data
+    !> Determine the number of bytes required to pack the given value
+    procedure :: pack_size => sub_model_update_data_pack_size
+    !> Packs the given value into the buffer, advancing position
+    procedure :: bin_pack => sub_model_update_data_bin_pack
+    !> Unpacks the given value from the buffer, advancing position
+    procedure :: bin_unpack => sub_model_update_data_bin_unpack
+    !> Extending type pack size (internal use only)
+    procedure(internal_pack_size), deferred :: internal_pack_size
+    !> Extending type bin pack (internal use only)
+    procedure(internal_bin_pack), deferred :: internal_bin_pack
+    !> Extending type bin unpack (internal use only)
+    procedure(internal_bin_unpack), deferred :: internal_bin_unpack
+    !> Print the update data
+    procedure :: print => do_sub_model_update_data_print
   end type sub_model_update_data_t
 
 interface
@@ -155,6 +171,54 @@ interface
     type(chem_spec_data_t), intent(in) :: chem_spec_data
 
   end subroutine initialize
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Extending-type binary pack size (internal use only)
+  integer(kind=i_kind) function internal_pack_size(this, comm)
+    use pmc_util,                                only : i_kind
+    import :: sub_model_update_data_t
+
+    !> Sub model data
+    class(sub_model_update_data_t), intent(in) :: this
+    !> MPI communicator
+    integer, intent(in) :: comm
+
+  end function internal_pack_size
+
+ !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Extending-type binary pack function (Internal use only)
+  subroutine internal_bin_pack(this, buffer, pos, comm)
+    import :: sub_model_update_data_t
+
+    !> Sub model data
+    class(sub_model_update_data_t), intent(in) :: this
+    !> Memory buffer
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position
+    integer, intent(inout) :: pos
+    !> MPI communicator
+    integer, intent(in) :: comm
+
+  end subroutine internal_bin_pack
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Extending-type binary unpack function (Internal use only)
+  subroutine internal_bin_unpack(this, buffer, pos, comm)
+    import :: sub_model_update_data_t
+
+    !> Sub model data
+    class(sub_model_update_data_t), intent(inout) :: this
+    !> Memory buffer
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position
+    integer, intent(inout) :: pos
+    !> MPI communicator
+    integer, intent(in) :: comm
+
+  end subroutine internal_bin_unpack
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -290,7 +354,8 @@ contains
 
     pack_size = &
             pmc_mpi_pack_size_real_array(this%condensed_data_real, comm) + &
-            pmc_mpi_pack_size_integer_array(this%condensed_data_int, comm)
+            pmc_mpi_pack_size_integer_array(this%condensed_data_int, comm) + &
+            pmc_mpi_pack_size_integer(this%num_env_params, comm)
 
   end function pack_size
 
@@ -314,6 +379,7 @@ contains
     prev_position = pos
     call pmc_mpi_pack_real_array(buffer, pos, this%condensed_data_real, comm)
     call pmc_mpi_pack_integer_array(buffer, pos, this%condensed_data_int,comm)
+    call pmc_mpi_pack_integer(buffer, pos, this%num_env_params,comm)
     call assert(924075845, &
          pos - prev_position <= this%pack_size(comm))
 #endif
@@ -341,6 +407,7 @@ contains
     call pmc_mpi_unpack_real_array(buffer, pos, this%condensed_data_real,comm)
     call pmc_mpi_unpack_integer_array(buffer, pos, this%condensed_data_int,  &
                                                                          comm)
+    call pmc_mpi_unpack_integer(buffer, pos, this%num_env_params, comm)
     call assert(299381254, &
          pos - prev_position <= this%pack_size(comm))
 #endif
@@ -435,6 +502,124 @@ contains
     update_data = this%update_data
 
   end function sub_model_update_data_get_data
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Determine the size of a binary required to pack the reaction data
+  integer(kind=i_kind) function sub_model_update_data_pack_size(this, comm) &
+      result(pack_size)
+
+    !> Sub model update data
+    class(sub_model_update_data_t), intent(in) :: this
+    !> MPI communicator
+    integer, intent(in), optional :: comm
+
+#ifdef PMC_USE_MPI
+    integer :: l_comm
+
+    if (present(comm)) then
+      l_comm = comm
+    else
+      l_comm = MPI_COMM_WORLD
+    endif
+
+    pack_size = &
+      pmc_mpi_pack_size_integer(int(this%sub_model_type, kind=i_kind),       &
+                                                                   l_comm) + &
+      pmc_mpi_pack_size_integer(int(this%sub_model_solver_id, kind=i_kind),  &
+                                                                   l_comm) + &
+      this%internal_pack_size(l_comm)
+#else
+    pack_size = 0
+#endif
+
+  end function sub_model_update_data_pack_size
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Pack the given value to the buffer, advancing position
+  subroutine sub_model_update_data_bin_pack(this, buffer, pos, comm)
+
+    !> Sub model update data
+    class(sub_model_update_data_t), intent(in) :: this
+    !> Memory buffer
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position
+    integer, intent(inout) :: pos
+    !> MPI communicator
+    integer, intent(in), optional :: comm
+
+#ifdef PMC_USE_MPI
+    integer :: prev_position, l_comm
+
+    if (present(comm)) then
+      l_comm = comm
+    else
+      l_comm = MPI_COMM_WORLD
+    endif
+
+    prev_position = pos
+    call pmc_mpi_pack_integer(buffer, pos, &
+                              int(this%sub_model_type, kind=i_kind), l_comm)
+    call pmc_mpi_pack_integer(buffer, pos, &
+                              int(this%sub_model_solver_id, kind=i_kind),    &
+                              l_comm)
+    call this%internal_bin_pack(buffer, pos, l_comm)
+    call assert(979240230, &
+         pos - prev_position <= this%pack_size(l_comm))
+#endif
+
+  end subroutine sub_model_update_data_bin_pack
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Unpack the given value from the buffer, advancing position
+  subroutine sub_model_update_data_bin_unpack(this, buffer, pos, comm)
+
+    !> Sub model update data
+    class(sub_model_update_data_t), intent(out) :: this
+    !> Memory buffer
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position
+    integer, intent(inout) :: pos
+    !> MPI communicator
+    integer, intent(in), optional :: comm
+
+#ifdef PMC_USE_MPI
+    integer :: prev_position, l_comm
+    integer(kind=i_kind) :: temp_int
+
+    if (present(comm)) then
+      l_comm = comm
+    else
+      l_comm = MPI_COMM_WORLD
+    endif
+
+    prev_position = pos
+    call pmc_mpi_unpack_integer(buffer, pos, temp_int, l_comm)
+    this%sub_model_type = int(temp_int, kind=c_int)
+    call pmc_mpi_unpack_integer(buffer, pos, temp_int, l_comm)
+    this%sub_model_solver_id = int(temp_int, kind=c_int)
+    call this%internal_bin_unpack(buffer, pos, l_comm)
+    call assert(191558576, &
+         pos - prev_position <= this%pack_size(l_comm))
+#endif
+
+  end subroutine sub_model_update_data_bin_unpack
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Print the update data
+  subroutine do_sub_model_update_data_print(this)
+
+    !> Sub model update data
+    class(sub_model_update_data_t), intent(in) :: this
+
+    write(*,*) "*** Sub model update data ***"
+    write(*,*) "Sub model type", this%sub_model_type
+    write(*,*) "Sub model solver id", this%sub_model_solver_id
+
+  end subroutine do_sub_model_update_data_print
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

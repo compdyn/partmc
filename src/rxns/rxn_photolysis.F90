@@ -18,15 +18,14 @@
 !!
 !! Photolysis rate constants (including the \f$\mbox{\ch{h $\nu$}}\f$ term)
 !! can be constant or set from an external photolysis module using the
-!! \c pmc_rxn_photolysis::rxn_update_data_photolysis_rate_t object.
+!! \c pmc_rxn_photolysis::rxn_update_data_photolysis_t object.
 !! External modules can use the
 !! \c pmc_rxn_photolysis::rxn_photolysis_t::get_property_set() function during
 !! initilialization to access any needed reaction parameters to identify
-!! certain photolysis reactions. The
-!! \c pmc_rxn_photolysis::rxn_photolysis_t::set_photo_id() function should be
-!! used during initialization to set an integer id for a particular reaction
-!! that can be used during solving to update the photolysis rate from an
-!! external module.
+!! certain photolysis reactions.
+!! An \c pmc_rxn_photolysis::update_data_photolysis_t object should be
+!! initialized for each photolysis reaction. These objects can then be used
+!! during solving to update the photolysis rate from an external module.
 !!
 !! Input data for photolysis reactions have the following format :
 !! \code{.json}
@@ -65,6 +64,7 @@ module pmc_rxn_photolysis
   use pmc_chem_spec_data
   use pmc_constants,                        only: const
   use pmc_camp_state
+  use pmc_mpi
   use pmc_property
   use pmc_rxn_data
   use pmc_util,                             only: i_kind, dp, to_string, &
@@ -77,7 +77,7 @@ module pmc_rxn_photolysis
 
 #define NUM_REACT_ this%condensed_data_int(1)
 #define NUM_PROD_ this%condensed_data_int(2)
-#define PHOTO_ID_ this%condensed_data_int(3)
+#define RXN_ID_ this%condensed_data_int(3)
 #define SCALING_ this%condensed_data_real(1)
 #define NUM_INT_PROP_ 3
 #define NUM_REAL_PROP_ 1
@@ -88,17 +88,17 @@ module pmc_rxn_photolysis
 #define JAC_ID_(x) this%condensed_data_int(NUM_INT_PROP_ + 2*(NUM_REACT_+NUM_PROD_) + x)
 #define YIELD_(x) this%condensed_data_real(NUM_REAL_PROP_ + x)
 
-public :: rxn_photolysis_t, rxn_update_data_photolysis_rate_t
+public :: rxn_photolysis_t, rxn_update_data_photolysis_t
 
   !> Generic test reaction data type
   type, extends(rxn_data_t) :: rxn_photolysis_t
   contains
     !> Reaction initialization
     procedure :: initialize
-    !> Set the photo id for this reaction
-    procedure :: set_photo_id
     !> Get the reaction property set
     procedure :: get_property_set
+    !> Initialize update data
+    procedure :: update_data_initialize
     !> Finalize the reaction
     final :: finalize
   end type rxn_photolysis_t
@@ -109,17 +109,24 @@ public :: rxn_photolysis_t, rxn_update_data_photolysis_rate_t
   end interface rxn_photolysis_t
 
   !> Photolysis rate update object
-  type, extends(rxn_update_data_t) :: rxn_update_data_photolysis_rate_t
+  type, extends(rxn_update_data_t) :: rxn_update_data_photolysis_t
   private
+    !> Flag indicating whether the update data as been allocated
     logical :: is_malloced = .false.
+    !> Unique id for finding reactions during model initialization
+    integer(kind=i_kind) :: rxn_unique_id = 0
   contains
-    !> Initialize update data
-    procedure :: initialize => update_data_rate_initialize
     !> Update the rate data
     procedure :: set_rate => update_data_rate_set
+    !> Determine the pack size of the local update data
+    procedure :: internal_pack_size
+    !> Pack the local update data to a binary
+    procedure :: internal_bin_pack
+    !> Unpack the local update data from a binary
+    procedure :: internal_bin_unpack
     !> Finalize the rate update data
-    final :: update_data_rate_finalize
-  end type rxn_update_data_photolysis_rate_t
+    final :: update_data_finalize
+  end type rxn_update_data_photolysis_t
 
   !> Interface to c reaction functions
   interface
@@ -138,7 +145,7 @@ public :: rxn_photolysis_t, rxn_update_data_photolysis_rate_t
       use iso_c_binding
       !> Update data
       type(c_ptr), value :: update_data
-      !> Photo id from pmc_rxn_photolysis::rxn_photolysis_t::set_photo_id
+      !> Photo id
       integer(kind=c_int), value :: photo_id
       !> New pre-scaling base photolysis rate
       real(kind=c_double), value :: base_rate
@@ -296,22 +303,10 @@ contains
       i_spec = i_spec + 1
     end do
 
+    ! Initialize the reaction id
+    RXN_ID_ = -1
+
   end subroutine initialize
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Set an id for this reaction that can be used by an external photolysis
-  !! module to update the base (unscaled) rate constant during the model run.
-  subroutine set_photo_id(this, photo_id)
-
-    !> Reaction data
-    class(rxn_photolysis_t), intent(inout) :: this
-    !> Photo id
-    integer(kind=i_kind), intent(in) :: photo_id
-
-    PHOTO_ID_ = photo_id
-
-  end subroutine set_photo_id
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -347,47 +342,125 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Set packed update data for photolysis rate constants
-  subroutine update_data_rate_set(this, photo_id, base_rate)
+  subroutine update_data_rate_set(this, base_rate)
 
     !> Update data
-    class(rxn_update_data_photolysis_rate_t), intent(inout) :: this
-    !> Photo id from pmc_rxn_photolysis::rxn_photolysis_t::set_photo_id
-    integer(kind=i_kind), intent(in) :: photo_id
+    class(rxn_update_data_photolysis_t), intent(inout) :: this
     !> Updated pre-scaling photolysis rate
     real(kind=dp), intent(in) :: base_rate
 
-    call rxn_photolysis_set_rate_update_data(this%get_data(), photo_id, &
-            base_rate)
+    call rxn_photolysis_set_rate_update_data(this%get_data(), &
+            this%rxn_unique_id, base_rate)
 
   end subroutine update_data_rate_set
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Initialize update data
-  subroutine update_data_rate_initialize(this, rxn_type)
+  subroutine update_data_initialize(this, update_data, rxn_type)
 
+    use pmc_rand,                                only : generate_int_id
+
+    !> The reaction to update
+    class(rxn_photolysis_t), intent(inout) :: this
     !> Update data object
-    class(rxn_update_data_photolysis_rate_t) :: this
+    class(rxn_update_data_photolysis_t), intent(out) :: update_data
     !> Reaction type id
     integer(kind=i_kind), intent(in) :: rxn_type
 
-    this%rxn_type = int(rxn_type, kind=c_int)
-    this%update_data = rxn_photolysis_create_rate_update_data()
-    this%is_malloced = .true.
+    ! If a reaction id has not yet been generated, do it now
+    if (RXN_ID_.eq.-1) then
+      RXN_ID_ = generate_int_id()
+    endif
 
-  end subroutine update_data_rate_initialize
+    update_data%rxn_unique_id = RXN_ID_
+    update_data%rxn_type = int(rxn_type, kind=c_int)
+    update_data%update_data = rxn_photolysis_create_rate_update_data()
+    update_data%is_malloced = .true.
+
+  end subroutine update_data_initialize
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Determine the size of a binary required to pack the reaction data
+  integer(kind=i_kind) function internal_pack_size(this, comm) &
+      result(pack_size)
+
+    !> Reaction update data
+    class(rxn_update_data_photolysis_t), intent(in) :: this
+    !> MPI communicator
+    integer, intent(in) :: comm
+
+    pack_size = &
+      pmc_mpi_pack_size_logical(this%is_malloced, comm) + &
+      pmc_mpi_pack_size_integer(this%rxn_unique_id, comm)
+
+  end function internal_pack_size
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Pack the given value to the buffer, advancing position
+  subroutine internal_bin_pack(this, buffer, pos, comm)
+
+    !> Reaction update data
+    class(rxn_update_data_photolysis_t), intent(in) :: this
+    !> Memory buffer
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position
+    integer, intent(inout) :: pos
+    !> MPI communicator
+    integer, intent(in) :: comm
+
+#ifdef PMC_USE_MPI
+    integer :: prev_position
+
+    prev_position = pos
+    call pmc_mpi_pack_logical(buffer, pos, this%is_malloced, comm)
+    call pmc_mpi_pack_integer(buffer, pos, this%rxn_unique_id, comm)
+    call assert(649543400, &
+         pos - prev_position <= this%pack_size(comm))
+#endif
+
+  end subroutine internal_bin_pack
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Unpack the given value from the buffer, advancing position
+  subroutine internal_bin_unpack(this, buffer, pos, comm)
+
+    !> Reaction update data
+    class(rxn_update_data_photolysis_t), intent(inout) :: this
+    !> Memory buffer
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position
+    integer, intent(inout) :: pos
+    !> MPI communicator
+    integer, intent(in) :: comm
+
+#ifdef PMC_USE_MPI
+    integer :: prev_position
+
+    prev_position = pos
+    call pmc_mpi_unpack_logical(buffer, pos, this%is_malloced, comm)
+    call pmc_mpi_unpack_integer(buffer, pos, this%rxn_unique_id, comm)
+    call assert(254749806, &
+         pos - prev_position <= this%pack_size(comm))
+    this%update_data = rxn_photolysis_create_rate_update_data()
+#endif
+
+  end subroutine internal_bin_unpack
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Finalize an update data object
-  elemental subroutine update_data_rate_finalize(this)
+  elemental subroutine update_data_finalize(this)
 
     !> Update data object to free
-    type(rxn_update_data_photolysis_rate_t), intent(inout) :: this
+    type(rxn_update_data_photolysis_t), intent(inout) :: this
 
     if (this%is_malloced) call rxn_free_update_data(this%update_data)
 
-  end subroutine update_data_rate_finalize
+  end subroutine update_data_finalize
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

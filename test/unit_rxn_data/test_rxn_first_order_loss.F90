@@ -91,7 +91,7 @@ contains
 
     real(kind=dp), dimension(0:NUM_TIME_STEP, 2) :: model_conc, true_conc
     integer(kind=i_kind) :: idx_A, idx_B, i_time, i_spec, i_rxn
-    integer(kind=i_kind) :: i_rxn_A, i_rxn_B, i_mech_rxn_A, i_mech_rxn_B
+    integer(kind=i_kind) :: i_mech_rxn_A, i_mech_rxn_B
     real(kind=dp) :: time_step, time, k1, k2, temp, pressure, rate_A, rate_B
     type(chem_spec_data_t), pointer :: chem_spec_data
     class(rxn_data_t), pointer :: rxn
@@ -105,7 +105,7 @@ contains
     ! For setting rates
     type(mechanism_data_t), pointer :: mechanism
     type(rxn_factory_t) :: rxn_factory
-    type(rxn_update_data_first_order_loss_rate_t) :: rate_update_A, rate_update_B
+    type(rxn_update_data_first_order_loss_t) :: rate_update_A, rate_update_B
 
     run_first_order_loss_test = .true.
 
@@ -113,6 +113,7 @@ contains
     temp = 272.5d0
     pressure = 101253.3d0
     rate_A = 0.954d0
+    rate_B = 1.0d-2
     k1 = rate_A
     k2 = rate_B * 12.3d0
 
@@ -141,8 +142,6 @@ contains
 
       ! Find the A loss reaction
       key = "rxn id"
-      i_rxn_A = 342
-      i_rxn_B = 9240
       i_mech_rxn_A = 0
       i_mech_rxn_B = 0
       do i_rxn = 1, mechanism%size()
@@ -152,14 +151,16 @@ contains
             i_mech_rxn_A = i_rxn
             select type (rxn_loss => rxn)
               class is (rxn_first_order_loss_t)
-                call rxn_loss%set_rxn_id(i_rxn_A)
+                call rxn_factory%initialize_update_data(rxn_loss, &
+                                                        rate_update_A)
             end select
           end if
           if (trim(str_val).eq."rxn B") then
             i_mech_rxn_B = i_rxn
             select type (rxn_loss => rxn)
               class is (rxn_first_order_loss_t)
-                call rxn_loss%set_rxn_id(i_rxn_B)
+                call rxn_factory%initialize_update_data(rxn_loss, &
+                                                        rate_update_B)
             end select
           end if
         end if
@@ -182,18 +183,20 @@ contains
 
 #ifdef PMC_USE_MPI
       ! pack the camp core
-      pack_size = camp_core%pack_size()
+      pack_size = camp_core%pack_size() &
+                + rate_update_A%pack_size() &
+                + rate_update_B%pack_size()
       allocate(buffer(pack_size))
       pos = 0
       call camp_core%bin_pack(buffer, pos)
+      call rate_update_A%bin_pack(buffer, pos)
+      call rate_update_B%bin_pack(buffer, pos)
       call assert(642579185, pos.eq.pack_size)
     end if
 
     ! broadcast the species ids
     call pmc_mpi_bcast_integer(idx_A)
     call pmc_mpi_bcast_integer(idx_B)
-    call pmc_mpi_bcast_integer(i_rxn_A)
-    call pmc_mpi_bcast_integer(i_rxn_B)
 
     ! broadcast the buffer size
     call pmc_mpi_bcast_integer(pack_size)
@@ -211,10 +214,14 @@ contains
       camp_core => camp_core_t()
       pos = 0
       call camp_core%bin_unpack(buffer, pos)
+      call rate_update_A%bin_unpack(buffer, pos)
+      call rate_update_B%bin_unpack(buffer, pos)
       call assert(320136977, pos.eq.pack_size)
       allocate(buffer_copy(pack_size))
       pos = 0
       call camp_core%bin_pack(buffer_copy, pos)
+      call rate_update_A%bin_pack(buffer_copy, pos)
+      call rate_update_B%bin_pack(buffer_copy, pos)
       call assert(356745163, pos.eq.pack_size)
       do i_elem = 1, pack_size
         call assert_msg(981439754, buffer(i_elem).eq.buffer_copy(i_elem), &
@@ -243,12 +250,14 @@ contains
       ! Set the initial concentrations in the model
       camp_state%state_var(:) = model_conc(0,:)
 
-      ! Set the rxn B rate
-      call rxn_factory%initialize_update_data(rate_update_A)
-      call rxn_factory%initialize_update_data(rate_update_B)
-      call rate_update_A%set_rate(i_rxn_A, rate_A)
-      call rate_update_B%set_rate(i_rxn_B, rate_B)
+      ! Set the rxn rates
+      call rate_update_A%set_rate(rate_A)
+      call rate_update_B%set_rate(432.3d0)
       call camp_core%update_rxn_data(rate_update_A)
+      call camp_core%update_rxn_data(rate_update_B)
+
+      ! Test re-setting of the rxn B rate
+      call rate_update_B%set_rate(rate_B)
       call camp_core%update_rxn_data(rate_update_B)
 
 #ifdef PMC_DEBUG

@@ -265,6 +265,8 @@ contains
       ! Make sure the expected species are in the model
       call assert(486977094, idx_butanol.gt.0)
       call assert(881770688, idx_water.gt.0)
+      call assert(745479388, idx_butanol_act.gt.0)
+      call assert(292847235, idx_water_act.gt.0)
 
 #ifdef PMC_USE_MPI
       ! pack the camp core
@@ -278,6 +280,8 @@ contains
     ! broadcast the species ids
     call pmc_mpi_bcast_integer(idx_butanol)
     call pmc_mpi_bcast_integer(idx_water)
+    call pmc_mpi_bcast_integer(idx_butanol_act)
+    call pmc_mpi_bcast_integer(idx_water_act)
 
     ! broadcast the buffer size
     call pmc_mpi_bcast_integer(pack_size)

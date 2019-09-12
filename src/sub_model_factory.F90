@@ -165,10 +165,12 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Initialize an update data object
-  subroutine initialize_update_data(this, update_data)
+  subroutine initialize_update_data(this, sub_model, update_data)
 
     !> Sub-model factory
     class(sub_model_factory_t), intent(in) :: this
+    !> Sub-model to be updated
+    class(sub_model_data_t), intent(inout) :: sub_model
     !> Update data object
     class(sub_model_update_data_t), intent(out) :: update_data
 

@@ -1235,6 +1235,7 @@ contains
     end do
     pack_size = pack_size + &
                 pmc_mpi_pack_size_integer(this%size_state_per_cell, l_comm) + &
+                pmc_mpi_pack_size_integer(this%n_cells, l_comm) + &
                 pmc_mpi_pack_size_logical(this%split_gas_aero, l_comm) + &
                 pmc_mpi_pack_size_real(this%rel_tol, l_comm) + &
                 pmc_mpi_pack_size_real_array(this%abs_tol, l_comm) + &
@@ -1298,6 +1299,7 @@ contains
       sub_model => null()
     end do
     call pmc_mpi_pack_integer(buffer, pos, this%size_state_per_cell, l_comm)
+    call pmc_mpi_pack_integer(buffer, pos, this%n_cells, l_comm)
     call pmc_mpi_pack_logical(buffer, pos, this%split_gas_aero, l_comm)
     call pmc_mpi_pack_real(buffer, pos, this%rel_tol, l_comm)
     call pmc_mpi_pack_real_array(buffer, pos, this%abs_tol, l_comm)
@@ -1364,6 +1366,7 @@ contains
               sub_model_factory%bin_unpack(buffer, pos, l_comm)
     end do
     call pmc_mpi_unpack_integer(buffer, pos, this%size_state_per_cell, l_comm)
+    call pmc_mpi_unpack_integer(buffer, pos, this%n_cells, l_comm)
     call pmc_mpi_unpack_logical(buffer, pos, this%split_gas_aero, l_comm)
     call pmc_mpi_unpack_real(buffer, pos, this%rel_tol, l_comm)
     call pmc_mpi_unpack_real_array(buffer, pos, this%abs_tol, l_comm)

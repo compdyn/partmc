@@ -85,8 +85,9 @@ void rxn_first_order_loss_update_ids(ModelData *model_data, int *deriv_ids,
  * \param rxn_int_data Pointer to the reaction integer data
  * \param rxn_float_data Pointer to the reaction floating-point data
  * \param rxn_env_data Pointer to the environment-dependent data
+ * \return Flag indicating whether this is the reaction to update
  */
-void rxn_first_order_loss_update_data(void *update_data, int *rxn_int_data,
+bool rxn_first_order_loss_update_data(void *update_data, int *rxn_int_data,
     double *rxn_float_data, double *rxn_env_data)
 {
   int *int_data = rxn_int_data;
@@ -96,10 +97,13 @@ void rxn_first_order_loss_update_data(void *update_data, int *rxn_int_data,
   double *base_rate = (double*) &(rxn_id[1]);
 
   // Set the base first-order loss rate constants for matching reactions
-  if (*rxn_id==RXN_ID_ && RXN_ID_!=0)
-          BASE_RATE_ = (double) *base_rate;
+  if (*rxn_id==RXN_ID_ && RXN_ID_>0) {
+    BASE_RATE_ = (double) *base_rate;
+    RATE_CONSTANT_ = SCALING_ * BASE_RATE_;
+    return true;
+  }
 
-  return;
+  return false;
 }
 
 /** \brief Update reaction data for new environmental conditions
@@ -176,7 +180,7 @@ void rxn_first_order_loss_calc_jac_contrib(ModelData *model_data,
   double *env_data = model_data->grid_cell_env;
 
   // Add contributions to the Jacobian
-  if (JAC_ID_ >= 0) J[JAC_ID_] -= RATE_CONSTANT_; 
+  if (JAC_ID_ >= 0) J[JAC_ID_] -= RATE_CONSTANT_;
 
   return;
 

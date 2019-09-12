@@ -92,8 +92,9 @@ void rxn_wet_deposition_update_ids(ModelData *model_data, int *deriv_ids,
  * \param rxn_int_data Pointer to the reaction integer data
  * \param rxn_float_data Pointer to the reaction floating-point data
  * \param rxn_env_data Pointer to the environment-dependent data
+ * \return Flag indicating whether this is the reaction to update
  */
-void rxn_wet_deposition_update_data(void *update_data, int *rxn_int_data,
+bool rxn_wet_deposition_update_data(void *update_data, int *rxn_int_data,
     double *rxn_float_data, double *rxn_env_data)
 {
   int *int_data = rxn_int_data;
@@ -103,10 +104,13 @@ void rxn_wet_deposition_update_data(void *update_data, int *rxn_int_data,
   double *base_rate = (double*) &(rxn_id[1]);
 
   // Set the base wet deposition rate constants for matching reactions
-  if (*rxn_id==RXN_ID_ && RXN_ID_!=0)
-          BASE_RATE_ = (double) *base_rate;
+  if (*rxn_id==RXN_ID_ && RXN_ID_>0) {
+    BASE_RATE_ = (double) *base_rate;
+    RATE_CONSTANT_ = SCALING_ * BASE_RATE_;
+    return true;
+  }
 
-  return;
+  return false;
 }
 
 /** \brief Update reaction data for new environmental conditions

@@ -379,22 +379,44 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Initialize an update data object
-  subroutine initialize_update_data(this, update_data)
+  subroutine initialize_update_data(this, rxn, update_data)
 
     !> Reaction factory
     class(rxn_factory_t), intent(in) :: this
+    !> Reaction to be updated
+    class(rxn_data_t), intent(inout) :: rxn
     !> Update data object
     class(rxn_update_data_t), intent(out) :: update_data
 
     select type (update_data)
-      type is (rxn_update_data_wet_deposition_rate_t)
-        call update_data%initialize(RXN_WET_DEPOSITION)
-      type is (rxn_update_data_emission_rate_t)
-        call update_data%initialize(RXN_EMISSION)
-      type is (rxn_update_data_first_order_loss_rate_t)
-        call update_data%initialize(RXN_FIRST_ORDER_LOSS)
-      type is (rxn_update_data_photolysis_rate_t)
-        call update_data%initialize(RXN_PHOTOLYSIS)
+      type is (rxn_update_data_wet_deposition_t)
+        select type (rxn)
+          type is (rxn_wet_deposition_t)
+            call rxn%update_data_initialize(update_data, RXN_WET_DEPOSITION)
+          class default
+            call die_msg(519416239, "Update data <-> rxn mismatch")
+        end select
+      type is (rxn_update_data_emission_t)
+        select type (rxn)
+          type is (rxn_emission_t)
+            call rxn%update_data_initialize(update_data, RXN_EMISSION)
+          class default
+            call die_msg(395116041, "Update data <-> rxn mismatch")
+        end select
+      type is (rxn_update_data_first_order_loss_t)
+        select type (rxn)
+          type is (rxn_first_order_loss_t)
+            call rxn%update_data_initialize(update_data, RXN_FIRST_ORDER_LOSS)
+          class default
+            call die_msg(172384885, "Update data <-> rxn mismatch")
+        end select
+      type is (rxn_update_data_photolysis_t)
+        select type (rxn)
+          type is (rxn_photolysis_t)
+            call rxn%update_data_initialize(update_data, RXN_PHOTOLYSIS)
+          class default
+            call die_msg(284703230, "Update data <-> rxn mismatch")
+        end select
       class default
         call die_msg(239438576, "Internal error - update data type missing.")
     end select

@@ -31,9 +31,6 @@ program pmc_test_aero_rep_data
   real(kind=dp), parameter :: PART_NUM_CONC = 1.23e3
   real(kind=dp), parameter :: PART_RADIUS   = 2.43e-7
 
-  ! Aerosol rep id for update functions
-  integer(kind=i_kind), parameter :: AERO_REP_ID = 234
-
   !> Interface to c ODE solver and test functions
   interface
     !> Run the c function tests
@@ -293,7 +290,8 @@ contains
 
     select type( aero_rep )
       type is(aero_rep_single_particle_t)
-        call aero_rep%set_id( AERO_REP_ID )
+        call aero_rep_factory%initialize_update_data( aero_rep, update_radius )
+        call aero_rep_factory%initialize_update_data( aero_rep, update_number )
       class default
         call die_msg(766425873, "Wrong aero rep type")
     end select
@@ -307,19 +305,21 @@ contains
     camp_state%env_state%pressure = 101325.0
 
     ! Update external properties
-    call aero_rep_factory%initialize_update_data( update_radius )
-    call aero_rep_factory%initialize_update_data( update_number )
-    call update_radius%set_radius( AERO_REP_ID, PART_RADIUS )
-    call update_number%set_number( AERO_REP_ID, PART_NUM_CONC )
+    call update_radius%set_radius( PART_RADIUS )
+    call update_number%set_number( 12.3d0 )
     call camp_core%update_aero_rep_data( update_radius )
+    call camp_core%update_aero_rep_data( update_number )
+
+    ! Test re-setting number concentration
+    call update_number%set_number( PART_NUM_CONC )
     call camp_core%update_aero_rep_data( update_number )
 
     call camp_state%update_env_state()
 
     passed = run_aero_rep_single_particle_c_tests(                           &
-                 camp_core%solver_data_gas_aero%solver_c_ptr,               &
-                 c_loc(camp_state%state_var),                               &
-                 c_loc(camp_state%env_var)                                  &
+                 camp_core%solver_data_gas_aero%solver_c_ptr,                &
+                 c_loc(camp_state%state_var),                                &
+                 c_loc(camp_state%env_var)                                   &
                  ) .eq. 0
 
     deallocate(camp_state)

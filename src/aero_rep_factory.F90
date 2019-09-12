@@ -336,22 +336,48 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Get a new update data object
-  subroutine initialize_update_data(this, update_data)
+  subroutine initialize_update_data(this, aero_rep, update_data)
 
     !> Aerosol representation factory
     class(aero_rep_factory_t), intent(in) :: this
+    !> Aerosol representation to be updated
+    class(aero_rep_data_t), intent(inout) :: aero_rep
     !> Update data object
     class(aero_rep_update_data_t), intent(out) :: update_data
 
     select type (update_data)
       type is (aero_rep_update_data_single_particle_radius_t)
-        call update_data%initialize(AERO_REP_SINGLE_PARTICLE)
+        select type (aero_rep)
+          type is (aero_rep_single_particle_t)
+            call aero_rep%update_data_initialize_radius(update_data, &
+                                                 AERO_REP_SINGLE_PARTICLE)
+          class default
+            call die_msg(761019956, "Update data <-> aero rep mismatch")
+        end select
       type is (aero_rep_update_data_single_particle_number_t)
-        call update_data%initialize(AERO_REP_SINGLE_PARTICLE)
+        select type (aero_rep)
+          type is (aero_rep_single_particle_t)
+            call aero_rep%update_data_initialize_number(update_data, &
+                                                 AERO_REP_SINGLE_PARTICLE)
+          class default
+            call die_msg(584145506, "Update data <-> aero rep mismatch")
+        end select
       type is (aero_rep_update_data_modal_binned_mass_GMD_t)
-        call update_data%initialize(AERO_REP_MODAL_BINNED_MASS)
+        select type (aero_rep)
+          type is (aero_rep_modal_binned_mass_t)
+            call aero_rep%update_data_initialize_GMD(update_data, &
+                                                 AERO_REP_MODAL_BINNED_MASS)
+          class default
+            call die_msg(696463851, "Update data <-> aero rep mismatch")
+        end select
       type is (aero_rep_update_data_modal_binned_mass_GSD_t)
-        call update_data%initialize(AERO_REP_MODAL_BINNED_MASS)
+        select type (aero_rep)
+          type is (aero_rep_modal_binned_mass_t)
+            call aero_rep%update_data_initialize_GSD(update_data, &
+                                                 AERO_REP_MODAL_BINNED_MASS)
+          class default
+            call die_msg(526306947, "Update data <-> aero rep mismatch")
+        end select
       class default
         call die_msg(916635086, "Internal error - update data type missing.")
     end select

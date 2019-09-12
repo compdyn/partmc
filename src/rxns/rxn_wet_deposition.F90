@@ -18,15 +18,14 @@
 !!
 !! Wet deposition rate constants can be constant or set from an external
 !! module using the
-!! \c pmc_rxn_wet_deposition::rxn_update_data_wet_deposition_rate_t object.
+!! \c pmc_rxn_wet_deposition::rxn_update_data_wet_deposition_t object.
 !! External modules should use the
 !! \c pmc_rxn_wet_deposition::rxn_wet_deposition_t::get_property_set()
 !! function during initilialization to access any needed reaction parameters
-!! to identify certain wet deposition reactions. The
-!! \c pmc_rxn_wet_deposition::rxn_wet_deposition_t::set_rxn_id() function
-!! can be used during initialization to set an integer id for a particular
-!! reaction that can be used during solving to update the wet deposition
-!! rate from an external module.
+!! to identify certain wet deposition reactions.
+!! An \c pmc_rxn_wet_deposition::update_data_wet_deposition_t object should be
+!! initialized for each wet deposition reaction. These objects can then be used
+!! during solving to update the wet deposition rate from an external module.
 !!
 !! Input data for wet deposition reactions have the following format :
 !! \code{.json}
@@ -56,6 +55,7 @@ module pmc_rxn_wet_deposition
   use pmc_chem_spec_data
   use pmc_constants,                        only: const
   use pmc_camp_state
+  use pmc_mpi
   use pmc_property
   use pmc_rxn_data
   use pmc_util,                             only: i_kind, dp, string_t, &
@@ -77,17 +77,17 @@ module pmc_rxn_wet_deposition
 #define DERIV_ID_(s) this%condensed_data_int(NUM_INT_PROP_+NUM_SPEC_+s)
 #define JAC_ID_(s) this%condensed_data_int(NUM_INT_PROP_+2*NUM_SPEC_+s))
 
-public :: rxn_wet_deposition_t, rxn_update_data_wet_deposition_rate_t
+public :: rxn_wet_deposition_t, rxn_update_data_wet_deposition_t
 
   !> Generic test reaction data type
   type, extends(rxn_data_t) :: rxn_wet_deposition_t
   contains
     !> Reaction initialization
     procedure :: initialize
-    !> Set the reaction id for this reaction
-    procedure :: set_rxn_id
     !> Get the reaction property set
     procedure :: get_property_set
+    !> Initialize update data
+    procedure :: update_data_initialize
     !> Finalize the reaction
     final :: finalize
   end type rxn_wet_deposition_t
@@ -98,17 +98,24 @@ public :: rxn_wet_deposition_t, rxn_update_data_wet_deposition_rate_t
   end interface rxn_wet_deposition_t
 
   !> Wet Deposition rate update object
-  type, extends(rxn_update_data_t) :: rxn_update_data_wet_deposition_rate_t
+  type, extends(rxn_update_data_t) :: rxn_update_data_wet_deposition_t
   private
+    !> Flag indicating whether the update data as been allocated
     logical :: is_malloced = .false.
+    !> Unique id for finding reactions during model initialization
+    integer(kind=i_kind) :: rxn_unique_id = 0
   contains
-    !> Initialize update data
-    procedure :: initialize => update_data_rate_initialize
     !> Update the rate data
     procedure :: set_rate => update_data_rate_set
+    !> Determine the pack size of the local update data
+    procedure :: internal_pack_size
+    !> Pack the local update data to a binary
+    procedure :: internal_bin_pack
+    !> Unpack the local update data from a binary
+    procedure :: internal_bin_unpack
     !> Finalize the rate update data
-    final :: update_data_rate_finalize
-  end type rxn_update_data_wet_deposition_rate_t
+    final :: update_data_finalize
+  end type rxn_update_data_wet_deposition_t
 
   !> Interface to c reaction functions
   interface
@@ -123,12 +130,12 @@ public :: rxn_wet_deposition_t, rxn_update_data_wet_deposition_rate_t
 
     !> Set a new wet_deposition rate
     subroutine rxn_wet_deposition_set_rate_update_data(update_data, &
-              rxn_id, base_rate) bind (c)
+              rxn_unique_id, base_rate) bind (c)
       use iso_c_binding
       !> Update data
       type(c_ptr), value :: update_data
-      !> Reaction id from pmc_rxn_wet_deposition::rxn_wet_deposition_t::set_rxn_id
-      integer(kind=c_int), value :: rxn_id
+      !> Reaction id
+      integer(kind=c_int), value :: rxn_unique_id
       !> New pre-scaling base wet_deposition rate
       real(kind=c_double), value :: base_rate
     end subroutine rxn_wet_deposition_set_rate_update_data
@@ -241,22 +248,10 @@ contains
     end do
     call assert(312643342, i_spec .eq. NUM_SPEC_)
 
+    ! Initialize the reaction id
+    RXN_ID_ = -1
+
   end subroutine initialize
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Set an id for this reaction that can be used by an external
-  !! module to update the base (unscaled) rate constant during the model run.
-  subroutine set_rxn_id(this, rxn_id)
-
-    !> Reaction data
-    class(rxn_wet_deposition_t), intent(inout) :: this
-    !> Reaction id
-    integer(kind=i_kind), intent(in) :: rxn_id
-
-    RXN_ID_ = rxn_id
-
-  end subroutine set_rxn_id
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -292,48 +287,125 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Set packed update data for wet_deposition rate constants
-  subroutine update_data_rate_set(this, rxn_id, base_rate)
+  subroutine update_data_rate_set(this, base_rate)
 
     !> Update data
-    class(rxn_update_data_wet_deposition_rate_t), intent(inout) :: this
-    !> Reaction id from
-    !! \c pmc_rxn_wet_deposition::rxn_wet_deposition_t::set_rxn_id
-    integer(kind=i_kind), intent(in) :: rxn_id
+    class(rxn_update_data_wet_deposition_t), intent(inout) :: this
     !> Updated pre-scaling wet_deposition rate
     real(kind=dp), intent(in) :: base_rate
 
-    call rxn_wet_deposition_set_rate_update_data(this%get_data(), rxn_id, &
-            base_rate)
+    call rxn_wet_deposition_set_rate_update_data(this%get_data(), &
+            this%rxn_unique_id, base_rate)
 
   end subroutine update_data_rate_set
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Initialize update data
-  subroutine update_data_rate_initialize(this, rxn_type)
+  subroutine update_data_initialize(this, update_data, rxn_type)
 
+    use pmc_rand,                                only : generate_int_id
+
+    !> The reaction to update
+    class(rxn_wet_deposition_t), intent(inout) :: this
     !> Update data object
-    class(rxn_update_data_wet_deposition_rate_t) :: this
+    class(rxn_update_data_wet_deposition_t), intent(out) :: update_data
     !> Reaction type id
     integer(kind=i_kind), intent(in) :: rxn_type
 
-    this%rxn_type = int(rxn_type, kind=c_int)
-    this%update_data = rxn_wet_deposition_create_rate_update_data()
-    this%is_malloced = .true.
+    ! If a reaction id has not yet been generated, do it now
+    if (RXN_ID_.eq.-1) then
+      RXN_ID_ = generate_int_id()
+    endif
 
-  end subroutine update_data_rate_initialize
+    update_data%rxn_unique_id = RXN_ID_
+    update_data%rxn_type = int(rxn_type, kind=c_int)
+    update_data%update_data = rxn_wet_deposition_create_rate_update_data()
+    update_data%is_malloced = .true.
+
+  end subroutine update_data_initialize
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Determine the size of a binary required to pack the reaction data
+  integer(kind=i_kind) function internal_pack_size(this, comm) &
+      result(pack_size)
+
+    !> Reaction update data
+    class(rxn_update_data_wet_deposition_t), intent(in) :: this
+    !> MPI communicator
+    integer, intent(in) :: comm
+
+    pack_size = &
+      pmc_mpi_pack_size_logical(this%is_malloced, comm) + &
+      pmc_mpi_pack_size_integer(this%rxn_unique_id, comm)
+
+  end function internal_pack_size
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Pack the given value to the buffer, advancing position
+  subroutine internal_bin_pack(this, buffer, pos, comm)
+
+    !> Reaction update data
+    class(rxn_update_data_wet_deposition_t), intent(in) :: this
+    !> Memory buffer
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position
+    integer, intent(inout) :: pos
+    !> MPI communicator
+    integer, intent(in) :: comm
+
+#ifdef PMC_USE_MPI
+    integer :: prev_position
+
+    prev_position = pos
+    call pmc_mpi_pack_logical(buffer, pos, this%is_malloced, comm)
+    call pmc_mpi_pack_integer(buffer, pos, this%rxn_unique_id, comm)
+    call assert(865557010, &
+         pos - prev_position <= this%pack_size(comm))
+#endif
+
+  end subroutine internal_bin_pack
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Unpack the given value from the buffer, advancing position
+  subroutine internal_bin_unpack(this, buffer, pos, comm)
+
+    !> Reaction update data
+    class(rxn_update_data_wet_deposition_t), intent(inout) :: this
+    !> Memory buffer
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position
+    integer, intent(inout) :: pos
+    !> MPI communicator
+    integer, intent(in) :: comm
+
+#ifdef PMC_USE_MPI
+    integer :: prev_position
+
+    prev_position = pos
+    call pmc_mpi_unpack_logical(buffer, pos, this%is_malloced, comm)
+    call pmc_mpi_unpack_integer(buffer, pos, this%rxn_unique_id, comm)
+    call assert(135713915, &
+         pos - prev_position <= this%pack_size(comm))
+    this%update_data = rxn_wet_deposition_create_rate_update_data()
+#endif
+
+  end subroutine internal_bin_unpack
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Finalize an update data object
-  elemental subroutine update_data_rate_finalize(this)
+  elemental subroutine update_data_finalize(this)
 
     !> Update data object to free
-    type(rxn_update_data_wet_deposition_rate_t), intent(inout) :: this
+    type(rxn_update_data_wet_deposition_t), intent(inout) :: this
 
     if (this%is_malloced) call rxn_free_update_data(this%update_data)
 
-  end subroutine update_data_rate_finalize
+  end subroutine update_data_finalize
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

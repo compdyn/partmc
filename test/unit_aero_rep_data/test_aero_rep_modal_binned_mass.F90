@@ -278,7 +278,6 @@ contains
     character(len=:), allocatable :: rep_name, phase_name
 
     character(len=:), allocatable :: section_name
-    integer(kind=i_kind), parameter :: aero_rep_id = 8261
     integer(kind=i_kind) :: i_sect_mixed, i_sect_single
     type(aero_rep_factory_t) :: aero_rep_factory
     type(aero_rep_update_data_modal_binned_mass_GMD_t) :: update_data_GMD
@@ -292,14 +291,11 @@ contains
     ! Set the aerosol representation id
     select type (aero_rep)
       type is (aero_rep_modal_binned_mass_t)
-        call aero_rep%set_id(aero_rep_id)
+        call aero_rep_factory%initialize_update_data(aero_rep, update_data_GMD)
+        call aero_rep_factory%initialize_update_data(aero_rep, update_data_GSD)
       class default
         call die_msg(587271916, rep_name)
     end select
-
-    ! Initialize the update data object
-    call aero_rep_factory%initialize_update_data(update_data_GMD)
-    call aero_rep_factory%initialize_update_data(update_data_GSD)
 
     ! Initialize the solver
     call camp_core%solver_initialize()
@@ -313,16 +309,16 @@ contains
         call assert_msg(207793351, &
                         aero_rep%get_section_id(section_name, i_sect_mixed), &
                         "Could not get section id for the mixed mode")
-        call update_data_GMD%set_GMD(aero_rep_id, i_sect_mixed, 1.2d-6)
-        call update_data_GSD%set_GSD(aero_rep_id, i_sect_mixed, 1.2d0)
+        call update_data_GMD%set_GMD(i_sect_mixed, 1.2d-6)
+        call update_data_GSD%set_GSD(i_sect_mixed, 1.2d0)
         call camp_core%update_aero_rep_data(update_data_GMD)
         call camp_core%update_aero_rep_data(update_data_GSD)
         call assert_msg(937636446, &
                         aero_rep%get_section_id("single phase mode", &
                                                  i_sect_single), &
                         "Could not get section id for the single phase mode")
-        call update_data_GMD%set_GMD(aero_rep_id, i_sect_single, 9.3d-7)
-        call update_data_GSD%set_GSD(aero_rep_id, i_sect_single, 0.9d0)
+        call update_data_GMD%set_GMD(i_sect_single, 9.3d-7)
+        call update_data_GSD%set_GSD(i_sect_single, 0.9d0)
         call camp_core%update_aero_rep_data(update_data_GMD)
         call camp_core%update_aero_rep_data(update_data_GSD)
       class default

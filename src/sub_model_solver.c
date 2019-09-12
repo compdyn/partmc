@@ -405,12 +405,13 @@ void sub_model_add_condensed_data(int sub_model_type, int n_int_param,
  * of the specified type and change some model parameter(s).
  *
  * \param cell_id Id of the grid cell to update
+ * \param sub_model_id Index of the sub model to update (or 0 if unknown)
  * \param update_sub_model_type Type of the sub-model
  * \param update_data Pointer to updated data to pass to the sub-model
  * \param solver_data Pointer to solver data
  */
-void sub_model_update_data(int cell_id, int update_sub_model_type,
-          void *update_data, void *solver_data)
+void sub_model_update_data(int cell_id, int *sub_model_id,
+    int update_sub_model_type, void *update_data, void *solver_data)
 {
   ModelData *model_data =
           (ModelData*) &(((SolverData*)solver_data)->model_data);
@@ -423,16 +424,18 @@ void sub_model_update_data(int cell_id, int update_sub_model_type,
   int n_sub_model = model_data->sub_model_int_data[0];
 
   // Loop through the sub models advancing the sub_model_data pointer each time
-  for (int i_sub_model=0; i_sub_model<n_sub_model; i_sub_model++) {
+  for (; (*sub_model_id)<n_sub_model; (*sub_model_id)++) {
 
-    int *sub_model_int_data = model_data->sub_model_int_ptrs[i_sub_model];
-    double *sub_model_float_data = model_data->sub_model_float_ptrs[i_sub_model];
+    int *sub_model_int_data = model_data->sub_model_int_ptrs[(*sub_model_id)];
+    double *sub_model_float_data = model_data->sub_model_float_ptrs[(*sub_model_id)];
     double *sub_model_env_data   =
       &(model_data->grid_cell_sub_model_env_data[
-          model_data->sub_model_env_idx[i_sub_model]]);
+          model_data->sub_model_env_idx[(*sub_model_id)]]);
 
     // Get the sub model type
     int sub_model_type = *(sub_model_int_data++);
+
+    bool found = false;
 
     // Skip sub-models of other types
     if (sub_model_type!=update_sub_model_type) continue;

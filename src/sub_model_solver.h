@@ -38,7 +38,7 @@ void sub_model_add_condensed_data(
           int n_env_param, int *int_param, double *float_param,
           void *solver_data);
 void sub_model_update_data(
-          int cell_id, int update_sub_model_type, void *update_data,
-          void *solver_data);
+          int cell_id, int *sub_model_id, int update_sub_model_type,
+          void *update_data, void *solver_data);
 
 #endif

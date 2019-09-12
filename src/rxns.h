@@ -128,7 +128,7 @@ void rxn_emission_update_ids(
 void rxn_emission_update_env_state(
           ModelData *model_data, int *rxn_int_data, double *rxn_float_data,
           double *rxn_env_data);
-void rxn_emission_update_data(
+bool rxn_emission_update_data(
           void *update_data, int *rxn_int_data, double *rxn_float_data,
           double *rxn_env_data);
 void rxn_emission_print(
@@ -154,7 +154,7 @@ void rxn_first_order_loss_update_ids(
 void rxn_first_order_loss_update_env_state(
           ModelData *model_data, int *rxn_int_data, double *rxn_float_data,
           double *rxn_env_data);
-void rxn_first_order_loss_update_data(
+bool rxn_first_order_loss_update_data(
           void *update_data, int *rxn_int_data, double *rxn_float_data,
           double *rxn_env_data);
 void rxn_first_order_loss_print(
@@ -204,7 +204,7 @@ void rxn_photolysis_update_ids(
 void rxn_photolysis_update_env_state(
           ModelData *model_data, int *rxn_int_data, double *rxn_float_data,
           double *rxn_env_data);
-void rxn_photolysis_update_data(
+bool rxn_photolysis_update_data(
           void *update_data, int *rxn_int_data, double *rxn_float_data,
           double *rxn_env_data);
 void rxn_photolysis_print(
@@ -275,7 +275,7 @@ void rxn_wet_deposition_update_ids(
 void rxn_wet_deposition_update_env_state(
           ModelData *model_data, int *rxn_int_data, double *rxn_float_data,
           double *rxn_env_data);
-void rxn_wet_deposition_update_data(
+bool rxn_wet_deposition_update_data(
           void *update_data, int *rxn_int_data, double *rxn_float_data,
           double *rxn_env_data);
 void rxn_wet_deposition_print(

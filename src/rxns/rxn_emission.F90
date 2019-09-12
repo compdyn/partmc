@@ -16,15 +16,14 @@
 !! where \f$\mbox{\ch{X}}\f$ is the species being emitted.
 !!
 !! Emission rates can be constant or set from an external module using the
-!! \c pmc_rxn_emission::rxn_update_data_emission_rate_t object.
+!! \c pmc_rxn_emission::rxn_update_data_emission_t object.
 !! External modules can use the
 !! \c pmc_rxn_emission::rxn_emission_t::get_property_set()
 !! function during initilialization to access any needed reaction parameters
-!! to identify certain emission reactions. The
-!! \c pmc_rxn_emission::rxn_emission_t::set_rxn_id() function
-!! should be used during initialization to set an integer id for a particular
-!! reaction that can be used during solving to update the emission
-!! rate from an external module.
+!! to identify certain emission reactions.
+!! An \c pmc_rxn_emission::update_data_emission_t object should be
+!! initialized for each emissions reaction. These objects can then be used
+!! during solving to update the emission rate from an external module.
 !!
 !! Input data for emission reactions have the following format :
 !! \code{.json}
@@ -42,7 +41,7 @@
 !! assumed to be 1.0. All other data is optional and will be available to
 !! external modules during initialization. Rates are in units of
 !! \f$\mbox{concentration units} \quad s^{-1}\f$, and must be set using a
-!! \c rxn_update_data_emission_rate_t object.
+!! \c rxn_update_data_emission_t object.
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -53,6 +52,7 @@ module pmc_rxn_emission
   use pmc_chem_spec_data
   use pmc_constants,                        only: const
   use pmc_camp_state
+  use pmc_mpi
   use pmc_property
   use pmc_rxn_data
   use pmc_util,                             only: i_kind, dp, to_string, &
@@ -71,17 +71,17 @@ module pmc_rxn_emission
 #define NUM_REAL_PROP_ 1
 #define NUM_ENV_PARAM_ 2
 
-public :: rxn_emission_t, rxn_update_data_emission_rate_t
+public :: rxn_emission_t, rxn_update_data_emission_t
 
   !> Generic test reaction data type
   type, extends(rxn_data_t) :: rxn_emission_t
   contains
     !> Reaction initialization
     procedure :: initialize
-    !> Set the reaction id for this reaction
-    procedure :: set_rxn_id
     !> Get the reaction property set
     procedure :: get_property_set
+    !> Initialize update data
+    procedure :: update_data_initialize
     !> Finalize the reaction
     final :: finalize
   end type rxn_emission_t
@@ -92,17 +92,24 @@ public :: rxn_emission_t, rxn_update_data_emission_rate_t
   end interface rxn_emission_t
 
   !> Emission rate update object
-  type, extends(rxn_update_data_t) :: rxn_update_data_emission_rate_t
+  type, extends(rxn_update_data_t) :: rxn_update_data_emission_t
   private
+    !> Flag indicating whether the update data as been allocated
     logical :: is_malloced = .false.
+    !> Unique id for finding reactions during model initialization
+    integer(kind=i_kind) :: rxn_unique_id = 0
   contains
-    !> Initialize update data
-    procedure :: initialize => update_data_rate_initialize
     !> Update the rate data
     procedure :: set_rate => update_data_rate_set
+    !> Determine the pack size of the local update data
+    procedure :: internal_pack_size
+    !> Pack the local update data to a binary
+    procedure :: internal_bin_pack
+    !> Unpack the local update data from a binary
+    procedure :: internal_bin_unpack
     !> Finalize the rate update data
-    final :: update_data_rate_finalize
-  end type rxn_update_data_emission_rate_t
+    final :: update_data_finalize
+  end type rxn_update_data_emission_t
 
   !> Interface to c reaction functions
   interface
@@ -117,12 +124,12 @@ public :: rxn_emission_t, rxn_update_data_emission_rate_t
 
     !> Set a new emission rate
     subroutine rxn_emission_set_rate_update_data(update_data, &
-              rxn_id, base_rate) bind (c)
+              rxn_unique_id, base_rate) bind (c)
       use iso_c_binding
       !> Update data
       type(c_ptr), value :: update_data
-      !> Reaction id from pmc_rxn_emission::rxn_emission_t::set_rxn_id
-      integer(kind=c_int), value :: rxn_id
+      !> Reaction unique id
+      integer(kind=c_int), value :: rxn_unique_id
       !> New pre-scaling base emission rate
       real(kind=c_double), value :: base_rate
     end subroutine rxn_emission_set_rate_update_data
@@ -204,23 +211,10 @@ contains
     call assert_msg(814240522, SPECIES_.gt.0, &
             "Missing emission species: "//spec_name)
 
+    ! Initialize the rxn id
+    RXN_ID_ = -1
 
   end subroutine initialize
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Set an id for this reaction that can be used by an external
-  !! module to update the base (unscaled) rate constant during the model run.
-  subroutine set_rxn_id(this, rxn_id)
-
-    !> Reaction data
-    class(rxn_emission_t), intent(inout) :: this
-    !> Reaction id
-    integer(kind=i_kind), intent(in) :: rxn_id
-
-    RXN_ID_ = rxn_id
-
-  end subroutine set_rxn_id
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -256,48 +250,125 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Set packed update data for emission rate constants
-  subroutine update_data_rate_set(this, rxn_id, base_rate)
+  subroutine update_data_rate_set(this, base_rate)
 
     !> Update data
-    class(rxn_update_data_emission_rate_t), intent(inout) :: this
-    !> Reaction id from
-    !! \c pmc_rxn_emission::rxn_emission_t::set_rxn_id
-    integer(kind=i_kind), intent(in) :: rxn_id
+    class(rxn_update_data_emission_t), intent(inout) :: this
     !> Updated pre-scaling emission rate
     real(kind=dp), intent(in) :: base_rate
 
-    call rxn_emission_set_rate_update_data(this%get_data(), rxn_id, &
-            base_rate)
+    call rxn_emission_set_rate_update_data(this%get_data(), &
+            this%rxn_unique_id, base_rate)
 
   end subroutine update_data_rate_set
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Initialize update data
-  subroutine update_data_rate_initialize(this, rxn_type)
+  subroutine update_data_initialize(this, update_data, rxn_type)
 
+    use pmc_rand,                                only : generate_int_id
+
+    !> The reaction to be udpated
+    class(rxn_emission_t), intent(inout) :: this
     !> Update data object
-    class(rxn_update_data_emission_rate_t) :: this
+    class(rxn_update_data_emission_t), intent(out) :: update_data
     !> Reaction type id
     integer(kind=i_kind), intent(in) :: rxn_type
 
-    this%rxn_type = int(rxn_type, kind=c_int)
-    this%update_data = rxn_emission_create_rate_update_data()
-    this%is_malloced = .true.
+    ! If a reaction id has not yet been generated, do it now
+    if (RXN_ID_.eq.-1) then
+      RXN_ID_ = generate_int_id()
+    endif
 
-  end subroutine update_data_rate_initialize
+    update_data%rxn_unique_id = RXN_ID_
+    update_data%rxn_type = int(rxn_type, kind=c_int)
+    update_data%update_data = rxn_emission_create_rate_update_data()
+    update_data%is_malloced = .true.
+
+  end subroutine update_data_initialize
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Determine the size of a binary required to pack the reaction data
+  integer(kind=i_kind) function internal_pack_size(this, comm) &
+      result(pack_size)
+
+    !> Reaction update data
+    class(rxn_update_data_emission_t), intent(in) :: this
+    !> MPI communicator
+    integer, intent(in) :: comm
+
+    pack_size = &
+      pmc_mpi_pack_size_logical(this%is_malloced, comm) + &
+      pmc_mpi_pack_size_integer(this%rxn_unique_id, comm)
+
+  end function internal_pack_size
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Pack the given value to the buffer, advancing position
+  subroutine internal_bin_pack(this, buffer, pos, comm)
+
+    !> Reaction update data
+    class(rxn_update_data_emission_t), intent(in) :: this
+    !> Memory buffer
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position
+    integer, intent(inout) :: pos
+    !> MPI communicator
+    integer, intent(in) :: comm
+
+#ifdef PMC_USE_MPI
+    integer :: prev_position
+
+    prev_position = pos
+    call pmc_mpi_pack_logical(buffer, pos, this%is_malloced, comm)
+    call pmc_mpi_pack_integer(buffer, pos, this%rxn_unique_id, comm)
+    call assert(945453741, &
+         pos - prev_position <= this%pack_size(comm))
+#endif
+
+  end subroutine internal_bin_pack
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Unpack the given value from the buffer, advancing position
+  subroutine internal_bin_unpack(this, buffer, pos, comm)
+
+    !> Reaction update data
+    class(rxn_update_data_emission_t), intent(inout) :: this
+    !> Memory buffer
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position
+    integer, intent(inout) :: pos
+    !> MPI communicator
+    integer, intent(in) :: comm
+
+#ifdef PMC_USE_MPI
+    integer :: prev_position
+
+    prev_position = pos
+    call pmc_mpi_unpack_logical(buffer, pos, this%is_malloced, comm)
+    call pmc_mpi_unpack_integer(buffer, pos, this%rxn_unique_id, comm)
+    call assert(775296837, &
+         pos - prev_position <= this%pack_size(comm))
+    this%update_data = rxn_emission_create_rate_update_data()
+#endif
+
+  end subroutine internal_bin_unpack
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Finalize an update data object
-  elemental subroutine update_data_rate_finalize(this)
+  elemental subroutine update_data_finalize(this)
 
     !> Update data object to free
-    type(rxn_update_data_emission_rate_t), intent(inout) :: this
+    type(rxn_update_data_emission_t), intent(inout) :: this
 
     if (this%is_malloced) call rxn_free_update_data(this%update_data)
 
-  end subroutine update_data_rate_finalize
+  end subroutine update_data_finalize
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

@@ -88,7 +88,7 @@ contains
 
     real(kind=dp), dimension(0:NUM_TIME_STEP, 3) :: model_conc, true_conc
     integer(kind=i_kind) :: idx_A, idx_B, idx_C, i_time, i_spec, i_rxn
-    integer(kind=i_kind) :: i_rxn_photo_A, i_rxn_photo_B, i_photo_A, i_photo_B
+    integer(kind=i_kind) :: i_rxn_photo_A, i_rxn_photo_B
     real(kind=dp) :: time_step, time, k1, k2, temp, pressure
     real(kind=dp) :: photo_rate_A, photo_rate_B
     type(chem_spec_data_t), pointer :: chem_spec_data
@@ -103,7 +103,7 @@ contains
     ! For setting rates
     type(mechanism_data_t), pointer :: mechanism
     type(rxn_factory_t) :: rxn_factory
-    type(rxn_update_data_photolysis_rate_t) :: rate_update_A, rate_update_B
+    type(rxn_update_data_photolysis_t) :: rate_update_A, rate_update_B
 
     run_photolysis_test = .true.
 
@@ -111,6 +111,7 @@ contains
     temp = 272.5d0
     pressure = 101253.3d0
     photo_rate_A = 0.954d0
+    photo_rate_B = 1.0d-2
     k1 = photo_rate_A
     k2 = photo_rate_B * 12.3d0
 
@@ -139,8 +140,6 @@ contains
 
       ! Find the photo A reaction
       key = "photo id"
-      i_photo_A = 342
-      i_photo_B = 9240
       i_rxn_photo_A = 0
       i_rxn_photo_B = 0
       do i_rxn = 1, mechanism%size()
@@ -150,14 +149,16 @@ contains
             i_rxn_photo_A = i_rxn
             select type (rxn_photo => rxn)
               class is (rxn_photolysis_t)
-                call rxn_photo%set_photo_id(i_photo_A)
+                call rxn_factory%initialize_update_data(rxn_photo, &
+                                                        rate_update_A)
             end select
           end if
           if (trim(str_val).eq."photo B") then
             i_rxn_photo_B = i_rxn
             select type (rxn_photo => rxn)
               class is (rxn_photolysis_t)
-                call rxn_photo%set_photo_id(i_photo_B)
+                call rxn_factory%initialize_update_data(rxn_photo, &
+                                                        rate_update_B)
             end select
           end if
         end if
@@ -183,10 +184,14 @@ contains
 
 #ifdef PMC_USE_MPI
       ! pack the camp core
-      pack_size = camp_core%pack_size()
+      pack_size = camp_core%pack_size() &
+                + rate_update_A%pack_size() &
+                + rate_update_B%pack_size()
       allocate(buffer(pack_size))
       pos = 0
       call camp_core%bin_pack(buffer, pos)
+      call rate_update_A%bin_pack(buffer, pos)
+      call rate_update_B%bin_pack(buffer, pos)
       call assert(730746520, pos.eq.pack_size)
     end if
 
@@ -194,8 +199,6 @@ contains
     call pmc_mpi_bcast_integer(idx_A)
     call pmc_mpi_bcast_integer(idx_B)
     call pmc_mpi_bcast_integer(idx_C)
-    call pmc_mpi_bcast_integer(i_photo_A)
-    call pmc_mpi_bcast_integer(i_photo_B)
 
     ! broadcast the buffer size
     call pmc_mpi_bcast_integer(pack_size)
@@ -213,10 +216,14 @@ contains
       camp_core => camp_core_t()
       pos = 0
       call camp_core%bin_unpack(buffer, pos)
+      call rate_update_A%bin_unpack(buffer, pos)
+      call rate_update_B%bin_unpack(buffer, pos)
       call assert(172965863, pos.eq.pack_size)
       allocate(buffer_copy(pack_size))
       pos = 0
       call camp_core%bin_pack(buffer_copy, pos)
+      call rate_update_A%bin_pack(buffer_copy, pos)
+      call rate_update_B%bin_pack(buffer_copy, pos)
       call assert(502751057, pos.eq.pack_size)
       do i_elem = 1, pack_size
         call assert_msg(897544651, buffer(i_elem).eq.buffer_copy(i_elem), &
@@ -247,11 +254,13 @@ contains
       camp_state%state_var(:) = model_conc(0,:)
 
       ! Set the photo B rate
-      call rxn_factory%initialize_update_data(rate_update_A)
-      call rxn_factory%initialize_update_data(rate_update_B)
-      call rate_update_A%set_rate(i_photo_A, photo_rate_A)
-      call rate_update_B%set_rate(i_photo_B, photo_rate_B)
+      call rate_update_A%set_rate(photo_rate_A)
+      call rate_update_B%set_rate(924.9d0)
       call camp_core%update_rxn_data(rate_update_A)
+      call camp_core%update_rxn_data(rate_update_B)
+
+      ! Test re-setting of the rxn B rate
+      call rate_update_B%set_rate(photo_rate_B)
       call camp_core%update_rxn_data(rate_update_B)
 
 #ifdef PMC_DEBUG

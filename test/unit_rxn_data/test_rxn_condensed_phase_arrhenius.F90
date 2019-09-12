@@ -110,7 +110,6 @@ contains
 
     type(solver_stats_t), target :: solver_stats
 
-    integer(kind=i_kind), parameter :: aero_rep_id = 83921
     integer(kind=i_kind) :: i_sect_unused, i_sect_the_mode
     type(aero_rep_factory_t) :: aero_rep_factory
     type(aero_rep_update_data_modal_binned_mass_GMD_t) :: update_data_GMD
@@ -184,7 +183,10 @@ contains
         ! Set the aerosol representation id
         select type (aero_rep_ptr)
           type is (aero_rep_modal_binned_mass_t)
-            call aero_rep_ptr%set_id(aero_rep_id)
+            call aero_rep_factory%initialize_update_data( aero_rep_ptr, &
+                                                          update_data_GMD)
+            call aero_rep_factory%initialize_update_data( aero_rep_ptr, &
+                                                          update_data_GSD)
             call assert_msg(126380597, &
                   aero_rep_ptr%get_section_id("unused mode", i_sect_unused), &
                   "Could not get section id for the unused mode")
@@ -236,10 +238,14 @@ contains
 
 #ifdef PMC_USE_MPI
       ! pack the camp core
-      pack_size = camp_core%pack_size()
+      pack_size = camp_core%pack_size() &
+                  + update_data_GMD%pack_size() &
+                  + update_data_GSD%pack_size()
       allocate(buffer(pack_size))
       pos = 0
       call camp_core%bin_pack(buffer, pos)
+      call update_data_GMD%bin_pack(buffer, pos)
+      call update_data_GSD%bin_pack(buffer, pos)
       call assert(636035849, pos.eq.pack_size)
     end if
 
@@ -272,10 +278,14 @@ contains
       camp_core => camp_core_t()
       pos = 0
       call camp_core%bin_unpack(buffer, pos)
+      call update_data_GMD%bin_unpack(buffer, pos)
+      call update_data_GSD%bin_unpack(buffer, pos)
       call assert(913246791, pos.eq.pack_size)
       allocate(buffer_copy(pack_size))
       pos = 0
       call camp_core%bin_pack(buffer_copy, pos)
+      call update_data_GMD%bin_pack(buffer_copy, pos)
+      call update_data_GSD%bin_pack(buffer_copy, pos)
       call assert(408040386, pos.eq.pack_size)
       do i_elem = 1, pack_size
         call assert_msg(185309230, buffer(i_elem).eq.buffer_copy(i_elem), &
@@ -293,17 +303,14 @@ contains
 
       ! Update the GMD and GSD for the aerosol modes
       if (scenario.eq.2) then
-        ! Initialize the update data object
-        call aero_rep_factory%initialize_update_data(update_data_GMD)
-        call aero_rep_factory%initialize_update_data(update_data_GSD)
         ! unused mode
-        call update_data_GMD%set_GMD(aero_rep_id, i_sect_unused, 1.2d-6)
-        call update_data_GSD%set_GSD(aero_rep_id, i_sect_unused, 1.2d0)
+        call update_data_GMD%set_GMD(i_sect_unused, 1.2d-6)
+        call update_data_GSD%set_GSD(i_sect_unused, 1.2d0)
         call camp_core%update_aero_rep_data(update_data_GMD)
         call camp_core%update_aero_rep_data(update_data_GSD)
         ! the mode
-        call update_data_GMD%set_GMD(aero_rep_id, i_sect_the_mode, 9.3d-7)
-        call update_data_GSD%set_GSD(aero_rep_id, i_sect_the_mode, 0.9d0)
+        call update_data_GMD%set_GMD(i_sect_the_mode, 9.3d-7)
+        call update_data_GSD%set_GSD(i_sect_the_mode, 0.9d0)
         call camp_core%update_aero_rep_data(update_data_GMD)
         call camp_core%update_aero_rep_data(update_data_GSD)
       end if

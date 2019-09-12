@@ -251,7 +251,7 @@ contains
     !> Aerosol representation factory
     class(rxn_factory_t), intent(in) :: this
     !> Name of the chemical reaction
-    character(len=:), allocatable :: type_name
+    character(len=*), intent(in) :: type_name
 
     new_obj => null()
 

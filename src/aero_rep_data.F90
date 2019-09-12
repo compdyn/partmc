@@ -284,11 +284,11 @@ interface
     !> Aerosol representation data
     class(aero_rep_data_t), intent(in) :: this
     !> Aerosol phase name
-    character(len=:), allocatable, optional, intent(in) :: phase_name
+    character(len=*), optional, intent(in) :: phase_name
     !> Tracer type
     integer(kind=i_kind), optional, intent(in) :: tracer_type
     !> Aerosol-phase species name
-    character(len=:), allocatable, optional, intent(in) :: spec_name
+    character(len=*), optional, intent(in) :: spec_name
 
   end function unique_names
 
@@ -318,7 +318,7 @@ interface
     !> Aerosol representation data
     class(aero_rep_data_t), intent(in) :: this
     !> Unique name
-    character(len=:), allocatable, intent(in) :: unique_name
+    character(len=*), intent(in) :: unique_name
 
   end function spec_state_id
 
@@ -350,7 +350,7 @@ interface
     !> Aerosol representation data
     class(aero_rep_data_t), intent(in) :: this
     !> Aerosol phase name
-    character(len=:), allocatable, intent(in) :: phase_name
+    character(len=*), intent(in) :: phase_name
 
   end function num_phase_instances
 
@@ -499,7 +499,7 @@ contains
     !> Aerosol representation data
     class(aero_rep_data_t), intent(in) :: this
     !> Aerosol phase name
-    character(len=:), allocatable, intent(in) :: phase_name
+    character(len=*), intent(in) :: phase_name
 
     integer(kind=i_kind) :: num_instances, i_instance, i_phase
 

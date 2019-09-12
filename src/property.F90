@@ -151,7 +151,7 @@ contains
     !! key-value pair to add to the data set
     logical, intent(in) :: as_object
     !> Name of the owner of the property set. For use in error messages
-    character(len=:), allocatable :: owner_name
+    character(len=*), intent(in):: owner_name
     !> Flag to indicate whether to allow duplicate keys. Defaults to false
     logical, intent(in), optional :: allow_duplicates
 
@@ -260,20 +260,20 @@ contains
     !> Property data set
     class(property_t), intent(inout) :: this
     !> New key
-    character(len=:), allocatable, intent(in) :: key
+    character(len=*), intent(in) :: key
     !> New value
     class(*), intent(in) :: val
     !> Flag indicating whether to allow duplicate keys
     logical, intent(in) :: allow_duplicates
     !> Name of owner of the property set. For use in error messages
-    character(len=:), allocatable :: owner_name
+    character(len=*), intent(in) :: owner_name
 
     type(property_link_t), pointer :: new_link, sub_link
     type(property_t), allocatable :: sub_prop_set
     class(*), pointer :: curr_val
 
     ! if this is an array element, the key will be empty
-    if (allocated(key).and.len(key).ge.1) then
+    if (len(key).ge.1) then
 
       ! look for the key in the existing properties if disallowing duplictes
       if (.not.allow_duplicates) then
@@ -376,7 +376,7 @@ contains
     !> Property dataset
     class(property_t), intent(in) :: this
     !> Key name to search for
-    character(len=:), allocatable, intent(in), optional :: key
+    character(len=*), intent(in), optional :: key
     !> Property value
     integer(kind=i_kind), intent(out) :: val
 
@@ -407,7 +407,7 @@ contains
     !> Property dataset
     class(property_t), intent(in) :: this
     !> Key name to search for
-    character(len=:), allocatable, intent(in), optional :: key
+    character(len=*), intent(in), optional :: key
     !> Property value
     real(kind=dp), intent(out) :: val
 
@@ -438,7 +438,7 @@ contains
     !> Property dataset
     class(property_t), intent(in) :: this
     !> Key name to search for
-    character(len=:), allocatable, intent(in), optional :: key
+    character(len=*), intent(in), optional :: key
     !> Property value
     logical, intent(out) :: val
 
@@ -469,7 +469,7 @@ contains
     !> Property dataset
     class(property_t), intent(in) :: this
     !> Key name to search for
-    character(len=:), allocatable, intent(in), optional :: key
+    character(len=*), intent(in), optional :: key
     !> Property value
     character(len=:), allocatable, intent(out) :: val
 
@@ -500,7 +500,7 @@ contains
     !> Property dataset
     class(property_t), intent(in) :: this
     !> Key name to search for
-    character(len=:), allocatable, intent(in), optional :: key
+    character(len=*), intent(in), optional :: key
     !> Property value
     type(property_t), pointer, intent(out) :: val
 
@@ -601,7 +601,7 @@ contains
     !> Property dataset to update from
     class(property_t), intent(inout) :: source
     !> Name of owner of the property set. For use in error messages
-    character(len=:), allocatable :: owner_name
+    character(len=*), intent(in) :: owner_name
 
     type(property_link_t), pointer :: curr_prop
 
@@ -670,7 +670,7 @@ contains
     !> Property dataset
     class(property_t), intent(in) :: this
     !> Key name to search for
-    character(len=:), allocatable, intent(in) :: key
+    character(len=*), intent(in) :: key
 
     type(property_link_t), pointer :: curr_link
 
@@ -699,7 +699,7 @@ contains
     !> Pointer to new property key-value pair
     type(property_link_t), pointer :: new_obj
     !> Key name
-    character(len=:), allocatable, intent(in) :: key
+    character(len=*), intent(in) :: key
     !> New value
     class(*), intent(in) :: val
 

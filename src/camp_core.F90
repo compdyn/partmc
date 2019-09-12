@@ -796,7 +796,7 @@ contains
     !> Model data
     class(camp_core_t), intent(in) :: this
     !> Aerosol phase name to search for
-    character(len=:), allocatable, intent(in) :: aero_phase_name
+    character(len=*), intent(in) :: aero_phase_name
     !> Pointer to the aerosol phase
     class(aero_phase_data_t), pointer, intent(out) :: aero_phase
 
@@ -866,7 +866,7 @@ contains
     !> Model data
     class(camp_core_t), intent(in) :: this
     !> Mechanism name to search for
-    character(len=:), allocatable, intent(in) :: mech_name
+    character(len=*), intent(in) :: mech_name
     !> Pointer to the mechanism
     type(mechanism_data_t), pointer, intent(out) :: mechanism
 
@@ -894,7 +894,7 @@ contains
     !> Model data
     class(camp_core_t), intent(in) :: this
     !> Sub model name to search for
-    character(len=:), allocatable, intent(in) :: sub_model_name
+    character(len=*), intent(in) :: sub_model_name
     !> Sub model
     class(sub_model_data_t), pointer, intent(out) :: sub_model
 
@@ -1519,7 +1519,7 @@ contains
     !> Model data
     class(camp_core_t), intent(inout) :: this
     !> Aerosol phase name
-    character(len=:), allocatable, intent(in) :: phase_name
+    character(len=*), intent(in) :: phase_name
 
     type(aero_phase_data_ptr), pointer :: new_aero_phase(:)
 
@@ -1543,7 +1543,7 @@ contains
     !> Model data
     class(camp_core_t), intent(inout) :: this
     !> Aerosol representation name
-    character(len=:), allocatable, intent(in) :: rep_name
+    character(len=*), intent(in) :: rep_name
 
     type(aero_rep_data_ptr), pointer :: new_aero_rep(:)
     type(aero_rep_factory_t) :: aero_rep_factory
@@ -1569,7 +1569,7 @@ contains
     !> Model data
     class(camp_core_t), intent(inout) :: this
     !> Mechanism name
-    character(len=:), allocatable, intent(in) :: mech_name
+    character(len=*), intent(in) :: mech_name
 
     type(mechanism_data_ptr), pointer :: new_mechanism(:)
 
@@ -1594,7 +1594,7 @@ contains
     !> Model data
     class(camp_core_t), intent(inout) :: this
     !> Sub model name
-    character(len=:), allocatable, intent(in) :: sub_model_name
+    character(len=*), intent(in) :: sub_model_name
 
     type(sub_model_data_ptr), pointer :: new_sub_model(:)
     type(sub_model_factory_t) :: sub_model_factory

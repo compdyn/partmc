@@ -734,11 +734,11 @@ contains
     !> Aerosol representation data
     class(aero_rep_modal_binned_mass_t), intent(in) :: this
     !> Aerosol phase name
-    character(len=:), allocatable, optional, intent(in) :: phase_name
+    character(len=*), optional, intent(in) :: phase_name
     !> Aerosol-phase species tracer type
     integer(kind=i_kind), optional, intent(in) :: tracer_type
     !> Aerosol-phase species name
-    character(len=:), allocatable, optional, intent(in) :: spec_name
+    character(len=*), optional, intent(in) :: spec_name
 
     integer(kind=i_kind) :: num_spec, i_spec, j_spec, i_phase, j_phase, &
                             i_section, i_bin
@@ -875,7 +875,7 @@ contains
     !> Aerosol representation data
     class(aero_rep_modal_binned_mass_t), intent(in) :: this
     !> Unique name
-    character(len=:), allocatable, intent(in) :: unique_name
+    character(len=*), intent(in) :: unique_name
 
     type(string_t), allocatable, save :: unique_names(:)
     integer(kind=i_kind) :: i_spec
@@ -940,7 +940,7 @@ contains
     !> Aerosol representation data
     class(aero_rep_modal_binned_mass_t), intent(in) :: this
     !> Aerosol phase name
-    character(len=:), allocatable, intent(in) :: phase_name
+    character(len=*), intent(in) :: phase_name
 
     integer(kind=i_kind) :: i_phase
 

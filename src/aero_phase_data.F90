@@ -164,7 +164,7 @@ contains
     !> A new set of aerosol-phase species
     type(aero_phase_data_t), pointer :: new_obj
     !> Name of the aerosol phase
-    character(len=:), allocatable, intent(in), optional :: phase_name
+    character(len=*), intent(in), optional :: phase_name
     !> Number of species to allocate space for initially
     integer(kind=i_kind), intent(in), optional :: init_size
 
@@ -475,7 +475,7 @@ contains
     !> Aerosol phase data
     class(aero_phase_data_t), intent(in) :: this
     !> Name of the species
-    character(len=:), allocatable, intent(in) :: spec_name
+    character(len=*), intent(in) :: spec_name
 
     call assert_msg(163269315, this%find(spec_name).gt.0, &
             "Species '"//spec_name//"' is not in aerosol phase '"// &
@@ -629,7 +629,7 @@ contains
     !> Aerosol phase data
     class(aero_phase_data_t), intent(inout) :: this
     !> Name of the species to add
-    character(len=:), allocatable, intent(in) :: spec_name
+    character(len=*), intent(in) :: spec_name
 
     integer(kind=i_kind) :: i_spec
 
@@ -655,7 +655,7 @@ contains
     !> Aerosol phase data
     class(aero_phase_data_t), intent(in) :: this
     !> Species name
-    character(len=:), allocatable, intent(in) :: spec_name
+    character(len=*), intent(in) :: spec_name
 
     integer(kind=i_kind) :: i_spec
 

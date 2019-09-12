@@ -120,7 +120,7 @@ contains
     !> Chemical mechanism
     type(mechanism_data_t), pointer :: new_obj
     !> Name of the mechanism
-    character(len=:), allocatable, intent(in), optional :: mech_name
+    character(len=*), intent(in), optional :: mech_name
     !> Number of reactions to allocate space for initially
     integer(i_kind), intent(in), optional :: init_size
 

@@ -380,7 +380,7 @@ contains
     !> Species dataset
     class(chem_spec_data_t), intent(in) :: this
     !> Species name
-    character(len=:), allocatable, intent(in) :: spec_name
+    character(len=*), intent(in) :: spec_name
 
     ! Index of species
     integer(kind=i_kind) :: i_spec
@@ -474,7 +474,7 @@ contains
     !> Species dataset
     class(chem_spec_data_t), intent(in) :: this
     !> Species name to find properties of
-    character(len=:), allocatable, intent(in) :: spec_name
+    character(len=*), intent(in) :: spec_name
     !> Species type
     integer(kind=i_kind), intent(out) :: spec_type
 
@@ -496,7 +496,7 @@ contains
     !> Species dataset
     class(chem_spec_data_t), intent(in) :: this
     !> Species name to find properties of
-    character(len=:), allocatable, intent(in) :: spec_name
+    character(len=*), intent(in) :: spec_name
     !> Species phase
     integer(kind=i_kind), intent(out) :: spec_phase
 
@@ -518,7 +518,7 @@ contains
     !> Species dataset
     class(chem_spec_data_t), intent(in) :: this
     !> Species name
-    character(len=:), allocatable, intent(in) :: spec_name
+    character(len=*), intent(in) :: spec_name
     !> Absolute integration tolerance
     real(kind=dp), intent(out) :: abs_tol
 
@@ -551,7 +551,7 @@ contains
     !> Species dataset
     class(chem_spec_data_t), intent(in) :: this
     !> Species name
-    character(len=:), allocatable, intent(in) :: spec_name
+    character(len=*), intent(in) :: spec_name
 
     integer(kind=i_kind) :: i_spec
 
@@ -714,7 +714,7 @@ contains
     !> Species dataset
     class(chem_spec_data_t), intent(inout) :: this
     !> Name of species to add
-    character(len=:), allocatable, intent(in) :: spec_name
+    character(len=*), intent(in) :: spec_name
     !> State variable type
     integer(kind=i_kind), intent(inout) :: spec_type
     !> Species phase

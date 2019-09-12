@@ -74,7 +74,7 @@ contains
     !> Sub-model factory
     class(sub_model_factory_t), intent(in) :: this
     !> Type of the sub-model
-    character(len=:), allocatable :: type_name
+    character(len=*), intent(in) :: type_name
 
     new_obj => null()
 

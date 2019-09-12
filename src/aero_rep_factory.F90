@@ -250,7 +250,7 @@ contains
     !> Aerosol representation factory
     class(aero_rep_factory_t), intent(in) :: this
     !> Name of the aerosol representation
-    character(len=:), allocatable, intent(in) :: type_name
+    character(len=*), intent(in) :: type_name
 
     new_obj => null()
 

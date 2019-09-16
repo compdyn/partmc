@@ -14,7 +14,6 @@ extern "C"{
 #include <stdlib.h>
 #include "../rxns_gpu.h"
 
-// TODO Lookup environmental indices during initialization
 #define TEMPERATURE_K_ env_data[0]
 #define PRESSURE_PA_ env_data[1]
 
@@ -106,7 +105,6 @@ __device__ void rxn_gpu_ZSR_aerosol_water_update_env_state(double *rate_constant
 
   // Calculate PPM_TO_RH_
   // From MOSAIC code - reference to Seinfeld & Pandis page 181
-  // TODO Figure out how to have consistent RH<->ppm conversions
   double t_steam = 373.15; 		// steam temperature (K)
   double a = 1.0 - t_steam/TEMPERATURE_K_;
 

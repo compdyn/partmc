@@ -31,7 +31,7 @@ program mock_monarch
   !> Number of total species in mock MONARCH
   integer, parameter :: NUM_MONARCH_SPEC = 800
   !> Number of vertical cells in mock MONARCH
-  integer, parameter :: NUM_VERT_CELLS = 5
+  integer, parameter :: NUM_VERT_CELLS = 15
   !> Starting W-E cell for camp-chem call
   integer, parameter :: I_W = 1
   !> Ending W-E cell for camp-chem call
@@ -57,8 +57,8 @@ program mock_monarch
   !> Start time
   real, parameter :: START_TIME = 360.0
   !> Number of cells to compute simultaneously
-  !integer :: n_cells = 1
-  integer :: n_cells = (I_E - I_W+1)*(I_N - I_S+1)*NUM_VERT_CELLS
+  integer :: n_cells = 1
+  !integer :: n_cells = (I_E - I_W+1)*(I_N - I_S+1)*NUM_VERT_CELLS
   !> Check multiple cells results are correct?
   logical :: check_multiple_cells = .false.
 
@@ -120,10 +120,6 @@ program mock_monarch
   ! initialize mpi (to take the place of a similar MONARCH call)
   call pmc_mpi_init()
 
-  !Cells to solve simultaneously
-  !n_cells = (I_E - I_W+1)*(I_N - I_S+1)*NUM_VERT_CELLS
-  !n_cells = 1
-
   !Check if repeat program to compare n_cells=1 with n_cells=N
   if(check_multiple_cells) then
     pmc_cases=2
@@ -171,7 +167,6 @@ program mock_monarch
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       ! **** Add to MONARCH during runtime for each time step **** !
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
 
       call output_results(curr_time)
       call pmc_interface%integrate(curr_time,         & ! Starting time (min)
@@ -236,6 +231,11 @@ program mock_monarch
             plot_start_time, curr_time)
   end if
 
+  !#ifdef DEBUG
+  print*, "SPECIES CONC", species_conc(:,1,1,100)
+  print*, "SPECIES CONC COPY", species_conc_copy(:,1,1,100)
+  !#endif
+
   !TODO: Compare evaluations, the following is not working, should be revised
   ! The evaluation is based on a run with reasonable seeming values and
   ! few solver modifications. It is used to make sure future modifications
@@ -285,9 +285,6 @@ contains
     file_name = file_prefix//"_results.txt"
     open(RESULTS_FILE_UNIT, file=file_name, status="replace", action="write")
 
-    ! Open the compare file
-!    file_name = file_prefix//"_comp.txt"
-!    open(COMPARE_FILE_UNIT, file=file_name, action="read")
 
     ! TODO refine initial model conditions
     temperature(:,:,:) = 300.614166259766
@@ -298,7 +295,6 @@ contains
     pressure(:,:,:) = 94165.7187500000
 
     !Initialize different axis values
-    !TODO: Varying the pressure is not affecting the system, is that normal?
     ! The last loop overwrites entirely the values set by the first two loops
 
     do i=I_W, I_E

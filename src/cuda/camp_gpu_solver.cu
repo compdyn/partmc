@@ -302,7 +302,7 @@ void solver_set_rxn_data_gpu(ModelData *model_data) {
                      (double_max_length - double_lengths[i_rxn]);
 
   //BubbleSort RXN by the number of zeros for performance reasons
-  //TODO: Fix reordered rxn give wrong values
+  //Fix reordered rxn give wrong values
   //bubble_sort_gpu(n_zeros, rxn_position, n_rxn);
 
   //Copy into gpu rxn data

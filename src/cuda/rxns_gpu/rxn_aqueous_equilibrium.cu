@@ -16,7 +16,6 @@ extern "C"{
 #include <stdlib.h>
 #include "../rxns_gpu.h"
 
-// TODO Lookup environmental indices during initialization
 #define TEMPERATURE_K_ env_data[0]
 #define PRESSURE_PA_ env_data[1]
 
@@ -159,7 +158,7 @@ void * rxn_gpu_aqueous_equilibrium_update_ids(ModelData *model_data, int *deriv_
   }
 
   // Calculate a small concentration for aerosol-phase species based on the
-  // integration tolerances to use during solving. TODO find a better place
+  // integration tolerances to use during solving.
   // to do this
   double *abs_tol = model_data->abs_tol;
   for (int i_phase = 0; i_phase < NUM_AERO_PHASE_; i_phase++ ) {
@@ -179,7 +178,7 @@ void * rxn_gpu_aqueous_equilibrium_update_ids(ModelData *model_data, int *deriv_
   }
 
   // Calculate a small concentration for aerosol-phase water based on the
-  // integration tolerances to use during solving. TODO find a better place
+  // integration tolerances to use during solving.
   // to do this
   for (int i_phase = 0; i_phase < NUM_AERO_PHASE_; i_phase++) {
     SMALL_WATER_CONC_(i_phase) = abs_tol[WATER_(i_phase)] / 10.0;
@@ -247,7 +246,6 @@ void * rxn_gpu_aqueous_equilibrium_pre_calc(ModelData *model_data, void *rxn_dat
  * \param time_step Current time step of the itegrator (s)
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-//TODO: Dont work properly in tests, fix it
 #ifdef PMC_USE_SUNDIALS
 __device__ void rxn_gpu_aqueous_equilibrium_calc_deriv_contrib(double *rate_constants, double *state,
           double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step, int n_rxn2)
@@ -303,8 +301,6 @@ __device__ void rxn_gpu_aqueous_equilibrium_calc_deriv_contrib(double *rate_cons
     if (ACTIVITY_COEFF_(i_phase)>=0) reverse_rate *=
             state[ACTIVITY_COEFF_(i_phase)];
 
-    //TODO: Comment this to guillermo, that move this into previous loop make it crash when acces
-    // doesnt depend on declare state with memcpy or in host
     for (int i_prod = 0; i_prod < NUM_PROD_; i_prod++) reverse_rate /= state[WATER_(i_phase)];
 
     // Slow rates as concentrations become low

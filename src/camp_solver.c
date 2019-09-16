@@ -727,7 +727,7 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
       for (int i_cell=0; i_cell < md->n_cells; ++i_cell) {
         printf("\n Cell: %d ");
         printf("temp = %le pressure = %le\n", env[i_cell*PMC_NUM_ENV_PARAM_],
-               env[i_cell*NUM_ENV_PARAM_+1]);
+               env[i_cell*PMC_NUM_ENV_PARAM_+1]);
         for (int i_spec=0, i_dep_var=0; i_spec<md->n_per_cell_state_var; i_spec++)
           if (md->var_type[i_spec]==CHEM_SPEC_VARIABLE) {
             printf("spec %d = %le deriv = %le\n", i_spec,

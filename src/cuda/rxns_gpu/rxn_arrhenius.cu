@@ -14,8 +14,6 @@ extern "C"{
 #include <stdlib.h>
 #include "../rxns_gpu.h"
 
-// TODO Lookup environmental indices during initialization
-
 #define TEMPERATURE_K_ env_data[0]
 #define PRESSURE_PA_ env_data[1]
 
@@ -183,39 +181,6 @@ __device__ void rxn_gpu_arrhenius_calc_deriv_contrib(double *rate_constants, dou
       }
     }
   }
-  
-/*
- //TODO: Traduction of the data read. As we can see, is a mess with some hardcoded values.
- //RXN structure should be improve
-
- // Calculate the reaction rate
-    double rate = float_data[6*n_rxn];
-    for (int i_spec=0; i_spec<int_data[0]; i_spec++) rate *= state[int_data[(2 + i_spec)*n_rxn]-1];
-
-    // Add contributions to the time derivative
-    if (rate!=ZERO) {
-      //atomicAdd(&(deriv[int_data[(2 + int_data[0] + int_data[1*n_rxn] )*n_rxn]]),-rate);
-
-      int i_dep_var = 0;
-      for (int i_spec=0; i_spec<int_data[0]; i_spec++, i_dep_var++) {
-        if (int_data[(2 + int_data[0] + int_data[1*n_rxn] + i_dep_var)*n_rxn] < 0) continue;
-        //deriv[DERIV_ID_(i_dep_var)] -= rate;
-        atomicAdd(&(deriv[int_data[(2 + int_data[0] + int_data[1*n_rxn] + i_dep_var)*n_rxn]]),-rate);
-      }
-      for (int i_spec=0; i_spec<int_data[1*n_rxn]; i_spec++, i_dep_var++) {
-        if (int_data[(2 + int_data[0] + int_data[1*n_rxn] + i_dep_var)*n_rxn] < 0) continue;
-
-        // Negative yields are allowed, but prevented from causing negative
-        // concentrations that lead to solver failures
-        if (-rate*float_data[(7 + i_spec)*n_rxn]*time_step <=
-        state[int_data[(2 + int_data[0] + i_spec)*n_rxn]-1]) {
-          //deriv[DERIV_ID_(i_dep_var)] += rate*YIELD_(i_spec);
-          atomicAdd(&(deriv[int_data[(2 + int_data[0] + int_data[1*n_rxn] + i_dep_var)*n_rxn]]),
-                  rate*float_data[(7 + i_spec)*n_rxn]);
-        }
-    }
-  }
-*/
 
 }
 #endif

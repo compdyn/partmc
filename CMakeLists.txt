@@ -11,6 +11,19 @@ set(PACKAGE_STRING "PartMC 2.4.0")
 set(PACKAGE_TARNAME "partmc")
 set(PACKAGE_VERSION "2.4.0")
 
+if ( "${CMAKE_SYSTEM_NAME}" MATCHES "Darwin" )
+  set ( ENABLE_DYLIBS_USE_RPATH TRUE CACHE BOOL
+    "Enable @rpath install name for dylibs" )
+  mark_as_advanced ( ENABLE_DYLIBS_USE_RPATH )
+endif ()
+
+if ( ENABLE_DYLIBS_USE_RPATH )
+  set ( CMAKE_MACOSX_RPATH TRUE )
+else ()
+  set ( CMAKE_INSTALL_NAME_DIR
+    "${CMAKE_INSTALL_FULL_LIBDIR}" )
+endif ()
+
 ######################################################################
 # options
 
@@ -521,7 +534,7 @@ else()
   set(CAMP_CUDA_SRC "")
 endif()
 
-add_library(partmclib src/aero_state.F90 src/integer_varray.F90
+set(PARTMC_LIB_SRC src/aero_state.F90 src/integer_varray.F90
   src/integer_rmap.F90 src/integer_rmap2.F90 src/aero_sorted.F90
   src/aero_binned.F90 src/bin_grid.F90 src/constants.F90
   src/scenario.F90 src/env_state.F90 src/aero_mode.F90
@@ -546,10 +559,29 @@ add_library(partmclib src/aero_state.F90 src/integer_varray.F90
   ${CAMP_C_SRC} ${AEROSOL_REPS_SRC} ${SUB_MODELS_SRC} ${REACTIONS_SRC}
   ${SUNDIALS_SRC} ${GSL_SRC} ${C_SORT_SRC} ${CAMP_CUDA_SRC} ${CAMP_CXX_SRC} )
 
+add_library(partmclib SHARED ${PARTMC_LIB_SRC})
+add_library(partmclib-static STATIC ${PARTMC_LIB_SRC})
+
 target_link_libraries(partmclib ${NETCDF_LIBS} ${SUNDIALS_LIBS}
   ${MOSAIC_LIB} ${GSL_LIBS} ${JSON_LIB})
+target_link_libraries(partmclib-static ${NETCDF_LIBS} ${SUNDIALS_LIBS}
+  ${MOSAIC_LIB} ${GSL_LIBS} ${JSON_LIB})
 
-set_target_properties(partmclib PROPERTIES OUTPUT_NAME partmc)
+set ( MODULE_DIR "${CMAKE_BINARY_DIR}/include" )
+
+set_target_properties(partmclib PROPERTIES
+                         OUTPUT_NAME partmc
+                         PREFIX lib
+                         VERSION ${PACKAGE_VERSION}
+                         SOVERSION ${PACKAGE_VERSION}
+                         LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib
+                         Fortran_MODULE_DIRECTORY ${CMAKE_BINARY_DIR})
+set_target_properties(partmclib-static PROPERTIES
+                         OUTPUT_NAME partmc
+                         PREFIX lib
+                         VERSION ${PACKAGE_VERSION}
+                         ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib
+                         Fortran_MODULE_DIRECTORY ${MODULE_DIR})
 
 ######################################################################
 # partmc executable
@@ -557,6 +589,23 @@ set_target_properties(partmclib PROPERTIES OUTPUT_NAME partmc)
 add_executable(partmc src/partmc.F90)
 
 target_link_libraries(partmc partmclib)
+
+######################################################################
+# Install options
+
+include(GNUInstallDirs)
+install(TARGETS partmclib partmclib-static
+        EXPORT partmclib-targets
+        LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+        ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+       )
+
+set(MOD_DIR_TO_INSTALL "${MODULE_DIR}")
+set(MOD_DESTINATION_DIR "${CMAKE_INSTALL_INCLUDEDIR}")
+install(
+  CODE "file(GLOB_RECURSE MODULE_FILES \"${MOD_DIR_TO_INSTALL}/*.mod\")"
+  CODE "file(INSTALL \${MODULE_FILES} DESTINATION \"\${CMAKE_INSTALL_PREFIX}/${MOD_DESTINATION_DIR}\")"
+  )
 
 ######################################################################
 # camp-chem box model

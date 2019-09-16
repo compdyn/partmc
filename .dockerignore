@@ -8,6 +8,7 @@
 !test/
 !tool/
 !mechanisms/
+!doc/
 !cvode*.tar.gz
 
 # scenarios are whitelisted, but out/ subdirs are blacklisted again

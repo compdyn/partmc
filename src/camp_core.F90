@@ -81,13 +81,10 @@
 !! "sub-model(s)". A description of the input files required for a PartMC run
 !! can be found \ref input_format "here".
 !!
-!! ## CAMP-chem in another host model ##
+!! ## CAMP in another host model ##
 !!
-!! Incorporating \ref camp_chem "CAMP" into another host
-!! model can be done in the following steps:
-!!
-!! TODO: Finish
-!!
+!! Follow the \ref camp_tutorial "Boot CAMP" tutorial to see how to
+!! integrate CAMP into your favorite model!
 
 !> The camp_core_t structure and associated subroutines.
 module pmc_camp_core

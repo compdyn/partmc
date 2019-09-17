@@ -1,5 +1,5 @@
 {
 	"pmc-files" : [
-		"input_files/arrhenius.json"
+		"../input_files/arrhenius.json"
 	]
 }

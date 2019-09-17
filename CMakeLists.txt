@@ -236,8 +236,7 @@ endif()
 if (ENABLE_TESTS)
     if (ENABLE_JSON AND ENABLE_SUNDIALS)
       # New unit tests (UNDER DEVELOPMENT)
-      #add_test(test_unit_rxn_arrhenius ${CMAKE_BINARY_DIR}/test_run/unit_tests/rxns/arrhenius.sh ${MPI_TEST_FLAG})
-      add_test(unit_test_driver ${CMAKE_BINARY_DIR}/test_run/unit_tests/unit_test_driver.sh ${MPI_TEST_FLAG})
+      add_test(unit_test_rxn_arrhenius ${CMAKE_BINARY_DIR}/test_run/unit_tests/rxns/arrhenius.sh ${MPI_TEST_FLAG})
 
       # Old-style unit tests
       add_test(test_rxn_aqueous_equilibrium ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_aqueous_equilibrium.sh ${MPI_TEST_FLAG})
@@ -632,11 +631,19 @@ set_source_files_properties(${CB5_EBI_SOLVER} PROPERTIES COMPILE_FLAGS
 #add_executable(unit_test_rxn_arrhenius ${UNIT_TEST_RXN_ARRHENIUS_SRC})
 #target_link_libraries(unit_test_rxn_arrhenius partmclib)
 
-add_executable(unit_test_driver test/unit_tests/unit_test_driver.F90
+#test_unit_rxn_arrhenius
+
+add_executable(unit_test_rxn_arrhenius test/unit_tests/rxns/unit_test_rxn_arrhenius.F90
         test/unit_tests/unit_test_data.F90
-        test/unit_tests/rxns/unit_test_rxn_arrhenius.F90
+        test/unit_tests/unit_test_driver.F90
                 )
-target_link_libraries(unit_test_driver partmclib)
+target_link_libraries(unit_test_rxn_arrhenius partmclib)
+
+#add_executable(unit_test_driver test/unit_tests/unit_test_driver.F90
+#        test/unit_tests/unit_test_data.F90
+#        test/unit_tests/rxns/unit_test_rxn_arrhenius.F90
+#                )
+#target_link_libraries(unit_test_driver partmclib)
 
 ######################################################################
 # test_chemistry_cb05cl_ae5_big

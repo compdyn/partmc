@@ -479,7 +479,7 @@ contains
             ! Update the environmental state
             this%camp_state%env_state%temp = temperature(i,j,k_flip)
             this%camp_state%env_state%pressure = pressure(i,k,j)
-            call this%camp_state%update_env_state(z+1)
+            call this%camp_state%update_env_state(z+1) !+1 because z starts on 0
 
             !Reset state conc
             this%camp_state%state_var(this%map_camp_id(:) + &

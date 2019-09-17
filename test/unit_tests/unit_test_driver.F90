@@ -37,9 +37,6 @@ module pmc_unit_test_driver
 
   public :: unit_test_driver_t
 
-  !Test mapping
-  integer(kind=i_kind), parameter :: ARRHENIUS = 1
-
   ! Number of grid cells to solve
   integer(kind=i_kind), parameter :: N_CELLS = 1
   integer(kind=i_kind), parameter :: NUM_TIME_STEP = 20
@@ -54,10 +51,10 @@ module pmc_unit_test_driver
 
     integer(kind=i_kind) :: size_state_per_cell
     integer(kind=i_kind) :: state_id
-    real(kind=dp) :: time_step = 1.0
 
   contains
     procedure :: init_test
+    procedure :: solve_and_compare
 
   end type unit_test_driver_t
 
@@ -138,28 +135,63 @@ contains
       this%state_cells(state_id) = state(i_key)
     end do
 
-    !Assignments n cells
-
+    !Assignments multiple cells
     do i_cell=1, N_CELLS
 
       !TODO: Choose offsets for different cell values
 
-      this%state_cells = this%state_cells !+ OFFSET_CELL_STATE*i_cell
+      !Set state
+      do i_key = 1, this%size_state_per_cell
+        this%state_cells(this%size_state_per_cell*(i_cell-1) + i_key) = &
+          this%state_cells(i_key) !+ OFFSET_CELL_STATE*(i_cell-1)
+
+      end do
+      camp_state%state_var(:) = this%state_cells(:)
 
       ! Set the environmental conditions
-      camp_state%env_state%temp = temp !+ OFFSET_CELL_TEMP*i_cell
-      camp_state%env_state%pressure = pressure !+ OFFSET_CELL_PRESSURE*i_cell
+      camp_state%env_state%temp = temp !+ OFFSET_CELL_TEMP*(i_cell-1)
+      camp_state%env_state%pressure = pressure !+ OFFSET_CELL_PRESSURE*(i_cell-1)
       call camp_state%update_env_state(i_cell)
 
     end do
 
-
     print*, this%state_cells
-
-
 
   end subroutine init_test
 
+
+  subroutine solve_and_compare(this, time_step, state_analytic)
+
+    class(unit_test_driver_t), intent(inout) :: this
+    real(kind=dp) :: time_step
+    real(kind=dp) :: state_analytic(this%size_state_per_cell)
+    integer(kind=i_kind) :: i_key, i_cell, state_id
+
+    call camp_core%solve(camp_state, &
+            real(time_step, kind=dp), solver_stats = solver_stats)
+
+    !Compare
+
+    do i_cell=1, N_CELLS
+      do i_key=1, this%size_state_per_cell
+
+        call assert_msg(848069355, &
+        almost_equal(camp_state%state_var(i_key), &
+        state_analytic(i_key), real(1.0e-2, kind=dp)) &
+        !TODO: This checking of model_conc on time_step 1 is need?
+        !If yes, save it in an aux_state variable
+        !.or.(state(i_key).lt.1e-5*model_conc(1, i_spec).and. &
+        !true_conc(i_time, i_spec).lt.1e-5*true_conc(1, i_spec)) &
+        ,"time: "//trim(to_string(time_step))//"; species: "// &
+        trim(to_string(i_key))//"; mod: "// &
+        trim(to_string(camp_state%state_var(i_key)))//"; true: "// &
+        trim(to_string(state_analytic(i_key))))
+
+      end do
+    end do
+
+
+  end subroutine solve_and_compare
 
 end module pmc_unit_test_driver
 

@@ -16,19 +16,21 @@ program unit_test_rxn_arrhenius
   !> Number of available initial states
   integer(kind=i_kind), parameter :: NUM_INIT_STATES = 5
   integer(kind=i_kind), parameter :: SIZE_STATE = 4
+  integer(kind=i_kind), parameter :: NUM_TIME_STEP = 20
   character(len=200), dimension(SIZE_STATE) :: keys
   character(len=:), allocatable :: input_file_path
 
 
   real(kind=dp) :: k1, k2, conc_D
-  real(kind=dp) :: time_step !todo is need?
+  real(kind=dp) :: time_step = 1.0
 
   real(kind=dp) :: state(SIZE_STATE)
-  integer(kind=dp) :: state_id(SIZE_STATE)
+  real(kind=dp) :: state_analytic(SIZE_STATE)
 
   !Environment variables
   real(kind=dp) :: temp, pressure
   real(kind=dp) :: conv
+  integer(kind=i_kind) :: i_time, time
 
   type(unit_test_driver_t), pointer :: test_driver
 
@@ -47,8 +49,8 @@ program unit_test_rxn_arrhenius
   k2 = 21.0d0 * exp( -4000.0d0/temp ) * (temp/315.0d0)**(11.0d0) * &
           (1.0d0 + 0.05d0 * pressure)
 
+  !TODO: Define id_A->1, id_B -> 2... to easier reading
   ! Species names
-  !TODO: pass one by one throught test_driver or something like that
   keys(1) = "A"
   keys(2) = "B"
   keys(3) = "C"
@@ -60,13 +62,30 @@ program unit_test_rxn_arrhenius
   state(3) = 0.0
   state(4) = conc_D
 
-  !test_driver%size_state_per_cell = SIZE_STATE
-
   test_driver => unit_test_driver_t(size_state)
 
   call test_driver%init_test(input_file_path, state, temp, pressure, keys)
 
+  !todo: we can get the time_step from unit_test_driver
+  do i_time=1, NUM_TIME_STEP
+
+    ! Get the analytic conc
+    time = i_time * time_step
+    state_analytic(1) = state(1) * exp(-(k1)*time)
+    state_analytic(2) = state(1) * (k1/(k2-k1)) * &
+            (exp(-k1*time) - exp(-k2*time))
+    state_analytic(3) = state(1) * &
+            (1.0 + (k1*exp(-k2*time) - k2*exp(-k1*time))/(k2-k1))
+    state_analytic(4) = state(4)
+
+    call test_driver%solve_and_compare(time_step, state_analytic)
+
+  end do
+
+  !call deallocate_data()
+
   !check if correct and enjoy :)
+
 
 
 

@@ -220,6 +220,8 @@ module pmc_aero_rep_modal_binned_mass
   contains
     !> Update the GMD
     procedure :: set_GMD => update_data_set_GMD
+    !> Check whether the update data object is attached to an aerosol rep
+    procedure :: is_attached => update_data_is_attached_GMD
     !> Determine the pack size of the local update data
     procedure :: internal_pack_size => internal_pack_size_GMD
     !> Pack the local update data to a binary
@@ -241,6 +243,8 @@ module pmc_aero_rep_modal_binned_mass
   contains
     !> Update the GSD
     procedure :: set_GSD => update_data_set_GSD
+    !> Check whether the update data object is attached to an aerosol rep
+    procedure :: is_attached => update_data_is_attached_GSD
     !> Determine the pack size of the local update data
     procedure :: internal_pack_size => internal_pack_size_GSD
     !> Pack the local update data to a binary
@@ -1063,6 +1067,18 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Check whether the update data object is attached to an aerosol rep
+  logical function update_data_is_attached_GMD(this) result(is_attached)
+
+    !> Update data
+    class(aero_rep_update_data_modal_binned_mass_GMD_t), intent(in) :: this
+
+    is_attached = this%is_malloced .and. this%aero_rep_unique_id.gt.0
+
+  end function update_data_is_attached_GMD
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Determine the size of a binary required to pack the reaction data
   integer(kind=i_kind) function internal_pack_size_GMD(this, comm) &
       result(pack_size)
@@ -1187,6 +1203,18 @@ contains
             this%aero_rep_unique_id, section_id-1, GSD)
 
   end subroutine update_data_set_GSD
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Check whether the update data object is attached to an aerosol rep
+  logical function update_data_is_attached_GSD(this) result(is_attached)
+
+    !> Update data
+    class(aero_rep_update_data_modal_binned_mass_GSD_t), intent(in) :: this
+
+    is_attached = this%is_malloced .and. this%aero_rep_unique_id.gt.0
+
+  end function update_data_is_attached_GSD
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

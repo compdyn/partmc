@@ -134,6 +134,8 @@ module pmc_sub_model_data
     procedure :: bin_pack => sub_model_update_data_bin_pack
     !> Unpacks the given value from the buffer, advancing position
     procedure :: bin_unpack => sub_model_update_data_bin_unpack
+    !> Check whether the update data is attached to a sub model
+    procedure(is_attached), deferred :: is_attached
     !> Extending type pack size (internal use only)
     procedure(internal_pack_size), deferred :: internal_pack_size
     !> Extending type bin pack (internal use only)
@@ -171,6 +173,17 @@ interface
     type(chem_spec_data_t), intent(in) :: chem_spec_data
 
   end subroutine initialize
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Check whether the update data is attached to a sub model
+  logical function is_attached(this)
+      import :: sub_model_update_data_t
+
+      !> Sub model update data
+      class(sub_model_update_data_t), intent(in) :: this
+
+  end function is_attached
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

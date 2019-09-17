@@ -170,6 +170,8 @@ module pmc_aero_rep_data
     procedure :: bin_pack => aero_rep_update_data_bin_pack
     !> Unpacks the given value from the buffer, advancing position
     procedure :: bin_unpack => aero_rep_update_data_bin_unpack
+    !> Check whether the update data is attached to an aerosol rep
+    procedure(is_attached), deferred :: is_attached
     !> Extending type pack size (internal use only)
     procedure(internal_pack_size), deferred :: internal_pack_size
     !> Extending type bin pack (internal use only)
@@ -205,6 +207,17 @@ interface
     integer(kind=i_kind), intent(in) :: spec_state_id
 
   end subroutine initialize
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Check whether the update data is attached to an aerosol representation
+  logical function is_attached(this)
+      import :: aero_rep_update_data_t
+
+      !> Aerosol representation update data
+      class(aero_rep_update_data_t), intent(in) :: this
+
+  end function is_attached
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

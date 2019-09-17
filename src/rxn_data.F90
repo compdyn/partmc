@@ -176,6 +176,9 @@ module pmc_rxn_data
     procedure :: bin_pack => rxn_update_data_bin_pack
     !> Unpacks the given value from the buffer, advancing position
     procedure :: bin_unpack => rxn_update_data_bin_unpack
+    !> Check whether the update data is attached to a reaction or set of
+    !! reactions
+    procedure(is_attached), deferred :: is_attached
     !> Extending type pack size (internal use only)
     procedure(internal_pack_size), deferred :: internal_pack_size
     !> Extending type bin pack (internal use only)
@@ -211,6 +214,18 @@ interface
     integer(kind=i_kind), intent(in) :: n_cells
 
   end subroutine initialize
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Check whether the update data is attached to a reaction or set of
+  !! reactions
+  logical function is_attached(this)
+      import :: rxn_update_data_t
+
+      !> Reaction data
+      class(rxn_update_data_t), intent(in) :: this
+
+  end function is_attached
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

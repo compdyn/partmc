@@ -118,6 +118,8 @@ public :: rxn_photolysis_t, rxn_update_data_photolysis_t
   contains
     !> Update the rate data
     procedure :: set_rate => update_data_rate_set
+    !> Check whether the update data object is attached to reaction
+    procedure :: is_attached
     !> Determine the pack size of the local update data
     procedure :: internal_pack_size
     !> Pack the local update data to a binary
@@ -379,6 +381,18 @@ contains
     update_data%is_malloced = .true.
 
   end subroutine update_data_initialize
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Check whether the update data object is attached to a reaction
+  logical function is_attached(this)
+
+    !> Reaction update data
+    class(rxn_update_data_photolysis_t), intent(in) :: this
+
+    is_attached = this%is_malloced .and. this%rxn_unique_id.gt.0
+
+  end function is_attached
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

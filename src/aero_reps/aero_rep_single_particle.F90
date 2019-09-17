@@ -150,6 +150,8 @@ module pmc_aero_rep_single_particle
   contains
     !> Update the radius
     procedure :: set_radius => update_data_set_radius
+    !> Check whether the update data object is attached to an aerosol rep
+    procedure :: is_attached => update_data_is_attached_radius
     !> Determine the pack size of the local update data
     procedure :: internal_pack_size => internal_pack_size_radius
     !> Pack the local update data to a binary
@@ -171,6 +173,8 @@ module pmc_aero_rep_single_particle
   contains
     !> Update the number
     procedure :: set_number => update_data_set_number
+    !> Check whether the update data object is attached to an aerosol rep
+    procedure :: is_attached => update_data_is_attached_number
     !> Determine the pack size of the local update data
     procedure :: internal_pack_size => internal_pack_size_number
     !> Pack the local update data to a binary
@@ -607,6 +611,18 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Check whether the update data object is attached to an aerosol rep
+  logical function update_data_is_attached_radius(this) result(is_attached)
+
+    !> Update data
+    class(aero_rep_update_data_single_particle_radius_t), intent(in) :: this
+
+    is_attached = this%is_malloced .and. this%aero_rep_unique_id.gt.0
+
+  end function update_data_is_attached_radius
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Determine the size of a binary required to pack the reaction data
   integer(kind=i_kind) function internal_pack_size_radius(this, comm) &
       result(pack_size)
@@ -732,6 +748,18 @@ contains
             this%aero_rep_unique_id, number_conc)
 
   end subroutine update_data_set_number
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Check whether the update data object is attached to an aerosol rep
+  logical function update_data_is_attached_number(this) result(is_attached)
+
+    !> Update data
+    class(aero_rep_update_data_single_particle_number_t), intent(in) :: this
+
+    is_attached = this%is_malloced .and. this%aero_rep_unique_id.gt.0
+
+  end function update_data_is_attached_number
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

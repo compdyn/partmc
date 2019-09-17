@@ -15,6 +15,10 @@
 !!
 !! Model code described in Boot CAMP can be found in
 !! \c doc/camp_tutorial .
+!!
+!! If you have Docker installed and want to quickly run the code
+!! described in the tutorial, instructions are included at the bottom of
+!! sections of the tutorial that include executable code.
 
 !> \page camp_tutorial_part_1 Boot CAMP: Part 1 - Box Model
 !!
@@ -123,7 +127,9 @@
 !! The \ref pmc_camp_core::solve "solve()" function advances the model
 !! state stored in \c camp_state
 !! by solving the chemistry over the time step specified in the
-!! second argument (in this case, 0.01 s). Deallocating the \c camp_core
+!! second argument. We're keeping the time step small (\f$10^{-15}\f$ s)
+!! for now so we have something interesting to plot from these very fast
+!! reactions. Deallocating the \c camp_core
 !! and \c camp_state pointers releases all the memory associated with
 !! CAMP.
 !!
@@ -133,7 +139,10 @@
 !!
 !! The full box model code can be found in
 !! `\doc\camp_tutorial\part_1_code`.
-
+!!
+!! <hr>
+!! <b> || </b> \ref camp_tutorial "Index" <b> || Next: </b>
+!! \ref camp_tutorial_part_2 <b> > </b>
 
 ! ***********************************************************************
 ! ***********************************************************************
@@ -221,26 +230,31 @@
 !! We'll start off wth a single file that describes our mechanism,
 !! \c my_simple_mechanism.json. The order of model elements in
 !! the \b pmc-data array is arbitrary. We'll start with chemical
-!! species. In our first mechanism, we'll just have four: \f$\ce{O3}\f$,
-!! \f$\ce{NO}\f$, \f$\ce{NO2}\f$ and \f$\ce{O2}\f$. The input data for
+!! species. In our first mechanism, we'll just have five: \f$\ce{O3}\f$,
+!! \f$\ce{NO}\f$, \f$\ce{NO2}\f$, \f$\ce{O2}\f$ and \f$\ce{O}\f$.
+!! The input data for
 !! these gas-phase species in the \b pmc-data array is:
 !! \code{.json}
 !!     {
 !!       "name" : "O3",
-!!       "type" : "CHEM_SPEC",
+!!       "type" : "CHEM_SPEC"
 !!     },
 !!     {
 !!       "name" : "NO",
-!!       "type" : "CHEM_SPEC",
+!!       "type" : "CHEM_SPEC"
 !!     },
 !!     {
 !!       "name" : "NO2",
-!!       "type" : "CHEM_SPEC",
+!!       "type" : "CHEM_SPEC"
 !!     },
 !!     {
 !!       "name" : "O2",
-!!       "type" : "CHEM_SPEC",
-!!     }
+!!       "type" : "CHEM_SPEC"
+!!     },
+!!     {
+!!       "name" : "O",
+!!       "type" : "CHEM_SPEC"
+!!     },
 !! \endcode
 !! All CAMP model elements must have a unique name that is chosen by the
 !! user and a type that must be one of a set of CAMP data types. For
@@ -314,7 +328,11 @@
 !!
 !! The full configuration and mechanism \c json files described in the
 !! part of the tutorial can be found in \c /doc/camp_tutorial/part_2_code.
-
+!!
+!! <hr>
+!! <b> < Previous: </b> \ref camp_tutorial_part_1
+!! <b> || </b> \ref camp_tutorial "Index" <b> || Next: </b>
+!! \ref camp_tutorial_part_3 <b> > </b>
 
 ! ***********************************************************************
 ! ***********************************************************************
@@ -364,7 +382,8 @@
 !! the available functions, see \ref pmc_property. The last step is to
 !! fix our \ref pmc_rxn_photolysis::rxn_update_data_photolysis_t
 !! "rxn_update_data_photolysis_t" object to the \f$\ce{NO2}\f$
-!! photolysis reaction we located. This and similar objects for
+!! photolysis reaction we located, then at the end just make sure we
+!! found the reaction we were looking for. This and similar objects for
 !! other reactions that accept external updates allow you to change
 !! reaction parameters during a model run.
 !!
@@ -382,24 +401,64 @@
 !! Now, our box model code and our input files are complete. To compile
 !! the code, try something like:
 !! \code{.sh}
-!! 
+!!   gfortran -o run_box_model box_model.F90 -lpartmc -I/usr/local/include/partmc
 !! \endcode
+!! Where the include path points to where the PartMC library \c .mod
+!! files are installed. If you have trouble compiling or running because
+!! of missing libraries, make sure your `LD_LIBRARY_PATH` and `PATH`
+!! include the directories where the PartMC, json-fortran, SUNDIALS,
+!! netCDF, and SuiteSparse libraries are installed.
 !!
 !! Then, to run to mechanism:
 !! \code{.sh}
-!! 
+!!   ./run_box_model > output.txt
 !! \endcode
 !! If you have <a href="http://www.gnuplot.info/">gnuplot</a> installed,
-!! you can use /doc/camp_tutorial/part_3_code/plot.conf to check out the
-!! results.
+!! you can copy /doc/camp_tutorial/part_3_code/plot.conf to the
+!! directory with your results and check out them out:
+!! \code{.sh}
+!!   gnuplot plot.conf
+!! \endcode
+!! Our results look like this:
+!!
+!! \image html BootCAMP_part_3_results.png
 !!
 !! In the \ref camp_tutorial_part_4 "next installment" of Boot CAMP,
 !! we'll start passing messages!
 !!
 !! The files described in this part of the tutorial and needed to run the
 !! box model and plot the results can be found in
-!! \c /doc/camp_tutorial/part_2_code.
-
+!! \c /doc/camp_tutorial/part_3_code.
+!!
+!! <hr>
+!! ### Docker Instructions ###
+!! To run the code in Docker, try this from the partmc folder:
+!! \code{.sh}
+!!   docker build -t partmc-camp .
+!!   docker run -it --name pmc partmc-camp /bin/bash
+!! \endcode
+!! Then, inside the container:
+!! \code{.sh}
+!!   dnf install -y gnuplot
+!!   mkdir boot-camp
+!!   cd boot-camp
+!!   cp ../partmc/doc/camp_tutorial/part_3_code/* .
+!!   gfortran -o run_box_model box_model.F90 -lpartmc -I/usr/local/include/partmc
+!!   ./run_box_model > output.txt
+!!   gnuplot plot.conf
+!!   exit
+!! \endcode
+!! Back outside the container:
+!! \code{.sh}
+!!   docker cp pmc:/boot-camp/results.png .
+!!   docker container rm pmc
+!!   open results.png
+!! \endcode
+!!
+!! <hr>
+!! <b> < Previous: </b> \ref camp_tutorial_part_2
+!! <b> || </b> \ref camp_tutorial "Index" <b> || Next: </b>
+!! \ref camp_tutorial_part_4 <b> > </b>
 
 ! ***********************************************************************
 ! ***********************************************************************

@@ -48,8 +48,12 @@ RUN tar -zxvf /partmc/cvode-1.0-alpha.tar.gz \
              .. \
     && make install
 
-# Build PartMC
- RUN mkdir build \
+# Update environment variables
+ENV LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib:/usr/local/lib64:/usr/local/jsonfortran-gnu-6.1.0/lib"
+ENV PATH="${PATH}:/usr/local/jsonfortran-gnu-6.1.0/lib"
+
+# Build and install PartMC
+RUN mkdir build \
     && cd build \
     && export JSON_FORTRAN_HOME="/usr/local/jsonfortran-gnu-6.1.0" \
     && cmake -D CMAKE_BUILD_TYPE=release \
@@ -62,4 +66,4 @@ RUN tar -zxvf /partmc/cvode-1.0-alpha.tar.gz \
              -D SUNDIALS_CVODE_LIB=/usr/local/lib/libsundials_cvode.so \
              -D SUNDIALS_INCLUDE_DIR=/usr/local/include \
              /partmc \
-    && make
+    && make install

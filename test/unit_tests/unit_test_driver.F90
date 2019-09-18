@@ -11,6 +11,7 @@ program unit_test_driver
   use pmc_mpi
   use pmc_rand
   use pmc_unit_test_data
+  use pmc_util
   use UNIT_TEST_MODULE_
 
   implicit none
@@ -94,7 +95,7 @@ program unit_test_driver
   multicell_cell_state => one_cell_core%new_state()
 
   ! Set the size of the state array for one grid cell
-  n_state_var_one_cell = size( multicell_cell_state%state_var )
+  n_state_var_one_cell = size( grid_cell_state(1)%val%state_var )
 
   ! Make sure the multi-cell state is the right size
   call assert(429906732, size( multicell_state%state_var ) .eq. &
@@ -151,14 +152,17 @@ program unit_test_driver
       do i_spec = 1, n_state_var_one_cell
         multicell_val = multicell_cell_state%state_var( i_spec )
         one_cell_val  = grid_cell_state( i_cell )%val%state_var( i_spec )
-        call assert_msg( 294102573, &
-                         almost_equal( multicell_val, one_cell_val ), &
+        call warn_assert_msg( 294102573, &
+                         almost_equal( multicell_val, one_cell_val, &
+                                       one_cell_core%get_rel_tol( ), &
+                                       one_cell_core%get_abs_tol( i_spec ) ), &
                          "Different results for single- and multi-cell solving "// &
-                         "in cell "//to_string( i_cell )//" for species "// &
-                         to_string( i_spec )//" at time step "// &
-                         to_string( i_time )//". Multicell value: "// &
-                         to_string( multicell_val )//", single-cell value: "// &
-                         to_string( one_cell_val )//"." )
+                         "in cell "//trim( to_string( i_cell ) )//" for species "// &
+                         trim( to_string( i_spec ) )//" at time step "// &
+                         trim( to_string( i_time ) )//". Multicell value: "// &
+                         trim( to_string( multicell_val ) )// &
+                         ", single-cell value: "// &
+                         trim( to_string( one_cell_val ) )//"." )
       end do
 
       ! Do the system-specific analysis

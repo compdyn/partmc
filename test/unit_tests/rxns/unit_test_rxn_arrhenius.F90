@@ -18,6 +18,8 @@ module pmc_unit_test_rxn_arrhenius
 
   !> Number of available initial states
   integer(kind=i_kind), parameter :: NUM_INIT_STATES = 5
+  !> Number of species to evaluate
+  integer(kind=i_kind), parameter :: NUM_SPEC = 4
   !> Number of time steps
   integer(kind=i_kind), parameter :: NUM_TIME_STEPS_C = 100
   !> Time step size (s)
@@ -29,9 +31,24 @@ module pmc_unit_test_rxn_arrhenius
     private
     !> Species ids
     integer(kind=i_kind) :: idx_A, idx_B, idx_C, idx_D
-    !> Species initial concentrations
-    real(kind=dp), dimension(NUM_INIT_STATES) :: conc_A, conc_B, conc_C, &
-                                                 conc_D
+    !> Species A initial concentrations
+    real(kind=dp), dimension(NUM_INIT_STATES) :: &
+      conc_A = (/ 1.0d0, 2.0d0, 3.0d0, 4.0d0, 5.0d0 /)
+    !> Species B initial concentrations
+    real(kind=dp), dimension(NUM_INIT_STATES) :: &
+      conc_B = (/ 0.0d0, 0.0d0, 0.0d0, 0.0d0, 0.0d0 /)
+    !> Species C initial concentrations
+    real(kind=dp), dimension(NUM_INIT_STATES) :: &
+      conc_C = (/ 0.0d0, 0.0d0, 0.0d0, 0.0d0, 0.0d0 /)
+    !> Species D initial concentrations
+    real(kind=dp), dimension(NUM_INIT_STATES) :: &
+      conc_D = (/ 1.2d0, 17.0d0, 13.0d0, 9.0d0, 4.0d0 /)
+    !> Initial temperatures
+    real(kind=dp), dimension(NUM_INIT_STATES) :: &
+      temperature = (/ 272.5d0, 248.3d0, 301.3d0, 276.0d0, 245.1d0 /)
+    !> Initial pressures
+    real(kind=dp), dimension(NUM_INIT_STATES) :: &
+      pressure = (/ 101253.3d0, 92834.4d0, 90328.4d0, 100495.4d0, 96943.4d0 /)
     !> Flag inidicating local data is set up
     logical :: is_initialized = .false.
   contains
@@ -67,8 +84,6 @@ contains
     type(unit_test_rxn_arrhenius_t), pointer :: new_obj
 
     allocate(new_obj)
-
-    !... finish ...
 
   end function constructor
 
@@ -117,13 +132,26 @@ contains
     !> Unique state id
     integer(kind=i_kind), intent(in) :: unique_state_id
 
-    camp_state%env_state%temp = 278.0d0
-    camp_state%env_state%pressure = 101325.0d0
+    real(kind=dp) :: conv
+
+    ! Make sure the test data is initialized
+    call this%initialize( camp_core )
+
+    ! Get a conversion factor needed to set the D concentration
+    conv = const%avagadro / const%univ_gas_const * 10.0d0**(-12.0d0) * &
+            this%pressure( unique_state_id ) / &
+            this%temperature( unique_state_id )
+
+    ! Set the environmental conditions
+    camp_state%env_state%temp     = this%temperature( unique_state_id )
+    camp_state%env_state%pressure = this%pressure(    unique_state_id )
     call camp_state%update_env_state( )
 
-    camp_state%state_var( : ) = 0.0d0
-
-    ! ... finish ...
+    ! Set the species concentrations
+    camp_state%state_var( this%idx_A ) = this%conc_A( unique_state_id )
+    camp_state%state_var( this%idx_B ) = this%conc_B( unique_state_id )
+    camp_state%state_var( this%idx_C ) = this%conc_C( unique_state_id )
+    camp_state%state_var( this%idx_D ) = this%conc_D( unique_state_id ) / conv
 
   end subroutine initialize_state
 
@@ -163,6 +191,8 @@ contains
   function analyze_state(this, camp_core, camp_state, &
       unique_state_id, model_time_step) result (passed)
 
+    use pmc_constants
+
     !> Flag indicating whether the tests passed
     logical :: passed
     !> Unit test data
@@ -176,16 +206,73 @@ contains
     !> Lastest time step solved
     integer(kind=i_kind), intent(in) :: model_time_step
 
-    ! ... finish ...
+    real(kind=dp) :: temperature, pressure
+    real(kind=dp), dimension(NUM_SPEC) :: init_conc
+    real(kind=dp), dimension(NUM_SPEC) :: true_conc
+    real(kind=dp), dimension(NUM_SPEC) :: model_conc
+    real(kind=dp) :: k1, k2, conv, time
+    integer(kind=i_kind) :: i_spec
 
     passed = .true.
+
+    ! Initial environmental state
+    temperature    = this%temperature( unique_state_id )
+    pressure       = this%pressure(    unique_state_id )
+
+    ! Conversion factor
+    conv = const%avagadro / const%univ_gas_const * 10.0d0**(-12.0d0) * &
+            pressure / temperature
+
+    ! Initial chemical state
+    init_conc( 1 ) = this%conc_A(      unique_state_id )
+    init_conc( 2 ) = this%conc_B(      unique_state_id )
+    init_conc( 3 ) = this%conc_C(      unique_state_id )
+    init_conc( 4 ) = this%conc_D(      unique_state_id ) / conv
+
+    ! Calculate the rate constants
+    k1 = init_conc( 4 ) * conv + 1476.0d0 * exp( -5.5d-21 / &
+            (const%boltzmann * temperature) ) * &
+            (temperature/300.0d0)**(150.0d0) * &
+            (1.0d0 + 0.15d0 * pressure) / 60.0d0
+    k2 = 21.0d0 * exp( -4000.0d0/temperature ) * &
+            (temperature/315.0d0)**(11.0d0) * &
+            (1.0d0 + 0.05d0 * pressure)
+
+    ! Get the current model time
+    time = model_time_step * this%time_step_size( )
+
+    ! Calculate the true current concentrations
+    true_conc( 1 ) = init_conc( 1 ) * exp(-(k1)*time)
+    true_conc( 2 ) = init_conc( 1 ) * (k1/(k2-k1)) * (exp(-k1*time) - exp(-k2*time))
+    true_conc( 3 ) = init_conc( 1 ) * &
+               (1.0 + (k1*exp(-k2*time) - k2*exp(-k1*time))/(k2-k1))
+    true_conc( 4 ) = init_conc( 4 )
+
+    ! Get the model results
+    model_conc( 1 ) = camp_state%state_var( this%idx_A )
+    model_conc( 2 ) = camp_state%state_var( this%idx_B )
+    model_conc( 3 ) = camp_state%state_var( this%idx_C )
+    model_conc( 4 ) = camp_state%state_var( this%idx_D )
+
+    ! Check the model results
+    do i_spec = 1, NUM_SPEC
+      call assert_msg( 334093929, &
+        almost_equal( model_conc( i_spec ), true_conc( i_spec ), 1.0d-2 ) &
+        .or.( model_conc( i_spec ) .lt. 1.0d-5 * init_conc( i_spec ) .and. &
+              true_conc( i_spec ) .lt. 1.0d-5 * init_conc( i_spec ) ), &
+        "time: "//trim( to_string( time ) )//"; scenario: "//&
+        trim(to_string( unique_state_id ) )//"; species: "// &
+        trim(to_string( i_spec ) )//"; mod: "// &
+        trim(to_string( model_conc( i_spec ) ) )//"; true: "// &
+        trim(to_string( true_conc( i_spec ) ) ) )
+    end do
 
   end function analyze_state
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Initialize the object data
-  subroutine initialize(this, camp_core)
+  subroutine initialize( this, camp_core )
 
     use pmc_chem_spec_data
 
@@ -196,14 +283,25 @@ contains
 
     type(chem_spec_data_t), pointer :: chem_spec_data
 
-    if (this%is_initialized) return
+    if( this%is_initialized ) return
 
     ! Get the chemical species data
-    call assert(672415022, camp_core%get_chem_spec_data(chem_spec_data))
+    call assert( 672415022, camp_core%get_chem_spec_data( chem_spec_data ) )
 
     ! Get the species ids
+    this%idx_A = chem_spec_data%gas_state_id( "A" )
+    this%idx_B = chem_spec_data%gas_state_id( "B" )
+    this%idx_C = chem_spec_data%gas_state_id( "C" )
+    this%idx_D = chem_spec_data%gas_state_id( "D" )
 
-    !TODO finish
+    ! Make sure all the species were found
+    call assert_msg( 204555021, this%idx_A.gt.0, "Missing species A" )
+    call assert_msg( 883729398, this%idx_B.gt.0, "Missing species B" )
+    call assert_msg( 996047743, this%idx_C.gt.0, "Missing species C" )
+    call assert_msg( 208366089, this%idx_D.gt.0, "Missing species D" )
+
+    ! Flag the test as being initialized
+    this%is_initialized = .true.
 
   end subroutine initialize
 

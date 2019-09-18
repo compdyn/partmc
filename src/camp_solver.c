@@ -210,6 +210,9 @@ void * solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
 #ifdef PMC_DEBUG
   // Default to no debugging output
   sd->debug_out = SUNFALSE;
+
+  // Initialize the Jac solver flag
+  sd->eval_Jac = SUNFALSE;
 #endif
 #endif
 

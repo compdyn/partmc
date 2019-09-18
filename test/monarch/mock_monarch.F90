@@ -31,7 +31,7 @@ program mock_monarch
   !> Number of total species in mock MONARCH
   integer, parameter :: NUM_MONARCH_SPEC = 800
   !> Number of vertical cells in mock MONARCH
-  integer, parameter :: NUM_VERT_CELLS = 15
+  integer, parameter :: NUM_VERT_CELLS = 5
   !> Starting W-E cell for camp-chem call
   integer, parameter :: I_W = 1
   !> Ending W-E cell for camp-chem call
@@ -57,8 +57,8 @@ program mock_monarch
   !> Start time
   real, parameter :: START_TIME = 360.0
   !> Number of cells to compute simultaneously
-  integer :: n_cells = 1
-  !integer :: n_cells = (I_E - I_W+1)*(I_N - I_S+1)*NUM_VERT_CELLS
+  !integer :: n_cells = 1
+  integer :: n_cells = (I_E - I_W+1)*(I_N - I_S+1)*NUM_VERT_CELLS
   !> Check multiple cells results are correct?
   logical :: check_multiple_cells = .false.
 
@@ -232,8 +232,8 @@ program mock_monarch
   end if
 
   !#ifdef DEBUG
-  print*, "SPECIES CONC", species_conc(:,1,1,100)
-  print*, "SPECIES CONC COPY", species_conc_copy(:,1,1,100)
+  !print*, "SPECIES CONC", species_conc(:,1,1,100)
+  !print*, "SPECIES CONC COPY", species_conc_copy(:,1,1,100)
   !#endif
 
   !TODO: Compare evaluations, the following is not working, should be revised

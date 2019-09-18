@@ -4,369 +4,194 @@
 
 !> \file
 !> The unit test driver program.
-module pmc_unit_test_driver
+program unit_test_driver
 
-  use pmc_util,                          only : assert_msg, almost_equal, &
-                                                to_string
-  use pmc_chem_spec_data
   use pmc_camp_core
   use pmc_camp_state
-  use pmc_solver_stats
   use pmc_mpi
   use pmc_rand
   use pmc_unit_test_data
-  !use UNIT_TEST_MODULE_
-
-  !todo mapping of tests (DEFINE ARRHENIUS_ID 1, CMAQ_ID 2, etc), to preserve the correct order and be clear
-  !TODO: Store all the states for time steps?
+  use UNIT_TEST_MODULE_
 
   implicit none
-  private
+
+  ! Number of grid cells to solve
+  integer(kind=i_kind), parameter :: N_CELLS = 10
+
+  ! Size of the state array for one grid cell
+  integer(kind=i_kind) :: n_state_var_one_cell
+
+  ! Size of the environmental state array for one grid cell
+  integer(kind=i_kind), parameter :: N_ENV_STATE_VAR_ONE_CELL = 2
+
+  ! State pointer for building array of states
+  type :: state_ptr
+    class(camp_state_t), pointer :: val
+  end type state_ptr
 
   ! Unit test object
-  ! CAMP core
-  class(camp_core_t), pointer :: camp_core
+  class(unit_test_data_t), pointer :: unit_test
+  ! CAMP core for individual and combined solving
+  class(camp_core_t), pointer :: one_cell_core, multicell_core
 
-  !Unit test objects
-  type(chem_spec_data_t), pointer :: chem_spec_data
-  type(camp_state_t), pointer :: camp_state
-  type(solver_stats_t) :: solver_stats
+  ! State and related objects
+  type(state_ptr) :: grid_cell_state(N_CELLS)
+  type(camp_state_t), pointer :: multicell_state, multicell_cell_state
+  integer(kind=i_kind) :: grid_cell_state_id(N_CELLS)
+  integer(kind=i_kind) :: state_start_idx, state_end_idx
+  integer(kind=i_kind) :: env_start_idx, env_end_idx
+  real(kind=dp) :: multicell_val, one_cell_val
 
+  integer(kind=i_kind) :: i_cell, i_time, i_spec
   real(kind=dp) :: time
   logical :: passed
 
-  public :: unit_test_driver_t
+  ! initialize MPI
+  call pmc_mpi_init()
 
-  ! Number of grid cells to solve
-  integer(kind=i_kind), parameter :: N_CELLS = 1
-  integer(kind=i_kind), parameter :: NUM_TIME_STEP = 20
-  integer(kind=i_kind), parameter :: N_TESTS = 2
+  ! Seed the random number generator
+  call pmc_srand(0,0)
 
-  type :: unit_test_driver_t
+  ! Instantiate the unit test
+  unit_test => UNIT_TEST_TYPE_
 
-    !character(len=:), allocatable :: input_file_path
-    real(kind=dp), allocatable :: state_cells(:)
-    real(kind=dp), allocatable :: temp_cells(:)
-    real(kind=dp), allocatable :: pressure_cells(:)
+  ! Initialize the model for solving individual cells
+  one_cell_core => camp_core_t(unit_test%input_file_name())
+  call one_cell_core%initialize()
 
-    integer(kind=i_kind) :: size_state_per_cell
-    integer(kind=i_kind) :: state_id
+  ! Initialize the model for solving multiple cells
+  multicell_core => camp_core_t(unit_test%input_file_name(), N_CELLS)
+  call multicell_core%initialize()
 
-  contains
-    procedure :: init_test
-    procedure :: solve_and_compare
-
-  end type unit_test_driver_t
-
-  !> Constructor for the Arrhenius test
-  interface unit_test_driver_t
-    procedure :: constructor
-  end interface unit_test_driver_t
-
-contains
-
-  !integer(kind=i_kind) :: i, id_test, i_time, i_cell = 1
-
-  function constructor(size_state_per_cell) result(this)
-
-    !> A new unit test object
-    type(unit_test_driver_t), pointer :: this
-    integer(kind=i_kind) :: size_state_per_cell
-    integer(kind=i_kind) :: size_state
-
-    allocate(this)
+  !TODO ... finish model init (if needed) ...
 
 #ifdef PMC_USE_MPI
-    call pmc_mpi_init()
+  !TODO ... core from primary process to run on another process ...
 #endif
 
-#ifdef PMC_DEBUG
-    ! Evaluate the Jacobian during solving
-    solver_stats%eval_Jac = .true.
-#endif
+  ! Initialize the solvers
+  call one_cell_core%solver_initialize()
+  call multicell_core%solver_initialize()
 
-    print*, "Starting..."
+  ! **********************************
+  ! *** Set the initial conditions ***
+  ! **********************************
 
-    !Get size
-    this%size_state_per_cell = size_state_per_cell
-    size_state = size_state_per_cell * N_CELLS
+  ! Set the initial states (unit_test_data_t classes should provide a certain
+  ! number of unique initial states that can be analyzed during solving)
+  do i_cell=1, N_CELLS
+    grid_cell_state(i_cell)%val => one_cell_core%new_state()
+    grid_cell_state_id(i_cell) = pmc_rand_int(unit_test%num_unique_states())
 
-    ! Allocate variables
-    allocate(this%state_cells(size_state))
-    allocate(this%temp_cells(N_CELLS))
-    allocate(this%pressure_cells(N_CELLS))
+    ! Set the initial state for this grid cell to grid_cell_state_id
+    call unit_test%initialize_state(i_cell, one_cell_core, &
+                                    grid_cell_state(i_cell)%val, &
+                                    grid_cell_state_id(i_cell))
+  end do
 
+  ! Get a multi-cell state (and one single-cell state to use during analysis
+  multicell_state => multicell_core%new_state()
+  multicell_cell_state => one_cell_core%new_state()
 
-  end function constructor
+  ! Set the size of the state array for one grid cell
+  n_state_var_one_cell = size( multicell_cell_state%state_var )
 
-  subroutine init_test(this, input_file_path, state, temp, pressure, keys)
+  ! Make sure the multi-cell state is the right size
+  call assert(429906732, size( multicell_state%state_var ) .eq. &
+                         n_state_var_one_cell * N_CELLS )
+  call assert(869103793, size( multicell_state%env_var ) .eq. &
+                         N_ENV_STATE_VAR_ONE_CELL * N_CELLS )
 
-    class(unit_test_driver_t), intent(inout) :: this
-    character(len=*), intent(in) :: input_file_path
-    real(kind=dp) :: state(this%size_state_per_cell)
-    real(kind=dp) :: temp
-    real(kind=dp) :: pressure
-    character(len=*), dimension(this%size_state_per_cell) :: keys
-    integer(kind=i_kind) :: i_key, i_cell, state_id
-
-    ! Initialize the model
-    camp_core => camp_core_t(input_file_path)
-    call camp_core%initialize()
-
-    !Get input data form json files
-    !TODO: improve for load more than chem_spec_data (aerosol, gas...)
-    call assert(657781626, camp_core%get_chem_spec_data(chem_spec_data))
-
-    !#ifdef PMC_USE_MPI
-    !... core from primary process to run on another process ...
-    !#endif
-
-    ! Initialize the solver
-    call camp_core%solver_initialize()
-
-    !Create state object
-    camp_state => camp_core%new_state()
-
-    !Link chem_spec_ids with test_ids
-    do i_key=1, this%size_state_per_cell
-      !Get state_id for the key
-      state_id = chem_spec_data%gas_state_id(keys(i_key))
-      !Set state value for this key
-      this%state_cells(state_id) = state(i_key)
-    end do
-
-    !Assignments multiple cells
-    do i_cell=1, N_CELLS
-
-      !TODO: Choose offsets for different cell values
-
-      !Set state
-      do i_key = 1, this%size_state_per_cell
-        this%state_cells(this%size_state_per_cell*(i_cell-1) + i_key) = &
-          this%state_cells(i_key) !+ OFFSET_CELL_STATE*(i_cell-1)
-
-      end do
-      camp_state%state_var(:) = this%state_cells(:)
-
-      ! Set the environmental conditions
-      camp_state%env_state%temp = temp !+ OFFSET_CELL_TEMP*(i_cell-1)
-      camp_state%env_state%pressure = pressure !+ OFFSET_CELL_PRESSURE*(i_cell-1)
-      call camp_state%update_env_state(i_cell)
-
-    end do
-
-    print*, this%state_cells
-
-  end subroutine init_test
-
-
-  subroutine solve_and_compare(this, time_step, state_analytic)
-
-    class(unit_test_driver_t), intent(inout) :: this
-    real(kind=dp) :: time_step
-    real(kind=dp) :: state_analytic(this%size_state_per_cell)
-    integer(kind=i_kind) :: i_key, i_cell, state_id
-
-    call camp_core%solve(camp_state, &
-            real(time_step, kind=dp), solver_stats = solver_stats)
-
-    !Compare
-
-    do i_cell=1, N_CELLS
-      do i_key=1, this%size_state_per_cell
-
-        call assert_msg(848069355, &
-        almost_equal(camp_state%state_var(i_key), &
-        state_analytic(i_key), real(1.0e-2, kind=dp)) &
-        !TODO: This checking of model_conc on time_step 1 is need?
-        !If yes, save it in an aux_state variable
-        !.or.(state(i_key).lt.1e-5*model_conc(1, i_spec).and. &
-        !true_conc(i_time, i_spec).lt.1e-5*true_conc(1, i_spec)) &
-        ,"time: "//trim(to_string(time_step))//"; species: "// &
-        trim(to_string(i_key))//"; mod: "// &
-        trim(to_string(camp_state%state_var(i_key)))//"; true: "// &
-        trim(to_string(state_analytic(i_key))))
-
-      end do
-    end do
-
-
-  end subroutine solve_and_compare
-
-end module pmc_unit_test_driver
-
-#if 0
-
-  !the true workflow:
-
-  !get user_data() !from json
-  !get monarch_data
-  !init cvode & set data on C files
-  !run cvode with her functions
-  !print state
-  !deallocate all data
-  !the end
-
-
-  ! Initialize the model
-  camp_core => camp_core_t(input_files_path(id_test))
-  call camp_core%initialize()
-
-  !Get input data form json files
-  !TODO: improve for load more than chem_spec_data (aerosol, gas...)
-  call assert(657781626, camp_core%get_chem_spec_data(chem_spec_data))
-
-!#ifdef PMC_USE_MPI
-  !... core from primary process to run on another process ...
-!#endif
-
-  ! Initialize the solver
-  call camp_core%solver_initialize()
-
-  !Create state object
-  camp_state => camp_core%new_state()
-
-  !Initialize test object and init variables(state,temp,press...)
-  call init_test()
-
-  !If N_cells!=1 -> Set_values for the rest of cells (state, temps...)
-
-  !for n_cells
-
+  ! Set the multicell state using the individual single-cell states
   do i_cell=1, N_CELLS
 
-    ! Set the environmental conditions
-    camp_state%env_state%temp = temp(i_cell)
-    camp_state%env_state%pressure = pressure(i_cell)
-    call camp_state%update_env_state(i_cell)
+    ! Chemical state
+    state_start_idx = ( i_cell - 1 ) * n_state_var_one_cell + 1
+    state_end_idx   = i_cell * n_state_var_one_cell
+    multicell_state%state_var( state_start_idx:state_end_idx ) = &
+      grid_cell_state( i_cell )%val%state_var( 1:n_state_var_one_cell )
+
+    ! Environmental state
+    env_start_idx   = ( i_cell - 1 ) * N_ENV_STATE_VAR_ONE_CELL + 1
+    env_end_idx     = i_cell * N_ENV_STATE_VAR_ONE_CELL
+    multicell_state%env_var( env_start_idx:env_end_idx ) = &
+      grid_cell_state( i_cell )%val%env_var( 1:N_ENV_STATE_VAR_ONE_CELL )
 
   end do
 
-  !Solve
-  ! Loop over time
-  do i_time=1, NUM_TIME_STEP
+  ! *************************************************
+  ! *** Solve & analyze results at each time step ***
+  ! *************************************************
 
-    call camp_core%solve(this%camp_state, &
-            real(time_step, kind=dp), solver_stats = solver_stats)
+  do i_time = 1, unit_test%num_time_steps( )
 
-    !todo check all time steps or only 1?
-    !passed = unit_test%analyze_state(i_cell, camp_core, &
-    ! grid_cell_state(i_cell)%val, grid_cell_state_id(i_cell), time)
+    ! Solve the multicell system first
+    call multicell_core%solve( multicell_state, unit_test%time_step_size( ) )
 
-    ! output state to file
+    ! Loop over the grid cells to do the single-cell solving and to compare
+    ! and analyze the results from multicell and single-cell solving for each
+    ! cell
+    do i_cell = 1, N_CELLS
 
+      ! Put the multi-cell results in the temporary single-cell state object
+      state_start_idx = ( i_cell - 1 ) * n_state_var_one_cell + 1
+      state_end_idx   = i_cell * n_state_var_one_cell
+      multicell_cell_state%state_var( 1:n_state_var_one_cell ) = &
+        multicell_state%state_var( state_start_idx:state_end_idx )
+      env_start_idx   = ( i_cell - 1 ) * N_ENV_STATE_VAR_ONE_CELL + 1
+      env_end_idx     = i_cell * N_ENV_STATE_VAR_ONE_CELL
+      multicell_cell_state%env_var( 1:N_ENV_STATE_VAR_ONE_CELL ) = &
+        multicell_state%env_var( env_start_idx:env_end_idx )
+
+      ! Solve the single-cell system
+      call one_cell_core%solve( grid_cell_state( i_cell )%val, &
+                                unit_test%time_step_size( ) )
+
+      ! Make sure the results are similar between the two solvers
+      do i_spec = 1, n_state_var_one_cell
+        multicell_val = multicell_cell_state%state_var( i_spec )
+        one_cell_val  = grid_cell_state( i_cell )%val%state_var( i_spec )
+        call assert_msg( 294102573, &
+                         almost_equal( multicell_val, one_cell_val ), &
+                         "Different results for single- and multi-cell solving "// &
+                         "in cell "//to_string( i_cell )//" for species "// &
+                         to_string( i_spec )//" at time step "// &
+                         to_string( i_time )//". Multicell value: "// &
+                         to_string( multicell_val )//", single-cell value: "// &
+                         to_string( one_cell_val )//"." )
+      end do
+
+      ! Do the system-specific analysis
+      passed = unit_test%analyze_state( one_cell_core, &
+                                        grid_cell_state( i_cell )%val, &
+                                        grid_cell_state_id( i_cell ), i_time )
+      if( .not.passed ) exit
+    end do
+
+    if( .not.passed ) exit
   end do
 
-
-  !call deallocate_data()
-
-
+  ! output state to file
+  ! TODO Needs finished
 
   ! deallocate pointers and arrays
-  !deallocate(unit_test)
-  !deallocate(camp_core)
-  !deallocate(state)
-  !do i_cell = 1, N_CELLS
-  !  deallocate(grid_cell_state(i_cell)%val)
-  !end do
-
-  passed = .true.
+  deallocate( unit_test )
+  deallocate( one_cell_core )
+  deallocate( multicell_core )
+  do i_cell = 1, N_CELLS
+    deallocate( grid_cell_state( i_cell )%val )
+  end do
+  deallocate( multicell_state )
+  deallocate( multicell_cell_state )
 
   ! Finalize the test
-  if (passed) then
-    if (pmc_mpi_rank().eq.0) write(*,*) "Unit test - PASS"
-    call pmc_mpi_finalize()
+  if( passed ) then
+    if( pmc_mpi_rank( ).eq.0 ) write(*,*) "Unit test - PASS"
+    call pmc_mpi_finalize( )
   else
-    if (pmc_mpi_rank().eq.0) write(*,*) "Unit test - FAIL"
-    call pmc_mpi_finalize()
+    if( pmc_mpi_rank( ).eq.0 ) write(*,*) "Unit test - FAIL"
+    call pmc_mpi_finalize( )
     stop 3
   end if
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-contains
-
-  !init test/model data (state)
-  subroutine init_test()
-
-    integer(kind=i_kind) :: size_state_per_cell
-    integer(kind=i_kind) :: size_state
-    integer(kind=i_kind) :: state_id
-    integer(kind=i_kind) :: i_key
-    
-    print*, "Initializing test", id_test
-
-    select case (id_test)
-      case (1)
-
-        !Create object
-        test_arrhenius => unit_test_rxn_arrhenius_t()
-
-        !Get sizes
-        size_state_per_cell = test_arrhenius%size_state
-        size_state = size_state_per_cell * N_CELLS
-
-        ! Allocate variables
-        allocate(test_state(size_state))
-        allocate(test_temp(N_CELLS))
-        allocate(test_pressure(N_CELLS))
-
-        !Link chem_spec_ids with test_ids
-        do i_key=1, size_state_per_cell
-          !Get state_id for the key
-          state_id = chem_spec_data%gas_state_id(test_arrhenius%keys(i_key))
-          !Set state value for this key
-          test_state= test_arrhenius%get_state(test_arrhenius%keys(i_key),state_id)
-        end do
-
-        test_temp = test_arrhenius%temp
-        test_pressure = test_arrhenius%pressure
-
-        !Todo get temp and press
-        print*, test_state
-        print*, test_temp
-
-      case (2)
-
-        !size_state_per_cell=arrhenius->size_state;
-        size_state_per_cell=4
-        size_state = size_state_per_cell * N_CELLS
-
-        ! Set the initial state values
-        allocate(test_state(size_state))
-
-        !test_state=arrhenius->state;
-
-        test_state(:) = 0.2
-        !do i=1, size_state
-        !   test_state(i) = test_state(i) + 0.01*i
-        !end do
-        print*, test_state
-
-        !...
-
-    end select
-
-
-
-
-  end subroutine init_test
-
-
-
-
-  subroutine deallocate_data()
-
-    !Deallocate arrays
-    deallocate(test_state)
-
-    !Deallocate objects
-    select case (id_test)
-      case (1)
-        deallocate(test_arrhenius)
-
-    end select
-
-  end subroutine deallocate_data
-
-#endif
+end program unit_test_driver

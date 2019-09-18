@@ -236,7 +236,7 @@ endif()
 if (ENABLE_TESTS)
     if (ENABLE_JSON AND ENABLE_SUNDIALS)
       # New unit tests (UNDER DEVELOPMENT)
-      add_test(unit_test_rxn_arrhenius ${CMAKE_BINARY_DIR}/test_run/unit_tests/rxns/arrhenius.sh ${MPI_TEST_FLAG})
+      add_test(test_unit_rxn_arrhenius ${CMAKE_BINARY_DIR}/test_run/unit_tests/input_files/arrhenius.sh ${MPI_TEST_FLAG})
 
       # Old-style unit tests
       add_test(test_rxn_aqueous_equilibrium ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_aqueous_equilibrium.sh ${MPI_TEST_FLAG})
@@ -614,45 +614,13 @@ set_source_files_properties(${CB5_EBI_SOLVER} PROPERTIES COMPILE_FLAGS
 	${CB5_EBI_FLAGS})
 
 ######################################################################
-# New unit tests (UNDER DEVELOPMENT)
-
-#set(UNIT_TEST_SRC
-#        test/unit_tests/unit_test_data.F90
-#        test/unit_tests/unit_test_driver.F90)
-
-#set(UNIT_TEST_RXN_ARRHENIUS_SRC
-#        test/unit_tests/rxns/unit_test_rxn_arrhenius.F90 ${UNIT_TEST_SRC})
-#set_source_files_properties(${UNIT_TEST_RXN_ARRHENIUS_SRC} PROPERTIES COMPILE_DEFINITIONS
-#        "UNIT_TEST_MODULE_=pmc_unit_test_rxn_arrhenius \
-#  ;UNIT_TEST_TYPE_=unit_test_rxn_arrhenius_t()")
-
-#set_source_files_properties(${UNIT_TEST_RXN_ARRHENIUS_SRC} PROPERTIES COMPILE_FLAGS
-#        ${STD_F_FLAGS})
-#add_executable(unit_test_rxn_arrhenius ${UNIT_TEST_RXN_ARRHENIUS_SRC})
-#target_link_libraries(unit_test_rxn_arrhenius partmclib)
-
-#test_unit_rxn_arrhenius
-
-add_executable(unit_test_rxn_arrhenius test/unit_tests/rxns/unit_test_rxn_arrhenius.F90
-        test/unit_tests/unit_test_data.F90
-        test/unit_tests/unit_test_driver.F90
-                )
-target_link_libraries(unit_test_rxn_arrhenius partmclib)
-
-#add_executable(unit_test_driver test/unit_tests/unit_test_driver.F90
-#        test/unit_tests/unit_test_data.F90
-#        test/unit_tests/rxns/unit_test_rxn_arrhenius.F90
-#                )
-#target_link_libraries(unit_test_driver partmclib)
-
-######################################################################
 # test_chemistry_cb05cl_ae5_big
 
-add_executable(test_chemistry_cb05cl_ae5
-        test/chemistry/cb05cl_ae5/test_cb05cl_ae5.F90
+add_executable(test_chemistry_cb05cl_ae5_big
+        test/chemistry/cb05cl_ae5/test_cb05cl_ae5_big.F90
         ${CB5_EBI_SOLVER} ${CB5_KPP_SOLVER}
         test/chemistry/cb05cl_ae5/module_BSC_CHEM_DATA.F90)
-target_link_libraries(test_chemistry_cb05cl_ae5 partmclib)
+target_link_libraries(test_chemistry_cb05cl_ae5_big partmclib)
 
 ######################################################################
 # MONARCH interface
@@ -672,12 +640,6 @@ add_executable(test_chemistry_cb05cl_ae5
     ${CB5_EBI_SOLVER} ${CB5_KPP_SOLVER}
     test/chemistry/cb05cl_ae5/module_BSC_CHEM_DATA.F90)
 target_link_libraries(test_chemistry_cb05cl_ae5 partmclib)
-
-add_executable(test_chemistry_cb05cl_ae5_big
-        test/chemistry/cb05cl_ae5/test_cb05cl_ae5_big.F90
-        ${CB5_EBI_SOLVER} ${CB5_KPP_SOLVER}
-        test/chemistry/cb05cl_ae5/module_BSC_CHEM_DATA.F90)
-target_link_libraries(test_chemistry_cb05cl_ae5_big partmclib)
 
 ######################################################################
 # test_chemistry_eqsam_v03d
@@ -744,6 +706,23 @@ add_executable(test_sub_model_ZSR_aerosol_water
                test/unit_sub_model_data/test_sub_model_ZSR_aerosol_water.c
                test/unit_sub_model_data/test_sub_model_ZSR_aerosol_water.F90)
 target_link_libraries(test_sub_model_ZSR_aerosol_water partmclib)
+
+######################################################################
+# New unit tests (UNDER DEVELOPMENT)
+
+set(UNIT_TEST_SRC
+    test/unit_tests/unit_test_data.F90
+    test/unit_tests/unit_test_driver.F90)
+
+set(UNIT_TEST_RXN_ARRHENIUS_SRC
+    test/unit_tests/rxns/unit_test_rxn_arrhenius.F90 ${UNIT_TEST_SRC})
+set_source_files_properties(${UNIT_TEST_RXN_ARRHENIUS_SRC} PROPERTIES COMPILE_DEFINITIONS
+  "UNIT_TEST_MODULE_=pmc_unit_test_rxn_arrhenius \
+  ;UNIT_TEST_TYPE_=unit_test_rxn_arrhenius_t()")
+set_source_files_properties(${UNIT_TEST_RXN_ARRHENIUS_SRC} PROPERTIES COMPILE_FLAGS
+                            ${STD_F_FLAGS})
+add_executable(unit_test_rxn_arrhenius ${UNIT_TEST_RXN_ARRHENIUS_SRC})
+target_link_libraries(unit_test_rxn_arrhenius partmclib)
 
 ######################################################################
 # test_camp_core

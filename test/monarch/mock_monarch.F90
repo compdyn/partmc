@@ -60,7 +60,7 @@ program mock_monarch
   !integer :: n_cells = 1
   integer :: n_cells = (I_E - I_W+1)*(I_N - I_S+1)*NUM_VERT_CELLS
   !> Check multiple cells results are correct?
-  logical :: check_multiple_cells = .true.
+  logical :: check_multiple_cells = .false.
 
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   ! State variables for mock MONARCH model !

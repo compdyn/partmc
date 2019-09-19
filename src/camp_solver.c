@@ -1109,13 +1109,15 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
     // Set the solver Jacobian
    JacMap *jac_map = md->jac_map;
     SM_DATA_S(md->J_params)[0] = 1.0; // dummy value for non-sub model calcs
+    //printf("n_mapped_values: %d", md->n_mapped_values);
     for (int i_map=0; i_map<md->n_mapped_values; ++i_map)
       SM_DATA_S(J)[i_cell*md->n_per_cell_solver_jac_elem
                    + jac_map[i_map].solver_id] +=
-        SM_DATA_S(md->J_rxn)[jac_map[i_map].rxn_id] *
-        SM_DATA_S(md->J_params)[jac_map[i_map].param_id];
+        SM_DATA_S(md->J_rxn)[i_cell*md->n_per_cell_solver_jac_elem
+                   + jac_map[i_map].rxn_id] *
+        SM_DATA_S(md->J_params)[i_cell*md->n_per_cell_solver_jac_elem
+                   + jac_map[i_map].param_id];
     PMC_DEBUG_JAC(J, "solver");
-
 
 #ifdef PMC_DEBUG
     // Evaluate the Jacobian if flagged to do so
@@ -1155,7 +1157,7 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
 
 #ifdef PMC_DEBUG
      counterJac++;
-  if(counterJac==5) print_jacobian(sd->J);
+  if(counterJac==5) print_jacobian(J);
 #endif
 
   return (0);
@@ -1904,8 +1906,8 @@ static void print_jacobian(SUNMatrix M)
 
   printf("\n NNZ JAC: %lld \n",SM_NNZ_S(M));
   printf("DATA | INDEXVALS:\n");
-  for (int i=0; i<6; i++) {//SM_NNZ_S(M)
-    printf ("% -le \n", (SM_DATA_S(M))[i]);
+  for (int i=0; i<9; i++) {//SM_NNZ_S(M)
+    printf ("% -le | ", (SM_DATA_S(M))[i]);
     printf ("%lld \n", (SM_INDEXVALS_S(M))[i]);
   }
   printf("PTRS:\n");

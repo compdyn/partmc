@@ -31,15 +31,15 @@ program mock_monarch
   !> Number of total species in mock MONARCH
   integer, parameter :: NUM_MONARCH_SPEC = 800
   !> Number of vertical cells in mock MONARCH
-  integer, parameter :: NUM_VERT_CELLS = 5
+  integer, parameter :: NUM_VERT_CELLS = 1
   !> Starting W-E cell for camp-chem call
   integer, parameter :: I_W = 1
   !> Ending W-E cell for camp-chem call
-  integer, parameter :: I_E = 15
+  integer, parameter :: I_E = 2
   !> Starting S-N cell for camp-chem call
   integer, parameter :: I_S = 1
   !> Ending S-N cell for camp-chem call
-  integer, parameter :: I_N = 15
+  integer, parameter :: I_N = 2
   !> Number of W-E cells in mock MONARCH
   integer, parameter :: NUM_WE_CELLS = I_E-I_W+1
   !> Number of S-N cells in mock MONARCH
@@ -51,7 +51,7 @@ program mock_monarch
   !> Time step (min)
   real, parameter :: TIME_STEP = 1.6
   !> Number of time steps to integrate over
-  integer, parameter :: NUM_TIME_STEP = 5
+  integer, parameter :: NUM_TIME_STEP = 2
   !> Index for water vapor in water_conc()
   integer, parameter :: WATER_VAPOR_ID = 5
   !> Start time
@@ -60,7 +60,7 @@ program mock_monarch
   !integer :: n_cells = 1
   integer :: n_cells = (I_E - I_W+1)*(I_N - I_S+1)*NUM_VERT_CELLS
   !> Check multiple cells results are correct?
-  logical :: check_multiple_cells = .false.
+  logical :: check_multiple_cells = .true.
 
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   ! State variables for mock MONARCH model !
@@ -107,10 +107,9 @@ program mock_monarch
   character(len=:), allocatable :: output_file_prefix
 
   character(len=500) :: arg
-  integer :: status_code, i_time, i_spec, i, j, k
+  integer :: status_code, i_time, i_spec, i, j, k, i_cases
   !> Partmc nº of cases to test
   integer :: pmc_cases = 1
-
 
   ! Check the command line arguments
   call assert_msg(129432506, command_argument_count().eq.3, "Usage: "// &
@@ -119,10 +118,6 @@ program mock_monarch
 
   ! initialize mpi (to take the place of a similar MONARCH call)
   call pmc_mpi_init()
-
-  !Cells to solve simultaneously
-  !n_cells = (I_E - I_W+1)*(I_N - I_S+1)*NUM_VERT_CELLS
-  !n_cells = 1
 
   !Check if repeat program to compare n_cells=1 with n_cells=N
   if(check_multiple_cells) then
@@ -147,10 +142,14 @@ program mock_monarch
   call get_command_argument(3, arg, status=status_code)
   call assert_msg(234156729, status_code.eq.0, "Error getting output file prefix")
   output_file_prefix = trim(arg)
-  call model_initialize(output_file_prefix)
+
+  ! Open the output file
+  open(RESULTS_FILE_UNIT, file=output_file_prefix//"_results.txt", status="replace", action="write")
+
+  call model_initialize()
 
   !Repeat in case we want create a checksum
-  do i=1, pmc_cases
+  do i_cases=1, pmc_cases
 
     pmc_interface => monarch_interface_t(camp_input_file, interface_input_file, &
             START_CAMP_ID, END_CAMP_ID, n_cells)!, n_cells
@@ -171,7 +170,6 @@ program mock_monarch
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       ! **** Add to MONARCH during runtime for each time step **** !
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
 
       call output_results(curr_time)
       call pmc_interface%integrate(curr_time,         & ! Starting time (min)
@@ -197,7 +195,7 @@ program mock_monarch
     write(*,*) "Model run time: ", comp_time, " s"
 
     !Save results
-    if(i.eq.1) then
+    if(i_cases.eq.1) then
       species_conc_copy(:,:,:,:) = species_conc(:,:,:,:)
     end if
 
@@ -205,6 +203,11 @@ program mock_monarch
     n_cells = 1
 
   end do
+
+!#ifdef DEBUG
+  !print*, "SPECIES CONC", species_conc(:,1,1,100)
+  print*, "SPECIES CONC COPY", species_conc_copy(:,1,1,100)
+!#endif
 
   !If something to compare
   if(pmc_cases.gt.1) then
@@ -236,24 +239,6 @@ program mock_monarch
             plot_start_time, curr_time)
   end if
 
-  !TODO: Compare evaluations, the following is not working, should be revised
-  ! The evaluation is based on a run with reasonable seeming values and
-  ! few solver modifications. It is used to make sure future modifications
-  ! to the solver do not affect the results
-#if 0
-  do i_spec = START_CAMP_ID, END_CAMP_ID
-    call assert_msg( 394742768, &
-        almost_equal( real( species_conc(10,15,1,i_spec), kind=dp ), &
-                      real( comp_species_conc(i_time,i_spec), kind=dp ), &
-                      1.d-4, 1d-3 ), &
-        "Concentration species mismatch for species "// &
-        trim( to_string( i_spec ) )//" at time step "// &
-        trim( to_string( i_time ) )//". Expected: "// &
-        trim( to_string( comp_species_conc(i_time,i_spec) ) )//", got: "// &
-        trim( to_string( species_conc(10,15,1,i_spec) ) ) )
-  end do
-#endif
-
   ! Deallocation
   deallocate(camp_input_file)
   deallocate(interface_input_file)
@@ -273,17 +258,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Initialize the mock model
-  subroutine model_initialize(file_prefix)
-
-    !> File prefix for model results
-    character(len=:), allocatable, intent(in) :: file_prefix
-
-    integer :: i_spec
-    character(len=:), allocatable :: file_name
-
-    ! Open the output file
-    file_name = file_prefix//"_results.txt"
-    open(RESULTS_FILE_UNIT, file=file_name, status="replace", action="write")
+  subroutine model_initialize()
 
     ! Open the compare file
 !    file_name = file_prefix//"_comp.txt"
@@ -298,7 +273,6 @@ contains
     pressure(:,:,:) = 94165.7187500000
 
     !Initialize different axis values
-    !TODO: Varying the pressure is not affecting the system, is that normal?
     ! The last loop overwrites entirely the values set by the first two loops
 
     do i=I_W, I_E
@@ -321,8 +295,6 @@ contains
       temperature(:,:,k) = temperature(:,:,k) + 0.6*k
       pressure(:,k,:) = pressure(:,k,:) - 0.6*k
     end do
-
-    deallocate(file_name)
 
     ! Read the compare file
 !    call read_comp_file()

@@ -35,11 +35,11 @@ program mock_monarch
   !> Starting W-E cell for camp-chem call
   integer, parameter :: I_W = 1
   !> Ending W-E cell for camp-chem call
-  integer, parameter :: I_E = 2
+  integer, parameter :: I_E = 15
   !> Starting S-N cell for camp-chem call
   integer, parameter :: I_S = 1
   !> Ending S-N cell for camp-chem call
-  integer, parameter :: I_N = 2
+  integer, parameter :: I_N = 15
   !> Number of W-E cells in mock MONARCH
   integer, parameter :: NUM_WE_CELLS = I_E-I_W+1
   !> Number of S-N cells in mock MONARCH
@@ -206,7 +206,7 @@ program mock_monarch
 
 !#ifdef DEBUG
   !print*, "SPECIES CONC", species_conc(:,1,1,100)
-  print*, "SPECIES CONC COPY", species_conc_copy(:,1,1,100)
+  !print*, "SPECIES CONC COPY", species_conc_copy(:,:,1,100)
 !#endif
 
   !If something to compare
@@ -273,25 +273,19 @@ contains
     pressure(:,:,:) = 94165.7187500000
 
     !Initialize different axis values
-    ! The last loop overwrites entirely the values set by the first two loops
+    !Species_conc is modified in monarch_interface%get_init_conc
 
     do i=I_W, I_E
-      species_conc(i,:,:,:) = &
-              species_conc(i,:,:,:) + 0.1*i
       temperature(i,:,:) = temperature(i,:,:) + 0.1*i
       pressure(i,:,:) = pressure(i,:,:) - 0.1*i
     end do
 
     do j=I_S, I_N
-      species_conc(:,j,:,:) = &
-              species_conc(:,j,:,:) + 0.3*j
       temperature(:,j,:) = temperature(:,j,:) + 0.3*j
       pressure(:,:,j) = pressure(:,:,j) - 0.3*j
     end do
 
     do k=1, NUM_VERT_CELLS
-      species_conc(:,:,k,:) = &
-              species_conc(:,:,k,:) + 0.6*k
       temperature(:,:,k) = temperature(:,:,k) + 0.6*k
       pressure(:,k,:) = pressure(:,k,:) - 0.6*k
     end do

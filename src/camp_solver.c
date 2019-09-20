@@ -640,12 +640,13 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   int flag;
 
   // Update the dependent variables
-  for (int i_cell=0, i_dep_var=0; i_cell<n_cells; i_cell++)
+  int i_dep_var=0;
+  for (int i_cell=0; i_cell<n_cells; i_cell++)
     for (int i_spec=0; i_spec<n_state_var; i_spec++)
       if (sd->model_data.var_type[i_spec]==CHEM_SPEC_VARIABLE) {
         NV_Ith_S(sd->y,i_dep_var++) =
           state[i_spec+i_cell*n_state_var] > TINY ?
-          (realtype) state[i_spec] : TINY;
+          (realtype) state[i_spec+i_cell*n_state_var] : TINY;
       } else if (md->var_type[i_spec]==CHEM_SPEC_CONSTANT) {
         state[i_spec+i_cell*n_state_var] =
         state[i_spec+i_cell*n_state_var] > TINY
@@ -747,11 +748,11 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   }
 
   // Update the species concentrations on the state array
-  int i_dep_var = 0;
+  i_dep_var = 0;
   for (int i_cell=0; i_cell<n_cells; i_cell++) {
     for (int i_spec=0 ; i_spec<n_state_var; i_spec++) {
       if (md->var_type[i_spec]==CHEM_SPEC_VARIABLE) {
-        state[i_dep_var] =
+        state[i_spec+i_cell*n_state_var] =
             (double) ( NV_Ith_S(sd->y, i_dep_var) > 0.0 ?
                        NV_Ith_S(sd->y, i_dep_var) : 0.0 );
         i_dep_var++;
@@ -989,15 +990,8 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data)
 
 #endif
 
-#ifndef PMC_DEBUG
+#ifdef PMC_DEBUG
     counterDeriv++;
-    if(counterDeriv==1){
-      for (int i=0; i<3; i++) {//NV_LENGTH_S(deriv)
-      printf("state: %f",md->total_state[i]);
-      printf(" index: %d \n", i);
-     }
-    }
-
    if(counterDeriv==1) print_derivative(deriv);
 #endif
 
@@ -1113,10 +1107,8 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
     for (int i_map=0; i_map<md->n_mapped_values; ++i_map)
       SM_DATA_S(J)[i_cell*md->n_per_cell_solver_jac_elem
                    + jac_map[i_map].solver_id] +=
-        SM_DATA_S(md->J_rxn)[i_cell*md->n_per_cell_solver_jac_elem
-                   + jac_map[i_map].rxn_id] *
-        SM_DATA_S(md->J_params)[i_cell*md->n_per_cell_solver_jac_elem
-                   + jac_map[i_map].param_id];
+        SM_DATA_S(md->J_rxn)[jac_map[i_map].rxn_id] *
+        SM_DATA_S(md->J_params)[jac_map[i_map].param_id];
     PMC_DEBUG_JAC(J, "solver");
 
 #ifdef PMC_DEBUG
@@ -1127,8 +1119,6 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
       }
     }
 #endif
-
-    //J_rxn_data += md->n_per_cell_solver_jac_elem;
 
   }
 

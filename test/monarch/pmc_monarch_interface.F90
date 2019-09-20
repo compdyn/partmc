@@ -884,7 +884,7 @@ contains
     !> Air density (kg_air/m^3)
     real, intent(out) :: MONARCH_air_density(:,:,:)
 
-    integer(kind=i_kind) :: i_spec, water_id
+    integer(kind=i_kind) :: i_spec, water_id, i,j,k
 
     ! Reset the species concentrations in PMC and MONARCH
     this%camp_state%state_var(:) = 0.0
@@ -903,6 +903,21 @@ contains
       MONARCH_conc(:,:,:,this%map_monarch_id(i_spec)) = &
               this%camp_state%state_var(this%map_camp_id(i_spec))
     end forall
+
+    !Modify some concentrations only for test purposes
+    do i=1, 2
+      MONARCH_conc(i,:,:,:) = MONARCH_conc(i,:,:,:) !+ 0.01*i
+
+    end do
+
+    do j=1, 2
+      MONARCH_conc(:,j,:,:) = MONARCH_conc(:,j,:,:) !+ 0.03*j
+
+    end do
+
+    do k=1, 1
+      MONARCH_conc(:,:,k,:) = MONARCH_conc(:,:,k,:) !+ 0.06*k
+    end do
 
     ! Set the relative humidity
     MONARCH_water_conc(:,:,:,WATER_VAPOR_ID) = &

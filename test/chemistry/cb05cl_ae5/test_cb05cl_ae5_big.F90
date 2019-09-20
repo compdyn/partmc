@@ -324,9 +324,9 @@ contains
     camp_state%env_state%temp = temperature
     camp_state%env_state%pressure = pressure * const%air_std_press
 
-    call camp_state%update_env_state(0)
+    call camp_state%update_env_state(1)
 
-    do cell = 0, n_cells-1
+    do cell = 1, n_cells
       call camp_state%update_env_state(cell)
     end do
 

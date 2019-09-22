@@ -17,14 +17,24 @@
 !! \c doc/camp_tutorial .
 !!
 !! If you have Docker installed and want to quickly run the code
-!! described in the tutorial, instructions are included at the bottom of
+!! described in the tutorial, start a container with PartMC:
+!! \code{.sh}
+!!   docker run -it compdyn/partmc:develop-85-tutorial bash
+!! \endcode
+!! Then, follow the instructions at the bottom of the
 !! sections of the tutorial that include executable code.
+!! To remove the containers once you're done:
+!! \code{.sh}
+!!   docker system prune
+!! \endcode
 
 !> \page camp_tutorial_part_1 Boot CAMP: Part 1 - Box Model
 !!
 !! Prior to beginning this tutorial, the PartMC library should be
 !! installed on your system with PartMC-CAMP enabled. Installation
-!! instructions can be found \ref camp_chem "here".
+!! instructions can be found \ref camp_chem "here". Alternatively,
+!! you can run PartMC in Docker following the instructions
+!! \ref camp_tutorial "here".
 !!
 !! The purpose of this tutorial is to demonstrate how to integrate CAMP
 !! into a new host model, and use it to build and solve a unique
@@ -104,7 +114,9 @@
 !! \snippet camp_tutorial/part_1_code/box_model.F90 Set initial conditions
 !!
 !! The \ref pmc_camp_core::solver_initialize "solver_initialize()" function
-!! gets the external solver (CVODE) ready to solve the chemical system.
+!! gets the external solver
+!! (<a href="https://computing.llnl.gov/projects/sundials/cvode">CVODE</a>)
+!! ready to solve the chemical system.
 !! The \c camp_state now can be used to describe the state of the
 !! chemical system. It contains species concentrations (for which we will
 !! provide initial conditions in the next part of the tutorial) and
@@ -432,12 +444,7 @@
 !!
 !! <hr>
 !! ### Docker Instructions ###
-!! To run the code in Docker, try this from the partmc folder:
-!! \code{.sh}
-!!   docker build -t partmc-camp .
-!!   docker run -it --name pmc partmc-camp /bin/bash
-!! \endcode
-!! Then, inside the container:
+!! Inside the container:
 !! \code{.sh}
 !!   dnf install -y gnuplot
 !!   mkdir boot-camp

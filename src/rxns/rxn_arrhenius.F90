@@ -14,10 +14,11 @@
 !! \f]
 !!
 !! where \f$A\f$ is the pre-exponential factor
-!! (\f$(\mbox{\si{\#.cm^{-3}}})^{-(n-1)}\mbox{\si{\per\second}}\f$),
-!! \f$n\f$ is the number of reactants, \f$E_a\f$ is the activation energy (J),
-!! \f$k_b\f$ is the Boltzmann constant (J/K), \f$D\f$ (K), \f$B\f$ (unitless)
-!! and \f$E\f$ (\f$Pa^{-1}\f$) are reaction parameters, \f$T\f$ is the
+!! (\f$\mbox{#}\;\mbox{cm}^{-3})^{-(n-1)}\;\mbox{s}^{-1}\f$),
+!! \f$n\f$ is the number of reactants, \f$E_a\f$ is the activation energy
+!! (\f$\mbox{J}\f$), \f$k_b\f$ is the Boltzmann constant
+!! (\f$\mbox{J}\;\mbox{K}^{-1}\f$), \f$D\f$ (K), \f$B\f$ (unitless)
+!! and \f$E\f$ (\f$\mbox{Pa}^{-1}\f$) are reaction parameters, \f$T\f$ is the
 !! temperature (K), and \f$P\f$ is the pressure (Pa). The first two terms are
 !! described in Finlayson-Pitts and Pitts (2000) \cite Finlayson-Pitts2000 .
 !! The final term is included to accomodate CMAQ EBI solver type 7 rate

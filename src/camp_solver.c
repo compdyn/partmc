@@ -750,7 +750,7 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   // Update the species concentrations on the state array
   i_dep_var = 0;
   for (int i_cell=0; i_cell<n_cells; i_cell++) {
-    for (int i_spec=0 ; i_spec<n_state_var; i_spec++) {
+    for (int i_spec=0; i_spec<n_state_var; i_spec++) {
       if (md->var_type[i_spec]==CHEM_SPEC_VARIABLE) {
         state[i_spec+i_cell*n_state_var] =
             (double) ( NV_Ith_S(sd->y, i_dep_var) > 0.0 ?
@@ -951,7 +951,9 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data)
     sub_model_calculate(md);
 
 #ifndef PMC_USE_GPU
+
     #ifdef PMC_DEBUG
+
       clock_t start = clock();
 
       // Calculate the time derivative f(t,y)
@@ -959,14 +961,22 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data)
 
       clock_t end = clock();
       timeDerivgpu+= ((double) (end - start));
+      counterDeriv++;
+
     #else
+
       // Calculate the time derivative f(t,y)
       rxn_calc_deriv(md, deriv_data, (double) time_step);
+
     #endif
+
     // Advance the derivative for the next cell
     deriv_data += n_dep_var;
+
   }
+
 #else
+
   } // End loop on grid cells
 
   #ifdef PMC_DEBUG
@@ -979,6 +989,7 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data)
 
     clock_t end2 = clock();
     timeDerivgpu+= ((double) (end2 - start2));
+    counterDeriv++;
 
   #else
 
@@ -992,7 +1003,7 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data)
 
 #ifdef PMC_DEBUG
   counterDeriv++;
-  //if(counterDeriv==1) print_derivative(deriv);
+  if(counterDeriv==10 && sd->debug_out) print_derivative(deriv);
 #endif
 
   //Return 0 if success
@@ -1087,15 +1098,17 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
 
       // Calculate the Jacobian
       rxn_calc_jac(md, J_rxn_data, time_step);
-
       PMC_DEBUG_JAC(md->J_rxn, "reaction");
 
       clock_t end = clock();
       timeJac+= ((double) (end - start));
+      counterJac++;
 
     #else
+
       // Calculate the Jacobian
       rxn_calc_jac(md, J_rxn_data, time_step);
+
     #endif
 
     // Set the solver Jacobian
@@ -1134,17 +1147,21 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
 
     clock_t end2 = clock();
     timeDerivgpu+= ((double) (end2 - start2));
+    counterJac++;
 
   #else
+
     // Calculate the Jacobian
     rxn_calc_jac_gpu(md, md->J_rxn, time_step);
+
   #endif
 
 #endif
 
+
 #ifdef PMC_DEBUG
   counterJac++;
-  //if(counterJac==5) print_jacobian(J);
+  if(counterJac==1 && sd->debug_out) print_jacobian(sd->J);
 #endif
 
   return (0);
@@ -1893,12 +1910,12 @@ static void print_jacobian(SUNMatrix M)
 
   printf("\n NNZ JAC: %lld \n",SM_NNZ_S(M));
   printf("DATA | INDEXVALS:\n");
-  for (int i=0; i<9; i++) {//SM_NNZ_S(M)
-    printf ("% -le | ", (SM_DATA_S(M))[i]);
+  for (int i=0; i<SM_NNZ_S(M); i++) {
+    printf ("% -le \n", (SM_DATA_S(M))[i]);
     printf ("%lld \n", (SM_INDEXVALS_S(M))[i]);
   }
   printf("PTRS:\n");
-  for (int i=0; i<=6; i++) {//SM_NP_S(M)
+  for (int i=0; i<=SM_NP_S(M); i++) {
     printf ("%lld \n", (SM_INDEXPTRS_S(M))[i]);
   }
 
@@ -1912,7 +1929,7 @@ static void print_derivative(N_Vector deriv)
 {
 
   //printf(" deriv length: %d\n", NV_LENGTH_S(deriv));
-  for (int i=0; i<9; i++) {//NV_LENGTH_S(deriv)
+  for (int i=0; i<NV_LENGTH_S(deriv); i++) {//NV_LENGTH_S(deriv)
     printf(" deriv: % -le", NV_DATA_S(deriv)[i]);
     printf(" index: %d \n", i);
 

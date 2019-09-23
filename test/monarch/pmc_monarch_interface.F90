@@ -331,7 +331,7 @@ contains
     if (MONARCH_PROCESS.eq.0) then
       call cpu_time(comp_end)
       write(*,*) "Initialization time: ", comp_end-comp_start, " s"
-      !call new_obj%camp_core%print()
+      call new_obj%camp_core%print()
     end if
 
   end function constructor
@@ -400,7 +400,6 @@ contains
 
     call cpu_time(comp_start)
 
-
     if(.not.this%solve_multiple_cells) then
       do i=i_start, i_end
         do j=j_start, j_end
@@ -456,7 +455,7 @@ contains
     else
 
       ! solve multiple grid cells at once
-      ! this only works if this%n_cells ==
+      !  FIXME this only works if this%n_cells ==
       !       (i_end - i_start + 1) * (j_end - j_start + 1 ) * k_end
       n_cell_check = (i_end - i_start + 1) * (j_end - j_start + 1 ) * k_end
       call assert_msg(559245176, this%n_cells .eq. n_cell_check, &
@@ -470,7 +469,6 @@ contains
           do k=1, k_end
             !Remember fortran read matrix in inverse order for optimization!
             ! TODO add descriptions for o and z, or preferably use descriptive
-            !todo this follow the same order of 1 cell?
             !      variable names
             o = (j-1)*(i_end) + (i-1) !Index to 3D
             z = (k-1)*(i_end*j_end) + o !Index for 2D

@@ -51,7 +51,7 @@ program mock_monarch
   !> Time step (min)
   real, parameter :: TIME_STEP = 1.6
   !> Number of time steps to integrate over
-  integer, parameter :: NUM_TIME_STEP = 2
+  integer, parameter :: NUM_TIME_STEP = 5
   !> Index for water vapor in water_conc()
   integer, parameter :: WATER_VAPOR_ID = 5
   !> Start time
@@ -107,9 +107,10 @@ program mock_monarch
   character(len=:), allocatable :: output_file_prefix
 
   character(len=500) :: arg
-  integer :: status_code, i_time, i_spec, i, j, k, i_cases
+  integer :: status_code, i_time, i_spec, i, j, k
   !> Partmc nº of cases to test
   integer :: pmc_cases = 1
+
 
   ! Check the command line arguments
   call assert_msg(129432506, command_argument_count().eq.3, "Usage: "// &
@@ -118,6 +119,10 @@ program mock_monarch
 
   ! initialize mpi (to take the place of a similar MONARCH call)
   call pmc_mpi_init()
+
+  !Cells to solve simultaneously
+  !n_cells = (I_E - I_W+1)*(I_N - I_S+1)*NUM_VERT_CELLS
+  !n_cells = 1
 
   !Check if repeat program to compare n_cells=1 with n_cells=N
   if(check_multiple_cells) then
@@ -142,11 +147,11 @@ program mock_monarch
   call get_command_argument(3, arg, status=status_code)
   call assert_msg(234156729, status_code.eq.0, "Error getting output file prefix")
   output_file_prefix = trim(arg)
-
+  
   call model_initialize(output_file_prefix)
 
   !Repeat in case we want create a checksum
-  do i_cases=1, pmc_cases
+  do i=1, pmc_cases
 
     pmc_interface => monarch_interface_t(camp_input_file, interface_input_file, &
             START_CAMP_ID, END_CAMP_ID, n_cells)!, n_cells
@@ -167,6 +172,7 @@ program mock_monarch
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       ! **** Add to MONARCH during runtime for each time step **** !
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 
       call output_results(curr_time)
       call pmc_interface%integrate(curr_time,         & ! Starting time (min)
@@ -192,7 +198,7 @@ program mock_monarch
     write(*,*) "Model run time: ", comp_time, " s"
 
     !Save results
-    if(i_cases.eq.1) then
+    if(i.eq.1) then
       species_conc_copy(:,:,:,:) = species_conc(:,:,:,:)
     end if
 
@@ -200,11 +206,6 @@ program mock_monarch
     n_cells = 1
 
   end do
-
-!#ifdef DEBUG
-  !print*, "SPECIES CONC", species_conc(:,1,1,100)
-  !print*, "SPECIES CONC COPY", species_conc_copy(:,:,1,100)
-!#endif
 
   !If something to compare
   if(pmc_cases.gt.1) then
@@ -317,6 +318,8 @@ contains
       temperature(:,:,k) = temperature(:,:,k) + 0.6*k
       pressure(:,k,:) = pressure(:,k,:) - 0.6*k
     end do
+
+    deallocate(file_name)
 
     ! Read the compare file
     ! TODO Implement once results are stable

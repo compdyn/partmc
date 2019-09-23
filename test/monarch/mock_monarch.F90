@@ -328,8 +328,6 @@ contains
     close(COMPARE_FILE_UNIT)
 #endif
 
-    deallocate(file_name)
-
   end subroutine model_initialize
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

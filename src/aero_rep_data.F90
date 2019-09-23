@@ -783,14 +783,20 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Print the update data
-  subroutine do_aero_rep_update_data_print(this)
+  subroutine do_aero_rep_update_data_print(this, file_unit)
 
     !> Aerosol representation update data
     class(aero_rep_update_data_t), intent(in) :: this
+    !> File unit for output
+    integer(kind=i_kind), optional :: file_unit
 
-    write(*,*) "*** Aerosol representation update data ***"
-    write(*,*) "Aerosol representation type", this%aero_rep_type
-    write(*,*) "Aerosol representation solver id", this%aero_rep_solver_id
+    integer(kind=i_kind) :: f_unit = 6
+
+    if (present(file_unit)) f_unit = file_unit
+
+    write(f_unit,*) "*** Aerosol representation update data ***"
+    write(f_unit,*) "Aerosol representation type", this%aero_rep_type
+    write(f_unit,*) "Aerosol representation solver id", this%aero_rep_solver_id
 
   end subroutine do_aero_rep_update_data_print
 

@@ -888,7 +888,7 @@ contains
     !> Air density (kg_air/m^3)
     real, intent(out) :: MONARCH_air_density(:,:,:)
 
-    integer(kind=i_kind) :: i_spec, water_id
+    integer(kind=i_kind) :: i_spec, water_id, i,j,k
 
     ! Reset the species concentrations in PMC and MONARCH
     this%camp_state%state_var(:) = 0.0

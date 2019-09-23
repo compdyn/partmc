@@ -10,6 +10,7 @@ program unit_test_driver
   use pmc_camp_state
   use pmc_mpi
   use pmc_rand
+  use pmc_solver_stats
   use pmc_unit_test_data
   use pmc_util
   use UNIT_TEST_MODULE_
@@ -42,6 +43,10 @@ program unit_test_driver
   integer(kind=i_kind) :: state_start_idx, state_end_idx
   integer(kind=i_kind) :: env_start_idx, env_end_idx
   real(kind=dp) :: multicell_val, one_cell_val
+
+  ! Solver evaluation object
+  type(solver_stats_t) :: solver_stats
+  real(kind=dp) :: rel_tol, abs_tol
 
   integer(kind=i_kind) :: i_cell, i_time, i_spec
   real(kind=dp) :: time
@@ -120,6 +125,11 @@ program unit_test_driver
 
   end do
 
+#ifdef PMC_DEBUG
+  ! Evaluate the Jacobian during solving
+  solver_stats%eval_Jac = .true.
+#endif
+
   ! *************************************************
   ! *** Solve & analyze results at each time step ***
   ! *************************************************
@@ -127,7 +137,16 @@ program unit_test_driver
   do i_time = 1, unit_test%num_time_steps( )
 
     ! Solve the multicell system first
-    call multicell_core%solve( multicell_state, unit_test%time_step_size( ) )
+    call multicell_core%solve( multicell_state, unit_test%time_step_size( ), &
+                               solver_stats = solver_stats )
+
+#ifdef PMC_DEBUG
+    ! Check the Jacobian evaluations
+    call assert_msg( 673820325, solver_stats%Jac_eval_fails.eq.0, &
+                     trim( to_string( solver_stats%Jac_eval_fails ) )// &
+                     " Jacobian evaluation failures in multi-cell "// &
+                     "solver at time step "//trim( to_string( i_time ) ) )
+#endif
 
     ! Loop over the grid cells to do the single-cell solving and to compare
     ! and analyze the results from multicell and single-cell solving for each
@@ -146,23 +165,35 @@ program unit_test_driver
 
       ! Solve the single-cell system
       call one_cell_core%solve( grid_cell_state( i_cell )%val, &
-                                unit_test%time_step_size( ) )
+                                unit_test%time_step_size( ), &
+                                solver_stats = solver_stats )
+
+#ifdef PMC_DEBUG
+      ! Check the Jacobian evaluations
+      call assert_msg( 781326658, solver_stats%Jac_eval_fails.eq.0, &
+                       trim( to_string( solver_stats%Jac_eval_fails ) )// &
+                       " Jacobian evaluation failures in single-cell "// &
+                       "solver at time step "//trim( to_string( i_time ) ) )
+#endif
 
       ! Make sure the results are similar between the two solvers
       do i_spec = 1, n_state_var_one_cell
         multicell_val = multicell_cell_state%state_var( i_spec )
         one_cell_val  = grid_cell_state( i_cell )%val%state_var( i_spec )
+        rel_tol       = one_cell_core%get_rel_tol( )
+        abs_tol       = one_cell_core%get_abs_tol( i_spec )
         call warn_assert_msg( 294102573, &
                          almost_equal( multicell_val, one_cell_val, &
-                                       one_cell_core%get_rel_tol( ), &
-                                       one_cell_core%get_abs_tol( i_spec ) ), &
+                                       rel_tol, abs_tol ), &
                          "Different results for single- and multi-cell solving "// &
                          "in cell "//trim( to_string( i_cell ) )//" for species "// &
                          trim( to_string( i_spec ) )//" at time step "// &
                          trim( to_string( i_time ) )//". Multicell value: "// &
                          trim( to_string( multicell_val ) )// &
                          ", single-cell value: "// &
-                         trim( to_string( one_cell_val ) )//"." )
+                         trim( to_string( one_cell_val ) )//". Relative "// &
+                         "tolerance: "//trim( to_string( rel_tol ) )// &
+                         ". Absolute tolerance: "//trim( to_string( abs_tol ) ) )
       end do
 
       ! Do the system-specific analysis

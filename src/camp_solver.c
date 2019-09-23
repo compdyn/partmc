@@ -1124,16 +1124,17 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
         SM_DATA_S(md->J_params)[jac_map[i_map].param_id];
     PMC_DEBUG_JAC(J, "solver");
 
+  }
+
 #ifdef PMC_DEBUG
-    // Evaluate the Jacobian if flagged to do so
-    if (sd->eval_Jac==SUNTRUE) {
-      if (!check_Jac(t, y, J, deriv, tmp1, tmp3, solver_data)) {
-        ++(sd->Jac_eval_fails);
-      }
+  // Evaluate the Jacobian if flagged to do so
+  if (sd->eval_Jac==SUNTRUE) {
+    if (!check_Jac(t, y, J, deriv, tmp1, tmp3, solver_data)) {
+      ++(sd->Jac_eval_fails);
     }
+  }
 #endif
 
-  }
 
 // GPU solving
 #else

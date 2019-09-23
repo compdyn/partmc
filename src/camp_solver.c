@@ -640,14 +640,17 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   int flag;
 
   // Update the dependent variables
-  for (int i_cell=0, i_dep_var=0; i_cell<n_cells; i_cell++)
+  int i_dep_var=0;
+  for (int i_cell=0; i_cell<n_cells; i_cell++)
     for (int i_spec=0; i_spec<n_state_var; i_spec++)
       if (sd->model_data.var_type[i_spec]==CHEM_SPEC_VARIABLE) {
         NV_Ith_S(sd->y,i_dep_var++) =
-          state[i_spec] > TINY ?
-          (realtype) state[i_spec] : TINY;
+          state[i_spec+i_cell*n_state_var] > TINY ?
+          (realtype) state[i_spec+i_cell*n_state_var] : TINY;
       } else if (md->var_type[i_spec]==CHEM_SPEC_CONSTANT) {
-        state[i_spec] = state[i_spec] > TINY ? state[i_spec] : TINY;
+        state[i_spec+i_cell*n_state_var] =
+          state[i_spec+i_cell*n_state_var] > TINY
+          ? state[i_spec+i_cell*n_state_var] : TINY;
       }
 
   // Update model data pointers
@@ -745,8 +748,9 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   }
 
   // Update the species concentrations on the state array
+  i_dep_var = 0;
   for (int i_cell=0; i_cell<n_cells; i_cell++) {
-    for (int i_spec=0, i_dep_var = 0; i_spec<n_state_var; i_spec++) {
+    for (int i_spec=0; i_spec<n_state_var; i_spec++) {
       if (md->var_type[i_spec]==CHEM_SPEC_VARIABLE) {
         state[i_spec+i_cell*n_state_var] =
             (double) ( NV_Ith_S(sd->y, i_dep_var) > 0.0 ?
@@ -998,6 +1002,7 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data)
 #endif
 
 #ifdef PMC_DEBUG
+  counterDeriv++;
   if(counterDeriv==10 && sd->debug_out) print_derivative(deriv);
 #endif
 
@@ -1155,6 +1160,7 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
 
 
 #ifdef PMC_DEBUG
+  counterJac++;
   if(counterJac==1 && sd->debug_out) print_jacobian(sd->J);
 #endif
 

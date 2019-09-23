@@ -31,7 +31,7 @@ program mock_monarch
   !> Number of total species in mock MONARCH
   integer, parameter :: NUM_MONARCH_SPEC = 800
   !> Number of vertical cells in mock MONARCH
-  integer, parameter :: NUM_VERT_CELLS = 5
+  integer, parameter :: NUM_VERT_CELLS = 3
   !> Starting W-E cell for camp-chem call
   integer, parameter :: I_W = 1
   !> Ending W-E cell for camp-chem call
@@ -147,6 +147,7 @@ program mock_monarch
   call get_command_argument(3, arg, status=status_code)
   call assert_msg(234156729, status_code.eq.0, "Error getting output file prefix")
   output_file_prefix = trim(arg)
+  
   call model_initialize(output_file_prefix)
 
   !Repeat in case we want create a checksum
@@ -236,7 +237,7 @@ program mock_monarch
             plot_start_time, curr_time)
   end if
 
-  !TODO: Compare evaluations, the following is not working, should be revised
+  ! TODO I would still like to implement this once the results are stable
   ! The evaluation is based on a run with reasonable seeming values and
   ! few solver modifications. It is used to make sure future modifications
   ! to the solver do not affect the results
@@ -286,8 +287,11 @@ contains
     open(RESULTS_FILE_UNIT, file=file_name, status="replace", action="write")
 
     ! Open the compare file
-!    file_name = file_prefix//"_comp.txt"
-!    open(COMPARE_FILE_UNIT, file=file_name, action="read")
+    ! TODO Implement once results are stable
+#if 0
+    file_name = file_prefix//"_comp.txt"
+    open(COMPARE_FILE_UNIT, file=file_name, action="read")
+#endif
 
     ! TODO refine initial model conditions
     temperature(:,:,:) = 300.614166259766
@@ -298,26 +302,19 @@ contains
     pressure(:,:,:) = 94165.7187500000
 
     !Initialize different axis values
-    !TODO: Varying the pressure is not affecting the system, is that normal?
-    ! The last loop overwrites entirely the values set by the first two loops
+    !Species_conc is modified in monarch_interface%get_init_conc
 
     do i=I_W, I_E
-      species_conc(i,:,:,:) = &
-              species_conc(i,:,:,:) + 0.1*i
       temperature(i,:,:) = temperature(i,:,:) + 0.1*i
       pressure(i,:,:) = pressure(i,:,:) - 0.1*i
     end do
 
     do j=I_S, I_N
-      species_conc(:,j,:,:) = &
-              species_conc(:,j,:,:) + 0.3*j
       temperature(:,j,:) = temperature(:,j,:) + 0.3*j
       pressure(:,:,j) = pressure(:,:,j) - 0.3*j
     end do
 
     do k=1, NUM_VERT_CELLS
-      species_conc(:,:,k,:) = &
-              species_conc(:,:,k,:) + 0.6*k
       temperature(:,:,k) = temperature(:,:,k) + 0.6*k
       pressure(:,k,:) = pressure(:,k,:) - 0.6*k
     end do
@@ -325,8 +322,11 @@ contains
     deallocate(file_name)
 
     ! Read the compare file
-!    call read_comp_file()
-!    close(COMPARE_FILE_UNIT)
+    ! TODO Implement once results are stable
+#if 0
+    call read_comp_file()
+    close(COMPARE_FILE_UNIT)
+#endif
 
   end subroutine model_initialize
 

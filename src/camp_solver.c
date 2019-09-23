@@ -649,8 +649,8 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
           (realtype) state[i_spec+i_cell*n_state_var] : TINY;
       } else if (md->var_type[i_spec]==CHEM_SPEC_CONSTANT) {
         state[i_spec+i_cell*n_state_var] =
-        state[i_spec+i_cell*n_state_var] > TINY
-        ? state[i_spec+i_cell*n_state_var] : TINY;
+          state[i_spec+i_cell*n_state_var] > TINY
+          ? state[i_spec+i_cell*n_state_var] : TINY;
       }
 
   // Update model data pointers
@@ -991,8 +991,8 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data)
 #endif
 
 #ifdef PMC_DEBUG
-    counterDeriv++;
-   if(counterDeriv==1) print_derivative(deriv);
+  counterDeriv++;
+  //if(counterDeriv==1) print_derivative(deriv);
 #endif
 
   //Return 0 if success
@@ -1026,7 +1026,6 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
   // Get pointers to the rxn and parameter Jacobian arrays
   double *J_param_data = SM_DATA_S(md->J_params);
   double *J_rxn_data   = SM_DATA_S(md->J_rxn);
-  double *J_data   = SM_DATA_S(J);
 
   // !!!! Do not use tmp2 - it is the same as y !!!! //
   // FIXME Find out why cvode is sending tmp2 as y
@@ -1088,7 +1087,6 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
 
       // Calculate the Jacobian
       rxn_calc_jac(md, J_rxn_data, time_step);
-      //rxn_calc_jac(md, J_data, time_step);
 
       PMC_DEBUG_JAC(md->J_rxn, "reaction");
 
@@ -1101,9 +1099,8 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
     #endif
 
     // Set the solver Jacobian
-   JacMap *jac_map = md->jac_map;
+    JacMap *jac_map = md->jac_map;
     SM_DATA_S(md->J_params)[0] = 1.0; // dummy value for non-sub model calcs
-    //printf("n_mapped_values: %d", md->n_mapped_values);
     for (int i_map=0; i_map<md->n_mapped_values; ++i_map)
       SM_DATA_S(J)[i_cell*md->n_per_cell_solver_jac_elem
                    + jac_map[i_map].solver_id] +=
@@ -1146,8 +1143,8 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
 #endif
 
 #ifdef PMC_DEBUG
-     counterJac++;
-  if(counterJac==5) print_jacobian(J);
+  counterJac++;
+  //if(counterJac==5) print_jacobian(J);
 #endif
 
   return (0);

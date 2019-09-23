@@ -31,7 +31,7 @@ program mock_monarch
   !> Number of total species in mock MONARCH
   integer, parameter :: NUM_MONARCH_SPEC = 800
   !> Number of vertical cells in mock MONARCH
-  integer, parameter :: NUM_VERT_CELLS = 1
+  integer, parameter :: NUM_VERT_CELLS = 3
   !> Starting W-E cell for camp-chem call
   integer, parameter :: I_W = 1
   !> Ending W-E cell for camp-chem call
@@ -143,10 +143,7 @@ program mock_monarch
   call assert_msg(234156729, status_code.eq.0, "Error getting output file prefix")
   output_file_prefix = trim(arg)
 
-  ! Open the output file
-  open(RESULTS_FILE_UNIT, file=output_file_prefix//"_results.txt", status="replace", action="write")
-
-  call model_initialize()
+  call model_initialize(output_file_prefix)
 
   !Repeat in case we want create a checksum
   do i_cases=1, pmc_cases
@@ -239,6 +236,24 @@ program mock_monarch
             plot_start_time, curr_time)
   end if
 
+  ! TODO I would still like to implement this once the results are stable
+  ! The evaluation is based on a run with reasonable seeming values and
+  ! few solver modifications. It is used to make sure future modifications
+  ! to the solver do not affect the results
+#if 0
+  do i_spec = START_CAMP_ID, END_CAMP_ID
+    call assert_msg( 394742768, &
+        almost_equal( real( species_conc(10,15,1,i_spec), kind=dp ), &
+                      real( comp_species_conc(i_time,i_spec), kind=dp ), &
+                      1.d-4, 1d-3 ), &
+        "Concentration species mismatch for species "// &
+        trim( to_string( i_spec ) )//" at time step "// &
+        trim( to_string( i_time ) )//". Expected: "// &
+        trim( to_string( comp_species_conc(i_time,i_spec) ) )//", got: "// &
+        trim( to_string( species_conc(10,15,1,i_spec) ) ) )
+  end do
+#endif
+
   ! Deallocation
   deallocate(camp_input_file)
   deallocate(interface_input_file)
@@ -258,11 +273,24 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Initialize the mock model
-  subroutine model_initialize()
+  subroutine model_initialize(file_prefix)
+
+    !> File prefix for model results
+    character(len=:), allocatable, intent(in) :: file_prefix
+
+    integer :: i_spec
+    character(len=:), allocatable :: file_name
+
+    ! Open the output file
+    file_name = file_prefix//"_results.txt"
+    open(RESULTS_FILE_UNIT, file=file_name, status="replace", action="write")
 
     ! Open the compare file
-!    file_name = file_prefix//"_comp.txt"
-!    open(COMPARE_FILE_UNIT, file=file_name, action="read")
+    ! TODO Implement once results are stable
+#if 0
+    file_name = file_prefix//"_comp.txt"
+    open(COMPARE_FILE_UNIT, file=file_name, action="read")
+#endif
 
     ! TODO refine initial model conditions
     temperature(:,:,:) = 300.614166259766
@@ -291,8 +319,13 @@ contains
     end do
 
     ! Read the compare file
-!    call read_comp_file()
-!    close(COMPARE_FILE_UNIT)
+    ! TODO Implement once results are stable
+#if 0
+    call read_comp_file()
+    close(COMPARE_FILE_UNIT)
+#endif
+
+    deallocate(file_name)
 
   end subroutine model_initialize
 

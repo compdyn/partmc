@@ -389,9 +389,11 @@ contains
       state_size_per_cell = this%camp_core%state_size_per_cell()
     end if
 
+#if 0
 #ifdef PMC_DEBUG
       ! Evaluate the Jacobian during solving
       solver_stats%eval_Jac = .true.
+#endif
 #endif
 
     k_end = size(MONARCH_conc,3)
@@ -403,8 +405,6 @@ contains
       do i=i_start, i_end
         do j=j_start, j_end
           do k=1, k_end
-
-            !print*, "next_cell"
 
             ! Calculate the vertical index for NMMB-style arrays
             k_flip = size(MONARCH_conc,3) - k + 1
@@ -435,12 +435,14 @@ contains
             call this%camp_core%solve(this%camp_state, &
                     real(time_step, kind=dp), solver_stats = solver_stats)
 
+#if 0
 #ifdef PMC_DEBUG
             ! Check the Jacobian evaluations
             call warn_assert_msg(611569150, solver_stats%Jac_eval_fails.eq.0,&
                         trim( to_string( solver_stats%Jac_eval_fails ) )// &
                         " Jacobian evaluation failures at time "// &
                         trim( to_string( start_time ) ) )
+#endif
 #endif
 
             ! Update the MONARCH tracer array with new species concentrations
@@ -903,21 +905,6 @@ contains
       MONARCH_conc(:,:,:,this%map_monarch_id(i_spec)) = &
               this%camp_state%state_var(this%map_camp_id(i_spec))
     end forall
-
-    !Modify some concentrations only for test purposes
-    do i=1, 2
-      MONARCH_conc(i,:,:,:) = MONARCH_conc(i,:,:,:) !+ 0.01*i
-
-    end do
-
-    do j=1, 2
-      MONARCH_conc(:,j,:,:) = MONARCH_conc(:,j,:,:) !+ 0.03*j
-
-    end do
-
-    do k=1, 1
-      MONARCH_conc(:,:,k,:) = MONARCH_conc(:,:,k,:) !+ 0.06*k
-    end do
 
     ! Set the relative humidity
     MONARCH_water_conc(:,:,:,WATER_VAPOR_ID) = &

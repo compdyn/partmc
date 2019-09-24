@@ -511,9 +511,9 @@ void solver_initialize(void *solver_data, double *abs_tol, double rel_tol,
   sd->abs_tol_nv = N_VNew_Serial(n_dep_var*n_cells);
   i_dep_var = 0;
   for (int i_cell=0; i_cell<n_cells; ++i_cell)
-    for (int i=0; i<n_state_var; i++)
-      if (var_type[i]==CHEM_SPEC_VARIABLE)
-            NV_Ith_S(sd->abs_tol_nv, i_dep_var++) = (realtype) abs_tol[i];
+    for (int i_spec=0; i_spec<n_state_var; ++i_spec)
+      if (var_type[i_spec]==CHEM_SPEC_VARIABLE)
+            NV_Ith_S(sd->abs_tol_nv, i_dep_var++) = (realtype) abs_tol[i_spec];
   flag = CVodeSVtolerances(sd->cvode_mem, (realtype) rel_tol, sd->abs_tol_nv);
   check_flag_fail(&flag, "CVodeSVtolerances", 1);
 

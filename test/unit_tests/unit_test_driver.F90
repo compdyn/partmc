@@ -180,8 +180,8 @@ program unit_test_driver
       do i_spec = 1, n_state_var_one_cell
         multicell_val = multicell_cell_state%state_var( i_spec )
         one_cell_val  = grid_cell_state( i_cell )%val%state_var( i_spec )
-        rel_tol       = one_cell_core%get_rel_tol( )
-        abs_tol       = one_cell_core%get_abs_tol( i_spec )
+        rel_tol       = one_cell_core%get_rel_tol( ) * i_time
+        abs_tol       = one_cell_core%get_abs_tol( i_spec ) * i_time
         call warn_assert_msg( 294102573, &
                          almost_equal( multicell_val, one_cell_val, &
                                        rel_tol, abs_tol ), &

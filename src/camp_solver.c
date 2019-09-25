@@ -1163,7 +1163,6 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
 
 #endif
 
-
 #ifdef PMC_DEBUG
   counterJac++;
   if(counterJac==1 && sd->debug_out) print_jacobian(sd->J);
@@ -1420,7 +1419,8 @@ int guess_helper(const realtype t_n, const realtype h_n, N_Vector y_n,
     // Recalculate the time derivative \f$f(t_j)\f$
     if (f(t_0 + t_j, tmp1, corr, solver_data) != 0) {
       PMC_DEBUG_PRINT("Unexpected failure in guess helper!");
-      return 0;
+      N_VConst(ZERO, corr);
+      return -1;
     }
     ((CVodeMem)sd->cvode_mem)->cv_nfe++;
 
@@ -1430,12 +1430,16 @@ int guess_helper(const realtype t_n, const realtype h_n, N_Vector y_n,
       PMC_DEBUG_PRINT("Max guess iterations reached!");
     }
 #endif
+
   }
 
   PMC_DEBUG_PRINT_INT("Guessed y_h in steps:", iter);
 
   // Set the correction vector
   N_VLinearSum(ONE, tmp1, -ONE, y_n, corr);
+
+  // Scale the correction so we don't overshoot
+  N_VScale(0.999, corr, corr);
 
   // Update the hf vector
   N_VLinearSum(ONE, tmp1, -ONE, y_n1, hf);

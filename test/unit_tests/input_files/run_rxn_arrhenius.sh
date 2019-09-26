@@ -21,7 +21,7 @@ else
 fi
 if ! $exec_str; then
 	  echo Failure "$counter"
-	  if [ "$counter" -gt 1 ]
+	  if [ "$counter" -gt 5 ]
 	  then
 		  echo FAIL
 		  exit 1

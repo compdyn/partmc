@@ -8,6 +8,7 @@ module pmc_unit_test_rxn_arrhenius
 
   use pmc_camp_core
   use pmc_camp_state
+  use pmc_mpi
   use pmc_unit_test_data
   use pmc_util
 
@@ -52,6 +53,8 @@ module pmc_unit_test_rxn_arrhenius
     !> Flag inidicating local data is set up
     logical :: is_initialized = .false.
   contains
+    !> Initialize the object data
+    procedure :: initialize
     !> Get the name of the input file for the test
     procedure :: input_file_name
     !> Get the number of unique original states available
@@ -64,8 +67,12 @@ module pmc_unit_test_rxn_arrhenius
     procedure :: time_step_size
     !> Analyze results in a camp_state_t object
     procedure :: analyze_state
-    !> Initialize the object data
-    procedure, private :: initialize
+    !> Determine the number of bytes required to pack the object onto a buffer
+    procedure :: pack_size
+    !> Pack the object onto a buffer, advancing position
+    procedure :: bin_pack
+    !> Unpack an object from a buffer, advancing position
+    procedure :: bin_unpack
   end type unit_test_rxn_arrhenius_t
 
   !> Constructor for the Arrhenius test
@@ -86,6 +93,42 @@ contains
     allocate(new_obj)
 
   end function constructor
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Initialize the object data
+  subroutine initialize( this, camp_core )
+
+    use pmc_chem_spec_data
+
+    !> Unit test data
+    class(unit_test_rxn_arrhenius_t), intent(inout) :: this
+    !> CAMP core
+    class(camp_core_t), intent(in) :: camp_core
+
+    type(chem_spec_data_t), pointer :: chem_spec_data
+
+    call assert( 654980185, .not. this%is_initialized )
+
+    ! Get the chemical species data
+    call assert( 672415022, camp_core%get_chem_spec_data( chem_spec_data ) )
+
+    ! Get the species ids
+    this%idx_A = chem_spec_data%gas_state_id( "A" )
+    this%idx_B = chem_spec_data%gas_state_id( "B" )
+    this%idx_C = chem_spec_data%gas_state_id( "C" )
+    this%idx_D = chem_spec_data%gas_state_id( "D" )
+
+    ! Make sure all the species were found
+    call assert_msg( 204555021, this%idx_A.gt.0, "Missing species A" )
+    call assert_msg( 883729398, this%idx_B.gt.0, "Missing species B" )
+    call assert_msg( 996047743, this%idx_C.gt.0, "Missing species C" )
+    call assert_msg( 208366089, this%idx_D.gt.0, "Missing species D" )
+
+    ! Flag the test as being initialized
+    this%is_initialized = .true.
+
+  end subroutine initialize
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -135,7 +178,7 @@ contains
     real(kind=dp) :: conv
 
     ! Make sure the test data is initialized
-    call this%initialize( camp_core )
+    call assert(345723133, this%is_initialized)
 
     ! Get a conversion factor needed to set the D concentration
     conv = const%avagadro / const%univ_gas_const * 10.0d0**(-12.0d0) * &
@@ -271,39 +314,109 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Initialize the object data
-  subroutine initialize( this, camp_core )
+  !> Determine the number of bytes required to pack the object onto a buffer
+  integer(kind=i_kind) function pack_size(this, comm)
 
-    use pmc_chem_spec_data
+    !> Unit test data
+    class(unit_test_rxn_arrhenius_t), intent(in) :: this
+    !> MPI communicator
+    integer, intent(in), optional :: comm
+
+#ifdef PMC_USE_MPI
+    integer :: l_comm
+
+    if (present(comm)) then
+      l_comm = comm
+    else
+      l_comm = MPI_COMM_WORLD
+    endif
+
+    pack_size = &
+      pmc_mpi_pack_size_integer(this%idx_A, l_comm) + &
+      pmc_mpi_pack_size_integer(this%idx_B, l_comm) + &
+      pmc_mpi_pack_size_integer(this%idx_C, l_comm) + &
+      pmc_mpi_pack_size_integer(this%idx_D, l_comm)
+#else
+    pack_size = 0
+#endif
+
+  end function pack_size
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Pack the object onto a buffer, advancing position
+  subroutine bin_pack(this, buffer, pos, comm)
+
+    !> Unit test data
+    class(unit_test_rxn_arrhenius_t), intent(in) :: this
+    !> Memory buffer
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position
+    integer, intent(inout) :: pos
+    !> MPI communicator
+    integer, intent(in), optional ::comm
+
+#ifdef PMC_USE_MPI
+    integer :: prev_position, l_comm
+
+    if (present(comm)) then
+      l_comm = comm
+    else
+      l_comm = MPI_COMM_WORLD
+    endif
+
+    call assert_msg(282594670, this%is_initialized, &
+                    "Trying to pack an uninitialized unit test on a buffer")
+
+    prev_position = pos
+    call pmc_mpi_pack_integer(buffer, pos, this%idx_A, l_comm)
+    call pmc_mpi_pack_integer(buffer, pos, this%idx_B, l_comm)
+    call pmc_mpi_pack_integer(buffer, pos, this%idx_C, l_comm)
+    call pmc_mpi_pack_integer(buffer, pos, this%idx_D, l_comm)
+    call assert(897212942, &
+                pos - prev_position <= this%pack_size(l_comm))
+#endif
+
+  end subroutine bin_pack
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Unpack an object from a buffer, advancing position
+  subroutine bin_unpack(this, buffer, pos, comm)
 
     !> Unit test data
     class(unit_test_rxn_arrhenius_t), intent(inout) :: this
-    !> CAMP core
-    class(camp_core_t), intent(in) :: camp_core
+    !> Memory buffer
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position
+    integer, intent(inout) :: pos
+    !> MPI communicator
+    integer, intent(in), optional :: comm
 
-    type(chem_spec_data_t), pointer :: chem_spec_data
+#ifdef PMC_USE_MPI
+    integer :: prev_position, l_comm
 
-    if( this%is_initialized ) return
+    if (present(comm)) then
+      l_comm = comm
+    else
+      l_comm = MPI_COMM_WORLD
+    endif
 
-    ! Get the chemical species data
-    call assert( 672415022, camp_core%get_chem_spec_data( chem_spec_data ) )
+    call assert_msg(768100732, .not. this%is_initialized, &
+                    "Trying to overwrite an initialized unit test object")
 
-    ! Get the species ids
-    this%idx_A = chem_spec_data%gas_state_id( "A" )
-    this%idx_B = chem_spec_data%gas_state_id( "B" )
-    this%idx_C = chem_spec_data%gas_state_id( "C" )
-    this%idx_D = chem_spec_data%gas_state_id( "D" )
+    prev_position = pos
+    call pmc_mpi_unpack_integer(buffer, pos, this%idx_A, l_comm)
+    call pmc_mpi_unpack_integer(buffer, pos, this%idx_B, l_comm)
+    call pmc_mpi_unpack_integer(buffer, pos, this%idx_C, l_comm)
+    call pmc_mpi_unpack_integer(buffer, pos, this%idx_D, l_comm)
+    call assert(466926084, &
+                pos - prev_position <= this%pack_size(l_comm))
 
-    ! Make sure all the species were found
-    call assert_msg( 204555021, this%idx_A.gt.0, "Missing species A" )
-    call assert_msg( 883729398, this%idx_B.gt.0, "Missing species B" )
-    call assert_msg( 996047743, this%idx_C.gt.0, "Missing species C" )
-    call assert_msg( 208366089, this%idx_D.gt.0, "Missing species D" )
-
-    ! Flag the test as being initialized
     this%is_initialized = .true.
+#endif
 
-  end subroutine initialize
+  end subroutine bin_unpack
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

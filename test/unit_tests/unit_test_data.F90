@@ -15,6 +15,8 @@ module pmc_unit_test_data
   type, abstract :: unit_test_data_t
 
   contains
+    !> Initialize the unit test
+    procedure(initialize), deferred :: initialize
     !> Get the name of the input file for the test
     procedure(input_file_name), deferred :: input_file_name
     !> Get the number of unique original states available
@@ -27,9 +29,29 @@ module pmc_unit_test_data
     procedure(time_step_size), deferred :: time_step_size
     !> Analyze results in a camp_state_t object
     procedure(analyze_state), deferred :: analyze_state
+    !> Determine the number of bytes required to pack the object onto a buffer
+    procedure(pack_size), deferred :: pack_size
+    !> Pack the object onto a buffer, advancing position
+    procedure(bin_pack), deferred :: bin_pack
+    !> Uppack an object from a buffer, advancing position
+    procedure(bin_unpack), deferred :: bin_unpack
   end type unit_test_data_t
 
 interface
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Initialize the unit test
+  subroutine initialize(this, camp_core)
+    use pmc_camp_core
+    import :: unit_test_data_t
+
+    !> Unit test data
+    class(unit_test_data_t), intent(inout) :: this
+    !> CAMP core
+    class(camp_core_t), intent(in) :: camp_core
+
+  end subroutine initialize
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -135,6 +157,54 @@ interface
     integer(kind=i_kind), intent(in) :: model_time_step
 
   end function analyze_state
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Determine the number of bytes required to pack the object on a buffer
+  integer(kind=i_kind) function pack_size(this, comm)
+    use pmc_util,                                only : i_kind
+    import :: unit_test_data_t
+
+    !> Unit test data
+    class(unit_test_data_t), intent(in) :: this
+    !> MPI communicator
+    integer, intent(in), optional :: comm
+
+  end function pack_size
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Pack the object onto a buffer, advancing position
+  subroutine bin_pack(this, buffer, pos, comm)
+    import :: unit_test_data_t
+
+    !> Unit test data
+    class(unit_test_data_t), intent(in) :: this
+    !> Memory buffer
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position
+    integer, intent(inout) :: pos
+    !> MPI communicator
+    integer, intent(in), optional :: comm
+
+  end subroutine bin_pack
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Unpack an object from a buffer, advancing position
+  subroutine bin_unpack(this, buffer, pos, comm)
+    import :: unit_test_data_t
+
+    !> Unit test data
+    class(unit_test_data_t), intent(inout) :: this
+    !> Memory buffer
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position
+    integer, intent(inout) :: pos
+    !> MPI communicator
+    integer, intent(in), optional :: comm
+
+  end subroutine bin_unpack
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

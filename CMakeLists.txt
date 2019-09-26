@@ -240,7 +240,6 @@ if (ENABLE_TESTS)
 
       # Old-style unit tests
       add_test(test_rxn_aqueous_equilibrium ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_aqueous_equilibrium.sh ${MPI_TEST_FLAG})
-      add_test(test_rxn_arrhenius ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_arrhenius.sh ${MPI_TEST_FLAG})
       add_test(test_rxn_CMAQ_H2O2 ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_CMAQ_H2O2.sh ${MPI_TEST_FLAG})
       add_test(test_rxn_CMAQ_OH_HNO3 ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_CMAQ_OH_HNO3.sh ${MPI_TEST_FLAG})
       add_test(test_rxn_condensed_phase_arrhenius ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_condensed_phase_arrhenius.sh ${MPI_TEST_FLAG})
@@ -672,8 +671,6 @@ target_link_libraries(unit_test_chem_spec_data partmclib)
 
 add_executable(test_rxn_aqueous_equilibrium test/unit_rxn_data/test_rxn_aqueous_equilibrium.F90)
 target_link_libraries(test_rxn_aqueous_equilibrium partmclib)
-add_executable(test_rxn_arrhenius test/unit_rxn_data/test_rxn_arrhenius.F90)
-target_link_libraries(test_rxn_arrhenius partmclib)
 add_executable(test_rxn_CMAQ_H2O2 test/unit_rxn_data/test_rxn_CMAQ_H2O2.F90)
 target_link_libraries(test_rxn_CMAQ_H2O2 partmclib)
 add_executable(test_rxn_CMAQ_OH_HNO3 test/unit_rxn_data/test_rxn_CMAQ_OH_HNO3.F90)

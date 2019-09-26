@@ -210,6 +210,9 @@ void * solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
 #ifdef PMC_DEBUG
   // Default to no debugging output
   sd->debug_out = SUNFALSE;
+
+  // Initialize the Jac solver flag
+  sd->eval_Jac = SUNFALSE;
 #endif
 #endif
 
@@ -508,9 +511,9 @@ void solver_initialize(void *solver_data, double *abs_tol, double rel_tol,
   sd->abs_tol_nv = N_VNew_Serial(n_dep_var*n_cells);
   i_dep_var = 0;
   for (int i_cell=0; i_cell<n_cells; ++i_cell)
-    for (int i=0; i<n_state_var; i++)
-      if (var_type[i]==CHEM_SPEC_VARIABLE)
-            NV_Ith_S(sd->abs_tol_nv, i_dep_var++) = (realtype) abs_tol[i];
+    for (int i_spec=0; i_spec<n_state_var; ++i_spec)
+      if (var_type[i_spec]==CHEM_SPEC_VARIABLE)
+            NV_Ith_S(sd->abs_tol_nv, i_dep_var++) = (realtype) abs_tol[i_spec];
   flag = CVodeSVtolerances(sd->cvode_mem, (realtype) rel_tol, sd->abs_tol_nv);
   check_flag_fail(&flag, "CVodeSVtolerances", 1);
 
@@ -730,7 +733,7 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
       for (int i_cell=0; i_cell < md->n_cells; ++i_cell) {
         printf("\n Cell: %d ");
         printf("temp = %le pressure = %le\n", env[i_cell*PMC_NUM_ENV_PARAM_],
-               env[i_cell*NUM_ENV_PARAM_+1]);
+               env[i_cell*PMC_NUM_ENV_PARAM_+1]);
         for (int i_spec=0, i_dep_var=0; i_spec<md->n_per_cell_state_var; i_spec++)
           if (md->var_type[i_spec]==CHEM_SPEC_VARIABLE) {
             printf("spec %d = %le deriv = %le\n", i_spec,
@@ -871,10 +874,11 @@ int camp_solver_update_model_state(N_Vector solver_state,
   int n_dep_var   = model_data->n_per_cell_dep_var;
   int n_cells     = model_data->n_cells;
 
+  int i_dep_var = 0;
   for (int i_cell=0; i_cell<n_cells; i_cell++) {
-    for (int i_spec=0, i_dep_var=0; i_spec<n_state_var; ++i_spec) {
+    for (int i_spec=0; i_spec<n_state_var; ++i_spec) {
       if (model_data->var_type[i_spec]==CHEM_SPEC_VARIABLE) {
-        if (NV_DATA_S(solver_state)[i_cell*n_dep_var+i_dep_var] < -SMALL) {
+        if (NV_DATA_S(solver_state)[i_dep_var] < -SMALL) {
 #ifdef FAILURE_DETAIL
           printf("\nFailed model state update: [spec %d] = %le", i_spec,
               NV_DATA_S(solver_state)[i_dep_var]);
@@ -883,8 +887,8 @@ int camp_solver_update_model_state(N_Vector solver_state,
         }
         //Assign model state to solver_state
         model_data->total_state[i_spec+i_cell*n_state_var] =
-          NV_DATA_S(solver_state)[i_dep_var+i_cell*n_dep_var] > threshhold ?
-          NV_DATA_S(solver_state)[i_dep_var+i_cell*n_dep_var] : replacement_value;
+          NV_DATA_S(solver_state)[i_dep_var] > threshhold ?
+          NV_DATA_S(solver_state)[i_dep_var] : replacement_value;
         i_dep_var++;
       }
     }
@@ -1121,16 +1125,17 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
         SM_DATA_S(md->J_params)[jac_map[i_map].param_id];
     PMC_DEBUG_JAC(J, "solver");
 
+  }
+
 #ifdef PMC_DEBUG
-    // Evaluate the Jacobian if flagged to do so
-    if (sd->eval_Jac==SUNTRUE) {
-      if (!check_Jac(t, y, J, deriv, tmp1, tmp3, solver_data)) {
-        ++(sd->Jac_eval_fails);
-      }
+  // Evaluate the Jacobian if flagged to do so
+  if (sd->eval_Jac==SUNTRUE) {
+    if (!check_Jac(t, y, J, deriv, tmp1, tmp3, solver_data)) {
+      ++(sd->Jac_eval_fails);
     }
+  }
 #endif
 
-  }
 
 // GPU solving
 #else
@@ -1157,7 +1162,6 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
   #endif
 
 #endif
-
 
 #ifdef PMC_DEBUG
   counterJac++;
@@ -1415,7 +1419,8 @@ int guess_helper(const realtype t_n, const realtype h_n, N_Vector y_n,
     // Recalculate the time derivative \f$f(t_j)\f$
     if (f(t_0 + t_j, tmp1, corr, solver_data) != 0) {
       PMC_DEBUG_PRINT("Unexpected failure in guess helper!");
-      return 0;
+      N_VConst(ZERO, corr);
+      return -1;
     }
     ((CVodeMem)sd->cvode_mem)->cv_nfe++;
 
@@ -1425,12 +1430,16 @@ int guess_helper(const realtype t_n, const realtype h_n, N_Vector y_n,
       PMC_DEBUG_PRINT("Max guess iterations reached!");
     }
 #endif
+
   }
 
   PMC_DEBUG_PRINT_INT("Guessed y_h in steps:", iter);
 
   // Set the correction vector
   N_VLinearSum(ONE, tmp1, -ONE, y_n, corr);
+
+  // Scale the correction so we don't overshoot
+  N_VScale(0.999, corr, corr);
 
   // Update the hf vector
   N_VLinearSum(ONE, tmp1, -ONE, y_n1, hf);
@@ -1987,14 +1996,16 @@ bool is_anything_going_on_here(SolverData *sd, realtype t_initial, realtype t_fi
   ModelData *md = &(sd->model_data);
 
   if( f(t_initial, sd->y, sd->deriv, sd) ) {
-    for (int i_spec=0, i_dep_var=0;
-         i_spec < md->n_per_cell_state_var * md->n_cells; i_spec++) {
-      if (md->var_type[i_spec]==CHEM_SPEC_VARIABLE) {
-        if( NV_Ith_S(sd->y, i_dep_var) >
-            NV_Ith_S(sd->abs_tol_nv, i_dep_var) * 1.0e-10 ) return true;
-        if( NV_Ith_S(sd->deriv, i_dep_var) * ( t_final - t_initial ) >
-            NV_Ith_S(sd->abs_tol_nv, i_dep_var) * 1.0e-10 ) return true;
-        i_dep_var++;
+    int i_dep_var = 0;
+    for (int i_cell=0; i_cell<md->n_cells; ++i_cell) {
+      for (int i_spec=0; i_spec < md->n_per_cell_state_var; ++i_spec) {
+        if (md->var_type[i_spec]==CHEM_SPEC_VARIABLE) {
+          if( NV_Ith_S(sd->y, i_dep_var) >
+              NV_Ith_S(sd->abs_tol_nv, i_dep_var) * 1.0e-10 ) return true;
+          if( NV_Ith_S(sd->deriv, i_dep_var) * ( t_final - t_initial ) >
+              NV_Ith_S(sd->abs_tol_nv, i_dep_var) * 1.0e-10 ) return true;
+          i_dep_var++;
+        }
       }
     }
     return false;

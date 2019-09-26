@@ -120,10 +120,6 @@ program mock_monarch
   ! initialize mpi (to take the place of a similar MONARCH call)
   call pmc_mpi_init()
 
-  !Cells to solve simultaneously
-  !n_cells = (I_E - I_W+1)*(I_N - I_S+1)*NUM_VERT_CELLS
-  !n_cells = 1
-
   !Check if repeat program to compare n_cells=1 with n_cells=N
   if(check_multiple_cells) then
     pmc_cases=2
@@ -172,7 +168,6 @@ program mock_monarch
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       ! **** Add to MONARCH during runtime for each time step **** !
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
 
       call output_results(curr_time)
       call pmc_interface%integrate(curr_time,         & ! Starting time (min)

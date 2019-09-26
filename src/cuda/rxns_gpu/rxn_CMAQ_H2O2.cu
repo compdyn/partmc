@@ -15,7 +15,6 @@ extern "C"{
 #include <stdlib.h>
 #include "../rxns_gpu.h"
 
-// TODO Lookup environmental indicies during initialization
 #define TEMPERATURE_K_ env_data[0]
 #define PRESSURE_PA_ env_data[1]
 

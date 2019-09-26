@@ -97,6 +97,7 @@ module pmc_monarch_interface
 
 contains
 
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Create and initialize a new monarch_interface_t object
@@ -331,7 +332,7 @@ contains
     if (MONARCH_PROCESS.eq.0) then
       call cpu_time(comp_end)
       write(*,*) "Initialization time: ", comp_end-comp_start, " s"
-      call new_obj%camp_core%print()
+      !call new_obj%camp_core%print()
     end if
 
   end function constructor
@@ -389,12 +390,14 @@ contains
       state_size_per_cell = this%camp_core%state_size_per_cell()
     end if
 
+
 #if 0
 #ifdef PMC_DEBUG
-      ! Evaluate the Jacobian during solving
-      solver_stats%eval_Jac = .true.
+    ! Evaluate the Jacobian during solving
+    solver_stats%eval_Jac = .true.
 #endif
 #endif
+
 
     k_end = size(MONARCH_conc,3)
 
@@ -436,13 +439,14 @@ contains
 
 #if 0
 #ifdef PMC_DEBUG
-            ! Check the Jacobian evaluations
-            call warn_assert_msg(611569150, solver_stats%Jac_eval_fails.eq.0,&
-                        trim( to_string( solver_stats%Jac_eval_fails ) )// &
-                        " Jacobian evaluation failures at time "// &
-                        trim( to_string( start_time ) ) )
+              ! Check the Jacobian evaluations
+              call warn_assert_msg(611569150, solver_stats%Jac_eval_fails.eq.0,&
+                          trim( to_string( solver_stats%Jac_eval_fails ) )// &
+                          " Jacobian evaluation failures at time "// &
+                          trim( to_string( start_time ) ) )
 #endif
 #endif
+
 
             ! Update the MONARCH tracer array with new species concentrations
             MONARCH_conc(i,j,k_flip,this%map_monarch_id(:)) = &
@@ -479,7 +483,7 @@ contains
             ! Update the environmental state
             this%camp_state%env_state%temp = temperature(i,j,k_flip)
             this%camp_state%env_state%pressure = pressure(i,k,j)
-            call this%camp_state%update_env_state(z+1)
+            call this%camp_state%update_env_state(z+1) !+1 because z starts on 0
 
             !Reset state conc
             this%camp_state%state_var(this%map_camp_id(:) + &

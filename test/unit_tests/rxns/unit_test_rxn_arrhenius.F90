@@ -57,6 +57,8 @@ module pmc_unit_test_rxn_arrhenius
     procedure :: initialize
     !> Get the name of the input file for the test
     procedure :: input_file_name
+    !> Get the name of a file to output results to
+    procedure :: output_file_name
     !> Get the number of unique original states available
     procedure :: num_unique_states
     !> Initialize a camp_state_t object based on a given index
@@ -67,6 +69,10 @@ module pmc_unit_test_rxn_arrhenius
     procedure :: time_step_size
     !> Analyze results in a camp_state_t object
     procedure :: analyze_state
+    !> Output the results for a given cell
+    procedure :: output_results
+    !> Calculate true concentrations and output or analyze model results
+    procedure, private :: analyze_or_output
     !> Determine the number of bytes required to pack the object onto a buffer
     procedure :: pack_size
     !> Pack the object onto a buffer, advancing position
@@ -140,9 +146,23 @@ contains
     !> Unit test data
     class(unit_test_rxn_arrhenius_t), intent(in) :: this
 
-    input_file_name = "arrhenius_config.json"
+    input_file_name = "rxn_arrhenius_config.json"
 
   end function input_file_name
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Output file name
+  function output_file_name(this)
+
+    !> Output file name
+    character(len=:), allocatable :: output_file_name
+    !> Unit test data
+    class(unit_test_rxn_arrhenius_t), intent(in) :: this
+
+    output_file_name = "rxn_arrhenius_results.txt"
+
+  end function output_file_name
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -234,6 +254,56 @@ contains
   function analyze_state(this, camp_core, camp_state, &
       unique_state_id, model_time_step) result (passed)
 
+    !> Flag indicating whether the tests passed
+    logical :: passed
+    !> Unit test data
+    class(unit_test_rxn_arrhenius_t), intent(inout) :: this
+    !> CAMP core
+    class(camp_core_t), intent(in) :: camp_core
+    !> Grid cell state
+    class(camp_state_t), intent(in) :: camp_state
+    !> Unique state id
+    integer(kind=i_kind), intent(in) :: unique_state_id
+    !> Lastest time step solved
+    integer(kind=i_kind), intent(in) :: model_time_step
+
+    passed = this%analyze_or_output(camp_core, camp_state, unique_state_id, &
+                                    model_time_step)
+
+  end function analyze_state
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Output the results for a given grid cell
+  subroutine output_results(this, camp_core, camp_state, unique_state_id, &
+      model_time_step, output_file_unit)
+
+    !> Unit test data
+    class(unit_test_rxn_arrhenius_t), intent(inout) :: this
+    !> CAMP core
+    class(camp_core_t), intent(in) :: camp_core
+    !> Grid cell state
+    class(camp_state_t), intent(in) :: camp_state
+    !> Unique state id
+    integer(kind=i_kind), intent(in) :: unique_state_id
+    !> Lastest time step solved
+    integer(kind=i_kind), intent(in) :: model_time_step
+    !> Output file unit
+    integer(kind=i_kind), intent(in) :: output_file_unit
+
+    logical :: passed
+
+    passed = this%analyze_or_output(camp_core, camp_state, unique_state_id, &
+                                    model_time_step, output_file_unit)
+
+  end subroutine output_results
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Private function to handle calculations for analysis or output
+  function analyze_or_output(this, camp_core, camp_state, unique_state_id, &
+      model_time_step, output_file_unit) result (passed)
+
     use pmc_constants
 
     !> Flag indicating whether the tests passed
@@ -248,6 +318,8 @@ contains
     integer(kind=i_kind), intent(in) :: unique_state_id
     !> Lastest time step solved
     integer(kind=i_kind), intent(in) :: model_time_step
+    !> Output file unit
+    integer(kind=i_kind), intent(in), optional :: output_file_unit
 
     real(kind=dp) :: temperature, pressure
     real(kind=dp), dimension(NUM_SPEC) :: init_conc
@@ -297,20 +369,34 @@ contains
     model_conc( 3 ) = camp_state%state_var( this%idx_C )
     model_conc( 4 ) = camp_state%state_var( this%idx_D )
 
-    ! Check the model results
-    do i_spec = 1, NUM_SPEC
-      call assert_msg( 334093929, &
-        almost_equal( model_conc( i_spec ), true_conc( i_spec ), 1.0d-2 ) &
-        .or.( model_conc( i_spec ) .lt. 1.0d-5 * init_conc( i_spec ) .and. &
-              true_conc( i_spec ) .lt. 1.0d-5 * init_conc( i_spec ) ), &
-        "time: "//trim( to_string( time ) )//"; scenario: "//&
-        trim(to_string( unique_state_id ) )//"; species: "// &
-        trim(to_string( i_spec ) )//"; mod: "// &
-        trim(to_string( model_conc( i_spec ) ) )//"; true: "// &
-        trim(to_string( true_conc( i_spec ) ) ) )
-    end do
+    ! Analyze or output results
+    if( present( output_file_unit ) ) then
 
-  end function analyze_state
+      ! Output the results
+      write( OUTPUT_FILE_UNIT, * ) time, &
+          ' ', true_conc( 1 ), ' ', model_conc( 1 ), &
+          ' ', true_conc( 2 ), ' ', model_conc( 2 ), &
+          ' ', true_conc( 3 ), ' ', model_conc( 3 ), &
+          ' ', true_conc( 4 ), ' ', model_conc( 4 )
+
+    else
+
+      ! Check the model results
+      do i_spec = 1, NUM_SPEC
+        call assert_msg( 334093929, &
+          almost_equal( model_conc( i_spec ), true_conc( i_spec ), 1.0d-2 ) &
+          .or.( model_conc( i_spec ) .lt. 1.0d-5 * init_conc( i_spec ) .and. &
+                true_conc( i_spec ) .lt. 1.0d-5 * init_conc( i_spec ) ), &
+          "time: "//trim( to_string( time ) )//"; scenario: "//&
+          trim(to_string( unique_state_id ) )//"; species: "// &
+          trim(to_string( i_spec ) )//"; mod: "// &
+          trim(to_string( model_conc( i_spec ) ) )//"; true: "// &
+          trim(to_string( true_conc( i_spec ) ) ) )
+      end do
+
+    end if
+
+  end function analyze_or_output
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

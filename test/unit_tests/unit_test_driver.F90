@@ -20,6 +20,12 @@ program unit_test_driver
   ! Number of grid cells to solve
   integer(kind=i_kind), parameter :: N_CELLS = 10
 
+  ! Cell to output results for
+  integer(kind=i_kind), parameter :: OUTPUT_CELL = 3
+
+  ! File unit for the results output
+  integer(kind=i_kind), parameter :: OUTPUT_FILE_UNIT = 7
+
   ! Size of the state array for one grid cell
   integer(kind=i_kind) :: n_state_var_one_cell
 
@@ -139,6 +145,10 @@ program unit_test_driver
     ! Solve the system on process 1
 #endif
 
+    ! Open a file to output results
+    open( unit=OUTPUT_FILE_UNIT, file="out/"//unit_test%output_file_name( ), &
+          status="replace", action="write" )
+
     ! Initialize the solvers
     call one_cell_core%solver_initialize( )
     call multicell_core%solver_initialize( )
@@ -199,6 +209,12 @@ program unit_test_driver
     ! *************************************************
     ! *** Solve & analyze results at each time step ***
     ! *************************************************
+
+    ! Output the intial conditions for the output grid cell
+    call unit_test%output_results( one_cell_core, &
+                                   grid_cell_state( OUTPUT_CELL )%val, &
+                                   grid_cell_state_id( OUTPUT_CELL ), &
+                                   0, OUTPUT_FILE_UNIT )
 
     do i_time = 1, unit_test%num_time_steps( )
 
@@ -268,6 +284,13 @@ program unit_test_driver
                                  rel_tol, abs_tol )
         end do
 
+        ! Output the results
+        if( i_cell .eq. OUTPUT_CELL ) &
+          call unit_test%output_results( one_cell_core, &
+                                         grid_cell_state( i_cell )%val, &
+                                         grid_cell_state_id( i_cell ), &
+                                         i_time, OUTPUT_FILE_UNIT )
+
         ! Do the system-specific analysis
         passed = passed .and. &
           unit_test%analyze_state( one_cell_core, &
@@ -279,6 +302,9 @@ program unit_test_driver
 
       if( .not.passed ) exit
     end do
+
+    ! Close the output file
+    close( OUTPUT_FILE_UNIT )
 
     ! Deallocate states
     do i_cell = 1, N_CELLS

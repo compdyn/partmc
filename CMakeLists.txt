@@ -236,7 +236,7 @@ endif()
 if (ENABLE_TESTS)
     if (ENABLE_JSON AND ENABLE_SUNDIALS)
       # New unit tests (UNDER DEVELOPMENT)
-      add_test(test_unit_rxn_arrhenius ${CMAKE_BINARY_DIR}/test_run/unit_tests/input_files/arrhenius.sh ${MPI_TEST_FLAG})
+      add_test(test_rxn_arrhenius_mech ${CMAKE_BINARY_DIR}/test_run/unit_tests/input_files/run_rxn_arrhenius.sh ${MPI_TEST_FLAG})
 
       # Old-style unit tests
       add_test(test_rxn_aqueous_equilibrium ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_aqueous_equilibrium.sh ${MPI_TEST_FLAG})

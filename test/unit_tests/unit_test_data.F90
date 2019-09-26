@@ -19,6 +19,8 @@ module pmc_unit_test_data
     procedure(initialize), deferred :: initialize
     !> Get the name of the input file for the test
     procedure(input_file_name), deferred :: input_file_name
+    !> Get the name for the file to output results to
+    procedure(output_file_name), deferred :: output_file_name
     !> Get the number of unique original states available
     procedure(num_unique_states), deferred :: num_unique_states
     !> Initialize a camp_state_t object based on a given index
@@ -29,6 +31,8 @@ module pmc_unit_test_data
     procedure(time_step_size), deferred :: time_step_size
     !> Analyze results in a camp_state_t object
     procedure(analyze_state), deferred :: analyze_state
+    !> Output results for a given cell
+    procedure(output_results), deferred :: output_results
     !> Determine the number of bytes required to pack the object onto a buffer
     procedure(pack_size), deferred :: pack_size
     !> Pack the object onto a buffer, advancing position
@@ -65,6 +69,19 @@ interface
     class(unit_test_data_t), intent(in) :: this
 
   end function input_file_name
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Output file name
+  function output_file_name(this)
+    import :: unit_test_data_t
+
+    !> Output file name
+    character(len=:), allocatable :: output_file_name
+    !> Unit test data
+    class(unit_test_data_t), intent(in) :: this
+
+  end function output_file_name
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -136,8 +153,8 @@ interface
   !> Analyze a camp_state_t object based on a given initial state id and the
   !> grid-cell environmental parameters
   !! This function should return true if the analysis passes, false otherwise
-  function analyze_state(this, camp_core, camp_state, &
-      unique_state_id, model_time_step) result (passed)
+  function analyze_state(this, camp_core, camp_state, unique_state_id, &
+      model_time_step) result (passed)
     use pmc_camp_core
     use pmc_camp_state
     use pmc_util,                                only : i_kind
@@ -157,6 +174,31 @@ interface
     integer(kind=i_kind), intent(in) :: model_time_step
 
   end function analyze_state
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Output the results for a given grid cell
+  subroutine output_results(this, camp_core, camp_state, unique_state_id, &
+      model_time_step, output_file_unit)
+    use pmc_camp_core
+    use pmc_camp_state
+    use pmc_util,                                only : i_kind
+    import :: unit_test_data_t
+
+    !> Unit test data
+    class(unit_test_data_t), intent(inout) :: this
+    !> CAMP core
+    class(camp_core_t), intent(in) :: camp_core
+    !> Grid cell state
+    class(camp_state_t), intent(in) :: camp_state
+    !> Unique state id
+    integer(kind=i_kind), intent(in) :: unique_state_id
+    !> Model time step most recently solved
+    integer(kind=i_kind), intent(in) :: model_time_step
+    !> Output file unit
+    integer(kind=i_kind), intent(in) :: output_file_unit
+
+  end subroutine output_results
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

@@ -7,6 +7,8 @@
  * \brief Wrapper routines for C qsort.
  */
 
+/* clang-format off */
+
 #include <stdlib.h>
 
 /** \brief Helper function for integer_sort_c()
@@ -54,3 +56,5 @@ int integer_sort_c(int n, int *data, int *perm)
         }
         free(data_perm);
 }
+
+/* clang-format on */

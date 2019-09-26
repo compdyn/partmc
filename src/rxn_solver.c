@@ -4,15 +4,15 @@
  *
  * Reaction-specific functions for use by the solver
  *
-*/
+ */
 /** \file
  * \brief Reaction solver functions
-*/
+ */
 #define PMC_DEBUG_SPEC_ 118
 
+#include "rxn_solver.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include "rxn_solver.h"
 #include "rxns.h"
 
 // Reaction types (Must match parameters defined in pmc_rxn_factory)
@@ -35,18 +35,15 @@
  * \param jac_struct A 2D array of flags indicating which Jacobian elements
  *                   may be used
  */
-void rxn_get_used_jac_elem(ModelData *model_data, bool **jac_struct)
-{
-
+void rxn_get_used_jac_elem(ModelData *model_data, bool **jac_struct) {
   // Get the number of reactions
   int n_rxn = *(model_data->rxn_int_data);
 
   // Loop through the reactions to determine the Jacobian elements used
   // advancing the rxn_data pointer each time
-  for (int i_rxn=0; i_rxn<n_rxn; i_rxn++) {
-
+  for (int i_rxn = 0; i_rxn < n_rxn; i_rxn++) {
     // Get pointers to the reaction data
-    int *rxn_int_data      = model_data->rxn_int_ptrs[i_rxn];
+    int *rxn_int_data = model_data->rxn_int_ptrs[i_rxn];
     double *rxn_float_data = model_data->rxn_float_ptrs[i_rxn];
 
     // Get the reaction type
@@ -54,53 +51,52 @@ void rxn_get_used_jac_elem(ModelData *model_data, bool **jac_struct)
 
     // Call the appropriate function
     switch (rxn_type) {
-      case RXN_AQUEOUS_EQUILIBRIUM :
-        rxn_aqueous_equilibrium_get_used_jac_elem(
-                  rxn_int_data, rxn_float_data, jac_struct);
+      case RXN_AQUEOUS_EQUILIBRIUM:
+        rxn_aqueous_equilibrium_get_used_jac_elem(rxn_int_data, rxn_float_data,
+                                                  jac_struct);
         break;
-      case RXN_ARRHENIUS :
-        rxn_arrhenius_get_used_jac_elem(
-                  rxn_int_data, rxn_float_data, jac_struct);
+      case RXN_ARRHENIUS:
+        rxn_arrhenius_get_used_jac_elem(rxn_int_data, rxn_float_data,
+                                        jac_struct);
         break;
-      case RXN_CMAQ_H2O2 :
-        rxn_CMAQ_H2O2_get_used_jac_elem(
-                  rxn_int_data, rxn_float_data, jac_struct);
+      case RXN_CMAQ_H2O2:
+        rxn_CMAQ_H2O2_get_used_jac_elem(rxn_int_data, rxn_float_data,
+                                        jac_struct);
         break;
-      case RXN_CMAQ_OH_HNO3 :
-        rxn_CMAQ_OH_HNO3_get_used_jac_elem(
-                  rxn_int_data, rxn_float_data, jac_struct);
+      case RXN_CMAQ_OH_HNO3:
+        rxn_CMAQ_OH_HNO3_get_used_jac_elem(rxn_int_data, rxn_float_data,
+                                           jac_struct);
         break;
-      case RXN_CONDENSED_PHASE_ARRHENIUS :
+      case RXN_CONDENSED_PHASE_ARRHENIUS:
         rxn_condensed_phase_arrhenius_get_used_jac_elem(
-                  rxn_int_data, rxn_float_data, jac_struct);
+            rxn_int_data, rxn_float_data, jac_struct);
         break;
-      case RXN_EMISSION :
-        rxn_emission_get_used_jac_elem(
-                  rxn_int_data, rxn_float_data, jac_struct);
+      case RXN_EMISSION:
+        rxn_emission_get_used_jac_elem(rxn_int_data, rxn_float_data,
+                                       jac_struct);
         break;
-      case RXN_FIRST_ORDER_LOSS :
-        rxn_first_order_loss_get_used_jac_elem(
-                  rxn_int_data, rxn_float_data, jac_struct);
+      case RXN_FIRST_ORDER_LOSS:
+        rxn_first_order_loss_get_used_jac_elem(rxn_int_data, rxn_float_data,
+                                               jac_struct);
         break;
-      case RXN_HL_PHASE_TRANSFER :
-        rxn_HL_phase_transfer_get_used_jac_elem(
-                  model_data, rxn_int_data, rxn_float_data, jac_struct);
+      case RXN_HL_PHASE_TRANSFER:
+        rxn_HL_phase_transfer_get_used_jac_elem(model_data, rxn_int_data,
+                                                rxn_float_data, jac_struct);
         break;
-      case RXN_PHOTOLYSIS :
-        rxn_photolysis_get_used_jac_elem(
-                  rxn_int_data, rxn_float_data, jac_struct);
+      case RXN_PHOTOLYSIS:
+        rxn_photolysis_get_used_jac_elem(rxn_int_data, rxn_float_data,
+                                         jac_struct);
         break;
-      case RXN_SIMPOL_PHASE_TRANSFER :
-        rxn_SIMPOL_phase_transfer_get_used_jac_elem(
-                  model_data, rxn_int_data, rxn_float_data, jac_struct);
+      case RXN_SIMPOL_PHASE_TRANSFER:
+        rxn_SIMPOL_phase_transfer_get_used_jac_elem(model_data, rxn_int_data,
+                                                    rxn_float_data, jac_struct);
         break;
-      case RXN_TROE :
-        rxn_troe_get_used_jac_elem(
-                  rxn_int_data, rxn_float_data, jac_struct);
+      case RXN_TROE:
+        rxn_troe_get_used_jac_elem(rxn_int_data, rxn_float_data, jac_struct);
         break;
-      case RXN_WET_DEPOSITION :
-        rxn_wet_deposition_get_used_jac_elem(
-                  rxn_int_data, rxn_float_data, jac_struct);
+      case RXN_WET_DEPOSITION:
+        rxn_wet_deposition_get_used_jac_elem(rxn_int_data, rxn_float_data,
+                                             jac_struct);
         break;
     }
   }
@@ -112,17 +108,14 @@ void rxn_get_used_jac_elem(ModelData *model_data, bool **jac_struct)
  * \param deriv_ids Ids for state variables on the time derivative array
  * \param jac_ids Ids for state variables on the Jacobian array
  */
-void rxn_update_ids(ModelData *model_data, int *deriv_ids, int **jac_ids)
-{
-
+void rxn_update_ids(ModelData *model_data, int *deriv_ids, int **jac_ids) {
   // Get the number of reactions
   int n_rxn = *(model_data->rxn_int_data);
 
   // Loop through the reactions advancing the rxn_data pointer each time
-  for (int i_rxn=0; i_rxn<n_rxn; i_rxn++) {
-
+  for (int i_rxn = 0; i_rxn < n_rxn; i_rxn++) {
     // Get pointers to the reaction data
-    int *rxn_int_data      = model_data->rxn_int_ptrs[i_rxn];
+    int *rxn_int_data = model_data->rxn_int_ptrs[i_rxn];
     double *rxn_float_data = model_data->rxn_float_ptrs[i_rxn];
 
     // Get the reaction type
@@ -130,53 +123,53 @@ void rxn_update_ids(ModelData *model_data, int *deriv_ids, int **jac_ids)
 
     // Call the appropriate function
     switch (rxn_type) {
-      case RXN_AQUEOUS_EQUILIBRIUM :
-        rxn_aqueous_equilibrium_update_ids(
-                  model_data, deriv_ids, jac_ids, rxn_int_data, rxn_float_data);
+      case RXN_AQUEOUS_EQUILIBRIUM:
+        rxn_aqueous_equilibrium_update_ids(model_data, deriv_ids, jac_ids,
+                                           rxn_int_data, rxn_float_data);
         break;
-      case RXN_ARRHENIUS :
-        rxn_arrhenius_update_ids(
-                  model_data, deriv_ids, jac_ids, rxn_int_data, rxn_float_data);
+      case RXN_ARRHENIUS:
+        rxn_arrhenius_update_ids(model_data, deriv_ids, jac_ids, rxn_int_data,
+                                 rxn_float_data);
         break;
-      case RXN_CMAQ_H2O2 :
-        rxn_CMAQ_H2O2_update_ids(
-                  model_data, deriv_ids, jac_ids, rxn_int_data, rxn_float_data);
+      case RXN_CMAQ_H2O2:
+        rxn_CMAQ_H2O2_update_ids(model_data, deriv_ids, jac_ids, rxn_int_data,
+                                 rxn_float_data);
         break;
-      case RXN_CMAQ_OH_HNO3 :
-        rxn_CMAQ_OH_HNO3_update_ids(
-                  model_data, deriv_ids, jac_ids, rxn_int_data, rxn_float_data);
+      case RXN_CMAQ_OH_HNO3:
+        rxn_CMAQ_OH_HNO3_update_ids(model_data, deriv_ids, jac_ids,
+                                    rxn_int_data, rxn_float_data);
         break;
-      case RXN_CONDENSED_PHASE_ARRHENIUS :
-        rxn_condensed_phase_arrhenius_update_ids(
-                  model_data, deriv_ids, jac_ids, rxn_int_data, rxn_float_data);
+      case RXN_CONDENSED_PHASE_ARRHENIUS:
+        rxn_condensed_phase_arrhenius_update_ids(model_data, deriv_ids, jac_ids,
+                                                 rxn_int_data, rxn_float_data);
         break;
-      case RXN_EMISSION :
-        rxn_emission_update_ids(
-                  model_data, deriv_ids, jac_ids, rxn_int_data, rxn_float_data);
+      case RXN_EMISSION:
+        rxn_emission_update_ids(model_data, deriv_ids, jac_ids, rxn_int_data,
+                                rxn_float_data);
         break;
-      case RXN_FIRST_ORDER_LOSS :
-        rxn_first_order_loss_update_ids(
-                  model_data, deriv_ids, jac_ids, rxn_int_data, rxn_float_data);
+      case RXN_FIRST_ORDER_LOSS:
+        rxn_first_order_loss_update_ids(model_data, deriv_ids, jac_ids,
+                                        rxn_int_data, rxn_float_data);
         break;
-      case RXN_HL_PHASE_TRANSFER :
-        rxn_HL_phase_transfer_update_ids(
-                  model_data, deriv_ids, jac_ids, rxn_int_data, rxn_float_data);
+      case RXN_HL_PHASE_TRANSFER:
+        rxn_HL_phase_transfer_update_ids(model_data, deriv_ids, jac_ids,
+                                         rxn_int_data, rxn_float_data);
         break;
-      case RXN_PHOTOLYSIS :
-        rxn_photolysis_update_ids(
-                  model_data, deriv_ids, jac_ids, rxn_int_data, rxn_float_data);
+      case RXN_PHOTOLYSIS:
+        rxn_photolysis_update_ids(model_data, deriv_ids, jac_ids, rxn_int_data,
+                                  rxn_float_data);
         break;
-      case RXN_SIMPOL_PHASE_TRANSFER :
-        rxn_SIMPOL_phase_transfer_update_ids(
-                  model_data, deriv_ids, jac_ids, rxn_int_data, rxn_float_data);
+      case RXN_SIMPOL_PHASE_TRANSFER:
+        rxn_SIMPOL_phase_transfer_update_ids(model_data, deriv_ids, jac_ids,
+                                             rxn_int_data, rxn_float_data);
         break;
-      case RXN_TROE :
-        rxn_troe_update_ids(
-                  model_data, deriv_ids, jac_ids, rxn_int_data, rxn_float_data);
+      case RXN_TROE:
+        rxn_troe_update_ids(model_data, deriv_ids, jac_ids, rxn_int_data,
+                            rxn_float_data);
         break;
-      case RXN_WET_DEPOSITION :
-        rxn_wet_deposition_update_ids(
-                  model_data, deriv_ids, jac_ids, rxn_int_data, rxn_float_data);
+      case RXN_WET_DEPOSITION:
+        rxn_wet_deposition_update_ids(model_data, deriv_ids, jac_ids,
+                                      rxn_int_data, rxn_float_data);
         break;
     }
   }
@@ -186,73 +179,70 @@ void rxn_update_ids(ModelData *model_data, int *deriv_ids, int **jac_ids)
  *
  * \param model_data Pointer to the model data with updated env state
  */
-void rxn_update_env_state(ModelData *model_data)
-{
-
+void rxn_update_env_state(ModelData *model_data) {
   // Get the number of reactions
   int n_rxn = *(model_data->rxn_int_data);
 
   // Loop through the reactions advancing the rxn_data pointer each time
   for (int i_rxn = 0; i_rxn < n_rxn; i_rxn++) {
-
     // Get pointers to the reaction data
-    int *rxn_int_data      = model_data->rxn_int_ptrs[i_rxn];
+    int *rxn_int_data = model_data->rxn_int_ptrs[i_rxn];
     double *rxn_float_data = model_data->rxn_float_ptrs[i_rxn];
-    double *rxn_env_data   =
-      &(model_data->grid_cell_rxn_env_data[model_data->rxn_env_idx[i_rxn]]);
+    double *rxn_env_data =
+        &(model_data->grid_cell_rxn_env_data[model_data->rxn_env_idx[i_rxn]]);
 
     // Get the reaction type
     int rxn_type = *(rxn_int_data++);
 
     // Call the appropriate function
     switch (rxn_type) {
-      case RXN_AQUEOUS_EQUILIBRIUM :
-        rxn_aqueous_equilibrium_update_env_state(
-                model_data, rxn_int_data, rxn_float_data, rxn_env_data);
+      case RXN_AQUEOUS_EQUILIBRIUM:
+        rxn_aqueous_equilibrium_update_env_state(model_data, rxn_int_data,
+                                                 rxn_float_data, rxn_env_data);
         break;
-      case RXN_ARRHENIUS :
-        rxn_arrhenius_update_env_state(
-                model_data, rxn_int_data, rxn_float_data, rxn_env_data);
+      case RXN_ARRHENIUS:
+        rxn_arrhenius_update_env_state(model_data, rxn_int_data, rxn_float_data,
+                                       rxn_env_data);
         break;
-      case RXN_CMAQ_H2O2 :
-        rxn_CMAQ_H2O2_update_env_state(
-                model_data, rxn_int_data, rxn_float_data, rxn_env_data);
+      case RXN_CMAQ_H2O2:
+        rxn_CMAQ_H2O2_update_env_state(model_data, rxn_int_data, rxn_float_data,
+                                       rxn_env_data);
         break;
-      case RXN_CMAQ_OH_HNO3 :
-        rxn_CMAQ_OH_HNO3_update_env_state(
-                model_data, rxn_int_data, rxn_float_data, rxn_env_data);
+      case RXN_CMAQ_OH_HNO3:
+        rxn_CMAQ_OH_HNO3_update_env_state(model_data, rxn_int_data,
+                                          rxn_float_data, rxn_env_data);
         break;
-      case RXN_CONDENSED_PHASE_ARRHENIUS :
+      case RXN_CONDENSED_PHASE_ARRHENIUS:
         rxn_condensed_phase_arrhenius_update_env_state(
-                model_data, rxn_int_data, rxn_float_data, rxn_env_data);
+            model_data, rxn_int_data, rxn_float_data, rxn_env_data);
         break;
-      case RXN_EMISSION :
-        rxn_emission_update_env_state(
-                model_data, rxn_int_data, rxn_float_data, rxn_env_data);
+      case RXN_EMISSION:
+        rxn_emission_update_env_state(model_data, rxn_int_data, rxn_float_data,
+                                      rxn_env_data);
         break;
-      case RXN_FIRST_ORDER_LOSS :
-        rxn_first_order_loss_update_env_state(
-                model_data, rxn_int_data, rxn_float_data, rxn_env_data);
+      case RXN_FIRST_ORDER_LOSS:
+        rxn_first_order_loss_update_env_state(model_data, rxn_int_data,
+                                              rxn_float_data, rxn_env_data);
         break;
-      case RXN_HL_PHASE_TRANSFER :
-        rxn_HL_phase_transfer_update_env_state(
-                model_data, rxn_int_data, rxn_float_data, rxn_env_data);
+      case RXN_HL_PHASE_TRANSFER:
+        rxn_HL_phase_transfer_update_env_state(model_data, rxn_int_data,
+                                               rxn_float_data, rxn_env_data);
         break;
-      case RXN_PHOTOLYSIS :
-        rxn_photolysis_update_env_state(
-                model_data, rxn_int_data, rxn_float_data, rxn_env_data);
+      case RXN_PHOTOLYSIS:
+        rxn_photolysis_update_env_state(model_data, rxn_int_data,
+                                        rxn_float_data, rxn_env_data);
         break;
-      case RXN_SIMPOL_PHASE_TRANSFER :
+      case RXN_SIMPOL_PHASE_TRANSFER:
         rxn_SIMPOL_phase_transfer_update_env_state(
-                model_data, rxn_int_data, rxn_float_data, rxn_env_data);
+            model_data, rxn_int_data, rxn_float_data, rxn_env_data);
         break;
-      case RXN_TROE :
-        rxn_troe_update_env_state(
-                model_data, rxn_int_data, rxn_float_data, rxn_env_data);
+      case RXN_TROE:
+        rxn_troe_update_env_state(model_data, rxn_int_data, rxn_float_data,
+                                  rxn_env_data);
         break;
-      case RXN_WET_DEPOSITION :
-        rxn_wet_deposition_update_env_state(
-                model_data, rxn_int_data, rxn_float_data, rxn_env_data);
+      case RXN_WET_DEPOSITION:
+        rxn_wet_deposition_update_env_state(model_data, rxn_int_data,
+                                            rxn_float_data, rxn_env_data);
         break;
     }
   }
@@ -265,91 +255,87 @@ void rxn_update_env_state(ModelData *model_data)
  * \param time_step Current model time step (s)
  */
 #ifdef PMC_USE_SUNDIALS
-void rxn_calc_deriv(ModelData *model_data, double *deriv_data, realtype time_step)
-{
-
+void rxn_calc_deriv(ModelData *model_data, double *deriv_data,
+                    realtype time_step) {
   // Get the number of reactions
   int n_rxn = *(model_data->rxn_int_data);
 
   // Loop through the reactions advancing the rxn_data pointer each time
-  for (int i_rxn=0; i_rxn<n_rxn; i_rxn++) {
-
+  for (int i_rxn = 0; i_rxn < n_rxn; i_rxn++) {
     // Get pointers to the reaction data
-    int *rxn_int_data      = model_data->rxn_int_ptrs[i_rxn];
+    int *rxn_int_data = model_data->rxn_int_ptrs[i_rxn];
     double *rxn_float_data = model_data->rxn_float_ptrs[i_rxn];
-    double *rxn_env_data   =
-      &(model_data->grid_cell_rxn_env_data[model_data->rxn_env_idx[i_rxn]]);
+    double *rxn_env_data =
+        &(model_data->grid_cell_rxn_env_data[model_data->rxn_env_idx[i_rxn]]);
 
     // Get the reaction type
     int rxn_type = *(rxn_int_data++);
 
     // Call the appropriate function
     switch (rxn_type) {
-      case RXN_AQUEOUS_EQUILIBRIUM :
-        rxn_aqueous_equilibrium_calc_deriv_contrib(
-               model_data, deriv_data, rxn_int_data, rxn_float_data,
-               rxn_env_data, time_step);
+      case RXN_AQUEOUS_EQUILIBRIUM:
+        rxn_aqueous_equilibrium_calc_deriv_contrib(model_data, deriv_data,
+                                                   rxn_int_data, rxn_float_data,
+                                                   rxn_env_data, time_step);
         break;
-      case RXN_ARRHENIUS :
-        rxn_arrhenius_calc_deriv_contrib(
-               model_data, deriv_data, rxn_int_data, rxn_float_data,
-               rxn_env_data, time_step);
+      case RXN_ARRHENIUS:
+        rxn_arrhenius_calc_deriv_contrib(model_data, deriv_data, rxn_int_data,
+                                         rxn_float_data, rxn_env_data,
+                                         time_step);
         break;
-      case RXN_CMAQ_H2O2 :
-        rxn_CMAQ_H2O2_calc_deriv_contrib(
-               model_data, deriv_data, rxn_int_data, rxn_float_data,
-               rxn_env_data, time_step);
+      case RXN_CMAQ_H2O2:
+        rxn_CMAQ_H2O2_calc_deriv_contrib(model_data, deriv_data, rxn_int_data,
+                                         rxn_float_data, rxn_env_data,
+                                         time_step);
         break;
-      case RXN_CMAQ_OH_HNO3 :
-        rxn_CMAQ_OH_HNO3_calc_deriv_contrib(
-               model_data, deriv_data, rxn_int_data, rxn_float_data,
-               rxn_env_data, time_step);
+      case RXN_CMAQ_OH_HNO3:
+        rxn_CMAQ_OH_HNO3_calc_deriv_contrib(model_data, deriv_data,
+                                            rxn_int_data, rxn_float_data,
+                                            rxn_env_data, time_step);
         break;
-      case RXN_CONDENSED_PHASE_ARRHENIUS :
+      case RXN_CONDENSED_PHASE_ARRHENIUS:
         rxn_condensed_phase_arrhenius_calc_deriv_contrib(
-               model_data, deriv_data, rxn_int_data, rxn_float_data,
-               rxn_env_data, time_step);
+            model_data, deriv_data, rxn_int_data, rxn_float_data, rxn_env_data,
+            time_step);
         break;
-      case RXN_EMISSION :
-        rxn_emission_calc_deriv_contrib(
-               model_data, deriv_data, rxn_int_data, rxn_float_data,
-               rxn_env_data, time_step);
+      case RXN_EMISSION:
+        rxn_emission_calc_deriv_contrib(model_data, deriv_data, rxn_int_data,
+                                        rxn_float_data, rxn_env_data,
+                                        time_step);
         break;
-      case RXN_FIRST_ORDER_LOSS :
-        rxn_first_order_loss_calc_deriv_contrib(
-               model_data, deriv_data, rxn_int_data, rxn_float_data,
-               rxn_env_data, time_step);
+      case RXN_FIRST_ORDER_LOSS:
+        rxn_first_order_loss_calc_deriv_contrib(model_data, deriv_data,
+                                                rxn_int_data, rxn_float_data,
+                                                rxn_env_data, time_step);
         break;
-      case RXN_HL_PHASE_TRANSFER :
-        rxn_HL_phase_transfer_calc_deriv_contrib(
-               model_data, deriv_data, rxn_int_data, rxn_float_data,
-               rxn_env_data, time_step);
+      case RXN_HL_PHASE_TRANSFER:
+        rxn_HL_phase_transfer_calc_deriv_contrib(model_data, deriv_data,
+                                                 rxn_int_data, rxn_float_data,
+                                                 rxn_env_data, time_step);
         break;
-      case RXN_PHOTOLYSIS :
-        rxn_photolysis_calc_deriv_contrib(
-               model_data, deriv_data, rxn_int_data, rxn_float_data,
-               rxn_env_data, time_step);
+      case RXN_PHOTOLYSIS:
+        rxn_photolysis_calc_deriv_contrib(model_data, deriv_data, rxn_int_data,
+                                          rxn_float_data, rxn_env_data,
+                                          time_step);
         break;
-      case RXN_SIMPOL_PHASE_TRANSFER :
+      case RXN_SIMPOL_PHASE_TRANSFER:
         rxn_SIMPOL_phase_transfer_calc_deriv_contrib(
-               model_data, deriv_data, rxn_int_data, rxn_float_data,
-               rxn_env_data, time_step);
+            model_data, deriv_data, rxn_int_data, rxn_float_data, rxn_env_data,
+            time_step);
         break;
-      case RXN_TROE :
-        rxn_troe_calc_deriv_contrib(
-               model_data, deriv_data, rxn_int_data, rxn_float_data,
-               rxn_env_data, time_step);
+      case RXN_TROE:
+        rxn_troe_calc_deriv_contrib(model_data, deriv_data, rxn_int_data,
+                                    rxn_float_data, rxn_env_data, time_step);
         break;
-      case RXN_WET_DEPOSITION :
-        rxn_wet_deposition_calc_deriv_contrib(
-               model_data, deriv_data, rxn_int_data, rxn_float_data,
-               rxn_env_data, time_step);
+      case RXN_WET_DEPOSITION:
+        rxn_wet_deposition_calc_deriv_contrib(model_data, deriv_data,
+                                              rxn_int_data, rxn_float_data,
+                                              rxn_env_data, time_step);
         break;
     }
   }
 }
 #endif
-
 
 /** \brief Calculate the Jacobian
  *
@@ -359,85 +345,78 @@ void rxn_calc_deriv(ModelData *model_data, double *deriv_data, realtype time_ste
  * \param time_step Current model time step (s)
  */
 #ifdef PMC_USE_SUNDIALS
-void rxn_calc_jac(ModelData *model_data, double *J_data, realtype time_step)
-{
-
+void rxn_calc_jac(ModelData *model_data, double *J_data, realtype time_step) {
   // Get the number of reactions
   int n_rxn = *(model_data->rxn_int_data);
 
   // Loop through the reactions advancing the rxn_data pointer each time
-  for (int i_rxn=0; i_rxn<n_rxn; i_rxn++) {
-
+  for (int i_rxn = 0; i_rxn < n_rxn; i_rxn++) {
     // Get pointers to the reaction data
-    int *rxn_int_data      = model_data->rxn_int_ptrs[i_rxn];
+    int *rxn_int_data = model_data->rxn_int_ptrs[i_rxn];
     double *rxn_float_data = model_data->rxn_float_ptrs[i_rxn];
-    double *rxn_env_data   =
-      &(model_data->grid_cell_rxn_env_data[model_data->rxn_env_idx[i_rxn]]);
+    double *rxn_env_data =
+        &(model_data->grid_cell_rxn_env_data[model_data->rxn_env_idx[i_rxn]]);
 
     // Get the reaction type
     int rxn_type = *(rxn_int_data++);
 
     // Call the appropriate function
     switch (rxn_type) {
-      case RXN_AQUEOUS_EQUILIBRIUM :
-        rxn_aqueous_equilibrium_calc_jac_contrib(
-                 model_data, J_data, rxn_int_data, rxn_float_data,
-                 rxn_env_data, time_step);
+      case RXN_AQUEOUS_EQUILIBRIUM:
+        rxn_aqueous_equilibrium_calc_jac_contrib(model_data, J_data,
+                                                 rxn_int_data, rxn_float_data,
+                                                 rxn_env_data, time_step);
         break;
-      case RXN_ARRHENIUS :
-        rxn_arrhenius_calc_jac_contrib(
-                 model_data, J_data, rxn_int_data, rxn_float_data,
-                 rxn_env_data, time_step);
+      case RXN_ARRHENIUS:
+        rxn_arrhenius_calc_jac_contrib(model_data, J_data, rxn_int_data,
+                                       rxn_float_data, rxn_env_data, time_step);
         break;
-      case RXN_CMAQ_H2O2 :
-        rxn_CMAQ_H2O2_calc_jac_contrib(
-                 model_data, J_data, rxn_int_data, rxn_float_data,
-                 rxn_env_data, time_step);
+      case RXN_CMAQ_H2O2:
+        rxn_CMAQ_H2O2_calc_jac_contrib(model_data, J_data, rxn_int_data,
+                                       rxn_float_data, rxn_env_data, time_step);
         break;
-      case RXN_CMAQ_OH_HNO3 :
-        rxn_CMAQ_OH_HNO3_calc_jac_contrib(
-                 model_data, J_data, rxn_int_data, rxn_float_data,
-                 rxn_env_data, time_step);
+      case RXN_CMAQ_OH_HNO3:
+        rxn_CMAQ_OH_HNO3_calc_jac_contrib(model_data, J_data, rxn_int_data,
+                                          rxn_float_data, rxn_env_data,
+                                          time_step);
         break;
-      case RXN_CONDENSED_PHASE_ARRHENIUS :
+      case RXN_CONDENSED_PHASE_ARRHENIUS:
         rxn_condensed_phase_arrhenius_calc_jac_contrib(
-                 model_data, J_data, rxn_int_data, rxn_float_data,
-                 rxn_env_data, time_step);
+            model_data, J_data, rxn_int_data, rxn_float_data, rxn_env_data,
+            time_step);
         break;
-      case RXN_EMISSION :
-        rxn_emission_calc_jac_contrib(
-                 model_data, J_data, rxn_int_data, rxn_float_data,
-                 rxn_env_data, time_step);
+      case RXN_EMISSION:
+        rxn_emission_calc_jac_contrib(model_data, J_data, rxn_int_data,
+                                      rxn_float_data, rxn_env_data, time_step);
         break;
-      case RXN_FIRST_ORDER_LOSS :
-        rxn_first_order_loss_calc_jac_contrib(
-                 model_data, J_data, rxn_int_data, rxn_float_data,
-                 rxn_env_data, time_step);
+      case RXN_FIRST_ORDER_LOSS:
+        rxn_first_order_loss_calc_jac_contrib(model_data, J_data, rxn_int_data,
+                                              rxn_float_data, rxn_env_data,
+                                              time_step);
         break;
-      case RXN_HL_PHASE_TRANSFER :
-        rxn_HL_phase_transfer_calc_jac_contrib(
-                 model_data, J_data, rxn_int_data, rxn_float_data,
-                 rxn_env_data, time_step);
+      case RXN_HL_PHASE_TRANSFER:
+        rxn_HL_phase_transfer_calc_jac_contrib(model_data, J_data, rxn_int_data,
+                                               rxn_float_data, rxn_env_data,
+                                               time_step);
         break;
-      case RXN_PHOTOLYSIS :
-        rxn_photolysis_calc_jac_contrib(
-                 model_data, J_data, rxn_int_data, rxn_float_data,
-                 rxn_env_data, time_step);
+      case RXN_PHOTOLYSIS:
+        rxn_photolysis_calc_jac_contrib(model_data, J_data, rxn_int_data,
+                                        rxn_float_data, rxn_env_data,
+                                        time_step);
         break;
-      case RXN_SIMPOL_PHASE_TRANSFER :
-        rxn_SIMPOL_phase_transfer_calc_jac_contrib(
-                 model_data, J_data, rxn_int_data, rxn_float_data,
-                 rxn_env_data, time_step);
+      case RXN_SIMPOL_PHASE_TRANSFER:
+        rxn_SIMPOL_phase_transfer_calc_jac_contrib(model_data, J_data,
+                                                   rxn_int_data, rxn_float_data,
+                                                   rxn_env_data, time_step);
         break;
-      case RXN_TROE :
-        rxn_troe_calc_jac_contrib(
-                 model_data, J_data, rxn_int_data, rxn_float_data,
-                 rxn_env_data, time_step);
+      case RXN_TROE:
+        rxn_troe_calc_jac_contrib(model_data, J_data, rxn_int_data,
+                                  rxn_float_data, rxn_env_data, time_step);
         break;
-      case RXN_WET_DEPOSITION :
-        rxn_wet_deposition_calc_jac_contrib(
-                 model_data, J_data, rxn_int_data, rxn_float_data,
-                 rxn_env_data, time_step);
+      case RXN_WET_DEPOSITION:
+        rxn_wet_deposition_calc_jac_contrib(model_data, J_data, rxn_int_data,
+                                            rxn_float_data, rxn_env_data,
+                                            time_step);
         break;
     }
   }
@@ -455,35 +434,34 @@ void rxn_calc_jac(ModelData *model_data, double *J_data, realtype time_step)
  * \param solver_data Pointer to solver data
  */
 void rxn_add_condensed_data(int rxn_type, int n_int_param, int n_float_param,
-          int n_env_param, int *int_param, double *float_param,
-          void *solver_data)
-{
+                            int n_env_param, int *int_param,
+                            double *float_param, void *solver_data) {
   ModelData *model_data =
-          (ModelData*) &(((SolverData*)solver_data)->model_data);
-  int *rxn_int_data      = model_data->nxt_rxn_int;
+      (ModelData *)&(((SolverData *)solver_data)->model_data);
+  int *rxn_int_data = model_data->nxt_rxn_int;
   double *rxn_float_data = model_data->nxt_rxn_float;
-  int rxn_env_idx        = model_data->nxt_rxn_env;
+  int rxn_env_idx = model_data->nxt_rxn_env;
 
   // Save pointers to this reactions data
-  model_data->rxn_int_ptrs[model_data->n_added_rxns]   = rxn_int_data;
+  model_data->rxn_int_ptrs[model_data->n_added_rxns] = rxn_int_data;
   model_data->rxn_float_ptrs[model_data->n_added_rxns] = rxn_float_data;
-  model_data->rxn_env_idx[model_data->n_added_rxns]    = rxn_env_idx;
+  model_data->rxn_env_idx[model_data->n_added_rxns] = rxn_env_idx;
   ++(model_data->n_added_rxns);
 
   // Add the reaction type
   *(rxn_int_data++) = rxn_type;
 
   // Add integer parameters
-  for (; n_int_param>0; --n_int_param) *(rxn_int_data++) = *(int_param++);
+  for (; n_int_param > 0; --n_int_param) *(rxn_int_data++) = *(int_param++);
 
   // Add floating-point parameters
-  for (; n_float_param>0; --n_float_param)
-          *(rxn_float_data++) = (double) *(float_param++);
+  for (; n_float_param > 0; --n_float_param)
+    *(rxn_float_data++) = (double)*(float_param++);
 
   // Set the pointers for the next free space the reaction data arrays
-  model_data->nxt_rxn_int    = rxn_int_data;
-  model_data->nxt_rxn_float  = rxn_float_data;
-  model_data->nxt_rxn_env    = rxn_env_idx + n_env_param;
+  model_data->nxt_rxn_int = rxn_int_data;
+  model_data->nxt_rxn_float = rxn_float_data;
+  model_data->nxt_rxn_env = rxn_env_idx + n_env_param;
   model_data->n_rxn_env_data += n_env_param;
 }
 
@@ -501,26 +479,24 @@ void rxn_add_condensed_data(int rxn_type, int n_int_param, int n_float_param,
  * \param solver_data Pointer to solver data
  */
 void rxn_update_data(int cell_id, int *rxn_id, int update_rxn_type,
-    void *update_data, void *solver_data)
-{
+                     void *update_data, void *solver_data) {
   ModelData *model_data =
-          (ModelData*) &(((SolverData*)solver_data)->model_data);
+      (ModelData *)&(((SolverData *)solver_data)->model_data);
 
   // Point to the environment-dependent data for the grid cell
   model_data->grid_cell_rxn_env_data =
-    &(model_data->rxn_env_data[cell_id * model_data->n_rxn_env_data]);
+      &(model_data->rxn_env_data[cell_id * model_data->n_rxn_env_data]);
 
   // Get the number of reactions
   int n_rxn = *(model_data->rxn_int_data);
 
   // Loop through the reactions advancing the rxn_data pointer each time
-  for (; (*rxn_id)<n_rxn; (*rxn_id)++) {
-
+  for (; (*rxn_id) < n_rxn; (*rxn_id)++) {
     // Get pointers to the reaction data
-    int *rxn_int_data      = model_data->rxn_int_ptrs[*rxn_id];
+    int *rxn_int_data = model_data->rxn_int_ptrs[*rxn_id];
     double *rxn_float_data = model_data->rxn_float_ptrs[*rxn_id];
-    double *rxn_env_data   =
-      &(model_data->grid_cell_rxn_env_data[model_data->rxn_env_idx[*rxn_id]]);
+    double *rxn_env_data =
+        &(model_data->grid_cell_rxn_env_data[model_data->rxn_env_idx[*rxn_id]]);
 
     // Get the reaction type
     int rxn_type = *(rxn_int_data++);
@@ -528,27 +504,23 @@ void rxn_update_data(int cell_id, int *rxn_id, int update_rxn_type,
     bool found = false;
 
     // Try the update data function for reactions of the correct type
-    if (rxn_type==update_rxn_type) {
+    if (rxn_type == update_rxn_type) {
       switch (rxn_type) {
-        case RXN_EMISSION :
-          found = rxn_emission_update_data(
-                    (void*) update_data, rxn_int_data, rxn_float_data,
-                    rxn_env_data);
+        case RXN_EMISSION:
+          found = rxn_emission_update_data((void *)update_data, rxn_int_data,
+                                           rxn_float_data, rxn_env_data);
           break;
-        case RXN_FIRST_ORDER_LOSS :
+        case RXN_FIRST_ORDER_LOSS:
           found = rxn_first_order_loss_update_data(
-                    (void*) update_data, rxn_int_data, rxn_float_data,
-                    rxn_env_data);
+              (void *)update_data, rxn_int_data, rxn_float_data, rxn_env_data);
           break;
-        case RXN_PHOTOLYSIS :
-          found = rxn_photolysis_update_data(
-                    (void*) update_data, rxn_int_data, rxn_float_data,
-                    rxn_env_data);
+        case RXN_PHOTOLYSIS:
+          found = rxn_photolysis_update_data((void *)update_data, rxn_int_data,
+                                             rxn_float_data, rxn_env_data);
           break;
-        case RXN_WET_DEPOSITION :
+        case RXN_WET_DEPOSITION:
           found = rxn_wet_deposition_update_data(
-                    (void*) update_data, rxn_int_data, rxn_float_data,
-                    rxn_env_data);
+              (void *)update_data, rxn_int_data, rxn_float_data, rxn_env_data);
           break;
       }
       if (found) return;
@@ -560,10 +532,9 @@ void rxn_update_data(int cell_id, int *rxn_id, int update_rxn_type,
  *
  * \param solver_data Pointer to the solver data
  */
-void rxn_print_data(void *solver_data)
-{
+void rxn_print_data(void *solver_data) {
   ModelData *model_data =
-          (ModelData*) &(((SolverData*)solver_data)->model_data);
+      (ModelData *)&(((SolverData *)solver_data)->model_data);
 
   // Get the number of reactions
   int n_rxn = *(model_data->rxn_int_data);
@@ -571,10 +542,9 @@ void rxn_print_data(void *solver_data)
   printf("\n\nReaction data\n\nnumber of reactions: %d\n\n", n_rxn);
 
   // Loop through the reactions advancing the rxn_data pointer each time
-  for (int i_rxn=0; i_rxn<n_rxn; i_rxn++) {
-
+  for (int i_rxn = 0; i_rxn < n_rxn; i_rxn++) {
     // Get pointers to the reaction data
-    int *rxn_int_data      = model_data->rxn_int_ptrs[i_rxn];
+    int *rxn_int_data = model_data->rxn_int_ptrs[i_rxn];
     double *rxn_float_data = model_data->rxn_float_ptrs[i_rxn];
 
     // Get the reaction type
@@ -582,54 +552,42 @@ void rxn_print_data(void *solver_data)
 
     // Call the appropriate function
     switch (rxn_type) {
-      case RXN_AQUEOUS_EQUILIBRIUM :
-        rxn_aqueous_equilibrium_print(
-                  rxn_int_data, rxn_float_data);
-	break;
-      case RXN_ARRHENIUS :
-        rxn_arrhenius_print(
-                  rxn_int_data, rxn_float_data);
-	break;
-      case RXN_CMAQ_H2O2 :
-        rxn_CMAQ_H2O2_print(
-                  rxn_int_data, rxn_float_data);
-	break;
-      case RXN_CMAQ_OH_HNO3 :
-        rxn_CMAQ_OH_HNO3_print(
-                  rxn_int_data, rxn_float_data);
-	break;
-      case RXN_CONDENSED_PHASE_ARRHENIUS :
-        rxn_condensed_phase_arrhenius_print(
-                  rxn_int_data, rxn_float_data);
-	break;
-      case RXN_EMISSION :
-        rxn_emission_print(
-                  rxn_int_data, rxn_float_data);
-	break;
-      case RXN_FIRST_ORDER_LOSS :
-        rxn_first_order_loss_print(
-                  rxn_int_data, rxn_float_data);
-	break;
-      case RXN_HL_PHASE_TRANSFER :
-        rxn_HL_phase_transfer_print(
-                  rxn_int_data, rxn_float_data);
-	break;
-      case RXN_PHOTOLYSIS :
-        rxn_photolysis_print(
-                  rxn_int_data, rxn_float_data);
-	break;
-      case RXN_SIMPOL_PHASE_TRANSFER :
-        rxn_SIMPOL_phase_transfer_print(
-                  rxn_int_data, rxn_float_data);
-	break;
-      case RXN_TROE :
-        rxn_troe_print(
-                  rxn_int_data, rxn_float_data);
-	break;
-      case RXN_WET_DEPOSITION :
-        rxn_wet_deposition_print(
-                  rxn_int_data, rxn_float_data);
-	break;
+      case RXN_AQUEOUS_EQUILIBRIUM:
+        rxn_aqueous_equilibrium_print(rxn_int_data, rxn_float_data);
+        break;
+      case RXN_ARRHENIUS:
+        rxn_arrhenius_print(rxn_int_data, rxn_float_data);
+        break;
+      case RXN_CMAQ_H2O2:
+        rxn_CMAQ_H2O2_print(rxn_int_data, rxn_float_data);
+        break;
+      case RXN_CMAQ_OH_HNO3:
+        rxn_CMAQ_OH_HNO3_print(rxn_int_data, rxn_float_data);
+        break;
+      case RXN_CONDENSED_PHASE_ARRHENIUS:
+        rxn_condensed_phase_arrhenius_print(rxn_int_data, rxn_float_data);
+        break;
+      case RXN_EMISSION:
+        rxn_emission_print(rxn_int_data, rxn_float_data);
+        break;
+      case RXN_FIRST_ORDER_LOSS:
+        rxn_first_order_loss_print(rxn_int_data, rxn_float_data);
+        break;
+      case RXN_HL_PHASE_TRANSFER:
+        rxn_HL_phase_transfer_print(rxn_int_data, rxn_float_data);
+        break;
+      case RXN_PHOTOLYSIS:
+        rxn_photolysis_print(rxn_int_data, rxn_float_data);
+        break;
+      case RXN_SIMPOL_PHASE_TRANSFER:
+        rxn_SIMPOL_phase_transfer_print(rxn_int_data, rxn_float_data);
+        break;
+      case RXN_TROE:
+        rxn_troe_print(rxn_int_data, rxn_float_data);
+        break;
+      case RXN_WET_DEPOSITION:
+        rxn_wet_deposition_print(rxn_int_data, rxn_float_data);
+        break;
     }
   }
   fflush(stdout);
@@ -639,8 +597,4 @@ void rxn_print_data(void *solver_data)
  *
  * \param update_data Object to free
  */
-void rxn_free_update_data(void *update_data)
-{
-  free(update_data);
-}
-
+void rxn_free_update_data(void *update_data) { free(update_data); }

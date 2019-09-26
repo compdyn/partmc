@@ -7,12 +7,14 @@
  * \brief Interface to SUNDIALS ODE solver library for condensation.
  */
 
-#include <stdlib.h>
-#include <stdio.h>
+/* clang-format off */
+
 #include <cvode/cvode.h>
-#include <nvector/nvector_serial.h>
-#include <sundials/sundials_types.h>
 #include <cvode/cvode_impl.h>
+#include <nvector/nvector_serial.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sundials/sundials_types.h>
 
 /** \brief Result code indicating successful completion.
  */
@@ -331,3 +333,5 @@ static int condense_solver_Free(CVodeMem cv_mem)
 {
 	return 0;
 }
+
+/* clang-format on */

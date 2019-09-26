@@ -7,11 +7,13 @@
  * \brief Wrapper routines for GSL random number functions.
  */
 
+/* clang-format off */
+
+#include <gsl/gsl_errno.h>
+#include <gsl/gsl_randist.h>
+#include <gsl/gsl_rng.h>
 #include <stdio.h>
 #include <time.h>
-#include <gsl/gsl_errno.h>
-#include <gsl/gsl_rng.h>
-#include <gsl/gsl_randist.h>
 
 /** \brief Private internal-use variable to store the random number
  * generator.
@@ -150,3 +152,5 @@ int pmc_rand_binomial_gsl(int n, double p, int *harvest)
         *harvest = gsl_ran_binomial(pmc_rand_gsl_rng, p, u);
         return PMC_RAND_GSL_SUCCESS;
 }
+
+/* clang-format on */

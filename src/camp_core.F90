@@ -178,6 +178,10 @@ module pmc_camp_core
     procedure :: get_mechanism
     !> Get a pointer to a sub-model by name
     procedure :: get_sub_model
+    !> Get the relative tolerance for the solver
+    procedure :: get_rel_tol
+    !> Get the absolute tolerance for a species on the state array
+    procedure :: get_abs_tol
     !> Get a new model state variable
     procedure :: new_state
     !> Get the size of the state array
@@ -909,6 +913,40 @@ contains
     end do
 
   end function get_sub_model
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Get the relative tolerance for the solver
+  function get_rel_tol( this )
+
+    !> Relative tolerance
+    real(kind=dp) :: get_rel_tol
+    !> Model data
+    class(camp_core_t), intent(in) :: this
+
+    get_rel_tol = this%rel_tol
+
+  end function get_rel_tol
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Get the absolute tolerance for a species on the state array
+  function get_abs_tol( this, spec_id )
+
+    !> Absolute tolerance
+    real(kind=dp) :: get_abs_tol
+    !> Model data
+    class(camp_core_t), intent(in) :: this
+    !> Species id
+    integer(kind=i_kind), intent(in) :: spec_id
+
+    call assert_msg( 374310824, spec_id .ge. 1 .and. &
+                                spec_id .le. size( this%abs_tol ), &
+                     "Species id out of bounds: "// &
+                     trim( to_string( spec_id ) ) )
+    get_abs_tol = this%abs_tol( spec_id )
+
+  end function get_abs_tol
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

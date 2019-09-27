@@ -14,7 +14,6 @@ extern "C"{
 #include <stdlib.h>
 #include "../rxns_gpu.h"
 
-// TODO Lookup environmental indicies during initialization
 #define TEMPERATURE_K_ env_data[0]
 #define PRESSURE_PA_ env_data[1]
 
@@ -197,7 +196,7 @@ __device__ void rxn_gpu_photolysis_calc_deriv_contrib(double *rate_constants, do
     for (int i_spec=0; i_spec<NUM_PROD_; i_spec++, i_dep_var++) {
       if (DERIV_ID_(i_dep_var) < 0) continue;
       //deriv[DERIV_ID_(i_dep_var)] += rate*YIELD_(i_spec);
-      if (-rate*YIELD_(i_spec)*time_step <= state[PROD_(i_spec)]) { //TODO: Added to avoid crash, discuss with matt
+      if (-rate*YIELD_(i_spec)*time_step <= state[PROD_(i_spec)]) {
         atomicAdd((double*)&(deriv[DERIV_ID_(i_dep_var)]),rate*YIELD_(i_spec));
       }
     }
@@ -278,7 +277,7 @@ __device__ void rxn_gpu_photolysis_calc_jac_contrib(double *rate_constants, doub
     }
     for (int i_dep=0; i_dep<NUM_PROD_; i_dep++, i_elem++) {
      if (JAC_ID_(i_elem) < 0) continue;
-      if (-rate*YIELD_(i_dep)*time_step <= state[PROD_(i_dep)]) { //TODO: Added to avoid crash, discuss with matt
+      if (-rate*YIELD_(i_dep)*time_step <= state[PROD_(i_dep)]) {
         atomicAdd(&(J[JAC_ID_(i_elem)]),YIELD_(i_dep) * rate);
       }
     }

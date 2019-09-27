@@ -13,7 +13,6 @@ extern "C" {
 #include <stdlib.h>
 #include "aero_phase_solver_gpu.h"
 
-// TODO move all shared constants to a common header file
 #define CHEM_SPEC_UNKNOWN_TYPE 0
 #define CHEM_SPEC_VARIABLE 1
 #define CHEM_SPEC_CONSTANT 2

@@ -4,10 +4,10 @@
  *
  * Wet deposition reaction solver functions
  *
-*/
+ */
 /** \file
  * \brief Wet deposition reaction solver functions
-*/
+ */
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -25,9 +25,9 @@
 #define NUM_INT_PROP_ 2
 #define NUM_FLOAT_PROP_ 1
 #define NUM_ENV_PARAM_ 2
-#define REACT_(s) (int_data[NUM_INT_PROP_+s]-1)
-#define DERIV_ID_(s) int_data[NUM_INT_PROP_+NUM_SPEC_+s]
-#define JAC_ID_(s) int_data[NUM_INT_PROP_+2*NUM_SPEC_+s]
+#define REACT_(s) (int_data[NUM_INT_PROP_ + s] - 1)
+#define DERIV_ID_(s) int_data[NUM_INT_PROP_ + NUM_SPEC_ + s]
+#define JAC_ID_(s) int_data[NUM_INT_PROP_ + 2 * NUM_SPEC_ + s]
 
 /** \brief Flag Jacobian elements used by this reaction
  *
@@ -37,8 +37,8 @@
  *                   Jacobian elements
  */
 void rxn_wet_deposition_get_used_jac_elem(int *rxn_int_data,
-    double *rxn_float_data, bool **jac_struct)
-{
+                                          double *rxn_float_data,
+                                          bool **jac_struct) {
   int *int_data = rxn_int_data;
   double *float_data = rxn_float_data;
 
@@ -58,19 +58,17 @@ void rxn_wet_deposition_get_used_jac_elem(int *rxn_int_data,
  * \param rxn_float_data Pointer to the reaction floating-point data
  */
 void rxn_wet_deposition_update_ids(ModelData *model_data, int *deriv_ids,
-          int **jac_ids, int *rxn_int_data, double *rxn_float_data)
-{
+                                   int **jac_ids, int *rxn_int_data,
+                                   double *rxn_float_data) {
   int *int_data = rxn_int_data;
   double *float_data = rxn_float_data;
 
   for (int i_spec = 0; i_spec < NUM_SPEC_; i_spec++) {
-
     // Update the time derivative id
     DERIV_ID_(i_spec) = deriv_ids[REACT_(i_spec)];
 
     // Update the Jacobian id
     JAC_ID_(i_spec) = jac_ids[REACT_(i_spec)][REACT_(i_spec)];
-
   }
 
   return;
@@ -95,17 +93,17 @@ void rxn_wet_deposition_update_ids(ModelData *model_data, int *deriv_ids,
  * \return Flag indicating whether this is the reaction to update
  */
 bool rxn_wet_deposition_update_data(void *update_data, int *rxn_int_data,
-    double *rxn_float_data, double *rxn_env_data)
-{
+                                    double *rxn_float_data,
+                                    double *rxn_env_data) {
   int *int_data = rxn_int_data;
   double *float_data = rxn_float_data;
 
-  int *rxn_id = (int*) update_data;
-  double *base_rate = (double*) &(rxn_id[1]);
+  int *rxn_id = (int *)update_data;
+  double *base_rate = (double *)&(rxn_id[1]);
 
   // Set the base wet deposition rate constants for matching reactions
-  if (*rxn_id==RXN_ID_ && RXN_ID_>0) {
-    BASE_RATE_ = (double) *base_rate;
+  if (*rxn_id == RXN_ID_ && RXN_ID_ > 0) {
+    BASE_RATE_ = (double)*base_rate;
     RATE_CONSTANT_ = SCALING_ * BASE_RATE_;
     return true;
   }
@@ -124,8 +122,9 @@ bool rxn_wet_deposition_update_data(void *update_data, int *rxn_int_data,
  * \param rxn_env_data Pointer to the environment-dependent parameters
  */
 void rxn_wet_deposition_update_env_state(ModelData *model_data,
-    int *rxn_int_data, double *rxn_float_data, double *rxn_env_data)
-{
+                                         int *rxn_int_data,
+                                         double *rxn_float_data,
+                                         double *rxn_env_data) {
   int *int_data = rxn_int_data;
   double *float_data = rxn_float_data;
   double *env_data = model_data->grid_cell_env;
@@ -148,22 +147,22 @@ void rxn_wet_deposition_update_env_state(ModelData *model_data,
  */
 #ifdef PMC_USE_SUNDIALS
 void rxn_wet_deposition_calc_deriv_contrib(ModelData *model_data,
-    realtype *deriv, int *rxn_int_data, double *rxn_float_data,
-    double *rxn_env_data, realtype time_step)
-{
+                                           realtype *deriv, int *rxn_int_data,
+                                           double *rxn_float_data,
+                                           double *rxn_env_data,
+                                           realtype time_step) {
   int *int_data = rxn_int_data;
   double *float_data = rxn_float_data;
-  double *state    = model_data->grid_cell_state;
+  double *state = model_data->grid_cell_state;
   double *env_data = model_data->grid_cell_env;
 
   // Add contributions to the time derivative
   for (int i_spec = 0; i_spec < NUM_SPEC_; i_spec++) {
-    if (DERIV_ID_(i_spec) >= 0 )
+    if (DERIV_ID_(i_spec) >= 0)
       deriv[DERIV_ID_(i_spec)] -= RATE_CONSTANT_ * state[REACT_(i_spec)];
   }
 
   return;
-
 }
 #endif
 
@@ -178,12 +177,13 @@ void rxn_wet_deposition_calc_deriv_contrib(ModelData *model_data,
  */
 #ifdef PMC_USE_SUNDIALS
 void rxn_wet_deposition_calc_jac_contrib(ModelData *model_data, realtype *J,
-    int *rxn_int_data, double *rxn_float_data, double *rxn_env_data,
-    realtype time_step)
-{
+                                         int *rxn_int_data,
+                                         double *rxn_float_data,
+                                         double *rxn_env_data,
+                                         realtype time_step) {
   int *int_data = rxn_int_data;
   double *float_data = rxn_float_data;
-  double *state    = model_data->grid_cell_state;
+  double *state = model_data->grid_cell_state;
   double *env_data = model_data->grid_cell_env;
 
   // Add contributions to the Jacobian
@@ -192,7 +192,6 @@ void rxn_wet_deposition_calc_jac_contrib(ModelData *model_data, realtype *J,
   }
 
   return;
-
 }
 #endif
 
@@ -201,8 +200,7 @@ void rxn_wet_deposition_calc_jac_contrib(ModelData *model_data, realtype *J,
  * \param rxn_int_data Pointer to the reaction integer data
  * \param rxn_float_data Pointer to the reaction floating-point data
  */
-void rxn_wet_deposition_print(int *rxn_int_data, double *rxn_float_data)
-{
+void rxn_wet_deposition_print(int *rxn_int_data, double *rxn_float_data) {
   int *int_data = rxn_int_data;
   double *float_data = rxn_float_data;
 
@@ -215,14 +213,13 @@ void rxn_wet_deposition_print(int *rxn_int_data, double *rxn_float_data)
  *
  * \return Pointer to a new rate update data object
  */
-void * rxn_wet_deposition_create_rate_update_data()
-{
-  int *update_data = (int*) malloc(sizeof(int) + sizeof(double));
-  if (update_data==NULL) {
+void *rxn_wet_deposition_create_rate_update_data() {
+  int *update_data = (int *)malloc(sizeof(int) + sizeof(double));
+  if (update_data == NULL) {
     printf("\n\nERROR allocating space for wet deposition update data\n\n");
     exit(1);
   }
-  return (void*) update_data;
+  return (void *)update_data;
 }
 
 /** \brief Set rate update data
@@ -232,10 +229,9 @@ void * rxn_wet_deposition_create_rate_update_data()
  * \param base_rate New pre-scaling wet deposition rate
  */
 void rxn_wet_deposition_set_rate_update_data(void *update_data, int rxn_id,
-          double base_rate)
-{
-  int *new_rxn_id = (int*) update_data;
-  double *new_base_rate = (double*) &(new_rxn_id[1]);
+                                             double base_rate) {
+  int *new_rxn_id = (int *)update_data;
+  double *new_base_rate = (double *)&(new_rxn_id[1]);
   *new_rxn_id = rxn_id;
   *new_base_rate = base_rate;
 }

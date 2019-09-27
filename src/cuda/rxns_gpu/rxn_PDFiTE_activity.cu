@@ -14,7 +14,6 @@ extern "C"{
 #include <stdlib.h>
 #include "../rxns_gpu.h"
 
-// TODO Lookup environmental indices during initialization
 #define TEMPERATURE_K_ env_data[0]
 #define PRESSURE_PA_ env_data[1]
 
@@ -99,7 +98,6 @@ __device__ void rxn_gpu_PDFiTE_activity_update_env_state(double *rate_constants,
 
   // Calculate PPM_TO_RH_
   // From MOSAIC code - reference to Seinfeld & Pandis page 181
-  // TODO Figure out how to have consistent RH<->ppm conversions
   double t_steam = 373.15; 				// steam temperature (K)
   double a = 1.0 - t_steam/TEMPERATURE_K_;
 
@@ -130,7 +128,6 @@ void * rxn_gpu_PDFiTE_activity_pre_calc(ModelData *model_data, void *rxn_data)
   double a_w = PPM_TO_RH_ * state[GAS_WATER_ID_];
 
   // Keep a_w within 0-1
-  // TODO Filter =( try to remove
   if (a_w<0.0) a_w = 0.0;
   if (a_w>1.0) a_w = 1.0;
 

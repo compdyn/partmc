@@ -15,7 +15,6 @@ extern "C" {
 #include "../aeros_gpu/aero_reps_gpu.h"
 #include "../camp_gpu_solver.h"
 
-// TODO Lookup environmental indicies during initialization
 #define TEMPERATURE_K_ env_data[0]
 #define PRESSURE_PA_ env_data[1]
 

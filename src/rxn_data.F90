@@ -688,14 +688,20 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Print the update data
-  subroutine do_rxn_update_data_print(this)
+  subroutine do_rxn_update_data_print(this, file_unit)
 
     !> Reaction update data
     class(rxn_update_data_t), intent(in) :: this
+    !> File unit for output
+    integer(kind=i_kind), optional :: file_unit
 
-    write(*,*) "*** Reaction update data ***"
-    write(*,*) "Rxn type", this%rxn_type
-    write(*,*) "Rxn solver id", this%rxn_solver_id
+    integer(kind=i_kind) :: f_unit = 6
+
+    if (present(file_unit)) f_unit = file_unit
+
+    write(f_unit,*) "*** Reaction update data ***"
+    write(f_unit,*) "Rxn type", this%rxn_type
+    write(f_unit,*) "Rxn solver id", this%rxn_solver_id
 
   end subroutine do_rxn_update_data_print
 

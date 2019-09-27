@@ -4,10 +4,10 @@
  *
  * First-Order loss reaction solver functions
  *
-*/
+ */
 /** \file
  * \brief First-Order loss reaction solver functions
-*/
+ */
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -18,7 +18,7 @@
 #define PRESSURE_PA_ env_data[1]
 
 #define RXN_ID_ (int_data[0])
-#define REACT_ (int_data[1]-1)
+#define REACT_ (int_data[1] - 1)
 #define DERIV_ID_ int_data[2]
 #define JAC_ID_ int_data[3]
 #define SCALING_ float_data[0]
@@ -36,8 +36,8 @@
  *                   Jacobian elements
  */
 void rxn_first_order_loss_get_used_jac_elem(int *rxn_int_data,
-    double *rxn_float_data, bool **jac_struct)
-{
+                                            double *rxn_float_data,
+                                            bool **jac_struct) {
   int *int_data = rxn_int_data;
   double *float_data = rxn_float_data;
 
@@ -55,8 +55,8 @@ void rxn_first_order_loss_get_used_jac_elem(int *rxn_int_data,
  * \param rxn_float_data Pointer to the reaction floating-point data
  */
 void rxn_first_order_loss_update_ids(ModelData *model_data, int *deriv_ids,
-          int **jac_ids, int *rxn_int_data, double *rxn_float_data)
-{
+                                     int **jac_ids, int *rxn_int_data,
+                                     double *rxn_float_data) {
   int *int_data = rxn_int_data;
   double *float_data = rxn_float_data;
 
@@ -88,17 +88,17 @@ void rxn_first_order_loss_update_ids(ModelData *model_data, int *deriv_ids,
  * \return Flag indicating whether this is the reaction to update
  */
 bool rxn_first_order_loss_update_data(void *update_data, int *rxn_int_data,
-    double *rxn_float_data, double *rxn_env_data)
-{
+                                      double *rxn_float_data,
+                                      double *rxn_env_data) {
   int *int_data = rxn_int_data;
   double *float_data = rxn_float_data;
 
-  int *rxn_id = (int*) update_data;
-  double *base_rate = (double*) &(rxn_id[1]);
+  int *rxn_id = (int *)update_data;
+  double *base_rate = (double *)&(rxn_id[1]);
 
   // Set the base first-order loss rate constants for matching reactions
-  if (*rxn_id==RXN_ID_ && RXN_ID_>0) {
-    BASE_RATE_ = (double) *base_rate;
+  if (*rxn_id == RXN_ID_ && RXN_ID_ > 0) {
+    BASE_RATE_ = (double)*base_rate;
     RATE_CONSTANT_ = SCALING_ * BASE_RATE_;
     return true;
   }
@@ -117,8 +117,9 @@ bool rxn_first_order_loss_update_data(void *update_data, int *rxn_int_data,
  * \param rxn_env_data Pointer to the environment-dependent parameters
  */
 void rxn_first_order_loss_update_env_state(ModelData *model_data,
-    int *rxn_int_data, double *rxn_float_data, double *rxn_env_data)
-{
+                                           int *rxn_int_data,
+                                           double *rxn_float_data,
+                                           double *rxn_env_data) {
   int *int_data = rxn_int_data;
   double *float_data = rxn_float_data;
   double *env_data = model_data->grid_cell_env;
@@ -141,22 +142,22 @@ void rxn_first_order_loss_update_env_state(ModelData *model_data,
  */
 #ifdef PMC_USE_SUNDIALS
 void rxn_first_order_loss_calc_deriv_contrib(ModelData *model_data,
-    realtype *deriv, int *rxn_int_data, double *rxn_float_data,
-    double *rxn_env_data, realtype time_step)
-{
+                                             realtype *deriv, int *rxn_int_data,
+                                             double *rxn_float_data,
+                                             double *rxn_env_data,
+                                             realtype time_step) {
   int *int_data = rxn_int_data;
   double *float_data = rxn_float_data;
-  double *state    = model_data->grid_cell_state;
+  double *state = model_data->grid_cell_state;
   double *env_data = model_data->grid_cell_env;
 
   // Calculate the reaction rate
-  realtype rate = RATE_CONSTANT_  * state[REACT_];
+  realtype rate = RATE_CONSTANT_ * state[REACT_];
 
   // Add contributions to the time derivative
   if (DERIV_ID_ >= 0) deriv[DERIV_ID_] -= rate;
 
   return;
-
 }
 #endif
 
@@ -170,20 +171,20 @@ void rxn_first_order_loss_calc_deriv_contrib(ModelData *model_data,
  * \param time_step Current time step being calculated (s)
  */
 #ifdef PMC_USE_SUNDIALS
-void rxn_first_order_loss_calc_jac_contrib(ModelData *model_data,
-    realtype *J, int *rxn_int_data, double *rxn_float_data,
-    double *rxn_env_data, realtype time_step)
-{
+void rxn_first_order_loss_calc_jac_contrib(ModelData *model_data, realtype *J,
+                                           int *rxn_int_data,
+                                           double *rxn_float_data,
+                                           double *rxn_env_data,
+                                           realtype time_step) {
   int *int_data = rxn_int_data;
   double *float_data = rxn_float_data;
-  double *state    = model_data->grid_cell_state;
+  double *state = model_data->grid_cell_state;
   double *env_data = model_data->grid_cell_env;
 
   // Add contributions to the Jacobian
   if (JAC_ID_ >= 0) J[JAC_ID_] -= RATE_CONSTANT_;
 
   return;
-
 }
 #endif
 
@@ -192,8 +193,7 @@ void rxn_first_order_loss_calc_jac_contrib(ModelData *model_data,
  * \param rxn_int_data Pointer to the reaction integer data
  * \param rxn_float_data Pointer to the reaction floating-point data
  */
-void rxn_first_order_loss_print(int *rxn_int_data, double *rxn_float_data)
-{
+void rxn_first_order_loss_print(int *rxn_int_data, double *rxn_float_data) {
   int *int_data = rxn_int_data;
   double *float_data = rxn_float_data;
 
@@ -206,14 +206,13 @@ void rxn_first_order_loss_print(int *rxn_int_data, double *rxn_float_data)
  *
  * \return Pointer to a new rate update data object
  */
-void * rxn_first_order_loss_create_rate_update_data()
-{
-  int *update_data = (int*) malloc(sizeof(int) + sizeof(double));
-  if (update_data==NULL) {
+void *rxn_first_order_loss_create_rate_update_data() {
+  int *update_data = (int *)malloc(sizeof(int) + sizeof(double));
+  if (update_data == NULL) {
     printf("\n\nERROR allocating space for first-order loss update data\n\n");
     exit(1);
   }
-  return (void*) update_data;
+  return (void *)update_data;
 }
 
 /** \brief Set rate update data
@@ -223,10 +222,9 @@ void * rxn_first_order_loss_create_rate_update_data()
  * \param base_rate New pre-scaling first-order loss rate
  */
 void rxn_first_order_loss_set_rate_update_data(void *update_data, int rxn_id,
-          double base_rate)
-{
-  int *new_rxn_id = (int*) update_data;
-  double *new_base_rate = (double*) &(new_rxn_id[1]);
+                                               double base_rate) {
+  int *new_rxn_id = (int *)update_data;
+  double *new_base_rate = (double *)&(new_rxn_id[1]);
   *new_rxn_id = rxn_id;
   *new_base_rate = base_rate;
 }

@@ -265,32 +265,35 @@ void *solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
         "data\n\n");
     EXIT_FAILURE;
   }
-  int *ptr = sd->model_data.rxn_int_data;
-  ptr[0] = n_rxn;
-  sd->model_data.n_added_rxns = 0;
-  sd->model_data.nxt_rxn_int = (int *)&(ptr[1]);
-  sd->model_data.nxt_rxn_float = sd->model_data.rxn_float_data;
-  sd->model_data.nxt_rxn_env = 0;
-  sd->model_data.n_rxn_env_data = 0;
 
   // Allocate space for the reaction data pointers
-  sd->model_data.rxn_int_ptrs = (int **)malloc(n_rxn * sizeof(int **));
-  if (sd->model_data.rxn_int_ptrs == NULL) {
-    printf("\n\nERROR allocating space for reaction integer pointers\n\n");
+  sd->model_data.rxn_int_indices = (int*) malloc(
+          (n_rxn+1) * sizeof(int*));
+  if (sd->model_data.rxn_int_indices==NULL) {
+    printf("\n\nERROR allocating space for reaction integer indices\n\n");
     EXIT_FAILURE;
   }
-  sd->model_data.rxn_float_ptrs = (double **)malloc(n_rxn * sizeof(double **));
-  if (sd->model_data.rxn_float_ptrs == NULL) {
-    printf("\n\nERROR allocating space for reaction float pointers\n\n");
+  sd->model_data.rxn_float_indices = (int*) malloc(
+          (n_rxn+1) * sizeof(int*));
+  if (sd->model_data.rxn_float_indices==NULL) {
+    printf("\n\nERROR allocating space for reaction float indices\n\n");
     EXIT_FAILURE;
   }
-  sd->model_data.rxn_env_idx = (int *)malloc(n_rxn * sizeof(int));
-  if (sd->model_data.rxn_env_idx == NULL) {
-    printf(
-        "\n\nERROR allocating space for reaction environment-dependent "
-        "data pointers\n\n");
+  sd->model_data.rxn_env_idx = (int*) malloc(
+                  (n_rxn+1) * sizeof(int));
+  if (sd->model_data.rxn_env_idx==NULL) {
+    printf("\n\nERROR allocating space for reaction environment-dependent "
+           "data pointers\n\n");
     EXIT_FAILURE;
   }
+
+  int *ptr = sd->model_data.rxn_int_data;
+  ptr[0] = n_rxn;
+  sd->model_data.n_added_rxns   = 0;
+  sd->model_data.n_rxn_env_data = 0;
+  sd->model_data.rxn_int_indices[0] = 0;
+  sd->model_data.rxn_float_indices[0] = 0;
+  sd->model_data.rxn_env_idx[0] = 0;
 
   // If there are no reactions, flag the solver not to run
   sd->no_solve = (n_rxn == 0);
@@ -312,11 +315,6 @@ void *solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
         "data\n\n");
     EXIT_FAILURE;
   }
-  ptr = sd->model_data.aero_phase_int_data;
-  ptr[0] = n_aero_phase;
-  sd->model_data.n_added_aero_phases = 0;
-  sd->model_data.nxt_aero_phase_int = (int *)&(ptr[1]);
-  sd->model_data.nxt_aero_phase_float = sd->model_data.aero_phase_float_data;
 
   // Allocate space for the aerosol phase data pointers
   sd->model_data.aero_phase_int_ptrs =
@@ -335,6 +333,28 @@ void *solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
         "floating-point pointers\n\n");
     EXIT_FAILURE;
   }
+  sd->model_data.aero_phase_int_indices = (int*) malloc(
+          (n_aero_phase+1) * sizeof(int*));
+  if (sd->model_data.aero_phase_int_indices==NULL) {
+    printf("\n\nERROR allocating space for reaction integer indices\n\n");
+    EXIT_FAILURE;
+  }
+  sd->model_data.aero_phase_float_indices = (int*) malloc(
+          (n_aero_phase+1) * sizeof(int*));
+  if (sd->model_data.aero_phase_float_indices==NULL) {
+    printf("\n\nERROR allocating space for reaction float indices\n\n");
+    EXIT_FAILURE;
+  }
+
+  ptr = sd->model_data.aero_phase_int_data;
+  ptr[0] = n_aero_phase;
+  sd->model_data.n_added_aero_phases = 0;
+  sd->model_data.nxt_aero_phase_int = (int*) &(ptr[1]);
+  sd->model_data.nxt_aero_phase_float = sd->model_data.aero_phase_float_data;
+
+  sd->model_data.rxn_int_indices[0] = 0;
+  sd->model_data.rxn_float_indices[0] = 0;
+  sd->model_data.rxn_env_idx[0] = 0;
 
   // Allocate space for the aerosol representation data and set
   // the number of aerosol representations (including one int
@@ -365,13 +385,6 @@ void *solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
         "environmental parameters\n\n");
     EXIT_FAILURE;
   }
-  ptr = sd->model_data.aero_rep_int_data;
-  ptr[0] = n_aero_rep;
-  sd->model_data.n_added_aero_reps = 0;
-  sd->model_data.nxt_aero_rep_int = (void *)&(ptr[1]);
-  sd->model_data.nxt_aero_rep_float = sd->model_data.aero_rep_float_data;
-  sd->model_data.nxt_aero_rep_env = 0;
-  sd->model_data.n_aero_rep_env_data = 0;
 
   // Allocate space for the aerosol representation data pointers
   sd->model_data.aero_rep_int_ptrs =
@@ -390,13 +403,38 @@ void *solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
         "floating-point pointers\n\n");
     EXIT_FAILURE;
   }
-  sd->model_data.aero_rep_env_idx = (int *)malloc(n_aero_rep * sizeof(int));
-  if (sd->model_data.aero_rep_env_idx == NULL) {
-    printf(
-        "\n\nERROR allocating space for aerosol representation "
-        "environment-dependent data pointers\n\n");
+
+  sd->model_data.aero_rep_int_indices = (int*) malloc(
+          (n_aero_rep+1) * sizeof(int*));
+  if (sd->model_data.aero_rep_int_indices==NULL) {
+    printf("\n\nERROR allocating space for reaction integer indices\n\n");
     EXIT_FAILURE;
   }
+  sd->model_data.aero_rep_float_indices = (int*) malloc(
+          (n_aero_rep+1) * sizeof(int*));
+  if (sd->model_data.aero_rep_float_indices==NULL) {
+    printf("\n\nERROR allocating space for reaction float indices\n\n");
+    EXIT_FAILURE;
+  }
+  sd->model_data.aero_rep_env_idx = (int*) malloc(
+          (n_aero_rep+1) * sizeof(int));
+  if (sd->model_data.aero_rep_env_idx==NULL) {
+    printf("\n\nERROR allocating space for aerosol representation "
+           "environment-dependent data pointers\n\n");
+    EXIT_FAILURE;
+  }
+
+  ptr = sd->model_data.aero_rep_int_data;
+  ptr[0] = n_aero_rep;
+  sd->model_data.n_added_aero_reps   = 0;
+  sd->model_data.nxt_aero_rep_int    = (void*) &(ptr[1]);
+  sd->model_data.nxt_aero_rep_float  = sd->model_data.aero_rep_float_data;
+  sd->model_data.nxt_aero_rep_env    = 0;
+  sd->model_data.n_aero_rep_env_data = 0;
+
+  sd->model_data.aero_rep_int_indices[0] = 0;
+  sd->model_data.aero_rep_float_indices[0] = 0;
+  sd->model_data.aero_rep_env_idx[0] = 0;
 
   // Allocate space for the sub model data and set the number of sub models
   // (including one int for the number of sub models and one int per sub
@@ -421,13 +459,6 @@ void *solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
         "data\n\n");
     EXIT_FAILURE;
   }
-  ptr = sd->model_data.sub_model_int_data;
-  ptr[0] = n_sub_model;
-  sd->model_data.n_added_sub_models = 0;
-  sd->model_data.nxt_sub_model_int = (int *)&(ptr[1]);
-  sd->model_data.nxt_sub_model_float = sd->model_data.sub_model_float_data;
-  sd->model_data.nxt_sub_model_env = 0;
-  sd->model_data.n_sub_model_env_data = 0;
 
   // Allocate space for the sub-model data pointers
   sd->model_data.sub_model_int_ptrs =
@@ -442,13 +473,39 @@ void *solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
     printf("\n\nERROR allocating space for sub model float pointers\n\n");
     EXIT_FAILURE;
   }
-  sd->model_data.sub_model_env_idx = (int *)malloc(n_sub_model * sizeof(int));
-  if (sd->model_data.sub_model_env_idx == NULL) {
-    printf(
-        "\n\nERROR allocating space for sub model environment-dependent "
-        "data pointers\n\n");
+
+  sd->model_data.sub_model_int_indices = (int*) malloc(
+          (n_sub_model+1) * sizeof(int*));
+  if (sd->model_data.sub_model_int_indices==NULL) {
+    printf("\n\nERROR allocating space for reaction integer indices\n\n");
     EXIT_FAILURE;
   }
+  sd->model_data.sub_model_float_indices = (int*) malloc(
+          (n_sub_model+1) * sizeof(int*));
+  if (sd->model_data.sub_model_float_indices==NULL) {
+    printf("\n\nERROR allocating space for reaction float indices\n\n");
+    EXIT_FAILURE;
+  }
+  sd->model_data.sub_model_env_idx = (int*) malloc(
+          (n_sub_model+1) * sizeof(int));
+  if (sd->model_data.sub_model_env_idx==NULL) {
+    printf("\n\nERROR allocating space for sub model environment-dependent "
+           "data pointers\n\n");
+    EXIT_FAILURE;
+  }
+
+  ptr = sd->model_data.sub_model_int_data;
+  ptr[0] = n_sub_model;
+  sd->model_data.n_added_sub_models   = 0;
+  sd->model_data.nxt_sub_model_int    = (int*) &(ptr[1]);
+  sd->model_data.nxt_sub_model_float  = sd->model_data.sub_model_float_data;
+  sd->model_data.nxt_sub_model_env    = 0;
+  sd->model_data.n_sub_model_env_data = 0;
+
+  sd->model_data.sub_model_int_indices[0] = 0;
+  sd->model_data.sub_model_float_indices[0] = 0;
+  sd->model_data.sub_model_env_idx[0] = 0;
+
 
 #ifdef PMC_USE_GPU
   solver_new_gpu_cu(n_dep_var, n_state_var, n_rxn, n_rxn_int_param,
@@ -984,7 +1041,7 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
 
     // Calculate the time derivative f(t,y)
     // (this is for all grid cells at once)
-    rxn_calc_deriv_gpu(md, deriv, (double)time_step);
+    rxn_calc_deriv_gpu(md, deriv, (double) time_step);
 
     clock_t end2 = clock();
     timeDerivgpu += ((double)(end2 - start2));
@@ -994,7 +1051,7 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
 
     // Calculate the time derivative f(t,y)
     // (this is for all grid cells at once)
-    rxn_calc_deriv_gpu(md, deriv, (double)time_step);
+    rxn_calc_deriv_gpu(md, deriv, (double) time_step);
 
 #endif
 
@@ -1034,7 +1091,16 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
 
   // Get pointers to the rxn and parameter Jacobian arrays
   double *J_param_data = SM_DATA_S(md->J_params);
-  double *J_rxn_data = SM_DATA_S(md->J_rxn);
+  double *J_rxn_data   = SM_DATA_S(md->J_rxn);
+    // Initialize the sparse matrix (sized for one grid cell)
+  //solver_data->model_data.J_rxn =
+  //    SUNSparseMatrix(n_state_var, n_state_var, n_jac_elem_rxn, CSC_MAT);
+
+  //TODO: use this instead of saving all this jacs
+  //double J_rxn_data[md->n_per_cell_dep_var];
+  //memset(J_rxn_data, 0, md->n_per_cell_dep_var * sizeof(double));
+
+  //double *J_rxn_data = (double*)calloc(md->n_per_cell_state_var, sizeof(double));
 
   // !!!! Do not use tmp2 - it is the same as y !!!! //
   // FIXME Find out why cvode is sending tmp2 as y
@@ -1060,7 +1126,8 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
     (SM_INDEXPTRS_S(J))[i] = (SM_INDEXPTRS_S(md->J_init))[i];
   }
 
-#ifndef PMC_USE_GPU
+  //working
+//#ifndef PMC_USE_GPU
 
   // Loop over the grid cells to calculate sub-model and rxn Jacobians
   for (int i_cell = 0; i_cell < n_cells; ++i_cell) {
@@ -1127,6 +1194,8 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
   }
 #endif
 
+/*
+
 // GPU solving
 #else
 
@@ -1152,6 +1221,8 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
 #endif
 
 #endif
+
+ */
 
 #ifdef PMC_DEBUG
   counterJac++;
@@ -2013,7 +2084,7 @@ void model_free(ModelData model_data) {
 #endif
 
 #ifdef PMC_USE_GPU
-  free_gpu_cu();
+  //free_gpu_cu();
 #endif
 
 #ifdef PMC_USE_SUNDIALS
@@ -2028,24 +2099,30 @@ void model_free(ModelData model_data) {
   free(model_data.rxn_int_data);
   free(model_data.rxn_float_data);
   free(model_data.rxn_env_data);
-  free(model_data.rxn_int_ptrs);
-  free(model_data.rxn_float_ptrs);
+  free(model_data.rxn_int_indices);
+  free(model_data.rxn_float_indices);
   free(model_data.rxn_env_idx);
   free(model_data.aero_phase_int_data);
   free(model_data.aero_phase_float_data);
   free(model_data.aero_phase_int_ptrs);
   free(model_data.aero_phase_float_ptrs);
+  free(model_data.aero_phase_int_indices);
+  free(model_data.aero_phase_float_indices);
   free(model_data.aero_rep_int_data);
   free(model_data.aero_rep_float_data);
   free(model_data.aero_rep_env_data);
   free(model_data.aero_rep_int_ptrs);
   free(model_data.aero_rep_float_ptrs);
+  free(model_data.aero_rep_int_indices);
+  free(model_data.aero_rep_float_indices);
   free(model_data.aero_rep_env_idx);
   free(model_data.sub_model_int_data);
   free(model_data.sub_model_float_data);
   free(model_data.sub_model_env_data);
   free(model_data.sub_model_int_ptrs);
   free(model_data.sub_model_float_ptrs);
+  free(model_data.sub_model_int_indices);
+  free(model_data.sub_model_float_indices);
   free(model_data.sub_model_env_idx);
 }
 

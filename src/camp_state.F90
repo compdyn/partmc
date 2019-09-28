@@ -111,8 +111,11 @@ contains
 
     integer :: grid_offset = 0
 
-    if (present(grid_cell)) &
+    if (present(grid_cell)) then
       grid_offset = (grid_cell-1)*CAMP_STATE_NUM_ENV_PARAM
+    else
+      grid_offset = 0
+    end if
 
     call assert_msg(618562571, grid_offset >= 0 .and. &
                                grid_offset <= size(this%env_var)-2, &

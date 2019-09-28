@@ -28,10 +28,12 @@ void sub_model_get_used_jac_elem(ModelData *model_data, bool **jac_struct) {
   int n_sub_model = model_data->sub_model_int_data[0];
 
   // Loop through the sub models and get their Jacobian elements
-  for (int i_sub_model = 0; i_sub_model < n_sub_model; i_sub_model++) {
-    int *sub_model_int_data = model_data->sub_model_int_ptrs[i_sub_model];
+  for (int i_sub_model=0; i_sub_model<n_sub_model; i_sub_model++) {
+
+    int *sub_model_int_data =
+            &(model_data->sub_model_int_data[1+model_data->sub_model_int_indices[i_sub_model]]);
     double *sub_model_float_data =
-        model_data->sub_model_float_ptrs[i_sub_model];
+            &(model_data->sub_model_float_data[model_data->sub_model_float_indices[i_sub_model]]);
 
     // Get the sub model type
     int sub_model_type = *(sub_model_int_data++);
@@ -118,9 +120,10 @@ void sub_model_set_jac_map(ModelData *model_data, int **jac_ids) {
       for (int i_ind = 0; i_ind < model_data->n_per_cell_state_var; ++i_ind)
         jac_struct_local[i_dep][i_ind] = false;
 
-    int *sub_model_int_data = model_data->sub_model_int_ptrs[i_sub_model];
+    int *sub_model_int_data =
+            &(model_data->sub_model_int_data[1+model_data->sub_model_int_indices[i_sub_model]]);
     double *sub_model_float_data =
-        model_data->sub_model_float_ptrs[i_sub_model];
+            &(model_data->sub_model_float_data[model_data->sub_model_float_indices[i_sub_model]]);
 
     // Get the sub model type
     int sub_model_type = *(sub_model_int_data++);
@@ -182,10 +185,12 @@ void sub_model_update_ids(ModelData *model_data, int *deriv_ids,
   int n_sub_model = model_data->sub_model_int_data[0];
 
   // Loop through the sub models and get their Jacobian elements
-  for (int i_sub_model = 0; i_sub_model < n_sub_model; i_sub_model++) {
-    int *sub_model_int_data = model_data->sub_model_int_ptrs[i_sub_model];
+  for (int i_sub_model=0; i_sub_model<n_sub_model; i_sub_model++) {
+
+    int *sub_model_int_data =
+            &(model_data->sub_model_int_data[1+model_data->sub_model_int_indices[i_sub_model]]);
     double *sub_model_float_data =
-        model_data->sub_model_float_ptrs[i_sub_model];
+            &(model_data->sub_model_float_data[model_data->sub_model_float_indices[i_sub_model]]);
 
     // Get the sub model type
     int sub_model_type = *(sub_model_int_data++);
@@ -219,13 +224,14 @@ void sub_model_update_env_state(ModelData *model_data) {
 
   // Loop through the sub models to update the environmental conditions
   // advancing the sub_model_data pointer each time
-  for (int i_sub_model = 0; i_sub_model < n_sub_model; i_sub_model++) {
-    int *sub_model_int_data = model_data->sub_model_int_ptrs[i_sub_model];
+  for (int i_sub_model=0; i_sub_model<n_sub_model; i_sub_model++) {
+
+    int *sub_model_int_data =
+            &(model_data->sub_model_int_data[1+model_data->sub_model_int_indices[i_sub_model]]);
     double *sub_model_float_data =
-        model_data->sub_model_float_ptrs[i_sub_model];
-    double *sub_model_env_data =
-        &(model_data->grid_cell_sub_model_env_data
-              [model_data->sub_model_env_idx[i_sub_model]]);
+            &(model_data->sub_model_float_data[model_data->sub_model_float_indices[i_sub_model]]);
+    double *sub_model_env_data = &(model_data->grid_cell_sub_model_env_data[
+                                     model_data->sub_model_env_idx[i_sub_model]]);
 
     // Get the sub model type
     int sub_model_type = *(sub_model_int_data++);
@@ -260,13 +266,14 @@ void sub_model_calculate(ModelData *model_data) {
 
   // Loop through the sub models to trigger their calculation
   // advancing the sub_model_data pointer each time
-  for (int i_sub_model = 0; i_sub_model < n_sub_model; i_sub_model++) {
-    int *sub_model_int_data = model_data->sub_model_int_ptrs[i_sub_model];
+  for (int i_sub_model=0; i_sub_model<n_sub_model; i_sub_model++) {
+
+    int *sub_model_int_data =
+            &(model_data->sub_model_int_data[1+model_data->sub_model_int_indices[i_sub_model]]);
     double *sub_model_float_data =
-        model_data->sub_model_float_ptrs[i_sub_model];
-    double *sub_model_env_data =
-        &(model_data->grid_cell_sub_model_env_data
-              [model_data->sub_model_env_idx[i_sub_model]]);
+            &(model_data->sub_model_float_data[model_data->sub_model_float_indices[i_sub_model]]);
+    double *sub_model_env_data = &(model_data->grid_cell_sub_model_env_data[
+                                     model_data->sub_model_env_idx[i_sub_model]]);
 
     // Get the sub model type
     int sub_model_type = *(sub_model_int_data++);
@@ -304,13 +311,14 @@ void sub_model_get_jac_contrib(ModelData *model_data, double *J_data,
 
   // Loop through the sub models to trigger their Jacobian calculation
   // advancing the sub_model_data pointer each time
-  for (int i_sub_model = 0; i_sub_model < n_sub_model; i_sub_model++) {
-    int *sub_model_int_data = model_data->sub_model_int_ptrs[i_sub_model];
+  for (int i_sub_model=0; i_sub_model<n_sub_model; i_sub_model++) {
+
+    int *sub_model_int_data =
+            &(model_data->sub_model_int_data[1+model_data->sub_model_int_indices[i_sub_model]]);
     double *sub_model_float_data =
-        model_data->sub_model_float_ptrs[i_sub_model];
-    double *sub_model_env_data =
-        &(model_data->grid_cell_sub_model_env_data
-              [model_data->sub_model_env_idx[i_sub_model]]);
+            &(model_data->sub_model_float_data[model_data->sub_model_float_indices[i_sub_model]]);
+    double *sub_model_env_data = &(model_data->grid_cell_sub_model_env_data[
+                                     model_data->sub_model_env_idx[i_sub_model]]);
 
     // Get the sub model type
     int sub_model_type = *(sub_model_int_data++);
@@ -358,21 +366,24 @@ void sub_model_add_condensed_data(int sub_model_type, int n_int_param,
                                   int *int_param, double *float_param,
                                   void *solver_data) {
   ModelData *model_data =
-      (ModelData *)&(((SolverData *)solver_data)->model_data);
-  int *sub_model_int_data = model_data->nxt_sub_model_int;
-  double *sub_model_float_data = model_data->nxt_sub_model_float;
-  int sub_model_env_idx = model_data->nxt_sub_model_env;
+          (ModelData*) &(((SolverData*)solver_data)->model_data);
 
-  // Save the pointers to this sub model's data
-  model_data->sub_model_int_ptrs[model_data->n_added_sub_models] =
-      sub_model_int_data;
-  model_data->sub_model_float_ptrs[model_data->n_added_sub_models] =
-      sub_model_float_data;
-  model_data->sub_model_env_idx[model_data->n_added_sub_models] =
-      sub_model_env_idx;
+  // Get pointers to the reaction data
+  int *sub_model_int_data =
+          &(model_data->sub_model_int_data[1+model_data->sub_model_int_indices[model_data->n_added_sub_models]]);
+  double *sub_model_float_data =
+          &(model_data->sub_model_float_data[model_data->sub_model_float_indices[model_data->n_added_sub_models]]);
+
+  //Save next indices by adding lengths
+  model_data->sub_model_int_indices[model_data->n_added_sub_models+1] =
+          (n_int_param+1) + model_data->sub_model_int_indices[model_data->n_added_sub_models];//+1 is type
+  model_data->sub_model_float_indices[model_data->n_added_sub_models+1] =
+          n_float_param + model_data->sub_model_float_indices[model_data->n_added_sub_models];
+  model_data->sub_model_env_idx[model_data->n_added_sub_models+1] =
+          model_data->sub_model_env_idx[model_data->n_added_sub_models] + n_env_param;
   ++(model_data->n_added_sub_models);
 
-  // Add the sub model type
+  // Add the reaction type
   *(sub_model_int_data++) = sub_model_type;
 
   // Add integer parameters
@@ -380,13 +391,9 @@ void sub_model_add_condensed_data(int sub_model_type, int n_int_param,
     *(sub_model_int_data++) = *(int_param++);
 
   // Add floating-point parameters
-  for (; n_float_param > 0; --n_float_param)
-    *(sub_model_float_data++) = *(float_param++);
+  for (; n_float_param>0; --n_float_param)
+    *(sub_model_float_data++) = (double) *(float_param++);
 
-  // Set the pointers for the next free space in the sub model data arrays
-  model_data->nxt_sub_model_int = sub_model_int_data;
-  model_data->nxt_sub_model_float = sub_model_float_data;
-  model_data->nxt_sub_model_env = sub_model_env_idx + n_env_param;
   model_data->n_sub_model_env_data += n_env_param;
 }
 
@@ -418,13 +425,15 @@ void sub_model_update_data(int cell_id, int *sub_model_id,
   int n_sub_model = model_data->sub_model_int_data[0];
 
   // Loop through the sub models advancing the sub_model_data pointer each time
-  for (; (*sub_model_id) < n_sub_model; (*sub_model_id)++) {
-    int *sub_model_int_data = model_data->sub_model_int_ptrs[(*sub_model_id)];
+  for (; (*sub_model_id)<n_sub_model; (*sub_model_id)++) {
+
+    int *sub_model_int_data =
+            &(model_data->sub_model_int_data[1+model_data->sub_model_int_indices[*sub_model_id]]);
     double *sub_model_float_data =
-        model_data->sub_model_float_ptrs[(*sub_model_id)];
-    double *sub_model_env_data = &(
-        model_data->grid_cell_sub_model_env_data[model_data->sub_model_env_idx[(
-            *sub_model_id)]]);
+            &(model_data->sub_model_float_data[model_data->sub_model_float_indices[*sub_model_id]]);
+    double *sub_model_env_data   =
+      &(model_data->grid_cell_sub_model_env_data[
+          model_data->sub_model_env_idx[(*sub_model_id)]]);
 
     // Get the sub model type
     int sub_model_type = *(sub_model_int_data++);
@@ -450,10 +459,12 @@ void sub_model_print_data(void *solver_data) {
 
   // Loop through the sub models to print their data
   // advancing the sub_model_data pointer each time
-  for (int i_sub_model = 0; i_sub_model < n_sub_model; i_sub_model++) {
-    int *sub_model_int_data = model_data->sub_model_int_ptrs[i_sub_model];
+  for (int i_sub_model=0; i_sub_model<n_sub_model; i_sub_model++) {
+
+    int *sub_model_int_data =
+            &(model_data->sub_model_int_data[1+model_data->sub_model_int_indices[i_sub_model]]);
     double *sub_model_float_data =
-        model_data->sub_model_float_ptrs[i_sub_model];
+            &(model_data->sub_model_float_data[model_data->sub_model_float_indices[i_sub_model]]);
 
     // Get the sub model type
     int sub_model_type = *(sub_model_int_data++);

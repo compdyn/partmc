@@ -31,7 +31,7 @@ program mock_monarch
   !> Number of total species in mock MONARCH
   integer, parameter :: NUM_MONARCH_SPEC = 800
   !> Number of vertical cells in mock MONARCH
-  integer, parameter :: NUM_VERT_CELLS = 3
+  integer, parameter :: NUM_VERT_CELLS = 1
   !> Starting W-E cell for camp-chem call
   integer, parameter :: I_W = 1
   !> Ending W-E cell for camp-chem call
@@ -60,7 +60,7 @@ program mock_monarch
   !integer :: n_cells = 1
   integer :: n_cells = (I_E - I_W+1)*(I_N - I_S+1)*NUM_VERT_CELLS
   !> Check multiple cells results are correct?
-  logical :: check_multiple_cells = .false.
+  logical :: check_multiple_cells = .true.
 
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   ! State variables for mock MONARCH model !
@@ -301,17 +301,17 @@ contains
 
     do i=I_W, I_E
       temperature(i,:,:) = temperature(i,:,:) + 0.1*i
-      pressure(i,:,:) = pressure(i,:,:) - 0.1*i
+      pressure(i,:,:) = pressure(i,:,:) - 1*i
     end do
 
     do j=I_S, I_N
       temperature(:,j,:) = temperature(:,j,:) + 0.3*j
-      pressure(:,:,j) = pressure(:,:,j) - 0.3*j
+      pressure(:,:,j) = pressure(:,:,j) - 3*j
     end do
 
     do k=1, NUM_VERT_CELLS
       temperature(:,:,k) = temperature(:,:,k) + 0.6*k
-      pressure(:,k,:) = pressure(:,k,:) - 0.6*k
+      pressure(:,k,:) = pressure(:,k,:) - 6*k
     end do
 
     deallocate(file_name)

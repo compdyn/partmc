@@ -60,10 +60,7 @@ RUN mkdir build \
              -D CMAKE_C_FLAGS_DEBUG="-g -pg" \
              -D CMAKE_Fortran_FLAGS_DEBUG="-g -pg" \
              -D CMAKE_MODULE_LINKER_FLAGS="-pg" \
-             -D ENABLE_SUNDIALS:BOOL=TRUE \
+             -D ENABLE_CAMP:BOOL=TRUE \
              -D ENABLE_DEBUG:BOOL=TRUE \
-             -D ENABLE_GSL:BOOL=TRUE \
-             -D SUNDIALS_CVODE_LIB=/usr/local/lib/libsundials_cvode.so \
-             -D SUNDIALS_INCLUDE_DIR=/usr/local/include \
              /partmc \
     && make install

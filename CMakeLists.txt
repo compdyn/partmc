@@ -5,6 +5,8 @@ cmake_minimum_required(VERSION 2.6.4)
 # http://www.cmake.org/Bug/view.php?id=8408
 project(PARTMC Fortran C)
 
+include(CMakeDependentOption)
+
 set(PACKAGE_BUGREPORT "mwest@illinois.edu")
 set(PACKAGE_NAME "PartMC")
 set(PACKAGE_STRING "PartMC 2.4.0")
@@ -27,17 +29,24 @@ endif ()
 ######################################################################
 # options
 
-option(ENABLE_GSL "Enable GSL library for random number generation" OFF)
-option(ENABLE_MOSAIC "Enable MOSAIC chemistry support" OFF)
+option(ENABLE_CAMP "Enable CAMP" ON)
+cmake_dependent_option(
+  ENABLE_GSL "Enable GSL library for random number generation" OFF
+  "NOT ENABLE_CAMP" ON)
+cmake_dependent_option(
+  ENABLE_MOSAIC "Enable MOSAIC chemistry support" OFF
+  "NOT ENABLE_CAMP" OFF)
 option(ENABLE_MPI "Enable MPI parallel support" OFF)
-option(ENABLE_SUNDIALS "Enable SUNDIALS solver for condensation support" OFF)
+cmake_dependent_option(
+  ENABLE_SUNDIALS "Enable SUNDIALS solver for condensation support" OFF
+  "NOT ENABLE_CAMP" ON)
 option(ENABLE_C_SORT "Enable C sorting routines" OFF)
-option(ENABLE_JSON "Enable json-fortran support" ON)
 option(ENABLE_TESTS "Enable tests" ON)
 option(ENABLE_DEBUG "Compile debugging functions" OFF)
 option(FAILURE_DETAIL "Output conditions before and after solver failures" OFF)
-option(ENABLE_CXX "Enable C++" OFF)
-option(ENABLE_GPU "Enable use of GPUs in chemistry solving" OFF)
+cmake_dependent_option(
+  ENABLE_GPU "Enable use of GPUs in chemistry solving" OFF
+  "ENABLE_CAMP" OFF)
 
 mark_as_advanced(FORCE ENABLE_DEBUG FAILURE_DETAIL)
 
@@ -159,9 +168,9 @@ if(ENABLE_SUNDIALS)
 endif()
 
 ######################################################################
-# json-fortran
+# json-fortran (depends on ENABLE_CAMP)
 
-if (ENABLE_JSON)
+if (ENABLE_CAMP)
   find_path(JSON_INCLUDE_DIR json_module.mod
     DOC "json-fortran include directory (must include json_*.mod files)"
     PATHS $ENV{JSON_FORTRAN_HOME}/lib /opt/local/lib /usr/local/lib)
@@ -173,9 +182,9 @@ if (ENABLE_JSON)
 endif()
 
 ######################################################################
-##CXX
+##CXX (depends on ENABLE_GPU)
 
-if(ENABLE_CXX)
+if(ENABLE_GPU)
   add_definitions(-DPMC_USE_CXX)
   enable_language(CXX)
 endif()
@@ -231,10 +240,10 @@ set_property(DIRECTORY PROPERTY ADDITIONAL_MAKE_CLEAN_FILES test_run)
 add_custom_target(copy_mechanism ALL ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/mechanisms ${CMAKE_BINARY_DIR}/mechanisms_run)
 set_property(DIRECTORY PROPERTY ADDITIONAL_MAKE_CLEAN_FILES mechanisms_run)
 
-do_unit_test(property "PASS")
-do_unit_test(chem_spec_data "PASS")
-do_unit_test(aero_phase_data "PASS")
-if(ENABLE_JSON)
+if(ENABLE_CAMP)
+  do_unit_test(property "PASS")
+  do_unit_test(chem_spec_data "PASS")
+  do_unit_test(aero_phase_data "PASS")
   do_unit_test(aero_rep_single_particle "PASS")
   do_unit_test(aero_rep_modal_binned_mass "PASS")
   do_unit_test(camp_core "PASS")
@@ -247,7 +256,7 @@ else()
 endif()
 
 if (ENABLE_TESTS)
-    if (ENABLE_JSON AND ENABLE_SUNDIALS)
+  if (ENABLE_CAMP)
       # New unit tests (UNDER DEVELOPMENT)
       add_test(test_rxn_arrhenius_mech ${CMAKE_BINARY_DIR}/test_run/unit_tests/input_files/run_rxn_arrhenius.sh ${MPI_TEST_FLAG})
 

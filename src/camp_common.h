@@ -113,6 +113,7 @@ typedef struct {
   double *sub_model_env_data;  // Total (multi-cell) sub-model environment-
                                // dependent parameters
 
+  int n_rxn;                     // Number of reactions
   int n_added_rxns;              // The number of reactions whose data has been
                                  // added to the reaction data arrays
   int *rxn_int_data;             // Pointer to the reaction integer parameters
@@ -126,6 +127,7 @@ typedef struct {
                                  // for the current grid cell
   int n_rxn_env_data;            // Number of reaction environmental parameters
                                  // from all reactions
+  int n_aero_phase;              // Number of aerosol phases
   int n_added_aero_phases;       // The number of aerosol phases whose data has
                                  // been added to the aerosol phase data arrays
   int *aero_phase_int_data;      // Pointer to the aerosol phase integer parameters
@@ -139,8 +141,9 @@ typedef struct {
                                  // each aerosol phase
   double **aero_phase_float_ptrs;// Array of pointers to the floating-point data
                                  // for each aerosol phase
-  int *aero_phase_int_indices;     // Array of indices of integer data
-  int *aero_phase_float_indices;   // Array of indices of float data
+  int *aero_phase_int_indices;   // Array of indices of integer data
+  int *aero_phase_float_indices; // Array of indices of float data
+  int n_aero_rep;                // Number of aerosol representations
   int n_added_aero_reps;         // The number of aerosol representations whose
                                  // data has been added to the aerosol
                                  // representation data arrays
@@ -148,16 +151,6 @@ typedef struct {
                                  // parameters
   double *aero_rep_float_data;   // Pointer to the aerosol representation
                                  // floating-point parameters
-  int *nxt_aero_rep_int;         // Pointer to the next available integer in
-                                 // aero_rep_int_data
-  double *nxt_aero_rep_float;    // Pointer to the next available floating-point
-                                 // number in aero_rep_float_data
-  int nxt_aero_rep_env;          // Index for the next available environment-
-                                 // dependent parameter in aero_rep_env_data
-  int **aero_rep_int_ptrs;       // Array of pointers to integer data for each
-                                 // aerosol representation
-  double **aero_rep_float_ptrs;  // Array of pointers to floating-point data for
-                                 // each aerosol representation
   int *aero_rep_int_indices;     // Array of indices of integer data
   int *aero_rep_float_indices;   // Array of indices of float data
   int *aero_rep_env_idx;         // Array of offsets for the environment-
@@ -166,20 +159,11 @@ typedef struct {
                                  // dependent data for the current grid cell
   int n_aero_rep_env_data;       // Number of aerosol representation environmental
                                  // parameters for all aerosol representations
+  int n_sub_model;               // Number of sub models
   int n_added_sub_models;        // The number of sub models whose data has been
                                  // added to the sub model data arrays
   int *sub_model_int_data;       // Pointer to sub model integer parameters
   double *sub_model_float_data;  // Pointer to sub model floating-point parameters
-  int *nxt_sub_model_int;        // Pointer to the next available integer in
-                                 // sub_model_int_data
-  double *nxt_sub_model_float;   // Pointer to the next available floating-point
-                                 // number in sub_model_float_data
-  int nxt_sub_model_env;         // Index for the next available environment-
-                                 // dependent parameter in sub_model_env_data
-  int **sub_model_int_ptrs;      // Array of pointers to integer data for each
-                                 // sub model
-  double **sub_model_float_ptrs; // Array of pointers to floating-point data for
-                                 // each sub model
   int *sub_model_int_indices;    // Array of indices of integer data
   int *sub_model_float_indices;  // Array of indices of float data
   int *sub_model_env_idx;        // Array of offsets for the environment-

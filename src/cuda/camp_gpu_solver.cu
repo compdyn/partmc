@@ -164,7 +164,7 @@ void allocate_jac_gpu(int n_jac_elem, int n_cells){
 void solver_set_rxn_data_gpu(ModelData *model_data) {
 
   //int *rxn_data = (int *) (model_data->rxn_data);
-  int n_rxn = *(model_data->rxn_int_data);
+  int n_rxn = model_data->n_rxn;
   unsigned int int_max_length = 0;
   unsigned int double_max_length = 0;
 
@@ -442,7 +442,7 @@ void rxn_calc_deriv_gpu(ModelData *model_data, N_Vector deriv, realtype time_ste
   // Get a pointer to the derivative data
   realtype *deriv_data = N_VGetArrayPointer(deriv);
   int n_cells = model_data->n_cells;
-  int n_rxn = *(model_data->rxn_int_data);
+  int n_rxn = model_data->n_rxn;
   int n_rxn_threads = n_rxn*n_cells; //Reaction group per number of repetitions/cells
   int n_blocks = ((n_rxn_threads + max_n_gpu_thread - 1) / max_n_gpu_thread);
   double *state = model_data->grid_cell_state;

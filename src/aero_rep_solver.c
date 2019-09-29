@@ -36,7 +36,7 @@ int aero_rep_get_used_jac_elem(ModelData *model_data, int aero_rep_idx,
 
   // Get pointers to the aerosol data
   int *aero_rep_int_data =
-          &(model_data->aero_rep_int_data[1+model_data->aero_rep_int_indices[aero_rep_idx]]);
+          &(model_data->aero_rep_int_data[model_data->aero_rep_int_indices[aero_rep_idx]]);
   double *aero_rep_float_data =
           &(model_data->aero_rep_float_data[model_data->aero_rep_float_indices[aero_rep_idx]]);
 
@@ -67,14 +67,14 @@ int aero_rep_get_used_jac_elem(ModelData *model_data, int aero_rep_idx,
  */
 void aero_rep_get_dependencies(ModelData *model_data, bool *state_flags) {
   // Get the number of aerosol representations
-  int n_aero_rep = model_data->aero_rep_int_data[0];
+  int n_aero_rep = model_data->n_aero_rep;
 
   // Loop through the aerosol representations to determine the Jacobian elements
   // used advancing the aero_rep_data pointer each time
   for (int i_aero_rep = 0; i_aero_rep < n_aero_rep; i_aero_rep++) {
     // Get pointers to the aerosol data
     int *aero_rep_int_data =
-            &(model_data->aero_rep_int_data[1+model_data->aero_rep_int_indices[i_aero_rep]]);
+            &(model_data->aero_rep_int_data[model_data->aero_rep_int_indices[i_aero_rep]]);
     double *aero_rep_float_data =
             &(model_data->aero_rep_float_data[model_data->aero_rep_float_indices[i_aero_rep]]);
 
@@ -101,14 +101,14 @@ void aero_rep_get_dependencies(ModelData *model_data, bool *state_flags) {
  */
 void aero_rep_update_env_state(ModelData *model_data) {
   // Get the number of aerosol representations
-  int n_aero_rep = model_data->aero_rep_int_data[0];
+  int n_aero_rep = model_data->n_aero_rep;
 
   // Loop through the aerosol representations to update the environmental
   // conditions advancing the aero_rep_data pointer each time
   for (int i_aero_rep = 0; i_aero_rep < n_aero_rep; i_aero_rep++) {
     // Get pointers to the aerosol data
     int *aero_rep_int_data =
-            &(model_data->aero_rep_int_data[1+model_data->aero_rep_int_indices[i_aero_rep]]);
+            &(model_data->aero_rep_int_data[model_data->aero_rep_int_indices[i_aero_rep]]);
     double *aero_rep_float_data =
             &(model_data->aero_rep_float_data[model_data->aero_rep_float_indices[i_aero_rep]]);
     double *aero_rep_env_data   = &(model_data->grid_cell_aero_rep_env_data[
@@ -139,14 +139,14 @@ void aero_rep_update_env_state(ModelData *model_data) {
  */
 void aero_rep_update_state(ModelData *model_data) {
   // Get the number of aerosol representations
-  int n_aero_rep = model_data->aero_rep_int_data[0];
+  int n_aero_rep = model_data->n_aero_rep;
 
   // Loop through the aerosol representations to update the state
   // advancing the aero_rep_data pointer each time
   for (int i_aero_rep = 0; i_aero_rep < n_aero_rep; i_aero_rep++) {
     // Get pointers to the aerosol data
     int *aero_rep_int_data =
-            &(model_data->aero_rep_int_data[1+model_data->aero_rep_int_indices[i_aero_rep]]);
+            &(model_data->aero_rep_int_data[model_data->aero_rep_int_indices[i_aero_rep]]);
     double *aero_rep_float_data =
             &(model_data->aero_rep_float_data[model_data->aero_rep_float_indices[i_aero_rep]]);
     double *aero_rep_env_data   = &(model_data->grid_cell_aero_rep_env_data[
@@ -191,7 +191,7 @@ void aero_rep_get_effective_radius(ModelData *model_data, int aero_rep_idx,
                                    double *partial_deriv) {
   // Get pointers to the aerosol data
   int *aero_rep_int_data =
-          &(model_data->aero_rep_int_data[1+model_data->aero_rep_int_indices[aero_rep_idx]]);
+          &(model_data->aero_rep_int_data[model_data->aero_rep_int_indices[aero_rep_idx]]);
   double *aero_rep_float_data =
           &(model_data->aero_rep_float_data[model_data->aero_rep_float_indices[aero_rep_idx]]);
   double *aero_rep_env_data   = &(model_data->grid_cell_aero_rep_env_data[
@@ -239,7 +239,7 @@ void aero_rep_get_number_conc(ModelData *model_data, int aero_rep_idx,
                               double *partial_deriv) {
   // Get pointers to the aerosol data
   int *aero_rep_int_data =
-          &(model_data->aero_rep_int_data[1+model_data->aero_rep_int_indices[aero_rep_idx]]);
+          &(model_data->aero_rep_int_data[model_data->aero_rep_int_indices[aero_rep_idx]]);
   double *aero_rep_float_data =
           &(model_data->aero_rep_float_data[model_data->aero_rep_float_indices[aero_rep_idx]]);
   double *aero_rep_env_data   = &(model_data->grid_cell_aero_rep_env_data[
@@ -280,7 +280,7 @@ int aero_rep_get_aero_conc_type(ModelData *model_data, int aero_rep_idx,
 
   // Get pointers to the aerosol data
   int *aero_rep_int_data =
-          &(model_data->aero_rep_int_data[1+model_data->aero_rep_int_indices[aero_rep_idx]]);
+          &(model_data->aero_rep_int_data[model_data->aero_rep_int_indices[aero_rep_idx]]);
   double *aero_rep_float_data =
           &(model_data->aero_rep_float_data[model_data->aero_rep_float_indices[aero_rep_idx]]);
   double *aero_rep_env_data   = &(model_data->grid_cell_aero_rep_env_data[
@@ -329,7 +329,7 @@ void aero_rep_get_aero_phase_mass(ModelData *model_data, int aero_rep_idx,
                                   double *partial_deriv) {
   // Get pointers to the aerosol data
   int *aero_rep_int_data =
-          &(model_data->aero_rep_int_data[1+model_data->aero_rep_int_indices[aero_rep_idx]]);
+          &(model_data->aero_rep_int_data[model_data->aero_rep_int_indices[aero_rep_idx]]);
   double *aero_rep_float_data =
           &(model_data->aero_rep_float_data[model_data->aero_rep_float_indices[aero_rep_idx]]);
   double *aero_rep_env_data   = &(model_data->grid_cell_aero_rep_env_data[
@@ -378,7 +378,7 @@ void aero_rep_get_aero_phase_avg_MW(ModelData *model_data, int aero_rep_idx,
                                     double *partial_deriv) {
   // Get pointers to the aerosol data
   int *aero_rep_int_data =
-          &(model_data->aero_rep_int_data[1+model_data->aero_rep_int_indices[aero_rep_idx]]);
+          &(model_data->aero_rep_int_data[model_data->aero_rep_int_indices[aero_rep_idx]]);
   double *aero_rep_float_data =
           &(model_data->aero_rep_float_data[model_data->aero_rep_float_indices[aero_rep_idx]]);
   double *aero_rep_env_data   = &(model_data->grid_cell_aero_rep_env_data[
@@ -422,7 +422,7 @@ void aero_rep_add_condensed_data(int aero_rep_type, int n_int_param,
 
   // Get pointers to the reaction data
   int *aero_rep_int_data =
-          &(model_data->aero_rep_int_data[1+model_data->aero_rep_int_indices[model_data->n_added_aero_reps]]);
+          &(model_data->aero_rep_int_data[model_data->aero_rep_int_indices[model_data->n_added_aero_reps]]);
   double *aero_rep_float_data =
           &(model_data->aero_rep_float_data[model_data->aero_rep_float_indices[model_data->n_added_aero_reps]]);
 
@@ -447,35 +447,6 @@ void aero_rep_add_condensed_data(int aero_rep_type, int n_int_param,
 
   model_data->n_aero_rep_env_data += n_env_param;
 
-  /*int *aero_rep_int_data      = model_data->nxt_aero_rep_int;
-  double *aero_rep_float_data = model_data->nxt_aero_rep_float;
-  int aero_rep_env_idx = model_data->nxt_aero_rep_env;
-
-  // Save the pointers to this aerosol representation's data
-  model_data->aero_rep_int_ptrs[model_data->n_added_aero_reps] =
-      aero_rep_int_data;
-  model_data->aero_rep_float_ptrs[model_data->n_added_aero_reps] =
-      aero_rep_float_data;
-  model_data->aero_rep_env_idx[model_data->n_added_aero_reps] =
-      aero_rep_env_idx;
-  ++(model_data->n_added_aero_reps);
-
-  // Add the aerosol representation type
-  *(aero_rep_int_data++) = aero_rep_type;
-
-  // Add integer parameters
-  for (; n_int_param > 0; --n_int_param)
-    *(aero_rep_int_data++) = *(int_param++);
-
-  // Add floating-point parameters
-  for (; n_float_param > 0; --n_float_param)
-    *(aero_rep_float_data++) = *(float_param++);
-
-  // Set the pointers for the next free space in aero_rep_data
-  model_data->nxt_aero_rep_int     = aero_rep_int_data;
-  model_data->nxt_aero_rep_float   = aero_rep_float_data;
-  model_data->nxt_aero_rep_env     = aero_rep_env_idx + n_env_param;
-  model_data->n_aero_rep_env_data += n_env_param;*/
 }
 
 /** \brief Update aerosol representation data
@@ -497,13 +468,13 @@ void aero_rep_update_data(int cell_id, int *aero_rep_id,
       model_data->aero_rep_env_data[cell_id * model_data->n_aero_rep_env_data]);
 
   // Get the number of aerosol representations
-  int n_aero_rep = model_data->aero_rep_int_data[0];
+  int n_aero_rep = model_data->n_aero_rep;
 
   // Loop through the aerosol representations advancing the pointer each time
   for (; (*aero_rep_id) < n_aero_rep; (*aero_rep_id)++) {
     // Get pointers to the aerosol data
     int *aero_rep_int_data =
-            &(model_data->aero_rep_int_data[1+model_data->aero_rep_int_indices[*aero_rep_id]]);
+            &(model_data->aero_rep_int_data[model_data->aero_rep_int_indices[*aero_rep_id]]);
     double *aero_rep_float_data =
             &(model_data->aero_rep_float_data[model_data->aero_rep_float_indices[*aero_rep_id]]);
     double *aero_rep_env_data   = &(model_data->grid_cell_aero_rep_env_data[
@@ -542,7 +513,7 @@ void aero_rep_print_data(void *solver_data) {
       (ModelData *)&(((SolverData *)solver_data)->model_data);
 
   // Get the number of aerosol representations
-  int n_aero_rep = model_data->aero_rep_int_data[0];
+  int n_aero_rep = model_data->n_aero_rep;
 
   printf(
       "\n\nAerosol representation data\n\nnumber of aerosol "
@@ -553,7 +524,7 @@ void aero_rep_print_data(void *solver_data) {
   for (int i_aero_rep = 0; i_aero_rep < n_aero_rep; i_aero_rep++) {
     // Get pointers to the aerosol data
     int *aero_rep_int_data =
-            &(model_data->aero_rep_int_data[1+model_data->aero_rep_int_indices[i_aero_rep]]);
+            &(model_data->aero_rep_int_data[model_data->aero_rep_int_indices[i_aero_rep]]);
     double *aero_rep_float_data =
             &(model_data->aero_rep_float_data[model_data->aero_rep_float_indices[i_aero_rep]]);
 

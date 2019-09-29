@@ -37,13 +37,13 @@
  */
 void rxn_get_used_jac_elem(ModelData *model_data, bool **jac_struct) {
   // Get the number of reactions
-  int n_rxn = *(model_data->rxn_int_data);
+  int n_rxn = model_data->n_rxn;
 
   // Loop through the reactions to determine the Jacobian elements used
   // advancing the rxn_data pointer each time
   for (int i_rxn = 0; i_rxn < n_rxn; i_rxn++) {
     // Get pointers to the reaction data
-    int *rxn_int_data = &(model_data->rxn_int_data[1+model_data->rxn_int_indices[i_rxn]]);
+    int *rxn_int_data = &(model_data->rxn_int_data[model_data->rxn_int_indices[i_rxn]]);
     double *rxn_float_data = &(model_data->rxn_float_data[model_data->rxn_float_indices[i_rxn]]);
 
     // Get the reaction type
@@ -110,12 +110,12 @@ void rxn_get_used_jac_elem(ModelData *model_data, bool **jac_struct) {
  */
 void rxn_update_ids(ModelData *model_data, int *deriv_ids, int **jac_ids) {
   // Get the number of reactions
-  int n_rxn = *(model_data->rxn_int_data);
+  int n_rxn = model_data->n_rxn;
 
   // Loop through the reactions advancing the rxn_data pointer each time
   for (int i_rxn = 0; i_rxn < n_rxn; i_rxn++) {
     // Get pointers to the reaction data
-    int *rxn_int_data = &(model_data->rxn_int_data[1+model_data->rxn_int_indices[i_rxn]]);
+    int *rxn_int_data = &(model_data->rxn_int_data[model_data->rxn_int_indices[i_rxn]]);
     double *rxn_float_data = &(model_data->rxn_float_data[model_data->rxn_float_indices[i_rxn]]);
 
     // Get the reaction type
@@ -181,12 +181,12 @@ void rxn_update_ids(ModelData *model_data, int *deriv_ids, int **jac_ids) {
  */
 void rxn_update_env_state(ModelData *model_data) {
   // Get the number of reactions
-  int n_rxn = *(model_data->rxn_int_data);
+  int n_rxn = model_data->n_rxn;
 
   // Loop through the reactions advancing the rxn_data pointer each time
   for (int i_rxn = 0; i_rxn < n_rxn; i_rxn++) {
     // Get pointers to the reaction data
-    int *rxn_int_data = &(model_data->rxn_int_data[1+model_data->rxn_int_indices[i_rxn]]);
+    int *rxn_int_data = &(model_data->rxn_int_data[model_data->rxn_int_indices[i_rxn]]);
     double *rxn_float_data = &(model_data->rxn_float_data[model_data->rxn_float_indices[i_rxn]]);
 
     double *rxn_env_data   =
@@ -259,12 +259,12 @@ void rxn_update_env_state(ModelData *model_data) {
 void rxn_calc_deriv(ModelData *model_data, double *deriv_data,
                     realtype time_step) {
   // Get the number of reactions
-  int n_rxn = *(model_data->rxn_int_data);
+  int n_rxn = model_data->n_rxn;
 
   // Loop through the reactions advancing the rxn_data pointer each time
   for (int i_rxn = 0; i_rxn < n_rxn; i_rxn++) {
     // Get pointers to the reaction data
-    int *rxn_int_data = &(model_data->rxn_int_data[1+model_data->rxn_int_indices[i_rxn]]);
+    int *rxn_int_data = &(model_data->rxn_int_data[model_data->rxn_int_indices[i_rxn]]);
     double *rxn_float_data = &(model_data->rxn_float_data[model_data->rxn_float_indices[i_rxn]]);
 
     double *rxn_env_data   =
@@ -349,12 +349,12 @@ void rxn_calc_deriv(ModelData *model_data, double *deriv_data,
 #ifdef PMC_USE_SUNDIALS
 void rxn_calc_jac(ModelData *model_data, double *J_data, realtype time_step) {
   // Get the number of reactions
-  int n_rxn = *(model_data->rxn_int_data);
+  int n_rxn = model_data->n_rxn;
 
   // Loop through the reactions advancing the rxn_data pointer each time
   for (int i_rxn = 0; i_rxn < n_rxn; i_rxn++) {
     // Get pointers to the reaction data
-    int *rxn_int_data = &(model_data->rxn_int_data[1+model_data->rxn_int_indices[i_rxn]]);
+    int *rxn_int_data = &(model_data->rxn_int_data[model_data->rxn_int_indices[i_rxn]]);
     double *rxn_float_data = &(model_data->rxn_float_data[model_data->rxn_float_indices[i_rxn]]);
     double *rxn_env_data   =
       &(model_data->grid_cell_rxn_env_data[model_data->rxn_env_idx[i_rxn]]);
@@ -445,7 +445,7 @@ void rxn_add_condensed_data(int rxn_type, int n_int_param, int n_float_param,
 
   // Get pointers to the reaction data
   int *rxn_int_data =
-          &(model_data->rxn_int_data[1+model_data->rxn_int_indices[model_data->n_added_rxns]]);
+          &(model_data->rxn_int_data[model_data->rxn_int_indices[model_data->n_added_rxns]]);
   double *rxn_float_data =
           &(model_data->rxn_float_data[model_data->rxn_float_indices[model_data->n_added_rxns]]);
 
@@ -494,12 +494,12 @@ void rxn_update_data(int cell_id, int *rxn_id, int update_rxn_type,
       &(model_data->rxn_env_data[cell_id * model_data->n_rxn_env_data]);
 
   // Get the number of reactions
-  int n_rxn = *(model_data->rxn_int_data);
+  int n_rxn = model_data->n_rxn;
 
   // Loop through the reactions advancing the rxn_data pointer each time
   for (; (*rxn_id) < n_rxn; (*rxn_id)++) {
     // Get pointers to the reaction data
-    int *rxn_int_data = &(model_data->rxn_int_data[1+model_data->rxn_int_indices[*rxn_id]]);
+    int *rxn_int_data = &(model_data->rxn_int_data[model_data->rxn_int_indices[*rxn_id]]);
     double *rxn_float_data = &(model_data->rxn_float_data[model_data->rxn_float_indices[*rxn_id]]);
 
     double *rxn_env_data   =
@@ -544,14 +544,14 @@ void rxn_print_data(void *solver_data) {
       (ModelData *)&(((SolverData *)solver_data)->model_data);
 
   // Get the number of reactions
-  int n_rxn = *(model_data->rxn_int_data);
+  int n_rxn = model_data->n_rxn;
 
   printf("\n\nReaction data\n\nnumber of reactions: %d\n\n", n_rxn);
 
   // Loop through the reactions advancing the rxn_data pointer each time
   for (int i_rxn = 0; i_rxn < n_rxn; i_rxn++) {
     // Get pointers to the reaction data
-    int *rxn_int_data = &(model_data->rxn_int_data[1+model_data->rxn_int_indices[i_rxn]]);
+    int *rxn_int_data = &(model_data->rxn_int_data[model_data->rxn_int_indices[i_rxn]]);
     double *rxn_float_data = &(model_data->rxn_float_data[model_data->rxn_float_indices[i_rxn]]);
 
     // Get the reaction type

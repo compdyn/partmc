@@ -25,13 +25,13 @@
  */
 void sub_model_get_used_jac_elem(ModelData *model_data, bool **jac_struct) {
   // Get the number of sub models
-  int n_sub_model = model_data->sub_model_int_data[0];
+  int n_sub_model = model_data->n_sub_model;
 
   // Loop through the sub models and get their Jacobian elements
   for (int i_sub_model=0; i_sub_model<n_sub_model; i_sub_model++) {
 
     int *sub_model_int_data =
-            &(model_data->sub_model_int_data[1+model_data->sub_model_int_indices[i_sub_model]]);
+            &(model_data->sub_model_int_data[model_data->sub_model_int_indices[i_sub_model]]);
     double *sub_model_float_data =
             &(model_data->sub_model_float_data[model_data->sub_model_float_indices[i_sub_model]]);
 
@@ -111,7 +111,7 @@ void sub_model_set_jac_map(ModelData *model_data, int **jac_ids) {
   int i_map = 0;
 
   // Get the number of sub models
-  int n_sub_model = model_data->sub_model_int_data[0];
+  int n_sub_model = model_data->n_sub_model;
 
   // Loop through the sub models and get their Jacobian elements
   for (int i_sub_model = 0; i_sub_model < n_sub_model; i_sub_model++) {
@@ -121,7 +121,7 @@ void sub_model_set_jac_map(ModelData *model_data, int **jac_ids) {
         jac_struct_local[i_dep][i_ind] = false;
 
     int *sub_model_int_data =
-            &(model_data->sub_model_int_data[1+model_data->sub_model_int_indices[i_sub_model]]);
+            &(model_data->sub_model_int_data[model_data->sub_model_int_indices[i_sub_model]]);
     double *sub_model_float_data =
             &(model_data->sub_model_float_data[model_data->sub_model_float_indices[i_sub_model]]);
 
@@ -182,13 +182,13 @@ void sub_model_set_jac_map(ModelData *model_data, int **jac_ids) {
 void sub_model_update_ids(ModelData *model_data, int *deriv_ids,
                           int **jac_ids) {
   // Get the number of sub models
-  int n_sub_model = model_data->sub_model_int_data[0];
+  int n_sub_model = model_data->n_sub_model;
 
   // Loop through the sub models and get their Jacobian elements
   for (int i_sub_model=0; i_sub_model<n_sub_model; i_sub_model++) {
 
     int *sub_model_int_data =
-            &(model_data->sub_model_int_data[1+model_data->sub_model_int_indices[i_sub_model]]);
+            &(model_data->sub_model_int_data[model_data->sub_model_int_indices[i_sub_model]]);
     double *sub_model_float_data =
             &(model_data->sub_model_float_data[model_data->sub_model_float_indices[i_sub_model]]);
 
@@ -220,14 +220,14 @@ void sub_model_update_ids(ModelData *model_data, int *deriv_ids,
  */
 void sub_model_update_env_state(ModelData *model_data) {
   // Get the number of sub models
-  int n_sub_model = model_data->sub_model_int_data[0];
+  int n_sub_model = model_data->n_sub_model;
 
   // Loop through the sub models to update the environmental conditions
   // advancing the sub_model_data pointer each time
   for (int i_sub_model=0; i_sub_model<n_sub_model; i_sub_model++) {
 
     int *sub_model_int_data =
-            &(model_data->sub_model_int_data[1+model_data->sub_model_int_indices[i_sub_model]]);
+            &(model_data->sub_model_int_data[model_data->sub_model_int_indices[i_sub_model]]);
     double *sub_model_float_data =
             &(model_data->sub_model_float_data[model_data->sub_model_float_indices[i_sub_model]]);
     double *sub_model_env_data = &(model_data->grid_cell_sub_model_env_data[
@@ -262,14 +262,14 @@ void sub_model_update_env_state(ModelData *model_data) {
  */
 void sub_model_calculate(ModelData *model_data) {
   // Get the number of sub models
-  int n_sub_model = model_data->sub_model_int_data[0];
+  int n_sub_model = model_data->n_sub_model;
 
   // Loop through the sub models to trigger their calculation
   // advancing the sub_model_data pointer each time
   for (int i_sub_model=0; i_sub_model<n_sub_model; i_sub_model++) {
 
     int *sub_model_int_data =
-            &(model_data->sub_model_int_data[1+model_data->sub_model_int_indices[i_sub_model]]);
+            &(model_data->sub_model_int_data[model_data->sub_model_int_indices[i_sub_model]]);
     double *sub_model_float_data =
             &(model_data->sub_model_float_data[model_data->sub_model_float_indices[i_sub_model]]);
     double *sub_model_env_data = &(model_data->grid_cell_sub_model_env_data[
@@ -307,14 +307,14 @@ void sub_model_calculate(ModelData *model_data) {
 void sub_model_get_jac_contrib(ModelData *model_data, double *J_data,
                                realtype time_step) {
   // Get the number of sub models
-  int n_sub_model = model_data->sub_model_int_data[0];
+  int n_sub_model = model_data->n_sub_model;
 
   // Loop through the sub models to trigger their Jacobian calculation
   // advancing the sub_model_data pointer each time
   for (int i_sub_model=0; i_sub_model<n_sub_model; i_sub_model++) {
 
     int *sub_model_int_data =
-            &(model_data->sub_model_int_data[1+model_data->sub_model_int_indices[i_sub_model]]);
+            &(model_data->sub_model_int_data[model_data->sub_model_int_indices[i_sub_model]]);
     double *sub_model_float_data =
             &(model_data->sub_model_float_data[model_data->sub_model_float_indices[i_sub_model]]);
     double *sub_model_env_data = &(model_data->grid_cell_sub_model_env_data[
@@ -370,7 +370,7 @@ void sub_model_add_condensed_data(int sub_model_type, int n_int_param,
 
   // Get pointers to the reaction data
   int *sub_model_int_data =
-          &(model_data->sub_model_int_data[1+model_data->sub_model_int_indices[model_data->n_added_sub_models]]);
+          &(model_data->sub_model_int_data[model_data->sub_model_int_indices[model_data->n_added_sub_models]]);
   double *sub_model_float_data =
           &(model_data->sub_model_float_data[model_data->sub_model_float_indices[model_data->n_added_sub_models]]);
 
@@ -422,13 +422,13 @@ void sub_model_update_data(int cell_id, int *sub_model_id,
             ->sub_model_env_data[cell_id * model_data->n_sub_model_env_data]);
 
   // Get the number of sub models
-  int n_sub_model = model_data->sub_model_int_data[0];
+  int n_sub_model = model_data->n_sub_model;
 
   // Loop through the sub models advancing the sub_model_data pointer each time
   for (; (*sub_model_id)<n_sub_model; (*sub_model_id)++) {
 
     int *sub_model_int_data =
-            &(model_data->sub_model_int_data[1+model_data->sub_model_int_indices[*sub_model_id]]);
+            &(model_data->sub_model_int_data[model_data->sub_model_int_indices[*sub_model_id]]);
     double *sub_model_float_data =
             &(model_data->sub_model_float_data[model_data->sub_model_float_indices[*sub_model_id]]);
     double *sub_model_env_data   =
@@ -455,14 +455,14 @@ void sub_model_print_data(void *solver_data) {
       (ModelData *)&(((SolverData *)solver_data)->model_data);
 
   // Get the number of sub models
-  int n_sub_model = model_data->sub_model_int_data[0];
+  int n_sub_model = model_data->n_sub_model;
 
   // Loop through the sub models to print their data
   // advancing the sub_model_data pointer each time
   for (int i_sub_model=0; i_sub_model<n_sub_model; i_sub_model++) {
 
     int *sub_model_int_data =
-            &(model_data->sub_model_int_data[1+model_data->sub_model_int_indices[i_sub_model]]);
+            &(model_data->sub_model_int_data[model_data->sub_model_int_indices[i_sub_model]]);
     double *sub_model_float_data =
             &(model_data->sub_model_float_data[model_data->sub_model_float_indices[i_sub_model]]);
 

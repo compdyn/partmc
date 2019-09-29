@@ -13,7 +13,7 @@
 !! \ref camp_tutorial_part_0 "part 0 of the CAMP tutorial".
 !! A description of the CAMP model elements and how to use them follows.
 !!
-!! ## CAMP Model Elements ##
+!! ## CAMP model elements ##
 !!
 !!  - \subpage camp_aero_phase "Aerosol Phases"
 !!  - \subpage camp_aero_rep "Aerosol Representations"
@@ -63,7 +63,7 @@
 !!             \c json files containing all the \ref camp_chem "CAMP"
 !!             configuration data.
 !!
-!! To initialize \ref camp_chem "CAMP" , the path to the
+!! To initialize \ref camp_chem "CAMP", the path to the
 !! \ref input_format_camp_file_list "file list" must be passed to the
 !! \ref pmc_camp_core::camp_core_t "camp_core_t" constructor.
 !! The method by which this is done depends on the host model configuration.
@@ -81,7 +81,7 @@
 !! "sub-model(s)". A description of the input files required for a PartMC run
 !! can be found \ref input_format "here".
 !!
-!! ## CAMP in another host model ##
+!! ## CAMP tutorial ##
 !!
 !! Follow the \ref camp_tutorial "Boot CAMP" tutorial to see how to
 !! integrate CAMP into your favorite model!

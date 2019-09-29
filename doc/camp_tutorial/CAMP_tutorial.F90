@@ -8,10 +8,14 @@
 !! incorporates all the CAMP functionality to demonstrate how CAMP can be
 !! included in your favorite model.
 !!
+!! - \ref camp_tutorial_part_0
 !! - \ref camp_tutorial_part_1
 !! - \ref camp_tutorial_part_2
 !! - \ref camp_tutorial_part_3
 !! - \ref camp_tutorial_part_4
+!! - \ref camp_tutorial_part_5
+!! - \ref camp_tutorial_part_6
+!! - \ref camp_tutorial_part_7
 !!
 !! Model code described in Boot CAMP can be found in
 !! \c doc/camp_tutorial .
@@ -27,6 +31,24 @@
 !! \code{.sh}
 !!   docker system prune
 !! \endcode
+
+! ***********************************************************************
+! ***********************************************************************
+! ***********************************************************************
+
+!> \page camp_tutorial_part_0 Boot CAMP: Part 0 - Why CAMP?
+!!
+!! \todo finish
+!!
+!!
+!!
+!!
+!!
+!!
+
+! ***********************************************************************
+! ***********************************************************************
+! ***********************************************************************
 
 !> \page camp_tutorial_part_1 Boot CAMP: Part 1 - Box Model
 !!
@@ -93,7 +115,7 @@
 !! \snippet camp_tutorial/part_1_code/box_model.F90 Species ids
 !! \snippet camp_tutorial/part_1_code/box_model.F90 Get species ids
 !!
-!! The \ref pmc_chem_spec_data::chem_spec_data_t "camp_spec_data_t"
+!! The \ref pmc_chem_spec_data::chem_spec_data_t "chem_spec_data_t"
 !! object provides access to information about
 !! the chemical species present in the system. If there is a problem
 !! setting the \ref pmc_chem_spec_data::chem_spec_data_t "chem_spec_data_t"
@@ -159,7 +181,6 @@
 ! ***********************************************************************
 ! ***********************************************************************
 ! ***********************************************************************
-
 
 !> \page camp_tutorial_part_2 Boot CAMP: Part 2 - Mechanism
 !!
@@ -474,7 +495,54 @@
 
 !> \page camp_tutorial_part_4 Boot CAMP: Part 4 - Message Passing
 !!
+!! \todo finish
+!!
+!!
+!!
+!!
+!!
 !!
 
 
 
+! ***********************************************************************
+! ***********************************************************************
+! ***********************************************************************
+
+!> \page camp_tutorial_part_5 Boot CAMP: Part 5 - Aerosol Representations
+!!
+!! \todo finish
+!!
+!!
+!!
+!!
+!!
+!!
+
+! ***********************************************************************
+! ***********************************************************************
+! ***********************************************************************
+
+!> \page camp_tutorial_part_6 Boot CAMP: Part 6 - Aerosol Representation Input Data
+!!
+!! \todo finish
+!!
+!!
+!!
+!!
+!!
+!!
+
+! ***********************************************************************
+! ***********************************************************************
+! ***********************************************************************
+
+!> \page camp_tutorial_part_7 Boot CAMP: Part 7 - Sub Models
+!!
+!! \todo finish
+!!
+!!
+!!
+!!
+!!
+!!

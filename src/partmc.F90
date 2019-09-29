@@ -59,7 +59,7 @@
 !!
 !! \ref input_format_camp_file_list "CAMP file list"
 !!
-!! \ref input_format_camp_config "CMAP configuration data"
+!! \ref input_format_camp_config "CAMP configuration data"
 !!
 !! Typically, one \ref input_format_camp_file_list "file list" file is
 !! used for a PartMC run, which includes paths to multiple \ref
@@ -103,17 +103,18 @@
 !! Some changes were made beginning with the \ref camp_chem
 !! "Chemistry Across Multiple Phases" module to take advantage of Fortran
 !! 2003 and 2008 features. In general, modules are \c private and expose
-!! functionality through type-bound procedures. \c public module functions,
-!! variables and parameters are discouraged, as are \c public derived-type
-!! variables.
+!! functionality through a single `public` derived type and its
+!! type-bound procedures. \c public module functions,
+!! variables and parameters are discouraged.
 !!
-!! Constructors that return a pointer to a newly allocated instance of a
-!! module's primary derived type are typically included in each module. In
+!! Derived-type constructors return a pointer to a newly allocated instance
+!! of a module's primary derived type, and are typically included in each
+!! module. In
 !! addition to the primary derived type, a pointer type may be included for
 !! building arrays of pointers to the primary derived type. For example, the
 !! \c my_type_t type may have an associated \c my_type_ptr type in the same
 !! module whose only member is a pointer to a \c my_type_t object named \c
-!! val. (This helps, in particular, with building arrays of mixed extending
+!! val. (This makes it easier to build arrays of mixed extending
 !! types of an abstract type.) When abstract types are used, for example \c
 !! my_general_data_t, a factory type in a separate module, \c
 !! my_general_factory_t, is provided to create instances of extending types

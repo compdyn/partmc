@@ -43,8 +43,10 @@ void rxn_get_used_jac_elem(ModelData *model_data, bool **jac_struct) {
   // advancing the rxn_data pointer each time
   for (int i_rxn = 0; i_rxn < n_rxn; i_rxn++) {
     // Get pointers to the reaction data
-    int *rxn_int_data = &(model_data->rxn_int_data[model_data->rxn_int_indices[i_rxn]]);
-    double *rxn_float_data = &(model_data->rxn_float_data[model_data->rxn_float_indices[i_rxn]]);
+    int *rxn_int_data =
+        &(model_data->rxn_int_data[model_data->rxn_int_indices[i_rxn]]);
+    double *rxn_float_data =
+        &(model_data->rxn_float_data[model_data->rxn_float_indices[i_rxn]]);
 
     // Get the reaction type
     int rxn_type = *(rxn_int_data++);
@@ -115,8 +117,10 @@ void rxn_update_ids(ModelData *model_data, int *deriv_ids, int **jac_ids) {
   // Loop through the reactions advancing the rxn_data pointer each time
   for (int i_rxn = 0; i_rxn < n_rxn; i_rxn++) {
     // Get pointers to the reaction data
-    int *rxn_int_data = &(model_data->rxn_int_data[model_data->rxn_int_indices[i_rxn]]);
-    double *rxn_float_data = &(model_data->rxn_float_data[model_data->rxn_float_indices[i_rxn]]);
+    int *rxn_int_data =
+        &(model_data->rxn_int_data[model_data->rxn_int_indices[i_rxn]]);
+    double *rxn_float_data =
+        &(model_data->rxn_float_data[model_data->rxn_float_indices[i_rxn]]);
 
     // Get the reaction type
     int rxn_type = *(rxn_int_data++);
@@ -186,11 +190,12 @@ void rxn_update_env_state(ModelData *model_data) {
   // Loop through the reactions advancing the rxn_data pointer each time
   for (int i_rxn = 0; i_rxn < n_rxn; i_rxn++) {
     // Get pointers to the reaction data
-    int *rxn_int_data = &(model_data->rxn_int_data[model_data->rxn_int_indices[i_rxn]]);
-    double *rxn_float_data = &(model_data->rxn_float_data[model_data->rxn_float_indices[i_rxn]]);
-
-    double *rxn_env_data   =
-            &(model_data->grid_cell_rxn_env_data[model_data->rxn_env_idx[i_rxn]]);
+    int *rxn_int_data =
+        &(model_data->rxn_int_data[model_data->rxn_int_indices[i_rxn]]);
+    double *rxn_float_data =
+        &(model_data->rxn_float_data[model_data->rxn_float_indices[i_rxn]]);
+    double *rxn_env_data =
+        &(model_data->grid_cell_rxn_env_data[model_data->rxn_env_idx[i_rxn]]);
 
     // Get the reaction type
     int rxn_type = *(rxn_int_data++);
@@ -264,11 +269,12 @@ void rxn_calc_deriv(ModelData *model_data, double *deriv_data,
   // Loop through the reactions advancing the rxn_data pointer each time
   for (int i_rxn = 0; i_rxn < n_rxn; i_rxn++) {
     // Get pointers to the reaction data
-    int *rxn_int_data = &(model_data->rxn_int_data[model_data->rxn_int_indices[i_rxn]]);
-    double *rxn_float_data = &(model_data->rxn_float_data[model_data->rxn_float_indices[i_rxn]]);
-
-    double *rxn_env_data   =
-      &(model_data->grid_cell_rxn_env_data[model_data->rxn_env_idx[i_rxn]]);
+    int *rxn_int_data =
+        &(model_data->rxn_int_data[model_data->rxn_int_indices[i_rxn]]);
+    double *rxn_float_data =
+        &(model_data->rxn_float_data[model_data->rxn_float_indices[i_rxn]]);
+    double *rxn_env_data =
+        &(model_data->grid_cell_rxn_env_data[model_data->rxn_env_idx[i_rxn]]);
 
     // Get the reaction type
     int rxn_type = *(rxn_int_data++);
@@ -354,10 +360,12 @@ void rxn_calc_jac(ModelData *model_data, double *J_data, realtype time_step) {
   // Loop through the reactions advancing the rxn_data pointer each time
   for (int i_rxn = 0; i_rxn < n_rxn; i_rxn++) {
     // Get pointers to the reaction data
-    int *rxn_int_data = &(model_data->rxn_int_data[model_data->rxn_int_indices[i_rxn]]);
-    double *rxn_float_data = &(model_data->rxn_float_data[model_data->rxn_float_indices[i_rxn]]);
-    double *rxn_env_data   =
-      &(model_data->grid_cell_rxn_env_data[model_data->rxn_env_idx[i_rxn]]);
+    int *rxn_int_data =
+        &(model_data->rxn_int_data[model_data->rxn_int_indices[i_rxn]]);
+    double *rxn_float_data =
+        &(model_data->rxn_float_data[model_data->rxn_float_indices[i_rxn]]);
+    double *rxn_env_data =
+        &(model_data->grid_cell_rxn_env_data[model_data->rxn_env_idx[i_rxn]]);
 
     // Get the reaction type
     int rxn_type = *(rxn_int_data++);
@@ -435,27 +443,30 @@ void rxn_calc_jac(ModelData *model_data, double *J_data, realtype time_step) {
  * \param float_param Pointer to floating-point parameter array
  * \param solver_data Pointer to solver data
  */
-//TODO: question: move n_added_rxns out of struct to function parameter since
-//is only used in this function
+// TODO: question: move n_added_rxns out of struct to function parameter since
+// is only used in this function
 void rxn_add_condensed_data(int rxn_type, int n_int_param, int n_float_param,
                             int n_env_param, int *int_param,
                             double *float_param, void *solver_data) {
   ModelData *model_data =
-          (ModelData*) &(((SolverData*)solver_data)->model_data);
+      (ModelData *)&(((SolverData *)solver_data)->model_data);
 
   // Get pointers to the reaction data
   int *rxn_int_data =
-          &(model_data->rxn_int_data[model_data->rxn_int_indices[model_data->n_added_rxns]]);
+      &(model_data->rxn_int_data
+            [model_data->rxn_int_indices[model_data->n_added_rxns]]);
   double *rxn_float_data =
-          &(model_data->rxn_float_data[model_data->rxn_float_indices[model_data->n_added_rxns]]);
+      &(model_data->rxn_float_data
+            [model_data->rxn_float_indices[model_data->n_added_rxns]]);
 
-  //Save next indices by adding lengths
-  model_data->rxn_int_indices[model_data->n_added_rxns+1] =
-          (n_int_param+1) + model_data->rxn_int_indices[model_data->n_added_rxns];//+1 is type
-  model_data->rxn_float_indices[model_data->n_added_rxns+1] =
-          n_float_param + model_data->rxn_float_indices[model_data->n_added_rxns];
-  model_data->rxn_env_idx[model_data->n_added_rxns+1] =
-          model_data->rxn_env_idx[model_data->n_added_rxns] + n_env_param;
+  // Save next indices by adding lengths
+  model_data->rxn_int_indices[model_data->n_added_rxns + 1] =
+      (n_int_param + 1) +
+      model_data->rxn_int_indices[model_data->n_added_rxns];  //+1 is type
+  model_data->rxn_float_indices[model_data->n_added_rxns + 1] =
+      n_float_param + model_data->rxn_float_indices[model_data->n_added_rxns];
+  model_data->rxn_env_idx[model_data->n_added_rxns + 1] =
+      model_data->rxn_env_idx[model_data->n_added_rxns] + n_env_param;
   ++(model_data->n_added_rxns);
 
   // Add the reaction type
@@ -499,11 +510,13 @@ void rxn_update_data(int cell_id, int *rxn_id, int update_rxn_type,
   // Loop through the reactions advancing the rxn_data pointer each time
   for (; (*rxn_id) < n_rxn; (*rxn_id)++) {
     // Get pointers to the reaction data
-    int *rxn_int_data = &(model_data->rxn_int_data[model_data->rxn_int_indices[*rxn_id]]);
-    double *rxn_float_data = &(model_data->rxn_float_data[model_data->rxn_float_indices[*rxn_id]]);
+    int *rxn_int_data =
+        &(model_data->rxn_int_data[model_data->rxn_int_indices[*rxn_id]]);
+    double *rxn_float_data =
+        &(model_data->rxn_float_data[model_data->rxn_float_indices[*rxn_id]]);
 
-    double *rxn_env_data   =
-      &(model_data->grid_cell_rxn_env_data[model_data->rxn_env_idx[*rxn_id]]);
+    double *rxn_env_data =
+        &(model_data->grid_cell_rxn_env_data[model_data->rxn_env_idx[*rxn_id]]);
 
     // Get the reaction type
     int rxn_type = *(rxn_int_data++);
@@ -551,8 +564,10 @@ void rxn_print_data(void *solver_data) {
   // Loop through the reactions advancing the rxn_data pointer each time
   for (int i_rxn = 0; i_rxn < n_rxn; i_rxn++) {
     // Get pointers to the reaction data
-    int *rxn_int_data = &(model_data->rxn_int_data[model_data->rxn_int_indices[i_rxn]]);
-    double *rxn_float_data = &(model_data->rxn_float_data[model_data->rxn_float_indices[i_rxn]]);
+    int *rxn_int_data =
+        &(model_data->rxn_int_data[model_data->rxn_int_indices[i_rxn]]);
+    double *rxn_float_data =
+        &(model_data->rxn_float_data[model_data->rxn_float_indices[i_rxn]]);
 
     // Get the reaction type
     int rxn_type = *(rxn_int_data++);

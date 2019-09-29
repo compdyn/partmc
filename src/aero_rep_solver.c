@@ -420,7 +420,7 @@ void aero_rep_add_condensed_data(int aero_rep_type, int n_int_param,
   ModelData *model_data = (ModelData*)
           &(((SolverData*)solver_data)->model_data);
 
-  // Get pointers to the reaction data
+  // Get pointers to the aerosol representation data
   int *aero_rep_int_data =
           &(model_data->aero_rep_int_data[model_data->aero_rep_int_indices[model_data->n_added_aero_reps]]);
   double *aero_rep_float_data =

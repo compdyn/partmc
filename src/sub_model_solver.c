@@ -368,7 +368,7 @@ void sub_model_add_condensed_data(int sub_model_type, int n_int_param,
   ModelData *model_data =
           (ModelData*) &(((SolverData*)solver_data)->model_data);
 
-  // Get pointers to the reaction data
+  // Get pointers to the sub model data
   int *sub_model_int_data =
           &(model_data->sub_model_int_data[model_data->sub_model_int_indices[model_data->n_added_sub_models]]);
   double *sub_model_float_data =

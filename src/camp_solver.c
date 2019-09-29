@@ -316,22 +316,6 @@ void *solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
   }
 
   // Allocate space for the aerosol phase data pointers
-  sd->model_data.aero_phase_int_ptrs =
-      (int **)malloc(n_aero_phase * sizeof(int **));
-  if (sd->model_data.aero_phase_int_ptrs == NULL) {
-    printf(
-        "\n\nERROR allocating space for aerosol phase integer "
-        "pointers\n\n");
-    EXIT_FAILURE;
-  }
-  sd->model_data.aero_phase_float_ptrs =
-      (double **)malloc(n_aero_phase * sizeof(double **));
-  if (sd->model_data.aero_phase_float_ptrs == NULL) {
-    printf(
-        "\n\nERROR allocating space for aerosol phase "
-        "floating-point pointers\n\n");
-    EXIT_FAILURE;
-  }
   sd->model_data.aero_phase_int_indices = (int*) malloc(
           (n_aero_phase+1) * sizeof(int*));
   if (sd->model_data.aero_phase_int_indices==NULL) {
@@ -347,12 +331,8 @@ void *solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
 
   sd->model_data.n_aero_phase = n_aero_phase;
   sd->model_data.n_added_aero_phases = 0;
-  sd->model_data.nxt_aero_phase_int = sd->model_data.aero_phase_int_data;
-  sd->model_data.nxt_aero_phase_float = sd->model_data.aero_phase_float_data;
-
-  sd->model_data.rxn_int_indices[0] = 0;
-  sd->model_data.rxn_float_indices[0] = 0;
-  sd->model_data.rxn_env_idx[0] = 0;
+  sd->model_data.aero_phase_int_indices[0] = 0;
+  sd->model_data.aero_phase_float_indices[0] = 0;
 
   // Allocate space for the aerosol representation data and set
   // the number of aerosol representations (including one int
@@ -2061,8 +2041,6 @@ void model_free(ModelData model_data) {
   free(model_data.rxn_env_idx);
   free(model_data.aero_phase_int_data);
   free(model_data.aero_phase_float_data);
-  free(model_data.aero_phase_int_ptrs);
-  free(model_data.aero_phase_float_ptrs);
   free(model_data.aero_phase_int_indices);
   free(model_data.aero_phase_float_indices);
   free(model_data.aero_rep_int_data);

@@ -133,14 +133,6 @@ typedef struct {
   int *aero_phase_int_data;      // Pointer to the aerosol phase integer parameters
   double *aero_phase_float_data; // Pointer to the aerosol phase floating-point
                                  // parameters
-  int *nxt_aero_phase_int;       // Pointer the next available integer in
-                                 // aero_phase_int_data
-  double *nxt_aero_phase_float;  // Pointer to the next available floating-point
-                                 // number in aero_phase_float_data
-  int **aero_phase_int_ptrs;     // Array of pointers to the integer data for
-                                 // each aerosol phase
-  double **aero_phase_float_ptrs;// Array of pointers to the floating-point data
-                                 // for each aerosol phase
   int *aero_phase_int_indices;   // Array of indices of integer data
   int *aero_phase_float_indices; // Array of indices of float data
   int n_aero_rep;                // Number of aerosol representations

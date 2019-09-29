@@ -158,8 +158,8 @@ typedef struct {
                                  // aerosol representation
   double **aero_rep_float_ptrs;  // Array of pointers to floating-point data for
                                  // each aerosol representation
-  int *aero_rep_int_indices;    // Array of indices of integer data
-  int *aero_rep_float_indices;  // Array of indices of float data
+  int *aero_rep_int_indices;     // Array of indices of integer data
+  int *aero_rep_float_indices;   // Array of indices of float data
   int *aero_rep_env_idx;         // Array of offsets for the environment-
                                  // dependent data for each aerosol representation
                                  // from the beginning of the environment-

@@ -669,12 +669,173 @@
 
 !> \page camp_tutorial_part_4 Boot CAMP: Part 4 - Message Passing
 !!
-!! \todo finish
+!! This part of \ref camp_tutorial "Boot CAMP" shows how to use CAMP's
+!! message passing functions. If you're only interested in using CAMP on
+!! a single processor, you can skip this part and move on to
+!! \ref camp_tutorial_part_5.
 !!
+!! We'll wrap our MPI code with a compiler flag named `USE_MPI` to make
+!! sure our box model can be built with or without MPI. The order of
+!! operations is important for MPI runs and is summarized in the following
+!! table.
 !!
+!! | Process   | Operation                                                      |
+!! |-----------|----------------------------------------------------------------|
+!! | primary   | `camp_core => camp_core_t( input_files )`                      |
+!! | primary   | `call camp_core%%initialize( )`                                |
+!! | primary   | access `camp_core_t` properties/set up `update_data_t` objects |
+!! | primary   | pack all objects on a buffer                                   |
+!! | all       | pass the buffer                                                |
+!! | secondary | `camp_core => camp_core_t( )`                                  |
+!! | secondary | unpack the `camp_core_t` and other objects from the buffer     |
+!! | all       | `call camp_core%%solver_initialize( )`                         |
+!! | all       | use `update_data_t` objects to update rates, etc.              |
+!! | all       | `call camp_core%%solve( camp_state, time_step )`               |
+!! | all       | deallocate all objects                                         |
 !!
+!! We'll go through this step-by-step, update our box model and discuss
+!! why each process in done when and where it is.
 !!
+!! Note that the PartMC MPI functions use `MPI_WORLD_COMM` by default,
+!! but they accept an optional `comm` argument if you would like to use a
+!! different communicator. See the specific function documentation for
+!! details.
 !!
+!! First, let's add the modules we need for MPI. We'll use the standard
+!! mpi module and the PartMC mpi module, with some custom functions.
+!!
+!! \snippet camp_tutorial/part_4_code/box_model.F90 MPI modules
+!!
+!! Now we'll declare a buffer, a position index, and a pack size
+!!
+!! \snippet camp_tutorial/part_4_code/box_model.F90 MPI variables
+!!
+!! Next, let's initialize MPI and wrap some of our existing code
+!! in a conditional statement
+!! that ensures we load the input data and initialize CAMP on the
+!! primary process only (we're including the existing call to the
+!! \ref pmc_camp_core::camp_core_t "camp_core_t" constructor and
+!! `camp_core_t::initialize()` to show the
+!! placement of the start of our new conditional block):
+!!
+!! \snippet camp_tutorial/part_4_code/box_model.F90 wrap initialization
+!!
+!! The `camp_core_t::initialize()` subroutine instructs the internal
+!! model elements to take their input data and condense it down into a
+!! small data block containing only the information they need to solve the
+!! chemical system during calls to `camp_core_t::solve()`. The
+!! \ref pmc_camp_core::camp_core_t "camp_core_t" MPI functions pass only
+!! this condensed data to other processes. So, after the core is passed,
+!! you will not have access
+!! to the raw input data or model \ref pmc_property::property_t "property_t"
+!! objects that we used to set up the
+!! \ref pmc_rxn_data::rxn_update_data_t "rxn_update_data_t" objects in
+!! \ref camp_tutorial_part_3 "part 3".
+!! Thus, all the setup of
+!! \ref pmc_rxn_data::rxn_update_data_t "rxn_update_data_t"
+!! objects must be done on the
+!! primary process, before passing the core and update objects to the
+!! other processes.
+!!
+!! So, let's end our first MPI conditional block after we setup
+!! the \f$\ce{NO2}\f$ photolysis
+!! \ref pmc_rxn_data::rxn_update_data "rxn_update_data_t" object and
+!! before the call to `camp_core_t::solver_initialize()`.
+!! The first step is to get the size of the buffer to be used to pass
+!! the objects
+!! (the existing check that the \f$\ce{NO2}\f$
+!! photolysis update data object is attached is included to show the
+!! placement of the following code block):
+!!
+!! \snippet camp_tutorial/part_4_code/box_model.F90 get pack size
+!!
+!! After we allocate the buffer on the primary process, we'll pack it
+!! with the object data:
+!!
+!! \snippet camp_tutorial/part_4_code/box_model.F90 pack objects
+!!
+!! Next, we'll pass the species indexes we looked up. (Remember, we
+!! won't be able to do this on the secondary processes.)
+!!
+!! \snippet camp_tutorial/part_4_code/box_model.F90 pass indices
+!!
+!! After we pack the objects and exit the primary process block, we'll
+!! pass the buffer to the other processes:
+!!
+!! \snippet camp_tutorial/part_4_code/box_model.F90 pass the buffer
+!!
+!! Next, we'll unpack the objects on the secondary processes:
+!!
+!! \snippet camp_tutorial/part_4_code/box_model.F90 unpack the objects
+!!
+!! Note that we call the \ref pmc_camp_core::camp_core_t "camp_core_t"
+!! constructor without passing the input file list. This creates an
+!! empty core on the secondary processes that we can fill with the packed
+!! data from the buffer.
+!! After unpacking the objects and deallocating the buffer, our message
+!! passing is complete, and the rest of the code remains the same, beginning
+!! with the call to `solver_initialize()`.
+!!
+!! This is not a very useful parallelization of our box model, as we're
+!! just solving the same system on every process, but it demonstrates how
+!! to initialize and pass the `camp_core_t` and `update_data_t` objects.
+!! The `camp_state_t::state_var(:)` array can be accessed directly and
+!! passed however your model passes double-precision
+!! floating-point arrays, or you can use the
+!! `pmc_mpi_pack_size_real_array()`, `pmc_mpi_pack_real_array()`,
+!! and `pmc_mpi_unpack_real_array()` functions.
+!!
+!! To finish up, let's add a conditional block around the output to
+!! print the results from the first secondary process, just
+!! to make sure our message passing is working, and finalize MPI.
+!!
+!! \snippet camp_tutorial/part_4_code/box_model.F90 output
+!!
+!! To compile the model code with mpi, be sure to include the `USE_MPI`
+!! flag definition:
+!! \code{.sh}
+!!   mpif90 -o run_box_model box_model.F90 -DUSE_MPI -lpartmc -I/usr/local/include/partmc
+!!   mpirun -v -np 2 run_box_model > output.txt
+!! \endcode
+!!
+!! In later installments of \ref camp_tutorial "Boot CAMP" we'll include
+!! a section towards the end that describes any MPI-related code needed to
+!! run the updates described.
+!!
+!! Now that our messages are passed, it's aerosol time. That's the
+!! topic of the \ref camp_tutorial_part_5 "next installment of Boot CAMP"!
+!!
+!! <hr>
+!! ### Docker Instructions ###
+!! To run a Docker container with MPI support, we'll need to build the
+!! image locally. So, we'll clone the PartMC repo, build the container
+!! with MPI and then run it:
+!! \code{.sh}
+!!   git clone https://github.com/compdyn/partmc.git
+!!   cd partmc
+!!   git checkout develop-85-tutorial
+!!   docker build -f Dockerfile.mpi -t partmc-test-mpi .
+!!   docker run ---name pmc -it partmc-test-mpi bash
+!! \endcode
+!! Inside the container:
+!! \code{.sh}
+!!   sudo dnf install -y gnuplot
+!!   mkdir boot-camp
+!!   cd boot-camp
+!!   cp ../partmc/doc/camp_tutorial/part_4_code/* .
+!!   mpif90 -o run_box_model box_model.F90 -DUSE_MPI -lpartmc -I/usr/local/include/partmc
+!!   mpirun -v -np 2 run_box_model > output.txt
+!!   gnuplot plot.conf
+!!   exit
+!! \endcode
+!! Back outside the container:
+!! \code{.sh}
+!!   docker cp pmc:/boot-camp/results.png .
+!!   docker container rm pmc
+!!   open results.png
+!! \endcode
+!! You should get the same results as described in
+!! \ref camp_tutorial_part_3
 !!
 !! <hr>
 !! <b> < Previous: </b> \ref camp_tutorial_part_3

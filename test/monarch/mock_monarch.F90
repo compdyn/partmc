@@ -35,11 +35,11 @@ program mock_monarch
   !> Starting W-E cell for camp-chem call
   integer, parameter :: I_W = 1
   !> Ending W-E cell for camp-chem call
-  integer, parameter :: I_E = 15
+  integer, parameter :: I_E = 5
   !> Starting S-N cell for camp-chem call
   integer, parameter :: I_S = 1
   !> Ending S-N cell for camp-chem call
-  integer, parameter :: I_N = 15
+  integer, parameter :: I_N = 5
   !> Number of W-E cells in mock MONARCH
   integer, parameter :: NUM_WE_CELLS = I_E-I_W+1
   !> Number of S-N cells in mock MONARCH
@@ -57,8 +57,8 @@ program mock_monarch
   !> Start time
   real, parameter :: START_TIME = 360.0
   !> Number of cells to compute simultaneously
-  !integer :: n_cells = 1
-  integer :: n_cells = (I_E - I_W+1)*(I_N - I_S+1)*NUM_VERT_CELLS
+  integer :: n_cells = 1
+  !integer :: n_cells = (I_E - I_W+1)*(I_N - I_S+1)*NUM_VERT_CELLS
   !> Check multiple cells results are correct?
   logical :: check_multiple_cells = .false.
 
@@ -301,17 +301,17 @@ contains
 
     do i=I_W, I_E
       temperature(i,:,:) = temperature(i,:,:) + 0.1*i
-      pressure(i,:,:) = pressure(i,:,:) - 0.1*i
+      pressure(i,:,:) = pressure(i,:,:) - 1*i
     end do
 
     do j=I_S, I_N
       temperature(:,j,:) = temperature(:,j,:) + 0.3*j
-      pressure(:,:,j) = pressure(:,:,j) - 0.3*j
+      pressure(:,:,j) = pressure(:,:,j) - 3*j
     end do
 
     do k=1, NUM_VERT_CELLS
       temperature(:,:,k) = temperature(:,:,k) + 0.6*k
-      pressure(:,k,:) = pressure(:,k,:) - 0.6*k
+      pressure(:,k,:) = pressure(:,k,:) - 6*k
     end do
 
     deallocate(file_name)
@@ -350,8 +350,8 @@ contains
     real, intent(in) :: curr_time
 
     write(RESULTS_FILE_UNIT, *) curr_time, &
-            species_conc(10,15,1,START_CAMP_ID:END_CAMP_ID), &
-            water_conc(10,15,1,WATER_VAPOR_ID)
+            species_conc(2,3,1,START_CAMP_ID:END_CAMP_ID), &
+            water_conc(2,3,1,WATER_VAPOR_ID)
 
   end subroutine output_results
 

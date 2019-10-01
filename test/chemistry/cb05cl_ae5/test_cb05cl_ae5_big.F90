@@ -268,7 +268,7 @@ contains
     n_cells = 1
 
     if (n_cells.eq.1) then
-      n_repeats = 200
+      n_repeats = 100
     end if
 
     call cpu_time(comp_start)

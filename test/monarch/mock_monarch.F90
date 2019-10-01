@@ -350,8 +350,8 @@ contains
     real, intent(in) :: curr_time
 
     write(RESULTS_FILE_UNIT, *) curr_time, &
-            species_conc(10,15,1,START_CAMP_ID:END_CAMP_ID), &
-            water_conc(10,15,1,WATER_VAPOR_ID)
+            species_conc(2,3,1,START_CAMP_ID:END_CAMP_ID), &
+            water_conc(2,3,1,WATER_VAPOR_ID)
 
   end subroutine output_results
 

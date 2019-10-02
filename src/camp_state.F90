@@ -109,7 +109,9 @@ contains
     !> Grid cell to update
     integer, optional :: grid_cell
 
-    integer :: grid_offset = 0
+    integer :: grid_offset
+    
+    grid_offset = 0
 
     if (present(grid_cell)) &
       grid_offset = (grid_cell-1)*CAMP_STATE_NUM_ENV_PARAM

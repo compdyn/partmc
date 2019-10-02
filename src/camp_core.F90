@@ -1431,9 +1431,12 @@ contains
 
     integer(kind=i_kind) :: i_gas_spec, i_spec, j_spec, i_phase, i_aero_rep, i_mech
     integer(kind=i_kind) :: i_sub_model, i_solver_spec
-    integer(kind=i_kind) :: f_unit=6
+    integer(kind=i_kind) :: f_unit
     type(string_t), allocatable :: state_names(:), rep_spec_names(:)
-    logical :: sd_only = .false.
+    logical :: sd_only
+
+    f_unit = 6
+    sd_only = .false.
 
     if (present(file_unit)) f_unit = file_unit
     if (present(solver_data_only)) sd_only = solver_data_only

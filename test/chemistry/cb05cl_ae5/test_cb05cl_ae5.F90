@@ -135,7 +135,7 @@ contains
     ! KPP rstate
     real(kind=dp) :: KPP_RSTATE(20)
     ! KPP control variables
-    integer :: KPP_ICNTRL(20) = 0
+    integer :: KPP_ICNTRL(20)
     ! #/cc -> ppm conversion factor
     real(kind=dp) :: conv
 
@@ -144,11 +144,11 @@ contains
     ! Photolysis rates (\min)
     real, allocatable :: photo_rates(:)
     ! Temperature (K)
-    real :: temperature = 272.5
+    real :: temperature
     ! Pressure (atm)
-    real :: pressure = 0.8
+    real :: pressure
     ! Water vapor concentration (ppmV)
-    real :: water_conc = 0.0 ! (Set by CAMP-chem initial concentration)
+    real :: water_conc
 
     ! CAMP-chem core
     type(camp_core_t), pointer :: camp_core
@@ -189,7 +189,12 @@ contains
     ! Arrays to hold starting concentrations
     real(kind=dp), allocatable :: ebi_init(:), kpp_init(:), camp_init(:)
 
-    ! D
+    KPP_ICNTRL( : ) = 0
+
+    temperature = 272.5
+    pressure = 0.8
+    water_conc = 0.0 ! (Set by CAMP-chem initial concentration)
+
     passed = .false.
 
     ! Set the #/cc -> ppm conversion factor
@@ -845,7 +850,9 @@ contains
     use cb05cl_ae5_Model,                       only : NREACT
 
     type(string_t), allocatable :: kpp_rxn_labels(:)
-    integer(kind=i_kind) :: i_rxn = 1
+    integer(kind=i_kind) :: i_rxn
+
+    i_rxn = 1
 
     allocate(kpp_rxn_labels(NREACT))
 

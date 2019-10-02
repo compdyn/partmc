@@ -171,7 +171,9 @@ contains
 
     integer(kind=i_kind) :: temp_int
     real(kind=dp) :: temp_real
-    logical :: is_aqueous = .false.
+    logical :: is_aqueous
+
+    is_aqueous = .false.
 
     ! Get the property set
     call assert_msg(852163263, associated(this%property_set), &

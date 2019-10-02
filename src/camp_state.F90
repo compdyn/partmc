@@ -110,7 +110,7 @@ contains
     integer, optional :: grid_cell
 
     integer :: grid_offset
-    
+
     grid_offset = 0
 
     if (present(grid_cell)) &

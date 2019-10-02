@@ -93,9 +93,9 @@ contains
     real(kind=dp) :: comp_start, comp_end, comp_eqsam, comp_camp
 
     ! Temperature (K)
-    real :: temperature = 272.5
+    real :: temperature
     ! Pressure (atm)
-    real :: pressure = 0.8
+    real :: pressure
 
     ! CAMP-chem configuration file
     character(len=:), allocatable :: camp_input_file
@@ -128,6 +128,8 @@ contains
     ! Output array
     real, dimension(eqsam_imax, eqsam_nco) :: eqsam_yo
 
+    temperature = 272.5 ! K
+    pressure = 0.8      ! atm
 
     passed = .true.
 

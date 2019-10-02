@@ -142,7 +142,9 @@ contains
     !> Number of species to allocate space for initially
     integer(i_kind), intent(in), optional :: init_size
 
-    integer(i_kind) :: alloc_size = REALLOC_INC
+    integer(i_kind) :: alloc_size
+
+    alloc_size = REALLOC_INC
 
     if (present(init_size)) alloc_size = init_size
     allocate(new_obj)

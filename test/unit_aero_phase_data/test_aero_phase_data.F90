@@ -98,7 +98,7 @@ contains
       call json%get_next(j_obj, j_next)
       j_obj => j_next
     end do
- 
+
     call assert(680635018, i_phase.eq.4)
     call assert(964927420, i_spec.eq.8)
 
@@ -172,7 +172,7 @@ contains
 #endif
 
 
-#endif 
+#endif
 
     call j_file%destroy()
     call json%destroy(j_obj)

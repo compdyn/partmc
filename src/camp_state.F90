@@ -37,26 +37,20 @@ module pmc_camp_state
     !! integration.
     real(kind=dp), allocatable :: state_var(:)
     !> Environmental conditions
-    type(env_state_t), pointer :: env_state => null()
+    type(env_state_ptr), pointer :: env_states(:)
     !> Flag indicating whether the env_state object is owned by the
     !! state object
-    logical, private :: owns_env_state = .false.
+    logical, private :: owns_env_states = .false.
   contains
     !> Update the environmental state array
     procedure :: update_env_state
-    !> Determine the size of a binary required to pack a given variable
-    procedure :: pack_size
-    !> Pack the given value to the buffer, advancing position
-    procedure :: bin_pack
-    !> Unpack the given value from the buffer, advancing position
-    procedure :: bin_unpack
     !> Finalize the state
     final :: finalize
   end type camp_state_t
 
   ! Constructor for camp_state_t
   interface camp_state_t
-    procedure :: constructor
+    procedure :: constructor_one_cell, constructor_multi_cell
   end interface camp_state_t
 
   !> Pointer type for building arrays
@@ -74,115 +68,80 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Constructor for camp_state_t
-  function constructor(env_state, n_cells) result (new_obj)
+  function constructor_one_cell(env_state) result (new_obj)
 
     !> New model state
     type(camp_state_t), pointer :: new_obj
-    !> Num cells to compute simulatenously
-    integer(kind=i_kind), optional :: n_cells
     !> Environmental state
     type(env_state_t), target, intent(in), optional :: env_state
 
     ! Allocate space for the new object
     allocate(new_obj)
+    allocate(new_obj%env_states(1))
 
     ! Set the environmental state (if present)
     if (present(env_state)) then
-      new_obj%env_state => env_state
+      new_obj%env_states(1)%val => env_state
     else
-      allocate(new_obj%env_state)
-      new_obj%owns_env_state = .true.
+      allocate(new_obj%env_states(1)%val)
+      new_obj%owns_env_states = .true.
     end if
 
     ! Set up the environmental state array
-    allocate(new_obj%env_var(CAMP_STATE_NUM_ENV_PARAM*n_cells))
+    allocate(new_obj%env_var(CAMP_STATE_NUM_ENV_PARAM))
 
-  end function constructor
+  end function constructor_one_cell
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Constructor for camp_state_t
+  function constructor_multi_cell(num_cells, env_states) result (new_obj)
+
+    !> New model state
+    type(camp_state_t), pointer :: new_obj
+    !> Number of grid cells to solve simultaneously
+    integer(kind=i_kind), intent(in) :: num_cells
+    !> Environmental state
+    type(env_state_ptr), target, intent(in), optional :: env_states(:)
+
+    integer(kind=i_kind) :: i_cell
+
+    ! Allocate space for the new object
+    allocate(new_obj)
+
+    ! Set the environmental state (if present)
+    if (present(env_states)) then
+      new_obj%env_states => env_states
+    else
+      allocate(new_obj%env_states(num_cells))
+      do i_cell = 1, num_cells
+        allocate(new_obj%env_states(i_cell)%val)
+      end do
+      new_obj%owns_env_states = .true.
+    end if
+
+    ! Set up the environmental state array
+    allocate(new_obj%env_var(CAMP_STATE_NUM_ENV_PARAM*num_cells))
+
+  end function constructor_multi_cell
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Update the environmental state array
-  subroutine update_env_state(this, grid_cell)
+  subroutine update_env_state(this)
 
     !> Model state
     class(camp_state_t), intent(inout) :: this
-    !> Grid cell to update
-    integer, optional :: grid_cell
 
-    integer :: grid_offset
+    integer :: i_cell, grid_offset
 
-    grid_offset = 0
-
-    if (present(grid_cell)) &
-      grid_offset = (grid_cell-1)*CAMP_STATE_NUM_ENV_PARAM
-
-    call assert_msg(618562571, grid_offset >= 0 .and. &
-                               grid_offset <= size(this%env_var)-2, &
-                    "Invalid env state offset: "//trim(to_string(grid_offset)))
-
-    this%env_var(grid_offset+1) = this%env_state%temp     ! Temperature (K)
-    this%env_var(grid_offset+2) = this%env_state%pressure ! Pressure (Pa)
+    do i_cell = 1, size(this%env_states)
+      grid_offset = (i_cell-1)*CAMP_STATE_NUM_ENV_PARAM
+      this%env_var(grid_offset+1) = this%env_states(i_cell)%val%temp          ! Temperature (K)
+      this%env_var(grid_offset+2) = this%env_states(i_cell)%val%pressure      ! Pressure (Pa)
+    end do
 
   end subroutine update_env_state
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Determine the size of a binary required to pack a given variable
-  integer(kind=i_kind) function pack_size(this)
-
-    !> Chemical species states
-    class(camp_state_t), intent(in) :: this
-
-    pack_size = &
-            this%env_state%pack_size()
-
-  end function pack_size
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Pack the given value to the buffer, advancing position
-  subroutine bin_pack(this, buffer, pos)
-
-    !> Chemical species states
-    class(camp_state_t), intent(in) :: this
-    !> Memory buffer
-    character, intent(inout) :: buffer(:)
-    !> Current buffer position
-    integer, intent(inout) :: pos
-
-#ifdef PMC_USE_MPI
-     integer :: prev_position
-
-     prev_position = pos
-     call this%env_state%bin_pack(buffer, pos)
-     call assert(204737650, &
-             pos - prev_position <= this%pack_size())
-#endif
-
-   end subroutine bin_pack
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Unpack the given value to the buffer, advancing position
-  subroutine bin_unpack(this, buffer, pos)
-
-    !> Chemical species states
-    class(camp_state_t), intent(inout) :: this
-    !> Memory buffer
-    character, intent(inout) :: buffer(:)
-    !> Current buffer position
-    integer, intent(inout) :: pos
-
-#ifdef PMC_USE_MPI
-     integer :: prev_position
-
-     prev_position = pos
-     call this%env_state%bin_pack(buffer, pos)
-     call assert(820809161, &
-             pos - prev_position <= this%pack_size())
-#endif
-
-   end subroutine bin_unpack
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -192,10 +151,16 @@ contains
     !> CAMP model state
     type(camp_state_t), intent(inout) :: this
 
+    integer(kind=i_kind) :: i_cell
+
     if (allocated(this%env_var)) deallocate(this%env_var)
     if (allocated(this%state_var)) deallocate(this%state_var)
-    if (associated(this%env_state) .and. this%owns_env_state) &
-            deallocate(this%env_state)
+    if (associated(this%env_states) .and. this%owns_env_states) then
+      do i_cell = 1, size(this%env_states)
+        deallocate(this%env_states(i_cell)%val)
+      end do
+      deallocate(this%env_states)
+    end if
 
   end subroutine finalize
 

@@ -55,6 +55,16 @@ module pmc_env_state
      procedure, pass(val) :: bin_unpack => pmc_mpi_unpack_env_state
   end type env_state_t
 
+  !> Pointer for env_state_t
+  type env_state_ptr
+    type(env_state_t), pointer :: val => null()
+  contains
+    !> Set the temperature (K)
+    procedure :: set_temperature_K
+    !> Set the pressure (Pa)
+    procedure :: set_pressure_Pa
+  end type env_state_ptr
+
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -508,6 +518,34 @@ contains
     call pmc_nc_read_real(ncid, env_state%height, "height")
 
   end subroutine env_state_input_netcdf
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Set the temperature (K)
+  subroutine set_temperature_K( this, temperature )
+
+    !> Environmental state pointer
+    class(env_state_ptr), intent(inout) :: this
+    !> New temperature (K)
+    real(kind=dp), intent(in) :: temperature
+
+    this%val%temp = temperature
+
+  end subroutine set_temperature_K
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Set the pressure (Pa)
+  subroutine set_pressure_Pa( this, pressure )
+
+    !> Environmental state pointer
+    class(env_state_ptr), intent(inout) :: this
+    !> New pressure (Pa)
+    real(kind=dp), intent(in) :: pressure
+
+    this%val%pressure = pressure
+
+  end subroutine set_pressure_Pa
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

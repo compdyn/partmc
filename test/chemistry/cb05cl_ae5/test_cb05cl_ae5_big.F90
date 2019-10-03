@@ -329,12 +329,8 @@ contains
     camp_state => camp_core%new_state()
 
     ! Set the environmental conditions
-    camp_state%env_state%temp = temperature
-    camp_state%env_state%pressure = pressure * const%air_std_press
-
-    do cell = 1, n_cells
-      call camp_state%update_env_state(cell)
-    end do
+    call camp_state%env_states(1)%set_temperature_K( real( temperature, kind=dp ) )
+    call camp_state%env_states(1)%set_pressure_Pa( pressure * const%air_std_press )
 
     call cpu_time(comp_end)
     write(*,*) "CAMP-chem initialization time: ", comp_end-comp_start," s"

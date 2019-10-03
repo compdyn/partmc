@@ -194,10 +194,10 @@ program unit_test_driver
         grid_cell_state( i_cell )%val%state_var( 1:n_state_var_one_cell )
 
       ! Environmental state
-      env_start_idx   = ( i_cell - 1 ) * N_ENV_STATE_VAR_ONE_CELL + 1
-      env_end_idx     = i_cell * N_ENV_STATE_VAR_ONE_CELL
-      multicell_state%env_var( env_start_idx:env_end_idx ) = &
-        grid_cell_state( i_cell )%val%env_var( 1:N_ENV_STATE_VAR_ONE_CELL )
+      call multicell_state%env_states( i_cell )%set_temperature_K( &
+        grid_cell_state( i_cell )%val%env_states( 1 )%val%temp )
+      call multicell_state%env_states( i_cell )%set_pressure_Pa( &
+        grid_cell_state( i_cell )%val%env_states( 1 )%val%pressure )
 
     end do
 

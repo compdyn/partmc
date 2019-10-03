@@ -220,9 +220,8 @@ contains
       camp_state => camp_core%new_state()
 
       ! Set the environmental conditions
-      camp_state%env_state%temp = temp
-      camp_state%env_state%pressure = pressure
-      call camp_state%update_env_state()
+      call camp_state%env_states(1)%set_temperature_K(   temp )
+      call camp_state%env_states(1)%set_pressure_Pa( pressure )
 
       ! Save the initial concentrations
       true_conc(:,:) = 0.0
@@ -392,15 +391,14 @@ contains
 
     ! Set the initial conditions
     camp_state%state_var(:) = 0.0
-    camp_state%env_state%temp = 298.0
-    camp_state%env_state%pressure = 101325.0
-
-    call camp_state%update_env_state()
+    call camp_state%env_states(1)%set_temperature_K(  298.0d0 )
+    call camp_state%env_states(1)%set_pressure_Pa( 101325.0d0 )
+    call camp_state%update_env_state( )
 
     passed = run_sub_model_zsr_c_tests(                                      &
-                 camp_core%solver_data_gas_aero%solver_c_ptr,               &
-                 c_loc(camp_state%state_var),                               &
-                 c_loc(camp_state%env_var)                                  &
+                 camp_core%solver_data_gas_aero%solver_c_ptr,                &
+                 c_loc(camp_state%state_var),                                &
+                 c_loc(camp_state%env_var)                                   &
                  ) .eq. 0
 
    deallocate(camp_state)

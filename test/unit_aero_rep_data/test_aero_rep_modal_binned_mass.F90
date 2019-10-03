@@ -330,9 +330,8 @@ contains
     phase_ids = aero_rep%phase_ids(phase_name)
 
     camp_state%state_var(:) = 0.0;
-    camp_state%env_state%temp = 298.0;
-    camp_state%env_state%pressure = 101325.0;
-    call camp_state%update_env_state()
+    call camp_state%env_states(1)%set_temperature_K(  298.0d0 )
+    call camp_state%env_states(1)%set_pressure_Pa( 101325.0d0 )
 
     passed = run_aero_rep_modal_c_tests(                               &
                          camp_core%solver_data_gas_aero%solver_c_ptr, &

@@ -158,9 +158,8 @@ contains
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     ! CAMP-chem environmental conditions
-    camp_state%env_state%temp = temperature
-    camp_state%env_state%pressure = pressure * const%air_std_press
-    call camp_state%update_env_state()
+    call camp_state%env_states(1)%set_temperature_K( real( temperature, kind=dp ) )
+    call camp_state%env_states(1)%set_pressure_Pa( pressure * const%air_std_press )
 
     ! Get the chemical species data
     call assert(410085820, camp_core%get_chem_spec_data(chem_spec_data))
@@ -335,8 +334,8 @@ contains
     call assert_msg(326761745, spec_id.gt.0, &
             "Error getting gas-phase concentration for "//trim(spec_name))
     get_eqsam_gas_conc = camp_state%state_var(spec_id) * &
-            camp_state%env_state%pressure / const%univ_gas_const / &
-            camp_state%env_state%temp
+            camp_state%env_states(1)%val%pressure / const%univ_gas_const / &
+            camp_state%env_states(1)%val%temp
 
   end function get_eqsam_gas_conc
 

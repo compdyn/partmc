@@ -301,8 +301,8 @@ contains
     camp_state => camp_core%new_state()
 
     camp_state%state_var(:) = 0.0
-    camp_state%env_state%temp = 298.0
-    camp_state%env_state%pressure = 101325.0
+    call camp_state%env_states(1)%set_temperature_K(  298.0d0 )
+    call camp_state%env_states(1)%set_pressure_Pa( 101325.0d0 )
 
     ! Update external properties
     call update_radius%set_radius( PART_RADIUS )
@@ -313,8 +313,6 @@ contains
     ! Test re-setting number concentration
     call update_number%set_number( PART_NUM_CONC )
     call camp_core%update_aero_rep_data( update_number )
-
-    call camp_state%update_env_state()
 
     passed = run_aero_rep_single_particle_c_tests(                           &
                  camp_core%solver_data_gas_aero%solver_c_ptr,                &

@@ -312,18 +312,18 @@ contains
     camp_state => camp_core%new_state()
 
     ! Set the environmental conditions
-    camp_state%env_state%temp = temperature
-    camp_state%env_state%pressure = pressure * const%air_std_press
-    call camp_state%update_env_state()
+    call camp_state%env_states(1)%set_temperature_K( real( temperature, kind=dp ) )
+    call camp_state%env_states(1)%set_pressure_Pa( pressure * const%air_std_press )
 
     call cpu_time(comp_end)
     write(*,*) "CAMP-chem initialization time: ", comp_end-comp_start," s"
 
     ! Get a camp-state for rate comparisons
     camp_state_comp => camp_core%new_state()
-    camp_state_comp%env_state%temp = camp_state%env_state%temp
-    camp_state_comp%env_state%pressure = camp_state%env_state%pressure
-    call camp_state_comp%update_env_state()
+    call camp_state_comp%env_states(1)%set_temperature_K( &
+      camp_state%env_states(1)%val%temp )
+    call camp_state_comp%env_states(1)%set_pressure_Pa(   &
+      camp_state%env_states(1)%val%pressure )
 
     ! Get the chemical species data
     call assert(298481296, camp_core%get_chem_spec_data(chem_spec_data))

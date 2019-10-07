@@ -34,7 +34,9 @@ void solver_get_statistics(void *solver_data, int *num_steps, int *RHS_evals,
                            int *NLS_iters, int *NLS_convergence_fails,
                            int *DLS_Jac_evals, int *DLS_RHS_evals,
                            double *last_time_step__s, double *next_time_step__s,
-                           int *Jac_eval_fails);
+                           int *Jac_eval_fails, int *RHS_evals_total,
+                           int *Jac_evals_total, double *RHS_time__s,
+                           double *Jac_time__s);
 void solver_free(void *solver_data);
 void model_free(ModelData model_data);
 
@@ -58,6 +60,7 @@ bool check_Jac(realtype t, N_Vector y, SUNMatrix J, N_Vector deriv,
                N_Vector tmp, N_Vector tmp1, void *solver_data);
 int check_flag(void *flag_value, char *func_name, int opt);
 void check_flag_fail(void *flag_value, char *func_name, int opt);
+void solver_reset_timers(void *solver_data);
 static void solver_print_stats(void *cvode_mem);
 static void print_data_sizes(ModelData *md);
 static void print_jacobian(SUNMatrix M);

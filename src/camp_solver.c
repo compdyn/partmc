@@ -30,15 +30,6 @@
 #endif
 #include "camp_debug.h"
 
-// CVODE counters reset each time we call solver_run, so we need to accumulate
-// them adding a extra counter to know the total iterations (since the iters can
-// vary between solver_run iters)
-unsigned int counterDeriv = 0;
-unsigned int counterJac = 0;
-double timeDerivgpu = 0;
-double timeDeriv = 0;
-double timeJac = 0;
-
 // Default solver initial time step relative to total integration time
 #define DEFAULT_TIME_STEP 1.0
 // State advancement factor for Jacobian element evaluation
@@ -700,13 +691,19 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
  * \param last_time_step__s     Pointer to set to the last time step size [s]
  * \param next_time_step__s     Pointer to set to the next time step size [s]
  * \param Jac_eval_fails        Number of Jacobian evaluation failures
+ * \param RHS_evals_total       Total calls to `f()`
+ * \param Jac_evals_total       Total calls to `Jac()`
+ * \param RHS_time__s           Compute time for calls to f() [s]
+ * \param Jac_time__s           Compute time for calls to Jac() [s]
  */
 void solver_get_statistics(void *solver_data, int *num_steps, int *RHS_evals,
                            int *LS_setups, int *error_test_fails,
                            int *NLS_iters, int *NLS_convergence_fails,
                            int *DLS_Jac_evals, int *DLS_RHS_evals,
                            double *last_time_step__s, double *next_time_step__s,
-                           int *Jac_eval_fails) {
+                           int *Jac_eval_fails, int *RHS_evals_total,
+                           int *Jac_evals_total, double *RHS_time__s,
+                           double *Jac_time__s) {
 #ifdef PMC_USE_SUNDIALS
   SolverData *sd = (SolverData *)solver_data;
   long int nst, nfe, nsetups, nje, nfeLS, nni, ncfn, netf, nge;
@@ -749,7 +746,17 @@ void solver_get_statistics(void *solver_data, int *num_steps, int *RHS_evals,
   if (check_flag(&flag, "CVodeGetCurrentStep", 1) == CAMP_SOLVER_FAIL) return;
   *next_time_step__s = (double)curr_h;
   *Jac_eval_fails = sd->Jac_eval_fails;
-
+#ifdef PMC_DEBUG
+  *RHS_evals_total = sd->counterDeriv;
+  *Jac_evals_total = sd->counterJac;
+  *RHS_time__s = ((double) sd->timeDeriv) / CLOCKS_PER_SEC;
+  *Jac_time__s = ((double) sd->timeJac)   / CLOCKS_PER_SEC;
+#else
+  *RHS_evals_total = -1;
+  *Jac_evals_total = -1;
+  *RHS_time__s     = 0.0;
+  *Jac_time__s     = 0.0;
+#endif
 #endif
 }
 
@@ -808,6 +815,10 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
   ModelData *md = &(sd->model_data);
   realtype time_step;
 
+#ifdef PMC_DEBUG
+  sd->counterDeriv++;
+#endif
+
   // Get a pointer to the derivative data
   double *deriv_data = N_VGetArrayPointer(deriv);
 
@@ -851,59 +862,44 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
     // Run the sub models
     sub_model_calculate(md);
 
+// Solving on CPU only
 #ifndef PMC_USE_GPU
 
 #ifdef PMC_DEBUG
-
     clock_t start = clock();
+#endif
 
     // Calculate the time derivative f(t,y)
     rxn_calc_deriv(md, deriv_data, (double)time_step);
 
+#ifdef PMC_DEBUG
     clock_t end = clock();
-    timeDerivgpu += ((double)(end - start));
-    counterDeriv++;
-
-#else
-
-    // Calculate the time derivative f(t,y)
-    rxn_calc_deriv(md, deriv_data, (double)time_step);
-
+    sd->timeDeriv += (end - start);
 #endif
 
     // Advance the derivative for the next cell
     deriv_data += n_dep_var;
   }
 
+// Solving on GPUs
 #else
 
-    }  // End loop on grid cells
+  }  // End loop on grid cells
 
 #ifdef PMC_DEBUG
-
     clock_t start2 = clock();
+#endif
 
     // Calculate the time derivative f(t,y)
     // (this is for all grid cells at once)
     rxn_calc_deriv_gpu(md, deriv, (double)time_step);
-
-    clock_t end2 = clock();
-    timeDerivgpu += ((double)(end2 - start2));
-    counterDeriv++;
-
-#else
-
-    // Calculate the time derivative f(t,y)
-    // (this is for all grid cells at once)
-    rxn_calc_deriv_gpu(md, deriv, (double)time_step);
-
-#endif
-
-#endif
 
 #ifdef PMC_DEBUG
-  counterDeriv++;
-  if (counterDeriv == 10 && sd->debug_out) print_derivative(deriv);
+    clock_t end2 = clock();
+    sd->timeDeriv += (end2 - start2);
+#endif
+
+// End CPU/GPU block
 #endif
 
   // Return 0 if success
@@ -927,6 +923,10 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
   SolverData *sd = (SolverData *)solver_data;
   ModelData *md = &(sd->model_data);
   realtype time_step;
+
+#ifdef PMC_DEBUG
+  sd->counterJac++;
+#endif
 
   // Get the grid cell dimensions
   int n_state_var = md->n_per_cell_state_var;
@@ -961,6 +961,7 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
     (SM_INDEXPTRS_S(J))[i] = (SM_INDEXPTRS_S(md->J_init))[i];
   }
 
+// Solving on CPU only
 #ifndef PMC_USE_GPU
 
   // Loop over the grid cells to calculate sub-model and rxn Jacobians
@@ -984,31 +985,25 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
     // Update the aerosol representations
     aero_rep_update_state(md);
 
-    // Run the sub models
+    // Run the sub models and get the sub-model Jacobian
     sub_model_calculate(md);
     sub_model_get_jac_contrib(md, J_param_data, time_step);
-    PMC_DEBUG_JAC(md->J_params, "sub model");
+    PMC_DEBUG_JAC(md->J_params, "sub-model Jacobian");
 
 #ifdef PMC_DEBUG
-
     clock_t start = clock();
-
-    // Calculate the Jacobian
-    rxn_calc_jac(md, J_rxn_data, time_step);
-    PMC_DEBUG_JAC(md->J_rxn, "reaction");
-
-    clock_t end = clock();
-    timeJac += ((double)(end - start));
-    counterJac++;
-
-#else
-
-    // Calculate the Jacobian
-    rxn_calc_jac(md, J_rxn_data, time_step);
-
 #endif
 
-    // Set the solver Jacobian
+    // Calculate the reaction Jacobian
+    rxn_calc_jac(md, J_rxn_data, time_step);
+    PMC_DEBUG_JAC(md->J_rxn, "reaction Jacobian");
+
+#ifdef PMC_DEBUG
+    clock_t end = clock();
+    sd->timeJac += (end - start);
+#endif
+
+    // Set the solver Jacobian using the reaction and sub-model Jacobians
     JacMap *jac_map = md->jac_map;
     SM_DATA_S(md->J_params)[0] = 1.0;  // dummy value for non-sub model calcs
     for (int i_map = 0; i_map < md->n_mapped_values; ++i_map)
@@ -1016,7 +1011,7 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
       [i_cell * md->n_per_cell_solver_jac_elem + jac_map[i_map].solver_id] +=
           SM_DATA_S(md->J_rxn)[jac_map[i_map].rxn_id] *
           SM_DATA_S(md->J_params)[jac_map[i_map].param_id];
-    PMC_DEBUG_JAC(J, "solver");
+    PMC_DEBUG_JAC(J, "solver Jacobian");
   }
 
 #ifdef PMC_DEBUG
@@ -1035,28 +1030,18 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
     // all grid cells can be solved
 
 #ifdef PMC_DEBUG
-
     clock_t start2 = clock();
+#endif
 
     // Calculate the Jacobian
     rxn_calc_jac_gpu(md, md->J_rxn, time_step);
-
-    clock_t end2 = clock();
-    timeDerivgpu += ((double)(end2 - start2));
-    counterJac++;
-
-#else
-
-    // Calculate the Jacobian
-    rxn_calc_jac_gpu(md, md->J_rxn, time_step);
-
-#endif
-
-#endif
 
 #ifdef PMC_DEBUG
-  counterJac++;
-  if (counterJac == 1 && sd->debug_out) print_jacobian(sd->J);
+    clock_t end2 = clock();
+    sd->timeJac += (end2 - start2);
+#endif
+
+// End CPU/GPU block
 #endif
 
   return (0);
@@ -1729,6 +1714,24 @@ void check_flag_fail(void *flag_value, char *func_name, int opt) {
   }
 }
 
+/** \brief Reset the timers for solver functions
+ *
+ * \param solver_data Pointer to the SolverData object with timers to reset
+ */
+#ifdef PMC_USE_SUNDIALS
+void solver_reset_timers(void *solver_data) {
+  SolverData *sd = (SolverData*) solver_data;
+
+#ifdef PMC_DEBUG
+  sd->counterDeriv = 0;
+  sd->counterJac   = 0;
+  sd->timeDeriv    = 0;
+  sd->timeJac      = 0;
+#endif
+
+}
+#endif
+
 /** \brief Print solver statistics
  *
  * \param cvode_mem Solver object
@@ -1863,13 +1866,6 @@ void error_handler(int error_code, const char *module, const char *function,
  * \param model_data Pointer to the ModelData object to free
  */
 void model_free(ModelData model_data) {
-#ifndef PMC_DEBUG_PRINT
-  printf("Total Time Derivgpu= %f", timeDerivgpu / CLOCKS_PER_SEC);
-  printf(", Total Time Deriv= %f", timeDeriv / CLOCKS_PER_SEC);
-  printf(", Total Time Jac= %f\n", timeJac / CLOCKS_PER_SEC);
-  printf("counterDeriv: %d ", counterDeriv);
-  printf("counterJac: %d ", counterJac);
-#endif
 
 #ifdef PMC_USE_GPU
   free_gpu_cu();

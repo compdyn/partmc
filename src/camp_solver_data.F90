@@ -147,12 +147,20 @@ module pmc_camp_solver_data
       real(kind=c_double), value :: t_final
     end function solver_run
 
+    !> Reset the solver function timers
+    subroutine solver_reset_timers( solver_data ) bind(c)
+      use iso_c_binding
+      !> Pointer to the solver data
+      type(c_ptr), value :: solver_data
+    end subroutine solver_reset_timers
+
     !> Get the solver statistics
     subroutine solver_get_statistics( solver_data, num_steps, RHS_evals, &
                     LS_setups, error_test_fails, NLS_iters, &
                     NLS_convergence_fails, DLS_Jac_evals, DLS_RHS_evals, &
-                    last_time_step__s, next_time_step__s, Jac_eval_fails &
-                    ) bind (c)
+                    last_time_step__s, next_time_step__s, Jac_eval_fails, &
+                    RHS_evals_total, Jac_evals_total, RHS_time__s, &
+                    Jac_time__s) bind (c)
       use iso_c_binding
       !> Pointer to the solver data
       type(c_ptr), value :: solver_data
@@ -178,6 +186,14 @@ module pmc_camp_solver_data
       type(c_ptr), value :: next_time_step__s
       !> Number of Jacobian evaluation failures
       type(c_ptr), value :: Jac_eval_fails
+      !> Total number of calls to `f()`
+      type(c_ptr), value :: RHS_evals_total
+      !> Total number of calls to `Jac()`
+      type(c_ptr), value :: Jac_evals_total
+      !> Compute time for calls to `f()`
+      type(c_ptr), value :: RHS_time__s
+      !> Compute time for calls to `Jac()`
+      type(c_ptr), value :: Jac_time__s
     end subroutine solver_get_statistics
 
     !> Add condensed reaction data to the solver data block
@@ -374,6 +390,8 @@ module pmc_camp_solver_data
     procedure :: update_aero_rep_data
     !> Integrate over a given time step
     procedure :: solve
+    !> Reset the solver function timers
+    procedure, private :: reset_timers
     !> Get the solver statistics from the last run
     procedure, private :: get_solver_stats
     !> Checks whether a solver is available
@@ -868,6 +886,9 @@ contains
             )
       end if
     end if
+
+    ! Reset the solver function timers
+    call this%reset_timers( )
 #endif
 
     ! Run the solver
@@ -893,6 +914,18 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Reset the solver function timers
+  subroutine reset_timers( this )
+
+    !> Solver data
+    class(camp_solver_data_t), intent(inout) :: this
+
+    call solver_reset_timers( this%solver_c_ptr )
+
+  end subroutine reset_timers
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Get solver statistics
   subroutine get_solver_stats( this, solver_stats )
 
@@ -913,7 +946,11 @@ contains
             c_loc( solver_stats%DLS_RHS_evals         ),   & ! DLS Right-hand side evals
             c_loc( solver_stats%last_time_step__s     ),   & ! Last time step [s]
             c_loc( solver_stats%next_time_step__s     ),   & ! Next time step [s]
-            c_loc( solver_stats%Jac_eval_fails        ) )    ! Number of Jac eval fails
+            c_loc( solver_stats%Jac_eval_fails        ),   & ! Number of Jac eval fails
+            c_loc( solver_stats%RHS_evals_total       ),   & ! total f() calls
+            c_loc( solver_stats%Jac_evals_total       ),   & ! total Jac() calls
+            c_loc( solver_stats%RHS_time__s           ),   & ! Compute time f() [s]
+            c_loc( solver_stats%Jac_time__s           ) )    ! Compute time Jac() [s]
 
   end subroutine get_solver_stats
 

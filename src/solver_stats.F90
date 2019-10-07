@@ -47,6 +47,14 @@ module pmc_solver_stats
     real(kind=dp) :: next_time_step__s
     !> Jacobian evaluation failures
     integer(kind=i_kind) :: Jac_eval_fails
+    !> Total calls to `f()`
+    integer(kind=i_kind) :: RHS_evals_total
+    !> Total calls to `Jac()`
+    integer(kind=i_kind) :: Jac_evals_total
+    !> Compute time for calls to `f()` [s]
+    real(kind=dp) :: RHS_time__s
+    !> Compute time for calls to `Jac()` [s]
+    real(kind=dp) :: Jac_time__s
 #ifdef PMC_DEBUG
     !> Flag to output debugging info during solving
     !! THIS PRINTS A LOT OF TEXT TO THE STANDARD OUTPUT

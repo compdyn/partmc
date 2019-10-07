@@ -11,6 +11,8 @@
 #ifndef CAMP_COMMON_H
 #define CAMP_COMMON_H
 
+#include <time.h>
+
 /* SUNDIALS Header files with a description of contents used */
 #ifdef PMC_USE_SUNDIALS
 #include <cvode/cvode.h>             /* Protoypes for CVODE fcts., consts.  */
@@ -184,6 +186,10 @@ typedef struct {
 #ifdef PMC_DEBUG
   booleantype debug_out;  // Output debugging information during solving
   booleantype eval_Jac;   // Evalute Jacobian data during solving
+  int counterDeriv;       // Total calls to f()
+  int counterJac;         // Total calls to Jac()
+  clock_t timeDeriv;      // Compute time for calls to f()
+  clock_t timeJac;        // Compute time for calls to Jac()
 #endif
 #endif
   void *cvode_mem;       // CVodeMem object

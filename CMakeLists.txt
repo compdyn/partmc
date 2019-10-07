@@ -506,12 +506,10 @@ if(ENABLE_GPU)
           src/cuda/rxns_gpu/rxn_emission.cu
           src/cuda/rxns_gpu/rxn_first_order_loss.cu
           src/cuda/rxns_gpu/rxn_HL_phase_transfer.cu
-          src/cuda/rxns_gpu/rxn_PDFiTE_activity.cu
           src/cuda/rxns_gpu/rxn_photolysis.cu
           src/cuda/rxns_gpu/rxn_SIMPOL_phase_transfer.cu
           src/cuda/rxns_gpu/rxn_troe.cu
           src/cuda/rxns_gpu/rxn_wet_deposition.cu
-          src/cuda/rxns_gpu/rxn_ZSR_aerosol_water.cu
           src/cuda/aeros_gpu/aero_phase_solver.cu
           src/cuda/aeros_gpu/aero_rep_solver.cu
           src/cuda/aeros_gpu/sub_model_solver.cu

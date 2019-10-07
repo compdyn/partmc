@@ -59,9 +59,9 @@ contains
     character(len=:), allocatable :: temp_string, owner_name
 
     build_property_set_test = .false.
-    owner_name = "build_property_set_test()"
 
     ! Build individual property links
+    owner_name = "795685595"
     prop_set => property_t()
     key_name = "int_prop"
     call prop_set%put(key_name, 27, .false., owner_name)
@@ -73,6 +73,7 @@ contains
     call prop_set%put(key_name, "kd ks8*2alf  s", .false., owner_name)
 
     ! Build a property subset
+    owner_name = "225470790"
     sub_set => property_t()
     key_name = "sub_int"
     call sub_set%put(key_name, 832, .false., owner_name)
@@ -131,6 +132,7 @@ contains
     call assert(154911046, temp_string.eq."nlsd98*)@ur soi87")
 
     ! Make sure the 'allow duplicates' flag works
+    owner_name = "850165381"
     deallocate(prop_set)
     prop_set => property_t()
     key_name = "my first key"
@@ -140,6 +142,7 @@ contains
     key_name = "my duplicate key"
     call prop_set%put(key_name, 92.30412d0, .true., owner_name)
 
+    owner_name = "279950576"
     sub_set => property_t()
     key_name = "sub key one"
     call sub_set%put(key_name, 512.42d0, .true., owner_name)
@@ -243,8 +246,6 @@ contains
     logical :: temp_logical
     character(len=:), allocatable :: temp_string, owner_name
 
-    owner_name = "load_property_set_test()"
-
     ! Set up the JSON core
     allocate(json)
     call json%parse(j_obj, json_string)
@@ -254,6 +255,7 @@ contains
 
     ! Load the property set with data in the JSON string
     ! passed as a JSON object so that all the data is loaded
+    owner_name = "303914282"
     call props%load(json, j_obj, .true., owner_name)
 
     ! Make sure the property set contains the right number of elements
@@ -317,6 +319,7 @@ contains
     prop2 => property_t()
 
     ! Only send the two real elements to property_t%load()
+    owner_name = "182972857"
     next => null()
     call json%get_child(j_obj, child)
     do while (associated(child))
@@ -363,6 +366,7 @@ contains
     ! Load the property set with data in the JSON string
     ! passed as a JSON object so that all the data is loaded
     ! and the allow duplicates flag set to true
+    owner_name = "460183799"
     call props%load(json, j_obj, .true., owner_name, .true.)
 
     ! Make sure the property set contains the right number of elements
@@ -426,12 +430,12 @@ contains
     character(len=:), allocatable :: temp_string, owner_name
 
     move_update_property_set_test = .false.
-    owner_name = "move_update_property_set_test()"
 
     ! Create original property set
     orig_set => property_t()
 
     ! Build individual property links
+    owner_name = "297196736"
     key_name = "int_prop"
     call orig_set%put(key_name, 27, .false., owner_name)
     key_name = "bool_prop"
@@ -442,6 +446,7 @@ contains
     call orig_set%put(key_name, "kd ks8*2alf  s", .false., owner_name)
 
     ! Build a property subset
+    owner_name = "456825026"
     sub_set => property_t()
     key_name = "sub_int"
     call sub_set%put(key_name, 832, .false., owner_name)
@@ -459,6 +464,7 @@ contains
     update_set => property_t()
 
     ! Build a few links to merge in
+    owner_name = "516569119"
     key_name = "new_real_prop"
     call update_set%put(key_name, 135.23d3, .false., owner_name)
     sub_set => property_t()
@@ -468,6 +474,7 @@ contains
     call update_set%put(key_name, sub_set, .false., owner_name)
     deallocate(sub_set)
 
+    owner_name = "511304812"
     sub_set => property_t()
     key_name = "new_sub_real_prop"
     call sub_set%put(key_name, 5239.60d1, .false., owner_name)
@@ -476,6 +483,7 @@ contains
     deallocate(sub_set)
 
     ! Update the original property data set
+    owner_name = "853524154"
     call orig_set%update(update_set, owner_name)
     deallocate(update_set)
 

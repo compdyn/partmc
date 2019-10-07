@@ -145,7 +145,7 @@ contains
       j_next => j_spec
       call json%get_next(j_next, j_spec)
     end do
-    
+
     ! deallocate json variables
     call j_file%destroy()
     deallocate(json_string)
@@ -209,7 +209,7 @@ contains
     call assert(529754002, spec_phase.eq.CHEM_SPEC_AERO_PHASE)
     call assert(351292716, spec_data%get_type(key_name, spec_type))
     call assert(116127412, spec_type.eq.CHEM_SPEC_PSSA)
-    
+
     call assert(451454846, spec_data%get_property_set(key_name, spec_props))
 
     key_name = "MW"

@@ -159,7 +159,7 @@ contains
     type(property_t), pointer :: sub_prop
     character(kind=json_ck, len=:), allocatable :: unicode_prop_key
     character(len=:), allocatable :: prop_key
-    logical :: allow_dup = .false.
+    logical :: allow_dup
 
     character(kind=json_ck, len=:), allocatable :: unicode_val
     character(len=:), allocatable :: str_val
@@ -168,6 +168,8 @@ contains
     integer(json_ik)     :: int_val
 
     integer(json_ik)     :: var_type
+
+    allow_dup = .false.
 
     if (present(allow_duplicates)) allow_dup = allow_duplicates
 
@@ -221,14 +223,14 @@ contains
         ! sub-set of key-value pairs
         case (json_object)
           sub_prop => property_t()
-          call sub_prop%load(json, child, .true., owner_name)
+          call sub_prop%load(json, child, .true., owner_name, allow_dup)
           call this%put(prop_key, sub_prop, allow_dup, owner_name)
           deallocate(sub_prop)
 
         ! sub-set of values
         case (json_array)
           sub_prop => property_t()
-          call sub_prop%load(json, child, .true., owner_name)
+          call sub_prop%load(json, child, .true., owner_name, allow_dup)
           call this%put(prop_key, sub_prop, allow_dup, owner_name)
           deallocate(sub_prop)
 
@@ -624,7 +626,9 @@ contains
     integer(kind=i_kind), optional, intent(in) :: file_unit
 
     type(property_link_t), pointer :: curr_link
-    integer(kind=i_kind) :: f_unit = 6
+    integer(kind=i_kind) :: f_unit
+
+    f_unit = 6
 
     if (present(file_unit)) f_unit = file_unit
 
@@ -898,7 +902,9 @@ contains
     integer(kind=i_kind), optional, intent(in) :: file_unit
 
     class(*), pointer :: val
-    integer(kind=i_kind) :: f_unit = 6
+    integer(kind=i_kind) :: f_unit
+
+    f_unit = 6
 
     if (present(file_unit)) f_unit = file_unit
 

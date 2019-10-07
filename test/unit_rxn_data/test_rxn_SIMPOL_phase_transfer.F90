@@ -321,9 +321,8 @@ contains
       camp_state => camp_core%new_state()
 
       ! Set the environmental conditions
-      camp_state%env_state%temp = temperature
-      camp_state%env_state%pressure = pressure
-      call camp_state%update_env_state()
+      call camp_state%env_states(1)%set_temperature_K( temperature )
+      call camp_state%env_states(1)%set_pressure_Pa( pressure )
 
       ! Save the initial concentrations
       true_conc(:,:) = 0.0

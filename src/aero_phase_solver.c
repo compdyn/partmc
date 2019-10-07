@@ -39,8 +39,11 @@
 int aero_phase_get_used_jac_elem(ModelData *model_data, int aero_phase_idx,
                                  int state_var_id, bool *jac_struct) {
   // Get the requested aerosol phase data
-  int *int_data = model_data->aero_phase_int_ptrs[aero_phase_idx];
-  double *float_data = model_data->aero_phase_float_ptrs[aero_phase_idx];
+  int *int_data = &(model_data->aero_phase_int_data
+                        [model_data->aero_phase_int_indices[aero_phase_idx]]);
+  double *float_data =
+      &(model_data->aero_phase_float_data
+            [model_data->aero_phase_float_indices[aero_phase_idx]]);
 
   int num_flagged_elem = 0;
 
@@ -84,8 +87,11 @@ void aero_phase_get_mass(ModelData *model_data, int aero_phase_idx,
                          double *state_var, double *mass, double *MW,
                          double *jac_elem_mass, double *jac_elem_MW) {
   // Get the requested aerosol phase data
-  int *int_data = model_data->aero_phase_int_ptrs[aero_phase_idx];
-  double *float_data = model_data->aero_phase_float_ptrs[aero_phase_idx];
+  int *int_data = &(model_data->aero_phase_int_data
+                        [model_data->aero_phase_int_indices[aero_phase_idx]]);
+  double *float_data =
+      &(model_data->aero_phase_float_data
+            [model_data->aero_phase_float_indices[aero_phase_idx]]);
 
   // Sum the mass and MW
   long double l_mass = 0.0;
@@ -132,8 +138,11 @@ void aero_phase_get_volume(ModelData *model_data, int aero_phase_idx,
                            double *state_var, double *volume,
                            double *jac_elem) {
   // Get the requested aerosol phase data
-  int *int_data = model_data->aero_phase_int_ptrs[aero_phase_idx];
-  double *float_data = model_data->aero_phase_float_ptrs[aero_phase_idx];
+  int *int_data = &(model_data->aero_phase_int_data
+                        [model_data->aero_phase_int_indices[aero_phase_idx]]);
+  double *float_data =
+      &(model_data->aero_phase_float_data
+            [model_data->aero_phase_float_indices[aero_phase_idx]]);
 
   // Sum the mass and MW
   *volume = 0.0;
@@ -161,14 +170,22 @@ void aero_phase_add_condensed_data(int n_int_param, int n_float_param,
                                    void *solver_data) {
   ModelData *model_data =
       (ModelData *)&(((SolverData *)solver_data)->model_data);
-  int *aero_phase_int_data = model_data->nxt_aero_phase_int;
-  double *aero_phase_float_data = model_data->nxt_aero_phase_float;
 
-  // Save the pointers to this aerosol phases data
-  model_data->aero_phase_int_ptrs[model_data->n_added_aero_phases] =
-      aero_phase_int_data;
-  model_data->aero_phase_float_ptrs[model_data->n_added_aero_phases] =
-      aero_phase_float_data;
+  // Get pointers to the aerosol phase data
+  int *aero_phase_int_data =
+      &(model_data->aero_phase_int_data[model_data->aero_phase_int_indices
+                                            [model_data->n_added_aero_phases]]);
+  double *aero_phase_float_data = &(
+      model_data->aero_phase_float_data[model_data->aero_phase_float_indices
+                                            [model_data->n_added_aero_phases]]);
+
+  // Save next indices by adding lengths
+  model_data->aero_phase_int_indices[model_data->n_added_aero_phases + 1] =
+      n_int_param +
+      model_data->aero_phase_int_indices[model_data->n_added_aero_phases];
+  model_data->aero_phase_float_indices[model_data->n_added_aero_phases + 1] =
+      n_float_param +
+      model_data->aero_phase_float_indices[model_data->n_added_aero_phases];
   ++(model_data->n_added_aero_phases);
 
   // Add the integer parameters
@@ -178,11 +195,6 @@ void aero_phase_add_condensed_data(int n_int_param, int n_float_param,
   // Add the floating-point parameters
   for (; n_float_param > 0; --n_float_param)
     *(aero_phase_float_data++) = (double)*(float_param++);
-
-  // Set the pointers for the next free space in aero_phase_data
-  model_data->nxt_aero_phase_int = aero_phase_int_data;
-  model_data->nxt_aero_phase_float = aero_phase_float_data;
-  ;
 }
 
 /** \brief Print the aerosol phase data
@@ -193,13 +205,16 @@ void aero_phase_print_data(void *solver_data) {
       (ModelData *)&(((SolverData *)solver_data)->model_data);
 
   // Get the number of aerosol phases
-  int n_aero_phase = *(model_data->aero_phase_int_data);
+  int n_aero_phase = model_data->n_aero_phase;
 
   // Loop through the aerosol phases and print their data
   // advancing the aero_phase_data pointer each time
   for (int i_aero_phase = 0; i_aero_phase < n_aero_phase; i_aero_phase++) {
-    int *int_data = model_data->aero_phase_int_ptrs[i_aero_phase];
-    double *float_data = model_data->aero_phase_float_ptrs[i_aero_phase];
+    int *int_data = &(model_data->aero_phase_int_data
+                          [model_data->aero_phase_int_indices[i_aero_phase]]);
+    double *float_data =
+        &(model_data->aero_phase_float_data
+              [model_data->aero_phase_float_indices[i_aero_phase]]);
 
     printf("\n\nAerosol Phase %d\n\n", i_aero_phase);
   }

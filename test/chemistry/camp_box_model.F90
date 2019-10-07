@@ -80,7 +80,7 @@ contains
 
     character, allocatable :: buffer(:)
     integer(kind=i_kind) :: buffer_size, pos
- 
+
     type(string_t), allocatable :: species_names(:)
     type(property_t), pointer :: prop_set
     character(len=:), allocatable :: key
@@ -142,7 +142,7 @@ contains
     call pmc_mpi_bcast_integer(buffer_size)
     allocate(buffer(buffer_size))
     pos = 0
-      
+
     if (pmc_mpi_rank() == 0) then
       ! Pack the initialized core and state to the other nodes
       call camp_core%bin_pack(buffer, pos)
@@ -151,7 +151,7 @@ contains
 
     ! Broadcast the data to everyone
     call pmc_mpi_bcast_packed(buffer)
-    
+
     if (pmc_mpi_rank() /= 0) then
 
       ! Construct an empty camp_core_t variable
@@ -225,7 +225,7 @@ contains
 
 #endif
 
-  end subroutine run_camp_box 
+  end subroutine run_camp_box
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

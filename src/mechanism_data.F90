@@ -124,7 +124,9 @@ contains
     !> Number of reactions to allocate space for initially
     integer(i_kind), intent(in), optional :: init_size
 
-    integer(i_kind) :: alloc_size = REALLOC_INC
+    integer(i_kind) :: alloc_size
+
+    alloc_size = REALLOC_INC
 
     allocate(new_obj)
     if (present(init_size)) alloc_size = init_size
@@ -404,7 +406,9 @@ contains
     integer(kind=i_kind), optional :: file_unit
 
     integer :: i_rxn
-    integer(kind=i_kind) :: f_unit = 6
+    integer(kind=i_kind) :: f_unit
+
+    f_unit = 6
 
     if (present(file_unit)) f_unit = file_unit
 

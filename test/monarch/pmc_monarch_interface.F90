@@ -412,9 +412,10 @@ contains
             k_flip = size(MONARCH_conc,3) - k + 1
 
             ! Update the environmental state
-            this%camp_state%env_state%temp = temperature(i,j,k_flip)
-            this%camp_state%env_state%pressure = pressure(i,k,j)
-            call this%camp_state%update_env_state()
+            call this%camp_state%env_states(1)%set_temperature_K( &
+              real( temperature(i,j,k_flip), kind=dp ) )
+            call this%camp_state%env_states(1)%set_pressure_Pa(   &
+              real( pressure(i,k,j), kind=dp ) )
 
             this%camp_state%state_var(:) = 0.0
 
@@ -446,6 +447,7 @@ contains
                           trim( to_string( start_time ) ) )
 #endif
 #endif
+
 
 
             ! Update the MONARCH tracer array with new species concentrations
@@ -481,9 +483,10 @@ contains
             k_flip = size(MONARCH_conc,3) - k + 1
 
             ! Update the environmental state
-            this%camp_state%env_state%temp = temperature(i,j,k_flip)
-            this%camp_state%env_state%pressure = pressure(i,k,j)
-            call this%camp_state%update_env_state(z+1) !+1 because z starts on 0
+            call this%camp_state%env_states(1)%set_temperature_K( &
+              real( temperature(i,j,k_flip), kind=dp ) )
+            call this%camp_state%env_states(1)%set_pressure_Pa(   &
+              real( pressure(i,k,j), kind=dp ) )
 
             !Reset state conc
             this%camp_state%state_var(this%map_camp_id(:) + &

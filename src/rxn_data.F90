@@ -489,7 +489,9 @@ contains
     !> File unit for output
     integer(kind=i_kind), optional :: file_unit
 
-    integer(kind=i_kind) :: f_unit = 6
+    integer(kind=i_kind) :: f_unit
+
+    f_unit = 6
 
     if (present(file_unit)) f_unit = file_unit
     write(f_unit,*) "*** Rxn ***"
@@ -680,7 +682,9 @@ contains
     !> File unit for output
     integer(kind=i_kind), optional :: file_unit
 
-    integer(kind=i_kind) :: f_unit = 6
+    integer(kind=i_kind) :: f_unit
+
+    file_unit = 6
 
     if (present(file_unit)) f_unit = file_unit
 

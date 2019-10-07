@@ -206,9 +206,10 @@ contains
             this%temperature( unique_state_id )
 
     ! Set the environmental conditions
-    camp_state%env_state%temp     = this%temperature( unique_state_id )
-    camp_state%env_state%pressure = this%pressure(    unique_state_id )
-    call camp_state%update_env_state( )
+    call camp_state%env_states(1)%set_temperature_K( &
+      this%temperature( unique_state_id ) )
+    call camp_state%env_states(1)%set_pressure_Pa(   &
+      this%pressure(    unique_state_id ) )
 
     ! Set the species concentrations
     camp_state%state_var( this%idx_A ) = this%conc_A( unique_state_id )

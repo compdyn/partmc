@@ -186,7 +186,9 @@ module pmc_camp_core
     !> Get the absolute tolerance for a species on the state array
     procedure :: get_abs_tol
     !> Get a new model state variable
-    procedure :: new_state
+    procedure :: new_state_one_cell
+    procedure :: new_state_multi_cell
+    generic :: new_state => new_state_one_cell, new_state_multi_cell
     !> Get the size of the state array
     procedure :: state_size
     !> Get the size of the state array per grid cell
@@ -954,7 +956,30 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Get a model state variable based on the this set of model data
-  function new_state(this, env_state)
+  function new_state_multi_cell(this, env_states) result (new_state)
+
+    !> New model state
+    type(camp_state_t), pointer :: new_state
+    !> Chemical model
+    class(camp_core_t), intent(in) :: this
+    !> Environmental state array
+    !! (one element per grid cell to solve simultaneously)
+    type(env_state_ptr), target, intent(in) :: env_states(:)
+
+    ! Initialize camp_state
+    new_state => camp_state_t(this%n_cells, env_states)
+
+    ! Set up the state variable array
+    allocate(new_state%state_var, source=this%init_state)
+
+  end function new_state_multi_cell
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Get a model state variable based on the this set of model data
+  !! This is also called for multi-cell systems when no env_state_t array
+  !! is passed.
+  function new_state_one_cell(this, env_state) result (new_state)
 
     !> New model state
     type(camp_state_t), pointer :: new_state
@@ -965,12 +990,19 @@ contains
     type(env_state_t), optional, target, intent(in) :: env_state
 
     ! Initialize camp_state
-    new_state => camp_state_t(env_state,this%n_cells)
+    if (this%n_cells.eq.1) then
+      new_state => camp_state_t(env_state)
+    else
+      call assert_msg(386790682, .not.present(env_state), &
+                      "Cannot use a single env_state_t object to create "// &
+                      "a new camp_state_t in a multi-cell system")
+      new_state => camp_state_t(this%n_cells)
+    end if
 
     ! Set up the state variable array
     allocate(new_state%state_var, source=this%init_state)
 
-  end function new_state
+  end function new_state_one_cell
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -1199,6 +1231,9 @@ contains
     else
       phase = GAS_AERO_RXN
     end if
+
+    ! Update the solver array of environmental states
+    call camp_state%update_env_state( )
 
     ! Determine the solver to use
     if (phase.eq.GAS_RXN) then
@@ -1431,9 +1466,12 @@ contains
 
     integer(kind=i_kind) :: i_gas_spec, i_spec, j_spec, i_phase, i_aero_rep, i_mech
     integer(kind=i_kind) :: i_sub_model, i_solver_spec
-    integer(kind=i_kind) :: f_unit=6
+    integer(kind=i_kind) :: f_unit
     type(string_t), allocatable :: state_names(:), rep_spec_names(:)
-    logical :: sd_only = .false.
+    logical :: sd_only
+
+    f_unit = 6
+    sd_only = .false.
 
     if (present(file_unit)) f_unit = file_unit
     if (present(solver_data_only)) sd_only = solver_data_only

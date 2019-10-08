@@ -1,0 +1,10 @@
+{
+  "pmc-files" : [
+    "camp/simple_mech/aerosol_phases.json",
+    "camp/simple_mech/aerosol_species.json",
+    "camp/simple_mech/cloud_and_rain_partitioning.json",
+    "camp/simple_mech/gas_species.json",
+    "camp/simple_mech/mechanism.json"
+  ]
+}
+

@@ -1,0 +1,145 @@
+{ "pmc-data" : [
+  {
+    "name" : "simple",
+    "type" : "MECHANISM",
+      "reactions" : [
+        {
+          "type" : "ARRHENIUS",
+          "reactants" : {
+            "O" : { },
+            "O2" : { }
+          },
+          "products" : {
+            "O3" : { }
+          },
+          "A" : 2.183E-5
+        },
+        {
+          "type" : "ARRHENIUS",
+          "reactants" : {
+            "NO" : { },
+            "O3" : { }
+          },
+          "products" : {
+            "NO2" : { },
+            "O2" : { }
+          },
+          "A" : 26.59
+        },
+        {
+          "type" : "ARRHENIUS",
+          "reactants" : {
+            "RH" : { },
+            "OH" : { }
+          },
+          "products" : {
+            "RO2" : { },
+            "H2O" : { }
+          },
+          "A" : 3.775E3
+        },
+        {
+          "type" : "ARRHENIUS",
+          "reactants" : {
+            "RCHO" : { },
+            "OH" : { }
+          },
+          "products" : {
+            "RCOO2" : { },
+            "H2O" : { }
+          },
+          "A" : 2.341E4
+        },
+        {
+          "type" : "ARRHENIUS",
+          "reactants" : {
+            "HO2" : { },
+            "NO" : { }
+          },
+          "products" : {
+            "NO2" : { },
+            "OH" : { }
+          },
+          "A" : 1.214E4
+        },
+        {
+          "type" : "ARRHENIUS",
+          "reactants" : {
+            "RO2" : { },
+            "NO" : { }
+          },
+          "products" : {
+            "NO2" : { },
+            "RCHO" : { },
+            "HO2" : { }
+          },
+          "A" : 1.127E4
+        },
+        {
+          "type" : "ARRHENIUS",
+          "reactants" : {
+            "RCOO2" : { },
+            "NO" : { }
+          },
+          "products" : {
+            "NO2" : { },
+            "RO2" : { },
+            "CO2" : { }
+          },
+          "A" : 1.127E4
+        },
+        {
+          "type" : "ARRHENIUS",
+          "reactants" : {
+            "OH" : { },
+            "NO2" : { }
+          },
+          "products" : {
+            "HNO3" : { }
+          },
+          "A" : 1.613E4
+        },
+        {
+          "type" : "ARRHENIUS",
+          "reactants" : {
+            "RCOO2" : { },
+            "NO2" : { }
+          },
+          "products" : {
+            "RCOO2NO2" : { }
+          },
+          "A" : 6.893E3
+        },
+        {
+          "type" : "ARRHENIUS",
+          "reactants" : {
+            "RCOO2NO2" : { }
+          },
+          "products" : {
+            "RCOO2" : { },
+            "NO2" : { }
+          },
+          "A" : 2.143E-2
+        },
+        {
+          "type" : "TROE",
+          "reactants" : {
+            "SO2" : { },
+            "OH" : { }
+          },
+          "products" : {
+            "SULF" : { }
+          },
+          "k0_A" : 3.0E-31,
+          "k0_B" : -3.3,
+          "k0_C" : -0.0E+00,
+          "kinf_A" : 1.5E-12,
+          "kinf_B" : 0.0E+00,
+          "kinf_C" : -0.0E+00,
+          "Fc" : 0.6,
+          "N" : 1.0
+        }
+      ]
+    }
+  ]
+}

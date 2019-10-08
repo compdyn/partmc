@@ -1,0 +1,12 @@
+{
+  "description" : "These aerosol phases are for the simple chemistry configuration",
+  "pmc-data" : [
+    {
+      "name" : "cloud and rain water",
+      "type" : "AERO_PHASE",
+      "species" : [ "H2O_aq", "O3_aq", "HO2_aq", "NO_aq", "NO2_aq", "HNO3_aq", "RH_aq",
+                    "CO_aq", "OH_aq", "RCHO_aq", "CO2_aq", "RO2_aq" ],
+      "description" : "aqueous species in cloud and rain water"
+    }
+  ]
+}

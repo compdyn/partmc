@@ -1,0 +1,84 @@
+{
+  "description" : [
+    "This is a simple mechanism based on xxx, adapted to include most of",
+    "the CAMP reactions, and for use in the MONARCH chemical weather prediction",
+    "system."
+  ],
+  "pmc-files" : [
+    "aerosol_representation.json",
+    "deposition.json",
+    "emissions.json",
+    "photolysis.json",
+    "../../../../mechansims/simple_mech/aerosol_phases.json",
+    "../../../../mechansims/simple_mech/aerosol_species.json",
+    "../../../../mechansims/simple_mech/cloud_and_rain_partitioning.json",
+    "../../../../mechansims/simple_mech/gas_species.json",
+    "../../../../mechansims/simple_mech/mechanism.json"
+  ],
+  "camp-box-model" : {
+    "total integration time [s]" : 180.0,
+    "output time step [s]" : 1,
+    "temperature [K]" : {
+      "initial" : 298.0
+    },
+    "pressure [Pa]" : {
+      "initial" : 101325.0
+    },
+    "rates" : {
+      "photo-NO2" : {
+        "initial" : 0.001
+      },
+      "photo-RCHO" : {
+        "initial" : 0.001
+      },
+      "emission-NO" : {
+        "inital" : 0.001
+      },
+      "emission-NO2" : {
+        "initial" : 0.001
+      },
+      "emission-RH" : {
+        "initial" : 0.001
+      },
+      "emission-RCHO" : {
+        "initial" : 0.001
+      },
+      "emission-SO2" : {
+        "initial" : 0.001
+      },
+      "emission-NH3" : {
+        "initial" : 0.001
+      },
+      "wet-deposition-clouds-and-rain" : {
+        "initial" : 0.001
+      },
+      "dry-deposition-NO2" : {
+        "initial" : 0.001
+      },
+      "dry-deposition-NO" : {
+        "initial" : 0.001
+      },
+      "dry-deposition-O3" : {
+        "initial" : 0.001
+      },
+      "dry-deposition-RH" : {
+        "initial" : 0.001
+      },
+      "dry-deposition-RCHO" : {
+        "initial" : 0.001
+      },
+      "dry-deposition-CO" : {
+        "initial" : 0.001
+      },
+      "dry-deposition-HNO3" : {
+        "initial" : 0.001
+      },
+      "dry-deposition-SO2" : {
+        "initial" : 0.001
+      },
+      "dry-deposition-NH3" : {
+        "initial" : 0.001
+      }
+    }
+  }
+}

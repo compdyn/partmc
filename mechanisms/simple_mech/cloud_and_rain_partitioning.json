@@ -1,0 +1,62 @@
+{
+  "description" : [
+    "Partitioning of species to cloud and rain water. Parameters are from existing wet-deposition module."
+  ],
+  "pmc-data" : [
+    {
+      "name" : "simple",
+      "type" : "MECHANISM",
+      "reactions" : [
+        {
+          "type" : "HL_PHASE_TRANSFER",
+          "gas-phase species" : "O3",
+          "aerosol phase" : "cloud and rain water",
+          "aerosol-phase species" : "O3_aq",
+          "aerosol-phase water" : "H2O_aq"
+        },
+        {
+          "type" : "HL_PHASE_TRANSFER",
+          "gas-phase species" : "NO",
+          "aerosol phase" : "cloud and rain water",
+          "aerosol-phase species" : "NO_aq",
+          "aerosol-phase water" : "H2O_aq"
+        },
+        {
+          "type" : "HL_PHASE_TRANSFER",
+          "gas-phase species" : "NO2",
+          "aerosol phase" : "cloud and rain water",
+          "aerosol-phase species" : "NO2_aq",
+          "aerosol-phase water" : "H2O_aq"
+        },
+        {
+          "type" : "HL_PHASE_TRANSFER",
+          "gas-phase species" : "RH",
+          "aerosol phase" : "cloud and rain water",
+          "aerosol-phase species" : "RH_aq",
+          "aerosol-phase water" : "H2O_aq"
+        },
+        {
+          "type" : "HL_PHASE_TRANSFER",
+          "gas-phase species" : "RCHO",
+          "aerosol phase" : "cloud and rain water",
+          "aerosol-phase species" : "RCHO_aq",
+          "aerosol-phase water" : "H2O_aq"
+        },
+        {
+          "type" : "HL_PHASE_TRANSFER",
+          "gas-phase species" : "CO",
+          "aerosol phase" : "cloud and rain water",
+          "aerosol-phase species" : "CO_aq",
+          "aerosol-phase water" : "H2O_aq"
+        },
+        {
+          "type" : "HL_PHASE_TRANSFER",
+          "gas-phase species" : "HNO3",
+          "aerosol phase" : "cloud and rain water",
+          "aerosol-phase species" : "HNO3_aq",
+          "aerosol-phase water" : "H2O_aq"
+        }
+      ]
+    }
+  ]
+}

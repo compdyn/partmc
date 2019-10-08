@@ -1,0 +1,39 @@
+{ "pmc-data" : [
+  {
+    "name" : "simple",
+    "type" : "MECHANISM",
+      "reactions" : [
+        {
+          "type" : "EMISSION",
+          "species" : "NO",
+          "camp-box-model-id" : "emission-NO"
+        },
+        {
+          "type" : "EMISSION",
+          "species" : "NO2",
+          "camp-box-model-id" : "emission-NO2"
+        },
+        {
+          "type" : "EMISSION",
+          "species" : "RH",
+          "camp-box-model-id" : "emission-RH"
+        },
+        {
+          "type" : "EMISSION",
+          "species" : "RCHO",
+          "camp-box-model-id" : "emission-RCHO"
+        },
+        {
+          "type" : "EMISSION",
+          "species" : "SO2",
+          "camp-box-model-id" : "emission-SO2"
+        },
+        {
+          "type" : "EMISSION",
+          "species" : "NH3",
+          "camp-box-model-id" : "emission-NH3"
+        }
+      ]
+    }
+  ]
+}

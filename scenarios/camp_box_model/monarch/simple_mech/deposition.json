@@ -1,0 +1,59 @@
+{ "pmc-data" : [
+  {
+    "name" : "simple",
+    "type" : "MECHANISM",
+      "reactions" : [
+        {
+          "type" : "WET_DEPOSITION",
+          "aerosol phase" : "cloud and rain water",
+          "camp-box-model-id" : "wet-deposition-clouds-and-rain"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "camp-box-model-id" : "dry-deposition-NO2",
+          "species" : "NO2"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "camp-box-model-id" : "dry-deposition-NO",
+          "species" : "NO"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "camp-box-model-id" : "dry-deposition-O3",
+          "species" : "O3"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "camp-box-model-id" : "dry-deposition-RH",
+          "species" : "RH"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "camp-box-model-id" : "dry-deposition-RCHO",
+          "species" : "RCHO"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "camp-box-model-id" : "dry-deposition-CO",
+          "species" : "CO"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "camp-box-model-id" : "dry-deposition-HNO3",
+          "species" : "HNO3"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "camp-box-model-id" : "dry-deposition-SO2",
+          "species" : "SO2"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "camp-box-model-id" : "dry-deposition-NH3",
+          "species" : "NH3"
+        }
+      ]
+    }
+  ]
+}

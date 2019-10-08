@@ -193,6 +193,8 @@ module pmc_camp_core
     procedure :: state_size
     !> Get the size of the state array per grid cell
     procedure :: state_size_per_cell
+    !> Get the index of a species on the state array by its unique name
+    procedure :: spec_state_id
     !> Initialize the solver
     procedure :: solver_initialize
     !> Free the solver
@@ -1039,6 +1041,36 @@ contains
     state_size = this%size_state_per_cell
 
   end function state_size_per_cell
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Get the id of a species on the state array by its unique name
+  function spec_state_id( this, spec_name, state_id ) result( found )
+
+    !> Flag indicating whether the species was found
+    logical :: found
+    !> CAMP core
+    class(camp_core_t), intent(in) :: this
+    !> Species unique name
+    character(len=*), intent(in) :: spec_name
+    !> Species state id
+    integer(kind=i_kind), intent(inout) :: state_id
+
+    integer(kind=i_kind) :: i_spec, i_aero_rep
+
+    found = .false.
+    i_spec = this%chem_spec_data%gas_state_id( spec_name )
+    do i_aero_rep = 1, size( this%aero_rep )
+      if( i_spec .eq. 0 ) &
+        i_spec = this%aero_rep( i_aero_rep )%val%spec_state_id( spec_name )
+    end do
+
+    if( i_spec .gt. 0 ) then
+      state_id = i_spec
+      found = .true.
+    end if
+
+  end function spec_state_id
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

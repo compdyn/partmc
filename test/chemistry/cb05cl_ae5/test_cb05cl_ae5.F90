@@ -295,10 +295,10 @@ contains
           call assert(265614917, rxn%property_set%get_string(key, string_val))
           if (trim(string_val).eq."jo2") then
             ! Set O2 + hv rate constant to 0 (not present in ebi version)
-            call rxn_factory%initialize_update_data(rxn, jo2_rate_update)
+            call camp_core%initialize_update_object(rxn, jo2_rate_update)
           else
             i_photo_rxn = i_photo_rxn + 1
-            call rxn_factory%initialize_update_data(rxn, &
+            call camp_core%initialize_update_object(rxn, &
                                                     rate_update(i_photo_rxn))
           end if
       end select
@@ -351,11 +351,11 @@ contains
     KPP_PHOTO_RATES(1) = 0.0
     ! Set the O2 + hv rate constant to 0 (not present in ebi version)
     call jo2_rate_update%set_rate(real(0.0, kind=dp))
-    call camp_core%update_rxn_data(jo2_rate_update)
+    call camp_core%update_data(jo2_rate_update)
     ! Set the remaining rates
     do i_photo_rxn = 1, n_photo_rxn
       call rate_update(i_photo_rxn)%set_rate(real(0.0001, kind=dp))
-      call camp_core%update_rxn_data(rate_update(i_photo_rxn))
+      call camp_core%update_data(rate_update(i_photo_rxn))
     end do
 
     ! Make sure the right number of reactions is present

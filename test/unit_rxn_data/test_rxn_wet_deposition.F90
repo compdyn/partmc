@@ -158,16 +158,14 @@ contains
             i_mech_rxn_rain = i_rxn
             select type (rxn_loss => rxn)
               class is (rxn_wet_deposition_t)
-                call rxn_factory%initialize_update_data(rxn_loss, &
-                                                        rate_update_rain)
+                call camp_core%initialize_update_object(rxn_loss, rate_update_rain)
             end select
           end if
           if (trim(str_val).eq."rxn cloud") then
             i_mech_rxn_cloud = i_rxn
             select type (rxn_loss => rxn)
               class is (rxn_wet_deposition_t)
-                call rxn_factory%initialize_update_data(rxn_loss, &
-                                                        rate_update_cloud)
+                call camp_core%initialize_update_object(rxn_loss, rate_update_cloud)
             end select
           end if
         end if
@@ -329,12 +327,12 @@ contains
       ! Set the rain rxn rate
       call rate_update_rain%set_rate(rate_rain)
       call rate_update_cloud%set_rate(43912.5d0)
-      call camp_core%update_rxn_data(rate_update_rain)
-      call camp_core%update_rxn_data(rate_update_cloud)
+      call camp_core%update_data(rate_update_rain)
+      call camp_core%update_data(rate_update_cloud)
 
       ! Test re-setting of the rxn B rate
       call rate_update_cloud%set_rate(rate_cloud)
-      call camp_core%update_rxn_data(rate_update_cloud)
+      call camp_core%update_data(rate_update_cloud)
 
 #ifdef PMC_DEBUG
       ! Evaluate the Jacobian during solving

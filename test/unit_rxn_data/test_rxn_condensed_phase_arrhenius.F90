@@ -183,10 +183,10 @@ contains
         ! Set the aerosol representation id
         select type (aero_rep_ptr)
           type is (aero_rep_modal_binned_mass_t)
-            call aero_rep_factory%initialize_update_data( aero_rep_ptr, &
-                                                          update_data_GMD)
-            call aero_rep_factory%initialize_update_data( aero_rep_ptr, &
-                                                          update_data_GSD)
+            call camp_core%initialize_update_object( aero_rep_ptr, &
+                                                     update_data_GMD)
+            call camp_core%initialize_update_object( aero_rep_ptr, &
+                                                     update_data_GSD)
             call assert_msg(126380597, &
                   aero_rep_ptr%get_section_id("unused mode", i_sect_unused), &
                   "Could not get section id for the unused mode")
@@ -306,13 +306,13 @@ contains
         ! unused mode
         call update_data_GMD%set_GMD(i_sect_unused, 1.2d-6)
         call update_data_GSD%set_GSD(i_sect_unused, 1.2d0)
-        call camp_core%update_aero_rep_data(update_data_GMD)
-        call camp_core%update_aero_rep_data(update_data_GSD)
+        call camp_core%update_data(update_data_GMD)
+        call camp_core%update_data(update_data_GSD)
         ! the mode
         call update_data_GMD%set_GMD(i_sect_the_mode, 9.3d-7)
         call update_data_GSD%set_GSD(i_sect_the_mode, 0.9d0)
-        call camp_core%update_aero_rep_data(update_data_GMD)
-        call camp_core%update_aero_rep_data(update_data_GSD)
+        call camp_core%update_data(update_data_GMD)
+        call camp_core%update_data(update_data_GSD)
       end if
 
       ! Check the size of the state array

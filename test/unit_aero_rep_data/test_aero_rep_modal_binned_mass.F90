@@ -291,8 +291,8 @@ contains
     ! Set the aerosol representation id
     select type (aero_rep)
       type is (aero_rep_modal_binned_mass_t)
-        call aero_rep_factory%initialize_update_data(aero_rep, update_data_GMD)
-        call aero_rep_factory%initialize_update_data(aero_rep, update_data_GSD)
+        call camp_core%initialize_update_object(aero_rep, update_data_GMD)
+        call camp_core%initialize_update_object(aero_rep, update_data_GSD)
       class default
         call die_msg(587271916, rep_name)
     end select
@@ -311,16 +311,16 @@ contains
                         "Could not get section id for the mixed mode")
         call update_data_GMD%set_GMD(i_sect_mixed, 1.2d-6)
         call update_data_GSD%set_GSD(i_sect_mixed, 1.2d0)
-        call camp_core%update_aero_rep_data(update_data_GMD)
-        call camp_core%update_aero_rep_data(update_data_GSD)
+        call camp_core%update_data(update_data_GMD)
+        call camp_core%update_data(update_data_GSD)
         call assert_msg(937636446, &
                         aero_rep%get_section_id("single phase mode", &
                                                  i_sect_single), &
                         "Could not get section id for the single phase mode")
         call update_data_GMD%set_GMD(i_sect_single, 9.3d-7)
         call update_data_GSD%set_GSD(i_sect_single, 0.9d0)
-        call camp_core%update_aero_rep_data(update_data_GMD)
-        call camp_core%update_aero_rep_data(update_data_GSD)
+        call camp_core%update_data(update_data_GMD)
+        call camp_core%update_data(update_data_GSD)
       class default
         call die_msg(570113680, rep_name)
     end select

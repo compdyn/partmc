@@ -22,6 +22,8 @@ module pmc_camp_box_model_data
 
   ! New-line character
   character(len=*), parameter :: new_line = char(10)
+  ! File unit to use for scipts output
+  integer(kind=i_kind), parameter :: SCRIPTS_FILE_UNIT = 8
 
   !> Property time profile
   type :: profile_t
@@ -95,6 +97,8 @@ module pmc_camp_box_model_data
   contains
     !> Run the box model
     procedure :: run
+    !> Create a plotting script for the results
+    procedure :: create_gnuplot_config_file
     !> Print the box model configuration
     procedure :: print => do_print
   end type camp_box_model_data_t
@@ -140,11 +144,6 @@ contains
     ! Create the CAMP core
     new_obj%camp_core => camp_core_t( config_file )
     call new_obj%camp_core%initialize( )
-    call new_obj%camp_core%solver_initialize( )
-
-    ! Create a CAMP state for the box model runs and initial conditions
-    new_obj%camp_state         => new_obj%camp_core%new_state( )
-    new_obj%initial_camp_state => new_obj%camp_core%new_state( )
 
     ! Get the state species names
     new_obj%spec_names = new_obj%camp_core%unique_names( )
@@ -221,6 +220,14 @@ contains
       call assert( 763815888, i_rate .eq. num_rates)
     end if
 
+    ! Initialize the solver now that all the update data objects are attached
+    ! to reactions
+    call new_obj%camp_core%solver_initialize( )
+
+    ! Create a CAMP state for the box model runs and initial conditions
+    new_obj%camp_state         => new_obj%camp_core%new_state( )
+    new_obj%initial_camp_state => new_obj%camp_core%new_state( )
+
     ! Get the initial species concentrations
     call json%get( j_box_config, "initial state(1)", j_obj, found )
     if( found ) then
@@ -244,6 +251,7 @@ contains
       new_obj%temperature__K%current_value( ) )
     call new_obj%initial_camp_state%env_states(1)%set_pressure_Pa( &
       new_obj%pressure__Pa%current_value( ) )
+    call new_obj%initial_camp_state%update_env_state( )
 
     ! free the json file
     call j_file%destroy( )
@@ -326,6 +334,60 @@ contains
     end do
 
   end subroutine run
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Create a gnuplot configuration file for plotting box model results
+  subroutine create_gnuplot_config_file( this, file_prefix )
+
+    !> Box model data
+    class(camp_box_model_data_t), intent(in) :: this
+    !> Prefix for the results file (assumes a results file name of
+    !> `'file_prefix'_results.txt`)
+    character(len=*), intent(in) :: file_prefix
+
+    character(len=:), allocatable :: spec_name, file_name
+    integer(kind=i_kind) :: f_unit, i_char, i_spec
+
+    f_unit = SCRIPTS_FILE_UNIT
+
+    ! Create the gnuplot script
+    file_name = file_prefix//".conf"
+    open(unit=f_unit, file=file_name, status="replace", action="write")
+    write(f_unit,*) "# GNU Plot configuration for CAMP box model output"
+    write(f_unit,*) "# Run as: gnuplot "//file_name
+    write(f_unit,*) "set terminal png truecolor"
+    write(f_unit,*) "set autoscale"
+    write(f_unit,*) "set xrange [ 0.0:", this%total_time__s, "]"
+
+    ! output environmental conditions
+    write(f_unit,*) "set output '"//file_prefix//"_temperature.png"
+    write(f_unit,*) "plot\"
+    write(f_unit,*) " '"//file_prefix//"_results.txt'\"
+    write(f_unit,*) " using 1:2 title 'Temperature [K]'"
+    write(f_unit,*) "set output '"//file_prefix//"_pressure.png"
+    write(f_unit,*) "plot\"
+    write(f_unit,*) " '"//file_prefix//"_results.txt'\"
+    write(f_unit,*) " using 1:3 title 'Pressure [Pa]'"
+
+    ! output species concentrations and parameter values
+    do i_spec = 1, size( this%spec_names )
+      spec_name = this%spec_names( i_spec )%string
+      forall( i_char = 1 : len( spec_name ), &
+              spec_name( i_char : i_char ) .eq. '/') &
+        spec_name( i_char:i_char ) = '_'
+      write(f_unit,*) "set output '"//file_prefix//"_"//spec_name//".png'"
+      write(f_unit,*) "plot\"
+      write(f_unit,*) " '"//file_prefix//"_results.txt'\"
+      write(f_unit,*) " using 1:"//trim( to_string( i_spec + 3 ) )// &
+                      " title '"//spec_name//"'"
+    end do
+    close(f_unit)
+
+    deallocate( spec_name )
+    deallocate( file_name )
+
+  end subroutine create_gnuplot_config_file
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -552,7 +614,6 @@ contains
 
     use pmc_mechanism_data
     use pmc_rxn_emission
-    use pmc_rxn_factory
     use pmc_rxn_first_order_loss
     use pmc_rxn_photolysis
     use pmc_rxn_wet_deposition
@@ -569,7 +630,6 @@ contains
 
     type(mechanism_data_t), pointer :: mech
     class(rxn_data_t), pointer :: rxn
-    type(rxn_factory_t) :: rxn_factory
     type(profile_t) :: base_profile
 
     integer(kind=i_kind) :: i_mech, i_rxn
@@ -604,7 +664,7 @@ contains
           class default
             call die_msg( 592455681, "Invalid reaction for rate updates" )
         end select
-        call rxn_factory%initialize_update_data( rxn, new_obj%update_data )
+        call camp_core%initialize_update_object( rxn, new_obj%update_data )
         found = .true.
         exit
       end do
@@ -646,7 +706,7 @@ contains
         call die( 497670619 )
     end select
 
-    call camp_core%update_rxn_data( this%update_data )
+    call camp_core%update_data( this%update_data )
 
   end subroutine update_rxn
 

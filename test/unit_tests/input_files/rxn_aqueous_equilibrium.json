@@ -1,0 +1,152 @@
+{
+  "note" : "Test mechanism for aqueous equilibrium reactions",
+  "pmc-data" : [
+    {
+      "type" : "RELATIVE_TOLERANCE",
+      "value" : 1.0e-8
+    },
+    {
+      "name" : "A",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "molecular weight [kg mol-1]" : 48.0,
+      "density [kg m-3]" : 1.0,
+      "absolute tolerance" : 1.0e-10
+    },
+    {
+      "name" : "B",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "molecular weight [kg mol-1]" : 32.67,
+      "density [kg m-3]" : 1.0,
+      "absolute tolerance" : 1.0e-10
+    },
+    {
+      "name" : "C",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "molecular weight [kg mol-1]" : 114.3,
+      "density [kg m-3]" : 1.0,
+      "absolute tolerance" : 1.0e-10
+    },
+    {
+      "name" : "D",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "molecular weight [kg mol-1]" : 27.6,
+      "density [kg m-3]" : 1.0,
+      "absolute tolerance" : 1.0e-10
+    },
+    {
+      "name" : "E",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "molecular weight [kg mol-1]" : 202.4,
+      "density [kg m-3]" : 1.0,
+      "absolute tolerance" : 1.0e-10
+    },
+    {
+      "name" : "F",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "molecular weight [kg mol-1]" : 28,
+      "density [kg m-3]" : 1.0,
+      "absolute tolerance" : 1.0e-10
+    },
+    {
+      "name" : "G",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "molecular weight [kg mol-1]" : 35.67,
+      "density [kg m-3]" : 1.0,
+      "absolute tolerance" : 1.0e-10
+    },
+    {
+      "name" : "H",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "molecular weight [kg mol-1]" : 284.2,
+      "density [kg m-3]" : 1.0,
+      "absolute tolerance" : 1.0e-10
+    },
+    {
+      "name" : "H2O_aq",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "density [kg m-3]" : 1.0,
+      "molecular weight [kg mol-1]" : 18.01
+    },
+    {
+      "name" : "B-C",
+      "type" : "CHEM_SPEC",
+      "tracer type" : "ION_PAIR"
+    },
+    {
+      "name" : "aqueous aerosol",
+      "type" : "AERO_PHASE",
+      "species" : ["A", "B", "C", "D", "E", "F", "G", "H", "H2O_aq", "B-C"]
+    },
+    {
+      "type" : "AERO_REP_SINGLE_PARTICLE",
+      "name" : "my aero rep 1"
+    },
+    {
+      "type" : "AERO_REP_SINGLE_PARTICLE",
+      "name" : "my aero rep 2"
+    },
+    {
+      "type" : "AERO_REP_SINGLE_PARTICLE",
+      "name" : "my aero rep 3"
+    },
+    {
+      "name" : "aqueous equilibrium",
+      "type" : "MECHANISM",
+      "reactions" : [
+        {
+          "type" : "AQUEOUS_EQUILIBRIUM",
+          "aerosol phase" : "aqueous aerosol",
+          "aerosol-phase water" : "H2O_aq",
+          "A" : 1.14e-2,
+          "C" : 2300.0,
+          "k_reverse" : 0.32,
+          "ion pair" : "B-C",
+          "reactants" : {
+            "A" : { "qty" : 2 }
+          },
+          "products" : {
+            "B" : {},
+            "C" : {}
+          }
+        },
+        {
+          "type" : "AQUEOUS_EQUILIBRIUM",
+          "aerosol phase" : "aqueous aerosol",
+          "aerosol-phase water" : "H2O_aq",
+          "A" : 12.3,
+          "k_reverse" : 3.25e-3,
+          "reactants" : {
+            "D" : {},
+            "E" : {}
+          },
+          "products" : {
+            "F" : { "qty" : 2 }
+          }
+        },
+        {
+          "type" : "AQUEOUS_EQUILIBRIUM",
+          "aerosol phase" : "aqueous aerosol",
+          "aerosol-phase water" : "H2O_aq",
+          "A" : 2.35,
+          "C" : 1245.7,
+          "k_reverse" : 1.56e-4,
+          "reactants" : {
+            "G" : {}
+          },
+          "products" : {
+            "H" : {}
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -236,7 +236,23 @@ endif()
 if (ENABLE_TESTS)
     if (ENABLE_JSON AND ENABLE_SUNDIALS)
       # New unit tests (UNDER DEVELOPMENT)
+
+      add_test(test_rxn_aqueous_equilibrium_mech ${CMAKE_BINARY_DIR}/test_run/unit_tests/input_files/run_rxn_aqueous_equilibrium.sh ${MPI_TEST_FLAG})
+      add_test(test_rxn_aqueous_equilibrium_2_mech ${CMAKE_BINARY_DIR}/test_run/unit_tests/input_files/run_rxn_aqueous_equilibrium_2.sh ${MPI_TEST_FLAG})
       add_test(test_rxn_arrhenius_mech ${CMAKE_BINARY_DIR}/test_run/unit_tests/input_files/run_rxn_arrhenius.sh ${MPI_TEST_FLAG})
+      add_test(test_rxn_CMAQ_H202_mech ${CMAKE_BINARY_DIR}/test_run/unit_tests/input_files/run_rxn_CMAQ_H202.sh ${MPI_TEST_FLAG})
+      add_test(test_rxn_CMAQ_OH_HNO3_mech ${CMAKE_BINARY_DIR}/test_run/unit_tests/input_files/run_rxn_CMAQ_OH_HNO3.sh ${MPI_TEST_FLAG})
+      add_test(test_rxn_condensed_phase_arrhenius_mech ${CMAKE_BINARY_DIR}/test_run/unit_tests/input_files/run_rxn_condensed_phase_arrhenius.sh ${MPI_TEST_FLAG})
+      add_test(test_rxn_condensed_phase_arrhenius_2_mech ${CMAKE_BINARY_DIR}/test_run/unit_tests/input_files/run_rxn_condensed_phase_arrhenius_2.sh ${MPI_TEST_FLAG})
+      add_test(test_rxn_emission_mech ${CMAKE_BINARY_DIR}/test_run/unit_tests/input_files/run_rxn_emission.sh ${MPI_TEST_FLAG})
+      add_test(test_rxn_first_order_loss_mech ${CMAKE_BINARY_DIR}/test_run/unit_tests/input_files/run_rxn_first_order_loss.sh ${MPI_TEST_FLAG})
+      add_test(test_rxn_HL_phase_transfer_mech ${CMAKE_BINARY_DIR}/test_run/unit_tests/input_files/run_rxn_HL_phase_transfer.sh ${MPI_TEST_FLAG})
+      add_test(test_rxn_HL_phase_transfer_2_mech ${CMAKE_BINARY_DIR}/test_run/unit_tests/input_files/run_rxn_HL_phase_transfer_2.sh ${MPI_TEST_FLAG})
+      add_test(test_rxn_photolysis_mech ${CMAKE_BINARY_DIR}/test_run/unit_tests/input_files/run_rxn_photolysis.sh ${MPI_TEST_FLAG})
+      add_test(test_rxn_SIMPOL_phase_transfer_mech ${CMAKE_BINARY_DIR}/test_run/unit_tests/input_files/run_rxn_SIMPOL_phase_transfer.sh ${MPI_TEST_FLAG})
+      add_test(test_rxn_SIMPOL_phase_transfer_mech_2 ${CMAKE_BINARY_DIR}/test_run/unit_tests/input_files/run_rxn_SIMPOL_phase_transfer_2.sh ${MPI_TEST_FLAG})
+      add_test(test_rxn_troe_mech ${CMAKE_BINARY_DIR}/test_run/unit_tests/input_files/run_rxn_troe.sh ${MPI_TEST_FLAG})
+      add_test(test_rxn_wet_deposition_mech ${CMAKE_BINARY_DIR}/test_run/unit_tests/input_files/run_rxn_wet_deposition.sh ${MPI_TEST_FLAG})
 
       # Old-style unit tests
       add_test(test_rxn_aqueous_equilibrium ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_aqueous_equilibrium.sh ${MPI_TEST_FLAG})
@@ -707,19 +723,154 @@ target_link_libraries(test_sub_model_ZSR_aerosol_water partmclib)
 ######################################################################
 # New unit tests (UNDER DEVELOPMENT)
 
+
 set(UNIT_TEST_SRC
-    test/unit_tests/unit_test_data.F90
-    test/unit_tests/unit_test_driver.F90)
+        test/unit_tests/unit_test_data.F90
+        test/unit_tests/unit_test_driver.F90)
+
+set(UNIT_TEST_RXN_AQUEOUS_EQUILIBRIUM_SRC
+        test/unit_tests/rxns/unit_test_rxn_aqueous_equilibrium.F90  ${UNIT_TEST_SRC})
+set_source_files_properties(${UNIT_TEST_RXN_AQUEOUS_EQUILIBRIUM_SRC} PROPERTIES COMPILE_FLAGS ${STD_F_FLAGS})
+add_executable(unit_test_rxn_aqueous_equilibrium ${UNIT_TEST_RXN_AQUEOUS_EQUILIBRIUM_SRC})
+target_compile_definitions(unit_test_rxn_aqueous_equilibrium PRIVATE
+        "UNIT_TEST_MODULE_=pmc_unit_test_rxn_aqueous_equilibrium \
+  ;UNIT_TEST_TYPE_=unit_test_rxn_aqueous_equilibrium_t();UNIT_TEST_SCENARIO_=1")
+target_link_libraries(unit_test_rxn_aqueous_equilibrium partmclib)
+
+#set(UNIT_TEST_RXN_AQUEOUS_EQUILIBRIUM_2_SRC
+#        test/unit_tests/rxns/unit_test_rxn_aqueous_equilibrium.F90)
+#set_source_files_properties(${UNIT_TEST_RXN_AQUEOUS_EQUILIBRIUM_2_SRC} PROPERTIES COMPILE_FLAGS ${STD_F_FLAGS})
+#add_executable(unit_test_rxn_aqueous_equilibrium_2 ${UNIT_TEST_RXN_AQUEOUS_EQUILIBRIUM_2_SRC})
+#target_compile_definitions(unit_test_rxn_aqueous_equilibrium_2 PRIVATE
+#        "UNIT_TEST_MODULE_=pmc_unit_test_rxn_aqueous_equilibrium \
+#  ;UNIT_TEST_TYPE_=unit_test_rxn_aqueous_equilibrium_t();UNIT_TEST_SCENARIO_=2")
+#target_link_libraries(unit_test_rxn_aqueous_equilibrium_2 partmclib)
 
 set(UNIT_TEST_RXN_ARRHENIUS_SRC
-    test/unit_tests/rxns/unit_test_rxn_arrhenius.F90 ${UNIT_TEST_SRC})
-set_source_files_properties(${UNIT_TEST_RXN_ARRHENIUS_SRC} PROPERTIES COMPILE_DEFINITIONS
-  "UNIT_TEST_MODULE_=pmc_unit_test_rxn_arrhenius \
-  ;UNIT_TEST_TYPE_=unit_test_rxn_arrhenius_t()")
-set_source_files_properties(${UNIT_TEST_RXN_ARRHENIUS_SRC} PROPERTIES COMPILE_FLAGS
-                            ${STD_F_FLAGS})
+        test/unit_tests/rxns/unit_test_rxn_arrhenius.F90 ${UNIT_TEST_SRC})
+set_source_files_properties(${UNIT_TEST_RXN_ARRHENIUS_SRC} PROPERTIES COMPILE_FLAGS ${STD_F_FLAGS})
 add_executable(unit_test_rxn_arrhenius ${UNIT_TEST_RXN_ARRHENIUS_SRC})
+target_compile_definitions(unit_test_rxn_arrhenius PRIVATE
+        "UNIT_TEST_MODULE_=pmc_unit_test_rxn_arrhenius \
+  ;UNIT_TEST_TYPE_=unit_test_rxn_arrhenius_t()")
 target_link_libraries(unit_test_rxn_arrhenius partmclib)
+
+set(UNIT_TEST_RXN_CMAQ_H202_SRC
+        test/unit_tests/rxns/unit_test_rxn_CMAQ_H202.F90 ${UNIT_TEST_SRC})
+set_source_files_properties(${UNIT_TEST_RXN_CMAQ_H202_SRC} PROPERTIES COMPILE_FLAGS ${STD_F_FLAGS})
+add_executable(unit_test_rxn_CMAQ_H202 ${UNIT_TEST_RXN_CMAQ_H202_SRC})
+target_compile_definitions(unit_test_rxn_CMAQ_H202 PRIVATE
+        "UNIT_TEST_MODULE_=pmc_unit_test_rxn_CMAQ_H202 \
+  ;UNIT_TEST_TYPE_=unit_test_rxn_CMAQ_H202_t()")
+target_link_libraries(unit_test_rxn_CMAQ_H202 partmclib)
+
+set(UNIT_TEST_RXN_CMAQ_OH_HNO3_SRC
+        test/unit_tests/rxns/unit_test_rxn_CMAQ_OH_HNO3.F90 ${UNIT_TEST_SRC})
+set_source_files_properties(${UNIT_TEST_RXN_CMAQ_OH_HNO3_SRC} PROPERTIES COMPILE_FLAGS ${STD_F_FLAGS})
+add_executable(unit_test_rxn_CMAQ_OH_HNO3 ${UNIT_TEST_RXN_CMAQ_OH_HNO3_SRC})
+target_compile_definitions(unit_test_rxn_CMAQ_OH_HNO3 PRIVATE
+        "UNIT_TEST_MODULE_=pmc_unit_test_rxn_CMAQ_OH_HNO3 \
+  ;UNIT_TEST_TYPE_=unit_test_rxn_CMAQ_OH_HNO3_t()")
+target_link_libraries(unit_test_rxn_CMAQ_OH_HNO3 partmclib)
+
+set(UNIT_TEST_RXN_CONDENSED_PHASE_ARRHENIUS_SRC
+        test/unit_tests/rxns/unit_test_rxn_condensed_phase_arrhenius.F90 ${UNIT_TEST_SRC})
+set_source_files_properties(${UNIT_TEST_RXN_CONDENSED_PHASE_ARRHENIUS_SRC} PROPERTIES COMPILE_FLAGS ${STD_F_FLAGS})
+add_executable(unit_test_rxn_condensed_phase_arrhenius ${UNIT_TEST_RXN_CONDENSED_PHASE_ARRHENIUS_SRC})
+target_compile_definitions(unit_test_rxn_condensed_phase_arrhenius PRIVATE
+        "UNIT_TEST_MODULE_=pmc_unit_test_rxn_condensed_phase_arrhenius \
+  ;UNIT_TEST_TYPE_=unit_test_rxn_condensed_phase_arrhenius_t();UNIT_TEST_SCENARIO_=1")
+target_link_libraries(unit_test_rxn_condensed_phase_arrhenius partmclib)
+
+set(UNIT_TEST_RXN_CONDENSED_PHASE_ARRHENIUS_2_SRC
+        test/unit_tests/rxns/unit_test_rxn_condensed_phase_arrhenius.F90 ${UNIT_TEST_SRC})
+set_source_files_properties(${UNIT_TEST_RXN_CONDENSED_PHASE_ARRHENIUS_2_SRC} PROPERTIES COMPILE_FLAGS ${STD_F_FLAGS})
+add_executable(unit_test_rxn_condensed_phase_arrhenius_2 ${UNIT_TEST_RXN_CONDENSED_PHASE_ARRHENIUS_2_SRC})
+target_compile_definitions(unit_test_rxn_condensed_phase_arrhenius_2 PRIVATE
+        "UNIT_TEST_MODULE_=pmc_unit_test_rxn_condensed_phase_arrhenius \
+  ;UNIT_TEST_TYPE_=unit_test_rxn_condensed_phase_arrhenius_t();UNIT_TEST_SCENARIO_=2")
+target_link_libraries(unit_test_rxn_condensed_phase_arrhenius_2 partmclib)
+
+set(UNIT_TEST_RXN_EMISSION_SRC
+        test/unit_tests/rxns/unit_test_rxn_emission.F90 ${UNIT_TEST_SRC})
+set_source_files_properties(${UNIT_TEST_RXN_emission_SRC} PROPERTIES COMPILE_FLAGS ${STD_F_FLAGS})
+add_executable(unit_test_rxn_emission ${UNIT_TEST_RXN_EMISSION_SRC})
+target_compile_definitions(unit_test_rxn_emission PRIVATE
+        "UNIT_TEST_MODULE_=pmc_unit_test_rxn_emission \
+  ;UNIT_TEST_TYPE_=unit_test_rxn_emission_t()")
+target_link_libraries(unit_test_rxn_emission partmclib)
+
+set(UNIT_TEST_RXN_FIRST_ORDER_LOSS_SRC
+        test/unit_tests/rxns/unit_test_rxn_first_order_loss.F90 ${UNIT_TEST_SRC})
+set_source_files_properties(${UNIT_TEST_RXN_FIRST_ORDER_LOSS_SRC} PROPERTIES COMPILE_FLAGS ${STD_F_FLAGS})
+add_executable(unit_test_rxn_first_order_loss ${UNIT_TEST_RXN_FIRST_ORDER_LOSS_SRC})
+target_compile_definitions(unit_test_rxn_first_order_loss PRIVATE
+        "UNIT_TEST_MODULE_=pmc_unit_test_rxn_first_order_loss \
+  ;UNIT_TEST_TYPE_=unit_test_rxn_first_order_loss_t()")
+target_link_libraries(unit_test_rxn_first_order_loss partmclib)
+
+set(UNIT_TEST_RXN_HL_PHASE_TRANSFER_SRC
+        test/unit_tests/rxns/unit_test_rxn_HL_phase_transfer.F90 ${UNIT_TEST_SRC})
+set_source_files_properties(${UNIT_TEST_RXN_HL_PHASE_TRANSFER_SRC} PROPERTIES COMPILE_FLAGS ${STD_F_FLAGS})
+add_executable(unit_test_rxn_HL_phase_transfer ${UNIT_TEST_RXN_HL_PHASE_TRANSFER_SRC})
+target_compile_definitions(unit_test_rxn_HL_phase_transfer PRIVATE
+        "UNIT_TEST_MODULE_=pmc_unit_test_rxn_HL_phase_transfer \
+  ;UNIT_TEST_TYPE_=unit_test_rxn_HL_phase_transfer_t();UNIT_TEST_SCENARIO_=1")
+target_link_libraries(unit_test_rxn_HL_phase_transfer partmclib)
+
+set(UNIT_TEST_RXN_HL_PHASE_TRANSFER_2_SRC
+        test/unit_tests/rxns/unit_test_rxn_HL_phase_transfer.F90 ${UNIT_TEST_SRC})
+set_source_files_properties(${UNIT_TEST_RXN_HL_PHASE_TRANSFER_2_SRC} PROPERTIES COMPILE_FLAGS ${STD_F_FLAGS})
+add_executable(unit_test_rxn_HL_phase_transfer_2 ${UNIT_TEST_RXN_HL_PHASE_TRANSFER_2_SRC})
+target_compile_definitions(unit_test_rxn_HL_phase_transfer_2 PRIVATE
+        "UNIT_TEST_MODULE_=pmc_unit_test_rxn_HL_phase_transfer \
+  ;UNIT_TEST_TYPE_=unit_test_rxn_HL_phase_transfer_t();UNIT_TEST_SCENARIO_=2")
+target_link_libraries(unit_test_rxn_HL_phase_transfer_2 partmclib)
+
+set(UNIT_TEST_RXN_PHOTOLYSIS_SRC
+        test/unit_tests/rxns/unit_test_rxn_photolysis.F90 ${UNIT_TEST_SRC})
+set_source_files_properties(${UNIT_TEST_RXN_PHOTOLYSIS_SRC} PROPERTIES COMPILE_FLAGS ${STD_F_FLAGS})
+add_executable(unit_test_rxn_photolysis ${UNIT_TEST_RXN_PHOTOLYSIS_SRC})
+target_compile_definitions(unit_test_rxn_photolysis PRIVATE
+        "UNIT_TEST_MODULE_=pmc_unit_test_rxn_photolysis \
+  ;UNIT_TEST_TYPE_=unit_test_rxn_photolysis_t()")
+target_link_libraries(unit_test_rxn_photolysis partmclib)
+
+set(UNIT_TEST_RXN_SIMPOL_PHASE_TRANSFER_SRC
+        test/unit_tests/rxns/unit_test_rxn_SIMPOL_phase_transfer.F90 ${UNIT_TEST_SRC})
+set_source_files_properties(${UNIT_TEST_RXN_SIMPOL_PHASE_TRANSFER_SRC} PROPERTIES COMPILE_FLAGS ${STD_F_FLAGS})
+add_executable(unit_test_rxn_SIMPOL_phase_transfer ${UNIT_TEST_RXN_SIMPOL_PHASE_TRANSFER_SRC})
+target_compile_definitions(unit_test_rxn_SIMPOL_phase_transfer PRIVATE
+        "UNIT_TEST_MODULE_=pmc_unit_test_rxn_SIMPOL_phase_transfer \
+  ;UNIT_TEST_TYPE_=unit_test_rxn_SIMPOL_phase_transfer_t();UNIT_TEST_SCENARIO_=1")
+target_link_libraries(unit_test_rxn_SIMPOL_phase_transfer partmclib)
+
+set(UNIT_TEST_RXN_SIMPOL_PHASE_TRANSFER_2_SRC
+        test/unit_tests/rxns/unit_test_rxn_SIMPOL_phase_transfer.F90 ${UNIT_TEST_SRC})
+set_source_files_properties(${UNIT_TEST_RXN_SIMPOL_PHASE_TRANSFER_2_SRC} PROPERTIES COMPILE_FLAGS ${STD_F_FLAGS})
+add_executable(unit_test_rxn_SIMPOL_phase_transfer_2 ${UNIT_TEST_RXN_SIMPOL_PHASE_TRANSFER_2_SRC})
+target_compile_definitions(unit_test_rxn_SIMPOL_phase_transfer_2 PRIVATE
+        "UNIT_TEST_MODULE_=pmc_unit_test_rxn_SIMPOL_phase_transfer \
+  ;UNIT_TEST_TYPE_=unit_test_rxn_SIMPOL_phase_transfer_t();UNIT_TEST_SCENARIO_=2")
+target_link_libraries(unit_test_rxn_SIMPOL_phase_transfer_2 partmclib)
+
+set(UNIT_TEST_RXN_TROE_SRC
+        test/unit_tests/rxns/unit_test_rxn_troe.F90 ${UNIT_TEST_SRC})
+set_source_files_properties(${UNIT_TEST_RXN_TROE_SRC} PROPERTIES COMPILE_FLAGS ${STD_F_FLAGS})
+add_executable(unit_test_rxn_troe ${UNIT_TEST_RXN_TROE_SRC})
+target_compile_definitions(unit_test_rxn_troe PRIVATE
+        "UNIT_TEST_MODULE_=pmc_unit_test_rxn_troe \
+  ;UNIT_TEST_TYPE_=unit_test_rxn_troe_t()")
+target_link_libraries(unit_test_rxn_troe partmclib)
+
+set(UNIT_TEST_RXN_WET_DEPOSITION_SRC
+        test/unit_tests/rxns/unit_test_rxn_wet_deposition.F90 ${UNIT_TEST_SRC})
+set_source_files_properties(${UNIT_TEST_RXN_WET_DEPOSITION_SRC} PROPERTIES COMPILE_FLAGS ${STD_F_FLAGS})
+add_executable(unit_test_rxn_wet_deposition ${UNIT_TEST_RXN_WET_DEPOSITION_SRC})
+target_compile_definitions(unit_test_rxn_wet_deposition PRIVATE
+        "UNIT_TEST_MODULE_=pmc_unit_test_rxn_wet_deposition \
+  ;UNIT_TEST_TYPE_=unit_test_rxn_wet_deposition_t()")
+target_link_libraries(unit_test_rxn_wet_deposition partmclib)
 
 ######################################################################
 # test_camp_core

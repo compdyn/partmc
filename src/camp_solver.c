@@ -961,7 +961,6 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
 
     clock_t end = clock();
     timeDerivgpu += ((double)(end - start));
-    counterDeriv++;
 
 #else
 
@@ -988,7 +987,6 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
 
     clock_t end2 = clock();
     timeDerivgpu += ((double)(end2 - start2));
-    counterDeriv++;
 
 #else
 
@@ -1002,7 +1000,7 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
 
 #ifdef PMC_DEBUG
   counterDeriv++;
-  if (counterDeriv == 10 && sd->debug_out) print_derivative(deriv);
+  if (counterDeriv == 1) print_derivative(deriv);
 #endif
 
   // Return 0 if success
@@ -1098,7 +1096,6 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
 
     clock_t end = clock();
     timeJac += ((double)(end - start));
-    counterJac++;
 
 #else
 
@@ -1142,7 +1139,6 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
 
     clock_t end2 = clock();
     timeDerivgpu += ((double)(end2 - start2));
-    counterJac++;
 
 #else
 

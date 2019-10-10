@@ -9,20 +9,24 @@
     "deposition.json",
     "emissions.json",
     "photolysis.json",
-    "../../../../mechansims/simple_mech/aerosol_phases.json",
-    "../../../../mechansims/simple_mech/aerosol_species.json",
-    "../../../../mechansims/simple_mech/cloud_and_rain_partitioning.json",
-    "../../../../mechansims/simple_mech/gas_species.json",
-    "../../../../mechansims/simple_mech/mechanism.json"
+    "../../../../mechanisms_run/simple_mech/aerosol_phases.json",
+    "../../../../mechanisms_run/simple_mech/aerosol_species.json",
+    "../../../../mechanisms_run/simple_mech/cloud_and_rain_partitioning.json",
+    "../../../../mechanisms_run/simple_mech/gas_species.json",
+    "../../../../mechanisms_run/simple_mech/mechanism.json"
   ],
   "camp-box-model" : {
     "total integration time [s]" : 180.0,
-    "output time step [s]" : 1,
+    "output time step [s]" : 1.0,
     "temperature [K]" : {
       "initial" : 298.0
     },
     "pressure [Pa]" : {
       "initial" : 101325.0
+    },
+    "initial state" : {
+      "O3" : 1.0,
+      "O2" : 209500.0
     },
     "rates" : {
       "photo-NO2" : {
@@ -32,7 +36,7 @@
         "initial" : 0.001
       },
       "emission-NO" : {
-        "inital" : 0.001
+        "initial" : 0.001
       },
       "emission-NO2" : {
         "initial" : 0.001

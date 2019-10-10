@@ -41,6 +41,8 @@ program pmc_camp_box_model
   ! Create a new box model
   box_model => camp_box_model_data_t( config_file )
 
+  call box_model%print( )
+
   ! Open the output file
   open( unit = OUTPUT_FILE_UNIT, file = output_file, status = "replace", &
         action = "write" )

@@ -193,6 +193,8 @@ module pmc_camp_core
     procedure :: state_size
     !> Get the size of the state array per grid cell
     procedure :: state_size_per_cell
+    !> Get an array of unique names for all species on the state array
+    procedure :: unique_names
     !> Get the index of a species on the state array by its unique name
     procedure :: spec_state_id
     !> Initialize the solver
@@ -1041,6 +1043,41 @@ contains
     state_size = this%size_state_per_cell
 
   end function state_size_per_cell
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Get an array of unique names for all species on the state array
+  !!
+  !! The order of this array is the same as the state array for one grid cell
+  function unique_names( this )
+
+    !> Array of unique species names
+    type(string_t), allocatable :: unique_names(:)
+    !> CAMP core
+    class(camp_core_t), intent(in) :: this
+
+    integer(kind=i_kind) :: i_aero_rep
+    type(string_t), allocatable :: new_names(:), temp_list(:)
+
+    unique_names = this%chem_spec_data%get_spec_names( &
+                       spec_phase = CHEM_SPEC_GAS_PHASE )
+
+    if( .not. associated( this%aero_rep ) ) return
+    do i_aero_rep = 1, size( this%aero_rep )
+      new_names = this%aero_rep( i_aero_rep )%val%unique_names( )
+      if( .not. allocated( new_names ) ) cycle
+      if( size( new_names ).eq.0 ) cycle
+      allocate( temp_list( size( unique_names ) + size( new_names ) ) )
+      temp_list( 1 : size( unique_names ) ) = unique_names( : )
+      temp_list( size( unique_names ) + 1 : size( temp_list ) ) = &
+        new_names( : )
+      deallocate( unique_names )
+      allocate( unique_names, source = temp_list )
+    end do
+    if( allocated( new_names ) ) deallocate( new_names )
+    if( allocated( temp_list ) ) deallocate( temp_list )
+
+  end function unique_names
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

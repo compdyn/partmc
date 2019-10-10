@@ -210,14 +210,19 @@ macro(do_unit_test test_name result)
 endmacro(do_unit_test)
 
 ######################################################################
-# tests
+# copy dirs
 
-enable_testing()
 add_custom_target(copy_test ALL ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/test ${CMAKE_BINARY_DIR}/test_run)
 set_property(DIRECTORY PROPERTY ADDITIONAL_MAKE_CLEAN_FILES test_run)
 add_custom_target(copy_mechanism ALL ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/mechanisms ${CMAKE_BINARY_DIR}/mechanisms_run)
 set_property(DIRECTORY PROPERTY ADDITIONAL_MAKE_CLEAN_FILES mechanisms_run)
+add_custom_target(copy_scenario ALL ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/scenarios ${CMAKE_BINARY_DIR}/scenarios_run)
+set_property(DIRECTORY PROPERTY ADDITIONAL_MAKE_CLEAN_FILES scenarios_run)
 
+######################################################################
+# tests
+
+enable_testing()
 do_unit_test(property "PASS")
 do_unit_test(chem_spec_data "PASS")
 do_unit_test(aero_phase_data "PASS")

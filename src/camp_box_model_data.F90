@@ -42,6 +42,8 @@ module pmc_camp_box_model_data
     procedure :: advance
     !> Get the current profile value
     procedure :: current_value
+    !> Print the profile configuration
+    procedure :: print => profile_do_print
   end type profile_t
 
 #ifdef PMC_USE_JSON
@@ -76,6 +78,8 @@ module pmc_camp_box_model_data
     type(camp_state_t), pointer :: camp_state
     !> Initial CAMP state
     type(camp_state_t), pointer :: initial_camp_state
+    !> State species names
+    type(string_t), allocatable :: spec_names(:)
     !> Number of time steps
     integer(kind=i_kind) :: num_steps
     !> Time step length [s]
@@ -91,6 +95,8 @@ module pmc_camp_box_model_data
   contains
     !> Run the box model
     procedure :: run
+    !> Print the box model configuration
+    procedure :: print => do_print
   end type camp_box_model_data_t
 
   !> Constructor for camp_box_model_data_t
@@ -116,7 +122,7 @@ contains
 #ifdef PMC_USE_JSON
     type(json_core), target :: json
     type(json_file) :: j_file
-    type(json_value), pointer :: j_obj, j_next
+    type(json_value), pointer :: j_obj, j_next, j_box_config
 
     logical(kind=json_lk) :: found, valid
     character(kind=json_ck, len=:), allocatable :: unicode_str_val
@@ -140,51 +146,70 @@ contains
     new_obj%camp_state         => new_obj%camp_core%new_state( )
     new_obj%initial_camp_state => new_obj%camp_core%new_state( )
 
+    ! Get the state species names
+    new_obj%spec_names = new_obj%camp_core%unique_names( )
+
     ! Load the configuration data from the json file
     call j_file%initialize( )
     call j_file%get_core( json )
-    call assert_msg( 135902099, trim( config_file ).eq."", &
+    json_err_msg = ""
+    call assert_msg( 135902099, trim( config_file ).ne."", &
                      "Received empty string for file path" )
     inquire( file = trim( config_file ), exist = file_exists )
     call assert_msg( 181758805, file_exists, "Cannot find file: "// &
                     trim( config_file ) )
     call j_file%load_file( filename = trim( config_file ) )
 
+    ! Get the box model configuration data
+    call j_file%get( "camp-box-model", j_box_config, found )
+    call assert_msg( 198537480, found, &
+                     "Missing 'camp-box-model' configuration data "// &
+                     "in configuration file.")
+    call json%validate( j_box_config, valid, json_err_msg )
+    call assert_msg( 992222859, valid, &
+                     "Bad JSON format in 'camp-box-model' configuration "// &
+                     "data: "//trim( json_err_msg ) )
+
     ! Get the number of time steps
-    call j_file%get( "output time step [s]", real_value, found )
+    call json%get_child( j_box_config, "output time step [s]", j_obj, found )
     call assert_msg( 912341318, found, &
                      "Missing 'output time step [s]' "// &
                      "in box model data" )
+    call json%get( j_obj, real_value )
     new_obj%time_step__s = real_value
 
     ! Get the integration time
-    call j_file%get( "total integration time [s]", real_value, found )
+    call json%get_child( j_box_config, "total integration time [s]", j_obj, &
+                   found )
     call assert_msg( 442175882, found, &
                      "Missing 'total integration time [s]' "// &
                      "in box model data" )
+    call json%get( j_obj, real_value )
     new_obj%num_steps = ceiling( real_value / new_obj%time_step__s )
     new_obj%total_time__s  = real_value
 
     ! Get the temperature profile
-    call j_file%get( "temperature [K]", j_obj, found )
+    call json%get_child( j_box_config, "temperature [K]", j_obj, found )
     call assert_msg( 212013359, found, &
                      "Missing 'temperature [K]' "// &
                      "in box model data" )
     new_obj%temperature__K = profile_t( json, j_obj )
 
     ! Get the pressure profile
-    call j_file%get( "pressure [Pa]", j_obj, found )
+    call json%get_child( j_box_config, "pressure [Pa]", j_obj, found )
     call assert_msg( 115322763, found, &
                      "Missing 'pressure [Pa]' "// &
                      "in box model data" )
     new_obj%pressure__Pa = profile_t( json, j_obj )
 
     ! Get the reaction rate profiles
-    call j_file%get( "rates", j_obj, found )
+    call json%get_child( j_box_config, "rates", j_obj, found )
     if( found ) then
-      call j_file%info( "rates", n_children = num_rates )
+      call json%info( j_obj, n_children = num_rates )
       allocate( new_obj%rxn_profiles( num_rates ) )
       j_next => null( )
+      call json%get( j_box_config, "rates(1)", j_obj, found )
+      call assert( 693229278, found )
       i_rate = 0
       do while( associated( j_obj ) )
         i_rate = i_rate + 1
@@ -193,11 +218,11 @@ contains
         call json%get_next( j_obj, j_next )
         j_obj => j_next
       end do
-      call assert( 763815888, i_rate .eq. num_rates )
+      call assert( 763815888, i_rate .eq. num_rates)
     end if
 
     ! Get the initial species concentrations
-    call j_file%get( "initial state", j_obj, found )
+    call json%get( j_box_config, "initial state(1)", j_obj, found )
     if( found ) then
       j_next => null( )
       do while( associated( j_obj ) )
@@ -208,7 +233,9 @@ contains
                                                           spec_id ), &
                          "Cannot find species '"//trim( spec_name )// &
                          "' in the chemical mechanism" )
-        new_obj%camp_state%state_var( spec_id ) = real_value
+        new_obj%initial_camp_state%state_var( spec_id ) = real_value
+        call json%get_next( j_obj, j_next )
+        j_obj => j_next
       end do
     end if
 
@@ -302,6 +329,76 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Print out the configuration of the box model
+  subroutine do_print( this, file_unit )
+
+    !> Box model data
+    class(camp_box_model_data_t), intent(in) :: this
+    !> Output file unit
+    integer(kind=i_kind), intent(in), optional :: file_unit
+
+    character(len=*), parameter :: fmt_blank_line = "('')"
+    character(len=*), parameter :: fmt_state_hdr = &
+      "(' | ',A50,' | ',A13,' |')"
+    character(len=*), parameter :: fmt_state_data = &
+      "(' | ',A50,' | ',ES13.3,' |')"
+    integer(kind=i_kind) :: f_unit, i_rate, i_spec
+
+    f_unit = 6
+    if( present( file_unit ) ) f_unit = file_unit
+
+    write(f_unit,*) "**********************"
+    write(f_unit,*) "*** CAMP Box Model ***"
+    write(f_unit,*) "**********************"
+    write(f_unit,fmt_blank_line)
+    write(f_unit,*) "total integration time", this%total_time__s, "s"
+    write(f_unit,*) "time step size        ", this%time_step__s,  "s"
+    write(f_unit,*) "number of time steps  ", this%num_steps
+    write(f_unit,fmt_blank_line)
+    write(f_unit,*) "** temperature profile **"
+    call this%temperature__K%print( f_unit )
+    write(f_unit,*) "** end temperature profile **"
+    write(f_unit,fmt_blank_line)
+    write(f_unit,*) "** pressure [Pa] profile **"
+    call this%pressure__Pa%print( f_unit )
+    write(f_unit,*) "** end pressure [Pa] profile **"
+    write(f_unit,fmt_blank_line)
+    write(f_unit,*) "****************************"
+    write(f_unit,*) "** Reaction Rate Profiles **"
+    write(f_unit,*) "****************************"
+    write(f_unit,fmt_blank_line)
+    do i_rate = 1, size( this%rxn_profiles )
+      call this%rxn_profiles( i_rate )%print( f_unit )
+    write(f_unit,fmt_blank_line)
+    end do
+    write(f_unit,*) "****************************"
+    write(f_unit,*) "** Reaction Rate Profiles **"
+    write(f_unit,*) "****************************"
+    write(f_unit,fmt_blank_line)
+    write(f_unit,*) "*******************"
+    write(f_unit,*) "** Initial State **"
+    write(f_unit,*) "*******************"
+    write(f_unit,fmt_blank_line)
+    write(f_unit,fmt_state_hdr) "Species", "Value"
+    do i_spec = 1, size( this%spec_names )
+      write(f_unit,fmt_state_data) this%spec_names( i_spec )%string, &
+                                   this%initial_camp_state%state_var( i_spec )
+    end do
+    write(f_unit,fmt_blank_line)
+    call this%camp_core%print( f_unit )
+    write(f_unit,fmt_blank_line)
+    write(f_unit,*) "***********************"
+    write(f_unit,*) "** End Initial State **"
+    write(f_unit,*) "***********************"
+    write(f_unit,fmt_blank_line)
+    write(f_unit,*) "**************************"
+    write(f_unit,*) "*** End CAMP Box Model ***"
+    write(f_unit,*) "**************************"
+
+  end subroutine do_print
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 #ifdef PMC_USE_JSON
   !> Constructor for profile_t
   function profile_constructor( json, j_obj ) result( new_obj )
@@ -315,7 +412,7 @@ contains
     !> JSON object to build profile from
     type(json_value), pointer, intent(inout)  :: j_obj
 
-    type(json_value), pointer :: j_child, j_next
+    type(json_value), pointer :: j_child, j_next, j_val
     integer(kind=json_ik) :: num_trans
     logical(kind=json_lk) :: found
     character(kind=json_ck, len=:), allocatable :: profile_name
@@ -327,9 +424,9 @@ contains
     new_obj%name = profile_name
 
     ! Get the transitions
-    call json%get( j_obj, "transitions", j_child, found )
+    call json%get_child( j_obj, "transitions", j_child, found )
     if( found ) then
-      call json%info( j_obj, "transitions", n_children = num_trans )
+      call json%info( j_obj, n_children = num_trans )
       allocate( new_obj%transition_time_step( 0:num_trans ) )
       allocate( new_obj%transition_value(     0:num_trans ) )
       j_next => null( )
@@ -337,18 +434,22 @@ contains
       i_trans = 0
       do while( associated( j_child ) )
         i_trans = i_trans + 1
-        call json%get( j_child, "time step", &
-                       new_obj%transition_time_step( i_trans ), found )
+
+        ! get the time step
+        call json%get_child( j_child, "time step", j_val, found )
         call assert_msg( 325008338, found, &
                          "Missing 'time step' from element "// &
                          trim( to_string( i_trans ) )//" in transition '"// &
                          trim( new_obj%name )//"'" )
-        call json%get( j_child, "value", &
-                       new_obj%transition_value( i_trans ), found )
+        call json%get( j_val, new_obj%transition_time_step( i_trans ) )
+
+        ! Get the value
+        call json%get_child( j_child, "value", j_val, found )
         call assert_msg( 483183389, found, &
                          "Missing 'value' from element "// &
                          trim( to_string( i_trans ) )//" in transition '"// &
                          trim( new_obj%name )//"'" )
+        call json%get( j_val, new_obj%transition_value( i_trans ) )
         call json%get_next( j_child, j_next )
         j_child => j_next
       end do
@@ -359,11 +460,11 @@ contains
     end if
 
     ! Get the initial state
-    call json%get( j_obj, "initial", j_child, found )
+    call json%get_child( j_obj, "initial", j_val, found )
     call assert_msg( 382107479, found, &
                      "Missing 'initial' value in profile '"// &
                      trim( new_obj%name )//"'" )
-    call json%get( j_child, new_obj%transition_value( 0 ) )
+    call json%get( j_val, new_obj%transition_value( 0 ) )
     new_obj%transition_time_step( 0 ) = 1
 
   end function profile_constructor
@@ -415,6 +516,36 @@ contains
   end function current_value
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Print the profile configuration
+  subroutine profile_do_print( this, file_unit )
+
+    !> Property profile
+    class(profile_t), intent(in) :: this
+    !> Output file unit
+    integer(kind=i_kind), intent(in), optional :: file_unit
+
+    character(len=*), parameter :: fmt_trans_hdr = &
+      "('   | ',A13,' | ',A13,' |')"
+    character(len=*), parameter :: fmt_trans_data = &
+      "('   | ',I13,' | ',ES13.3,' |')"
+    integer(kind=i_kind) :: f_unit, i_trans
+
+    f_unit = 6
+    if( present( file_unit ) ) f_unit = file_unit
+
+    write(f_unit,*) "Profile name: "//trim(this%name)
+    write(f_unit,*) "  ** Transitions     **"
+    write(f_unit,fmt_trans_hdr) "Time Step", "Value"
+    do i_trans = 0, size( this%transition_time_step ) - 1
+      write(f_unit,fmt_trans_data) this%transition_time_step( i_trans ), &
+                                   this%transition_value( i_trans )
+    end do
+    write(f_unit,*) "  ** End Transitions **"
+
+  end subroutine profile_do_print
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #ifdef PMC_USE_JSON
   !> Constructor for rxn_profile_t
   function rxn_profile_constructor( camp_core, json, j_obj ) result( new_obj )
@@ -459,8 +590,8 @@ contains
       do i_rxn = 1, mech%size( )
         rxn => mech%get_rxn( i_rxn )
         if( .not. rxn%property_set%get_string( "camp-box-model-id", &
-                                               rxn_label ) ) continue
-        if( .not. trim( rxn_label ) .eq. new_obj%name ) continue
+                                               rxn_label ) ) cycle
+        if( .not. trim( rxn_label ) .eq. new_obj%name ) cycle
         select type( rxn )
           class is( rxn_emission_t)
             allocate( rxn_update_data_emission_t::new_obj%update_data )
@@ -475,7 +606,9 @@ contains
         end select
         call rxn_factory%initialize_update_data( rxn, new_obj%update_data )
         found = .true.
+        exit
       end do
+      if( found ) exit
     end do
 
     call assert_msg( 800298506, found, "Could not find reaction label '"// &

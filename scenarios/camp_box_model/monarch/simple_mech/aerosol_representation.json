@@ -1,0 +1,27 @@
+{
+  "description" : [
+    "This is the aerosol representation for the simple chemistry mechanism"
+  ],
+  "pmc-data" : [
+    {
+      "name" : "MONARCH mass-based",
+      "type" : "AERO_REP_MODAL_BINNED_MASS",
+      "camp-box-model-id" : "monarch aero rep",
+      "modes/bins" :
+      {
+        "clouds and rain" :
+        {
+          "type" : "MODAL",
+          "phases" : [ "cloud and rain water" ],
+          "shape" : "LOG_NORMAL",
+          "geometric mean diameter [m]" : 2.0e-5,
+          "geometric standard deviation" : 2.0,
+          "notes" : [
+            "Diameter is based on 10 micron radius for cloud droplets used in",
+            "  existing cloud chemistry module."
+          ]
+        }
+      }
+    }
+  ]
+}

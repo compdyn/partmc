@@ -210,14 +210,17 @@ macro(do_unit_test test_name result)
 endmacro(do_unit_test)
 
 ######################################################################
+# copy dirs
+
+add_custom_target(copy_test ALL ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/test ${CMAKE_BINARY_DIR}/test_run)
+add_custom_target(copy_mechanism ALL ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/mechanisms ${CMAKE_BINARY_DIR}/mechanisms_run)
+add_custom_target(copy_scenario ALL ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/scenarios ${CMAKE_BINARY_DIR}/scenarios_run)
+set_property(DIRECTORY PROPERTY ADDITIONAL_MAKE_CLEAN_FILES test_run mechanisms_run scenarios_run)
+
+######################################################################
 # tests
 
 enable_testing()
-add_custom_target(copy_test ALL ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/test ${CMAKE_BINARY_DIR}/test_run)
-set_property(DIRECTORY PROPERTY ADDITIONAL_MAKE_CLEAN_FILES test_run)
-add_custom_target(copy_mechanism ALL ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/mechanisms ${CMAKE_BINARY_DIR}/mechanisms_run)
-set_property(DIRECTORY PROPERTY ADDITIONAL_MAKE_CLEAN_FILES mechanisms_run)
-
 do_unit_test(property "PASS")
 do_unit_test(chem_spec_data "PASS")
 do_unit_test(aero_phase_data "PASS")
@@ -544,7 +547,7 @@ add_library(partmclib src/aero_state.F90 src/integer_varray.F90
   src/camp_core.F90 src/camp_solver_data.F90 src/aero_rep_data.F90
   src/aero_phase_data.F90 src/aero_rep_factory.F90 src/camp_interface.F90
   src/rxn_factory.F90 src/sub_model_data.F90 src/sub_model_factory.F90
-  src/solver_stats.F90
+  src/solver_stats.F90 src/camp_box_model_data.F90
   ${CAMP_C_SRC} ${AEROSOL_REPS_SRC} ${SUB_MODELS_SRC} ${REACTIONS_SRC}
   ${SUNDIALS_SRC} ${GSL_SRC} ${C_SORT_SRC} ${CAMP_CUDA_SRC} ${CAMP_CXX_SRC} )
 
@@ -563,7 +566,7 @@ target_link_libraries(partmc partmclib)
 ######################################################################
 # camp-chem box model
 
-add_executable(camp_box_model test/chemistry/camp_box_model.F90)
+add_executable(camp_box_model src/camp_box_model.F90)
 
 target_link_libraries(camp_box_model partmclib)
 

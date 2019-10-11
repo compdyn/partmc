@@ -1,0 +1,114 @@
+{
+  "notes" :"A Generalized Reaction Mechanism for Photochemical Smog from kpp-2.2.3/models/smog.eqn",
+  "pmc-data" : [
+    {
+      "name" : "H2O_aq",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "tracer type" : "CONSTANT",
+      "absolute integration tolerance" : 1.0E-05,
+      "density [kg m-3]" : 1000.0,
+      "molecular weight [kg mol-1]" : 0.01801528,
+      "decscription" : "aerosol-phase water"
+    },
+    {
+      "name" : "O3_aq",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-05,
+      "density [kg m-3]" : 1000.0,
+      "molecular weight [kg mol-1]" : 0.047997,
+      "description" : "aqueous ozone"
+    },
+    {
+      "name" : "HO2_aq",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-05,
+      "density [kg m-3]" : 1000.0,
+      "molecular weight [kg mol-1]" : 0.033006,
+      "description" : "aqueous hydroperoxyl radical"
+    },
+    {
+      "name" : "NO_aq",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-05,
+      "density [kg m-3]" : 1000.0,
+      "molecular weight [kg mol-1]" : 0.030006,
+      "description" : "aqueous nitric oxide"
+    },
+    {
+      "name" : "NO2_aq",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-05,
+      "density [kg m-3]" : 1000.0,
+      "molecular weight [kg mol-1]" : 0.046006,
+      "description" : "aqueous nitrogen dioxide"
+    },
+    {
+      "name" : "HNO3_aq",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-05,
+      "density [kg m-3]" : 1510.0,
+      "molecular weight [kg mol-1]" : 0.0630129,
+      "description" : "aqueous nitric acid"
+    },
+    {
+      "name" : "RH_aq",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-05,
+      "density [kg m-3]" : 1000.0,
+      "molecular weight [kg mol-1]" : 0.030070,
+      "description" : "aqueous ethane"
+    },
+    {
+      "name" : "CO_aq",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-05,
+      "density [kg m-3]" : 1000.0,
+      "molecular weight [kg mol-1]" : 0.028010,
+      "description" : "aqueous carbon monoxide"
+    },
+    {
+      "name" : "OH_aq",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-05,
+      "density [kg m-3]" : 1000.0,
+      "molecular weight [kg mol-1]" : 0.017007,
+      "description" : "aqueous hydroxyl radical"
+    },
+    {
+      "name" : "RCHO_aq",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-05,
+      "density [kg m-3]" : 1000.0,
+      "molecular weight [kg mol-1]" : 0.044053,
+      "description" : "aqueous acetaldehyde"
+    },
+    {
+      "name" : "CO2_aq",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-05,
+      "density [kg m-3]" : 1000.0,
+      "molecular weight [kg mol-1]" : 0.044009,
+      "description" : "aqueous carbon dioxide"
+    },
+    {
+      "name" : "RO2_aq",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-05,
+      "density [kg m-3]" : 1000.0,
+      "molecular weight [kg mol-1]" : 0.04703,
+      "description" : "aqueous methyperoxy radical"
+    }
+  ]
+}

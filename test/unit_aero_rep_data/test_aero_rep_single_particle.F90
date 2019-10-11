@@ -290,8 +290,8 @@ contains
 
     select type( aero_rep )
       type is(aero_rep_single_particle_t)
-        call aero_rep_factory%initialize_update_data( aero_rep, update_radius )
-        call aero_rep_factory%initialize_update_data( aero_rep, update_number )
+        call camp_core%initialize_update_object( aero_rep, update_radius )
+        call camp_core%initialize_update_object( aero_rep, update_number )
       class default
         call die_msg(766425873, "Wrong aero rep type")
     end select
@@ -307,12 +307,12 @@ contains
     ! Update external properties
     call update_radius%set_radius( PART_RADIUS )
     call update_number%set_number( 12.3d0 )
-    call camp_core%update_aero_rep_data( update_radius )
-    call camp_core%update_aero_rep_data( update_number )
+    call camp_core%update_data( update_radius )
+    call camp_core%update_data( update_number )
 
     ! Test re-setting number concentration
     call update_number%set_number( PART_NUM_CONC )
-    call camp_core%update_aero_rep_data( update_number )
+    call camp_core%update_data( update_number )
 
     passed = run_aero_rep_single_particle_c_tests(                           &
                  camp_core%solver_data_gas_aero%solver_c_ptr,                &

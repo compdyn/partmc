@@ -109,8 +109,10 @@ module pmc_camp_core
   use pmc_camp_solver_data
   use pmc_camp_state
   use pmc_rxn_data
+  use pmc_rxn_factory
   use pmc_solver_stats
   use pmc_sub_model_data
+  use pmc_sub_model_factory
   use pmc_sub_model_factory
   use pmc_util,                       only : die_msg, string_t
 
@@ -126,14 +128,14 @@ module pmc_camp_core
   private
     !> Chemical mechanisms
     !! FIXME set up an iterator for external modules to use and
-    !! make mechanisms private
+    !! make all data members private
     type(mechanism_data_ptr), pointer, public :: mechanism(:) => null()
     !> Chemical species data
     type(chem_spec_data_t), pointer :: chem_spec_data => null()
     !> Sub models
     type(sub_model_data_ptr), pointer :: sub_model(:) => null()
     !> Aerosol representations
-    type(aero_rep_data_ptr), pointer :: aero_rep(:) => null()
+    type(aero_rep_data_ptr), pointer, public :: aero_rep(:) => null()
     !> Aerosol phases
     type(aero_phase_data_ptr), pointer :: aero_phase(:) => null()
     !> Size of the state array per grid cell
@@ -171,6 +173,8 @@ module pmc_camp_core
     procedure :: initialize
     !> Indicate whether the core has been initialized
     procedure :: is_initialized
+    !> Indicate whether the solver has been initialized
+    procedure :: is_solver_initialized
     !> Get a pointer to an aerosol phase by name
     procedure :: get_aero_phase
     !> Get a pointer to an aerosol representation by name
@@ -193,16 +197,30 @@ module pmc_camp_core
     procedure :: state_size
     !> Get the size of the state array per grid cell
     procedure :: state_size_per_cell
+    !> Get an array of unique names for all species on the state array
+    procedure :: unique_names
+    !> Get the index of a species on the state array by its unique name
+    procedure :: spec_state_id
     !> Initialize the solver
     procedure :: solver_initialize
     !> Free the solver
     procedure :: free_solver
-    !> Update aerosol representation data
-    procedure :: update_aero_rep_data
-    !> Update reaction data
-    procedure :: update_rxn_data
-    !> Update sub-model data
-    procedure :: update_sub_model_data
+    !> Initialize an update_data object
+    procedure, private :: initialize_aero_rep_update_object
+    procedure, private :: initialize_rxn_update_object
+    procedure, private :: initialize_sub_model_update_object
+    generic :: initialize_update_object => &
+               initialize_aero_rep_update_object, &
+               initialize_rxn_update_object, &
+               initialize_sub_model_update_object
+    !> Update model data
+    procedure, private :: aero_rep_update_data
+    procedure, private :: rxn_update_data
+    procedure, private :: sub_model_update_data
+    generic :: update_data => &
+               aero_rep_update_data, &
+               rxn_update_data, &
+               sub_model_update_data
     !> Run the chemical mechanisms
     procedure :: solve
     !> Determine the number of bytes required to pack the variable
@@ -795,6 +813,18 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Inidicate whether the solver has been initialized
+  logical function is_solver_initialized(this)
+
+    !> Model data
+    class(camp_core_t), intent(in) :: this
+
+    is_solver_initialized = this%solver_is_initialized
+
+  end function is_solver_initialized
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Get a pointer to an aerosol phase by name
   logical function get_aero_phase(this, aero_phase_name, aero_phase) &
             result (found)
@@ -1042,6 +1072,71 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Get an array of unique names for all species on the state array
+  !!
+  !! The order of this array is the same as the state array for one grid cell
+  function unique_names( this )
+
+    !> Array of unique species names
+    type(string_t), allocatable :: unique_names(:)
+    !> CAMP core
+    class(camp_core_t), intent(in) :: this
+
+    integer(kind=i_kind) :: i_aero_rep
+    type(string_t), allocatable :: new_names(:), temp_list(:)
+
+    unique_names = this%chem_spec_data%get_spec_names( &
+                       spec_phase = CHEM_SPEC_GAS_PHASE )
+
+    if( .not. associated( this%aero_rep ) ) return
+    do i_aero_rep = 1, size( this%aero_rep )
+      new_names = this%aero_rep( i_aero_rep )%val%unique_names( )
+      if( .not. allocated( new_names ) ) cycle
+      if( size( new_names ).eq.0 ) cycle
+      allocate( temp_list( size( unique_names ) + size( new_names ) ) )
+      temp_list( 1 : size( unique_names ) ) = unique_names( : )
+      temp_list( size( unique_names ) + 1 : size( temp_list ) ) = &
+        new_names( : )
+      deallocate( unique_names )
+      allocate( unique_names, source = temp_list )
+    end do
+    if( allocated( new_names ) ) deallocate( new_names )
+    if( allocated( temp_list ) ) deallocate( temp_list )
+
+  end function unique_names
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Get the id of a species on the state array by its unique name
+  function spec_state_id( this, spec_name, state_id ) result( found )
+
+    !> Flag indicating whether the species was found
+    logical :: found
+    !> CAMP core
+    class(camp_core_t), intent(in) :: this
+    !> Species unique name
+    character(len=*), intent(in) :: spec_name
+    !> Species state id
+    integer(kind=i_kind), intent(inout) :: state_id
+
+    integer(kind=i_kind) :: i_spec, i_aero_rep
+
+    found = .false.
+    i_spec = this%chem_spec_data%gas_state_id( spec_name )
+    do i_aero_rep = 1, size( this%aero_rep )
+      if( i_spec .eq. 0 ) &
+        i_spec = this%aero_rep( i_aero_rep )%val%spec_state_id( spec_name )
+    end do
+
+    if( i_spec .gt. 0 ) then
+      state_id = i_spec
+      found = .true.
+    end if
+
+  end function spec_state_id
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Initialize the solver
   subroutine solver_initialize(this)
 
@@ -1132,12 +1227,75 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Initialize an update data object for an aerosol representation
+  subroutine initialize_aero_rep_update_object( this, aero_rep, update_data )
+
+    !> CAMP core
+    class(camp_core_t), intent(in) :: this
+    !> Aerosol representation to be updated
+    class(aero_rep_data_t), intent(inout) :: aero_rep
+    !> Update data object
+    class(aero_rep_update_data_t), intent(out) :: update_data
+
+    type(aero_rep_factory_t) :: factory
+
+    call assert_msg( 962343826, .not. this%is_solver_initialized( ), &
+                     "Cannot initialize update data objects after the "// &
+                     "solver has been initialized." )
+    call factory%initialize_update_data(aero_rep, update_data)
+
+  end subroutine initialize_aero_rep_update_object
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Initialize an update data object for a reaction
+  subroutine initialize_rxn_update_object( this, rxn, update_data )
+
+    !> CAMP core
+    class(camp_core_t), intent(in) :: this
+    !> Reaction to be updated
+    class(rxn_data_t), intent(inout) :: rxn
+    !> Update data object
+    class(rxn_update_data_t), intent(out) :: update_data
+
+    type(rxn_factory_t) :: factory
+
+    call assert_msg( 166064689, .not. this%is_solver_initialized( ), &
+                     "Cannot initialize update data objects after the "// &
+                     "solver has been initialized." )
+    call factory%initialize_update_data(rxn, update_data)
+
+  end subroutine initialize_rxn_update_object
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Initialize an update data object for a sub model
+  subroutine initialize_sub_model_update_object( this, sub_model, update_data )
+
+    !> CAMP core
+    class(camp_core_t), intent(in) :: this
+    !> Sub model to be updated
+    class(sub_model_data_t), intent(inout) :: sub_model
+    !> Update data object
+    class(sub_model_update_data_t), intent(out) :: update_data
+
+    type(sub_model_factory_t) :: factory
+
+    call assert_msg( 771607586, .not. this%is_solver_initialized( ), &
+                     "Cannot initialize update data objects after the "// &
+                     "solver has been initialized." )
+    call factory%initialize_update_data(sub_model, update_data)
+
+  end subroutine initialize_sub_model_update_object
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Update data associated with an aerosol representation. This function
   !! should be called by an external aerosol microphysics model whenever
   !! the aerosol condensed data needs updated based on changes in, e.g.,
   !! particle size or number concentration. The update types are aerosol-
   !! representation specific.
-  subroutine update_aero_rep_data(this, update_data)
+  subroutine aero_rep_update_data(this, update_data)
 
     !> Chemical model
     class(camp_core_t), intent(in) :: this
@@ -1151,7 +1309,7 @@ contains
     if (associated(this%solver_data_gas_aero)) &
             call this%solver_data_gas_aero%update_aero_rep_data(update_data)
 
-  end subroutine update_aero_rep_data
+  end subroutine aero_rep_update_data
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -1159,7 +1317,7 @@ contains
   !! when reaction parameters need updated from the host model. For example,
   !! this function can be called to update photolysis rates from a host
   !! model's photolysis module.
-  subroutine update_rxn_data(this, update_data)
+  subroutine rxn_update_data(this, update_data)
 
     !> Chemical model
     class(camp_core_t), intent(in) :: this
@@ -1173,13 +1331,13 @@ contains
     if (associated(this%solver_data_gas_aero)) &
             call this%solver_data_gas_aero%update_rxn_data(update_data)
 
-  end subroutine update_rxn_data
+  end subroutine rxn_update_data
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Update data associated with a sub-model. This function should be called
   !! when sub-model parameters need updated from the host model.
-  subroutine update_sub_model_data(this, update_data)
+  subroutine sub_model_update_data(this, update_data)
 
     !> Chemical model
     class(camp_core_t), intent(in) :: this
@@ -1193,7 +1351,7 @@ contains
     if (associated(this%solver_data_gas_aero)) &
             call this%solver_data_gas_aero%update_sub_model_data(update_data)
 
-  end subroutine update_sub_model_data
+  end subroutine sub_model_update_data
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

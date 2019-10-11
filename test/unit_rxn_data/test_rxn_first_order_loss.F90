@@ -151,7 +151,7 @@ contains
             i_mech_rxn_A = i_rxn
             select type (rxn_loss => rxn)
               class is (rxn_first_order_loss_t)
-                call rxn_factory%initialize_update_data(rxn_loss, &
+                call camp_core%initialize_update_object(rxn_loss, &
                                                         rate_update_A)
             end select
           end if
@@ -159,7 +159,7 @@ contains
             i_mech_rxn_B = i_rxn
             select type (rxn_loss => rxn)
               class is (rxn_first_order_loss_t)
-                call rxn_factory%initialize_update_data(rxn_loss, &
+                call camp_core%initialize_update_object(rxn_loss, &
                                                         rate_update_B)
             end select
           end if
@@ -252,12 +252,12 @@ contains
       ! Set the rxn rates
       call rate_update_A%set_rate(rate_A)
       call rate_update_B%set_rate(432.3d0)
-      call camp_core%update_rxn_data(rate_update_A)
-      call camp_core%update_rxn_data(rate_update_B)
+      call camp_core%update_data(rate_update_A)
+      call camp_core%update_data(rate_update_B)
 
       ! Test re-setting of the rxn B rate
       call rate_update_B%set_rate(rate_B)
-      call camp_core%update_rxn_data(rate_update_B)
+      call camp_core%update_data(rate_update_B)
 
 #ifdef PMC_DEBUG
       ! Evaluate the Jacobian during solving

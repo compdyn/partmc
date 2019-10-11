@@ -1,0 +1,169 @@
+{
+  "notes" :"A Generalized Reaction Mechanism for Photochemical Smog from kpp-2.2.3/models/smog.eqn",
+  "pmc-data" : [
+    {
+      "type" : "RELATIVE_TOLERANCE",
+      "value" : 1.0E-04
+    },
+    {
+      "name" : "O",
+      "type" : "CHEM_SPEC",
+      "absolute integration tolerance" : 1.0E-08,
+      "description" : "oxygen atomic ground state (3P)"
+    },
+    {
+      "name" : "O3",
+      "type" : "CHEM_SPEC",
+      "absolute integration tolerance" : 1.0E-03,
+      "HLC(298K) [M Pa-1]" : 1.13E-7,
+      "HLC exp factor [K]" : 2.3E+03,
+      "dry dep reactivity factor [unitless]" : 1.0,
+      "diffusion coeff [m2 s-1]" : 1.750E-05,
+      "molecular weight [kg mol-1]" : 0.0479982,
+      "special dry deposition species" : "O3",
+      "description" : "ozone"
+    },
+    {
+      "name" : "NO",
+      "type" : "CHEM_SPEC",
+      "absolute integration tolerance" : 1.0E-03,
+      "HLC(298K) [M Pa-1]" : 1.88E-8,
+      "HLC exp factor [K]" : 1.48E+03,
+      "dry dep reactivity factor [unitless]" : 0.0,
+      "diffusion coeff [m2 s-1]" : 1.830E-05,
+      "molecular weight [kg mol-1]" : 0.0300061,
+      "description" : "nitric oxide"
+    },
+    {
+      "name" : "NO2",
+      "type" : "CHEM_SPEC",
+      "absolute integration tolerance" : 1.0E-03,
+      "HLC(298K) [M Pa-1]" : 6.32e-8,
+      "HLC exp factor [K]" : 2.5E+03,
+      "dry dep reactivity factor [unitless]" : 0.1,
+      "diffusion coeff [m2 s-1]" : 1.470E-05,
+      "molecular weight [kg mol-1]" : 0.0460055,
+      "description" : "nitrogen dioxide"
+    },
+    {
+      "name" : "O2",
+      "type" : "CHEM_SPEC",
+      "tracer type" : "CONSTANT",
+      "description" : "molecular oxygen"
+    },
+    {
+      "name" : "H2O",
+      "type" : "CHEM_SPEC",
+      "tracer type" : "CONSTANT",
+      "description" : "water vapor"
+    },
+    {
+      "name" : "RH",
+      "type" : "CHEM_SPEC",
+      "absolute integration tolerance" : 1.0E-03,
+      "HLC(298K) [M Pa-1]" : 1.97e-8,
+      "HLC exp factor [K]" : 0.0,
+      "dry dep reactivity factor [unitless]" : 0.0,
+      "diffusion coeff [m2 s-1]" : 1.830E-05,
+      "molecular weight [kg mol-1]" : 0.0300688,
+      "description" : "alkanes - with ethane as the surrogate"
+    },
+    {
+      "name" : "OH",
+      "type" : "CHEM_SPEC",
+      "absolute integration tolerance" : 1.0E-03,
+      "description" : "hydroxyl radical"
+    },
+    {
+      "name" : "RO2",
+      "type" : "CHEM_SPEC",
+      "absolute integration tolerance" : 1.0E-03,
+      "description" : "alkyl peroxy radicals - with methyl peroxy radical as the surrogate"
+    },
+    {
+      "name" : "RCHO",
+      "type" : "CHEM_SPEC",
+      "absolute integration tolerance" : 1.0E-03,
+      "HLC(298K) [M Pa-1]" : 1.13E-4,
+      "HLC exp factor [K]" : 6.266E+03,
+      "dry dep reactivity factor [unitless]" : 0.0,
+      "diffusion coeff [m2 s-1]" : 1.510E-05,
+      "molecular weight [kg mol-1]" : 0.0440524,
+      "description" : "aldehydes - with acetaldehyde as the surrogate"
+    },
+    {
+      "name" : "RCOO2",
+      "type" : "CHEM_SPEC",
+      "absolute integration tolerance" : 1.0E-03,
+      "description" : "peroxyacyl radicals - with peroxyacetyl radical as the surrogate"
+    },
+    {
+      "name" : "HO2",
+      "type" : "CHEM_SPEC",
+      "absolute integration tolerance" : 1.0E-03,
+      "description" : "hydroperoxyl radical"
+    },
+    {
+      "name" : "CO",
+      "type" : "CHEM_SPEC",
+      "absolute integration tolerance" : 1.0E-03,
+      "HLC(298K) [M Pa-1]" : 8.09E-8,
+      "HLC exp factor [K]" : 0.0,
+      "dry dep reactivity factor [unitless]" : 0.0,
+      "diffusion coeff [m2 s-1]" : 1.890E-05,
+      "molecular weight [kg mol-1]" : 0.0280101,
+      "description" : "carbon monoxide"
+    },
+    {
+      "name" : "CO2",
+      "type" : "CHEM_SPEC",
+      "tracer type" : "CONSTANT",
+      "absolute integration tolerance" : 1.0E-03,
+      "description" : "carbon dioxide"
+    },
+    {
+      "name" : "HNO3",
+      "type" : "CHEM_SPEC",
+      "absolute integration tolerance" : 1.0E-03,
+      "HLC(298K) [M Pa-1]" : 2.65E8,
+      "HLC exp factor [K]" : 8.684E+03,
+      "dry dep reactivity factor [unitless]" : 0.0,
+      "diffusion coeff [m2 s-1]" : 1.260E-05,
+      "molecular weight [kg mol-1]" : 0.0630128,
+      "description" : "nitric acid"
+    },
+    {
+      "name" : "RCOO2NO2",
+      "type" : "CHEM_SPEC",
+      "absolute integration tolerance" : 1.0E-03,
+      "description" : "peroxyacyl nitrates - with peroxyacetyl nitrate as the surrogate"
+    },
+    {
+      "name" : "SO2",
+      "type" : "CHEM_SPEC",
+      "absolute integration tolerance" : 1.0E-03,
+      "HLC(298K) [M Pa-1]" :2.497E+00,
+      "HLC exp factor [K]" :5.816E+03,
+      "dry dep reactivity factor [unitless]" :0.000E+00,
+      "diffusion coeff [m2 s-1]" :1.260E-05,
+      "special dry deposition species" : "SO2"
+    },
+    {
+      "name" : "NH3",
+      "type" : "CHEM_SPEC",
+      "absolute integration tolerance" : 1.0E-03,
+      "molecular weight [kg mol-1]" : 0.017031,
+      "HLC(298K) [M Pa-1]" :1.026E-01,
+      "HLC exp factor [K]" :3.660E+03,
+      "dry dep reactivity factor [unitless]" :0.000E+00,
+      "diffusion coeff [m2 s-1]" :2.270E-05,
+      "special dry deposition species" : "NH3"
+    },
+    {
+      "name" : "SULF",
+      "type" : "CHEM_SPEC",
+      "absolute integration tolerance" : 1.0E-03,
+      "description" : "gas-phase sulfuric acid"
+    }
+  ]
+}

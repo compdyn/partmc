@@ -1,0 +1,33 @@
+{
+  "pmc-data" : [
+    {
+      "name" : "simple",
+      "type" : "MECHANISM",
+      "reactions" : [
+        {
+          "type" : "PHOTOLYSIS",
+          "reactants" : {
+            "NO2" : { }
+          },
+          "products" : {
+            "NO" : { },
+            "O" : { }
+          },
+          "camp-box-model-id" : "photo-NO2"
+        },
+        {
+          "type" : "PHOTOLYSIS",
+          "reactants" : {
+            "RCHO" : { }
+          },
+          "products" : {
+            "RO2" : { },
+            "HO2" : { },
+            "CO" : { }
+          },
+          "camp-box-model-id" : "photo-RCHO"
+        }
+      ]
+    }
+  ]
+}

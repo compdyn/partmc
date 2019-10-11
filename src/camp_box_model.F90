@@ -62,7 +62,10 @@ program pmc_camp_box_model
   ! Create the GNU Plot config file
   call box_model%create_gnuplot_config_file( output_file_prefix )
 
-  ! Free the box model
+  ! Free the box model and local variables
   deallocate( box_model )
+  deallocate( config_file )
+  deallocate( output_file_prefix )
+  deallocate( output_file )
 
 end program pmc_camp_box_model

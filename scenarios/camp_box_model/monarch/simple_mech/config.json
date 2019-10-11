@@ -24,9 +24,22 @@
     "pressure [Pa]" : {
       "initial" : 101325.0
     },
+    "aerosol representations" : {
+      "monarch aero rep" : {
+        "section name" : "clouds and rain",
+        "update type" : "UPDATE_GMD",
+        "initial" : 2.0e-5
+      },
+      "monarch aero rep" : {
+        "section name" : "clouds and rain",
+        "update type" : "UPDATE_GSD",
+        "initial" : 2.0
+      }
+    },
     "initial state" : {
       "O3" : 1.0,
-      "O2" : 209500.0
+      "O2" : 209500.0,
+      "clouds and rain.cloud and rain water.H2O_aq" : 1.0
     },
     "rates" : {
       "photo-NO2" : {

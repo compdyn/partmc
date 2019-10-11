@@ -10,6 +10,7 @@
 !!        so that aerosol physical processes can be included. }
 module pmc_camp_box_model_data
 
+  use pmc_aero_rep_data
   use pmc_camp_core
   use pmc_camp_state
   use pmc_rxn_data
@@ -62,6 +63,8 @@ module pmc_camp_box_model_data
   contains
     !> Update the reaction rate
     procedure :: update_rxn
+    !> Finalize the reaction profile
+    final :: rxn_profile_finalize
   end type rxn_profile_t
 
 #ifdef PMC_USE_JSON
@@ -69,6 +72,28 @@ module pmc_camp_box_model_data
   interface rxn_profile_t
     procedure :: rxn_profile_constructor
   end interface rxn_profile_t
+#endif
+
+  !> Aerosol representation time profile
+  type, extends(profile_t) :: aero_rep_profile_t
+    !> Index for update type
+    integer(kind=i_kind) :: update_type
+    !> Section id (modal/binned)
+    integer(kind=i_kind) :: section_id = 0
+    !> Aerosol representation update object
+    class(aero_rep_update_data_t), pointer :: update_data
+  contains
+    !> Update the aerosol representation property of interest
+    procedure :: update_aero_rep
+    !> Finalize the profile
+    final :: aero_rep_profile_finalize
+  end type aero_rep_profile_t
+
+#ifdef PMC_USE_JSON
+  !> Constructor for aero_rep_profile_t
+  interface aero_rep_profile_t
+    procedure :: aero_rep_profile_constructor
+  end interface aero_rep_profile_t
 #endif
 
   !> CAMP Box model
@@ -94,6 +119,8 @@ module pmc_camp_box_model_data
     type(profile_t) :: pressure__Pa
     !> Reaction profiles
     type(rxn_profile_t), allocatable :: rxn_profiles(:)
+    !> Aerosol representation profiles
+    type(aero_rep_profile_t), allocatable :: aero_rep_profiles(:)
   contains
     !> Run the box model
     procedure :: run
@@ -101,6 +128,8 @@ module pmc_camp_box_model_data
     procedure :: create_gnuplot_config_file
     !> Print the box model configuration
     procedure :: print => do_print
+    !> Finalize the box model
+    final :: finalize
   end type camp_box_model_data_t
 
   !> Constructor for camp_box_model_data_t
@@ -136,7 +165,9 @@ contains
     real(kind=json_rk) :: real_value
 
     logical :: file_exists
-    integer(kind=i_kind) :: num_rates, i_rate, spec_id
+    integer(kind=i_kind) :: num_rates, i_rate
+    integer(kind=i_kind) :: num_aero_reps, i_aero_rep
+    integer(kind=i_kind) :: spec_id
 
     ! Create the new box model
     allocate( new_obj )
@@ -220,6 +251,27 @@ contains
       call assert( 763815888, i_rate .eq. num_rates)
     end if
 
+    ! Get the aerosol representation profiles
+    call json%get_child( j_box_config, "aerosol representations", j_obj, &
+                         found )
+    if( found ) then
+      call json%info( j_obj, n_children = num_aero_reps )
+      allocate( new_obj%aero_rep_profiles( num_aero_reps ) )
+      j_next => null( )
+      call json%get( j_box_config, "aerosol representations(1)", j_obj, &
+                     found )
+      call assert( 877171198, found )
+      i_aero_rep = 0
+      do while( associated( j_obj ) )
+        i_aero_rep = i_aero_rep + 1
+        new_obj%aero_rep_profiles( i_aero_rep ) = &
+          aero_rep_profile_t( new_obj%camp_core, json, j_obj )
+        call json%get_next( j_obj, j_next )
+        j_obj => j_next
+      end do
+      call assert( 472301285, i_aero_rep .eq. num_aero_reps )
+    end if
+
     ! Initialize the solver now that all the update data objects are attached
     ! to reactions
     call new_obj%camp_core%solver_initialize( )
@@ -255,6 +307,7 @@ contains
 
     ! free the json file
     call j_file%destroy( )
+    call json%destroy( )
 
 #else
     new_obj => null( )
@@ -461,6 +514,29 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Finalize the box model
+  elemental subroutine finalize( this )
+
+    !> CAMP box model
+    type(camp_box_model_data_t), intent(inout) :: this
+
+    if( associated( this%camp_core ) ) &
+      deallocate( this%camp_core )
+    if( associated( this%camp_state ) ) &
+      deallocate( this%camp_state )
+    if( associated( this%initial_camp_state) ) &
+      deallocate( this%initial_camp_state )
+    if( allocated( this%spec_names ) ) &
+      deallocate( this%spec_names )
+    if( allocated( this%rxn_profiles ) ) &
+      deallocate( this%rxn_profiles )
+    if( allocated( this%aero_rep_profiles ) ) &
+      deallocate( this%aero_rep_profiles )
+
+  end subroutine finalize
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 #ifdef PMC_USE_JSON
   !> Constructor for profile_t
   function profile_constructor( json, j_obj ) result( new_obj )
@@ -528,6 +604,8 @@ contains
                      trim( new_obj%name )//"'" )
     call json%get( j_val, new_obj%transition_value( 0 ) )
     new_obj%transition_time_step( 0 ) = 1
+
+    call new_obj%reset( )
 
   end function profile_constructor
 #endif
@@ -709,6 +787,159 @@ contains
     call camp_core%update_data( this%update_data )
 
   end subroutine update_rxn
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Finalize the reaction profile
+  elemental subroutine rxn_profile_finalize( this )
+
+    !> Reaction profile
+    type(rxn_profile_t), intent(inout) :: this
+
+    if( associated( this%update_data ) ) deallocate( this%update_data )
+
+  end subroutine rxn_profile_finalize
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#ifdef PMC_USE_JSON
+  !> Constructor for aero_rep_profile_t
+  function aero_rep_profile_constructor( camp_core, json, j_obj ) &
+      result( new_obj )
+
+    use pmc_mechanism_data
+    use pmc_aero_rep_modal_binned_mass
+    use pmc_aero_rep_single_particle
+    use json_module
+
+    !> New aerosol representation profile
+    type(aero_rep_profile_t) :: new_obj
+    !> CAMP core
+    type(camp_core_t), intent(inout) :: camp_core
+    !> JSON core
+    type(json_core), intent(inout)  :: json
+    !> JSON object to build the profile from
+    type(json_value), pointer, intent(inout) :: j_obj
+
+    class(aero_rep_data_t), pointer :: aero_rep
+    type(profile_t) :: base_profile
+
+    character(kind=json_ck, len=:), allocatable :: update_type
+    character(kind=json_ck, len=:), allocatable :: section_name
+    logical(kind=json_lk) :: found
+
+    integer(kind=i_kind) :: i_aero_rep
+    character(len=:), allocatable :: aero_rep_label
+
+    found = .false.
+
+    ! Load the standard profile data
+    base_profile                 = profile_t( json, j_obj )
+    new_obj%name                 = base_profile%name
+    new_obj%transition_time_step = base_profile%transition_time_step
+    new_obj%transition_value     = base_profile%transition_value
+
+    ! Get the type of value being updated
+    call json%get( j_obj, "update type", update_type, found )
+    call assert_msg( 591311579, found, &
+                     "Missing update type for aerosol representation "// &
+                     "profile '"//new_obj%name//"'" )
+
+    ! Find the reaction and initialize the update data object
+    do i_aero_rep = 1, size( camp_core%aero_rep )
+      aero_rep => camp_core%aero_rep( i_aero_rep )%val
+      if( .not. aero_rep%property_set%get_string( "camp-box-model-id", &
+                                                   aero_rep_label ) ) cycle
+      if( .not. trim( aero_rep_label ) .eq. new_obj%name ) cycle
+      select type( aero_rep )
+        class is( aero_rep_modal_binned_mass_t )
+
+          ! Modal/binned updates must include a section id
+          call json%get( j_obj, "section name", section_name, found )
+          call assert_msg( 454366901, found, &
+                           "Missing section name for modal/binned "// &
+                           "aerosol representation '"//new_obj%name//"'" )
+          call assert_msg( 112599854, aero_rep%get_section_id( section_name, &
+                           new_obj%section_id ), &
+                           "Cannot find aerosol section '"//section_name// &
+                           "' in aerosol representation '"// &
+                           new_obj%name//"'" )
+          select case( update_type )
+            case( "UPDATE_GMD" )
+              allocate( aero_rep_update_data_modal_binned_mass_GMD_t::new_obj%update_data )
+            case( "UPDATE_GSD" )
+              allocate( aero_rep_update_data_modal_binned_mass_GSD_t::new_obj%update_data )
+            case default
+              call die_msg( 513320382, "Invalid update type for "// &
+                            "modal/binned aerosol rep: "//update_type )
+          end select
+        class is( aero_rep_single_particle_t )
+          select case( update_type )
+            case( "UPDATE_RADIUS" )
+              allocate( aero_rep_update_data_single_particle_radius_t::new_obj%update_data )
+            case( "UPDATE_NUMBER" )
+              allocate( aero_rep_update_data_single_particle_number_t::new_obj%update_data )
+            case default
+              call die_msg( 379396160, "Invalid update type for "// &
+                            "single particle aerosol rep: "//update_type )
+          end select
+        class default
+          call die_msg( 203974949, "Invalid aerosol representation " )
+      end select
+      call camp_core%initialize_update_object( aero_rep, new_obj%update_data )
+      found = .true.
+      exit
+    end do
+
+    call assert_msg( 712992422, found, "Could not find aerosol "// &
+                     "representation label '"// trim( new_obj%name ) )
+
+  end function aero_rep_profile_constructor
+#endif
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Update a reaction with the current rate from the profile
+  subroutine update_aero_rep( this, camp_core )
+
+    use pmc_aero_rep_modal_binned_mass
+    use pmc_aero_rep_single_particle
+
+    !> Aerosol representation profile
+    class(aero_rep_profile_t) :: this
+    !> CAMP core
+    type(camp_core_t), intent(inout) :: camp_core
+
+    class(aero_rep_update_data_t), pointer :: ud
+
+    select type( ud => this%update_data )
+      class is( aero_rep_update_data_modal_binned_mass_GMD_t )
+        call assert( 832366630, this%section_id.gt.0 )
+        call ud%set_GMD( this%section_id, this%current_value( ) )
+      class is( aero_rep_update_data_modal_binned_mass_GSD_t )
+        call assert( 264057359, this%section_id.gt.0 )
+        call ud%set_GSD( this%section_id, this%current_value( ) )
+      class is( aero_rep_update_data_single_particle_radius_t )
+        call ud%set_radius( this%current_value( ) )
+      class is( aero_rep_update_data_single_particle_number_t )
+        call ud%set_number( this%current_value( ) )
+      class default
+        call die( 623019372 )
+    end select
+
+    call camp_core%update_data( this%update_data )
+
+  end subroutine update_aero_rep
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Finalize the aerosol representation profile
+  elemental subroutine aero_rep_profile_finalize( this )
+
+    !> Aerosol representation profile
+    type(aero_rep_profile_t), intent(inout) :: this
+
+    if( associated( this%update_data ) ) deallocate( this%update_data )
+
+  end subroutine aero_rep_profile_finalize
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

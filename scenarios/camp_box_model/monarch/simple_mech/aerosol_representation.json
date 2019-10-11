@@ -6,6 +6,7 @@
     {
       "name" : "MONARCH mass-based",
       "type" : "AERO_REP_MODAL_BINNED_MASS",
+      "camp-box-model-id" : "monarch aero rep",
       "modes/bins" :
       {
         "clouds and rain" :

@@ -128,14 +128,14 @@ module pmc_camp_core
   private
     !> Chemical mechanisms
     !! FIXME set up an iterator for external modules to use and
-    !! make mechanisms private
+    !! make all data members private
     type(mechanism_data_ptr), pointer, public :: mechanism(:) => null()
     !> Chemical species data
     type(chem_spec_data_t), pointer :: chem_spec_data => null()
     !> Sub models
     type(sub_model_data_ptr), pointer :: sub_model(:) => null()
     !> Aerosol representations
-    type(aero_rep_data_ptr), pointer :: aero_rep(:) => null()
+    type(aero_rep_data_ptr), pointer, public :: aero_rep(:) => null()
     !> Aerosol phases
     type(aero_phase_data_ptr), pointer :: aero_phase(:) => null()
     !> Size of the state array per grid cell

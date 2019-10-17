@@ -345,6 +345,47 @@ void rxn_calc_deriv(ModelData *model_data, double *deriv_data,
 }
 #endif
 
+/** \brief Calculate the time derivative \f$f(t,y)\f$ for only some specific types
+ *
+ * \param model_data Pointer to the model data
+ * \param deriv_data Pointer to the derivative data for the current grid cell
+ * \param time_step Current model time step (s)
+ */
+#ifdef PMC_USE_SUNDIALS
+void rxn_calc_deriv_specific_types(ModelData *model_data, double *deriv_data, realtype time_step)
+{
+  // Get the number of reactions
+  int n_rxn = model_data->n_rxn;
+
+  // Loop through the reactions advancing the rxn_data pointer each time
+  for (int i_rxn=0; i_rxn<n_rxn; i_rxn++) {
+
+    // Get pointers to the reaction data
+    int *rxn_int_data = &(model_data->rxn_int_data[model_data->rxn_int_indices[i_rxn]]);
+    double *rxn_float_data = &(model_data->rxn_float_data[model_data->rxn_float_indices[i_rxn]]);
+    double *rxn_env_data   =
+            &(model_data->grid_cell_rxn_env_data[model_data->rxn_env_idx[i_rxn]]);
+
+    // Get the reaction type
+    int rxn_type = *(rxn_int_data++);
+
+    // Call the appropriate function
+    switch (rxn_type) {
+      case RXN_HL_PHASE_TRANSFER :
+        rxn_HL_phase_transfer_calc_deriv_contrib(
+               model_data, deriv_data, rxn_int_data, rxn_float_data,
+               rxn_env_data, time_step);
+        break;
+      case RXN_SIMPOL_PHASE_TRANSFER :
+        rxn_SIMPOL_phase_transfer_calc_deriv_contrib(
+               model_data, deriv_data, rxn_int_data, rxn_float_data,
+               rxn_env_data, time_step);
+        break;
+    }
+  }
+}
+#endif
+
 /** \brief Calculate the Jacobian
  *
  * \param model_data Pointer to the model data

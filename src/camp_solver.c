@@ -337,8 +337,9 @@ void *solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
   sd->model_data.sub_model_env_idx[0] = 0;
 
 #ifdef PMC_USE_GPU
-  solver_new_gpu_cu(n_dep_var, n_state_var, n_rxn, n_rxn_int_param,
-                    n_rxn_float_param, n_cells);
+  solver_new_gpu_cu(n_dep_var,
+  n_state_var, n_rxn,
+  n_rxn_int_param, n_rxn_float_param, n_rxn_env_param, n_cells);
 #endif
 
 #ifdef PMC_DEBUG
@@ -837,6 +838,23 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
   // Reset the derivative vector
   N_VConst(ZERO, deriv);
 
+#ifdef PMC_DEBUG
+  //Measure calc_deriv time execution
+    clock_t start = clock();
+#endif
+
+#ifdef PMC_USE_GPU
+
+  // Calculate the time derivative f(t,y)
+  // (this is for all grid cells at once)
+  rxn_calc_deriv_gpu(md, deriv, (double) time_step);
+
+  #ifdef PMC_DEBUG
+    clock_t end = clock();
+    timeDerivgpu+= ((double) (end - start));
+  #endif
+#endif
+
   // Loop through the grid cells and update the derivative array
   for (int i_cell = 0; i_cell < n_cells; ++i_cell) {
     // Set the grid cell state pointers
@@ -856,44 +874,35 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
     // Run the sub models
     sub_model_calculate(md);
 
-// Solving on CPU only
 #ifndef PMC_USE_GPU
 
-#ifdef PMC_DEBUG
-    clock_t start = clock();
-#endif
+  #ifdef PMC_DEBUG
+    //Measure calc_deriv time execution
+    clock_t start2 = clock();
+  #endif
 
     // Calculate the time derivative f(t,y)
-    rxn_calc_deriv(md, deriv_data, (double)time_step);
+    rxn_calc_deriv(md, deriv_data, (double) time_step);
 
-#ifdef PMC_DEBUG
-    clock_t end = clock();
-    sd->timeDeriv += (end - start);
-#endif
+  #ifdef PMC_DEBUG
+    clock_t end2 = clock();
+    timeDeriv+= ((double) (end2 - start2));
+  #endif
 
-    // Advance the derivative for the next cell
-    deriv_data += n_dep_var;
-  }
-
-// Solving on GPUs
 #else
 
-    }  // End loop on grid cells
+  //Add contributions from reactions not implemented on GPU
+  rxn_calc_deriv_specific_types(md, deriv_data, (double) time_step);
 
-#ifdef PMC_DEBUG
-    clock_t start2 = clock();
 #endif
 
-    // Calculate the time derivative f(t,y)
-    // (this is for all grid cells at once)
-    rxn_calc_deriv_gpu(md, deriv, (double)time_step);
+  // Advance the derivative for the next cell
+  deriv_data += n_dep_var;
+
+  }
 
 #ifdef PMC_DEBUG
-    clock_t end2 = clock();
-    sd->timeDeriv += (end2 - start2);
-#endif
-
-// End CPU/GPU block
+  //if(counterDeriv==1) print_derivative(deriv);
 #endif
 
   // Return 0 if success
@@ -929,7 +938,16 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
 
   // Get pointers to the rxn and parameter Jacobian arrays
   double *J_param_data = SM_DATA_S(md->J_params);
-  double *J_rxn_data = SM_DATA_S(md->J_rxn);
+  double *J_rxn_data   = SM_DATA_S(md->J_rxn);
+    // Initialize the sparse matrix (sized for one grid cell)
+  //solver_data->model_data.J_rxn =
+  //    SUNSparseMatrix(n_state_var, n_state_var, n_jac_elem_rxn, CSC_MAT);
+
+  //TODO: use this instead of saving all this jacs
+  //double J_rxn_data[md->n_per_cell_dep_var];
+  //memset(J_rxn_data, 0, md->n_per_cell_dep_var * sizeof(double));
+
+  //double *J_rxn_data = (double*)calloc(md->n_per_cell_state_var, sizeof(double));
 
   // !!!! Do not use tmp2 - it is the same as y !!!! //
   // FIXME Find out why cvode is sending tmp2 as y
@@ -956,7 +974,7 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
   }
 
 // Solving on CPU only
-#ifndef PMC_USE_GPU
+//#ifndef PMC_USE_GPU
 
   // Loop over the grid cells to calculate sub-model and rxn Jacobians
   for (int i_cell = 0; i_cell < n_cells; ++i_cell) {
@@ -1017,8 +1035,9 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
   }
 #endif
 
-// GPU solving
-#else
+// TODO: GPU solving
+//#else
+/*
 
     // TODO Pass J, md->J_params and md->J_rxn to gpu function so
     // all grid cells can be solved
@@ -1036,7 +1055,8 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
 #endif
 
 // End CPU/GPU block
-#endif
+//#endif
+ */
 
   return (0);
 }

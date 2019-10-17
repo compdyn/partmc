@@ -29,9 +29,9 @@ extern "C"{
 #define N_ float_data[7*n_rxn]
 #define SCALING_ float_data[8*n_rxn]
 #define CONV_ float_data[9*n_rxn]
-#define RATE_CONSTANT_ float_data[n_rxn*10]
+#define RATE_CONSTANT_ rate_constants[0*n_rxn]
 #define NUM_INT_PROP_ 2
-#define NUM_FLOAT_PROP_ 11
+#define NUM_FLOAT_PROP_ 10
 #define REACT_(x) (int_data[(NUM_INT_PROP_ + x)*n_rxn]-1)
 #define PROD_(x) (int_data[(NUM_INT_PROP_ + NUM_REACT_ + x)*n_rxn]-1)
 #define DERIV_ID_(x) int_data[(NUM_INT_PROP_ + NUM_REACT_ + NUM_PROD_ + x)*n_rxn]

@@ -21,87 +21,13 @@ extern "C"{
 #define REACT_ (int_data[1*n_rxn]-1)
 #define DERIV_ID_ int_data[2*n_rxn]
 #define JAC_ID_ int_data[3*n_rxn]
-#define BASE_RATE_ float_data[0*n_rxn]
-#define SCALING_ float_data[1*n_rxn]
-#define RATE_CONSTANT_ float_data[n_rxn*2]
+#define SCALING_ float_data[0*n_rxn]
+#define RATE_CONSTANT_ rate_constants[0*n_rxn]//todo fix this shouldnt be there
+#define BASE_RATE_ rate_constants[1*n_rxn]
 #define NUM_INT_PROP_ 4
-#define NUM_FLOAT_PROP_ 3
+#define NUM_FLOAT_PROP_ 1
 #define INT_DATA_SIZE_ (NUM_INT_PROP_)
 #define FLOAT_DATA_SIZE_ (NUM_FLOAT_PROP_)
-
-/** \brief Flag Jacobian elements used by this reaction
- *
- * \param rxn_data A pointer to the reaction data
- * \param jac_struct 2D array of flags indicating potentially non-zero
- *                   Jacobian elements
- * \return The rxn_data pointer advanced by the size of the reaction data
- */
-void * rxn_gpu_first_order_loss_get_used_jac_elem(void *rxn_data, bool **jac_struct)
-{
-  int n_rxn=1;
-  int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
-
-  jac_struct[REACT_][REACT_] = true;
-
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
-}
-
-/** \brief Update the time derivative and Jacbobian array indices
- *
- * \param model_data Pointer to the model data
- * \param deriv_ids Id of each state variable in the derivative array
- * \param jac_ids Id of each state variable combo in the Jacobian array
- * \param rxn_data Pointer to the reaction data
- * \return The rxn_data pointer advanced by the size of the reaction data
- */
-void * rxn_gpu_first_order_loss_update_ids(ModelData *model_data, int *deriv_ids,
-          int **jac_ids, void *rxn_data)
-{
-  int n_rxn=1;
-  int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
-
-  // Update the time derivative id
-  DERIV_ID_ = deriv_ids[REACT_];
-
-  // Update the Jacobian id
-  JAC_ID_ = jac_ids[REACT_][REACT_];
-
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
-}
-
-/** \brief Update reaction data
- *
- * First-Order loss reactions can have their base (pre-scaling) rate constants
- * updated from the host model based on the calculations of an external
- * module. The structure of the update data is:
- *
- *  - \b int rxn_id (Id of one or more first-order loss reactions set by the
- *       host model using the
- *       \c pmc_rxn_first_order_loss::rxn_first_order_loss_t::set_rxn_id
- *       function prior to initializing the solver.)
- *  - \b double rate_const (New pre-scaling rate constant.)
- *
- * \param update_data Pointer to the updated reaction data
- * \param rxn_data Pointer to the reaction data
- * \return The rxn_data pointer advanced by the size of the reaction data
- */
-void * rxn_gpu_first_order_loss_update_data(void *update_data, void *rxn_data)
-{
-  int n_rxn=1;
-  int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
-
-  int *rxn_id = (int*) update_data;
-  double *base_rate = (double*) &(rxn_id[1]);
-
-  // Set the base first-order loss rate constants for matching reactions
-  if (*rxn_id==RXN_ID_ && RXN_ID_!=0)
-          BASE_RATE_ = (double) *base_rate;
-
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
-}
 
 /** \brief Update reaction data for new environmental conditions
  *
@@ -214,8 +140,6 @@ __device__ void rxn_gpu_first_order_loss_calc_jac_contrib(double *rate_constants
 
   // Add contributions to the Jacobian
   if (JAC_ID_ >= 0) atomicAdd((double*)&(J[JAC_ID_]),-rate_constants[0]);
-
-  //return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 
 }
 #endif

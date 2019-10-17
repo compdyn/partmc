@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include "../camp_common.h"
 
+
 //Value to consider data size too big -> Memory optimization will change below and under the limit
 #define DATA_SIZE_LIMIT_OPT 2000
 
@@ -20,8 +21,11 @@
 #define HANDLE_ERROR( err ) (HandleError( err, __FILE__, __LINE__ ))
 #define HANDLE_ERROR2( ) (HandleError2( __FILE__, __LINE__ ))
 
+//Force solving on CPU: Test option
+#define FORCE_CPU 0
+
 void solver_new_gpu_cu(int n_dep_var, int n_state_var, int n_rxn,
-     int n_rxn_int_param, int n_rxn_float_param, int n_cells);
+     int n_rxn_int_param, int n_rxn_float_param, int n_rxn_env_param, int n_cells);
 void allocate_jac_gpu(int n_jac_elem, int n_cells);
 void rxn_update_env_state_gpu(ModelData *model_data, double *env);
 void rxn_calc_deriv_gpu(ModelData *model_data, N_Vector deriv, realtype time_step);

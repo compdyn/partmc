@@ -32,16 +32,16 @@ extern "C" {
 #define PRE_C_AVG_ float_data[3*n_rxn]
 #define A_ float_data[4*n_rxn]
 #define C_ float_data[5*n_rxn]
-#define C_AVG_ALPHA_ float_data[6*n_rxn]
-#define EQUIL_CONST_ float_data[7*n_rxn]
-#define CONV_ float_data[8*n_rxn]
-#define MW_ float_data[9*n_rxn]
-#define UGM3_TO_PPM_ float_data[10*n_rxn]
-#define SMALL_NUMBER_ float_data[11*n_rxn]
+#define CONV_ float_data[6*n_rxn]
+#define MW_ float_data[7*n_rxn]
+#define SMALL_NUMBER_ float_data[8*n_rxn]
 #define NUM_AERO_PHASE_ int_data[0*n_rxn]
 #define GAS_SPEC_ (int_data[1*n_rxn]-1)
+#define C_AVG_ALPHA_ rate_constants[0*n_rxn]
+#define EQUIL_CONST_ float_data[1*n_rxn]
+#define UGM3_TO_PPM_ float_data[2*n_rxn]
 #define NUM_INT_PROP_ 2
-#define NUM_FLOAT_PROP_ 12
+#define NUM_FLOAT_PROP_ 9
 #define DERIV_ID_(x) int_data[(NUM_INT_PROP_ + x)*n_rxn]
 #define JAC_ID_(x) int_data[(NUM_INT_PROP_ + 1 + NUM_AERO_PHASE_ + x)*n_rxn]
 #define PHASE_INT_LOC_(x) (int_data[(NUM_INT_PROP_ + 2 + 6*NUM_AERO_PHASE_ + x)*n_rxn]-1)
@@ -115,7 +115,10 @@ __device__ void rxn_gpu_HL_phase_transfer_update_env_state(double *rate_constant
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-__device__ void rxn_gpu_HL_phase_transfer_calc_deriv_contrib(double *rate_constants, double *state,
+#ifndef FORCE_CPU
+__device__
+#endif
+void rxn_gpu_HL_phase_transfer_calc_deriv_contrib(ModelData *model_data, double *rate_constants, double *state,
           double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step, int n_rxn2)
 {
   int n_rxn=n_rxn2;
@@ -237,7 +240,10 @@ __device__ void rxn_gpu_HL_phase_transfer_calc_deriv_contrib(double *rate_consta
  */
 
 #ifdef PMC_USE_SUNDIALS
-__device__ void rxn_gpu_HL_phase_transfer_calc_jac_contrib(double *rate_constants, double *state,
+#ifndef FORCE_CPU
+__device__
+#endif
+void rxn_gpu_HL_phase_transfer_calc_jac_contrib(ModelData *model_data, double *rate_constants, double *state,
           double *J, void *rxn_data, double * double_pointer_gpu, double time_step, int n_rxn2)
 {
   int n_rxn=n_rxn2;

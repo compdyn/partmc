@@ -20,11 +20,11 @@ extern "C"{
 #define NUM_REACT_ int_data[0*n_rxn]
 #define NUM_PROD_ int_data[1*n_rxn]
 #define PHOTO_ID_ int_data[2*n_rxn]
-#define BASE_RATE_ float_data[0*n_rxn]
-#define SCALING_ float_data[1*n_rxn]
-#define RATE_CONSTANT_ float_data[n_rxn*2]
+#define SCALING_ float_data[0*n_rxn]
+#define RATE_CONSTANT_ rate_constants[0*n_rxn]
+#define BASE_RATE_ rate_constants[0*n_rxn]//todo fix this shouldnt be there
 #define NUM_INT_PROP_ 3
-#define NUM_FLOAT_PROP_ 3
+#define NUM_FLOAT_PROP_ 1
 #define REACT_(x) (int_data[(NUM_INT_PROP_ + x)*n_rxn]-1)
 #define PROD_(x) (int_data[(NUM_INT_PROP_ + NUM_REACT_ + x)*n_rxn]-1)
 #define DERIV_ID_(x) int_data[(NUM_INT_PROP_ + NUM_REACT_ + NUM_PROD_ + x)*n_rxn]
@@ -32,96 +32,6 @@ extern "C"{
 #define YIELD_(x) float_data[(NUM_FLOAT_PROP_ + x)*n_rxn]
 #define INT_DATA_SIZE_ (NUM_INT_PROP_+(NUM_REACT_+2)*(NUM_REACT_+NUM_PROD_))
 #define FLOAT_DATA_SIZE_ (NUM_FLOAT_PROP_+NUM_PROD_)
-
-/** \brief Flag Jacobian elements used by this reaction
- *
- * \param rxn_data A pointer to the reaction data
- * \param jac_struct 2D array of flags indicating potentially non-zero
- *                   Jacobian elements
- * \return The rxn_data pointer advanced by the size of the reaction data
- */
-void * rxn_gpu_photolysis_get_used_jac_elem(void *rxn_data, bool **jac_struct)
-{
-  int n_rxn=1;
-  int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
-
-  for (int i_ind = 0; i_ind < NUM_REACT_; i_ind++) {
-    for (int i_dep = 0; i_dep < NUM_REACT_; i_dep++) {
-      jac_struct[REACT_(i_dep)][REACT_(i_ind)] = true;
-    }
-    for (int i_dep = 0; i_dep < NUM_PROD_; i_dep++) {
-      jac_struct[PROD_(i_dep)][REACT_(i_ind)] = true;
-    }
-  }
-
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
-}
-
-/** \brief Update the time derivative and Jacbobian array indices
- *
- * \param model_data Pointer to the model data
- * \param deriv_ids Id of each state variable in the derivative array
- * \param jac_ids Id of each state variable combo in the Jacobian array
- * \param rxn_data Pointer to the reaction data
- * \return The rxn_data pointer advanced by the size of the reaction data
- */
-void * rxn_gpu_photolysis_update_ids(ModelData *model_data, int *deriv_ids,
-          int **jac_ids, void *rxn_data)
-{
-  int n_rxn=1;
-  int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
-
-  // Update the time derivative ids
-  for (int i=0; i < NUM_REACT_; i++)
-	  DERIV_ID_(i) = deriv_ids[REACT_(i)];
-  for (int i=0; i < NUM_PROD_; i++)
-	  DERIV_ID_(i + NUM_REACT_) = deriv_ids[PROD_(i)];
-
-  // Update the Jacobian ids
-  int i_jac = 0;
-  for (int i_ind = 0; i_ind < NUM_REACT_; i_ind++) {
-    for (int i_dep = 0; i_dep < NUM_REACT_; i_dep++) {
-      JAC_ID_(i_jac++) = jac_ids[REACT_(i_dep)][REACT_(i_ind)];
-    }
-    for (int i_dep = 0; i_dep < NUM_PROD_; i_dep++) {
-      JAC_ID_(i_jac++) = jac_ids[PROD_(i_dep)][REACT_(i_ind)];
-    }
-  }
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
-}
-
-/** \brief Update reaction data
- *
- * Photolysis reactions can have their base (pre-scaling) rate constants updated
- * from the host model based on the calculations of an external photolysis
- * module. The structure of the update data is:
- *
- *  - \b int photo_id (Id of one or more photolysis reactions set by the host
- *       model using the pmc_rxn_photolysis::rxn_photolysis_t::set_photo_id
- *       function prior to initializing the solver.)
- *  - \b double rate_const (New pre-scaling rate constant.)
- *
- * \param update_data Pointer to the updated reaction data
- * \param rxn_data Pointer to the reaction data
- * \return The rxn_data pointer advanced by the size of the reaction data
- */
-void * rxn_gpu_photolysis_update_data(void *update_data, void *rxn_data)
-{
-  int n_rxn=1;
-  int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
-
-  int *photo_id = (int*) update_data;
-  double *base_rate = (double*) &(photo_id[1]);
-
-  // Set the base photolysis rate constants for matching reactions
-  if (*photo_id==PHOTO_ID_ && PHOTO_ID_!=0)
-          BASE_RATE_ = (double) *base_rate;
-
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
-}
 
 /** \brief Update reaction data for new environmental conditions
  *
@@ -196,9 +106,7 @@ __device__ void rxn_gpu_photolysis_calc_deriv_contrib(double *rate_constants, do
     for (int i_spec=0; i_spec<NUM_PROD_; i_spec++, i_dep_var++) {
       if (DERIV_ID_(i_dep_var) < 0) continue;
       //deriv[DERIV_ID_(i_dep_var)] += rate*YIELD_(i_spec);
-      if (-rate*YIELD_(i_spec)*time_step <= state[PROD_(i_spec)]) {
         atomicAdd((double*)&(deriv[DERIV_ID_(i_dep_var)]),rate*YIELD_(i_spec));
-      }
     }
   }
 

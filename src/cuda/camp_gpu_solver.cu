@@ -186,7 +186,7 @@ void solver_set_rxn_data_gpu(ModelData *model_data) {
 
     switch (rxn_type) {
       case RXN_AQUEOUS_EQUILIBRIUM :
-        implemented = true;
+        implemented = false;
         break;
       case RXN_ARRHENIUS :
         implemented = true;
@@ -198,7 +198,7 @@ void solver_set_rxn_data_gpu(ModelData *model_data) {
         implemented = true;
         break;
       case RXN_CONDENSED_PHASE_ARRHENIUS :
-        implemented = true;
+        implemented = false;
         break;
       case RXN_EMISSION :
         implemented = true;
@@ -224,7 +224,7 @@ void solver_set_rxn_data_gpu(ModelData *model_data) {
     }
     if(!implemented){
 #ifdef FAILURE_DETAIL
-      printf("WARNING: Reaction type %d is not implemented yet on GPU. Computing on CPU...\n", rxn_type);
+      printf("WARNING: Reaction type %d is not fully implemented on GPU. Computing on CPU...\n", rxn_type);
 #endif
       implemented_all=false;
     }
@@ -478,9 +478,10 @@ void rxn_calc_deriv_gpu(ModelData *model_data, N_Vector deriv, realtype time_ste
  */
 //TODO: fix jacGPU once matt let me modify rxn_solver and reduce jacobians (in v2.0 or before if needed)
 __global__ void solveJacobian(double *state_init, double *jac_init,
-                              double time_step, int jac_length_cell, int state_size_cell, int n_rxn,
+                              double time_step, int jac_length_cell, int state_size_cell,
+                              int rate_constants_size_cell, int n_rxn,
                               int n_cells, int *int_pointer, double *double_pointer,
-                              double *rate_constants_init) //Interface CPU/GPU
+                              double *rate_constants_init, int *rate_constants_idx) //Interface CPU/GPU
 {
   //Get thread id
   int index = blockIdx.x * blockDim.x + threadIdx.x;
@@ -490,20 +491,22 @@ __global__ void solveJacobian(double *state_init, double *jac_init,
 
     //Thread index for jac and state,
     // till we don't finish all reactions of a cell, we stay on same index
-    int cell=index/n_rxn;
+    int i_cell=index/n_rxn;
+    int i_rxn=index%n_rxn;
 
     //Get indices of each reaction
-    int *int_data = (int *) &(((int *) int_pointer)[index%n_rxn]); //Same indices for each cell
-    double *float_data = (double *) &(((double *) double_pointer)[index%n_rxn]);
+    int *int_data = (int *) &(((int *) int_pointer)[i_rxn]); //Same indices for each cell
+    double *float_data = (double *) &(((double *) double_pointer)[i_rxn]);
     int rxn_type = int_data[0];
     int *rxn_data = (int *) &(int_data[1*n_rxn]);
 
     //Get indices for concentrations
-    double *jac_data = &( jac_init[jac_length_cell*cell]);
-    double *state = &( state_init[state_size_cell*cell]);
+    double *jac_data = &( jac_init[jac_length_cell*i_cell]);
+    double *state = &( state_init[state_size_cell*i_cell]);
 
     //Get indices for rates
-    double *rate_constants = &( rate_constants_init[index]);
+    double *rate_constants = &(rate_constants_init
+    [rate_constants_size_cell*i_cell+rate_constants_idx[i_rxn]]);
 
     switch (rxn_type) {
       case RXN_AQUEOUS_EQUILIBRIUM :
@@ -565,18 +568,17 @@ __global__ void solveJacobian(double *state_init, double *jac_init,
  * \param J Jacobian to be calculated
  * \param time_step Current model time step (s)
  */
- /*
+
 void rxn_calc_jac_gpu(ModelData *model_data, SUNMatrix jac, realtype time_step) {
 
   // Get a pointer to the jacobian data
-  int n_cells = model_data->n_cells;
-  int *rxn_data = (int *) (model_data->rxn_data);
-  int n_rxn = rxn_data[0];
-  int n_rxn_threads = rxn_data[0]*n_cells; //Reaction group per number of repetitions/cells
-  int n_blocks = ((n_rxn_threads + max_n_gpu_thread - 1) / max_n_gpu_thread);
   double *jac_data = SM_DATA_S(jac);
-  double *state = model_data->state;
-  double *rate_constants = model_data->rate_constants;
+  int n_cells = model_data->n_cells;
+  int n_rxn = model_data->n_rxn;
+  int n_rxn_threads = n_rxn*n_cells; //Reaction group per number of repetitions/cells
+  int n_blocks = ((n_rxn_threads + max_n_gpu_thread - 1) / max_n_gpu_thread);
+  double *state = model_data->total_state;
+  double *rate_constants = model_data->rxn_env_data;
 
   //Faster, use for few values
   if (few_data){
@@ -593,8 +595,9 @@ void rxn_calc_jac_gpu(ModelData *model_data, SUNMatrix jac, realtype time_step) 
   HANDLE_ERROR(cudaMemset(jac_gpu_data, 0, jac_size));
 
   solveJacobian << < (n_blocks), max_n_gpu_thread >> >
-                                 (state_gpu, jac_gpu_data, time_step, model_data->n_jac_elem, model_data->n_state_var,
-                                         n_rxn, n_cells, int_pointer_gpu, double_pointer_gpu, rate_constants_gpu);
+    (state_gpu, jac_gpu_data, time_step, model_data->n_per_cell_rxn_jac_elem,
+    model_data->n_per_cell_state_var, model_data->n_rxn_env_data,
+    n_rxn, n_cells, int_pointer_gpu, double_pointer_gpu, rate_constants_gpu, rate_constants_idx_gpu);
 
   cudaDeviceSynchronize();// Secure cuda synchronization
 
@@ -609,7 +612,6 @@ void rxn_calc_jac_gpu(ModelData *model_data, SUNMatrix jac, realtype time_step) 
 
 }
 
-  */
 
 /** \brief Free GPU data structures
  */

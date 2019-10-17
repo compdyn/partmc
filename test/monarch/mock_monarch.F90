@@ -202,6 +202,13 @@ program mock_monarch
 
   end do
 
+  !print*, species_conc(1,2,1,:)
+
+  !#ifdef DEBUG
+  !print*, "SPECIES CONC", species_conc(:,1,1,100)
+  print*, "SPECIES CONC COPY", species_conc_copy(:,1,1,100)
+  !#endif
+
   !If something to compare
   if(pmc_cases.gt.1) then
     !Compare results
@@ -215,8 +222,8 @@ program mock_monarch
                   1.d-5, 1d-4 ), &
               "Concentration species mismatch for species "// &
                   trim( to_string( i_spec ) )//". Expected: "// &
-                  trim( to_string( species_conc_copy(i,j,k,i_spec) ) )//", got: "// &
-                  trim( to_string( species_conc(i,j,k,i_spec) ) ) )
+                  trim( to_string( species_conc(i,j,k,i_spec) ) )//", got: "// &
+                  trim( to_string( species_conc_copy(i,j,k,i_spec) ) ) )
           end do
         end do
       end do
@@ -231,24 +238,6 @@ program mock_monarch
     call create_gnuplot_script(pmc_interface, output_file_prefix, &
             plot_start_time, curr_time)
   end if
-
-  ! TODO I would still like to implement this once the results are stable
-  ! The evaluation is based on a run with reasonable seeming values and
-  ! few solver modifications. It is used to make sure future modifications
-  ! to the solver do not affect the results
-#if 0
-  do i_spec = START_CAMP_ID, END_CAMP_ID
-    call assert_msg( 394742768, &
-        almost_equal( real( species_conc(10,15,1,i_spec), kind=dp ), &
-                      real( comp_species_conc(i_time,i_spec), kind=dp ), &
-                      1.d-4, 1d-3 ), &
-        "Concentration species mismatch for species "// &
-        trim( to_string( i_spec ) )//" at time step "// &
-        trim( to_string( i_time ) )//". Expected: "// &
-        trim( to_string( comp_species_conc(i_time,i_spec) ) )//", got: "// &
-        trim( to_string( species_conc(10,15,1,i_spec) ) ) )
-  end do
-#endif
 
   ! Deallocation
   deallocate(camp_input_file)
@@ -280,13 +269,6 @@ contains
     ! Open the output file
     file_name = file_prefix//"_results.txt"
     open(RESULTS_FILE_UNIT, file=file_name, status="replace", action="write")
-
-    ! Open the compare file
-    ! TODO Implement once results are stable
-#if 0
-    file_name = file_prefix//"_comp.txt"
-    open(COMPARE_FILE_UNIT, file=file_name, action="read")
-#endif
 
     ! TODO refine initial model conditions
     temperature(:,:,:) = 300.614166259766

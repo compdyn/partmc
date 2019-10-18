@@ -1325,11 +1325,11 @@ contains
     class(rxn_update_data_t), intent(in) :: update_data
 
     if (associated(this%solver_data_gas)) &
-            call this%solver_data_gas%update_rxn_data(update_data,this%n_cells)
+            call this%solver_data_gas%update_rxn_data(update_data)
     if (associated(this%solver_data_aero)) &
-            call this%solver_data_aero%update_rxn_data(update_data,this%n_cells)
+            call this%solver_data_aero%update_rxn_data(update_data)
     if (associated(this%solver_data_gas_aero)) &
-            call this%solver_data_gas_aero%update_rxn_data(update_data,this%n_cells)
+            call this%solver_data_gas_aero%update_rxn_data(update_data)
 
   end subroutine rxn_update_data
 

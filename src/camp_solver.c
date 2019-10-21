@@ -41,9 +41,7 @@
 // Set MAX_TIMESTEP_WARNINGS to a negative number to prevent output
 #define MAX_TIMESTEP_WARNINGS -1
 // Maximum number of steps in discreet addition guess helper
-#define GUESS_MAX_ITER 50
-// Guess advance scaling factor
-#define GUESS_ADV_SCALE 0.618
+#define GUESS_MAX_ITER 10
 
 // Status codes for calls to camp_solver functions
 #define CAMP_SOLVER_SUCCESS 0
@@ -104,6 +102,9 @@ void *solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
   sd->eval_Jac = SUNFALSE;
 #endif
 #endif
+
+  // Seed the random number generator
+  srand( (long) 100 );
 
   // Save the number of state variables per grid cell
   sd->model_data.n_per_cell_state_var = n_state_var;
@@ -1269,7 +1270,7 @@ int guess_helper(const realtype t_n, const realtype h_n, N_Vector y_n,
     }
 
     // Scale h_j unless t_n can be reached
-    if (i_fast >= 0 && h_n > ZERO) h_j *= GUESS_ADV_SCALE;
+    if (i_fast >= 0 && h_n > ZERO) h_j *= rand() / (double) RAND_MAX;
 
     // Only make small changes to adjustment vectors used in Newton iteration
     if (h_n == ZERO && ONE - h_j > ((CVodeMem)sd->cvode_mem)->cv_reltol)
@@ -1303,6 +1304,7 @@ int guess_helper(const realtype t_n, const realtype h_n, N_Vector y_n,
 #ifdef PMC_DEBUG
     if (iter == GUESS_MAX_ITER - 1 && t_0 + t_j < t_n) {
       PMC_DEBUG_PRINT("Max guess iterations reached!");
+      return -1;
     }
 #endif
   }
@@ -1311,9 +1313,6 @@ int guess_helper(const realtype t_n, const realtype h_n, N_Vector y_n,
 
   // Set the correction vector
   N_VLinearSum(ONE, tmp1, -ONE, y_n, corr);
-
-  // Scale the correction so we don't overshoot
-  N_VScale(0.999, corr, corr);
 
   // Update the hf vector
   N_VLinearSum(ONE, tmp1, -ONE, y_n1, hf);

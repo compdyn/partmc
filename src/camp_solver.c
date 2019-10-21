@@ -104,7 +104,7 @@ void *solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
 #endif
 
   // Seed the random number generator
-  srand( (long) 100 );
+  srand((long)100);
 
   // Save the number of state variables per grid cell
   sd->model_data.n_per_cell_state_var = n_state_var;
@@ -1270,7 +1270,7 @@ int guess_helper(const realtype t_n, const realtype h_n, N_Vector y_n,
     }
 
     // Scale h_j unless t_n can be reached
-    if (i_fast >= 0 && h_n > ZERO) h_j *= rand() / (double) RAND_MAX;
+    if (i_fast >= 0 && h_n > ZERO) h_j *= rand() / (double)RAND_MAX;
 
     // Only make small changes to adjustment vectors used in Newton iteration
     if (h_n == ZERO && ONE - h_j > ((CVodeMem)sd->cvode_mem)->cv_reltol)

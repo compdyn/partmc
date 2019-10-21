@@ -706,7 +706,7 @@ void solver_get_statistics(void *solver_data, int *solver_flag, int *num_steps,
   realtype last_h, curr_h;
   int flag;
 
-  solver_flag = sd->solver_flag;
+  *solver_flag = sd->solver_flag;
   flag = CVodeGetNumSteps(sd->cvode_mem, &nst);
   if (check_flag(&flag, "CVodeGetNumSteps", 1) == CAMP_SOLVER_FAIL) return;
   *num_steps = (int)nst;

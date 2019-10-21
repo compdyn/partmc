@@ -24,7 +24,13 @@ void rxn_print_data(void *solver_data);
 #ifdef PMC_USE_SUNDIALS
 void rxn_calc_deriv(ModelData *model_data, double *deriv_data,
                     double time_step);
+void rxn_calc_deriv_specific_types(ModelData *model_data, double *deriv_data,
+                                   double time_step);
 void rxn_calc_jac(ModelData *model_data, double *J_data, double time_step);
+void rxn_calc_jac_specific_types(ModelData *model_data, double *J_data,
+                                 double time_step);
+// void rxn_calc_jac_specific_types(ModelData *model_data, double *J_data,
+// double time_step)
 #endif
 
 /* Setup functions */

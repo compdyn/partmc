@@ -28,9 +28,9 @@ extern "C"{
 #define C_ (float_data[2*n_rxn])
 #define D_ (float_data[3*n_rxn])
 #define E_ (float_data[4*n_rxn])
-#define RATE_CONSTANT_ (float_data[5*n_rxn])
+#define RATE_CONSTANT_ rate_constants[0*n_rxn]
 #define NUM_INT_PROP_ 3
-#define NUM_FLOAT_PROP_ 6
+#define NUM_FLOAT_PROP_ 5
 #define REACT_(x) (int_data[(NUM_INT_PROP_ + x)*n_rxn]-1)
 #define PROD_(x) (int_data[(NUM_INT_PROP_+NUM_REACT_*NUM_AERO_PHASE_+x)*n_rxn]-1)
 #define WATER_(x) (int_data[(NUM_INT_PROP_+(NUM_REACT_+NUM_PROD_)*NUM_AERO_PHASE_+x)*n_rxn]-1)
@@ -331,6 +331,7 @@ __device__ void rxn_gpu_condensed_phase_arrhenius_calc_jac_contrib(double *rate_
   int n_rxn=n_rxn2;
   int *int_data = (int*) rxn_data;
   double *float_data = double_pointer_gpu;
+  double rate = rate_constants[0];
 
   // Calculate Jacobian contributions for each aerosol phase
   for (int i_phase=0, i_jac = 0; i_phase<NUM_AERO_PHASE_; i_phase++) {
@@ -349,53 +350,56 @@ __device__ void rxn_gpu_condensed_phase_arrhenius_calc_jac_contrib(double *rate_
       unit_conv = 1.0/unit_conv;
     }
 
-    // Calculate the reaction rate rate (M/s or mol/m3/s)
-    //double rate = RATE_CONSTANT_;
-  double rate = rate_constants[0];
-    for (int i_react = 0; i_react < NUM_REACT_; i_react++) {
-      rate *= state[REACT_(i_phase*NUM_REACT_+i_react)] *
-              UGM3_TO_MOLM3_(i_react) * unit_conv;
-    }
-
-    // No Jac contributions to add if the rate is zero
-    if (rate==0.0) {
-      i_jac += (NUM_REACT_ + NUM_PROD_) * (NUM_REACT_ + 1);
-      continue;
-    }
-
-    // Add dependence on reactants for reactants and products
+     // Add dependence on reactants for reactants and products
     for (int i_react_ind = 0; i_react_ind < NUM_REACT_; i_react_ind++) {
+
+      // Calculate d_rate / d_react_i
+      rate = rate_constants[0];
+      for (int i_react = 0; i_react < NUM_REACT_; i_react++) {
+        if (i_react==i_react_ind) {
+          rate *= UGM3_TO_MOLM3_(i_react) * unit_conv;
+        } else {
+          rate *= state[REACT_(i_phase*NUM_REACT_+i_react)] *
+                  UGM3_TO_MOLM3_(i_react) * unit_conv;
+        }
+      }
+
+      // Add the Jacobian elements
       for (int i_react_dep = 0; i_react_dep < NUM_REACT_; i_react_dep++) {
 	if (JAC_ID_(i_jac)<0) {i_jac++; continue;}
         atomicAdd((double*)&(J[JAC_ID_(i_jac++)]), -rate /
-          state[REACT_(i_phase*NUM_REACT_+i_react_ind)] /
           (UGM3_TO_MOLM3_(i_react_dep) * unit_conv));
       }
       for (int i_prod_dep = 0; i_prod_dep < NUM_PROD_; i_prod_dep++) {
 	if (JAC_ID_(i_jac)<0) {i_jac++; continue;}
-        atomicAdd((double*)&(J[JAC_ID_(i_jac++)]),
-          rate * YIELD_(i_prod_dep) /
-          state[REACT_(i_phase*NUM_REACT_+i_react_ind)] /
+	        atomicAdd((double*)&(J[JAC_ID_(i_jac++)]), rate /
           (UGM3_TO_MOLM3_(NUM_REACT_+i_prod_dep) * unit_conv));
       }
     }
 
     // Add dependence on aerosol-phase water for reactants and products in
     // aqueous reactions
+    if (WATER_(i_phase) < 0) {
+      i_jac += NUM_REACT_ + NUM_PROD_;
+      continue;
+    }
+
+    // Calculate the overall reaction rate (M/s or mol/m3/s)
+    rate = rate_constants[0];
+    for (int i_react = 0; i_react < NUM_REACT_; i_react++) {
+      rate *= state[REACT_(i_phase*NUM_REACT_+i_react)] *
+              UGM3_TO_MOLM3_(i_react) * unit_conv;
+    }
     for (int i_react_dep = 0; i_react_dep < NUM_REACT_; i_react_dep++) {
       if (JAC_ID_(i_jac)<0) {i_jac++; continue;}
-      atomicAdd((double*)&(J[JAC_ID_(i_jac++)]),
-          (NUM_REACT_-1) * rate / state[WATER_(i_phase)] /
-          (UGM3_TO_MOLM3_(i_react_dep) * unit_conv));
+        atomicAdd((double*)&(J[JAC_ID_(i_jac++)]), (NUM_REACT_-1) * rate * 1e-9 /
+	        UGM3_TO_MOLM3_(i_react_dep));
     }
     for (int i_prod_dep = 0; i_prod_dep < NUM_PROD_; i_prod_dep++) {
       if (JAC_ID_(i_jac)<0) {i_jac++; continue;}
-      atomicAdd((double*)&(J[JAC_ID_(i_jac++)]),
-          -(NUM_REACT_-1) * rate * YIELD_(i_prod_dep) /
-          state[WATER_(i_phase)] /
-          (UGM3_TO_MOLM3_(NUM_REACT_+i_prod_dep) * unit_conv));
+        atomicAdd((double*)&(J[JAC_ID_(i_jac++)]), -(NUM_REACT_-1) * rate * 1e-9 *
+         YIELD_(i_prod_dep) / UGM3_TO_MOLM3_(NUM_REACT_+i_prod_dep));
     }
-
   }
 
 }

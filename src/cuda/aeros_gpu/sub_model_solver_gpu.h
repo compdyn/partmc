@@ -12,6 +12,9 @@
 #define SUB_MODEL_SOLVER_H
 #include "../camp_gpu_solver.h"
 
-__device__ double sub_model_gpu_get_parameter_value(ModelData *model_data, int parameter_id);
+#ifndef FORCE_CPU
+__device__
+#endif
+double sub_model_gpu_get_parameter_value(ModelData *model_data, int parameter_id);
 
 #endif

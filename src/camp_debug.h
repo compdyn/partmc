@@ -30,7 +30,7 @@ void pmc_debug_print(void *cvode_mem, const char *message, bool do_full,
       NV_DATA_S(cv_mem->cv_zn[1])[PMC_DEBUG_SPEC_],
       NV_DATA_S(cv_mem->cv_tempv)[PMC_DEBUG_SPEC_],
       NV_DATA_S(cv_mem->cv_tempv1)[PMC_DEBUG_SPEC_],
-      NV_DATA_S(cv_mem->cv_tempv2)[PMC_DEBUG_SPEC_],
+      // NV_DATA_S(cv_mem->cv_tempv2)[PMC_DEBUG_SPEC_],
       NV_DATA_S(cv_mem->cv_acor_init)[PMC_DEBUG_SPEC_],
       NV_DATA_S(cv_mem->cv_last_yn)[PMC_DEBUG_SPEC_]);
   if (do_full) {
@@ -41,7 +41,7 @@ void pmc_debug_print(void *cvode_mem, const char *message, bool do_full,
           "last_yn[%3d] = % -le",
           i, NV_DATA_S(cv_mem->cv_zn[0])[i], i, NV_DATA_S(cv_mem->cv_zn[1])[i],
           i, NV_DATA_S(cv_mem->cv_tempv)[i], i, NV_DATA_S(cv_mem->cv_tempv1)[i],
-          i, NV_DATA_S(cv_mem->cv_tempv2)[i], i,
+          // i, NV_DATA_S(cv_mem->cv_tempv2)[i], i,
           NV_DATA_S(cv_mem->cv_acor_init)[i], i,
           NV_DATA_S(cv_mem->cv_last_yn)[i]);
     }

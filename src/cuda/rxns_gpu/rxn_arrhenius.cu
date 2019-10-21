@@ -25,9 +25,9 @@ extern "C"{
 #define D_ float_data[3*n_rxn]
 #define E_ float_data[4*n_rxn]
 #define CONV_ float_data[5*n_rxn]
-#define RATE_CONSTANT_ float_data[n_rxn*6]
+#define RATE_CONSTANT_ rate_constants[0*n_rxn] //todo rename it?
 #define NUM_INT_PROP_ 2
-#define NUM_FLOAT_PROP_ 7
+#define NUM_FLOAT_PROP_ 6 //TODO fix in the others
 #define REACT_(x) (int_data[(NUM_INT_PROP_ + x)*n_rxn]-1)
 #define PROD_(x) (int_data[(NUM_INT_PROP_ + NUM_REACT_ + x)*n_rxn]-1)
 #define DERIV_ID_(x) int_data[(NUM_INT_PROP_ + NUM_REACT_ + NUM_PROD_ + x)*n_rxn]
@@ -119,7 +119,6 @@ __device__ void rxn_gpu_arrhenius_update_env_state(double *rate_constants,
                    * (E_==0.0 ? 1.0 : (1.0 + E_*PRESSURE_PA_))
                    * pow(CONV_*PRESSURE_PA_/TEMPERATURE_K_, NUM_REACT_-1);
 
-  rate_constants[0] = RATE_CONSTANT_;
 }
 
 /** \brief Do pre-derivative calculations
@@ -158,8 +157,7 @@ __device__ void rxn_gpu_arrhenius_calc_deriv_contrib(double *rate_constants, dou
   int *int_data = (int*) rxn_data;
   double *float_data = double_pointer_gpu;
 
-  //double rate = RATE_CONSTANT_;
-  double rate = rate_constants[0];
+  double rate = RATE_CONSTANT_;
   for (int i_spec=0; i_spec<NUM_REACT_; i_spec++) rate *= state[REACT_(i_spec)];
 
   // Add contributions to the time derivative
@@ -181,6 +179,8 @@ __device__ void rxn_gpu_arrhenius_calc_deriv_contrib(double *rate_constants, dou
       }
     }
   }
+
+  //atomicAdd(&(deriv[0]),rate_constants[0]+1);
 
 }
 #endif

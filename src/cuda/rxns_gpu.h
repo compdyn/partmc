@@ -29,7 +29,11 @@ void * rxn_gpu_aqueous_equilibrium_skip(
           void *rxn_data);
 void * rxn_gpu_aqueous_equilibrium_print(
           void *rxn_data);
+
 #ifdef PMC_USE_SUNDIALS
+//__device__ double rxn_aqueous_equilibrium_calc_overall_rate(int *rxn_data,
+//     double *double_pointer_gpu, double *rate_constants, double *state,
+//     double react_fact, double prod_fact, double water, int i_phase, int n_rxn2)
 void rxn_cpu_aqueous_equilibrium_calc_deriv_contrib(double *rate_constants, double *state,
           double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step, int n_rxn);
 __device__ void rxn_gpu_aqueous_equilibrium_calc_deriv_contrib(
@@ -204,35 +208,17 @@ void * rxn_gpu_HL_phase_transfer_print(
 #ifdef PMC_USE_SUNDIALS
 void rxn_cpu_HL_phase_transfer_calc_deriv_contrib(double *rate_constants, double *state,
           double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step, int n_rxn);
-__device__ void rxn_gpu_HL_phase_transfer_calc_deriv_contrib(
-          double *rate_constants, double *state, realtype *deriv, void *rxn_data,
-          double * double_pointer_gpu, double time_step, int n_rxn);
-__device__ void rxn_gpu_HL_phase_transfer_calc_jac_contrib(
-          double *rate_constants, double *state, realtype *J, void *rxn_data, double * double_pointer_gpu, double time_step, int n_rxn);
+#ifndef FORCE_CPU
+__device__
 #endif
-
-// PD-FiTE activity
-void * rxn_gpu_PDFiTE_activity_get_used_jac_elem(
-          void *rxn_data, bool **jac_struct);
-void * rxn_gpu_PDFiTE_activity_update_ids(
-          ModelData *model_data, int *deriv_ids, int **jac_ids, void *rxn_data);
-__device__ void rxn_gpu_PDFiTE_activity_update_env_state(double *rate_constants,
-          int n_rxn2, double *double_pointer_gpu, double *env_data, void *rxn_data);
-void * rxn_gpu_PDFiTE_activity_pre_calc(
-          ModelData *model_data, void *rxn_data);
-void * rxn_gpu_PDFiTE_activity_get_float_pointer(void *rxn_data);
-void * rxn_gpu_PDFiTE_activity_skip(
-          void *rxn_data);
-void * rxn_gpu_PDFiTE_activity_print(
-          void *rxn_data);
-#ifdef PMC_USE_SUNDIALS
-void rxn_cpu_PDFiTE_activity_calc_deriv_contrib(double *rate_constants, double *state,
-          double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step, int n_rxn);
-__device__ void rxn_gpu_PDFiTE_activity_calc_deriv_contrib(
-          double *rate_constants, double *state, realtype *deriv, void *rxn_data,
+void rxn_gpu_HL_phase_transfer_calc_deriv_contrib(
+          ModelData *model_data, double *rate_constants, double *state, realtype *deriv, void *rxn_data,
           double * double_pointer_gpu, double time_step, int n_rxn);
-__device__ void rxn_gpu_PDFiTE_activity_calc_jac_contrib(
-          double *rate_constants, double *state, realtype *J, void *rxn_data, double * double_pointer_gpu, double time_step, int n_rxn);
+#ifndef FORCE_CPU
+__device__
+#endif
+void rxn_gpu_HL_phase_transfer_calc_jac_contrib(
+          ModelData *model_data, double *rate_constants, double *state, realtype *J, void *rxn_data, double * double_pointer_gpu, double time_step, int n_rxn);
 #endif
 
 // photolysis
@@ -275,11 +261,17 @@ void * rxn_gpu_SIMPOL_phase_transfer_print(
 #ifdef PMC_USE_SUNDIALS
 void rxn_cpu_SIMPOL_phase_transfer_calc_deriv_contrib(double *rate_constants, double *state,
           double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step, int n_rxn);
-__device__ void rxn_gpu_SIMPOL_phase_transfer_calc_deriv_contrib(
-          double *rate_constants, double *state, realtype *deriv, void *rxn_data,
+#ifndef FORCE_CPU
+__device__
+#endif
+void rxn_gpu_SIMPOL_phase_transfer_calc_deriv_contrib(
+          ModelData *model_data, double *rate_constants, double *state, realtype *deriv, void *rxn_data,
           double * double_pointer_gpu, double time_step, int n_rxn);
-__device__ void rxn_gpu_SIMPOL_phase_transfer_calc_jac_contrib(
-          double *rate_constants, double *state, realtype *J, void *rxn_data, double * double_pointer_gpu, double time_step, int n_rxn);
+#ifndef FORCE_CPU
+__device__
+#endif
+void rxn_gpu_SIMPOL_phase_transfer_calc_jac_contrib(
+          ModelData *model_data, double *rate_constants, double *state, realtype *J, void *rxn_data, double * double_pointer_gpu, double time_step, int n_rxn);
 #endif
 
 // troe
@@ -333,24 +325,6 @@ __device__ void rxn_gpu_wet_deposition_calc_jac_contrib(
 void * rxn_gpu_wet_deposition_create_rate_update_data();
 void rxn_gpu_wet_deposition_set_rate_update_data(
           void *update_data, int rxn_id, double base_rate);
-
-// ZSR_aerosol_water
-__device__ void rxn_gpu_ZSR_aerosol_water_update_env_state(double *rate_constants,
-           int n_rxn2, double *double_pointer_gpu, double *env_data, void *rxn_data);
-void * rxn_gpu_ZSR_aerosol_water_get_float_pointer(void *rxn_data);
-void * rxn_gpu_ZSR_aerosol_water_skip(
-          void *rxn_data);
-void * rxn_gpu_ZSR_aerosol_water_print(
-          void *rxn_data);
-#ifdef PMC_USE_SUNDIALS
-void rxn_cpu_ZSR_aerosol_water_calc_deriv_contrib(double *rate_constants, double *state,
-          double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step, int n_rxn);
-__device__ void rxn_gpu_ZSR_aerosol_water_calc_deriv_contrib(
-          double *rate_constants, double *state, realtype *deriv, void *rxn_data,
-          double * double_pointer_gpu, double time_step, int n_rxn);
-__device__ void rxn_gpu_ZSR_aerosol_water_calc_jac_contrib(
-          double *rate_constants, double *state, realtype *J, void *rxn_data, double * double_pointer_gpu, double time_step, int n_rxn);
-#endif
 
 
 #endif

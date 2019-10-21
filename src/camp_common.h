@@ -183,6 +183,7 @@ typedef struct {
                         // is current
   realtype J_guess_t;   // Last time (t) for which J_guess was calculated
   int Jac_eval_fails;   // Number of Jacobian evaluation failures
+  int solver_flag;      // Last flag returned by a call to CVode()
 #ifdef PMC_DEBUG
   booleantype debug_out;  // Output debugging information during solving
   booleantype eval_Jac;   // Evalute Jacobian data during solving

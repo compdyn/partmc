@@ -155,8 +155,8 @@ module pmc_camp_solver_data
     end subroutine solver_reset_timers
 
     !> Get the solver statistics
-    subroutine solver_get_statistics( solver_data, num_steps, RHS_evals, &
-                    LS_setups, error_test_fails, NLS_iters, &
+    subroutine solver_get_statistics( solver_data, solver_flag, num_steps, &
+                    RHS_evals, LS_setups, error_test_fails, NLS_iters, &
                     NLS_convergence_fails, DLS_Jac_evals, DLS_RHS_evals, &
                     last_time_step__s, next_time_step__s, Jac_eval_fails, &
                     RHS_evals_total, Jac_evals_total, RHS_time__s, &
@@ -164,7 +164,9 @@ module pmc_camp_solver_data
       use iso_c_binding
       !> Pointer to the solver data
       type(c_ptr), value :: solver_data
-      !> Number of stesp
+      !> Last flag returned by the solver
+      type(c_ptr), value :: solver_flag
+      !> Number of steps
       type(c_ptr), value :: num_steps
       !> Right-hand side evaluations
       type(c_ptr), value :: RHS_evals
@@ -936,6 +938,7 @@ contains
 
     call solver_get_statistics( &
             this%solver_c_ptr,                             & ! Solver data
+            c_loc( solver_stats%solver_flag           ),   & ! Last flag returned CVode
             c_loc( solver_stats%num_steps             ),   & ! Number of steps
             c_loc( solver_stats%RHS_evals             ),   & ! Right-hand side evals
             c_loc( solver_stats%LS_setups             ),   & ! Linear solver setups

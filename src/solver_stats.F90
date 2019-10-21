@@ -25,6 +25,8 @@ module pmc_solver_stats
     real(kind=dp) :: start_time__s
     !> Integration end time [s]
     real(kind=dp) :: end_time__s
+    !> Last flag returned by the solver
+    integer(kind=i_kind) :: solver_flag
     !> Number of steps
     integer(kind=i_kind) :: num_steps
     !> Right-hand side evaluations
@@ -91,6 +93,7 @@ contains
     write(f_unit,*) "Status code:                 ", this%status_code
     write(f_unit,*) "Integration start time [s]:  ", this%start_time__s
     write(f_unit,*) "Integration end time [s]:    ", this%end_time__s
+    write(f_unit,*) "Last solver flag:            ", this%solver_flag
     write(f_unit,*) "Number of steps:             ", this%num_steps
     write(f_unit,*) "Right-hand side evals:       ", this%RHS_evals
     write(f_unit,*) "Linear solver setups:        ", this%LS_setups
@@ -124,6 +127,7 @@ contains
     this%status_code           = new_value
     this%start_time__s         = real( new_value, kind=dp )
     this%end_time__s           = real( new_value, kind=dp )
+    this%solver_flag           = new_value
     this%num_steps             = new_value
     this%RHS_evals             = new_value
     this%LS_setups             = new_value

@@ -609,6 +609,7 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   realtype t_rt = (realtype)t_initial;
   if (!sd->no_solve) {
     flag = CVode(sd->cvode_mem, (realtype)t_final, sd->y, &t_rt, CV_NORMAL);
+    sd->solver_flag = flag;
 #ifndef FAILURE_DETAIL
     if (flag < 0) {
 #else
@@ -666,6 +667,7 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
 /** \brief Get solver statistics after an integration attempt
  *
  * \param solver_data           Pointer to the solver data
+ * \param solver_flag           Last flag returned by the solver
  * \param num_steps             Pointer to set to the number of integration
  *                              steps
  * \param RHS_evals             Pointer to set to the number of right-hand side
@@ -690,20 +692,21 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
  * \param RHS_time__s           Compute time for calls to f() [s]
  * \param Jac_time__s           Compute time for calls to Jac() [s]
  */
-void solver_get_statistics(void *solver_data, int *num_steps, int *RHS_evals,
-                           int *LS_setups, int *error_test_fails,
-                           int *NLS_iters, int *NLS_convergence_fails,
-                           int *DLS_Jac_evals, int *DLS_RHS_evals,
-                           double *last_time_step__s, double *next_time_step__s,
-                           int *Jac_eval_fails, int *RHS_evals_total,
-                           int *Jac_evals_total, double *RHS_time__s,
-                           double *Jac_time__s) {
+void solver_get_statistics(void *solver_data, int *solver_flag, int *num_steps,
+                           int *RHS_evals, int *LS_setups,
+                           int *error_test_fails, int *NLS_iters,
+                           int *NLS_convergence_fails, int *DLS_Jac_evals,
+                           int *DLS_RHS_evals, double *last_time_step__s,
+                           double *next_time_step__s, int *Jac_eval_fails,
+                           int *RHS_evals_total, int *Jac_evals_total,
+                           double *RHS_time__s, double *Jac_time__s) {
 #ifdef PMC_USE_SUNDIALS
   SolverData *sd = (SolverData *)solver_data;
   long int nst, nfe, nsetups, nje, nfeLS, nni, ncfn, netf, nge;
   realtype last_h, curr_h;
   int flag;
 
+  solver_flag = sd->solver_flag;
   flag = CVodeGetNumSteps(sd->cvode_mem, &nst);
   if (check_flag(&flag, "CVodeGetNumSteps", 1) == CAMP_SOLVER_FAIL) return;
   *num_steps = (int)nst;

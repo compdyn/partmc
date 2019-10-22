@@ -59,6 +59,12 @@ typedef struct {
   int param_id;   // sub model Jacobian id
 } JacMap;
 
+/* GPU data structure */
+typedef struct {
+    size_t deriv_size;
+
+} DataGPU;
+
 /* Model data structure */
 typedef struct {
   int n_per_cell_state_var;        // number of state variables per grid cell
@@ -167,6 +173,30 @@ typedef struct {
                                  // for the current grid cell
   int n_sub_model_env_data;      // Number of sub model environmental parameters
                                  // from all sub models
+//#ifdef CUDA_FOUND
+// GPU data
+  double *deriv_gpu_data;
+  double *deriv_cpu;
+  double *jac_gpu_data;
+  double *jac_cpu;
+  size_t deriv_size;
+  size_t jac_size;
+  size_t state_size;
+  size_t env_size;
+  size_t rate_constants_size;
+  size_t rate_constants_idx_size;
+  bool few_data;
+  bool implemented_all;
+  int *int_pointer;
+  int *int_pointer_gpu;
+  double *double_pointer;
+  double *double_pointer_gpu;
+  double *state_gpu;
+  double *env_gpu;
+  double *rate_constants_gpu;
+  int *rate_constants_idx_gpu;
+
+//#endif
 } ModelData;
 
 /* Solver data structure */

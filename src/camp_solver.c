@@ -337,9 +337,8 @@ void *solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
   sd->model_data.sub_model_env_idx[0] = 0;
 
 #ifdef PMC_USE_GPU
-  solver_new_gpu_cu(n_dep_var, n_state_var, n_rxn, n_rxn_int_param,
+  solver_new_gpu_cu(&(sd->model_data), n_dep_var, n_state_var, n_rxn, n_rxn_int_param,
                     n_rxn_float_param, n_rxn_env_param, n_cells);
-  printf("gpu acting \n");
 #endif
 
 #ifdef PMC_DEBUG
@@ -452,11 +451,6 @@ void solver_initialize(void *solver_data, double *abs_tol, double rel_tol,
   // Set a function to improve guesses for y sent to the linear solver
   flag = CVodeSetDlsGuessHelper(sd->cvode_mem, guess_helper);
   check_flag_fail(&flag, "CVodeSetDlsGuessHelper", 1);
-
-// Allocate Jacobian on GPU
-#ifdef PMC_USE_GPU
-  allocate_jac_gpu(sd->model_data.n_per_cell_solver_jac_elem, n_cells);
-#endif
 
 // Set gpu rxn values
 #ifdef PMC_USE_GPU

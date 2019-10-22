@@ -28,29 +28,29 @@ int max_n_gpu_thread;
 int max_n_gpu_blocks;
 
 //General data
-double *deriv_gpu_data;
-double *deriv_cpu;
-double *jac_gpu_data;
-double *jac_cpu;
-size_t deriv_size;
-size_t jac_size;
-size_t state_size;
-size_t env_size;
-size_t rate_constants_size;
-size_t rate_constants_idx_size;
+/*double *model_data->deriv_gpu_data;
+double *model_data->deriv_cpu;
+double *model_data->jac_gpu_data;
+double *model_data->jac_cpu;
+//size_t model_data->deriv_size;
+size_t model_data->jac_size;
+size_t model_data->state_size;
+size_t model_data->env_size;
+size_t model_data->rate_constants_size;
+size_t model_data->rate_constants_idx_size;
 
-bool few_data = 0;
-bool implemented_all = true;
-int *int_pointer;
-int *int_pointer_gpu;
-double *double_pointer;
-double *double_pointer_gpu;
-double *state_gpu;
-double *state_cpu;
-double *env_gpu;
-double *rate_constants_gpu;
-double *rate_constants_cpu;
-int *rate_constants_idx_gpu;
+
+bool model_data->few_data;
+bool model_data->implemented_all;
+int *model_data->int_pointer;
+int *model_data->int_pointer_gpu;
+double *model_data->double_pointer;
+double *model_data->double_pointer_gpu;
+double *model_data->state_gpu;
+double *model_data->env_gpu;
+double *model_data->rate_constants_gpu;
+int *model_data->rate_constants_idx_gpu;
+*/
 
 static void HandleError(cudaError_t err,
                         const char *file,
@@ -81,23 +81,29 @@ static void HandleError2(const char *file,
  * \param n_rxn_float_param Total number of floating-point reaction parameters
  * \param n_cells Number of grid cells to solve simultaneously
  */
-void solver_new_gpu_cu(int n_dep_var,
+void solver_new_gpu_cu(ModelData *model_data, int n_dep_var,
                        int n_state_var, int n_rxn,
                        int n_rxn_int_param, int n_rxn_float_param, int n_rxn_env_param,
                        int n_cells) {
+//Get Global gpu data
+  //DataGPU *dgpu = (DataGPU *)malloc(sizeof(DataGPU));
 
   //Lengths
-  state_size = n_state_var*n_cells * sizeof(double);
-  deriv_size = n_dep_var*n_cells * sizeof(double);
-  env_size = PMC_NUM_ENV_PARAM_*n_cells * sizeof(double); //Temp and pressure
-  rate_constants_size = n_rxn_env_param * n_cells * sizeof(double);
-  rate_constants_idx_size = (n_rxn+1) * sizeof(int);
+  model_data->state_size = n_state_var * n_cells * sizeof(double);
+  model_data->deriv_size = n_dep_var * n_cells * sizeof(double);
+  model_data->env_size = PMC_NUM_ENV_PARAM_ * n_cells * sizeof(double); //Temp and pressure
+  model_data->rate_constants_size = n_rxn_env_param * n_cells * sizeof(double);
+  model_data->rate_constants_idx_size = (n_rxn+1) * sizeof(int);
+  model_data->few_data = 0;
+  model_data->implemented_all = true;
+
+  printf("new deriv_lenght %d, cells %d\n", model_data->deriv_size/sizeof(double), n_cells);
 
   //Detect if we are working with few data values
   if (n_dep_var*n_cells < DATA_SIZE_LIMIT_OPT){
-    few_data = 1;
+    model_data->few_data = 1;
   }
- //few_data = 1;
+ //model_data->few_data = 1;
 
   //Set working GPU: we have 4 gpu available on power9. as default, it should be assign to gpu 0
   int device=0;
@@ -113,18 +119,17 @@ void solver_new_gpu_cu(int n_dep_var,
   int n_blocks = (n_rxn + max_n_gpu_thread - 1) / max_n_gpu_thread;
 
   //GPU allocation
-  cudaMalloc((void **) &deriv_gpu_data, deriv_size);
-  cudaMalloc((void **) &state_gpu, state_size);
-  cudaMalloc((void **) &env_gpu, env_size);
-  cudaMalloc((void **) &rate_constants_gpu, rate_constants_size);
-  cudaMalloc((void **) &rate_constants_idx_gpu, rate_constants_idx_size);
+  cudaMalloc((void **) &model_data->deriv_gpu_data, model_data->deriv_size);
+  cudaMalloc((void **) &model_data->state_gpu, model_data->state_size);
+  cudaMalloc((void **) &model_data->env_gpu, model_data->env_size);
+  cudaMalloc((void **) &model_data->rate_constants_gpu, model_data->rate_constants_size);
+  cudaMalloc((void **) &model_data->rate_constants_idx_gpu, model_data->rate_constants_idx_size);
 
   //GPU allocation few data on pinned memory
-  if(few_data){
+  if(model_data->few_data){
     //Notice auxiliar variables are created because we
     // can't pin directly variables initialized before
-    cudaMallocHost((void**)&rate_constants_cpu, rate_constants_size);
-    cudaMallocHost((void**)&deriv_cpu, deriv_size);
+    cudaMallocHost((void**)&model_data->deriv_cpu, model_data->deriv_size);
   }
 
   // Warning if exceeding GPU limits
@@ -139,22 +144,6 @@ void solver_new_gpu_cu(int n_dep_var,
 
 }
 
-/** \brief Allocate Jacobian on GPU
-*
-* \param n_jac_elem Number of data elements on the jacobian
-* \param n_cells Number of cells to compute
-*/
-void allocate_jac_gpu(int n_jac_elem, int n_cells){
-
-  jac_size = n_jac_elem * n_cells * sizeof(double);
-  cudaMalloc((void **) &jac_gpu_data, jac_size);
-
-  if(few_data){
-    cudaMallocHost((void**)&jac_cpu, jac_size);
-  }
-
-}
-
 /** \brief Set reaction data on GPU prepared structure. RXN data is divided
  * into two different matrix, per double and int data respectively. Matrix are
  * reversed to improve memory access on GPU.
@@ -165,6 +154,7 @@ void allocate_jac_gpu(int n_jac_elem, int n_cells){
 void solver_set_rxn_data_gpu(ModelData *model_data) {
 
   int n_rxn = model_data->n_rxn;
+  int n_cells = model_data->n_cells;
   unsigned int int_max_length = 0;
   unsigned int double_max_length = 0;
 
@@ -227,7 +217,7 @@ void solver_set_rxn_data_gpu(ModelData *model_data) {
 #ifdef FAILURE_DETAIL
       printf("WARNING: Reaction type %d is not fully implemented on GPU. Computing on CPU...\n", rxn_type);
 #endif
-      implemented_all=false;
+      model_data->implemented_all=false;
     }
 
     //Get RXN lengths
@@ -253,15 +243,15 @@ void solver_set_rxn_data_gpu(ModelData *model_data) {
 
   //Allocate int and double rxn data separately
   //Add -1 to avoid access and have a square matrix
-  int_pointer = (int *) malloc(rxn_int_length * sizeof(int));
-  memset(int_pointer, -1, rxn_int_length * sizeof(int));
+  model_data->int_pointer = (int *) malloc(rxn_int_length * sizeof(int));
+  memset(model_data->int_pointer, -1, rxn_int_length * sizeof(int));
 
   //Add 0 to avoid access and have a square matrix
-  double_pointer = (double*)calloc(rxn_double_length, sizeof(double));
+  model_data->double_pointer = (double*)calloc(rxn_double_length, sizeof(double));
 
   //GPU allocation
-  cudaMalloc((void **) &int_pointer_gpu, rxn_int_length * sizeof(int));
-  cudaMalloc((void **) &double_pointer_gpu, rxn_double_length * sizeof(double));
+  cudaMalloc((void **) &model_data->int_pointer_gpu, rxn_int_length * sizeof(int));
+  cudaMalloc((void **) &model_data->double_pointer_gpu, rxn_double_length * sizeof(double));
 
   //Update number of zeros added on each reaction
   for (int i_rxn = 0; i_rxn < n_rxn; i_rxn++)
@@ -285,11 +275,11 @@ void solver_set_rxn_data_gpu(ModelData *model_data) {
     int i_pos=rxn_position[i_rxn];//i_rxn;//rxn_position[i_rxn];//for bubblesort
     for (int j = 0; j < int_lengths[i_pos]; j++){
       int *rxn_int_data = &(model_data->rxn_int_data[model_data->rxn_int_indices[i_pos]]);
-      int_pointer[n_rxn*j + i_rxn] = rxn_int_data[j];
+      model_data->int_pointer[n_rxn*j + i_rxn] = rxn_int_data[j];
     }
     for (int j = 0; j < double_lengths[i_pos]; j++) {
       double *rxn_float_data = &(model_data->rxn_float_data[model_data->rxn_float_indices[i_pos]]);
-      double_pointer[n_rxn*j + i_rxn] = rxn_float_data[j];
+      model_data->double_pointer[n_rxn*j + i_rxn] = rxn_float_data[j];
     }
     //Reorder the rate indices
     //Todo update on main code the rate_constants to read consecutively in cpu
@@ -297,11 +287,19 @@ void solver_set_rxn_data_gpu(ModelData *model_data) {
   }
 
   //Save data to GPU
-  HANDLE_ERROR(cudaMemcpy(int_pointer_gpu, int_pointer, rxn_int_length*sizeof(int), cudaMemcpyHostToDevice));
-  HANDLE_ERROR(cudaMemcpy(double_pointer_gpu, double_pointer, rxn_double_length*sizeof(double), cudaMemcpyHostToDevice));
+  HANDLE_ERROR(cudaMemcpy(model_data->int_pointer_gpu, model_data->int_pointer, rxn_int_length*sizeof(int), cudaMemcpyHostToDevice));
+  HANDLE_ERROR(cudaMemcpy(model_data->double_pointer_gpu, model_data->double_pointer, rxn_double_length*sizeof(double), cudaMemcpyHostToDevice));
 
   //Set rate_constants-idx
-  HANDLE_ERROR(cudaMemcpy(rate_constants_idx_gpu, rate_constants_idx_aux, rate_constants_idx_size, cudaMemcpyHostToDevice));
+  HANDLE_ERROR(cudaMemcpy(model_data->rate_constants_idx_gpu, rate_constants_idx_aux, model_data->rate_constants_idx_size, cudaMemcpyHostToDevice));
+
+  //Allocate jacobian
+  model_data->jac_size = model_data->n_per_cell_solver_jac_elem * n_cells * sizeof(double);
+  cudaMalloc((void **) &model_data->jac_gpu_data, model_data->jac_size);
+
+  if(model_data->few_data){
+    cudaMallocHost((void**)&model_data->jac_cpu, model_data->jac_size);
+  }
 
 }
 
@@ -311,11 +309,11 @@ void solver_set_rxn_data_gpu(ModelData *model_data) {
  * \param deriv_init Pointer to first value of derivative array
  * \param time_step Current time step being computed (s)
  * \param deriv_length_cell Derivative length for one cell
- * \param state_size_cell Derivative length for one cell
+ * \param model_data->state_size_cell Derivative length for one cell
  * \param n_rxn Number of reactions to include
  * \param n_cells_gpu Number of cells to compute
- * \param int_pointer Pointer to integer reaction data
- * \param double_pointer Pointer to double reaction data
+ * \param model_data->int_pointer Pointer to integer reaction data
+ * \param model_data->double_pointer Pointer to double reaction data
  * \param rate_constants_init Pointer to first value of reaction rates
  */
 __global__ void solveDerivative(double *state_init, double *deriv_init,
@@ -430,40 +428,39 @@ void rxn_calc_deriv_gpu(ModelData *model_data, N_Vector deriv, realtype time_ste
 //Pa ARREGLARLO poner deriv size y todo eso en un struct gpu y asi el multi cell y one cell core tienen su struct y sus cosas
 //(parece que al ser global variable pues no lo pilla bien y no sobreescribe x algun motivo)
 
-/*
-
   //Faster, use for few values
-  if (few_data){
+  if (model_data->few_data){
     //This method of passing them as a function parameter has a theoric maximum of 4kb of data
-    state_gpu= state;
-    rate_constants_gpu= rate_constants;
+    model_data->state_gpu= state;
+    model_data->rate_constants_gpu= rate_constants;
   }
     //Slower, use for large values
   else{
-    HANDLE_ERROR(cudaMemcpy(state_gpu, state, state_size, cudaMemcpyHostToDevice));
+    HANDLE_ERROR(cudaMemcpy(model_data->state_gpu, state, model_data->state_size, cudaMemcpyHostToDevice));
     //todo rate_constants only change each time_step, not each deriv iteration
-    HANDLE_ERROR(cudaMemcpy(rate_constants_gpu, rate_constants, rate_constants_size, cudaMemcpyHostToDevice));
+    HANDLE_ERROR(cudaMemcpy(model_data->rate_constants_gpu, rate_constants, model_data->rate_constants_size, cudaMemcpyHostToDevice));
   }
 
-  HANDLE_ERROR(cudaMemset(deriv_gpu_data, 0.0, deriv_size));
+  HANDLE_ERROR(cudaMemset(model_data->deriv_gpu_data, 0.0, model_data->deriv_size));
 
+  solveDerivative << < (n_blocks), max_n_gpu_thread >> >
+     (model_data->state_gpu, model_data->deriv_gpu_data, time_step, model_data->n_per_cell_dep_var,
+     model_data->n_per_cell_state_var, model_data->n_rxn_env_data,
+     n_rxn, n_cells,
+     model_data->int_pointer_gpu, model_data->double_pointer_gpu, model_data->rate_constants_gpu, model_data->rate_constants_idx_gpu);
 
   cudaDeviceSynchronize();// Secure cuda synchronization
 
   //Use pinned memory for few values
-  if (!few_data){
-    HANDLE_ERROR(cudaMemcpy(deriv_cpu, deriv_gpu_data, deriv_size, cudaMemcpyDeviceToHost));
-    memcpy(deriv_data, deriv_cpu, deriv_size);
+  if (model_data->few_data){
+    HANDLE_ERROR(cudaMemcpy(model_data->deriv_cpu, model_data->deriv_gpu_data, model_data->deriv_size, cudaMemcpyDeviceToHost));
+    memcpy(deriv_data, model_data->deriv_cpu, model_data->deriv_size);
   }
   else {
-    HANDLE_ERROR(cudaMemcpy(deriv_data, deriv_gpu_data, deriv_size, cudaMemcpyDeviceToHost));
+    HANDLE_ERROR(cudaMemcpy(deriv_data, model_data->deriv_gpu_data, model_data->deriv_size, cudaMemcpyDeviceToHost));
   }
 
-  printf("holaa %d, %d\n", deriv_size/sizeof(double), n_cells);
-
-  //TODO Calculate on CPU non gpu-translated type reactions (HL & SIMPOL phase transfer) (or wait till v2.0 with C++)
-
- */
+  //printf("deriv deriv_lenght %d, cells %d\n", model_data->deriv_size/sizeof(double), n_cells);
 
 }
 
@@ -473,11 +470,11 @@ void rxn_calc_deriv_gpu(ModelData *model_data, N_Vector deriv, realtype time_ste
  * \param jac_init Pointer to first value of jacobian array
  * \param time_step Current time step being computed (s)
  * \param jac_length_cell jacobian length for one cell
- * \param state_size_cell jacobian length for one cell
+ * \param model_data->state_size_cell jacobian length for one cell
  * \param n_rxn Number of reactions to include
  * \param n_cells_gpu Number of cells to compute
- * \param int_pointer Pointer to integer reaction data
- * \param double_pointer Pointer to double reaction data
+ * \param model_data->int_pointer Pointer to integer reaction data
+ * \param model_data->double_pointer Pointer to double reaction data
  * \param rate_constants_init Pointer to first value of reaction rates
  */
 //TODO: fix jacGPU once matt let me modify rxn_solver and reduce jacobians (in v2.0 or before if needed)
@@ -584,39 +581,37 @@ void rxn_calc_jac_gpu(ModelData *model_data, SUNMatrix jac, realtype time_step) 
   double *state = model_data->total_state;
   double *rate_constants = model_data->rxn_env_data;
 
-  /*
-
   //Faster, use for few values
-  if (few_data){
+  if (model_data->few_data){
     //This method of passing them as a function parameter has a theoric maximum of 4kb of data
-    state_gpu= state;
-    rate_constants_gpu= rate_constants;
+    model_data->state_gpu= state;
+    model_data->rate_constants_gpu= rate_constants;
   }
     //Slower, use for large values
   else{
-    HANDLE_ERROR(cudaMemcpy(state_gpu, state, state_size, cudaMemcpyHostToDevice));
-    HANDLE_ERROR(cudaMemcpy(rate_constants_gpu, rate_constants, rate_constants_size, cudaMemcpyHostToDevice));
+    HANDLE_ERROR(cudaMemcpy(model_data->state_gpu, state, model_data->state_size, cudaMemcpyHostToDevice));
+    HANDLE_ERROR(cudaMemcpy(model_data->rate_constants_gpu, rate_constants, model_data->rate_constants_size, cudaMemcpyHostToDevice));
   }
 
-  HANDLE_ERROR(cudaMemset(jac_gpu_data, 0, jac_size));
+  HANDLE_ERROR(cudaMemset(model_data->jac_gpu_data, 0, model_data->jac_size));
 
   solveJacobian << < (n_blocks), max_n_gpu_thread >> >
-    (state_gpu, jac_gpu_data, time_step, model_data->n_per_cell_rxn_jac_elem,
+    (model_data->state_gpu, model_data->jac_gpu_data, time_step, model_data->n_per_cell_rxn_jac_elem,
     model_data->n_per_cell_state_var, model_data->n_rxn_env_data,
-    n_rxn, n_cells, int_pointer_gpu, double_pointer_gpu, rate_constants_gpu, rate_constants_idx_gpu);
+    n_rxn, n_cells, model_data->int_pointer_gpu, model_data->double_pointer_gpu, model_data->rate_constants_gpu, model_data->rate_constants_idx_gpu);
 
   cudaDeviceSynchronize();// Secure cuda synchronization
 
   //Use pinned memory for few values
-  if (few_data){
-    HANDLE_ERROR(cudaMemcpy(jac_cpu, jac_gpu_data, jac_size, cudaMemcpyDeviceToHost));
-    memcpy(jac_data, jac_cpu, jac_size);
+  if (model_data->few_data){
+    HANDLE_ERROR(cudaMemcpy(model_data->jac_cpu, model_data->jac_gpu_data, model_data->jac_size, cudaMemcpyDeviceToHost));
+    memcpy(jac_data, model_data->jac_cpu, model_data->jac_size);
   }
   else {
-    HANDLE_ERROR(cudaMemcpy(jac_data, jac_gpu_data, jac_size, cudaMemcpyDeviceToHost));
+    HANDLE_ERROR(cudaMemcpy(jac_data, model_data->jac_gpu_data, model_data->jac_size, cudaMemcpyDeviceToHost));
   }
 
-   */
+
 
 }
 
@@ -624,21 +619,22 @@ void rxn_calc_jac_gpu(ModelData *model_data, SUNMatrix jac, realtype time_step) 
 /** \brief Free GPU data structures
  */
 void free_gpu_cu() {
+/*
+printf("free gpu\n");
 
-printf("free");
+  HANDLE_ERROR(cudaFree(model_data->int_pointer_gpu));
+  HANDLE_ERROR(cudaFree(model_data->double_pointer_gpu));
+  HANDLE_ERROR(cudaFree(model_data->deriv_gpu_data));
+  //HANDLE_ERROR(cudaFree(model_data->jac_gpu_data));
 
-  HANDLE_ERROR(cudaFree(int_pointer_gpu));
-  HANDLE_ERROR(cudaFree(double_pointer_gpu));
-  HANDLE_ERROR(cudaFree(deriv_gpu_data));
-  //HANDLE_ERROR(cudaFree(jac_gpu_data));
-
-  if(few_data){
+  if(model_data->few_data){
   }
   else{
-    HANDLE_ERROR(cudaFree(state_gpu));
-    HANDLE_ERROR(cudaFree(rate_constants_gpu));
-    HANDLE_ERROR(cudaFree(rate_constants_idx_gpu));
+    HANDLE_ERROR(cudaFree(model_data->state_gpu));
+    HANDLE_ERROR(cudaFree(model_data->rate_constants_gpu));
+    HANDLE_ERROR(cudaFree(model_data->rate_constants_idx_gpu));
   }
+  */
 }
 
 /* Auxiliar functions */

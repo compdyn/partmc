@@ -248,10 +248,14 @@ endif()
 
 if(CUDA_FOUND)
     add_test(test_rxn_arrhenius_mech_gpu ${CMAKE_BINARY_DIR}/test_run/unit_tests/input_files/run_rxn_arrhenius_gpu.sh ${MPI_TEST_FLAG})
+
+    add_test(test_chemistry_cb05cl_ae5_gpu ${CMAKE_BINARY_DIR}/test_run/chemistry/cb05cl_ae5/test_chemistry_cb05cl_ae5_gpu.sh ${MPI_TEST_FLAG})
+
 endif()
 
-
 add_test(test_rxn_arrhenius_mech ${CMAKE_BINARY_DIR}/test_run/unit_tests/input_files/run_rxn_arrhenius.sh ${MPI_TEST_FLAG})
+
+add_test(test_chemistry_cb05cl_ae5 ${CMAKE_BINARY_DIR}/test_run/chemistry/cb05cl_ae5/test_chemistry_cb05cl_ae5.sh ${MPI_TEST_FLAG})
 
 if (ENABLE_TESTS)
     if (ENABLE_JSON AND ENABLE_SUNDIALS)
@@ -659,13 +663,21 @@ set_source_files_properties(${CB5_EBI_SOLVER} PROPERTIES COMPILE_FLAGS
 	${CB5_EBI_FLAGS})
 
 ######################################################################
-# test_chemistry_cb05cl_ae5_big
+# test_chemistry_cb05cl_ae5
 
-add_executable(test_chemistry_cb05cl_ae5_big
-        test/chemistry/cb05cl_ae5/test_cb05cl_ae5_big.F90
+add_executable(test_chemistry_cb05cl_ae5
+        test/chemistry/cb05cl_ae5/test_cb05cl_ae5.F90
         ${CB5_EBI_SOLVER} ${CB5_KPP_SOLVER}
         test/chemistry/cb05cl_ae5/module_BSC_CHEM_DATA.F90)
-target_link_libraries(test_chemistry_cb05cl_ae5_big partmclib)
+target_link_libraries(test_chemistry_cb05cl_ae5 partmclib)
+
+if (CUDA_FOUND)
+    add_executable(test_chemistry_cb05cl_ae5_gpu
+            test/chemistry/cb05cl_ae5/test_cb05cl_ae5.F90
+            ${CB5_EBI_SOLVER} ${CB5_KPP_SOLVER}
+            test/chemistry/cb05cl_ae5/module_BSC_CHEM_DATA.F90)
+    target_link_libraries(test_chemistry_cb05cl_ae5_gpu partmclib_gpu)
+endif()
 
 ######################################################################
 # MONARCH interface
@@ -685,14 +697,14 @@ set(UNIT_TEST_RXN_ARRHENIUS_SRC
 set_source_files_properties(${UNIT_TEST_RXN_ARRHENIUS_SRC} PROPERTIES COMPILE_FLAGS ${STD_F_FLAGS})
 add_executable(unit_test_rxn_arrhenius ${UNIT_TEST_RXN_ARRHENIUS_SRC})
 target_compile_definitions(unit_test_rxn_arrhenius PRIVATE
-        "UNIT_TEST_MODULE_=pmc_unit_test_rxn_arrhenius \
-  ;UNIT_TEST_TYPE_=unit_test_rxn_arrhenius_t()")
+    "UNIT_TEST_MODULE_=pmc_unit_test_rxn_arrhenius \
+    ;UNIT_TEST_TYPE_=unit_test_rxn_arrhenius_t()")
 target_link_libraries(unit_test_rxn_arrhenius partmclib)
 
 if (CUDA_FOUND)
     add_executable(unit_test_rxn_arrhenius_gpu ${UNIT_TEST_RXN_ARRHENIUS_SRC})
     target_compile_definitions(unit_test_rxn_arrhenius_gpu PRIVATE
-            "UNIT_TEST_MODULE_=pmc_unit_test_rxn_arrhenius \
+    "UNIT_TEST_MODULE_=pmc_unit_test_rxn_arrhenius \
     ;UNIT_TEST_TYPE_=unit_test_rxn_arrhenius_t()")
     target_link_libraries(unit_test_rxn_arrhenius_gpu partmclib_gpu)
 endif()
@@ -700,20 +712,19 @@ endif()
 if (ENABLE_TESTS)
 
 ######################################################################
-# test_chemistry_cb05cl_ae5
+# test_chemistry_cb05cl_ae5_big
 
-add_executable(test_chemistry_cb05cl_ae5
-    test/chemistry/cb05cl_ae5/test_cb05cl_ae5.F90
-    ${CB5_EBI_SOLVER} ${CB5_KPP_SOLVER}
-    test/chemistry/cb05cl_ae5/module_BSC_CHEM_DATA.F90)
-target_link_libraries(test_chemistry_cb05cl_ae5 partmclib)
+add_executable(test_chemistry_cb05cl_ae5_big
+        test/chemistry/cb05cl_ae5/test_cb05cl_ae5_big.F90
+        ${CB5_EBI_SOLVER} ${CB5_KPP_SOLVER}
+        test/chemistry/cb05cl_ae5/module_BSC_CHEM_DATA.F90)
+target_link_libraries(test_chemistry_cb05cl_ae5_big partmclib)
 
 ######################################################################
 # test_chemistry_eqsam_v03d
 
 set(EQSAM_V03D
-	test/chemistry/eqsam_v03d/eqsam_v03d.F90
-	)
+	test/chemistry/eqsam_v03d/eqsam_v03d.F90)
 
 add_executable(test_chemistry_eqsam_v03d test/chemistry/eqsam_v03d/test_eqsam_v03d.F90
 	${EQSAM_V03D})

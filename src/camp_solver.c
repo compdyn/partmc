@@ -339,6 +339,7 @@ void *solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
 #ifdef PMC_USE_GPU
   solver_new_gpu_cu(n_dep_var, n_state_var, n_rxn, n_rxn_int_param,
                     n_rxn_float_param, n_rxn_env_param, n_cells);
+  printf("gpu acting \n");
 #endif
 
 #ifdef PMC_DEBUG
@@ -881,8 +882,8 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
     // Calculate the time derivative f(t,y)
     rxn_calc_deriv(md, deriv_data, (double)time_step);
 #else
-      // Add contributions from reactions not implemented on GPU
-      rxn_calc_deriv_specific_types(md, deriv_data, (double)time_step);
+    // Add contributions from reactions not implemented on GPU
+    rxn_calc_deriv_specific_types(md, deriv_data, (double)time_step);
 #endif
 
 #ifdef PMC_DEBUG
@@ -1016,8 +1017,9 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
     PMC_DEBUG_JAC(md->J_rxn, "reaction Jacobian");
 
 #else
-      // Add contributions from reactions not implemented on GPU
-      rxn_calc_jac_specific_types(md, J_rxn_data, time_step);
+    // Add contributions from reactions not implemented on GPU
+    rxn_calc_jac_specific_types(md, J_rxn_data, time_step);
+    PMC_DEBUG_JAC(md->J_rxn, "reaction Jacobian");
 #endif
 
 // rxn_calc_jac_specific_types(md, J_rxn_data, time_step);
@@ -1868,7 +1870,7 @@ void error_handler(int error_code, const char *module, const char *function,
  */
 void model_free(ModelData model_data) {
 #ifdef PMC_USE_GPU
-  // free_gpu_cu();
+   free_gpu_cu();
 #endif
 
 #ifdef PMC_USE_SUNDIALS

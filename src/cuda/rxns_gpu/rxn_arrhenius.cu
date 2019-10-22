@@ -244,31 +244,29 @@ __device__ void rxn_gpu_arrhenius_calc_jac_contrib(double *rate_constants, doubl
   int n_rxn=n_rxn2;
   int *int_data = (int*) rxn_data;
   double *float_data = double_pointer_gpu;
+  double rate;
 
   // Calculate the reaction rate
   //double rate = RATE_CONSTANT_;
-  double rate = rate_constants[0];
-  for (int i_spec=0; i_spec<NUM_REACT_; i_spec++) rate *= state[REACT_(i_spec)];
-
+//TODO FIX THIS, ITS NOT WORKING WITH NEW UNIT TEST IDK WHYYYYYYY
   // Add contributions to the Jacobian
   int i_elem = 0;
   for (int i_ind=0; i_ind<NUM_REACT_; i_ind++) {
+    rate = rate_constants[0];
+    for (int i_spec = 0; i_spec < NUM_REACT_; i_spec++)
+      if (i_spec != i_ind) rate *= state[REACT_(i_spec)];
+
     for (int i_dep=0; i_dep<NUM_REACT_; i_dep++, i_elem++) {
-  if (JAC_ID_(i_elem) < 0) continue;
-  //J[JAC_ID_(i_elem)] -= rate / state[REACT_(i_ind)];
-  //double rate2 = rate /  state[REACT_(i_ind)];
-  //atomicAdd(&(J[JAC_ID_(i_elem)]),-rate2);
-  atomicAdd(&(J[JAC_ID_(i_elem)]),-rate / state[REACT_(i_ind)]);
-    }
-    for (int i_dep=0; i_dep<NUM_PROD_; i_dep++, i_elem++) {
-  if (JAC_ID_(i_elem) < 0) continue;
-      // Negative yields are allowed, but prevented from causing negative
-      // concentrations that lead to solver failures
-      if (-rate*YIELD_(i_dep)*time_step <= state[PROD_(i_dep)]) {
-    //J[JAC_ID_(i_elem)] += YIELD_(i_dep) * rate / state[REACT_(i_ind)];
-    //double rate2 = YIELD_(i_dep) * rate / state[REACT_(i_ind)];
-    //atomicAdd(&(J[JAC_ID_(i_elem)]), rate2);
-    atomicAdd(&(J[JAC_ID_(i_elem)]),YIELD_(i_dep) * rate / state[REACT_(i_ind)]);
+      if (JAC_ID_(i_elem) < 0) continue;
+        atomicAdd(&(J[JAC_ID_(i_elem)]),-rate);
+      }
+      for (int i_dep=0; i_dep<NUM_PROD_; i_dep++, i_elem++) {
+        if (JAC_ID_(i_elem) < 0) continue;
+        // Negative yields are allowed, but prevented from causing negative
+        // concentrations that lead to solver failures
+        if (-rate * state[REACT_(i_ind)] * YIELD_(i_dep) * time_step <=
+            state[PROD_(i_dep)]) {
+          atomicAdd(&(J[JAC_ID_(i_elem)]),YIELD_(i_dep) * rate);
       }
     }
   }

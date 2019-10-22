@@ -510,6 +510,10 @@ void rxn_calc_jac_specific_types(ModelData *model_data, double *J_data,
                                                  rxn_int_data, rxn_float_data,
                                                  rxn_env_data, time_step);
         break;
+      case RXN_ARRHENIUS: //TODO delete arrhenius when it works
+        rxn_arrhenius_calc_jac_contrib(model_data, J_data, rxn_int_data,
+                                       rxn_float_data, rxn_env_data, time_step);
+        break;
       case RXN_CONDENSED_PHASE_ARRHENIUS:
         rxn_condensed_phase_arrhenius_calc_jac_contrib(
             model_data, J_data, rxn_int_data, rxn_float_data, rxn_env_data,

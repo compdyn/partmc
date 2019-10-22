@@ -143,10 +143,12 @@ __device__ double rxn_gpu_aqueous_equilibrium_calc_overall_rate(int *rxn_data,
  */
 #ifdef PMC_USE_SUNDIALS
 
-#ifdef PMC_USE_GPU
-__device__
-#endif
-void rxn_gpu_aqueous_equilibrium_calc_deriv_contrib(double *rate_constants, double *state,
+//TODO: seems this implementation ifdef raise a warning of host__ device__ function with new tests gpu
+//TODO: O a lo mejor es xk en el .h no esta asi (diria que si)
+//#ifdef PMC_USE_GPU
+//__device__
+//#endif
+__device__ void rxn_gpu_aqueous_equilibrium_calc_deriv_contrib(double *rate_constants, double *state,
           double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step, int n_rxn2)
 {
   int n_rxn=n_rxn2;

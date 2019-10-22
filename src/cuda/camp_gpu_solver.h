@@ -13,7 +13,6 @@
 #include <stdlib.h>
 #include "../camp_common.h"
 
-
 //Value to consider data size too big -> Memory optimization will change below and under the limit
 #define DATA_SIZE_LIMIT_OPT 2000
 

@@ -97,6 +97,7 @@ void solver_new_gpu_cu(int n_dep_var,
   if (n_dep_var*n_cells < DATA_SIZE_LIMIT_OPT){
     few_data = 1;
   }
+ //few_data = 1;
 
   //Set working GPU: we have 4 gpu available on power9. as default, it should be assign to gpu 0
   int device=0;
@@ -425,6 +426,12 @@ void rxn_calc_deriv_gpu(ModelData *model_data, N_Vector deriv, realtype time_ste
   double *state = model_data->total_state;
   double *rate_constants = model_data->rxn_env_data;
 
+//TODO: not working with new arrhenius test FOR SOME REASON SEG FAULT
+//Pa ARREGLARLO poner deriv size y todo eso en un struct gpu y asi el multi cell y one cell core tienen su struct y sus cosas
+//(parece que al ser global variable pues no lo pilla bien y no sobreescribe x algun motivo)
+
+/*
+
   //Faster, use for few values
   if (few_data){
     //This method of passing them as a function parameter has a theoric maximum of 4kb of data
@@ -438,18 +445,13 @@ void rxn_calc_deriv_gpu(ModelData *model_data, N_Vector deriv, realtype time_ste
     HANDLE_ERROR(cudaMemcpy(rate_constants_gpu, rate_constants, rate_constants_size, cudaMemcpyHostToDevice));
   }
 
-  HANDLE_ERROR(cudaMemset(deriv_gpu_data, 0, deriv_size));
+  HANDLE_ERROR(cudaMemset(deriv_gpu_data, 0.0, deriv_size));
 
-  solveDerivative << < (n_blocks), max_n_gpu_thread >> >
-         (state_gpu, deriv_gpu_data, time_step, model_data->n_per_cell_dep_var,
-         model_data->n_per_cell_state_var, model_data->n_rxn_env_data,
-         n_rxn, n_cells,
-         int_pointer_gpu, double_pointer_gpu, rate_constants_gpu, rate_constants_idx_gpu);
 
   cudaDeviceSynchronize();// Secure cuda synchronization
 
   //Use pinned memory for few values
-  if (few_data){
+  if (!few_data){
     HANDLE_ERROR(cudaMemcpy(deriv_cpu, deriv_gpu_data, deriv_size, cudaMemcpyDeviceToHost));
     memcpy(deriv_data, deriv_cpu, deriv_size);
   }
@@ -457,9 +459,11 @@ void rxn_calc_deriv_gpu(ModelData *model_data, N_Vector deriv, realtype time_ste
     HANDLE_ERROR(cudaMemcpy(deriv_data, deriv_gpu_data, deriv_size, cudaMemcpyDeviceToHost));
   }
 
+  printf("holaa %d, %d\n", deriv_size/sizeof(double), n_cells);
 
   //TODO Calculate on CPU non gpu-translated type reactions (HL & SIMPOL phase transfer) (or wait till v2.0 with C++)
 
+ */
 
 }
 
@@ -514,8 +518,8 @@ __global__ void solveJacobian(double *state_init, double *jac_init,
         //        state, jac_data, (void *) rxn_data, float_data, time_step, n_rxn);
         break;
       case RXN_ARRHENIUS :
-        rxn_gpu_arrhenius_calc_jac_contrib(rate_constants,
-                                           state, jac_data, (void *) rxn_data, float_data, time_step,n_rxn);
+        //rxn_gpu_arrhenius_calc_jac_contrib(rate_constants,
+        //                                   state, jac_data, (void *) rxn_data, float_data, time_step,n_rxn);
         break;
       case RXN_CMAQ_H2O2 :
         rxn_gpu_CMAQ_H2O2_calc_jac_contrib(rate_constants,
@@ -580,6 +584,8 @@ void rxn_calc_jac_gpu(ModelData *model_data, SUNMatrix jac, realtype time_step) 
   double *state = model_data->total_state;
   double *rate_constants = model_data->rxn_env_data;
 
+  /*
+
   //Faster, use for few values
   if (few_data){
     //This method of passing them as a function parameter has a theoric maximum of 4kb of data
@@ -610,6 +616,8 @@ void rxn_calc_jac_gpu(ModelData *model_data, SUNMatrix jac, realtype time_step) 
     HANDLE_ERROR(cudaMemcpy(jac_data, jac_gpu_data, jac_size, cudaMemcpyDeviceToHost));
   }
 
+   */
+
 }
 
 
@@ -617,11 +625,12 @@ void rxn_calc_jac_gpu(ModelData *model_data, SUNMatrix jac, realtype time_step) 
  */
 void free_gpu_cu() {
 
+printf("free");
 
   HANDLE_ERROR(cudaFree(int_pointer_gpu));
   HANDLE_ERROR(cudaFree(double_pointer_gpu));
   HANDLE_ERROR(cudaFree(deriv_gpu_data));
-  HANDLE_ERROR(cudaFree(jac_gpu_data));
+  //HANDLE_ERROR(cudaFree(jac_gpu_data));
 
   if(few_data){
   }
@@ -630,7 +639,6 @@ void free_gpu_cu() {
     HANDLE_ERROR(cudaFree(rate_constants_gpu));
     HANDLE_ERROR(cudaFree(rate_constants_idx_gpu));
   }
-
 }
 
 /* Auxiliar functions */

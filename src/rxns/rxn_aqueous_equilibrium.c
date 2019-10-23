@@ -271,12 +271,12 @@ realtype rxn_aqueous_equilibrium_calc_overall_rate(
   int *int_data = rxn_int_data;
   double *float_data = rxn_float_data;
 
-  realtype rate = ONE;
-  realtype rc_forward = RATE_CONST_FORWARD_;
-  realtype rc_reverse = RATE_CONST_REVERSE_;
-  realtype react_fact_l = react_fact;
-  realtype prod_fact_l = prod_fact;
-  realtype water_l = water;
+  long double rate = ONE;
+  long double rc_forward = RATE_CONST_FORWARD_;
+  long double rc_reverse = RATE_CONST_REVERSE_;
+  long double react_fact_l = react_fact;
+  long double prod_fact_l = prod_fact;
+  long double water_l = water;
 
   /// \todo explore higher precision variables to reduce Jac errors
 

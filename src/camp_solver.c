@@ -370,6 +370,9 @@ void solver_initialize(void *solver_data, double *abs_tol, double rel_tol,
   int n_cells;      // number of cells to solve simultaneously
   int *var_type;    // state variable types
 
+  // Seed the random number generator
+  srand((unsigned int)100);
+
   // Get a pointer to the SolverData
   sd = (SolverData *)solver_data;
 
@@ -1265,6 +1268,11 @@ int guess_helper(const realtype t_n, const realtype h_n, N_Vector y_n,
         i_fast = i;
       }
     }
+
+    // Scale incomplete jumps
+    if (i_fast >= 0 && h_n > ZERO)
+      h_j *= 0.95 + 0.1 * rand() / (double)RAND_MAX;
+    h_j = t_n < t_0 + t_j + h_j ? t_n - (t_0 + t_j) : h_j;
 
     // Only make small changes to adjustment vectors used in Newton iteration
     if (h_n == ZERO &&

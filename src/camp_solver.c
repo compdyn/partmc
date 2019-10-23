@@ -103,9 +103,6 @@ void *solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
 #endif
 #endif
 
-  // Seed the random number generator
-  srand((long)100);
-
   // Save the number of state variables per grid cell
   sd->model_data.n_per_cell_state_var = n_state_var;
 
@@ -1269,26 +1266,14 @@ int guess_helper(const realtype t_n, const realtype h_n, N_Vector y_n,
       }
     }
 
-    // Scale h_j unless t_n can be reached
-    if (i_fast >= 0 && h_n > ZERO) h_j *= rand() / (double)RAND_MAX;
-
     // Only make small changes to adjustment vectors used in Newton iteration
-    if (h_n == ZERO && ONE - h_j > ((CVodeMem)sd->cvode_mem)->cv_reltol)
-      return 0;
-
-    // Avoid advancing state past zero
-    if (h_n > ZERO) h_j = nextafter(h_j, ZERO);
+    if (h_n == ZERO &&
+        t_n - (h_j + t_j + t_0) > ((CVodeMem)sd->cvode_mem)->cv_reltol)
+      return -1;
 
     // Advance the state
     N_VLinearSum(ONE, tmp1, h_j, corr, tmp1);
-
     PMC_DEBUG_PRINT_FULL("Advanced state");
-
-    // If just scaling an adjustment vector, exit the loop
-    if (h_n == ZERO) break;
-
-    h_j = nextafter(h_j, HUGE_VAL);
-    h_j = t_0 + t_j + h_j > t_n ? t_n - (t_0 + t_j) : h_j;
 
     // Advance t_j
     t_j += h_j;
@@ -1301,18 +1286,19 @@ int guess_helper(const realtype t_n, const realtype h_n, N_Vector y_n,
     }
     ((CVodeMem)sd->cvode_mem)->cv_nfe++;
 
-#ifdef PMC_DEBUG
     if (iter == GUESS_MAX_ITER - 1 && t_0 + t_j < t_n) {
       PMC_DEBUG_PRINT("Max guess iterations reached!");
-      return -1;
+      if (h_n == ZERO) return -1;
     }
-#endif
   }
 
   PMC_DEBUG_PRINT_INT("Guessed y_h in steps:", iter);
 
   // Set the correction vector
   N_VLinearSum(ONE, tmp1, -ONE, y_n, corr);
+
+  // Scale the initial corrections
+  if (h_n > ZERO) N_VScale(0.999, corr, corr);
 
   // Update the hf vector
   N_VLinearSum(ONE, tmp1, -ONE, y_n1, hf);

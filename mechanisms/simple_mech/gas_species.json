@@ -8,13 +8,13 @@
     {
       "name" : "O",
       "type" : "CHEM_SPEC",
-      "absolute integration tolerance" : 1.0E-08,
+      "absolute integration tolerance" : 1.0E-09,
       "description" : "oxygen atomic ground state (3P)"
     },
     {
       "name" : "O3",
       "type" : "CHEM_SPEC",
-      "absolute integration tolerance" : 1.0E-03,
+      "absolute integration tolerance" : 1.0E-04,
       "HLC(298K) [M Pa-1]" : 1.13E-7,
       "HLC exp factor [K]" : 2.3E+03,
       "dry dep reactivity factor [unitless]" : 1.0,
@@ -26,7 +26,7 @@
     {
       "name" : "NO",
       "type" : "CHEM_SPEC",
-      "absolute integration tolerance" : 1.0E-03,
+      "absolute integration tolerance" : 1.0E-04,
       "HLC(298K) [M Pa-1]" : 1.88E-8,
       "HLC exp factor [K]" : 1.48E+03,
       "dry dep reactivity factor [unitless]" : 0.0,
@@ -37,7 +37,7 @@
     {
       "name" : "NO2",
       "type" : "CHEM_SPEC",
-      "absolute integration tolerance" : 1.0E-03,
+      "absolute integration tolerance" : 1.0E-04,
       "HLC(298K) [M Pa-1]" : 6.32e-8,
       "HLC exp factor [K]" : 2.5E+03,
       "dry dep reactivity factor [unitless]" : 0.1,
@@ -60,7 +60,7 @@
     {
       "name" : "RH",
       "type" : "CHEM_SPEC",
-      "absolute integration tolerance" : 1.0E-03,
+      "absolute integration tolerance" : 1.0E-04,
       "HLC(298K) [M Pa-1]" : 1.97e-8,
       "HLC exp factor [K]" : 0.0,
       "dry dep reactivity factor [unitless]" : 0.0,
@@ -71,19 +71,19 @@
     {
       "name" : "OH",
       "type" : "CHEM_SPEC",
-      "absolute integration tolerance" : 1.0E-03,
+      "absolute integration tolerance" : 1.0E-08,
       "description" : "hydroxyl radical"
     },
     {
       "name" : "RO2",
       "type" : "CHEM_SPEC",
-      "absolute integration tolerance" : 1.0E-03,
+      "absolute integration tolerance" : 1.0E-08,
       "description" : "alkyl peroxy radicals - with methyl peroxy radical as the surrogate"
     },
     {
       "name" : "RCHO",
       "type" : "CHEM_SPEC",
-      "absolute integration tolerance" : 1.0E-03,
+      "absolute integration tolerance" : 1.0E-04,
       "HLC(298K) [M Pa-1]" : 1.13E-4,
       "HLC exp factor [K]" : 6.266E+03,
       "dry dep reactivity factor [unitless]" : 0.0,
@@ -94,19 +94,19 @@
     {
       "name" : "RCOO2",
       "type" : "CHEM_SPEC",
-      "absolute integration tolerance" : 1.0E-03,
+      "absolute integration tolerance" : 1.0E-04,
       "description" : "peroxyacyl radicals - with peroxyacetyl radical as the surrogate"
     },
     {
       "name" : "HO2",
       "type" : "CHEM_SPEC",
-      "absolute integration tolerance" : 1.0E-03,
+      "absolute integration tolerance" : 1.0E-08,
       "description" : "hydroperoxyl radical"
     },
     {
       "name" : "CO",
       "type" : "CHEM_SPEC",
-      "absolute integration tolerance" : 1.0E-03,
+      "absolute integration tolerance" : 1.0E-04,
       "HLC(298K) [M Pa-1]" : 8.09E-8,
       "HLC exp factor [K]" : 0.0,
       "dry dep reactivity factor [unitless]" : 0.0,
@@ -118,13 +118,13 @@
       "name" : "CO2",
       "type" : "CHEM_SPEC",
       "tracer type" : "CONSTANT",
-      "absolute integration tolerance" : 1.0E-03,
+      "absolute integration tolerance" : 1.0E-04,
       "description" : "carbon dioxide"
     },
     {
       "name" : "HNO3",
       "type" : "CHEM_SPEC",
-      "absolute integration tolerance" : 1.0E-03,
+      "absolute integration tolerance" : 1.0E-04,
       "HLC(298K) [M Pa-1]" : 2.65E8,
       "HLC exp factor [K]" : 8.684E+03,
       "dry dep reactivity factor [unitless]" : 0.0,
@@ -135,13 +135,13 @@
     {
       "name" : "RCOO2NO2",
       "type" : "CHEM_SPEC",
-      "absolute integration tolerance" : 1.0E-03,
+      "absolute integration tolerance" : 1.0E-04,
       "description" : "peroxyacyl nitrates - with peroxyacetyl nitrate as the surrogate"
     },
     {
       "name" : "SO2",
       "type" : "CHEM_SPEC",
-      "absolute integration tolerance" : 1.0E-03,
+      "absolute integration tolerance" : 1.0E-04,
       "HLC(298K) [M Pa-1]" :2.497E+00,
       "HLC exp factor [K]" :5.816E+03,
       "dry dep reactivity factor [unitless]" :0.000E+00,
@@ -151,7 +151,7 @@
     {
       "name" : "NH3",
       "type" : "CHEM_SPEC",
-      "absolute integration tolerance" : 1.0E-03,
+      "absolute integration tolerance" : 1.0E-04,
       "molecular weight [kg mol-1]" : 0.017031,
       "HLC(298K) [M Pa-1]" :1.026E-01,
       "HLC exp factor [K]" :3.660E+03,
@@ -160,9 +160,9 @@
       "special dry deposition species" : "NH3"
     },
     {
-      "name" : "SULF",
+      "name" : "H2SO4",
       "type" : "CHEM_SPEC",
-      "absolute integration tolerance" : 1.0E-03,
+      "absolute integration tolerance" : 1.0E-08,
       "description" : "gas-phase sulfuric acid"
     }
   ]

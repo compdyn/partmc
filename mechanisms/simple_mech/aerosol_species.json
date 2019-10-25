@@ -48,15 +48,6 @@
       "description" : "aqueous nitrogen dioxide"
     },
     {
-      "name" : "HNO3_aq",
-      "type" : "CHEM_SPEC",
-      "phase" : "AEROSOL",
-      "absolute integration tolerance" : 1.0E-05,
-      "density [kg m-3]" : 1510.0,
-      "molecular weight [kg mol-1]" : 0.0630129,
-      "description" : "aqueous nitric acid"
-    },
-    {
       "name" : "RH_aq",
       "type" : "CHEM_SPEC",
       "phase" : "AEROSOL",
@@ -78,7 +69,7 @@
       "name" : "OH_aq",
       "type" : "CHEM_SPEC",
       "phase" : "AEROSOL",
-      "absolute integration tolerance" : 1.0E-05,
+      "absolute integration tolerance" : 1.0E-08,
       "density [kg m-3]" : 1000.0,
       "molecular weight [kg mol-1]" : 0.017007,
       "description" : "aqueous hydroxyl radical"
@@ -105,10 +96,151 @@
       "name" : "RO2_aq",
       "type" : "CHEM_SPEC",
       "phase" : "AEROSOL",
-      "absolute integration tolerance" : 1.0E-05,
+      "absolute integration tolerance" : 1.0E-08,
       "density [kg m-3]" : 1000.0,
       "molecular weight [kg mol-1]" : 0.04703,
       "description" : "aqueous methyperoxy radical"
+    },
+    {
+      "name" : "H_p",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-05,
+      "charge" : 1,
+      "density [kg m-3]" : 1000.0,
+      "molecular weight [kg mol-1]" : 0.001008,
+      "description" : "hydronium ion"
+    },
+    {
+      "name" : "OH_m",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-05,
+      "charge" : -1,
+      "density [kg m-3]" : 1000.0,
+      "molecular weight [kg mol-1]" : 0.017008,
+      "description" : "hydroxide ion"
+    },
+    {
+      "name" : "H2SO4_aq",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-05,
+      "density [kg m-3]" : 1840.0,
+      "molecular weight [kg mol-1]" : 0.098079,
+      "description" : "undissociated aqueous-phase sulfuric acid"
+    },
+    {
+      "name" : "SO4_mm",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-05,
+      "charge" : -2,
+      "density [kg m-3]" : 1840.0,
+      "molecular weight [kg mol-1]" : 0.096063,
+      "description" : "sulfate ion"
+    },
+    {
+      "name" : "HSO4_m",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-05,
+      "charge" : -1,
+      "density [kg m-3]" : 1840.0,
+      "molecular weight [kg mol-1]" : 0.097069,
+      "description" : "bisulfate ion"
+    },
+    {
+      "name" : "HNO3_aq",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-05,
+      "density [kg m-3]" : 1510.0,
+      "molecular weight [kg mol-1]" : 0.0630129,
+      "description" : "aqueous nitric acid"
+    },
+    {
+      "name" : "NO3_m",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-05,
+      "charge" : -1,
+      "density [kg m-3]" : 1510.0,
+      "molecular weight [kg mol-1]" : 0.0620049,
+      "description" : "nitrate ion"
+    },
+    {
+      "name" : "NH3_aq",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-05,
+      "density [kg m-3]" : 880.0,
+      "molecular weight [kg mol-1]" : 0.017031,
+      "description" : "aqueous ammonia (neutral)"
+    },
+    {
+      "name" : "NH4_p",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-05,
+      "charge": 1,
+      "density [kg m-3]" : 880.0,
+      "molecular weight [kg mol-1]" : 0.018039,
+      "description" : "ammonium ion"
+    },
+   {
+      "name" : "(NH4)2-SO4",
+      "type" : "CHEM_SPEC",
+      "tracer type" : "ION_PAIR",
+      "ions" : {
+        "NH4_p" : { "qty" : 2 },
+        "SO4_mm" : {}
+      }
+    },
+    {
+      "name" : "NH4-NO3",
+      "type" : "CHEM_SPEC",
+      "tracer type" : "ION_PAIR",
+      "ions" : {
+        "NH4_p" : {},
+        "NO3_m" : {}
+      }
+    },
+    {
+      "name" : "H-NO3",
+      "type" : "CHEM_SPEC",
+      "tracer type" : "ION_PAIR",
+      "ions" : {
+        "H_p" : {},
+        "NO3_m" : {}
+      }
+    },
+    {
+      "name" : "H2-SO4",
+      "type" : "CHEM_SPEC",
+      "tracer type" : "ION_PAIR",
+      "ions" : {
+        "H_p" : { "qty" : 2 },
+        "SO4_mm" : {}
+      }
+    },
+    {
+      "name" : "H-HSO4",
+      "type" : "CHEM_SPEC",
+      "tracer type" : "ION_PAIR",
+      "ions" : {
+        "H_p" : {},
+        "HSO4_m" : {}
+      }
+    },
+    {
+      "name" : "NH4/H",
+      "type" : "CHEM_SPEC",
+      "tracer type" : "ION_PAIR",
+      "ions" : {
+        "NH4_p" : {},
+        "OH_m" : {}
+      }
     }
   ]
 }

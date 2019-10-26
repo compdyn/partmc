@@ -246,17 +246,6 @@ else()
   set(MPI_TEST_FLAG serial)
 endif()
 
-if(CUDA_FOUND)
-    add_test(test_rxn_arrhenius_mech_gpu ${CMAKE_BINARY_DIR}/test_run/unit_tests/input_files/run_rxn_arrhenius_gpu.sh ${MPI_TEST_FLAG})
-
-    add_test(test_chemistry_cb05cl_ae5_gpu ${CMAKE_BINARY_DIR}/test_run/chemistry/cb05cl_ae5/test_chemistry_cb05cl_ae5_gpu.sh ${MPI_TEST_FLAG})
-
-endif()
-
-add_test(test_rxn_arrhenius_mech ${CMAKE_BINARY_DIR}/test_run/unit_tests/input_files/run_rxn_arrhenius.sh ${MPI_TEST_FLAG})
-
-add_test(test_chemistry_cb05cl_ae5 ${CMAKE_BINARY_DIR}/test_run/chemistry/cb05cl_ae5/test_chemistry_cb05cl_ae5.sh ${MPI_TEST_FLAG})
-
 if (ENABLE_TESTS)
     if (ENABLE_JSON AND ENABLE_SUNDIALS)
       # New unit tests (UNDER DEVELOPMENT)
@@ -282,6 +271,15 @@ if (ENABLE_TESTS)
       add_test(test_chemistry_eqsam_v03d ${CMAKE_BINARY_DIR}/test_run/chemistry/eqsam_v03d/test_chemistry_eqsam_v03d.sh ${MPI_TEST_FLAG})
       add_test(test_MONARCH_1 ${CMAKE_BINARY_DIR}/test_run/monarch/test_monarch_1.sh ${MPI_TEST_FLAG})
       add_test(test_MONARCH_2 ${CMAKE_BINARY_DIR}/test_run/monarch/test_monarch_2.sh ${MPI_TEST_FLAG})
+
+      if (CUDA_FOUND AND NOT ENABLE_GPU)
+        #todo: new unit_tests with gpu
+          add_test(test_rxn_arrhenius_mech_gpu ${CMAKE_BINARY_DIR}/test_run/unit_tests/input_files/run_rxn_arrhenius_gpu.sh ${MPI_TEST_FLAG})
+
+          #Relevant mechanisms tests
+          add_test(test_chemistry_cb05cl_ae5_gpu ${CMAKE_BINARY_DIR}/test_run/chemistry/cb05cl_ae5/test_chemistry_cb05cl_ae5_gpu.sh ${MPI_TEST_FLAG})
+
+      endif()
 
     endif()
 
@@ -435,9 +433,6 @@ set(STD_C_FLAGS "-std=c99")
 
 set(STD_CUDA_FLAGS "-dc -arch=compute_70 -code=sm_70")
 
-
-
-
 if(${CMAKE_Fortran_COMPILER_ID} MATCHES "Intel")
   set(STD_F_FLAGS "-extend_source -warn truncated_source")
 elseif(${CMAKE_Fortran_COMPILER_ID} MATCHES "GNU")
@@ -516,7 +511,8 @@ set(SUB_MODELS_SRC ${SUB_MODELS_F_SRC} ${SUB_MODELS_C_SRC})
 
 set(CAMP_C_SRC
         src/camp_solver.c src/rxn_solver.c src/aero_phase_solver.c
-        src/aero_rep_solver.c src/sub_model_solver.c)
+        src/aero_rep_solver.c src/sub_model_solver.c
+        src/debug_and_stats/camp_debug_2.c)
 
 set_source_files_properties(${CAMP_C_SRC} PROPERTIES COMPILE_FLAGS
         ${STD_C_FLAGS})
@@ -587,7 +583,7 @@ target_link_libraries(partmclib ${NETCDF_LIBS} ${SUNDIALS_LIBS}
 
 set_target_properties(partmclib PROPERTIES OUTPUT_NAME partmc)
 
-if (CUDA_FOUND)
+if (CUDA_FOUND AND NOT ENABLE_GPU)
     add_library(partmclib_gpu ${CAMP_F_SRC}
             ${CAMP_C_SRC} ${AEROSOL_REPS_SRC} ${SUB_MODELS_SRC} ${REACTIONS_SRC}
             ${SUNDIALS_SRC} ${GSL_SRC} ${C_SORT_SRC} ${CAMP_CUDA_SRC} ${CAMP_CXX_SRC} )
@@ -671,7 +667,7 @@ add_executable(test_chemistry_cb05cl_ae5
         test/chemistry/cb05cl_ae5/module_BSC_CHEM_DATA.F90)
 target_link_libraries(test_chemistry_cb05cl_ae5 partmclib)
 
-if (CUDA_FOUND)
+if (CUDA_FOUND AND NOT ENABLE_GPU)
     add_executable(test_chemistry_cb05cl_ae5_gpu
             test/chemistry/cb05cl_ae5/test_cb05cl_ae5.F90
             ${CB5_EBI_SOLVER} ${CB5_KPP_SOLVER}
@@ -686,28 +682,6 @@ add_executable(mock_monarch test/monarch/mock_monarch.F90
         test/monarch/pmc_monarch_interface.F90)
 
 target_link_libraries(mock_monarch partmclib)
-
-
-set(UNIT_TEST_SRC
-        test/unit_tests/unit_test_data.F90
-        test/unit_tests/unit_test_driver.F90)
-
-set(UNIT_TEST_RXN_ARRHENIUS_SRC
-        test/unit_tests/rxns/unit_test_rxn_arrhenius.F90 ${UNIT_TEST_SRC})
-set_source_files_properties(${UNIT_TEST_RXN_ARRHENIUS_SRC} PROPERTIES COMPILE_FLAGS ${STD_F_FLAGS})
-add_executable(unit_test_rxn_arrhenius ${UNIT_TEST_RXN_ARRHENIUS_SRC})
-target_compile_definitions(unit_test_rxn_arrhenius PRIVATE
-    "UNIT_TEST_MODULE_=pmc_unit_test_rxn_arrhenius \
-    ;UNIT_TEST_TYPE_=unit_test_rxn_arrhenius_t()")
-target_link_libraries(unit_test_rxn_arrhenius partmclib)
-
-if (CUDA_FOUND)
-    add_executable(unit_test_rxn_arrhenius_gpu ${UNIT_TEST_RXN_ARRHENIUS_SRC})
-    target_compile_definitions(unit_test_rxn_arrhenius_gpu PRIVATE
-    "UNIT_TEST_MODULE_=pmc_unit_test_rxn_arrhenius \
-    ;UNIT_TEST_TYPE_=unit_test_rxn_arrhenius_t()")
-    target_link_libraries(unit_test_rxn_arrhenius_gpu partmclib_gpu)
-endif()
 
 if (ENABLE_TESTS)
 
@@ -786,9 +760,26 @@ target_link_libraries(test_sub_model_ZSR_aerosol_water partmclib)
 ######################################################################
 # New unit tests (UNDER DEVELOPMENT)
 
+set(UNIT_TEST_SRC
+        test/unit_tests/unit_test_data.F90
+        test/unit_tests/unit_test_driver.F90)
 
+set(UNIT_TEST_RXN_ARRHENIUS_SRC
+        test/unit_tests/rxns/unit_test_rxn_arrhenius.F90 ${UNIT_TEST_SRC})
+set_source_files_properties(${UNIT_TEST_RXN_ARRHENIUS_SRC} PROPERTIES COMPILE_FLAGS ${STD_F_FLAGS})
+add_executable(unit_test_rxn_arrhenius ${UNIT_TEST_RXN_ARRHENIUS_SRC})
+target_compile_definitions(unit_test_rxn_arrhenius PRIVATE
+        "UNIT_TEST_MODULE_=pmc_unit_test_rxn_arrhenius \
+    ;UNIT_TEST_TYPE_=unit_test_rxn_arrhenius_t()")
+target_link_libraries(unit_test_rxn_arrhenius partmclib)
 
-
+if (CUDA_FOUND AND NOT ENABLE_GPU)
+    add_executable(unit_test_rxn_arrhenius_gpu ${UNIT_TEST_RXN_ARRHENIUS_SRC})
+    target_compile_definitions(unit_test_rxn_arrhenius_gpu PRIVATE
+            "UNIT_TEST_MODULE_=pmc_unit_test_rxn_arrhenius \
+    ;UNIT_TEST_TYPE_=unit_test_rxn_arrhenius_t()")
+    target_link_libraries(unit_test_rxn_arrhenius_gpu partmclib_gpu)
+endif()
 
 ######################################################################
 # test_camp_core

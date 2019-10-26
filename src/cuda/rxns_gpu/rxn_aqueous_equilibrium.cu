@@ -143,8 +143,7 @@ __device__ double rxn_gpu_aqueous_equilibrium_calc_overall_rate(int *rxn_data,
  */
 #ifdef PMC_USE_SUNDIALS
 
-//TODO: seems this implementation ifdef raise a warning of host__ device__ function with new tests gpu
-//TODO: O a lo mejor es xk en el .h no esta asi (diria que si)
+//TODO: Apply this to cpu reactions, merging cpu and gpu code
 //#ifdef PMC_USE_GPU
 //__device__
 //#endif

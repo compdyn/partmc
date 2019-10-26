@@ -964,7 +964,8 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
 
 #ifdef PMC_USE_GPU
   // Calculate the Jacobian
-  rxn_calc_jac_gpu(md, J, time_step);
+  //TODO: Fix jacobian mapping with jac_map[i_map].rxn_id
+  //rxn_calc_jac_gpu(md, J, time_step);
 #endif
 
 #ifdef PMC_DEBUG
@@ -973,7 +974,6 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
 #endif
 
   // Solving on CPU only
-
   // Loop over the grid cells to calculate sub-model and rxn Jacobians
   for (int i_cell = 0; i_cell < n_cells; ++i_cell) {
     // Set the grid cell state pointers
@@ -1004,19 +1004,20 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
     clock_t start = clock();
 #endif
 
-#ifndef PMC_USE_GPU
+//#ifdef PMC_USE_GPU
 
     // Calculate the reaction Jacobian
     rxn_calc_jac(md, J_rxn_data, time_step);
     PMC_DEBUG_JAC(md->J_rxn, "reaction Jacobian");
 
-#else
+/*#else
     // Add contributions from reactions not implemented on GPU
     rxn_calc_jac_specific_types(md, J_rxn_data, time_step);
     PMC_DEBUG_JAC(md->J_rxn, "reaction Jacobian");
 #endif
 
-// rxn_calc_jac_specific_types(md, J_rxn_data, time_step);
+rxn_calc_jac_specific_types(md, J_rxn_data, time_step);
+*/
 #ifdef PMC_DEBUG
     clock_t end = clock();
     sd->timeJac += (end - start);

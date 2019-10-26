@@ -244,15 +244,14 @@ __device__ void rxn_gpu_arrhenius_calc_jac_contrib(double *rate_constants, doubl
   int n_rxn=n_rxn2;
   int *int_data = (int*) rxn_data;
   double *float_data = double_pointer_gpu;
-  double rate;
 
   // Calculate the reaction rate
   //double rate = RATE_CONSTANT_;
-//TODO FIX THIS, ITS NOT WORKING WITH NEW UNIT TEST IDK WHYYYYYYY
+//TODO FIX THIS, ITS NOT WORKING NOW WHYYYY (i guess in branch 114 it was working )
   // Add contributions to the Jacobian
   int i_elem = 0;
   for (int i_ind=0; i_ind<NUM_REACT_; i_ind++) {
-    rate = rate_constants[0];
+    double rate = rate_constants[0];
     for (int i_spec = 0; i_spec < NUM_REACT_; i_spec++)
       if (i_spec != i_ind) rate *= state[REACT_(i_spec)];
 

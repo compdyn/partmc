@@ -5,6 +5,8 @@
  * Header file with some debugging functions for use with camp_solver.c
  *
  */
+#ifndef CAMP_DEBUG_H
+#define CAMP_DEBUG_H
 #ifdef PMC_DEBUG
 #define PMC_DEBUG_SPEC_ 0
 #define PMC_DEBUG_PRINT(x) \
@@ -146,3 +148,5 @@ static void print_derivative(N_Vector deriv) {
     printf(" index: %d \n", i);
   }
 }
+
+#endif

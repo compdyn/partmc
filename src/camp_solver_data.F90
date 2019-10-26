@@ -888,7 +888,8 @@ contains
     end if
 
     ! Reset the solver function timers
-    call this%reset_timers( )
+    !Move this to intialization: I want to print only 1 time the deriv, not all times we call solve...
+    !call this%reset_timers( )
 #endif
 
     ! Run the solver

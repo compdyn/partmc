@@ -17,7 +17,6 @@ extern "C"{
 
 #define TEMPERATURE_K_ env_data[0]
 #define PRESSURE_PA_ env_data[1]
- //todo fix
 // Universal gas constant (J/mol/K)
 #define UNIV_GAS_CONST_ 8.314472
 // Small number for ignoring low concentrations

@@ -27,30 +27,12 @@ extern "C" {
 int max_n_gpu_thread;
 int max_n_gpu_blocks;
 
-//General data
-/*double *model_data->deriv_gpu_data;
-double *model_data->deriv_cpu;
-double *model_data->jac_gpu_data;
-double *model_data->jac_cpu;
-//size_t model_data->deriv_size;
-size_t model_data->jac_size;
-size_t model_data->state_size;
-size_t model_data->env_size;
-size_t model_data->rate_constants_size;
-size_t model_data->rate_constants_idx_size;
+//Debug info
+int counterDeriv;       // Total calls to f()
+int counterJac;         // Total calls to Jac()
+clock_t timeDeriv;      // Compute time for calls to f()
+clock_t timeJac;        // Compute time for calls to Jac()
 
-
-bool model_data->few_data;
-bool model_data->implemented_all;
-int *model_data->int_pointer;
-int *model_data->int_pointer_gpu;
-double *model_data->double_pointer;
-double *model_data->double_pointer_gpu;
-double *model_data->state_gpu;
-double *model_data->env_gpu;
-double *model_data->rate_constants_gpu;
-int *model_data->rate_constants_idx_gpu;
-*/
 
 static void HandleError(cudaError_t err,
                         const char *file,
@@ -85,9 +67,6 @@ void solver_new_gpu_cu(ModelData *model_data, int n_dep_var,
                        int n_state_var, int n_rxn,
                        int n_rxn_int_param, int n_rxn_float_param, int n_rxn_env_param,
                        int n_cells) {
-//Get Global gpu data
-  //DataGPU *dgpu = (DataGPU *)malloc(sizeof(DataGPU));
-
   //Lengths
   model_data->state_size = n_state_var * n_cells * sizeof(double);
   model_data->deriv_size = n_dep_var * n_cells * sizeof(double);
@@ -96,14 +75,13 @@ void solver_new_gpu_cu(ModelData *model_data, int n_dep_var,
   model_data->rate_constants_idx_size = (n_rxn+1) * sizeof(int);
   model_data->few_data = 0;
   model_data->implemented_all = true;
-
-  printf("new deriv_lenght %d, cells %d\n", model_data->deriv_size/sizeof(double), n_cells);
+  counterDeriv=0;
+  counterJac=0;
 
   //Detect if we are working with few data values
   if (n_dep_var*n_cells < DATA_SIZE_LIMIT_OPT){
     model_data->few_data = 1;
   }
- //model_data->few_data = 1;
 
   //Set working GPU: we have 4 gpu available on power9. as default, it should be assign to gpu 0
   int device=0;
@@ -232,8 +210,6 @@ void solver_set_rxn_data_gpu(ModelData *model_data) {
     rxn_position[i_rxn] = i_rxn;
 
   }
-
-  //todo checkout chem_mod after 99 merge, save the changed files of this branch (like gpu) copy into checkout chem_mod
 
   //Add a for to search the biggest distance int_max_length (ptrs[i] - ptrs[i-1]
 
@@ -407,6 +383,14 @@ __global__ void solveDerivative(double *state_init, double *deriv_init,
 
 }
 
+static void print_derivative_3(N_Vector deriv) {
+  // printf(" deriv length: %d\n", NV_LENGTH_S(deriv));
+  for (int i = 0; i < NV_LENGTH_S(deriv); i++) {  // NV_LENGTH_S(deriv)
+    printf(" deriv: % -le", NV_DATA_S(deriv)[i]);
+    printf(" index: %d \n", i);
+  }
+}
+
 /** \brief Calculate the time derivative \f$f(t,y)\f$ on GPU
  *
  * \param model_data Pointer to the model data
@@ -443,6 +427,7 @@ void rxn_calc_deriv_gpu(ModelData *model_data, N_Vector deriv, realtype time_ste
 
   HANDLE_ERROR(cudaMemset(model_data->deriv_gpu_data, 0.0, model_data->deriv_size));
 
+  //TODO: execute this asyncrhonous and let CPU thinks be computed in the meanwhile
   solveDerivative << < (n_blocks), max_n_gpu_thread >> >
      (model_data->state_gpu, model_data->deriv_gpu_data, time_step, model_data->n_per_cell_dep_var,
      model_data->n_per_cell_state_var, model_data->n_rxn_env_data,
@@ -460,7 +445,12 @@ void rxn_calc_deriv_gpu(ModelData *model_data, N_Vector deriv, realtype time_ste
     HANDLE_ERROR(cudaMemcpy(deriv_data, model_data->deriv_gpu_data, model_data->deriv_size, cudaMemcpyDeviceToHost));
   }
 
-  //printf("deriv deriv_lenght %d, cells %d\n", model_data->deriv_size/sizeof(double), n_cells);
+  //if(counterDeriv==0) print_derivative_3(deriv);
+
+  //counterDeriv++;
+
+//todo: add mock_monarch as test gpu?
+//todo: fix debug things... this camp_debug.h is horrible, and probably it will be a better option to print timederiv or counter...
 
 }
 
@@ -477,7 +467,6 @@ void rxn_calc_deriv_gpu(ModelData *model_data, N_Vector deriv, realtype time_ste
  * \param model_data->double_pointer Pointer to double reaction data
  * \param rate_constants_init Pointer to first value of reaction rates
  */
-//TODO: fix jacGPU once matt let me modify rxn_solver and reduce jacobians (in v2.0 or before if needed)
 __global__ void solveJacobian(double *state_init, double *jac_init,
                               double time_step, int jac_length_cell, int state_size_cell,
                               int rate_constants_size_cell, int n_rxn,
@@ -515,8 +504,8 @@ __global__ void solveJacobian(double *state_init, double *jac_init,
         //        state, jac_data, (void *) rxn_data, float_data, time_step, n_rxn);
         break;
       case RXN_ARRHENIUS :
-        //rxn_gpu_arrhenius_calc_jac_contrib(rate_constants,
-        //                                   state, jac_data, (void *) rxn_data, float_data, time_step,n_rxn);
+        rxn_gpu_arrhenius_calc_jac_contrib(rate_constants,
+                                           state, jac_data, (void *) rxn_data, float_data, time_step,n_rxn);
         break;
       case RXN_CMAQ_H2O2 :
         rxn_gpu_CMAQ_H2O2_calc_jac_contrib(rate_constants,
@@ -563,14 +552,28 @@ __global__ void solveJacobian(double *state_init, double *jac_init,
   }
 }
 
+static void print_jacobian_3(SUNMatrix M) {
+  printf("\n NNZ JAC: %lld \n", SM_NNZ_S(M));
+  printf("DATA | INDEXVALS:\n");
+  for (int i = 0; i < SM_NNZ_S(M); i++) {
+    printf("% -le \n", (SM_DATA_S(M))[i]);
+  //  printf("%lld \n", (SM_INDEXVALS_S(M))[i]);
+  }
+  printf("PTRS:\n");
+  for (int i = 0; i <= SM_NP_S(M); i++) {
+    //printf("%lld \n", (SM_INDEXPTRS_S(M))[i]);
+  }
+}
+
 /** \brief Calculate the Jacobian on GPU
  *
  * \param model_data Pointer to the model data
  * \param J Jacobian to be calculated
  * \param time_step Current model time step (s)
  */
-
 void rxn_calc_jac_gpu(ModelData *model_data, SUNMatrix jac, realtype time_step) {
+
+  //TODO: Fix jacobian with jac_ids...
 
   // Get a pointer to the jacobian data
   double *jac_data = SM_DATA_S(jac);
@@ -611,7 +614,9 @@ void rxn_calc_jac_gpu(ModelData *model_data, SUNMatrix jac, realtype time_step) 
     HANDLE_ERROR(cudaMemcpy(jac_data, model_data->jac_gpu_data, model_data->jac_size, cudaMemcpyDeviceToHost));
   }
 
+  if(counterJac==0)print_jacobian_3(jac);
 
+  counterJac++;
 
 }
 

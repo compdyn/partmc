@@ -61,7 +61,7 @@ typedef struct {
 
 /* GPU data structure */
 typedef struct {
-    size_t deriv_size;
+  size_t deriv_size;
 
 } DataGPU;
 
@@ -173,8 +173,8 @@ typedef struct {
                                  // for the current grid cell
   int n_sub_model_env_data;      // Number of sub model environmental parameters
                                  // from all sub models
-//#ifdef CUDA_FOUND
-// GPU data
+                                 //#ifdef CUDA_FOUND
+                                 // GPU data
   double *deriv_gpu_data;
   double *deriv_cpu;
   double *jac_gpu_data;
@@ -196,7 +196,7 @@ typedef struct {
   double *rate_constants_gpu;
   int *rate_constants_idx_gpu;
 
-//#endif
+  //#endif
 } ModelData;
 
 /* Solver data structure */

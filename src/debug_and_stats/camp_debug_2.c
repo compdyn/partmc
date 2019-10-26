@@ -5,11 +5,11 @@
  * Debug and stats functions
  *
  */
-//todo fix this...move all to this folder and compile correctly...
-//todo: i think is not necessary include all time stdio.h
+// todo fix this...move all to this folder and compile correctly...
+// todo: i think is not necessary include all time stdio.h
+#include "camp_debug_2.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include "camp_debug_2.h"
 
 /** \brief Print derivative array
  *

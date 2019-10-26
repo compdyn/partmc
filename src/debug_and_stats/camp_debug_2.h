@@ -9,4 +9,4 @@
 
 static void print_derivative_2(N_Vector deriv);
 
-#endif //CAMP_DEBUG_2_H
+#endif  // CAMP_DEBUG_2_H

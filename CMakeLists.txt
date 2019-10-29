@@ -175,7 +175,6 @@ if (ENABLE_GPU)
   enable_language(CUDA)
 endif()
 
-
 ######################################################################
 # debugging options
 
@@ -411,6 +410,7 @@ endif()
 # partmc library
 
 set(STD_C_FLAGS "-std=c99")
+set(STD_CXX_FLAGS "-fpermissive")
 set(STD_CUDA_FLAGS "-dc -arch=compute_70 -code=sm_70")
 
 if(${CMAKE_Fortran_COMPILER_ID} MATCHES "Intel")
@@ -614,13 +614,13 @@ set_source_files_properties(${CB5_EBI_SOLVER} PROPERTIES COMPILE_FLAGS
 	${CB5_EBI_FLAGS})
 
 ######################################################################
-# test_chemistry_cb05cl_ae5_big
+# test_chemistry_cb05cl_ae5
 
-add_executable(test_chemistry_cb05cl_ae5_big
-        test/chemistry/cb05cl_ae5/test_cb05cl_ae5_big.F90
+add_executable(test_chemistry_cb05cl_ae5
+        test/chemistry/cb05cl_ae5/test_cb05cl_ae5.F90
         ${CB5_EBI_SOLVER} ${CB5_KPP_SOLVER}
         test/chemistry/cb05cl_ae5/module_BSC_CHEM_DATA.F90)
-target_link_libraries(test_chemistry_cb05cl_ae5_big partmclib)
+target_link_libraries(test_chemistry_cb05cl_ae5 partmclib)
 
 ######################################################################
 # MONARCH interface
@@ -633,13 +633,13 @@ target_link_libraries(mock_monarch partmclib)
 if (ENABLE_TESTS)
 
 ######################################################################
-# test_chemistry_cb05cl_ae5
+# test_chemistry_cb05cl_ae5_big
 
-add_executable(test_chemistry_cb05cl_ae5
-    test/chemistry/cb05cl_ae5/test_cb05cl_ae5.F90
-    ${CB5_EBI_SOLVER} ${CB5_KPP_SOLVER}
-    test/chemistry/cb05cl_ae5/module_BSC_CHEM_DATA.F90)
-target_link_libraries(test_chemistry_cb05cl_ae5 partmclib)
+add_executable(test_chemistry_cb05cl_ae5_big
+        test/chemistry/cb05cl_ae5/test_cb05cl_ae5_big.F90
+        ${CB5_EBI_SOLVER} ${CB5_KPP_SOLVER}
+        test/chemistry/cb05cl_ae5/module_BSC_CHEM_DATA.F90)
+target_link_libraries(test_chemistry_cb05cl_ae5_big partmclib)
 
 ######################################################################
 # test_chemistry_eqsam_v03d

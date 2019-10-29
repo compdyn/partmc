@@ -457,10 +457,6 @@ void rxn_calc_deriv_gpu(ModelData *model_data, N_Vector deriv, realtype time_ste
     HANDLE_ERROR(cudaMemcpy(deriv_data, deriv_gpu_data, deriv_size, cudaMemcpyDeviceToHost));
   }
 
-
-  //TODO Calculate on CPU non gpu-translated type reactions (HL & SIMPOL phase transfer) (or wait till v2.0 with C++)
-
-
 }
 
 /** \brief GPU function: Solve jacobian
@@ -476,7 +472,6 @@ void rxn_calc_deriv_gpu(ModelData *model_data, N_Vector deriv, realtype time_ste
  * \param double_pointer Pointer to double reaction data
  * \param rate_constants_init Pointer to first value of reaction rates
  */
-//TODO: fix jacGPU once matt let me modify rxn_solver and reduce jacobians (in v2.0 or before if needed)
 __global__ void solveJacobian(double *state_init, double *jac_init,
                               double time_step, int jac_length_cell, int state_size_cell,
                               int rate_constants_size_cell, int n_rxn,
@@ -484,7 +479,7 @@ __global__ void solveJacobian(double *state_init, double *jac_init,
                               double *rate_constants_init, int *rate_constants_idx) //Interface CPU/GPU
 {
   //Get thread id
-  int index = blockIdx.x * blockDim.x + threadIdx.x;
+  /*int index = blockIdx.x * blockDim.x + threadIdx.x;
 
   //Maximum number of threads to compute all reactions
   if(index < n_rxn*n_cells){
@@ -560,6 +555,8 @@ __global__ void solveJacobian(double *state_init, double *jac_init,
     }
     __syncthreads();
   }
+   */
+
 }
 
 /** \brief Calculate the Jacobian on GPU

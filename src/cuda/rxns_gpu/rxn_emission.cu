@@ -77,7 +77,10 @@ void * rxn_gpu_emission_pre_calc(ModelData *model_data, void *rxn_data)
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-__device__ void rxn_gpu_emission_calc_deriv_contrib(double *rate_constants, double *state,
+#ifdef PMC_USE_GPU
+__device__
+#endif
+void rxn_gpu_emission_calc_deriv_contrib(double *rate_constants, double *state,
           double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step, int n_rxn2)
 {
   int n_rxn=n_rxn2;
@@ -125,7 +128,10 @@ void rxn_cpu_emission_calc_deriv_contrib(double *rate_constants, double *state,
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-__device__ void rxn_gpu_emission_calc_jac_contrib(double *rate_constants, double *state, double *J,
+#ifdef PMC_USE_GPU
+__device__
+#endif
+void rxn_gpu_emission_calc_jac_contrib(double *rate_constants, double *state, double *J,
           void *rxn_data, double * double_pointer_gpu, double time_step, int n_rxn2)
 {
   int n_rxn=n_rxn2;

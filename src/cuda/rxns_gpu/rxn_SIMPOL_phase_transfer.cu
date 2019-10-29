@@ -64,7 +64,7 @@ extern "C"{
 #define MW_JAC_ELEM_(x,e) float_data[(PHASE_FLOAT_LOC_(x)+3*NUM_AERO_PHASE_JAC_ELEM_(x)+e)*n_rxn]
 
 
-#ifndef FORCE_CPU
+#ifdef PMC_USE_GPU
 __device__
 #endif
 double rxn_gpu_SIMPOL_phase_transfer_calc_overall_rate(int *rxn_data,
@@ -113,7 +113,7 @@ double rxn_gpu_SIMPOL_phase_transfer_calc_overall_rate(int *rxn_data,
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-#ifndef FORCE_CPU
+#ifdef PMC_USE_GPU
 __device__
 #endif
 void rxn_gpu_SIMPOL_phase_transfer_calc_deriv_contrib(ModelData *model_data, double *rate_constants, double *state,
@@ -358,7 +358,7 @@ void rxn_gpu_SIMPOL_phase_transfer_calc_deriv_contrib(ModelData *model_data, dou
  */
 
 #ifdef PMC_USE_SUNDIALS
-#ifndef FORCE_CPU
+#ifdef PMC_USE_GPU
 __device__
 #endif
 void rxn_gpu_SIMPOL_phase_transfer_calc_jac_contrib(ModelData *model_data, double *rate_constants, double *state,

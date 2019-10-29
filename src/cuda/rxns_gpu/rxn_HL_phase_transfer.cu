@@ -115,7 +115,7 @@ __device__ void rxn_gpu_HL_phase_transfer_update_env_state(double *rate_constant
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-#ifndef FORCE_CPU
+#ifdef PMC_USE_GPU
 __device__
 #endif
 void rxn_gpu_HL_phase_transfer_calc_deriv_contrib(ModelData *model_data, double *rate_constants, double *state,
@@ -240,7 +240,7 @@ void rxn_gpu_HL_phase_transfer_calc_deriv_contrib(ModelData *model_data, double 
  */
 
 #ifdef PMC_USE_SUNDIALS
-#ifndef FORCE_CPU
+#ifdef PMC_USE_GPU
 __device__
 #endif
 void rxn_gpu_HL_phase_transfer_calc_jac_contrib(ModelData *model_data, double *rate_constants, double *state,

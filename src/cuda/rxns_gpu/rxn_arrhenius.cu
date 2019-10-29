@@ -147,13 +147,20 @@ void * rxn_gpu_arrhenius_pre_calc(ModelData *model_data, void *rxn_data)
  * \param time_step Current time step being computed (s)
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-
+//TODO: #if __CUDA_ARCH__ >= 300 or #ifdef __CUDA__ARCH__
 #ifdef PMC_USE_SUNDIALS
-__device__ void rxn_gpu_arrhenius_calc_deriv_contrib(double *rate_constants, double *state,
+//#ifdef PMC_USE_GPU
+//__device__
+//#endif
+__host__ __device__ void rxn_gpu_arrhenius_calc_deriv_contrib(double *rate_constants, double *state,
           double *deriv, void *rxn_data, double * double_pointer_gpu,
           double time_step,int n_rxn2)
 {
+#ifdef __CUDA_ARCH__
   int n_rxn=n_rxn2;
+#else
+  int n_rxn=1;
+#endif
   int *int_data = (int*) rxn_data;
   double *float_data = double_pointer_gpu;
 
@@ -165,8 +172,11 @@ __device__ void rxn_gpu_arrhenius_calc_deriv_contrib(double *rate_constants, dou
     int i_dep_var = 0;
     for (int i_spec=0; i_spec<NUM_REACT_; i_spec++, i_dep_var++) {
       if (DERIV_ID_(i_dep_var) < 0) continue;
-      //deriv[DERIV_ID_(i_dep_var)] -= rate;
-      atomicAdd(&(deriv[DERIV_ID_(i_dep_var)]),-rate);
+#ifdef __CUDA_ARCH__
+        atomicAdd(&(deriv[DERIV_ID_(i_dep_var)]),-rate);
+#else
+        deriv[DERIV_ID_(i_dep_var)] -= rate;
+#endif
 	}
     for (int i_spec=0; i_spec<NUM_PROD_; i_spec++, i_dep_var++) {
       if (DERIV_ID_(i_dep_var) < 0) continue;
@@ -174,13 +184,14 @@ __device__ void rxn_gpu_arrhenius_calc_deriv_contrib(double *rate_constants, dou
       // Negative yields are allowed, but prevented from causing negative
       // concentrations that lead to solver failures
       if (-rate*YIELD_(i_spec)*time_step <= state[PROD_(i_spec)]) {
-        //deriv[DERIV_ID_(i_dep_var)] += rate*YIELD_(i_spec);
+#ifdef __CUDA_ARCH__
         atomicAdd(&(deriv[DERIV_ID_(i_dep_var)]),rate*YIELD_(i_spec));
+#else
+        deriv[DERIV_ID_(i_dep_var)] += rate * YIELD_(i_spec);
+#endif
       }
     }
   }
-
-  //atomicAdd(&(deriv[0]),rate_constants[0]+1);
 
 }
 #endif
@@ -238,10 +249,17 @@ void rxn_cpu_arrhenius_calc_deriv_contrib(double *rate_constants, double *state,
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-__device__ void rxn_gpu_arrhenius_calc_jac_contrib(double *rate_constants, double *state, double *J,
+#ifdef PMC_USE_GPU
+__device__
+#endif
+void rxn_gpu_arrhenius_calc_jac_contrib(double *rate_constants, double *state, double *J,
           void *rxn_data, double * double_pointer_gpu, double time_step, int n_rxn2)
 {
+#ifdef PMC_USE_GPU
   int n_rxn=n_rxn2;
+#else
+  int n_rxn=1;
+#endif
   int *int_data = (int*) rxn_data;
   double *float_data = double_pointer_gpu;
 
@@ -255,20 +273,22 @@ __device__ void rxn_gpu_arrhenius_calc_jac_contrib(double *rate_constants, doubl
   for (int i_ind=0; i_ind<NUM_REACT_; i_ind++) {
     for (int i_dep=0; i_dep<NUM_REACT_; i_dep++, i_elem++) {
   if (JAC_ID_(i_elem) < 0) continue;
-  //J[JAC_ID_(i_elem)] -= rate / state[REACT_(i_ind)];
-  //double rate2 = rate /  state[REACT_(i_ind)];
-  //atomicAdd(&(J[JAC_ID_(i_elem)]),-rate2);
+#ifdef PMC_USE_GPU
   atomicAdd(&(J[JAC_ID_(i_elem)]),-rate / state[REACT_(i_ind)]);
+#else
+  J[JAC_ID_(i_elem)] -= rate;
+#endif
     }
     for (int i_dep=0; i_dep<NUM_PROD_; i_dep++, i_elem++) {
   if (JAC_ID_(i_elem) < 0) continue;
       // Negative yields are allowed, but prevented from causing negative
       // concentrations that lead to solver failures
       if (-rate*YIELD_(i_dep)*time_step <= state[PROD_(i_dep)]) {
-    //J[JAC_ID_(i_elem)] += YIELD_(i_dep) * rate / state[REACT_(i_ind)];
-    //double rate2 = YIELD_(i_dep) * rate / state[REACT_(i_ind)];
-    //atomicAdd(&(J[JAC_ID_(i_elem)]), rate2);
-    atomicAdd(&(J[JAC_ID_(i_elem)]),YIELD_(i_dep) * rate / state[REACT_(i_ind)]);
+#ifdef PMC_USE_GPU
+  atomicAdd(&(J[JAC_ID_(i_elem)]),YIELD_(i_dep) * rate / state[REACT_(i_ind)]);
+#else
+  J[JAC_ID_(i_elem)] += YIELD_(i_dep) * rate;
+#endif
       }
     }
   }
@@ -326,25 +346,4 @@ void * rxn_gpu_arrhenius_print(void *rxn_data)
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
 
-#undef TEMPERATURE_K_
-#undef PRESSURE_PA_
-
-#undef NUM_REACT_
-#undef NUM_PROD_
-#undef A_
-#undef B_
-#undef C_
-#undef D_
-#undef E_
-#undef CONV_
-#undef RATE_CONSTANT_
-#undef NUM_INT_PROP_
-#undef NUM_FLOAT_PROP_
-#undef REACT_
-#undef PROD_
-#undef DERIV_ID_
-#undef JAC_ID_
-#undef YIELD_
-#undef INT_DATA_SIZE_
-#undef FLOAT_DATA_SIZE_
 }

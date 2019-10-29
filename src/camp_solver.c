@@ -969,7 +969,7 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
 
 #ifdef PMC_USE_GPU
   // Calculate the Jacobian
-  rxn_calc_jac_gpu(md, J, time_step);
+//  rxn_calc_jac_gpu(md, J, time_step);
 #endif
 
 #ifdef PMC_DEBUG
@@ -1009,16 +1009,16 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
     clock_t start = clock();
 #endif
 
-#ifndef PMC_USE_GPU
+//#ifndef PMC_USE_GPU
 
     // Calculate the reaction Jacobian
     rxn_calc_jac(md, J_rxn_data, time_step);
     PMC_DEBUG_JAC(md->J_rxn, "reaction Jacobian");
 
-#else
+/*#else
       // Add contributions from reactions not implemented on GPU
       rxn_calc_jac_specific_types(md, J_rxn_data, time_step);
-#endif
+#endif*/
 
 // rxn_calc_jac_specific_types(md, J_rxn_data, time_step);
 #ifdef PMC_DEBUG

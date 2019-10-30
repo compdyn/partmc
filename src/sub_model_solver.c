@@ -152,7 +152,8 @@ void sub_model_set_jac_map(ModelData *model_data, int **jac_ids) {
       for (int i_ind = 0; i_ind < model_data->n_per_cell_state_var; ++i_ind)
         if (jac_struct_local[i_dep][i_ind] == true &&
             model_data->var_type[i_ind] != CHEM_SPEC_VARIABLE) {
-          for (int j_ind = 0; j_ind < model_data->n_per_cell_state_var; ++j_ind) {
+          for (int j_ind = 0; j_ind < model_data->n_per_cell_state_var;
+               ++j_ind) {
             if (jac_ids[i_ind][j_ind] >= 0) {
               model_data->jac_map_params[i_map].solver_id =
                   jac_ids[i_dep][j_ind];

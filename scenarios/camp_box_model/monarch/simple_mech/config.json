@@ -13,7 +13,11 @@
     "../../../../mechanisms_run/simple_mech/aerosol_species.json",
     "../../../../mechanisms_run/simple_mech/cloud_and_rain_partitioning.json",
     "../../../../mechanisms_run/simple_mech/gas_species.json",
-    "../../../../mechanisms_run/simple_mech/mechanism.json"
+    "../../../../mechanisms_run/simple_mech/mechanism.json",
+    "../../../../mechanisms_run/simple_mech/inorganic_aerosol_SO4_NH4_NO3/activity.json",
+    "../../../../mechanisms_run/simple_mech/inorganic_aerosol_SO4_NH4_NO3/aerosol_phase.json",
+    "../../../../mechanisms_run/simple_mech/inorganic_aerosol_SO4_NH4_NO3/partitioning.json",
+    "../../../../mechanisms_run/simple_mech/inorganic_aerosol_SO4_NH4_NO3/reactions.json"
   ],
   "camp-box-model" : {
     "total integration time [s]" : 18000.0,
@@ -53,7 +57,7 @@
       "RCOO2NO2" : 0.000058395122323418,
       "SO2" : 0.000304516550386324,
       "NH3" : 0.000100000273960176,
-      "SULF" : 1.0000007932831E-08
+      "H2SO4" : 1.0000007932831E-08
     },
     "rates" : {
       "photo-NO2" : {

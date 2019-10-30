@@ -1,5 +1,9 @@
 {
-  "notes" :"A Generalized Reaction Mechanism for Photochemical Smog from kpp-2.2.3/models/smog.eqn",
+  "notes" : [
+    "A Generalized Reaction Mechanism for Photochemical Smog from kpp-2.2.3/models/smog.eqn",
+    "N* and diffusion coefficients are from CAPRAM 2.4",
+    "Aerosol species and ion pairs are needed for the MONARCH 'mod37' configuration"
+  ],
   "pmc-data" : [
     {
       "type" : "RELATIVE_TOLERANCE",
@@ -130,7 +134,9 @@
       "dry dep reactivity factor [unitless]" : 0.0,
       "diffusion coeff [m2 s-1]" : 1.260E-05,
       "molecular weight [kg mol-1]" : 0.0630128,
-      "description" : "nitric acid"
+      "N star" : 1.94,
+      "description" : "nitric acid",
+      "comments" : "using diffusion coefficient from dry dep"
     },
     {
       "name" : "RCOO2NO2",
@@ -157,12 +163,23 @@
       "HLC exp factor [K]" :3.660E+03,
       "dry dep reactivity factor [unitless]" :0.000E+00,
       "diffusion coeff [m2 s-1]" :2.270E-05,
+      "N star" : 1.92,
       "special dry deposition species" : "NH3"
     },
     {
       "name" : "H2SO4",
       "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E-08,
+      "inorg note" : "using diffusion coefficient from dry dep",
+      "N star" : 1.83,
+      "molecular weight [kg mol-1]" : 0.098079,
+      "HLC(298K) [M Pa-1]" :9.8692e5,
+      "HLC exp factor [K]" :8.684E+03,
+      "dry dep reactivity factor [unitless]" :0.000E+00,
+      "diffusion coeff [m2 s-1]" :1.260E-05,
+      "dry dep notes" : [
+        "using HLC from nist (https://webbook.nist.gov/cgi/cbook.cgi?ID=C7664939&Units=SI&Mask=10#Solubility)"
+      ],
       "description" : "gas-phase sulfuric acid"
     }
   ]

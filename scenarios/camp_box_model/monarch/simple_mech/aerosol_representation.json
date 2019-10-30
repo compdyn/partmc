@@ -20,6 +20,14 @@
             "Diameter is based on 10 micron radius for cloud droplets used in",
             "  existing cloud chemistry module."
           ]
+        },
+        "sulfate" :
+        {
+          "type" : "MODAL",
+          "phases" : [ "aqueous sulfate" ],
+          "shape" : "LOG_NORMAL",
+          "geometric mean diameter [m]" : 6.95e-8,
+          "geometric standard deviation" : 2.03
         }
       }
     }

@@ -1691,11 +1691,14 @@ contains
       end do
 
       write(f_unit,*) "*** Solver Data ***"
-      write(f_unit,*) "Solver variables:"
+      write(f_unit,*) "Relative tolerance:", this%rel_tol
+      write(f_unit,*) " Solver id  |    Absolute Tolerance     "// &
+                      "| Species Name"
       i_solver_spec = 0
       do i_spec = 1, size(state_names)
         if (this%var_type(i_spec).eq.CHEM_SPEC_VARIABLE) then
-          write(f_unit,*) "solver spec", i_solver_spec, state_names(i_spec)%string
+          write(f_unit,*) i_solver_spec, "|", this%abs_tol(i_spec), "| ", &
+                          state_names(i_spec)%string
           i_solver_spec = i_solver_spec + 1
         end if
       end do

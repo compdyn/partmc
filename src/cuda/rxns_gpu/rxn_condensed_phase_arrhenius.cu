@@ -28,7 +28,7 @@ extern "C"{
 #define C_ (float_data[2*n_rxn])
 #define D_ (float_data[3*n_rxn])
 #define E_ (float_data[4*n_rxn])
-#define RATE_CONSTANT_ rate_constants[0*n_rxn]
+#define RATE_CONSTANT_ rxn_env_data[0*n_rxn]
 #define NUM_INT_PROP_ 3
 #define NUM_FLOAT_PROP_ 5
 #define REACT_(x) (int_data[(NUM_INT_PROP_ + x)*n_rxn]-1)
@@ -144,33 +144,6 @@ void * rxn_gpu_condensed_phase_arrhenius_update_ids(ModelData *model_data,
 
 }
 
-/** \brief Update reaction data for new environmental conditions
- *
- * For Condensed Phase Arrhenius reaction this only involves recalculating the
- * forward rate constant.
- *
- * \param env_data Pointer to the environmental state array
- * \param rxn_data Pointer to the reaction data
- * \return The rxn_data pointer advanced by the size of the reaction data
- */
-__device__ void rxn_gpu_condensed_phase_arrhenius_update_env_state(double *rate_constants,
-   int n_rxn2,double *double_pointer_gpu, double *env_data,
-          void *rxn_data)
-{
-  int n_rxn=n_rxn2;
-  int *int_data = (int*) rxn_data;
-  double *float_data = double_pointer_gpu;
-
-  // Calculate the rate constant in (M or mol/m3)
-  // k = A*exp(C/T) * (T/D)^B * (1+E*P)
-  RATE_CONSTANT_ = A_ * exp(C_/TEMPERATURE_K_)
-          * (B_==0.0 ? 1.0 : pow(TEMPERATURE_K_/D_, B_))
-          * (E_==0.0 ? 1.0 : (1.0 + E_*PRESSURE_PA_));
-
-  rate_constants[0] = RATE_CONSTANT_;
-
-}
-
 /** \brief Do pre-derivative calculations
  *
  * Nothing to do for condensed_phase_arrhenius reactions
@@ -199,15 +172,21 @@ void * rxn_gpu_condensed_phase_arrhenius_pre_calc(ModelData *model_data,
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-#ifdef PMC_USE_GPU
-__device__
+#ifdef __CUDA_ARCH__
+__host__ __device__
 #endif
-void rxn_gpu_condensed_phase_arrhenius_calc_deriv_contrib(double *rate_constants, double *state,
-          double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step, int n_rxn2)
+void rxn_gpu_condensed_phase_arrhenius_calc_deriv_contrib(ModelData *model_data, realtype *deriv, int *rxn_int_data,
+          double *rxn_float_data, double *rxn_env_data, double time_step)
 {
-  int n_rxn=n_rxn2;
-  int *int_data = (int*) rxn_data;
-  double *float_data = double_pointer_gpu;
+#ifdef __CUDA_ARCH__
+  int n_rxn=model_data->n_rxn;
+#else
+  int n_rxn=1;
+#endif
+  int *int_data = rxn_int_data;
+  double *float_data = rxn_float_data;
+  double *state = model_data->grid_cell_state;
+  double *env_data = model_data->grid_cell_env;
 
   // Calculate derivative contributions for each aerosol phase
   for (int i_phase=0, i_deriv = 0; i_phase<NUM_AERO_PHASE_; i_phase++) {
@@ -228,7 +207,7 @@ void rxn_gpu_condensed_phase_arrhenius_calc_deriv_contrib(double *rate_constants
 
     // Calculate the reaction rate rate (M/s or mol/m3/s)
     //double rate = RATE_CONSTANT_;
-    double rate = rate_constants[0];
+    realtype rate = RATE_CONSTANT_;
     for (int i_react = 0; i_react < NUM_REACT_; i_react++) {
       rate *= state[REACT_(i_phase*NUM_REACT_+i_react)] *
               UGM3_TO_MOLM3_(i_react) * unit_conv;
@@ -237,19 +216,26 @@ void rxn_gpu_condensed_phase_arrhenius_calc_deriv_contrib(double *rate_constants
     // Reactant change
     for (int i_react = 0; i_react < NUM_REACT_; i_react++) {
       if (DERIV_ID_(i_deriv)<0) {i_deriv++; continue;}
-      //deriv[DERIV_ID_(i_deriv++)] -= rate /
-	 //     (UGM3_TO_MOLM3_(i_react) * unit_conv);
+#ifdef __CUDA_ARCH__
       atomicAdd((double*)&(deriv[DERIV_ID_(i_deriv++)]), -(rate /
       (UGM3_TO_MOLM3_(i_react) * unit_conv)));
+#else
+      deriv[DERIV_ID_(i_deriv++)] -=
+        rate / (UGM3_TO_MOLM3_(i_react) * unit_conv);
+#endif
     }
 
     // Products change
     for (int i_prod = 0; i_prod < NUM_PROD_; i_prod++) {
       if (DERIV_ID_(i_deriv)<0) {i_deriv++; continue;}
-      //deriv[DERIV_ID_(i_deriv++)] += rate * YIELD_(i_prod) /
-      //  (UGM3_TO_MOLM3_(NUM_REACT_+i_prod) * unit_conv);
+#ifdef __CUDA_ARCH__
       atomicAdd((double*)&(deriv[DERIV_ID_(i_deriv++)]),rate * YIELD_(i_prod) /
 	      (UGM3_TO_MOLM3_(NUM_REACT_+i_prod) * unit_conv));
+#else
+      deriv[DERIV_ID_(i_deriv++)] +=
+          rate * YIELD_(i_prod) /
+          (UGM3_TO_MOLM3_(NUM_REACT_ + i_prod) * unit_conv);
+#endif
     }
 
   }
@@ -257,67 +243,6 @@ void rxn_gpu_condensed_phase_arrhenius_calc_deriv_contrib(double *rate_constants
 }
 #endif
 
-
-/** \brief Calculate contributions to the time derivative f(t,y) from this
- * reaction.
- *
- * \param model_data Pointer to the model data, including the state array
- * \param deriv Pointer to the time derivative to add contributions to
- * \param rxn_data Pointer to the reaction data
- * \param time_step Current time step of the itegrator (s)
- * \return The rxn_data pointer advanced by the size of the reaction data
- */
-#ifdef PMC_USE_SUNDIALS
-void rxn_cpu_condensed_phase_arrhenius_calc_deriv_contrib(double *rate_constants, double *state,
-          double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step, int n_rxn2)
-{
-  int n_rxn=n_rxn2;
-  int *int_data = (int*) rxn_data;
-  double *float_data = double_pointer_gpu;
-
-  // Calculate derivative contributions for each aerosol phase
-  for (int i_phase=0, i_deriv = 0; i_phase<NUM_AERO_PHASE_; i_phase++) {
-
-    // If this is an aqueous reaction, get the unit conversion from mol/m3 -> M
-    double unit_conv = 1.0;
-    if (WATER_(i_phase)>=0) {
-      unit_conv = state[WATER_(i_phase)] * 1.0e-9; // convert from ug/m3->L/m3
-
-      // For aqueous reactions, if no aerosol water is present, no reaction
-      // occurs
-      if (unit_conv < SMALL_NUMBER_) {
-        i_deriv += NUM_REACT_ + NUM_PROD_;
-        continue;
-      }
-      unit_conv = 1.0/unit_conv;
-    }
-
-    // Calculate the reaction rate rate (M/s or mol/m3/s)
-    //double rate = RATE_CONSTANT_;
-  double rate = rate_constants[0];
-    for (int i_react = 0; i_react < NUM_REACT_; i_react++) {
-      rate *= state[REACT_(i_phase*NUM_REACT_+i_react)] *
-              UGM3_TO_MOLM3_(i_react) * unit_conv;
-    }
-
-    // Reactant change
-    for (int i_react = 0; i_react < NUM_REACT_; i_react++) {
-      if (DERIV_ID_(i_deriv)<0) {i_deriv++; continue;}
-      deriv[DERIV_ID_(i_deriv++)] -= rate /
-	      (UGM3_TO_MOLM3_(i_react) * unit_conv);
-    }
-
-    // Products change
-    for (int i_prod = 0; i_prod < NUM_PROD_; i_prod++) {
-      if (DERIV_ID_(i_deriv)<0) {i_deriv++; continue;}
-      deriv[DERIV_ID_(i_deriv++)] += rate * YIELD_(i_prod) /
-        (UGM3_TO_MOLM3_(NUM_REACT_+i_prod) * unit_conv);
-    }
-
-  }
-
-}
-#endif
 
 /** \brief Calculate contributions to the Jacobian from this reaction
  *
@@ -327,17 +252,24 @@ void rxn_cpu_condensed_phase_arrhenius_calc_deriv_contrib(double *rate_constants
  * \param time_step Current time step of the itegrator (s)
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
+ /*
 #ifdef PMC_USE_SUNDIALS
-#ifdef PMC_USE_GPU
-__device__
+#ifdef __CUDA_ARCH__
+__host__ __device__
 #endif
-void rxn_gpu_condensed_phase_arrhenius_calc_jac_contrib(double *rate_constants, double *state,
+void rxn_gpu_condensed_phase_arrhenius_calc_jac_contrib(double *rxn_env_data, double *state,
           double *J, void *rxn_data, double * double_pointer_gpu, double time_step, int n_rxn2)
 {
-  int n_rxn=n_rxn2;
-  int *int_data = (int*) rxn_data;
-  double *float_data = double_pointer_gpu;
-  double rate = rate_constants[0];
+#ifdef __CUDA_ARCH__
+  int n_rxn=model_data->n_rxn;
+#else
+  int n_rxn=1;;
+#endif
+  int *int_data = rxn_int_data;
+  double *float_data = rxn_float_data;
+  double *state = model_data->grid_cell_state;
+  double *env_data = model_data->grid_cell_env;
+  realtype rate = RATE_CONSTANT_;
 
   // Calculate Jacobian contributions for each aerosol phase
   for (int i_phase=0, i_jac = 0; i_phase<NUM_AERO_PHASE_; i_phase++) {
@@ -360,7 +292,7 @@ void rxn_gpu_condensed_phase_arrhenius_calc_jac_contrib(double *rate_constants, 
     for (int i_react_ind = 0; i_react_ind < NUM_REACT_; i_react_ind++) {
 
       // Calculate d_rate / d_react_i
-      rate = rate_constants[0];
+      rate = RATE_CONSTANT_;
       for (int i_react = 0; i_react < NUM_REACT_; i_react++) {
         if (i_react==i_react_ind) {
           rate *= UGM3_TO_MOLM3_(i_react) * unit_conv;
@@ -373,13 +305,23 @@ void rxn_gpu_condensed_phase_arrhenius_calc_jac_contrib(double *rate_constants, 
       // Add the Jacobian elements
       for (int i_react_dep = 0; i_react_dep < NUM_REACT_; i_react_dep++) {
 	if (JAC_ID_(i_jac)<0) {i_jac++; continue;}
+#ifdef __CUDA_ARCH__
         atomicAdd((double*)&(J[JAC_ID_(i_jac++)]), -rate /
           (UGM3_TO_MOLM3_(i_react_dep) * unit_conv));
+#else
+        J[JAC_ID_(i_jac++)] -= rate / (UGM3_TO_MOLM3_(i_react_dep) * unit_conv);
+#endif
       }
       for (int i_prod_dep = 0; i_prod_dep < NUM_PROD_; i_prod_dep++) {
 	if (JAC_ID_(i_jac)<0) {i_jac++; continue;}
-	        atomicAdd((double*)&(J[JAC_ID_(i_jac++)]), rate /
-          (UGM3_TO_MOLM3_(NUM_REACT_+i_prod_dep) * unit_conv));
+#ifdef __CUDA_ARCH__
+        atomicAdd((double*)&(J[JAC_ID_(i_jac++)]), rate /
+        (UGM3_TO_MOLM3_(NUM_REACT_+i_prod_dep) * unit_conv));
+#else
+        J[JAC_ID_(i_jac++)] +=
+        rate * YIELD_(i_prod_dep) /
+        (UGM3_TO_MOLM3_(NUM_REACT_ + i_prod_dep) * unit_conv);
+#endif
       }
     }
 
@@ -391,26 +333,37 @@ void rxn_gpu_condensed_phase_arrhenius_calc_jac_contrib(double *rate_constants, 
     }
 
     // Calculate the overall reaction rate (M/s or mol/m3/s)
-    rate = rate_constants[0];
+    rate = rxn_env_data[0];
     for (int i_react = 0; i_react < NUM_REACT_; i_react++) {
       rate *= state[REACT_(i_phase*NUM_REACT_+i_react)] *
               UGM3_TO_MOLM3_(i_react) * unit_conv;
     }
     for (int i_react_dep = 0; i_react_dep < NUM_REACT_; i_react_dep++) {
       if (JAC_ID_(i_jac)<0) {i_jac++; continue;}
+#ifdef __CUDA_ARCH__
         atomicAdd((double*)&(J[JAC_ID_(i_jac++)]), (NUM_REACT_-1) * rate * 1e-9 /
 	        UGM3_TO_MOLM3_(i_react_dep));
+#else
+        J[JAC_ID_(i_jac++)] +=
+          (NUM_REACT_ - 1) * rate * 1e-9 / UGM3_TO_MOLM3_(i_react_dep);
+#endif
     }
     for (int i_prod_dep = 0; i_prod_dep < NUM_PROD_; i_prod_dep++) {
       if (JAC_ID_(i_jac)<0) {i_jac++; continue;}
+#ifdef __CUDA_ARCH__
         atomicAdd((double*)&(J[JAC_ID_(i_jac++)]), -(NUM_REACT_-1) * rate * 1e-9 *
          YIELD_(i_prod_dep) / UGM3_TO_MOLM3_(NUM_REACT_+i_prod_dep));
+#else
+        J[JAC_ID_(i_jac++)] -= (NUM_REACT_ - 1) * rate * 1e-9 *
+          YIELD_(i_prod_dep) /
+          UGM3_TO_MOLM3_(NUM_REACT_ + i_prod_dep);
+#endif
     }
   }
 
 }
 #endif
-
+*/
 /** \brief Retrieve Int data size
  *
  * \param rxn_data Pointer to the reaction data

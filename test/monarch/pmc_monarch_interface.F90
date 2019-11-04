@@ -390,15 +390,6 @@ contains
       state_size_per_cell = this%camp_core%state_size_per_cell()
     end if
 
-
-#if 0
-#ifdef PMC_DEBUG
-    ! Evaluate the Jacobian during solving
-    solver_stats%eval_Jac = .true.
-#endif
-#endif
-
-
     k_end = size(MONARCH_conc,3)
 
     call cpu_time(comp_start)
@@ -438,18 +429,6 @@ contains
             call this%camp_core%solve(this%camp_state, &
                     real(time_step, kind=dp), solver_stats = solver_stats)
 
-#if 0
-#ifdef PMC_DEBUG
-              ! Check the Jacobian evaluations
-              call warn_assert_msg(611569150, solver_stats%Jac_eval_fails.eq.0,&
-                          trim( to_string( solver_stats%Jac_eval_fails ) )// &
-                          " Jacobian evaluation failures at time "// &
-                          trim( to_string( start_time ) ) )
-#endif
-#endif
-
-
-
             ! Update the MONARCH tracer array with new species concentrations
             MONARCH_conc(i,j,k_flip,this%map_monarch_id(:)) = &
                     this%camp_state%state_var(this%map_camp_id(:))
@@ -483,9 +462,9 @@ contains
             k_flip = size(MONARCH_conc,3) - k + 1
 
             ! Update the environmental state
-            call this%camp_state%env_states(1)%set_temperature_K( &
+            call this%camp_state%env_states(z+1)%set_temperature_K( &
               real( temperature(i,j,k_flip), kind=dp ) )
-            call this%camp_state%env_states(1)%set_pressure_Pa(   &
+            call this%camp_state%env_states(z+1)%set_pressure_Pa(   &
               real( pressure(i,k,j), kind=dp ) )
 
             !Reset state conc

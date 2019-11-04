@@ -14,6 +14,8 @@ extern "C"{
 #include <stdlib.h>
 #include "../rxns_gpu.h"
 
+  //TODO: add ifdef gpu on here for *n_rxn (or avoid it since is increasing only a bit the time)
+
 #define TEMPERATURE_K_ env_data[0]
 #define PRESSURE_PA_ env_data[1]
 
@@ -25,9 +27,10 @@ extern "C"{
 #define D_ float_data[3*n_rxn]
 #define E_ float_data[4*n_rxn]
 #define CONV_ float_data[5*n_rxn]
-#define RATE_CONSTANT_ rate_constants[0*n_rxn] //todo rename it?
+#define RATE_CONSTANT_ rxn_env_data[0*n_rxn]
 #define NUM_INT_PROP_ 2
-#define NUM_FLOAT_PROP_ 6 //TODO fix in the others
+#define NUM_FLOAT_PROP_ 6
+#define NUM_ENV_PARAM_ 1
 #define REACT_(x) (int_data[(NUM_INT_PROP_ + x)*n_rxn]-1)
 #define PROD_(x) (int_data[(NUM_INT_PROP_ + NUM_REACT_ + x)*n_rxn]-1)
 #define DERIV_ID_(x) int_data[(NUM_INT_PROP_ + NUM_REACT_ + NUM_PROD_ + x)*n_rxn]
@@ -96,31 +99,6 @@ void * rxn_gpu_arrhenius_update_ids(ModelData *model_data, int *deriv_ids,
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
 
-/** \brief Update reaction data for new environmental conditions
- *
- * For Arrhenius reaction this only involves recalculating the r0ate
- * constant.
- *
- * \param env_data Pointer to the environmental state array
- * \param rxn_data Pointer to the reaction data
- * \return The rxn_data pointer advanced by the size of the reaction data
- */
-__device__ void rxn_gpu_arrhenius_update_env_state(double *rate_constants,
-   int n_rxn2,double *double_pointer_gpu, double *env_data, void *rxn_data)
-{
-  int n_rxn=n_rxn2;
-  int *int_data = (int*) rxn_data;
-  double *float_data = double_pointer_gpu;
-
-  // Calculate the rate constant in (#/cc)
-  // k = A*exp(C/T) * (T/D)^B * (1+E*P)
-  RATE_CONSTANT_ = A_ * exp(C_/TEMPERATURE_K_)
-                   * (B_==0.0 ? 1.0 : pow(TEMPERATURE_K_/D_, B_))
-                   * (E_==0.0 ? 1.0 : (1.0 + E_*PRESSURE_PA_))
-                   * pow(CONV_*PRESSURE_PA_/TEMPERATURE_K_, NUM_REACT_-1);
-
-}
-
 /** \brief Do pre-derivative calculations
  *
  * Nothing to do for arrhenius reactions
@@ -147,25 +125,30 @@ void * rxn_gpu_arrhenius_pre_calc(ModelData *model_data, void *rxn_data)
  * \param time_step Current time step being computed (s)
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-//TODO: #if __CUDA_ARCH__ >= 300 or #ifdef __CUDA__ARCH__
 #ifdef PMC_USE_SUNDIALS
-//#ifdef PMC_USE_GPU
-//__device__
-//#endif
-__host__ __device__ void rxn_gpu_arrhenius_calc_deriv_contrib(double *rate_constants, double *state,
+#ifdef __CUDA_ARCH__
+__host__ __device__
+#endif
+/*void rxn_gpu_arrhenius_calc_deriv_contrib(double *rxn_env_data, double *state,
           double *deriv, void *rxn_data, double * double_pointer_gpu,
-          double time_step,int n_rxn2)
+          double time_step,int n_rxn2)*/
+void rxn_gpu_arrhenius_calc_deriv_contrib(ModelData *model_data, realtype *deriv,
+                                      int *rxn_int_data, double *rxn_float_data,
+                                      double *rxn_env_data, double time_step)
 {
 #ifdef __CUDA_ARCH__
-  int n_rxn=n_rxn2;
+  int n_rxn=model_data->n_rxn;
 #else
   int n_rxn=1;
 #endif
-  int *int_data = (int*) rxn_data;
-  double *float_data = double_pointer_gpu;
+  int *int_data = rxn_int_data;
+  double *float_data = rxn_float_data;
+  double *state = model_data->grid_cell_state;
+  double *env_data = model_data->grid_cell_env;
 
   double rate = RATE_CONSTANT_;
-  for (int i_spec=0; i_spec<NUM_REACT_; i_spec++) rate *= state[REACT_(i_spec)];
+  for (int i_spec=0; i_spec<NUM_REACT_; i_spec++)
+    rate *= state[REACT_(i_spec)];
 
   // Add contributions to the time derivative
   if (rate!=ZERO) {
@@ -196,50 +179,6 @@ __host__ __device__ void rxn_gpu_arrhenius_calc_deriv_contrib(double *rate_const
 }
 #endif
 
-/** \brief Calculate contributions to the time derivative \f$f(t,y)\f$ from
- * this reaction.
- *
- * \param model_data Pointer to the model data, including the state array
- * \param deriv Pointer to the time derivative to add contributions to
- * \param rxn_data Pointer to the reaction data
- * \param time_step Current time step being computed (s)
- * \return The rxn_data pointer advanced by the size of the reaction data
- */
-#ifdef PMC_USE_SUNDIALS
-void rxn_cpu_arrhenius_calc_deriv_contrib(double *rate_constants, double *state,
-          double *deriv, void *rxn_data, double * double_pointer_gpu,
-          double time_step, int n_rxn2)
-{
-  int n_rxn=n_rxn2;
-  int *int_data = (int*) rxn_data;
-  double *float_data = double_pointer_gpu;
-
-  // Calculate the reaction rate
-  //double rate = RATE_CONSTANT_;
-  double rate = rate_constants[0];
-  for (int i_spec=0; i_spec<NUM_REACT_; i_spec++) rate *= state[REACT_(i_spec)];
-
-  // Add contributions to the time derivative
-  if (rate!=ZERO) {
-    int i_dep_var = 0;
-    for (int i_spec=0; i_spec<NUM_REACT_; i_spec++, i_dep_var++) {
-      if (DERIV_ID_(i_dep_var) < 0) continue;
-      deriv[DERIV_ID_(i_dep_var)] -= rate;
-	}
-    for (int i_spec=0; i_spec<NUM_PROD_; i_spec++, i_dep_var++) {
-      if (DERIV_ID_(i_dep_var) < 0) continue;
-
-      // Negative yields are allowed, but prevented from causing negative
-      // concentrations that lead to solver failures
-      if (-rate*YIELD_(i_spec)*time_step <= state[PROD_(i_spec)]) {
-        deriv[DERIV_ID_(i_dep_var)] += rate*YIELD_(i_spec);
-      }
-    }
-  }
-
-}
-#endif
-
 /** \brief Calculate contributions to the Jacobian from this reaction
  *
  * \param model_data Pointer to the model data
@@ -248,46 +187,49 @@ void rxn_cpu_arrhenius_calc_deriv_contrib(double *rate_constants, double *state,
  * \param time_step Current time step being calculated (s)
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
+/*
 #ifdef PMC_USE_SUNDIALS
-#ifdef PMC_USE_GPU
-__device__
+#ifdef __CUDA_ARCH__
+__host__ __device__
 #endif
-void rxn_gpu_arrhenius_calc_jac_contrib(double *rate_constants, double *state, double *J,
-          void *rxn_data, double * double_pointer_gpu, double time_step, int n_rxn2)
+void rxn_gpu_arrhenius_calc_jac_contrib(ModelData *model_data, realtype *J, int *rxn_int_data,
+          double *rxn_float_data, double *rxn_env_data, double time_step)
 {
-#ifdef PMC_USE_GPU
-  int n_rxn=n_rxn2;
+#ifdef __CUDA_ARCH__
+  int n_rxn=model_data->n_rxn;
 #else
-  int n_rxn=1;
+  int n_rxn=1;;
 #endif
-  int *int_data = (int*) rxn_data;
-  double *float_data = double_pointer_gpu;
-
-  // Calculate the reaction rate
-  //double rate = RATE_CONSTANT_;
-  double rate = rate_constants[0];
-  for (int i_spec=0; i_spec<NUM_REACT_; i_spec++) rate *= state[REACT_(i_spec)];
+  int *int_data = rxn_int_data;
+  double *float_data = rxn_float_data;
+  double *state = model_data->grid_cell_state;
+  double *env_data = model_data->grid_cell_env;
 
   // Add contributions to the Jacobian
   int i_elem = 0;
-  for (int i_ind=0; i_ind<NUM_REACT_; i_ind++) {
+  for (int i_ind = 0; i_ind < NUM_REACT_; i_ind++) {
+    // Calculate d_rate / d_i_ind
+    realtype rate = RATE_CONSTANT_;
+    for (int i_spec = 0; i_spec < NUM_REACT_; i_spec++)
+      if (i_spec != i_ind) rate *= state[REACT_(i_spec)];
+
     for (int i_dep=0; i_dep<NUM_REACT_; i_dep++, i_elem++) {
-  if (JAC_ID_(i_elem) < 0) continue;
-#ifdef PMC_USE_GPU
-  atomicAdd(&(J[JAC_ID_(i_elem)]),-rate / state[REACT_(i_ind)]);
+      if (JAC_ID_(i_elem) < 0) continue;
+#ifdef __CUDA_ARCH__
+      atomicAdd(&(J[JAC_ID_(i_elem)]),-rate);
 #else
-  J[JAC_ID_(i_elem)] -= rate;
+      J[JAC_ID_(i_elem)] -= rate;
 #endif
     }
     for (int i_dep=0; i_dep<NUM_PROD_; i_dep++, i_elem++) {
   if (JAC_ID_(i_elem) < 0) continue;
       // Negative yields are allowed, but prevented from causing negative
       // concentrations that lead to solver failures
-      if (-rate*YIELD_(i_dep)*time_step <= state[PROD_(i_dep)]) {
-#ifdef PMC_USE_GPU
-  atomicAdd(&(J[JAC_ID_(i_elem)]),YIELD_(i_dep) * rate / state[REACT_(i_ind)]);
+      if (-rate * state[REACT_(i_ind)] * YIELD_(i_dep) * time_step <= state[PROD_(i_dep)]) {
+#ifdef __CUDA_ARCH__
+    atomicAdd(&(J[JAC_ID_(i_elem)]),YIELD_(i_dep) * rate);
 #else
-  J[JAC_ID_(i_elem)] += YIELD_(i_dep) * rate;
+    J[JAC_ID_(i_elem)] += YIELD_(i_dep) * rate;
 #endif
       }
     }
@@ -295,6 +237,7 @@ void rxn_gpu_arrhenius_calc_jac_contrib(double *rate_constants, double *state, d
 
 }
 #endif
+*/
 
 /** \brief Retrieve Int data size
  *

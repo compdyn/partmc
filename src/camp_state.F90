@@ -141,6 +141,8 @@ contains
       this%env_var(grid_offset+2) = this%env_states(i_cell)%val%pressure      ! Pressure (Pa)
     end do
 
+    !print*,"env_temp:", this%env_states(2)%val%temp
+
   end subroutine update_env_state
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

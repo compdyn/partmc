@@ -170,9 +170,20 @@ endif()
 ######################################################################
 # GPU support
 
-if (ENABLE_GPU)
-  add_definitions(-DPMC_USE_GPU)
-  enable_language(CUDA)
+
+#Compile GPU tests if CUDA detected
+find_package(CUDA)
+if (CUDA_FOUND)
+    enable_language(CUDA)
+    #If enable_gpu, all will be executed on GPU
+    if (ENABLE_GPU)
+        #Define global variable of use gpu no matter what test to include user main test
+        add_definitions(-DPMC_USE_GPU)
+    endif()
+endif()
+
+if(NOT CUDA_FOUND AND ENABLE_GPU)
+    message( WARNING "Not CUDA module found, can't support GPU computation")
 endif()
 
 ######################################################################
@@ -260,6 +271,15 @@ if (ENABLE_TESTS)
       add_test(test_chemistry_eqsam_v03d ${CMAKE_BINARY_DIR}/test_run/chemistry/eqsam_v03d/test_chemistry_eqsam_v03d.sh ${MPI_TEST_FLAG})
       add_test(test_MONARCH_1 ${CMAKE_BINARY_DIR}/test_run/monarch/test_monarch_1.sh ${MPI_TEST_FLAG})
       add_test(test_MONARCH_2 ${CMAKE_BINARY_DIR}/test_run/monarch/test_monarch_2.sh ${MPI_TEST_FLAG})
+
+      if (CUDA_FOUND AND NOT ENABLE_GPU)
+        #todo: new unit_tests with gpu
+          add_test(test_rxn_arrhenius_mech_gpu ${CMAKE_BINARY_DIR}/test_run/unit_tests/input_files/run_rxn_arrhenius_gpu.sh ${MPI_TEST_FLAG})
+
+          #Relevant mechanisms tests
+          add_test(test_chemistry_cb05cl_ae5_gpu ${CMAKE_BINARY_DIR}/test_run/chemistry/cb05cl_ae5/test_chemistry_cb05cl_ae5_gpu.sh ${MPI_TEST_FLAG})
+
+      endif()
 
     endif()
 
@@ -491,14 +511,15 @@ set(SUB_MODELS_SRC ${SUB_MODELS_F_SRC} ${SUB_MODELS_C_SRC})
 
 set(CAMP_C_SRC
         src/camp_solver.c src/rxn_solver.c src/aero_phase_solver.c
-        src/aero_rep_solver.c src/sub_model_solver.c)
+        src/aero_rep_solver.c src/sub_model_solver.c
+        src/debug_and_stats/camp_debug_2.c)
 
 set_source_files_properties(${CAMP_C_SRC} PROPERTIES COMPILE_FLAGS
         ${STD_C_FLAGS})
 
 set(CAMP_CXX_SRC "")
 
-if(ENABLE_GPU)
+if (CUDA_FOUND)
   set(CAMP_CUDA_SRC
           src/cuda/camp_gpu_solver.cu
           src/cuda/rxns_gpu/rxn_aqueous_equilibrium.cu
@@ -521,33 +542,38 @@ if(ENABLE_GPU)
 
   set_source_files_properties(${CAMP_CUDA_SRC} PROPERTIES COMPILE_FLAGS
         ${STD_CUDA_FLAGS})
+
   set_source_files_properties(${CAMP_CUDA_SRC} PROPERTIES LANGUAGE CUDA)
 else()
   set(CAMP_CUDA_SRC "")
 endif()
 
-add_library(partmclib src/aero_state.F90 src/integer_varray.F90
-  src/integer_rmap.F90 src/integer_rmap2.F90 src/aero_sorted.F90
-  src/aero_binned.F90 src/bin_grid.F90 src/constants.F90
-  src/scenario.F90 src/env_state.F90 src/aero_mode.F90
-  src/aero_dist.F90 src/aero_weight.F90 src/aero_weight_array.F90
-  src/coag_kernel_additive.F90 src/coag_kernel_sedi.F90
-  src/coag_kernel_constant.F90 src/coag_kernel_brown.F90
-  src/coag_kernel_zero.F90 src/coag_kernel_brown_free.F90
-  src/coag_kernel_brown_cont.F90 src/aero_data.F90 src/run_exact.F90
-  src/run_part.F90 src/util.F90 src/stats.F90 src/run_sect.F90 src/output.F90
-  src/mosaic.F90 src/gas_data.F90 src/gas_state.F90
-  src/coagulation.F90 src/exact_soln.F90 src/coagulation_dist.F90
-  src/coag_kernel.F90 src/spec_line.F90 src/spec_file.F90 src/rand.F90
-  src/aero_particle.F90 src/aero_particle_array.F90 src/mpi.F90
-  src/netcdf.F90 src/aero_info.F90 src/aero_info_array.F90
-  src/nucleate.F90 src/condense.F90 src/fractal.F90 src/chamber.F90
-  src/property.F90 src/chem_spec_data.F90
-  src/rxn_data.F90 src/camp_state.F90 src/mechanism_data.F90
-  src/camp_core.F90 src/camp_solver_data.F90 src/aero_rep_data.F90
-  src/aero_phase_data.F90 src/aero_rep_factory.F90 src/camp_interface.F90
-  src/rxn_factory.F90 src/sub_model_data.F90 src/sub_model_factory.F90
-  src/solver_stats.F90 src/camp_box_model_data.F90
+set(CAMP_F_SRC
+        src/aero_state.F90 src/integer_varray.F90
+        src/integer_rmap.F90 src/integer_rmap2.F90 src/aero_sorted.F90
+        src/aero_binned.F90 src/bin_grid.F90 src/constants.F90
+        src/scenario.F90 src/env_state.F90 src/aero_mode.F90
+        src/aero_dist.F90 src/aero_weight.F90 src/aero_weight_array.F90
+        src/coag_kernel_additive.F90 src/coag_kernel_sedi.F90
+        src/coag_kernel_constant.F90 src/coag_kernel_brown.F90
+        src/coag_kernel_zero.F90 src/coag_kernel_brown_free.F90
+        src/coag_kernel_brown_cont.F90 src/aero_data.F90 src/run_exact.F90
+        src/run_part.F90 src/util.F90 src/stats.F90 src/run_sect.F90 src/output.F90
+        src/mosaic.F90 src/gas_data.F90 src/gas_state.F90
+        src/coagulation.F90 src/exact_soln.F90 src/coagulation_dist.F90
+        src/coag_kernel.F90 src/spec_line.F90 src/spec_file.F90 src/rand.F90
+        src/aero_particle.F90 src/aero_particle_array.F90 src/mpi.F90
+        src/netcdf.F90 src/aero_info.F90 src/aero_info_array.F90
+        src/nucleate.F90 src/condense.F90 src/fractal.F90 src/chamber.F90
+        src/property.F90 src/chem_spec_data.F90
+        src/rxn_data.F90 src/camp_state.F90 src/mechanism_data.F90
+        src/camp_core.F90 src/camp_solver_data.F90 src/aero_rep_data.F90
+        src/aero_phase_data.F90 src/aero_rep_factory.F90 src/camp_interface.F90
+        src/rxn_factory.F90 src/sub_model_data.F90 src/sub_model_factory.F90
+        src/solver_stats.F90 src/camp_box_model_data.F90
+        )
+
+add_library(partmclib ${CAMP_F_SRC}
   ${CAMP_C_SRC} ${AEROSOL_REPS_SRC} ${SUB_MODELS_SRC} ${REACTIONS_SRC}
   ${SUNDIALS_SRC} ${GSL_SRC} ${C_SORT_SRC} ${CAMP_CUDA_SRC} ${CAMP_CXX_SRC} )
 
@@ -555,6 +581,24 @@ target_link_libraries(partmclib ${NETCDF_LIBS} ${SUNDIALS_LIBS}
   ${MOSAIC_LIB} ${GSL_LIBS} ${JSON_LIB})
 
 set_target_properties(partmclib PROPERTIES OUTPUT_NAME partmc)
+
+if (CUDA_FOUND AND NOT ENABLE_GPU)
+    add_library(partmclib_gpu ${CAMP_F_SRC}
+            ${CAMP_C_SRC} ${AEROSOL_REPS_SRC} ${SUB_MODELS_SRC} ${REACTIONS_SRC}
+            ${SUNDIALS_SRC} ${GSL_SRC} ${C_SORT_SRC} ${CAMP_CUDA_SRC} ${CAMP_CXX_SRC} )
+
+    target_compile_definitions(partmclib_gpu PRIVATE
+            "PMC_USE_GPU=ON")
+
+    target_link_libraries(partmclib_gpu ${NETCDF_LIBS} ${SUNDIALS_LIBS}
+            ${MOSAIC_LIB} ${GSL_LIBS} ${JSON_LIB})
+
+    set_target_properties(partmclib_gpu PROPERTIES OUTPUT_NAME partmc_gpu)
+
+    add_executable(partmc_gpu src/partmc.F90)
+
+    target_link_libraries(partmc_gpu partmclib_gpu)
+endif()
 
 ######################################################################
 # partmc executable
@@ -614,25 +658,6 @@ set_source_files_properties(${CB5_EBI_SOLVER} PROPERTIES COMPILE_FLAGS
 	${CB5_EBI_FLAGS})
 
 ######################################################################
-# test_chemistry_cb05cl_ae5
-
-add_executable(test_chemistry_cb05cl_ae5
-        test/chemistry/cb05cl_ae5/test_cb05cl_ae5.F90
-        ${CB5_EBI_SOLVER} ${CB5_KPP_SOLVER}
-        test/chemistry/cb05cl_ae5/module_BSC_CHEM_DATA.F90)
-target_link_libraries(test_chemistry_cb05cl_ae5 partmclib)
-
-######################################################################
-# MONARCH interface
-
-add_executable(mock_monarch test/monarch/mock_monarch.F90
-        test/monarch/pmc_monarch_interface.F90)
-
-target_link_libraries(mock_monarch partmclib)
-
-if (ENABLE_TESTS)
-
-######################################################################
 # test_chemistry_cb05cl_ae5_big
 
 add_executable(test_chemistry_cb05cl_ae5_big
@@ -642,11 +667,64 @@ add_executable(test_chemistry_cb05cl_ae5_big
 target_link_libraries(test_chemistry_cb05cl_ae5_big partmclib)
 
 ######################################################################
+# MONARCH interface
+
+add_executable(mock_monarch test/monarch/mock_monarch.F90
+        test/monarch/pmc_monarch_interface.F90)
+
+target_link_libraries(mock_monarch partmclib)
+
+
+
+
+set(UNIT_TEST_SRC
+        test/unit_tests/unit_test_data.F90
+        test/unit_tests/unit_test_driver.F90)
+
+set(UNIT_TEST_RXN_ARRHENIUS_SRC
+        test/unit_tests/rxns/unit_test_rxn_arrhenius.F90 ${UNIT_TEST_SRC})
+set_source_files_properties(${UNIT_TEST_RXN_ARRHENIUS_SRC} PROPERTIES COMPILE_FLAGS ${STD_F_FLAGS})
+add_executable(unit_test_rxn_arrhenius ${UNIT_TEST_RXN_ARRHENIUS_SRC})
+target_compile_definitions(unit_test_rxn_arrhenius PRIVATE
+        "UNIT_TEST_MODULE_=pmc_unit_test_rxn_arrhenius \
+    ;UNIT_TEST_TYPE_=unit_test_rxn_arrhenius_t()")
+target_link_libraries(unit_test_rxn_arrhenius partmclib)
+
+#if (CUDA_FOUND AND NOT ENABLE_GPU)
+#    add_executable(unit_test_rxn_arrhenius_gpu ${UNIT_TEST_RXN_ARRHENIUS_SRC})
+#    target_compile_definitions(unit_test_rxn_arrhenius_gpu PRIVATE
+#            "UNIT_TEST_MODULE_=pmc_unit_test_rxn_arrhenius \
+#    ;UNIT_TEST_TYPE_=unit_test_rxn_arrhenius_t()")
+#    target_link_libraries(unit_test_rxn_arrhenius_gpu partmclib_gpu)
+#endif()
+
+
+
+
+if (ENABLE_TESTS)
+
+######################################################################
+# test_chemistry_cb05cl_ae5_big
+
+add_executable(test_chemistry_cb05cl_ae5
+        test/chemistry/cb05cl_ae5/test_cb05cl_ae5.F90
+        ${CB5_EBI_SOLVER} ${CB5_KPP_SOLVER}
+        test/chemistry/cb05cl_ae5/module_BSC_CHEM_DATA.F90)
+target_link_libraries(test_chemistry_cb05cl_ae5 partmclib)
+
+if (CUDA_FOUND AND NOT ENABLE_GPU)
+    add_executable(test_chemistry_cb05cl_ae5_gpu
+            test/chemistry/cb05cl_ae5/test_cb05cl_ae5.F90
+            ${CB5_EBI_SOLVER} ${CB5_KPP_SOLVER}
+            test/chemistry/cb05cl_ae5/module_BSC_CHEM_DATA.F90)
+    target_link_libraries(test_chemistry_cb05cl_ae5_gpu partmclib_gpu)
+endif()
+
+######################################################################
 # test_chemistry_eqsam_v03d
 
 set(EQSAM_V03D
-	test/chemistry/eqsam_v03d/eqsam_v03d.F90
-	)
+	test/chemistry/eqsam_v03d/eqsam_v03d.F90)
 
 add_executable(test_chemistry_eqsam_v03d test/chemistry/eqsam_v03d/test_eqsam_v03d.F90
 	${EQSAM_V03D})
@@ -708,19 +786,7 @@ target_link_libraries(test_sub_model_ZSR_aerosol_water partmclib)
 ######################################################################
 # New unit tests (UNDER DEVELOPMENT)
 
-set(UNIT_TEST_SRC
-    test/unit_tests/unit_test_data.F90
-    test/unit_tests/unit_test_driver.F90)
 
-set(UNIT_TEST_RXN_ARRHENIUS_SRC
-    test/unit_tests/rxns/unit_test_rxn_arrhenius.F90 ${UNIT_TEST_SRC})
-set_source_files_properties(${UNIT_TEST_RXN_ARRHENIUS_SRC} PROPERTIES COMPILE_DEFINITIONS
-  "UNIT_TEST_MODULE_=pmc_unit_test_rxn_arrhenius \
-  ;UNIT_TEST_TYPE_=unit_test_rxn_arrhenius_t()")
-set_source_files_properties(${UNIT_TEST_RXN_ARRHENIUS_SRC} PROPERTIES COMPILE_FLAGS
-                            ${STD_F_FLAGS})
-add_executable(unit_test_rxn_arrhenius ${UNIT_TEST_RXN_ARRHENIUS_SRC})
-target_link_libraries(unit_test_rxn_arrhenius partmclib)
 
 ######################################################################
 # test_camp_core

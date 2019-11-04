@@ -273,7 +273,7 @@ contains
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     n_repeats = 1
-    n_cells = 1
+    n_cells = 10
 
     if (n_cells.eq.1) then
       n_repeats = 100
@@ -329,8 +329,12 @@ contains
     camp_state => camp_core%new_state()
 
     ! Set the environmental conditions
-    call camp_state%env_states(1)%set_temperature_K( real( temperature, kind=dp ) )
-    call camp_state%env_states(1)%set_pressure_Pa( pressure * const%air_std_press )
+
+    do i = 1, n_cells
+      call camp_state%env_states(i)%set_temperature_K( real( temperature, kind=dp ) )
+      call camp_state%env_states(i)%set_pressure_Pa( pressure * const%air_std_press )
+    end do
+
 
     call cpu_time(comp_end)
     write(*,*) "CAMP-chem initialization time: ", comp_end-comp_start," s"
@@ -368,7 +372,7 @@ contains
       call rate_update(i_photo_rxn)%set_rate(real(0.0001, kind=dp))
       call camp_core%update_data(rate_update(i_photo_rxn))
     end do
-
+  !todo: add n_cells rates of update_rata
 
     ! Make sure the right number of reactions is present
     ! (KPP includes two Cl rxns with rate constants set to zero that are not
@@ -555,6 +559,7 @@ contains
       do j = 1, state_size_cell
         camp_state%state_var(i*state_size_cell+j) = camp_state%state_var(j) !+ 0.1*j
       end do
+
     end do
 
     ! Save the initial states for repeat calls

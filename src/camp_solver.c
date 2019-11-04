@@ -337,8 +337,9 @@ void *solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
   sd->model_data.sub_model_env_idx[0] = 0;
 
 #ifdef PMC_USE_GPU
-  solver_new_gpu_cu(n_dep_var, n_state_var, n_rxn, n_rxn_int_param,
-                    n_rxn_float_param, n_rxn_env_param, n_cells);
+  solver_new_gpu_cu(&(sd->model_data), n_dep_var, n_state_var, n_rxn,
+                    n_rxn_int_param, n_rxn_float_param, n_rxn_env_param,
+                    n_cells);
 #endif
 
 #ifdef PMC_DEBUG
@@ -451,11 +452,6 @@ void solver_initialize(void *solver_data, double *abs_tol, double rel_tol,
   // Set a function to improve guesses for y sent to the linear solver
   flag = CVodeSetDlsGuessHelper(sd->cvode_mem, guess_helper);
   check_flag_fail(&flag, "CVodeSetDlsGuessHelper", 1);
-
-// Allocate Jacobian on GPU
-#ifdef PMC_USE_GPU
-  allocate_jac_gpu(sd->model_data.n_per_cell_solver_jac_elem, n_cells);
-#endif
 
 // Set gpu rxn values
 #ifdef PMC_USE_GPU
@@ -880,9 +876,12 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
 #ifndef PMC_USE_GPU
     // Calculate the time derivative f(t,y)
     rxn_calc_deriv(md, deriv_data, (double)time_step);
+    //rxn_calc_deriv_cpu(md, deriv_data, (double)time_step);
 #else
       // Add contributions from reactions not implemented on GPU
       rxn_calc_deriv_specific_types(md, deriv_data, (double)time_step);
+      //rxn_calc_deriv_cpu(md, deriv_data, (double)time_step);
+      //rxn_calc_deriv(md, deriv_data, (double)time_step);
 #endif
 
 #ifdef PMC_DEBUG

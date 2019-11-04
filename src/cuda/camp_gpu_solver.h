@@ -12,7 +12,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "../camp_common.h"
-
+//#include "../debug_and_stats/camp_debug_2.h"
 
 //Value to consider data size too big -> Memory optimization will change below and under the limit
 #define DATA_SIZE_LIMIT_OPT 2000
@@ -24,17 +24,11 @@
 //Force solving on CPU: Test option
 #define FORCE_CPU 0
 
-//Not compiling, why?
-/*__global__ void solveDerivative(double *state_init, double *deriv_init,
-                                double time_step, int deriv_length_cell, int state_size_cell,
-                                int rate_constants_size_cell,
-                                int n_rxn, int n_cells, int *int_pointer, double *double_pointer,
-                                double *rate_constants_init, int *rate_constants_idx);*/
-void solver_new_gpu_cu(int n_dep_var, int n_state_var, int n_rxn,
+void solver_new_gpu_cu(ModelData *model_data, int n_dep_var, int n_state_var, int n_rxn,
      int n_rxn_int_param, int n_rxn_float_param, int n_rxn_env_param, int n_cells);
-void allocate_jac_gpu(int n_jac_elem, int n_cells);
 void rxn_update_env_state_gpu(ModelData *model_data, double *env);
 void rxn_calc_deriv_gpu(ModelData *model_data, N_Vector deriv, realtype time_step);
+void rxn_calc_deriv_cpu(ModelData *model_data, double *deriv_data, double time_step);
 void rxn_calc_jac_gpu(ModelData *model_data, SUNMatrix jac, realtype time_step);
 void free_gpu_cu();
 void bubble_sort_gpu(unsigned int *n_zeros, unsigned int *rxn_position, int n_rxn);

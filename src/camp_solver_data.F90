@@ -803,20 +803,33 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Update reaction data
-  subroutine update_rxn_data(this, update_data)
+  subroutine update_rxn_data(this, update_data, n_cells)
 
     !> Solver data
     class(camp_solver_data_t), intent(inout) :: this
     !> Update data
     class(rxn_update_data_t), intent(in) :: update_data
+    integer, intent(in) :: n_cells
+    integer :: i
 
-    call rxn_update_data( &
-            update_data%get_cell_id()-1,     & ! Grid cell to update
-            update_data%rxn_solver_id,       & ! Solver's reaction id
-            update_data%get_type(),          & ! Reaction type to update
-            update_data%get_data(),          & ! Data needed to perform update
-            this%solver_c_ptr                & ! Pointer to solver data
-            )
+    !TODO: Improve this to consider different update_rates
+
+    !call rxn_update_data( &
+    !        update_data%get_cell_id()-1,     & ! Grid cell to update
+    !        update_data%rxn_solver_id,       & ! Solver's reaction id
+    !        update_data%get_type(),          & ! Reaction type to update
+    !        update_data%get_data(),          & ! Data needed to perform update
+    !        this%solver_c_ptr                & ! Pointer to solver data
+    !        )
+    do i=1, n_cells
+      call rxn_update_data( &
+              i-1,     & ! Grid cell to update
+              update_data%rxn_solver_id,       & ! Solver's reaction id
+              update_data%get_type(),          & ! Reaction type to update
+              update_data%get_data(),          & ! Data needed to perform update
+              this%solver_c_ptr                & ! Pointer to solver data
+              )
+    end do
 
   end subroutine update_rxn_data
 

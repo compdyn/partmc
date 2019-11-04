@@ -30,7 +30,7 @@ extern "C"{
 #define k3_C_ float_data[8*n_rxn]
 #define SCALING_ float_data[9*n_rxn]
 #define CONV_ float_data[10*n_rxn]
-#define RATE_CONSTANT_ rate_constants[0*n_rxn]
+#define RATE_CONSTANT_ rxn_env_data[0*n_rxn]
 #define NUM_INT_PROP_ 2
 #define NUM_FLOAT_PROP_ 11
 #define REACT_(x) (int_data[(NUM_INT_PROP_ + x)*n_rxn]-1)
@@ -100,44 +100,6 @@ void * rxn_gpu_CMAQ_OH_HNO3_update_ids(ModelData *model_data, int *deriv_ids,
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
 
-/** \brief Update reaction data for new environmental conditions
- *
- * For CMAQ_OH_HNO3 reaction this only involves recalculating the rate
- * constant.
- *
- * \param env_data Pointer to the environmental state array
- * \param rxn_data Pointer to the reaction data
- * \return The rxn_data pointer advanced by the size of the reaction data
- */
-__device__ void rxn_gpu_CMAQ_OH_HNO3_update_env_state(double *rate_constants,
-   int n_rxn2,double *double_pointer_gpu, double *env_data, void *rxn_data)
-{
-  int n_rxn=n_rxn2;
-  int *int_data = (int*) rxn_data;
-  double *float_data = double_pointer_gpu;
-
-  // Calculate the rate constant in (#/cc)
-  double conv = CONV_ * PRESSURE_PA_ / TEMPERATURE_K_;
-  double k2 = k2_A_
-	  * (k2_C_==0.0 ? 1.0 : exp(k2_C_/TEMPERATURE_K_))
-	  * (k2_B_==0.0 ? 1.0 :
-                    pow(TEMPERATURE_K_/((double)300.0), k2_B_));
-  double k3 = k3_A_ // [M] is included in k3_A_
-	  * (k3_C_==0.0 ? 1.0 : exp(k3_C_/TEMPERATURE_K_))
-	  * (k3_B_==0.0 ? 1.0 :
-                    pow(TEMPERATURE_K_/((double)300.0), k3_B_))
-	  * conv;
-  RATE_CONSTANT_ = (k0_A_
-	  * (k0_C_==0.0 ? 1.0 : exp(k0_C_/TEMPERATURE_K_))
-	  * (k0_B_==0.0 ? 1.0 :
-                  pow(TEMPERATURE_K_/((double)300.0), k0_B_))
-	  + k3 / (((double)1.0) + k3 / k2)
-	  ) * pow(conv, NUM_REACT_-1) * SCALING_;
-
-  rate_constants[0] = RATE_CONSTANT_;
-
-}
-
 /** \brief Do pre-derivative calculations
  *
  * Nothing to do for CMAQ_OH_HNO3 reactions
@@ -165,81 +127,48 @@ void * rxn_gpu_CMAQ_OH_HNO3_pre_calc(ModelData *model_data, void *rxn_data)
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-#ifdef PMC_USE_GPU
-__device__
+#ifdef __CUDA_ARCH__
+__host__ __device__
 #endif
-void rxn_gpu_CMAQ_OH_HNO3_calc_deriv_contrib(double *rate_constants, double *state,
-          double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step, int n_rxn2)
+void rxn_gpu_CMAQ_OH_HNO3_calc_deriv_contrib(ModelData *model_data, realtype *deriv, int *rxn_int_data,
+          double *rxn_float_data, double *rxn_env_data, double time_step)
 {
-  int n_rxn=n_rxn2;
-  int *int_data = (int*) rxn_data;
-  double *float_data = double_pointer_gpu;
+#ifdef __CUDA_ARCH__
+  int n_rxn=model_data->n_rxn;
+#else
+  int n_rxn=1;
+#endif
+  int *int_data = rxn_int_data;
+  double *float_data = rxn_float_data;
+  double *state = model_data->grid_cell_state;
+  double *env_data = model_data->grid_cell_env;
 
   // Calculate the reaction rate
-  //double rate = RATE_CONSTANT_;
-  double rate = rate_constants[0];
+  realtype rate = RATE_CONSTANT_;
   for (int i_spec=0; i_spec<NUM_REACT_; i_spec++)
-          rate *= state[REACT_(i_spec)];
+      rate *= state[REACT_(i_spec)];
 
   // Add contributions to the time derivative
   if (rate!=ZERO) {
     int i_dep_var = 0;
     for (int i_spec=0; i_spec<NUM_REACT_; i_spec++, i_dep_var++) {
       if (DERIV_ID_(i_dep_var) < 0) continue;
-      //deriv[DERIV_ID_(i_dep_var)] -= rate;
+#ifdef __CUDA_ARCH__
       atomicAdd((double*)&(deriv[DERIV_ID_(i_dep_var)]),-rate);
-    }
-    for (int i_spec=0; i_spec<NUM_PROD_; i_spec++, i_dep_var++) {
-      if (DERIV_ID_(i_dep_var) < 0) continue;
-      // Negative yields are allowed, but prevented from causing negative
-      // concentrations that lead to solver failures
-      if (-rate*YIELD_(i_spec)*time_step <= state[PROD_(i_spec)]) {
-        //deriv[DERIV_ID_(i_dep_var)] += rate*YIELD_(i_spec);
-        atomicAdd((double*)&(deriv[DERIV_ID_(i_dep_var)]),rate*YIELD_(i_spec));
-      }
-    }
-  }
-
-
-}
-#endif
-
-/** \brief Calculate contributions to the time derivative \f$f(t,y)\f$ from
- * this reaction.
- *
- * \param model_data Pointer to the model data
- * \param deriv Pointer to the time derivative to add contributions to
- * \param rxn_data Pointer to the reaction data
- * \param time_step Current time step being computed (s)
- * \return The rxn_data pointer advanced by the size of the reaction data
- */
-#ifdef PMC_USE_SUNDIALS
-void rxn_cpu_CMAQ_OH_HNO3_calc_deriv_contrib(double *rate_constants, double *state,
-          double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step, int n_rxn2)
-{
-  int n_rxn=n_rxn2;
-  int *int_data = (int*) rxn_data;
-  double *float_data = double_pointer_gpu;
-
-  // Calculate the reaction rate
-  //double rate = RATE_CONSTANT_;
-  double rate = rate_constants[0];
-  for (int i_spec=0; i_spec<NUM_REACT_; i_spec++)
-          rate *= state[REACT_(i_spec)];
-
-  // Add contributions to the time derivative
-  if (rate!=ZERO) {
-    int i_dep_var = 0;
-    for (int i_spec=0; i_spec<NUM_REACT_; i_spec++, i_dep_var++) {
-      if (DERIV_ID_(i_dep_var) < 0) continue;
+#else
       deriv[DERIV_ID_(i_dep_var)] -= rate;
+#endif
     }
     for (int i_spec=0; i_spec<NUM_PROD_; i_spec++, i_dep_var++) {
       if (DERIV_ID_(i_dep_var) < 0) continue;
       // Negative yields are allowed, but prevented from causing negative
       // concentrations that lead to solver failures
       if (-rate*YIELD_(i_spec)*time_step <= state[PROD_(i_spec)]) {
-        deriv[DERIV_ID_(i_dep_var)] += rate*YIELD_(i_spec);
+#ifdef __CUDA_ARCH__
+        atomicAdd((double*)&(deriv[DERIV_ID_(i_dep_var)]),rate*YIELD_(i_spec));
+#else
+        deriv[DERIV_ID_(i_dep_var)] += rate * YIELD_(i_spec);
+#endif
       }
     }
   }
@@ -256,45 +185,57 @@ void rxn_cpu_CMAQ_OH_HNO3_calc_deriv_contrib(double *rate_constants, double *sta
  * \param time_step Current time step being calculated (s)
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
+ /*
 #ifdef PMC_USE_SUNDIALS
-#ifdef PMC_USE_GPU
-__device__
+#ifdef __CUDA_ARCH__
+__host__ __device__
 #endif
-void rxn_gpu_CMAQ_OH_HNO3_calc_jac_contrib(double *rate_constants, double *state, double *J,
-          void *rxn_data, double * double_pointer_gpu, double time_step, int n_rxn2)
+void rxn_gpu_CMAQ_OH_HNO3_calc_jac_contrib(ModelData *model_data, realtype *J, int *rxn_int_data,
+          double *rxn_float_data, double *rxn_env_data, double time_step)
 {
-  int n_rxn=n_rxn2;
-  int *int_data = (int*) rxn_data;
-  double *float_data = double_pointer_gpu;
-
-  // Calculate the reaction rate
-  //double rate = RATE_CONSTANT_;
-  double rate = rate_constants[0];
-  for (int i_spec=0; i_spec<NUM_REACT_; i_spec++)
-          rate *= state[REACT_(i_spec)];
+#ifdef __CUDA_ARCH__
+  int n_rxn=model_data->n_rxn;
+#else
+  int n_rxn=1;;
+#endif
+  int *int_data = rxn_int_data;
+  double *float_data = rxn_float_data;
+  double *state = model_data->grid_cell_state;
+  double *env_data = model_data->grid_cell_env;
 
   // Add contributions to the Jacobian
   int i_elem = 0;
-  for (int i_ind=0; i_ind<NUM_REACT_; i_ind++) {
+  for (int i_ind = 0; i_ind < NUM_REACT_; i_ind++) {
+    // Calculate d_rate / d_i_ind
+    realtype rate = RATE_CONSTANT_;
+    for (int i_spec = 0; i_spec < NUM_REACT_; i_spec++)
+      if (i_ind != i_spec) rate *= state[REACT_(i_spec)];
+
     for (int i_dep=0; i_dep<NUM_REACT_; i_dep++, i_elem++) {
       if (JAC_ID_(i_elem) < 0) continue;
-      atomicAdd(&(J[JAC_ID_(i_elem)]), -rate / state[REACT_(i_ind)]);
+#ifdef __CUDA_ARCH__
+      atomicAdd(&(J[JAC_ID_(i_elem)]), -rate);
+#else
+      J[JAC_ID_(i_elem)] -= rate;
+#endif
     }
     for (int i_dep=0; i_dep<NUM_PROD_; i_dep++, i_elem++) {
       if (JAC_ID_(i_elem) < 0) continue;
       // Negative yields are allowed, but prevented from causing negative
       // concentrations that lead to solver failures
-      if (-rate*YIELD_(i_dep)*time_step <= state[PROD_(i_dep)]) {
-        atomicAdd(&(J[JAC_ID_(i_elem)]),YIELD_(i_dep) * rate / state[REACT_(i_ind)]);
+      if (-rate * state[REACT_(i_ind)] * YIELD_(i_dep) * time_step <= state[PROD_(i_dep)]) {
+#ifdef __CUDA_ARCH__
+        atomicAdd(&(J[JAC_ID_(i_elem)]),YIELD_(i_dep) * rate);
+#else
+        J[JAC_ID_(i_elem)] += YIELD_(i_dep) * rate;
+#endif
       }
     }
   }
 
-  //return (void*) &(float_data[FLOAT_DATA_SIZE_]);
-
 }
 #endif
-
+*/
 /** \brief Retrieve Int data size
  *
  * \param rxn_data Pointer to the reaction data

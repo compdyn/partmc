@@ -167,6 +167,28 @@ typedef struct {
                                  // for the current grid cell
   int n_sub_model_env_data;      // Number of sub model environmental parameters
                                  // from all sub models
+                                 //#ifdef CUDA_FOUND
+                                 // GPU data
+  double *deriv_gpu_data;
+  double *deriv_cpu;
+  double *jac_gpu_data;
+  double *jac_cpu;
+  size_t deriv_size;
+  size_t jac_size;
+  size_t state_size;
+  size_t env_size;
+  size_t rxn_env_data_size;
+  size_t rxn_env_data_idx_size;
+  bool few_data;
+  bool implemented_all;
+  int *int_pointer_gpu;
+  double *double_pointer_gpu;
+  double *state_gpu;
+  double *env_gpu;
+  double *rxn_env_data_gpu;
+  int *rxn_env_data_idx_gpu;
+
+  //#endif
 } ModelData;
 
 /* Solver data structure */

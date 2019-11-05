@@ -25,6 +25,10 @@
 #include <sunmatrix/sunmatrix_sparse.h> /* sparse SUNMatrix                    */
 #endif
 
+
+#include <cuda.h>
+//cudaStream_t *stream_gpu;
+
 // State variable types (Must match parameters defined in pmc_chem_spec_data
 // module)
 #define CHEM_SPEC_UNKNOWN_TYPE 0
@@ -169,6 +173,8 @@ typedef struct {
                                  // from all sub models
                                  //#ifdef CUDA_FOUND
                                  // GPU data
+
+//Gpu definitions
   double *deriv_gpu_data;
   double *deriv_cpu;
   double *jac_gpu_data;
@@ -187,6 +193,7 @@ typedef struct {
   double *env_gpu;
   double *rxn_env_data_gpu;
   int *rxn_env_data_idx_gpu;
+  int n_streams; //Number of GPU streams for ModelData
 
   //#endif
 } ModelData;

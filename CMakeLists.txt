@@ -660,11 +660,19 @@ set_source_files_properties(${CB5_EBI_SOLVER} PROPERTIES COMPILE_FLAGS
 ######################################################################
 # test_chemistry_cb05cl_ae5_big
 
-add_executable(test_chemistry_cb05cl_ae5_big
-        test/chemistry/cb05cl_ae5/test_cb05cl_ae5_big.F90
+add_executable(test_chemistry_cb05cl_ae5
+        test/chemistry/cb05cl_ae5/test_cb05cl_ae5.F90
         ${CB5_EBI_SOLVER} ${CB5_KPP_SOLVER}
         test/chemistry/cb05cl_ae5/module_BSC_CHEM_DATA.F90)
-target_link_libraries(test_chemistry_cb05cl_ae5_big partmclib)
+target_link_libraries(test_chemistry_cb05cl_ae5 partmclib)
+
+if (CUDA_FOUND AND NOT ENABLE_GPU)
+    add_executable(test_chemistry_cb05cl_ae5_gpu
+            test/chemistry/cb05cl_ae5/test_cb05cl_ae5.F90
+            ${CB5_EBI_SOLVER} ${CB5_KPP_SOLVER}
+            test/chemistry/cb05cl_ae5/module_BSC_CHEM_DATA.F90)
+    target_link_libraries(test_chemistry_cb05cl_ae5_gpu partmclib_gpu)
+endif()
 
 ######################################################################
 # MONARCH interface
@@ -673,7 +681,6 @@ add_executable(mock_monarch test/monarch/mock_monarch.F90
         test/monarch/pmc_monarch_interface.F90)
 
 target_link_libraries(mock_monarch partmclib)
-
 
 
 
@@ -704,21 +711,22 @@ target_link_libraries(unit_test_rxn_arrhenius partmclib)
 if (ENABLE_TESTS)
 
 ######################################################################
-# test_chemistry_cb05cl_ae5_big
+# test_chemistry_cb05cl_ae5
 
-add_executable(test_chemistry_cb05cl_ae5
-        test/chemistry/cb05cl_ae5/test_cb05cl_ae5.F90
+add_executable(test_chemistry_cb05cl_ae5_big
+        test/chemistry/cb05cl_ae5/test_cb05cl_ae5_big.F90
         ${CB5_EBI_SOLVER} ${CB5_KPP_SOLVER}
         test/chemistry/cb05cl_ae5/module_BSC_CHEM_DATA.F90)
-target_link_libraries(test_chemistry_cb05cl_ae5 partmclib)
+target_link_libraries(test_chemistry_cb05cl_ae5_big partmclib)
 
-if (CUDA_FOUND AND NOT ENABLE_GPU)
-    add_executable(test_chemistry_cb05cl_ae5_gpu
-            test/chemistry/cb05cl_ae5/test_cb05cl_ae5.F90
-            ${CB5_EBI_SOLVER} ${CB5_KPP_SOLVER}
-            test/chemistry/cb05cl_ae5/module_BSC_CHEM_DATA.F90)
-    target_link_libraries(test_chemistry_cb05cl_ae5_gpu partmclib_gpu)
-endif()
+#if (CUDA_FOUND AND NOT ENABLE_GPU)
+#    add_executable(test_chemistry_cb05cl_ae5_big_gpu
+#            test/chemistry/cb05cl_ae5/test_cb05cl_ae5_big.F90
+#            ${CB5_EBI_SOLVER} ${CB5_KPP_SOLVER}
+#            test/chemistry/cb05cl_ae5/module_BSC_CHEM_DATA.F90)
+#    target_link_libraries(test_chemistry_cb05cl_ae5_big_gpu partmclib_gpu)
+#vendif()
+
 
 ######################################################################
 # test_chemistry_eqsam_v03d

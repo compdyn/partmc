@@ -576,6 +576,11 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
     rxn_update_env_state(md);
   }
 
+//Update data for new environmental state on GPU
+#ifdef PMC_USE_GPU
+  rxn_update_env_state_gpu(md);
+#endif
+
   PMC_DEBUG_JAC_STRUCT(sd->model_data.J_init, "Begin solving");
 
   // Reset the flag indicating a current J_guess
@@ -892,6 +897,8 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
     // Advance the derivative for the next cell
     deriv_data += n_dep_var;
   }
+
+  //todo: add sum of gpu and cpu deriv results here (and gpu comp. async)
 
   // Return 0 if success
   return (0);
@@ -1867,7 +1874,7 @@ void error_handler(int error_code, const char *module, const char *function,
  */
 void model_free(ModelData model_data) {
 #ifdef PMC_USE_GPU
-  // free_gpu_cu();
+  free_gpu_cu(model_data);
 #endif
 
 #ifdef PMC_USE_SUNDIALS

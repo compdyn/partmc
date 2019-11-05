@@ -273,10 +273,10 @@ contains
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     n_repeats = 1
-    n_cells = 10
+    n_cells = 1000
 
     if (n_cells.eq.1) then
-      n_repeats = 100
+      n_repeats = 1000
     end if
 
     call cpu_time(comp_start)

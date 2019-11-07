@@ -273,7 +273,7 @@ contains
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     n_repeats = 1
-    n_cells = 1000
+    n_cells = 4000
 
     if (n_cells.eq.1) then
       n_repeats = 1000

@@ -31,7 +31,7 @@ program mock_monarch
   !> Number of total species in mock MONARCH
   integer, parameter :: NUM_MONARCH_SPEC = 800
   !> Number of vertical cells in mock MONARCH
-  integer, parameter :: NUM_VERT_CELLS = 4
+  integer, parameter :: NUM_VERT_CELLS = 10
   !> Starting W-E cell for camp-chem call
   integer, parameter :: I_W = 1
   !> Ending W-E cell for camp-chem call
@@ -204,7 +204,7 @@ program mock_monarch
   !print*, species_conc(1,2,1,:)
 
   !#ifdef DEBUG
-  !print*, "SPECIES CONC", species_conc(:,1,1,100)
+  print*, "SPECIES CONC", species_conc(:,1,1,100)
   !print*, "SPECIES CONC COPY", species_conc_copy(:,1,1,100)
   !#endif
 

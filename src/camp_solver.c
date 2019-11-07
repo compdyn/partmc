@@ -846,7 +846,9 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
 #ifdef PMC_USE_GPU
   // Calculate the time derivative f(t,y)
   // (this is for all grid cells at once)
-  rxn_calc_deriv_gpu(md, deriv, (double)time_step);
+  //printf("few_data:%d\n", md->few_data);
+  if(!md->few_data)
+    rxn_calc_deriv_gpu(md, deriv, (double)time_step);
 #endif
 
 #ifdef PMC_DEBUG
@@ -881,12 +883,20 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
 #ifndef PMC_USE_GPU
     // Calculate the time derivative f(t,y)
     rxn_calc_deriv(md, deriv_data, (double)time_step);
-    //rxn_calc_deriv_cpu(md, deriv_data, (double)time_step);
+    //rxn_calc_deriv_aux(md, deriv_data, (double)time_step);
 #else
-      // Add contributions from reactions not implemented on GPU
-      rxn_calc_deriv_specific_types(md, deriv_data, (double)time_step);
-      //rxn_calc_deriv_cpu(md, deriv_data, (double)time_step);
+      //If we have few_data, it's faster to compute them in cpu
+      if(md->few_data){
+        rxn_calc_deriv(md, deriv_data, (double)time_step);
+
+      }else{
+        // Add contributions from reactions not implemented on GPU
+        rxn_calc_deriv_specific_types(md, deriv_data, (double)time_step);
+        //rxn_calc_deriv(md, deriv_data, (double)time_step);
+      }
+      //rxn_calc_deriv_aux(md, deriv_data, (double)time_step);
       //rxn_calc_deriv(md, deriv_data, (double)time_step);
+
 #endif
 
 #ifdef PMC_DEBUG
@@ -899,6 +909,12 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
   }
 
   //todo: add sum of gpu and cpu deriv results here (and gpu comp. async)
+
+#ifdef PMC_USE_GPU
+  //Add contributions from cpu deriv and gpu deriv
+  if(!md->few_data)rxn_fusion_deriv_gpu(md, deriv);
+#endif
+
 
   // Return 0 if success
   return (0);
@@ -1874,7 +1890,7 @@ void error_handler(int error_code, const char *module, const char *function,
  */
 void model_free(ModelData model_data) {
 #ifdef PMC_USE_GPU
-  free_gpu_cu(model_data);
+  free_gpu_cu(&model_data);
 #endif
 
 #ifdef PMC_USE_SUNDIALS

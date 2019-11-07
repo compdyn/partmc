@@ -153,6 +153,8 @@ contains
     use module_data_mosaic_main, only: tbeg_sec, tcur_sec, tmid_sec, &
          dt_sec, dt_min, dt_aeroptic_min, RH, te, pr_atm, cnn, cair_mlc, &
          cair_molm3, ppb, avogad, msolar, naerbin
+
+    use module_data_mosaic_gas, only: rk_het, in2o5
 #endif
 
     !> Environment state.
@@ -173,6 +175,7 @@ contains
     real(kind=dp) :: conv_fac(aero_data_n_spec(aero_data)), dum_var
     integer :: i_part, i_spec, i_spec_mosaic
     real(kind=dp) :: num_conc
+    real(kind=dp), save :: k_n2o5
 
     ! MOSAIC function interfaces
     interface
@@ -229,6 +232,7 @@ contains
        naerbin = nbin_a
        call AllocateMemory()
     end if
+
     aer = 0d0    ! initialize to zero
     ! work backwards for consistency with mosaic_to_partmc(), which
     ! has specific ordering requirements
@@ -252,6 +256,9 @@ contains
        num_a(i_part) = 1d-6 * num_conc ! num conc (#/cc(air))
        jhyst_leg(i_part) = aero_state%apa%particle(i_part)%water_hyst_leg
     end do
+
+    k_n2o5 = aero_state_n2o5_uptake(aero_state, aero_data, env_state)
+    rk_het(in2o5) = k_n2o5
 
     ! gas chemistry: map PartMC -> MOSAIC
     cnn = 0d0

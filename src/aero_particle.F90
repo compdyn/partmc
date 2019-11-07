@@ -419,6 +419,22 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Total surface area of the particle (m^2).
+  elemental real(kind=dp) function aero_particle_surface_area(aero_particle, &
+       aero_data)
+
+    !> Particle.
+    type(aero_particle_t), intent(in) :: aero_particle
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+
+    aero_particle_surface_area = 4d0 * const%pi * aero_data_vol2rad( &
+         aero_data, aero_particle_volume(aero_particle))**2d0
+
+  end function aero_particle_surface_area
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Average density of the particle (kg/m^3).
   real(kind=dp) function aero_particle_density(aero_particle, aero_data)
 

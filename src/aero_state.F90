@@ -1204,6 +1204,31 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Returns the surface area concentrations of all particles.
+  function aero_state_surf_area_concs(aero_state, aero_data)
+
+    !> Aerosol state.
+    type(aero_state_t), intent(in) :: aero_state
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+
+    !> Return surface area concentrations array (m^2 m^{-3}).
+    real(kind=dp) :: aero_state_surf_area_concs(aero_state_n_part(aero_state))
+
+    integer :: i_part
+
+    do i_part = 1,aero_state_n_part(aero_state)
+       aero_state_surf_area_concs(i_part) &
+            = aero_state_particle_num_conc(aero_state, &
+            aero_state%apa%particle(i_part), aero_data) &
+            * aero_particle_surface_area(aero_state%apa%particle(i_part), &
+            aero_data)
+    end do
+
+  end function aero_state_surf_area_concs
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Returns the total number concentration.
   real(kind=dp) function aero_state_total_num_conc(aero_state, aero_data)
 
@@ -2900,6 +2925,62 @@ contains
     end if
 
   end subroutine aero_state_check
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !>
+  real(kind=dp) function aero_state_n2o5_uptake(aero_state, aero_data, &
+       env_state)
+
+    !> Aerosol state.
+    type(aero_state_t), intent(in) :: aero_state
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+
+    integer :: i_part
+    real(kind=dp) :: w_i
+    real(kind=dp), allocatable :: volumes(:), volumes_core(:), so4_masses(:), &
+         no3_masses(:), surf_area_concs(:)
+    real(kind=dp) :: rad_core, rad_part
+    real(kind=dp) :: c_n2o5, gamma_n2o5
+    real(kind=dp), parameter :: gamma_1 = 0.02d0
+    real(kind=dp), parameter :: gamma_2 = 0.002d0
+    real(kind=dp), parameter :: f = 0.03d0
+    real(kind=dp), parameter :: H_aq = 49.36d0
+    real(kind=dp), parameter :: D_aq = 1d-9
+
+    aero_state_n2o5_uptake = 0d0
+
+    surf_area_concs = aero_state_surf_area_concs(aero_state, aero_data)
+    volumes = aero_state_volumes(aero_state, aero_data)
+    volumes_core = aero_state_volumes(aero_state, aero_data, include=(/"SO4", &
+        "NO3", "Cl ", "NH4", "CO3", "Na ", "Ca ", "OIN", "BC ", "H2O"/))
+    so4_masses = aero_state_masses(aero_state, aero_data, include=(/"SO4"/))
+    no3_masses = aero_state_masses(aero_state, aero_data, include=(/"NO3"/))
+
+    c_n2o5 = sqrt((8.0d0 * const%univ_gas_const * env_state%temp) &
+         / (const%pi * 108.0 * 1d-3))
+
+    gamma_n2o5 = 0d0
+    do i_part = 1,aero_state_n_part(aero_state)
+       if ((so4_masses(i_part) + no3_masses(i_part)) > 0.0d0) then
+          w_i = so4_masses(i_part) / (so4_masses(i_part) + no3_masses(i_part))
+          gamma_core = w_i * gamma_1 + (1d0 - w_i) * gamma_2
+          rad_part = sphere_vol2rad(volumes(i_part))
+          rad_core = sphere_vol2rad(volumes_core(i_part))
+          gamma_coat = (4d0 * const%univ_gas_const * env_state%temp * H_aq &
+               * D_aq * f  * rad_core) / (c_n2o5 * (rad_part - rad_core) &
+               * rad_part)
+          gamma_part = ((1d0 / gamma_core) + (1d0 / gamma_coat))**(-1d0)
+          gamma_n2o5 = gamma_n2o5 + surf_area_concs(i_part) * gamma_part
+       end if
+    end do
+
+    aero_state_n2o5_uptake = 0.25d0 * c_n2o5 * gamma_n2o5
+
+  end function aero_state_n2o5_uptake
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

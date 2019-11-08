@@ -17,6 +17,7 @@
 //Value to consider data size too big -> Memory optimization will change below and under the limit
 #define DATA_SIZE_LIMIT_OPT 2000
 
+
 //Functions to debug cuda errors
 #define HANDLE_ERROR( err ) (HandleError( err, __FILE__, __LINE__ ))
 #define HANDLE_ERROR2( ) (HandleError2( __FILE__, __LINE__ ))

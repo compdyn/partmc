@@ -846,8 +846,7 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
 #ifdef PMC_USE_GPU
   // Calculate the time derivative f(t,y)
   // (this is for all grid cells at once)
-  //printf("few_data:%d\n", md->few_data);
-  if(!md->few_data)
+  if(!md->small_data)
     rxn_calc_deriv_gpu(md, deriv, (double)time_step);
 #endif
 
@@ -885,13 +884,13 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
     rxn_calc_deriv(md, deriv_data, (double)time_step);
     //rxn_calc_deriv_aux(md, deriv_data, (double)time_step);
 #else
-      //If we have few_data, it's faster to compute them in cpu
-      if(md->few_data){
+      //If we have small_data, it's faster to compute them in cpu
+      if(md->small_data){
         rxn_calc_deriv(md, deriv_data, (double)time_step);
 
       }else{
         // Add contributions from reactions not implemented on GPU
-        rxn_calc_deriv_specific_types(md, deriv_data, (double)time_step);
+        //rxn_calc_deriv_specific_types(md, deriv_data, (double)time_step);
         //rxn_calc_deriv(md, deriv_data, (double)time_step);
       }
       //rxn_calc_deriv_aux(md, deriv_data, (double)time_step);
@@ -912,7 +911,7 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
 
 #ifdef PMC_USE_GPU
   //Add contributions from cpu deriv and gpu deriv
-  if(!md->few_data)rxn_fusion_deriv_gpu(md, deriv);
+  if(!md->small_data)rxn_fusion_deriv_gpu(md, deriv);
 #endif
 
 

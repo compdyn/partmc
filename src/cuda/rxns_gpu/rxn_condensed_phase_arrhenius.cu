@@ -252,13 +252,12 @@ void rxn_gpu_condensed_phase_arrhenius_calc_deriv_contrib(ModelData *model_data,
  * \param time_step Current time step of the itegrator (s)
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
- /*
 #ifdef PMC_USE_SUNDIALS
 #ifdef __CUDA_ARCH__
 __host__ __device__
 #endif
-void rxn_gpu_condensed_phase_arrhenius_calc_jac_contrib(double *rxn_env_data, double *state,
-          double *J, void *rxn_data, double * double_pointer_gpu, double time_step, int n_rxn2)
+void rxn_gpu_condensed_phase_arrhenius_calc_jac_contrib(ModelData *model_data, realtype *J, int *rxn_int_data,
+          double *rxn_float_data, double *rxn_env_data, double time_step)
 {
 #ifdef __CUDA_ARCH__
   int n_rxn=model_data->n_rxn;
@@ -363,7 +362,6 @@ void rxn_gpu_condensed_phase_arrhenius_calc_jac_contrib(double *rxn_env_data, do
 
 }
 #endif
-*/
 /** \brief Retrieve Int data size
  *
  * \param rxn_data Pointer to the reaction data

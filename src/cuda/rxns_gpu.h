@@ -45,8 +45,8 @@ void rxn_gpu_aqueous_equilibrium_calc_deriv_contrib(
 #ifdef __CUDA_ARCH__
 __host__ __device__
 #endif
-void rxn_gpu_aqueous_equilibrium_calc_jac_contrib(
-          double *rxn_env_data, double *state, realtype *J, void *rxn_data, double * double_pointer_gpu, double time_step, int n_rxn);
+void rxn_gpu_aqueous_equilibrium_calc_jac_contrib(ModelData *model_data, realtype *J, int *rxn_int_data,
+          double *rxn_float_data, double *rxn_env_data, double time_step);
 #endif
 
 // arrhenius
@@ -78,8 +78,8 @@ void rxn_gpu_arrhenius_calc_deriv_contrib(ModelData *model_data, realtype *deriv
 #ifdef __CUDA_ARCH__
 __host__ __device__
 #endif
-void rxn_gpu_arrhenius_calc_jac_contrib(
-          double *rxn_env_data, double *state, realtype *J, void *rxn_data, double * double_pointer_gpu, double time_step, int n_rxn);
+void rxn_gpu_arrhenius_calc_jac_contrib(ModelData *model_data, realtype *J, int *rxn_int_data,
+          double *rxn_float_data, double *rxn_env_data, double time_step);
 #endif
 
 // CMAQ_H2O2
@@ -106,8 +106,8 @@ void rxn_gpu_CMAQ_H2O2_calc_deriv_contrib(
 #ifdef __CUDA_ARCH__
 __host__ __device__
 #endif
-void rxn_gpu_CMAQ_H2O2_calc_jac_contrib(
-          double *rxn_env_data, double *state, realtype *J, void *rxn_data, double * double_pointer_gpu, double time_step, int n_rxn);
+void rxn_gpu_CMAQ_H2O2_calc_jac_contrib(ModelData *model_data, realtype *J, int *rxn_int_data,
+          double *rxn_float_data, double *rxn_env_data, double time_step);
 #endif
 
 // CMAQ_OH_HNO3
@@ -136,8 +136,8 @@ void rxn_gpu_CMAQ_OH_HNO3_calc_deriv_contrib(
 #ifdef __CUDA_ARCH__
 __host__ __device__
 #endif
-void rxn_gpu_CMAQ_OH_HNO3_calc_jac_contrib(
-          double *rxn_env_data, double *state, realtype *J, void *rxn_data, double * double_pointer_gpu, double time_step, int n_rxn);
+void rxn_gpu_CMAQ_OH_HNO3_calc_jac_contrib(ModelData *model_data, realtype *J, int *rxn_int_data,
+          double *rxn_float_data, double *rxn_env_data, double time_step);
 #endif
 
 // condensed_phase_arrhenius
@@ -166,8 +166,8 @@ void rxn_gpu_condensed_phase_arrhenius_calc_deriv_contrib(
 #ifdef __CUDA_ARCH__
 __host__ __device__
 #endif
-void rxn_gpu_condensed_phase_arrhenius_calc_jac_contrib(
-          double *rxn_env_data, double *state, realtype *J, void *rxn_data, double * double_pointer_gpu, double time_step, int n_rxn);
+void rxn_gpu_condensed_phase_arrhenius_calc_jac_contrib(ModelData *model_data, realtype *J, int *rxn_int_data,
+          double *rxn_float_data, double *rxn_env_data, double time_step);
 #endif
 
 // emission
@@ -198,8 +198,8 @@ void rxn_gpu_emission_calc_deriv_contrib(
 #ifdef __CUDA_ARCH__
 __host__ __device__
 #endif
-void rxn_gpu_emission_calc_jac_contrib(
-          double *rxn_env_data, double *state, realtype *J, void *rxn_data, double * double_pointer_gpu, double time_step, int n_rxn);
+void rxn_gpu_emission_calc_jac_contrib(ModelData *model_data, realtype *J, int *rxn_int_data,
+          double *rxn_float_data, double *rxn_env_data, double time_step);
 #endif
 void * rxn_gpu_emission_create_rate_update_data();
 void rxn_gpu_emission_set_rate_update_data(
@@ -233,8 +233,8 @@ void rxn_gpu_first_order_loss_calc_deriv_contrib(
 #ifdef __CUDA_ARCH__
 __host__ __device__
 #endif
-void rxn_gpu_first_order_loss_calc_jac_contrib(
-          double *rxn_env_data, double *state, realtype *J, void *rxn_data, double * double_pointer_gpu, double time_step, int n_rxn);
+void rxn_gpu_first_order_loss_calc_jac_contrib(ModelData *model_data, realtype *J, int *rxn_int_data,
+          double *rxn_float_data, double *rxn_env_data, double time_step);
 #endif
 void * rxn_gpu_first_order_loss_create_rate_update_data();
 void rxn_gpu_first_order_loss_set_rate_update_data(
@@ -258,8 +258,8 @@ void rxn_gpu_HL_phase_transfer_calc_deriv_contrib(
 #ifdef __CUDA_ARCH__
 __host__ __device__
 #endif
-void rxn_gpu_HL_phase_transfer_calc_jac_contrib(
-          ModelData *model_data, double *rxn_env_data, double *state, realtype *J, void *rxn_data, double * double_pointer_gpu, double time_step, int n_rxn);
+void rxn_gpu_HL_phase_transfer_calc_jac_contrib(ModelData *model_data, realtype *J, int *rxn_int_data,
+          double *rxn_float_data, double *rxn_env_data, double time_step);
 #endif
 
 // photolysis
@@ -290,8 +290,8 @@ void rxn_gpu_photolysis_calc_deriv_contrib(
 #ifdef __CUDA_ARCH__
 __host__ __device__
 #endif
-void rxn_gpu_photolysis_calc_jac_contrib(
-          double *rxn_env_data, double *state, realtype *J, void *rxn_data, double * double_pointer_gpu, double time_step, int n_rxn);
+void rxn_gpu_photolysis_calc_jac_contrib(ModelData *model_data, realtype *J, int *rxn_int_data,
+          double *rxn_float_data, double *rxn_env_data, double time_step);
 #endif
 void * rxn_gpu_photolysis_create_rate_update_data();
 void rxn_gpu_photolysis_set_rate_update_data(
@@ -315,8 +315,8 @@ void rxn_gpu_SIMPOL_phase_transfer_calc_deriv_contrib(
 #ifdef __CUDA_ARCH__
 __host__ __device__
 #endif
-void rxn_gpu_SIMPOL_phase_transfer_calc_jac_contrib(
-          ModelData *model_data, double *rxn_env_data, double *state, realtype *J, void *rxn_data, double * double_pointer_gpu, double time_step, int n_rxn);
+void rxn_gpu_SIMPOL_phase_transfer_calc_jac_contrib(ModelData *model_data, realtype *J, int *rxn_int_data,
+          double *rxn_float_data, double *rxn_env_data, double time_step);
 #endif
 
 // troe
@@ -344,8 +344,8 @@ void rxn_gpu_troe_calc_deriv_contrib(
 #ifdef __CUDA_ARCH__
 __host__ __device__
 #endif
-void rxn_gpu_troe_calc_jac_contrib(
-          double *rxn_env_data, double *state, realtype *J, void *rxn_data, double * double_pointer_gpu, double time_step, int n_rxn);
+void rxn_gpu_troe_calc_jac_contrib(ModelData *model_data, realtype *J, int *rxn_int_data,
+          double *rxn_float_data, double *rxn_env_data, double time_step);
 #endif
 
 // wet_deposition
@@ -376,8 +376,8 @@ void rxn_gpu_wet_deposition_calc_deriv_contrib(
 #ifdef __CUDA_ARCH__
 __host__ __device__
 #endif
-void rxn_gpu_wet_deposition_calc_jac_contrib(
-          double *rxn_env_data, double *state, realtype *J, void *rxn_data, double * double_pointer_gpu, double time_step, int n_rxn);
+void rxn_gpu_wet_deposition_calc_jac_contrib(ModelData *model_data, realtype *J, int *rxn_int_data,
+          double *rxn_float_data, double *rxn_env_data, double time_step);
 #endif
 void * rxn_gpu_wet_deposition_create_rate_update_data();
 void rxn_gpu_wet_deposition_set_rate_update_data(

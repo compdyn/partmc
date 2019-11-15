@@ -22,6 +22,9 @@
 #include "sub_model_solver.h"
 #ifdef PMC_USE_GPU
 #include "cuda/camp_gpu_solver.h"
+
+#include "cuda/camp_gpu_cusolver.h"
+
 #endif
 #ifdef PMC_USE_GSL
 #include <gsl/gsl_deriv.h>
@@ -29,6 +32,8 @@
 #include <gsl/gsl_roots.h>
 #endif
 #include "camp_debug.h"
+
+//clock_t timeDeriv2=0;
 
 // Default solver initial time step relative to total integration time
 #define DEFAULT_TIME_STEP 1.0
@@ -337,6 +342,10 @@ void *solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
   sd->model_data.sub_model_env_idx[0] = 0;
 
 #ifdef PMC_USE_GPU
+
+  //todo cusolver
+  //cusolver_test();
+
   solver_new_gpu_cu(&(sd->model_data), n_dep_var, n_state_var, n_rxn,
                     n_rxn_int_param, n_rxn_float_param, n_rxn_env_param,
                     n_cells);
@@ -838,6 +847,8 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
   // Reset the derivative vector
   N_VConst(ZERO, deriv);
 
+  clock_t t1 = clock();
+
 #ifdef PMC_DEBUG
   // Measure calc_deriv time execution
   clock_t start = clock();
@@ -846,7 +857,8 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
 #ifdef PMC_USE_GPU
   // Calculate the time derivative f(t,y)
   // (this is for all grid cells at once)
-  if(!md->small_data)
+  //if(!md->small_data)
+  if(1)
     rxn_calc_deriv_gpu(md, deriv, (double)time_step);
 #endif
 
@@ -881,16 +893,20 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
 
 #ifndef PMC_USE_GPU
     // Calculate the time derivative f(t,y)
+
     rxn_calc_deriv(md, deriv_data, (double)time_step);
     //rxn_calc_deriv_aux(md, deriv_data, (double)time_step);
+
 #else
       //If we have small_data, it's faster to compute them in cpu
-      if(md->small_data){
+      //if(md->small_data){
+      if(0){
         rxn_calc_deriv(md, deriv_data, (double)time_step);
 
       }else{
         // Add contributions from reactions not implemented on GPU
-        //rxn_calc_deriv_specific_types(md, deriv_data, (double)time_step);
+        //TODO: compute hl & simpol on gpu to avoid this waste of time
+        rxn_calc_deriv_specific_types(md, deriv_data, (double)time_step);
         //rxn_calc_deriv(md, deriv_data, (double)time_step);
       }
       //rxn_calc_deriv_aux(md, deriv_data, (double)time_step);
@@ -907,13 +923,14 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
     deriv_data += n_dep_var;
   }
 
-  //todo: add sum of gpu and cpu deriv results here (and gpu comp. async)
-
 #ifdef PMC_USE_GPU
   //Add contributions from cpu deriv and gpu deriv
-  if(!md->small_data)rxn_fusion_deriv_gpu(md, deriv);
+  //if(!md->small_data)
+  if(1)
+    rxn_fusion_deriv_gpu(md, deriv);
 #endif
 
+  //timeDeriv2 += (clock() - t1);
 
   // Return 0 if success
   return (0);
@@ -1888,6 +1905,9 @@ void error_handler(int error_code, const char *module, const char *function,
  * \param model_data Pointer to the ModelData object to free
  */
 void model_free(ModelData model_data) {
+
+  //printf("timeDeriv2 %lf\n", (((double)timeDeriv2) * 1000) / CLOCKS_PER_SEC);
+
 #ifdef PMC_USE_GPU
   free_gpu_cu(&model_data);
 #endif

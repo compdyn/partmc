@@ -49,7 +49,7 @@ program pmc_test_cb05cl_ae5
   ! CAMP-chem output file unit
   integer(kind=i_kind), parameter :: CAMP_FILE_UNIT = 12
   ! Number of timesteps to integrate over
-  integer(kind=i_kind), parameter :: NUM_TIME_STEPS = 100
+  integer(kind=i_kind), parameter :: NUM_TIME_STEPS = 2
   ! Number of cells
   integer(kind=i_kind), parameter :: NUM_CELLS= 100
   ! Number of EBI-solver species
@@ -273,7 +273,7 @@ contains
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     n_repeats = 1
-    n_cells = 4000
+    n_cells = 10000
 
     if (n_cells.eq.1) then
       n_repeats = 1000
@@ -580,7 +580,7 @@ contains
       camp_state%state_var(:) = camp_init(:)
 
       ! Solve the mechanism
-      do i_time = 1, 2 !NUM_TIME_STEPS
+      do i_time = 1,NUM_TIME_STEPS
 
       ! Set minimum concentrations in all solvers
       YC(:) = MAX(YC(:), SMALL_NUM)

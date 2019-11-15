@@ -27,6 +27,8 @@
 
 #include <cuda.h>
 #include <cuda_runtime.h>
+//#include <cusolverDn.h>
+//#include <cusolverSp.h>
 
 //#include <cuda.h>
 //cudaStream_t *stream_gpu;
@@ -55,7 +57,11 @@
 /* boolean definition */
 // CUDA/C++ already has bool definition: Avoid issues disabling it for GPU
 #ifndef CAMP_GPU_SOLVER_H_
+
+#ifndef CAMP_GPU_CUSOLVER_H_
 typedef enum { false, true } bool;
+#endif
+
 #endif
 
 /* Jacobian map */

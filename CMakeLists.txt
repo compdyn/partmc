@@ -165,6 +165,9 @@ endif()
 if(ENABLE_CXX)
   add_definitions(-DPMC_USE_CXX)
   enable_language(CXX)
+    #if(NOT CXX_FOUND)
+    #    message( WARNING "Not C++ compiler found")
+    #endif()
 endif()
 
 ######################################################################
@@ -429,12 +432,16 @@ endif()
 ######################################################################
 # partmc library
 
+#maybe link library lcusolver with cmake like the other libraries? i miss the -L?
 set(STD_C_FLAGS "-std=c99")
 set(STD_CXX_FLAGS "-fpermissive")
-set(STD_CUDA_FLAGS "-dc -arch=compute_70 -code=sm_70")
+
+set(STD_CUDA_FLAGS "-dc -arch=compute_70 -code=sm_70 -lcusolver -lcudart -lcusparse_static -lculibos -lcudart_static -lpthread -ldl")
+set(STD_CUDA_FLAGS_2 "-dc -lcusolver -lcudart -lcusparse_static -lculibos -lcudart_static -lpthread -ldl")
+#set(STD_CUDA_FLAGS "-dc -arch=compute_70 -code=sm_70 ") #-lcusolver -lcudart -lcusparse_static -lculibos
 
 if(${CMAKE_Fortran_COMPILER_ID} MATCHES "Intel")
-  set(STD_F_FLAGS "-extend_source -warn truncated_source")
+  set(STD_F_FLAGS "-extend_source -warn truncated_source ")
 elseif(${CMAKE_Fortran_COMPILER_ID} MATCHES "GNU")
   set(STD_F_FLAGS "-ffree-line-length-none")
 endif()
@@ -517,7 +524,19 @@ set(CAMP_C_SRC
 set_source_files_properties(${CAMP_C_SRC} PROPERTIES COMPILE_FLAGS
         ${STD_C_FLAGS})
 
-set(CAMP_CXX_SRC "")
+if(ENABLE_CXX)
+
+    #set(CAMP_CXX_SRC
+    #        src/cuda/camp_gpu_cusolver.cpp )
+
+    set_source_files_properties(${CAMP_CXX_SRC} PROPERTIES COMPILE_FLAGS
+            ${STD_CXX_FLAGS})
+
+else()
+    set(CAMP_CXX_SRC "")
+endif()
+
+
 
 if (CUDA_FOUND)
   set(CAMP_CUDA_SRC
@@ -538,12 +557,26 @@ if (CUDA_FOUND)
           src/cuda/aeros_gpu/aero_rep_solver.cu
           src/cuda/aeros_gpu/sub_model_solver.cu
           src/cuda/aero_reps_gpu/aero_rep_modal_binned_mass.cu
-          src/cuda/aero_reps_gpu/aero_rep_single_particle.cu)
+          src/cuda/aero_reps_gpu/aero_rep_single_particle.cu
+          #src/rxns/rxn2_arrhenius.cu
+          #src/cuda/camp_gpu_cusolver.cu
+          )
 
   set_source_files_properties(${CAMP_CUDA_SRC} PROPERTIES COMPILE_FLAGS
         ${STD_CUDA_FLAGS})
 
   set_source_files_properties(${CAMP_CUDA_SRC} PROPERTIES LANGUAGE CUDA)
+
+
+  set(CAMP_CUDA_SRC_2
+          src/cuda/camp_gpu_cusolver.cu
+          )
+
+  set_source_files_properties(${CAMP_CUDA_SRC_2} PROPERTIES COMPILE_FLAGS
+          ${STD_CUDA_FLAGS_2})
+
+  set_source_files_properties(${CAMP_CUDA_SRC_2} PROPERTIES LANGUAGE CUDA)
+
 else()
   set(CAMP_CUDA_SRC "")
 endif()
@@ -575,17 +608,17 @@ set(CAMP_F_SRC
 
 add_library(partmclib ${CAMP_F_SRC}
   ${CAMP_C_SRC} ${AEROSOL_REPS_SRC} ${SUB_MODELS_SRC} ${REACTIONS_SRC}
-  ${SUNDIALS_SRC} ${GSL_SRC} ${C_SORT_SRC} ${CAMP_CUDA_SRC} ${CAMP_CXX_SRC} )
+  ${SUNDIALS_SRC} ${GSL_SRC} ${C_SORT_SRC} ${CAMP_CUDA_SRC} ${CAMP_CUDA_SRC_2} ${CAMP_CXX_SRC} )
 
 target_link_libraries(partmclib ${NETCDF_LIBS} ${SUNDIALS_LIBS}
   ${MOSAIC_LIB} ${GSL_LIBS} ${JSON_LIB})
 
 set_target_properties(partmclib PROPERTIES OUTPUT_NAME partmc)
 
-if (CUDA_FOUND AND NOT ENABLE_GPU)
+if (CUDA_FOUND AND NOT ENABLE_GPU AND ENABLE_TESTS)
     add_library(partmclib_gpu ${CAMP_F_SRC}
             ${CAMP_C_SRC} ${AEROSOL_REPS_SRC} ${SUB_MODELS_SRC} ${REACTIONS_SRC}
-            ${SUNDIALS_SRC} ${GSL_SRC} ${C_SORT_SRC} ${CAMP_CUDA_SRC} ${CAMP_CXX_SRC} )
+            ${SUNDIALS_SRC} ${GSL_SRC} ${C_SORT_SRC} ${CAMP_CUDA_SRC} ${CAMP_CUDA_SRC_2} ${CAMP_CXX_SRC} )
 
     target_compile_definitions(partmclib_gpu PRIVATE
             "PMC_USE_GPU=ON")
@@ -660,34 +693,19 @@ set_source_files_properties(${CB5_EBI_SOLVER} PROPERTIES COMPILE_FLAGS
 ######################################################################
 # test_chemistry_cb05cl_ae5_big
 
-add_executable(test_chemistry_cb05cl_ae5
-        test/chemistry/cb05cl_ae5/test_cb05cl_ae5.F90
-        ${CB5_EBI_SOLVER} ${CB5_KPP_SOLVER}
-        test/chemistry/cb05cl_ae5/module_BSC_CHEM_DATA.F90)
-target_link_libraries(test_chemistry_cb05cl_ae5 partmclib)
-
-#if (CUDA_FOUND AND NOT ENABLE_GPU)
-#    add_executable(test_chemistry_cb05cl_ae5_gpu
-#            test/chemistry/cb05cl_ae5/test_cb05cl_ae5.F90
-#            ${CB5_EBI_SOLVER} ${CB5_KPP_SOLVER}
-#            test/chemistry/cb05cl_ae5/module_BSC_CHEM_DATA.F90)
-#    target_link_libraries(test_chemistry_cb05cl_ae5_gpu partmclib_gpu)
-#endif()
-
-
 add_executable(test_chemistry_cb05cl_ae5_big
         test/chemistry/cb05cl_ae5/test_cb05cl_ae5_big.F90
         ${CB5_EBI_SOLVER} ${CB5_KPP_SOLVER}
         test/chemistry/cb05cl_ae5/module_BSC_CHEM_DATA.F90)
 target_link_libraries(test_chemistry_cb05cl_ae5_big partmclib)
 
-#if (CUDA_FOUND AND NOT ENABLE_GPU)
+#if (CUDA_FOUND AND NOT ENABLE_GPU AND ENABLE_TESTS)
 #    add_executable(test_chemistry_cb05cl_ae5_big_gpu
 #            test/chemistry/cb05cl_ae5/test_cb05cl_ae5_big.F90
 #            ${CB5_EBI_SOLVER} ${CB5_KPP_SOLVER}
 #            test/chemistry/cb05cl_ae5/module_BSC_CHEM_DATA.F90)
 #    target_link_libraries(test_chemistry_cb05cl_ae5_big_gpu partmclib_gpu)
-#vendif()
+#endif()
 
 ######################################################################
 # MONARCH interface
@@ -697,7 +715,7 @@ add_executable(mock_monarch test/monarch/mock_monarch.F90
 
 target_link_libraries(mock_monarch partmclib)
 
-
+#TODO: add into enable_test flags the gpu flags and compilation to don't lose the make -j 4
 
 set(UNIT_TEST_SRC
         test/unit_tests/unit_test_data.F90
@@ -712,7 +730,7 @@ target_compile_definitions(unit_test_rxn_arrhenius PRIVATE
     ;UNIT_TEST_TYPE_=unit_test_rxn_arrhenius_t()")
 target_link_libraries(unit_test_rxn_arrhenius partmclib)
 
-#if (CUDA_FOUND AND NOT ENABLE_GPU)
+#if (CUDA_FOUND AND NOT ENABLE_GPU AND ENABLE_TESTS)
 #    add_executable(unit_test_rxn_arrhenius_gpu ${UNIT_TEST_RXN_ARRHENIUS_SRC})
 #    target_compile_definitions(unit_test_rxn_arrhenius_gpu PRIVATE
 #            "UNIT_TEST_MODULE_=pmc_unit_test_rxn_arrhenius \
@@ -722,12 +740,24 @@ target_link_libraries(unit_test_rxn_arrhenius partmclib)
 
 
 
-
 if (ENABLE_TESTS)
 
 ######################################################################
 # test_chemistry_cb05cl_ae5
 
+add_executable(test_chemistry_cb05cl_ae5
+        test/chemistry/cb05cl_ae5/test_cb05cl_ae5.F90
+        ${CB5_EBI_SOLVER} ${CB5_KPP_SOLVER}
+        test/chemistry/cb05cl_ae5/module_BSC_CHEM_DATA.F90)
+target_link_libraries(test_chemistry_cb05cl_ae5 partmclib)
+
+#if (CUDA_FOUND AND NOT ENABLE_GPU AND ENABLE_TESTS)
+#    add_executable(test_chemistry_cb05cl_ae5_gpu
+#            test/chemistry/cb05cl_ae5/test_cb05cl_ae5.F90
+#            ${CB5_EBI_SOLVER} ${CB5_KPP_SOLVER}
+#            test/chemistry/cb05cl_ae5/module_BSC_CHEM_DATA.F90)
+#    target_link_libraries(test_chemistry_cb05cl_ae5_gpu partmclib_gpu)
+#endif()
 
 ######################################################################
 # test_chemistry_eqsam_v03d

@@ -95,7 +95,6 @@ void rxn_gpu_first_order_loss_calc_deriv_contrib(ModelData *model_data, realtype
  * \param time_step Current time step being calculated (s)
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
- /*
 #ifdef PMC_USE_SUNDIALS
 #ifdef __CUDA_ARCH__
 __host__ __device__
@@ -123,7 +122,6 @@ void rxn_gpu_first_order_loss_calc_jac_contrib(ModelData *model_data, realtype *
 
 }
 #endif
-*/
 /** \brief Retrieve Int data size
  *
  * \param rxn_data Pointer to the reaction data

@@ -264,7 +264,7 @@ program unit_test_driver
                                   solver_stats = solver_stats )
         call cpu_time(comp_end);
         time_cell = time_cell + comp_end - comp_start
-        print*, "one" ,time_cell
+        !print*, "one" ,time_cell
 #ifdef PMC_DEBUG
         ! Check the Jacobian evaluations
         call assert_msg( 781326658, solver_stats%Jac_eval_fails.eq.0, &
@@ -317,8 +317,8 @@ program unit_test_driver
       if( .not.passed ) exit
     end do
 
-    !print*, "multi", time_multi
-    !print*, "one" ,time_cell
+    print*, "multi", time_multi
+    print*, "one" ,time_cell
 
     ! Close the output file
     close( OUTPUT_FILE_UNIT )

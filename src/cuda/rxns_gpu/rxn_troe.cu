@@ -182,7 +182,6 @@ void rxn_gpu_troe_calc_deriv_contrib(ModelData *model_data, realtype *deriv, int
  * \param time_step Current time step being calculated (s)
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
- /*
 #ifdef PMC_USE_SUNDIALS
 #ifdef __CUDA_ARCH__
 __host__ __device__
@@ -217,7 +216,7 @@ void rxn_gpu_troe_calc_jac_contrib(ModelData *model_data, realtype *J, int *rxn_
 #ifdef __CUDA_ARCH__
       atomicAdd(&(J[JAC_ID_(i_elem)]),-rate);
 #else
-      int n_rxn=1;
+      J[JAC_ID_(i_elem)] -= rate;
 #endif
     }
     for (int i_dep=0; i_dep<NUM_PROD_; i_dep++, i_elem++) {
@@ -229,7 +228,7 @@ void rxn_gpu_troe_calc_jac_contrib(ModelData *model_data, realtype *J, int *rxn_
 #ifdef __CUDA_ARCH__
         atomicAdd(&(J[JAC_ID_(i_elem)]), YIELD_(i_dep) * rate);
 #else
-        int n_rxn=1;
+        J[JAC_ID_(i_elem)] += YIELD_(i_dep) * rate;
 #endif
       }
     }

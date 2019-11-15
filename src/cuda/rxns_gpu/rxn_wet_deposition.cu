@@ -94,7 +94,6 @@ void rxn_gpu_wet_deposition_calc_deriv_contrib(ModelData *model_data, realtype *
  * \param time_step Current time step being calculated (s)
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
- /*
 #ifdef PMC_USE_SUNDIALS
 #ifdef __CUDA_ARCH__
 __host__ __device__
@@ -118,7 +117,7 @@ void rxn_gpu_wet_deposition_calc_jac_contrib(ModelData *model_data, realtype *J,
 #ifdef __CUDA_ARCH__
         atomicAdd(&(J[JAC_ID_(i_spec)]),-RATE_CONSTANT_);
 #else
-        int n_rxn=1;
+        J[JAC_ID_(i_spec)] -= RATE_CONSTANT_;
 #endif
   }
 

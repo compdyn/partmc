@@ -5,9 +5,15 @@
  * Interface Host-Device (CPU-GPU) to compute reaction-specific functions on GPU
  *
  */
+
+//#include <cusolverDn.h>
+//#include <cuda_runtime.h>
+//#include "camp_gpu_cusolver.h"
+
 extern "C" {
 #include "camp_gpu_solver.h"
 #include "rxns_gpu.h"
+
 
 // Reaction types (Must match parameters defined in pmc_rxn_factory)
 #define RXN_ARRHENIUS 1
@@ -31,10 +37,6 @@ extern "C" {
 int n_solver_objects=0; //Number of solver_new_gpu calls
 //cudaStream_t *stream_gpu; //GPU streams to async computation/data movement
 int n_streams = 16;
-//todo: this is a supposition, should be fixed with some way of know how many solver
-// //objects we have and how many streams we need allocate in stream array
-//(problem is cudaStream_t not found in .h like modelData )
-int n_streams_limit = 128;
 
 //Gpu hardware info
 int max_n_gpu_thread;
@@ -103,6 +105,10 @@ void solver_new_gpu_cu(ModelData *model_data, int n_dep_var,
   timeDerivSend=0;
   timeDerivReceive=0;
   timeJac=0;
+
+
+  //TODO: cusolver
+  //cusolver_test();
 
   //Allocate streams array and update variables related to streams
   model_data->model_data_id = n_solver_objects;
@@ -345,14 +351,13 @@ void rxn_update_env_state_gpu(ModelData *model_data){
   }
     //Slower, use for large values
   else{
-//TODO: seems no improvement, do some profiling
 
-/*HANDLE_ERROR(cudaMemcpyAsync(model_data->rxn_env_data_gpu, rxn_env_data,
+HANDLE_ERROR(cudaMemcpyAsync(model_data->rxn_env_data_gpu, rxn_env_data,
             model_data->rxn_env_data_size, cudaMemcpyHostToDevice,
                  model_data->stream_gpu[STREAM_RXN_ENV_GPU]));
     HANDLE_ERROR(cudaMemcpyAsync(model_data->env_gpu, env, model_data->env_size,
             cudaMemcpyHostToDevice,
-                 model_data->stream_gpu[STREAM_ENV_GPU]));*/
+                 model_data->stream_gpu[STREAM_ENV_GPU]));
 
   }
 
@@ -494,13 +499,7 @@ void rxn_calc_deriv_gpu(ModelData *model_data, N_Vector deriv, realtype time_ste
   double *rxn_env_data = model_data->rxn_env_data;
   double *env = model_data->total_env;
 
-  //TODO: cudaMemcpyAsync : Since cudamemcpy is taking like 6 times of gpu compute time,
-  //use async copy of parts of the code to go copying other parts meanwhile computing
-  //(a carefully tuned CUDA program that uses streams and cudaMemcpyAsync to efficiently overlap execution with data
-  // transfers may very well perform)
-
   t1 = clock();
-
 
   //TODO: overlap state data transfer with kernel exec dividing into multiple async streams
   //Faster, use for few values
@@ -511,10 +510,9 @@ void rxn_calc_deriv_gpu(ModelData *model_data, N_Vector deriv, realtype time_ste
     //Slower, use for large values
   else{
     HANDLE_ERROR(cudaMemcpy(model_data->state_gpu, state, model_data->state_size, cudaMemcpyHostToDevice));
-    //todo rxn_env_data only change each time_step, not each deriv iteration
 
-    HANDLE_ERROR(cudaMemcpy(model_data->env_gpu, env, model_data->env_size, cudaMemcpyHostToDevice));
-    HANDLE_ERROR(cudaMemcpy(model_data->rxn_env_data_gpu, rxn_env_data, model_data->rxn_env_data_size, cudaMemcpyHostToDevice));
+    //HANDLE_ERROR(cudaMemcpy(model_data->env_gpu, env, model_data->env_size, cudaMemcpyHostToDevice));
+    //HANDLE_ERROR(cudaMemcpy(model_data->rxn_env_data_gpu, rxn_env_data, model_data->rxn_env_data_size, cudaMemcpyHostToDevice));
 
   }
 
@@ -523,8 +521,6 @@ void rxn_calc_deriv_gpu(ModelData *model_data, N_Vector deriv, realtype time_ste
   timeDerivSend += (clock() - t1);
   clock_t t2 = clock();
 
-  //TODO: execute this asyncrhonous and let CPU thinks be computed in the meanwhile
-  //TODO: compute this and jac in different streams (maybe we can parallelism them)
   cudaDeviceSynchronize();
   solveDerivative << < (n_blocks), max_n_gpu_thread >> >
    (model_data->state_gpu, model_data->deriv_gpu_data, time_step, model_data->n_per_cell_dep_var,
@@ -536,24 +532,22 @@ void rxn_calc_deriv_gpu(ModelData *model_data, N_Vector deriv, realtype time_ste
   timeDerivKernel += (clock() - t2);
   t3 = clock();
 
-  //TODO: make this memcpyasync and add contributions from this to cpu contrib (Create aux deriv_data to store gpu memcpy and later add to deriv_data)
   //Use pinned memory for few values
   if (model_data->small_data){
     HANDLE_ERROR(cudaMemcpy(model_data->deriv_aux, model_data->deriv_gpu_data, model_data->deriv_size, cudaMemcpyDeviceToHost));
     memcpy(deriv_data, model_data->deriv_aux, model_data->deriv_size);
   }
   else {
-    //HANDLE_ERROR(cudaMemcpyAsync(model_data->deriv_aux, model_data->deriv_gpu_data,
-    //        model_data->deriv_size, cudaMemcpyDeviceToHost,
-    //        model_data->stream_gpu[STREAM_DERIV_GPU]));
-HANDLE_ERROR(cudaMemcpy(deriv_data, model_data->deriv_gpu_data, model_data->deriv_size, cudaMemcpyDeviceToHost));
+    HANDLE_ERROR(cudaMemcpyAsync(model_data->deriv_aux, model_data->deriv_gpu_data,
+            model_data->deriv_size, cudaMemcpyDeviceToHost,
+            model_data->stream_gpu[STREAM_DERIV_GPU]));
+
+    //HANDLE_ERROR(cudaMemcpy(deriv_data, model_data->deriv_gpu_data, model_data->deriv_size, cudaMemcpyDeviceToHost));
   }
 
   timeDerivReceive += (clock() - t3);
   timeDeriv += (clock() - t1);
   t3 = clock();
-
-  //((double)t)/CLOCKS_PER_SEC;
 
 }
 
@@ -570,15 +564,12 @@ void rxn_fusion_deriv_gpu(ModelData *model_data, N_Vector deriv) {
   HANDLE_ERROR(cudaMemsetAsync(model_data->deriv_gpu_data, 0.0,
           model_data->deriv_size, model_data->stream_gpu[STREAM_DERIV_GPU]));
 
-
-
-
   if (model_data->small_data){
   }
   else {
     for (int i = 0; i < NV_LENGTH_S(deriv); i++) {  // NV_LENGTH_S(deriv)
       //Add to deriv the auxiliar contributions from gpu
-      //deriv_data[i] += model_data->deriv_aux[i];
+      deriv_data[i] += model_data->deriv_aux[i];
     }
   }
 
@@ -835,11 +826,13 @@ void rxn_calc_jac_gpu(ModelData *model_data, SUNMatrix jac, realtype time_step) 
  */
 void free_gpu_cu(ModelData *model_data) {
 
+
   printf("timeDeriv %lf\n", (((double)timeDeriv) * 1000) / CLOCKS_PER_SEC);
   printf("timeDerivSend %lf\n", (((double)timeDerivSend) * 1000) / CLOCKS_PER_SEC);
   printf("timeDerivKernel %lf\n", (((double)timeDerivKernel) * 1000) / CLOCKS_PER_SEC);
   printf("timeDerivReceive %lf\n", (((double)timeDerivReceive) * 1000) / CLOCKS_PER_SEC);
   printf("timeDerivCPU %lf\n", (((double)timeDerivCPU) * 1000) / CLOCKS_PER_SEC);
+
 
   for (int i = 0; i < n_streams; ++i)
     HANDLE_ERROR( cudaStreamDestroy(model_data->stream_gpu[i]) );

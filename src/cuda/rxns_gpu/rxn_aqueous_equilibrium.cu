@@ -201,13 +201,13 @@ void rxn_gpu_aqueous_equilibrium_calc_deriv_contrib(ModelData *model_data, realt
  * \param time_step Current time step of the itegrator (s)
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-/*
+
 #ifdef PMC_USE_SUNDIALS
 #ifdef __CUDA_ARCH__
 __host__ __device__
 #endif
-void rxn_gpu_aqueous_equilibrium_calc_jac_contrib(double *rxn_env_data, double *state,
-          double *J, void *rxn_data, double * double_pointer_gpu, double time_step, int n_rxn2)
+void rxn_gpu_aqueous_equilibrium_calc_jac_contrib(ModelData *model_data, realtype *J, int *rxn_int_data,
+          double *rxn_float_data, double *rxn_env_data, double time_step)
 {
 #ifdef __CUDA_ARCH__
   int n_rxn=model_data->n_rxn;
@@ -223,7 +223,7 @@ void rxn_gpu_aqueous_equilibrium_calc_jac_contrib(double *rxn_env_data, double *
   double forward_rate;
   double reverse_rate;
 
-  //todo: fix it by following the methodology of calc_deriv
+  //todo: fix gpu by following the methodology of calc_deriv
 
   // Calculate Jacobian contributions for each aerosol phase
   for (int i_phase=0, i_jac = 0; i_phase<NUM_AERO_PHASE_; i_phase++) {
@@ -373,6 +373,6 @@ void rxn_gpu_aqueous_equilibrium_calc_jac_contrib(double *rxn_env_data, double *
 
 }
 #endif
- */
+
 
 }

@@ -33,11 +33,12 @@
 // Default solver initial time step relative to total integration time
 #define DEFAULT_TIME_STEP 1.0
 // State advancement factor for Jacobian element evaluation
-#define JAC_CHECK_ADV 1.0E-8
-// Tolerance for Jacobian element evaluation
-#define JAC_CHECK_TOL 1.0E-6
-// Tolerance for Jacobian element evaluation against GSL absolute errors
-#define JAC_CHECK_GSL_TOL 2.0
+#define JAC_CHECK_ADV 1.0E-1
+// Relative tolerance for Jacobian element evaluation against GSL absolute
+// errors
+#define JAC_CHECK_GSL_REL_TOL 1.0e-4
+// Absolute Jacobian error tolerance
+#define JAC_CHECK_GSL_ABS_TOL 1.0e-9
 // Set MAX_TIMESTEP_WARNINGS to a negative number to prevent output
 #define MAX_TIMESTEP_WARNINGS -1
 // Maximum number of steps in discreet addition guess helper
@@ -1135,15 +1136,16 @@ bool check_Jac(realtype t, N_Vector y, SUNMatrix J, N_Vector deriv,
                i_dep);
       }
 
-      double abs_tol =
-          fabs(abs_err) > SMALL ? fabs(abs_err) * JAC_CHECK_GSL_TOL : SMALL;
+      double abs_tol = fabs(abs_err);
+      abs_tol =
+          abs_tol > JAC_CHECK_GSL_ABS_TOL ? abs_tol : JAC_CHECK_GSL_ABS_TOL;
 
       // Evaluate the results
       double rel_diff = 1.0;
       if (partial_deriv != 0.0)
         rel_diff = fabs((SM_DATA_S(J)[i_elem] - partial_deriv) / partial_deriv);
       if (fabs(SM_DATA_S(J)[i_elem] - partial_deriv) > abs_tol &&
-          rel_diff > 1.0e-4) {
+          rel_diff > JAC_CHECK_GSL_REL_TOL) {
         printf(
             "\nError in Jacobian[%d][%d]: Got %le; expected %le"
             "\n  difference %le is greater than error %le",

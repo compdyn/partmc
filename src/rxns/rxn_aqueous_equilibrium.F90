@@ -87,8 +87,10 @@ module pmc_rxn_aqueous_equilibrium
 #define A_ this%condensed_data_real(1)
 #define C_ this%condensed_data_real(2)
 #define RATE_CONST_REVERSE_ this%condensed_data_real(3)
+#define WATER_CONC_ this%condensed_data_real(4)
+#define ACTIVITY_COEFF_VALUE_ this%condensed_data_real(5)
 #define NUM_INT_PROP_ 3
-#define NUM_REAL_PROP_ 3
+#define NUM_REAL_PROP_ 5
 #define NUM_ENV_PARAM_ 1
 #define REACT_(x) this%condensed_data_int(NUM_INT_PROP_+x)
 #define PROD_(x) this%condensed_data_int(NUM_INT_PROP_+NUM_REACT_*NUM_AERO_PHASE_+x)
@@ -97,8 +99,10 @@ module pmc_rxn_aqueous_equilibrium
 #define DERIV_ID_(x) this%condensed_data_int(NUM_INT_PROP_+(NUM_REACT_+NUM_PROD_+2)*NUM_AERO_PHASE_+x)
 #define JAC_ID_(x) this%condensed_data_int(NUM_INT_PROP_+(2*(NUM_REACT_+NUM_PROD_)+2)*NUM_AERO_PHASE_+x)
 #define MASS_FRAC_TO_M_(x) this%condensed_data_real(NUM_REAL_PROP_+x)
-#define SMALL_WATER_CONC_(x) this%condensed_data_real(NUM_REAL_PROP_+NUM_REACT_+NUM_PROD_+x)
-#define SMALL_CONC_(x) this%condensed_data_real(NUM_REAL_PROP_+NUM_REACT_+NUM_PROD_+NUM_AERO_PHASE_+x)
+#define REACT_CONC_(x) this%condensed_data_real(NUM_REAL_PROP_+NUM_REACT_+NUM_PROD_+x)
+#define PROD_CONC_(x) this%condensed_data_real(NUM_REAL_PROP_+2*NUM_REACT_+NUM_PROD_+x)
+#define SMALL_WATER_CONC_(x) this%condensed_data_real(NUM_REAL_PROP_+2*NUM_REACT_+2*NUM_PROD_+x)
+#define SMALL_CONC_(x) this%condensed_data_real(NUM_REAL_PROP_+2*NUM_REACT_+2*NUM_PROD_+NUM_AERO_PHASE_+x)
 
   public :: rxn_aqueous_equilibrium_t
 
@@ -246,7 +250,7 @@ contains
     allocate(this%condensed_data_int(NUM_INT_PROP_ + &
             num_phase * (num_spec_per_phase * (num_spec_per_phase + 4) + 2)))
     allocate(this%condensed_data_real(NUM_REAL_PROP_ + &
-            num_spec_per_phase + 2 * num_phase))
+            2 * num_spec_per_phase + 2 * num_phase))
     this%condensed_data_int(:) = int(0, kind=i_kind)
     this%condensed_data_real(:) = real(0.0, kind=dp)
 

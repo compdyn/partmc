@@ -491,7 +491,8 @@ set(SUB_MODELS_SRC ${SUB_MODELS_F_SRC} ${SUB_MODELS_C_SRC})
 
 set(CAMP_C_SRC
         src/camp_solver.c src/rxn_solver.c src/aero_phase_solver.c
-        src/aero_rep_solver.c src/sub_model_solver.c)
+        src/aero_rep_solver.c src/sub_model_solver.c
+        src/time_derivative.c)
 
 set_source_files_properties(${CAMP_C_SRC} PROPERTIES COMPILE_FLAGS
         ${STD_C_FLAGS})

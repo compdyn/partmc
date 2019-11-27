@@ -257,11 +257,11 @@ void rxn_update_env_state(ModelData *model_data) {
 /** \brief Calculate the time derivative \f$f(t,y)\f$
  *
  * \param model_data Pointer to the model data
- * \param deriv_data Pointer to the derivative data for the current grid cell
+ * \param time_deriv TimeDerivative to use to build derivative array
  * \param time_step Current model time step (s)
  */
 #ifdef PMC_USE_SUNDIALS
-void rxn_calc_deriv(ModelData *model_data, double *deriv_data,
+void rxn_calc_deriv(ModelData *model_data, TimeDerivative *time_deriv,
                     realtype time_step) {
   // Get the number of reactions
   int n_rxn = model_data->n_rxn;
@@ -282,61 +282,61 @@ void rxn_calc_deriv(ModelData *model_data, double *deriv_data,
     // Call the appropriate function
     switch (rxn_type) {
       case RXN_AQUEOUS_EQUILIBRIUM:
-        rxn_aqueous_equilibrium_calc_deriv_contrib(model_data, deriv_data,
+        rxn_aqueous_equilibrium_calc_deriv_contrib(model_data, time_deriv,
                                                    rxn_int_data, rxn_float_data,
                                                    rxn_env_data, time_step);
         break;
       case RXN_ARRHENIUS:
-        rxn_arrhenius_calc_deriv_contrib(model_data, deriv_data, rxn_int_data,
+        rxn_arrhenius_calc_deriv_contrib(model_data, time_deriv, rxn_int_data,
                                          rxn_float_data, rxn_env_data,
                                          time_step);
         break;
       case RXN_CMAQ_H2O2:
-        rxn_CMAQ_H2O2_calc_deriv_contrib(model_data, deriv_data, rxn_int_data,
+        rxn_CMAQ_H2O2_calc_deriv_contrib(model_data, time_deriv, rxn_int_data,
                                          rxn_float_data, rxn_env_data,
                                          time_step);
         break;
       case RXN_CMAQ_OH_HNO3:
-        rxn_CMAQ_OH_HNO3_calc_deriv_contrib(model_data, deriv_data,
+        rxn_CMAQ_OH_HNO3_calc_deriv_contrib(model_data, time_deriv,
                                             rxn_int_data, rxn_float_data,
                                             rxn_env_data, time_step);
         break;
       case RXN_CONDENSED_PHASE_ARRHENIUS:
         rxn_condensed_phase_arrhenius_calc_deriv_contrib(
-            model_data, deriv_data, rxn_int_data, rxn_float_data, rxn_env_data,
+            model_data, time_deriv, rxn_int_data, rxn_float_data, rxn_env_data,
             time_step);
         break;
       case RXN_EMISSION:
-        rxn_emission_calc_deriv_contrib(model_data, deriv_data, rxn_int_data,
+        rxn_emission_calc_deriv_contrib(model_data, time_deriv, rxn_int_data,
                                         rxn_float_data, rxn_env_data,
                                         time_step);
         break;
       case RXN_FIRST_ORDER_LOSS:
-        rxn_first_order_loss_calc_deriv_contrib(model_data, deriv_data,
+        rxn_first_order_loss_calc_deriv_contrib(model_data, time_deriv,
                                                 rxn_int_data, rxn_float_data,
                                                 rxn_env_data, time_step);
         break;
       case RXN_HL_PHASE_TRANSFER:
-        rxn_HL_phase_transfer_calc_deriv_contrib(model_data, deriv_data,
+        rxn_HL_phase_transfer_calc_deriv_contrib(model_data, time_deriv,
                                                  rxn_int_data, rxn_float_data,
                                                  rxn_env_data, time_step);
         break;
       case RXN_PHOTOLYSIS:
-        rxn_photolysis_calc_deriv_contrib(model_data, deriv_data, rxn_int_data,
+        rxn_photolysis_calc_deriv_contrib(model_data, time_deriv, rxn_int_data,
                                           rxn_float_data, rxn_env_data,
                                           time_step);
         break;
       case RXN_SIMPOL_PHASE_TRANSFER:
         rxn_SIMPOL_phase_transfer_calc_deriv_contrib(
-            model_data, deriv_data, rxn_int_data, rxn_float_data, rxn_env_data,
+            model_data, time_deriv, rxn_int_data, rxn_float_data, rxn_env_data,
             time_step);
         break;
       case RXN_TROE:
-        rxn_troe_calc_deriv_contrib(model_data, deriv_data, rxn_int_data,
+        rxn_troe_calc_deriv_contrib(model_data, time_deriv, rxn_int_data,
                                     rxn_float_data, rxn_env_data, time_step);
         break;
       case RXN_WET_DEPOSITION:
-        rxn_wet_deposition_calc_deriv_contrib(model_data, deriv_data,
+        rxn_wet_deposition_calc_deriv_contrib(model_data, time_deriv,
                                               rxn_int_data, rxn_float_data,
                                               rxn_env_data, time_step);
         break;
@@ -353,7 +353,8 @@ void rxn_calc_deriv(ModelData *model_data, double *deriv_data,
  * \param time_step Current model time step (s)
  */
 #ifdef PMC_USE_SUNDIALS
-void rxn_calc_deriv_specific_types(ModelData *model_data, double *deriv_data,
+void rxn_calc_deriv_specific_types(ModelData *model_data,
+                                   TimeDerivative *time_deriv,
                                    realtype time_step) {
   // Get the number of reactions
   int n_rxn = model_data->n_rxn;
@@ -374,13 +375,13 @@ void rxn_calc_deriv_specific_types(ModelData *model_data, double *deriv_data,
     // Call the appropriate function
     switch (rxn_type) {
       case RXN_HL_PHASE_TRANSFER:
-        rxn_HL_phase_transfer_calc_deriv_contrib(model_data, deriv_data,
+        rxn_HL_phase_transfer_calc_deriv_contrib(model_data, time_deriv,
                                                  rxn_int_data, rxn_float_data,
                                                  rxn_env_data, time_step);
         break;
       case RXN_SIMPOL_PHASE_TRANSFER:
         rxn_SIMPOL_phase_transfer_calc_deriv_contrib(
-            model_data, deriv_data, rxn_int_data, rxn_float_data, rxn_env_data,
+            model_data, time_deriv, rxn_int_data, rxn_float_data, rxn_env_data,
             time_step);
         break;
     }

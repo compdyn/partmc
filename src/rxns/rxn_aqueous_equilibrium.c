@@ -1,4 +1,4 @@
-/* Copyright (C) 2015-2018 Matthew Dawson
+/* Copyright (C) 2015-2019 Matthew Dawson
  * Licensed under the GNU General Public License version 2 or (at your
  * option) any later version. See the file COPYING for details.
  *
@@ -19,9 +19,6 @@
 
 // Small number
 #define SMALL_NUMBER_ 1.0e-30
-
-// Scaling near equilibrium
-#define MAX_LOSS 5.0e-16
 
 // Factor used to calculate minimum water concentration for aqueous
 // phase equilibrium reactions
@@ -349,7 +346,7 @@ long double calc_overall_rate(int *rxn_int_data, double *rxn_float_data,
   // Estimate the loss of precision near equilibrium
   long double loss_est =
       fabsl((rate_forward - rate_reverse) / (rate_forward + rate_reverse));
-  loss_est /= (loss_est + MAX_LOSS);
+  loss_est /= (loss_est + MAX_PRECISION_LOSS);
 
   // Return adjusted rate
   return loss_est * std_rate;
@@ -360,7 +357,7 @@ long double calc_overall_rate(int *rxn_int_data, double *rxn_float_data,
  * this reaction.
  *
  * \param model_data Pointer to the model data, including the state array
- * \param deriv Pointer to the time derivative to add contributions to
+ * \param time_deriv Pointer to the TimeDerivative object
  * \param rxn_int_data Pointer to the reaction integer data
  * \param rxn_float_data Pointer to the reaction floating-point data
  * \param rxn_env_data Pointer to the environment-dependent parameters
@@ -368,7 +365,7 @@ long double calc_overall_rate(int *rxn_int_data, double *rxn_float_data,
  */
 #ifdef PMC_USE_SUNDIALS
 void rxn_aqueous_equilibrium_calc_deriv_contrib(
-    ModelData *model_data, realtype *deriv, int *rxn_int_data,
+    ModelData *model_data, TimeDerivative *time_deriv, int *rxn_int_data,
     double *rxn_float_data, double *rxn_env_data, double time_step) {
   int *int_data = rxn_int_data;
   double *float_data = rxn_float_data;
@@ -378,15 +375,29 @@ void rxn_aqueous_equilibrium_calc_deriv_contrib(
   // Calculate derivative contributions for each aerosol phase
   for (int i_phase = 0, i_deriv = 0; i_phase < NUM_AERO_PHASE_; i_phase++) {
     // If no aerosol water is present, no reaction occurs
-    realtype water = state[WATER_(i_phase)];
+    long double water = state[WATER_(i_phase)];
     if (water < MIN_WATER_ * SMALL_WATER_CONC_(i_phase)) {
       i_deriv += NUM_REACT_ + NUM_PROD_;
       continue;
     }
 
-    // Get the rate * ug_H2O / m^3
-    realtype rate = calc_overall_rate(rxn_int_data, rxn_float_data,
-                                      rxn_env_data, state, i_phase, false);
+    // Set the concentrations for all species and the activity coefficient
+    for (int i_react = 0; i_react < NUM_REACT_; ++i_react)
+      REACT_CONC_(i_react) = state[REACT_(i_phase * NUM_REACT_ + i_react)];
+    for (int i_prod = 0; i_prod < NUM_PROD_; ++i_prod)
+      PROD_CONC_(i_prod) = state[PROD_(i_phase * NUM_PROD_ + i_prod)];
+    WATER_CONC_ = state[WATER_(i_phase)];
+    if (ACTIVITY_COEFF_(i_phase) >= 0) {
+      ACTIVITY_COEFF_VALUE_ = state[ACTIVITY_COEFF_(i_phase)];
+    } else {
+      ACTIVITY_COEFF_VALUE_ = 1.0;
+    }
+
+    // Get the rate using the standard calculation
+    long double rate_forward, rate_reverse;
+    long double rate =
+        calc_standard_rate(rxn_int_data, rxn_float_data, rxn_env_data, false,
+                           &rate_forward, &rate_reverse);
     if (rate == ZERO) {
       i_deriv += NUM_REACT_ + NUM_PROD_;
       continue;
@@ -398,7 +409,10 @@ void rxn_aqueous_equilibrium_calc_deriv_contrib(
         i_deriv++;
         continue;
       }
-      deriv[DERIV_ID_(i_deriv++)] -= rate / MASS_FRAC_TO_M_(i_react);
+      time_derivative_add_value(time_deriv, DERIV_ID_(i_deriv),
+                                -rate_forward / MASS_FRAC_TO_M_(i_react));
+      time_derivative_add_value(time_deriv, DERIV_ID_(i_deriv++),
+                                rate_reverse / MASS_FRAC_TO_M_(i_react));
     }
 
     // Products change as (forward - reverse) (ug/m3/s)
@@ -407,8 +421,12 @@ void rxn_aqueous_equilibrium_calc_deriv_contrib(
         i_deriv++;
         continue;
       }
-      deriv[DERIV_ID_(i_deriv++)] +=
-          rate / MASS_FRAC_TO_M_(NUM_REACT_ + i_prod);
+      time_derivative_add_value(
+          time_deriv, DERIV_ID_(i_deriv),
+          rate_forward / MASS_FRAC_TO_M_(NUM_REACT_ + i_prod));
+      time_derivative_add_value(
+          time_deriv, DERIV_ID_(i_deriv++),
+          -rate_reverse / MASS_FRAC_TO_M_(NUM_REACT_ + i_prod));
     }
   }
 

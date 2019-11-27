@@ -128,6 +128,12 @@ void *solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
   sd->model_data.n_per_cell_dep_var = n_dep_var;
 
 #ifdef PMC_USE_SUNDIALS
+  // Set up a TimeDerivative object to use during solving
+  if (time_derivative_initialize(&(sd->time_deriv), n_dep_var) != 1) {
+    printf("\n\nERROR initializing the TimeDerivative\n\n");
+    EXIT_FAILURE;
+  }
+
   // Set up the solver variable array and helper derivative array
   sd->y = N_VNew_Serial(n_dep_var * n_cells);
   sd->deriv = N_VNew_Serial(n_dep_var * n_cells);
@@ -839,15 +845,15 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
   if (camp_solver_update_model_state(y, md, ZERO, ZERO) != CAMP_SOLVER_SUCCESS)
     return 1;
 
-  // Reset the derivative vector
-  N_VConst(ZERO, deriv);
-
 #ifdef PMC_DEBUG
   // Measure calc_deriv time execution
   clock_t start = clock();
 #endif
 
 #ifdef PMC_USE_GPU
+  // Reset the derivative vector
+  N_VConst(ZERO, deriv);
+
   // Calculate the time derivative f(t,y)
   // (this is for all grid cells at once)
   rxn_calc_deriv_gpu(md, deriv, (double)time_step);
@@ -883,11 +889,18 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
 #endif
 
 #ifndef PMC_USE_GPU
+    // Reset the TimeDerivative
+    time_derivative_reset(&(sd->time_deriv));
+
     // Calculate the time derivative f(t,y)
-    rxn_calc_deriv(md, deriv_data, (double)time_step);
+    rxn_calc_deriv(md, &(sd->time_deriv), (double)time_step);
+
+    // Update the deriv array
+    time_derivative_output(&(sd->time_deriv), deriv_data);
 #else
       // Add contributions from reactions not implemented on GPU
-      rxn_calc_deriv_specific_types(md, deriv_data, (double)time_step);
+      // FIXME need to fix this to use TimeDerivative
+      rxn_calc_deriv_specific_types(md, &(sd->time_deriv), (double)time_step);
 #endif
 
 #ifdef PMC_DEBUG
@@ -1796,6 +1809,9 @@ void solver_free(void *solver_data) {
 
   // free the absolute tolerance vector
   N_VDestroy(sd->abs_tol_nv);
+
+  // free the TimeDerivative
+  time_derivative_free(&(sd->time_deriv));
 
   // free the derivative vectors
   N_VDestroy(sd->y);

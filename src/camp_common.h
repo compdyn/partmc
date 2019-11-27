@@ -12,6 +12,7 @@
 #define CAMP_COMMON_H
 
 #include <time.h>
+#include "time_derivative.h"
 
 /* SUNDIALS Header files with a description of contents used */
 #ifdef PMC_USE_SUNDIALS
@@ -172,18 +173,20 @@ typedef struct {
 /* Solver data structure */
 typedef struct {
 #ifdef PMC_USE_SUNDIALS
-  N_Vector abs_tol_nv;  // abosolute tolerance vector
-  N_Vector y;           // vector of solver variables
-  SUNLinearSolver ls;   // linear solver
-  N_Vector deriv;       // used to calculate the derivative outside the solver
-  SUNMatrix J;          // Jacobian matrix
-  SUNMatrix J_guess;    // Jacobian matrix for improving guesses sent to linear
-                        // solver
-  bool curr_J_guess;    // Flag indicating the Jacobian used by the guess helper
-                        // is current
-  realtype J_guess_t;   // Last time (t) for which J_guess was calculated
-  int Jac_eval_fails;   // Number of Jacobian evaluation failures
-  int solver_flag;      // Last flag returned by a call to CVode()
+  N_Vector abs_tol_nv;        // abosolute tolerance vector
+  N_Vector y;                 // vector of solver variables
+  SUNLinearSolver ls;         // linear solver
+  TimeDerivative time_deriv;  // CAMP derivative structure for use in
+                              // calculating deriv
+  N_Vector deriv;      // used to calculate the derivative outside the solver
+  SUNMatrix J;         // Jacobian matrix
+  SUNMatrix J_guess;   // Jacobian matrix for improving guesses sent to linear
+                       // solver
+  bool curr_J_guess;   // Flag indicating the Jacobian used by the guess helper
+                       // is current
+  realtype J_guess_t;  // Last time (t) for which J_guess was calculated
+  int Jac_eval_fails;  // Number of Jacobian evaluation failures
+  int solver_flag;     // Last flag returned by a call to CVode()
 #ifdef PMC_DEBUG
   booleantype debug_out;  // Output debugging information during solving
   booleantype eval_Jac;   // Evalute Jacobian data during solving

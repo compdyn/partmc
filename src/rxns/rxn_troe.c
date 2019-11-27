@@ -132,23 +132,24 @@ void rxn_troe_update_env_state(ModelData *model_data, int *rxn_int_data,
  * this reaction.
  *
  * \param model_data Pointer to the model data, including the state array
- * \param deriv Pointer to the time derivative to add contributions to
+ * \param time_deriv Pointer to the TimeDerivative object
  * \param rxn_int_data Pointer to the reaction integer data
  * \param rxn_float_data Pointer to the reaction floating-point data
  * \param rxn_env_data Pointer to the environment-dependent parameters
  * \param time_step Current time step being computed (s)
  */
 #ifdef PMC_USE_SUNDIALS
-void rxn_troe_calc_deriv_contrib(ModelData *model_data, realtype *deriv,
-                                 int *rxn_int_data, double *rxn_float_data,
-                                 double *rxn_env_data, realtype time_step) {
+void rxn_troe_calc_deriv_contrib(ModelData *model_data,
+                                 TimeDerivative *time_deriv, int *rxn_int_data,
+                                 double *rxn_float_data, double *rxn_env_data,
+                                 realtype time_step) {
   int *int_data = rxn_int_data;
   double *float_data = rxn_float_data;
   double *state = model_data->grid_cell_state;
   double *env_data = model_data->grid_cell_env;
 
   // Calculate the reaction rate
-  realtype rate = RATE_CONSTANT_;
+  long double rate = RATE_CONSTANT_;
   for (int i_spec = 0; i_spec < NUM_REACT_; i_spec++)
     rate *= state[REACT_(i_spec)];
 
@@ -157,14 +158,15 @@ void rxn_troe_calc_deriv_contrib(ModelData *model_data, realtype *deriv,
     int i_dep_var = 0;
     for (int i_spec = 0; i_spec < NUM_REACT_; i_spec++, i_dep_var++) {
       if (DERIV_ID_(i_dep_var) < 0) continue;
-      deriv[DERIV_ID_(i_dep_var)] -= rate;
+      time_derivative_add_value(time_deriv, DERIV_ID_(i_dep_var), -rate);
     }
     for (int i_spec = 0; i_spec < NUM_PROD_; i_spec++, i_dep_var++) {
       if (DERIV_ID_(i_dep_var) < 0) continue;
       // Negative yields are allowed, but prevented from causing negative
       // concentrations that lead to solver failures
       if (-rate * YIELD_(i_spec) * time_step <= state[PROD_(i_spec)]) {
-        deriv[DERIV_ID_(i_dep_var)] += rate * YIELD_(i_spec);
+        time_derivative_add_value(time_deriv, DERIV_ID_(i_dep_var),
+                                  rate * YIELD_(i_spec));
       }
     }
   }

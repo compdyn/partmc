@@ -1,0 +1,60 @@
+/* Copyright (C) 2019 Matthew Dawson
+ * Licensed under the GNU General Public License version 2 or (at your
+ * option) any later version. See the file COPYING for details.
+ *
+ * Header for the time derivative structure and related functions
+ *
+ */
+/** \file
+ * \brief Header for the time derivative structure and related functions
+ */
+#include <math.h>
+#include <stdlib.h>
+
+// Threshhold for precisition loss in rate calculations
+#define MAX_PRECISION_LOSS 1.0e-17
+
+/* Time derivative for solver species */
+typedef struct {
+  int num_spec;                   // Number of species in the derivative
+  long double *production_rates;  // Production rates for all species
+  long double *loss_rates;        // Loss rates for all species
+} TimeDerivative;
+
+/** \brief Initialize the derivative
+ *
+ * \param time_deriv Pointer to the TimeDerivative object
+ * \param num_spec Number of species to include in the derivative
+ * \return Flag indicating whether the derivative was sucessfully initialized
+ *         (0 = false; 1 = true)
+ */
+int time_derivative_initialize(TimeDerivative *time_deriv, int num_spec);
+
+/** \brief Reset the derivative
+ *
+ * \param time_deriv Pointer to the TimeDerivative object
+ */
+void time_derivative_reset(TimeDerivative *time_deriv);
+
+/** \brief Output the current derivative array
+ *
+ * \param time_deriv Pointer to the TimeDerivative object
+ * \param dest_array Pointer to the destination array
+ */
+void time_derivative_output(TimeDerivative *time_deriv, double *dest_array);
+
+/** \brief Add a contribution to the time derivative
+ *
+ * \param time_deriv Pointer to the TimeDerivative object
+ * \param spec_id Index of the species to update rates for
+ * \param rate_contribution Value to add to the time derivative for speces
+ * spec_id
+ */
+void time_derivative_add_value(TimeDerivative *time_deriv, int spec_id,
+                               long double rate_contribution);
+
+/** \brief Free memory associated with a TimeDerivative
+ *
+ * \param time_deriv Pointer to the TimeDerivative object
+ */
+void time_derivative_free(TimeDerivative *time_deriv);

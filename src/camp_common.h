@@ -194,6 +194,8 @@ typedef struct {
   int counterJac;         // Total calls to Jac()
   clock_t timeDeriv;      // Compute time for calls to f()
   clock_t timeJac;        // Compute time for calls to Jac()
+  double
+      max_loss_precision;  // Maximum loss of precision during last call to f()
 #endif
 #endif
   void *cvode_mem;       // CVodeMem object

@@ -707,7 +707,8 @@ void solver_get_statistics(void *solver_data, int *solver_flag, int *num_steps,
                            int *DLS_RHS_evals, double *last_time_step__s,
                            double *next_time_step__s, int *Jac_eval_fails,
                            int *RHS_evals_total, int *Jac_evals_total,
-                           double *RHS_time__s, double *Jac_time__s) {
+                           double *RHS_time__s, double *Jac_time__s,
+                           double *max_loss_precision) {
 #ifdef PMC_USE_SUNDIALS
   SolverData *sd = (SolverData *)solver_data;
   long int nst, nfe, nsetups, nje, nfeLS, nni, ncfn, netf, nge;
@@ -756,11 +757,13 @@ void solver_get_statistics(void *solver_data, int *solver_flag, int *num_steps,
   *Jac_evals_total = sd->counterJac;
   *RHS_time__s = ((double)sd->timeDeriv) / CLOCKS_PER_SEC;
   *Jac_time__s = ((double)sd->timeJac) / CLOCKS_PER_SEC;
+  *max_loss_precision = sd->max_loss_precision;
 #else
     *RHS_evals_total = -1;
     *Jac_evals_total = -1;
     *RHS_time__s = 0.0;
     *Jac_time__s = 0.0;
+    *max_loss_precision = 0.0;
 #endif
 #endif
 }
@@ -906,6 +909,8 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
 #ifdef PMC_DEBUG
     clock_t end2 = clock();
     sd->timeDeriv += (end2 - start2);
+    sd->max_loss_precision =
+        time_derivative_max_loss_precision(&(sd->time_deriv));
 #endif
 
     // Advance the derivative for the next cell

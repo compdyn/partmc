@@ -57,6 +57,8 @@ module pmc_solver_stats
     real(kind=dp) :: RHS_time__s
     !> Compute time for calls to `Jac()` [s]
     real(kind=dp) :: Jac_time__s
+    !> Maximum loss of precision on last deriv call
+    real(kind=dp) :: max_loss_precision
 #ifdef PMC_DEBUG
     !> Flag to output debugging info during solving
     !! THIS PRINTS A LOT OF TEXT TO THE STANDARD OUTPUT
@@ -104,6 +106,7 @@ contains
     write(f_unit,*) "DLS Right-hand side evals:   ", this%DLS_RHS_evals
     write(f_unit,*) "Last time step [s]:          ", this%last_time_step__s
     write(f_unit,*) "Next time step [s]:          ", this%next_time_step__s
+    write(f_unit,*) "Maximum loss of precision    ", this%max_loss_precision
 #ifdef PMC_DEBUG
     write(f_unit,*) "Output debugging info:       ", this%debug_out
     write(f_unit,*) "Evaluate Jacobian:           ", this%eval_Jac
@@ -139,6 +142,7 @@ contains
     this%last_time_step__s     = real( new_value, kind=dp )
     this%next_time_step__s     = real( new_value, kind=dp )
     this%Jac_eval_fails        = new_value
+    this%max_loss_precision    = new_value
 
   end subroutine assignValue
 

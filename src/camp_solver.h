@@ -36,7 +36,8 @@ void solver_get_statistics(void *solver_data, int *solver_flag, int *num_steps,
                            int *DLS_RHS_evals, double *last_time_step__s,
                            double *next_time_step__s, int *Jac_eval_fails,
                            int *RHS_evals_total, int *Jac_evals_total,
-                           double *RHS_time__s, double *Jac_time__s);
+                           double *RHS_time__s, double *Jac_time__s,
+                           double *max_loss_precision);
 void solver_free(void *solver_data);
 void model_free(ModelData model_data);
 

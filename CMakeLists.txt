@@ -408,3 +408,10 @@ add_executable(test_aq_chem src/aq_test.F90)
 target_link_libraries(test_aq_chem partmclib)
 
 ######################################################################
+# scenarios/1_urban_plume/process
+
+add_executable(2_urban_plume_process_ml
+  scenarios/1_urban_plume/2_urban_plume_process_ml.F90)
+target_link_libraries(2_urban_plume_process_ml partmclib)
+
+######################################################################

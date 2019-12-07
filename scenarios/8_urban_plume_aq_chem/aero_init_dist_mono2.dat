@@ -1,0 +1,12 @@
+mode_name mono_1
+mass_frac aero_init_comp_mono_mode1.dat      # composition proportions of species
+mode_type mono                    # type of distribution
+num_conc 0.5e9                      # particle number concentration (#/m^3)
+diam 1e-7                         # diameter (m)
+
+mode_name mono_2
+mass_frac aero_init_comp_mono_mode2.dat      # composition proportions of species
+mode_type mono                    # type of distribution
+num_conc 0.5e9                      # particle number concentration (#/m^3)
+diam 1e-7                         # diameter (m)
+

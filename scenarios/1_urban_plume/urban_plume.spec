@@ -1,6 +1,6 @@
 run_type particle               # particle-resolved run
 output_prefix out/urban_plume   # prefix of output files
-n_repeat 10                     # number of Monte Carlo repeats
+n_repeat 1                     # number of Monte Carlo repeats
 n_part 1000                     # total number of particles
 restart no                      # whether to restart from saved state (yes/no)
 

@@ -25,7 +25,7 @@ time = np.zeros([601])
 conv_fac = np.zeros([601])
 
 
-in_dir = "out/"
+in_dir = "out/out_mono_nh32_so22/"
 in_file_pattern = "urban_plume_aq_chem_mono_0001_.*.nc"
 env_state_history = partmc.read_history(partmc.env_state_t, in_dir, in_file_pattern)
 pressure = np.array([env_state_history[i][1].pressure for i in range(len(env_state_history))])
@@ -43,7 +43,7 @@ for counter in range(0, 601):
     time[counter] = counter
     print("time = ", time[counter])
     
-    in_filename = "out/urban_plume_aq_chem_mono_0001_0000%04d.nc" % (counter+1)
+    in_filename = "out/out_mono_nh32_so22/urban_plume_aq_chem_mono_0001_0000%04d.nc" % (counter+1)
     print("in file ", in_filename)
     ncf = scipy.io.netcdf.netcdf_file(in_filename, 'r')
     particles = partmc.aero_particle_array_t(ncf)
@@ -80,7 +80,7 @@ axes.set_xlabel(r"time in minutes")
 #axes.set_xticks([0, 10, 20, 30, 40, 50])
 axes.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 axes.grid(True)
-figure.savefig("figs/time_h2o_mono.pdf")
+figure.savefig("figs/time_h2o_mono_nh32_so22.pdf")
 plt.close()
 
 (figure, axes) = mpl_helper.make_fig(figure_width=5,
@@ -97,7 +97,7 @@ axes.set_xlabel(r"time in minutes")
 #axes.set_xticks([0, 10, 20, 30, 40, 50])
 axes.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 axes.grid(True)
-figure.savefig("figs/time_number_conc_mono.pdf")
+figure.savefig("figs/time_number_conc_mono_nh32_so22.pdf")
 plt.close()
 
 
@@ -120,7 +120,7 @@ axes.set_xlabel(r"time in minutes")
 #axes.set_xticks([0, 10, 20, 30, 40, 50])
 axes.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 axes.grid(True)
-figure.savefig("figs/time_masses_mono.pdf")
+figure.savefig("figs/time_masses_mono_nh32_so22.pdf")
 plt.close()
 
    

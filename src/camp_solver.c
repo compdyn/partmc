@@ -33,7 +33,13 @@
 #endif
 #include "camp_debug.h"
 
-//clock_t timeDeriv2=0;
+int counterDeriv2=0;
+int counterJac2=0;
+clock_t timeCVode=0;
+clock_t timeRates=0;
+clock_t timeJac2=0;
+clock_t timeDeriv2=0;
+
 
 // Default solver initial time step relative to total integration time
 #define DEFAULT_TIME_STEP 1.0
@@ -564,6 +570,8 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   // Reset the counter of Jacobian evaluation failures
   sd->Jac_eval_fails = 0;
 
+  clock_t start1 = clock();
+
   // Update data for new environmental state
   // (This is set up to assume the environmental variables do not change during
   //  solving. This can be changed in the future if necessary.)
@@ -584,6 +592,8 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
     sub_model_update_env_state(md);
     rxn_update_env_state(md);
   }
+
+  timeRates += (clock() - start1);
 
 //Update data for new environmental state on GPU
 #ifdef PMC_USE_GPU
@@ -617,6 +627,9 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
 
   // Run the solver
   realtype t_rt = (realtype)t_initial;
+
+  clock_t start2 = clock();
+
   if (!sd->no_solve) {
     flag = CVode(sd->cvode_mem, (realtype)t_final, sd->y, &t_rt, CV_NORMAL);
 #ifndef FAILURE_DETAIL
@@ -648,6 +661,8 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
       return CAMP_SOLVER_FAIL;
     }
   }
+
+  timeCVode += (clock() - start2);
 
   // Update the species concentrations on the state array
   i_dep_var = 0;
@@ -823,6 +838,8 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
   sd->counterDeriv++;
 #endif
 
+  clock_t start3 = clock();
+
   // Get a pointer to the derivative data
   double *deriv_data = N_VGetArrayPointer(deriv);
 
@@ -846,8 +863,6 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
 
   // Reset the derivative vector
   N_VConst(ZERO, deriv);
-
-  clock_t t1 = clock();
 
 #ifdef PMC_DEBUG
   // Measure calc_deriv time execution
@@ -930,7 +945,8 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
     rxn_fusion_deriv_gpu(md, deriv);
 #endif
 
-  //timeDeriv2 += (clock() - t1);
+  timeDeriv2 += (clock() - start3);
+  counterDeriv2++;
 
   // Return 0 if success
   return (0);
@@ -957,6 +973,8 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
 #ifdef PMC_DEBUG
   sd->counterJac++;
 #endif
+
+  clock_t start4 = clock();
 
   // Get the grid cell dimensions
   int n_state_var = md->n_per_cell_state_var;
@@ -1083,6 +1101,9 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
     }
   }
 #endif
+
+  timeJac2 += (clock() - start4);
+  counterJac2++;
 
   return (0);
 }
@@ -1906,7 +1927,12 @@ void error_handler(int error_code, const char *module, const char *function,
  */
 void model_free(ModelData model_data) {
 
-  //printf("timeDeriv2 %lf\n", (((double)timeDeriv2) * 1000) / CLOCKS_PER_SEC);
+  printf("timeDeriv2 %lf\n", (((double)timeDeriv2) ) / CLOCKS_PER_SEC);
+  printf("timeJac2 %lf\n", (((double)timeJac2) ) / CLOCKS_PER_SEC);
+  printf("timeCVode %lf\n", (((double)timeCVode) ) / CLOCKS_PER_SEC);
+  printf("timeRates %lf\n", (((double)timeRates) ) / CLOCKS_PER_SEC);
+  printf("counterDeriv2 %d\n", counterDeriv2);
+  printf("counterJac2 %d\n", counterJac2);
 
 #ifdef PMC_USE_GPU
   free_gpu_cu(&model_data);

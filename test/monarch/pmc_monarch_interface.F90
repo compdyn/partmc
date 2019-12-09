@@ -449,6 +449,9 @@ contains
       !                trim(to_string(this%n_cells)))
 
       ! Set initial conditions and environmental parameters for each grid cell
+      ! TODO: fix state index, k_end should be k_end-k_start,
+      !change k_end by k_n (and others) and k_start=1
+      !(and create another index for MONARCH_conc)
       do i=i_start, i_end
         do j=j_start, j_end
           do k=1, k_end
@@ -505,6 +508,7 @@ contains
 
     end if
 
+    !todo move this comp_time to only the solve part, like the other tests
     call cpu_time(comp_end)
     comp_time = comp_time + (comp_end-comp_start)
 

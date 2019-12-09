@@ -8,12 +8,8 @@
 !> Test for the cb05cl_ae5 mechanism from MONARCH. This program runs the
 !! MONARCH CB5 code and the CAMP-chem version and compares the output.
 
-!TODO: cb05 takes a lot of solver iterations with multiple cells
-
-!TODO: Create a matrix of states simulating the cells (adding 0.0001j each init state maybe),
-!TODO: Execute both old test cb05 and new test cb05_multiples domains saving both output in an state array and compare the tolerances (without need of comparing txts)
-!and confirm updating an state array
-!with rows of this matrix is the same than calculating all the matrix
+!todo: regroup cells by stiffness in mpi cell division
+!todo improve test to handle all cases
 
 program pmc_test_cb05cl_ae5
 
@@ -34,6 +30,7 @@ program pmc_test_cb05cl_ae5
 #ifdef PMC_USE_JSON
   use json_module
 #endif
+  use pmc_netcdf
 
   ! EBI Solver
   use module_bsc_chem_data
@@ -49,7 +46,7 @@ program pmc_test_cb05cl_ae5
   ! CAMP-chem output file unit
   integer(kind=i_kind), parameter :: CAMP_FILE_UNIT = 12
   ! Number of timesteps to integrate over
-  integer(kind=i_kind), parameter :: NUM_TIME_STEPS = 2
+  integer(kind=i_kind), parameter :: NUM_TIME_STEPS = 1
   ! Number of cells
   integer(kind=i_kind), parameter :: NUM_CELLS= 100
   ! Number of EBI-solver species
@@ -153,10 +150,13 @@ contains
     real, allocatable :: photo_rates(:)
     ! Temperature (K)
     real :: temperature
+    real(kind=dp), allocatable :: temperatures(:)
     ! Pressure (atm)
     real :: pressure
+    real(kind=dp), allocatable :: pressures(:)
     ! Water vapor concentration (ppmV)
     real :: water_conc
+    real(kind=dp), allocatable :: water_concs(:)
 
     ! CAMP-chem core
     type(camp_core_t), pointer :: camp_core
@@ -196,17 +196,36 @@ contains
 
     ! Arrays to hold starting concentrations
     real(kind=dp), allocatable :: ebi_init(:), kpp_init(:), camp_init(:)
-
-    integer(kind=i_kind) :: n_cells, compare_results, i, j, k, z, state_size_cell, cell
+    integer(kind=i_kind) :: n_cells, compare_results, i, j, k, s, state_size_cell, i_cell
     integer(kind=i_kind) :: n_repeats
+    !netcdf
+    integer(kind=i_kind) :: input_id, varid, stat
+    real(kind=dp), allocatable :: working_array(:,:), conc_aux(:)
+    real(kind=dp), pointer :: pointer
+    integer :: i_start = 136
+    integer :: j_start= 134
+    integer :: k_start = 1
+    integer :: t_start = 25
+    integer :: i_n = 5 !20
+    integer :: j_n = 5 !20
+    integer :: k_n = 5 !48
+    integer :: t_n = 1 !48
+    character(len=:), allocatable :: ncfile
+
+    n_repeats = 1!2000
+    n_cells = i_n*j_n*k_n! 1
+    !n_cells = i_n*j_n*k_n
+
+    ncfile = '/esarchive/exp/monarch/a2bk/original_files/000/2016083012/MONARCH_d01_2016083012.nc'
 
     KPP_ICNTRL( : ) = 0
+
+    !todo: temps
 
     temperature = 272.5
     pressure = 0.8
     water_conc = 0.0 ! (Set by CAMP-chem initial concentration)
 
-    n_cells = 1
     compare_results = 1
 
     passed = .false.
@@ -215,7 +234,7 @@ contains
     conv = 1.0d0/ (const%avagadro /const%univ_gas_const * 10.0d0**(-12.0d0) * &
             (pressure*101325.d0) /temperature)
 
-    ! Load the EBI solver species names !AND CAMP TOO
+    ! Load the EBI solver species names
     call set_ebi_species(ebi_spec_names)
 
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -272,13 +291,6 @@ contains
     !!! Initialize camp-chem !!!
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-    n_repeats = 1
-    n_cells = 10000
-
-    if (n_cells.eq.1) then
-      n_repeats = 1000
-    end if
-
     call cpu_time(comp_start)
     camp_input_file = "config_cb05cl_ae5_big.json"
     camp_core => camp_core_t(camp_input_file, n_cells)
@@ -330,12 +342,6 @@ contains
 
     ! Set the environmental conditions
 
-    do i = 1, n_cells
-      call camp_state%env_states(i)%set_temperature_K( real( temperature, kind=dp ) )
-      call camp_state%env_states(i)%set_pressure_Pa( pressure * const%air_std_press )
-    end do
-
-
     call cpu_time(comp_end)
     write(*,*) "CAMP-chem initialization time: ", comp_end-comp_start," s"
 
@@ -360,8 +366,13 @@ contains
     ! Set the photolysis rates (dummy values for solver comparison)
     is_sunny = .true.
     allocate(photo_rates(NUM_EBI_PHOTO_RXN))
+
+    !todo: set photo_rates to 0 for night and to X for day
+
     photo_rates(:) = 0.0001 * 60.0 ! EBI solver wants rates in min^-1
+    !photo_rates(:) = 0.0
     KPP_PHOTO_RATES(:) = 0.0001
+    !KPP_PHOTO_RATES(:) = 0.0
     ! Set O2 + hv rate constant to 0 in KPP (not present in ebi version)
     KPP_PHOTO_RATES(1) = 0.0
     ! Set the O2 + hv rate constant to 0 (not present in ebi version)
@@ -554,13 +565,104 @@ contains
     KPP_PRESS = pressure * 1013.25 ! KPP pressure in hPa
     CALL KPP_Update_RCONST()
 
-    state_size_cell = size(camp_state%state_var) / n_cells
-    do i = 0, n_cells-1
-      do j = 1, state_size_cell
-        camp_state%state_var(i*state_size_cell+j) = camp_state%state_var(j) !+ 0.1*j
-      end do
 
+
+    !Netcdf n cells exp values
+    !todo: move this part to a function called "set_input_from_netcdf"
+    stat =  nf90_open &
+            (ncfile, &
+            NF90_NOWRITE,input_id)
+
+    state_size_cell = size(chem_spec_data%get_spec_names()) !size(camp_state%state_var) / n_cells
+    spec_names = chem_spec_data%get_spec_names()
+
+    allocate(working_array(n_cells,state_size_cell))
+    allocate(conc_aux(1))
+    allocate(temperatures(n_cells))
+    allocate(pressures(n_cells))
+    allocate(water_concs(n_cells))
+
+    !CONCS
+    call cpu_time(comp_start)
+    do i_spec = 1 ,state_size_cell
+
+      !Save concs in temporal array
+      stat =  nf90_inq_varid(input_id,spec_names(i_spec)%string,varid)
+      stat =  nf90_get_var(input_id,varid,working_array(:,i_spec), &
+              start=(/i_start,j_start,k_start,t_start/),count=(/i_n,j_n,k_n,t_n/))
+              !start=(/i_start,j_start,k_start,t_start/),count=(/1,1,1,1/))
+
+
+      !print *, "hola ",spec_names(i_spec)%string
     end do
+    !print *, "hola ",spec_names(i_spec)%string, working_array(1,1)
+    !todo: change prints for tests that check the correct reading of netcdf variables
+
+    !Reorder correctly
+    !do i=1, i_n
+    !  do j=1, j_n
+    !    do k=1, k_n
+    do i_cell=0, n_cells-1
+          do i_spec = 1, state_size_cell
+
+            !stat =  nf90_inq_varid(input_id,spec_names(i_spec)%string,varid)
+            !stat =  nf90_get_var(input_id,varid,conc_aux, &
+            !        start=(/i_start+i,j_start+j,k_start+k,t_start/),count=(/1,1,1,1/))
+
+            !Calculate cell id
+            !i_cell = (i-1)*(k_n*j_n) + (j-1)*(k_n) + (k-1)
+
+            !camp_state%state_var(i_cell*state_size_cell+i_spec) = conc_aux(1)!working_array(1)!camp_state%state_var(i_spec)
+
+            !camp_state%state_var(i_cell*state_size_cell+i_spec) = camp_state%state_var(i_spec)
+            camp_state%state_var(i_cell*state_size_cell+i_spec) = working_array(i_cell,i_spec)
+
+            !print*, i_cell, spec_names(i_spec)%string, camp_state%state_var(i_cell*state_size_cell+i_spec)
+          end do
+    end do
+    !    end do
+    !  end do
+    !end do
+
+    do i_cell = 0, n_cells-1
+      do j = 1, state_size_cell
+        !camp_state%state_var(i_cell*state_size_cell+j) = camp_state%state_var(j)
+      end do
+    end do
+
+    print *, "hola2 ", state_size_cell, size(chem_spec_data%get_spec_names())
+
+    call cpu_time(comp_end)
+    comp_camp = comp_camp + (comp_end-comp_start)
+    print*, comp_camp
+    comp_camp = 0.0
+
+    !temps
+    stat =  nf90_inq_varid(input_id,'T',varid)
+    stat =  nf90_get_var(input_id,varid,temperatures, &
+            start=(/i_start,j_start,k_start,t_start/),count=(/i_n,j_n,k_n,t_n/))
+    !start=(/i_start,j_start,k_start,t_start/),count=(/1,1,1,1/))
+
+    !todo: press
+
+    !print *, "hola ",temperatures
+
+    do i_cell = 1, n_cells
+      !call camp_state%env_states(i_cell)%set_temperature_K( real( temperature, kind=dp ) )
+      call camp_state%env_states(i_cell)%set_temperature_K( real( temperatures(i_cell), kind=dp ) )
+      !call camp_state%env_states(i_cell)%set_pressure_Pa( pressures(i_cell) * const%air_std_press )
+      call camp_state%env_states(i_cell)%set_pressure_Pa( pressure * const%air_std_press )
+    end do
+
+
+    stat = nf90_close(input_id)
+    deallocate (working_array)
+    deallocate(conc_aux)
+    deallocate(temperatures)
+    deallocate(pressures)
+    deallocate(water_concs)
+
+
 
     ! Save the initial states for repeat calls
     allocate(ebi_init(size(YC)))

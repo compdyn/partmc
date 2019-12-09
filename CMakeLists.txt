@@ -715,8 +715,6 @@ add_executable(mock_monarch test/monarch/mock_monarch.F90
 
 target_link_libraries(mock_monarch partmclib)
 
-#TODO: add into enable_test flags the gpu flags and compilation to don't lose the make -j 4
-
 set(UNIT_TEST_SRC
         test/unit_tests/unit_test_data.F90
         test/unit_tests/unit_test_driver.F90)
@@ -737,7 +735,6 @@ target_link_libraries(unit_test_rxn_arrhenius partmclib)
 #    ;UNIT_TEST_TYPE_=unit_test_rxn_arrhenius_t()")
 #    target_link_libraries(unit_test_rxn_arrhenius_gpu partmclib_gpu)
 #endif()
-
 
 
 if (ENABLE_TESTS)

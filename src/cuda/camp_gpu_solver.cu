@@ -54,7 +54,6 @@ clock_t timeDerivCPU;
 clock_t t1;             //Auxiliar time counter
 clock_t t3;
 
-
 static void HandleError(cudaError_t err,
                         const char *file,
                         int line) {
@@ -105,7 +104,6 @@ void solver_new_gpu_cu(ModelData *model_data, int n_dep_var,
   timeDerivSend=0;
   timeDerivReceive=0;
   timeJac=0;
-
 
   //TODO: cusolver
   //cusolver_test();
@@ -409,14 +407,14 @@ __global__ void solveDerivative(double *state_init, double *deriv_init,
     double *deriv_data = &( deriv_init[deriv_length_cell*i_cell]);
     double *state = &( state_init[state_size_cell*i_cell]);
 
+    //Get indices for rates
+    double *rxn_env_data = &(rxn_env_data_init
+    [rxn_env_data_size_cell*i_cell+rxn_env_data_idx[i_rxn]]);
+
     ModelData model_data;
     model_data.grid_cell_state = &( state_init[state_size_cell*i_cell]);
     model_data.grid_cell_env = &( env_init[PMC_NUM_ENV_PARAM_*i_cell]);
     model_data.n_rxn = n_rxn;
-
-    //Get indices for rates
-    double *rxn_env_data = &(rxn_env_data_init
-            [rxn_env_data_size_cell*i_cell+rxn_env_data_idx[i_rxn]]);
 
     switch (rxn_type) {
       case RXN_AQUEOUS_EQUILIBRIUM :

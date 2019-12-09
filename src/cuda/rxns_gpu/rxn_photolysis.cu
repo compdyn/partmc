@@ -22,7 +22,7 @@ extern "C"{
 #define PHOTO_ID_ int_data[2*n_rxn]
 #define SCALING_ float_data[0*n_rxn]
 #define RATE_CONSTANT_ rxn_env_data[0*n_rxn]
-#define BASE_RATE_ rxn_env_data[0*n_rxn]//todo fix this shouldnt be there
+#define BASE_RATE_ rxn_env_data[1*n_rxn]
 #define NUM_INT_PROP_ 3
 #define NUM_FLOAT_PROP_ 1
 #define REACT_(x) (int_data[(NUM_INT_PROP_ + x)*n_rxn]-1)

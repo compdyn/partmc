@@ -43,8 +43,11 @@ void time_derivative_reset(TimeDerivative *time_deriv);
  *
  * \param time_deriv Pointer to the TimeDerivative object
  * \param dest_array Pointer to the destination array
+ * \param output_precision Output the estimated loss of precision for each
+ * species if output_precision == 1
  */
-void time_derivative_output(TimeDerivative *time_deriv, double *dest_array);
+void time_derivative_output(TimeDerivative *time_deriv, double *dest_array,
+                            int output_precision);
 
 /** \brief Add a contribution to the time derivative
  *

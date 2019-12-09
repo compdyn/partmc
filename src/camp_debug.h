@@ -5,6 +5,16 @@
  * Header file with some debugging functions for use with camp_solver.c
  *
  */
+
+// file name prefix
+int file_name_prefix = 1;
+
+// Maximum size of output file names
+#define MAX_FILE_NAME 256
+
+// Number of points to advance state for output
+#define N_OUTPUT_STATES 10000
+
 #ifdef PMC_DEBUG
 #define PMC_DEBUG_SPEC_ 0
 #define PMC_DEBUG_PRINT(x) \
@@ -145,4 +155,82 @@ static void print_derivative(N_Vector deriv) {
     printf(" deriv: % -le", NV_DATA_S(deriv)[i]);
     printf(" index: %d \n", i);
   }
+}
+
+/** \brief Evaluate the derivative and Jacobian near a given state
+ *         for a specified species
+ *
+ * \param curr_time Current time
+ * \param state State array
+ * \param deriv Derivative array
+ * \param solver_data Void pointer to solver data
+ * \param f Pointer to derivative function
+ * \param i_dep Dependent species index
+ * \param i_ind Independent species index
+ * \param d_rate_d_ind Change in rate for dependent species with change in
+ *                         independent species
+ */
+void output_deriv_local_state(realtype curr_time, N_Vector state,
+                              N_Vector deriv, void *solver_data,
+                              int (*f)(realtype, N_Vector, N_Vector, void *),
+                              int i_dep, int i_ind, double d_rate_d_ind) {
+  realtype *deriv_data = NV_DATA_S(deriv);
+  realtype *state_data = NV_DATA_S(state);
+  realtype rate_orig = deriv_data[i_dep];
+  realtype ind_orig = state_data[i_ind];
+
+  SolverData *sd = (SolverData *)solver_data;
+  ModelData *md = &(sd->model_data);
+
+  FILE *f_output;
+  char file_name[MAX_FILE_NAME];
+  sprintf(file_name, "local_%d_i%d_d%d", file_name_prefix++, i_ind, i_dep);
+  f_output = fopen(file_name, "w");
+
+  // Output the loss of precision for all species
+  ((SolverData *)solver_data)->output_precision = 1;
+  if (f(curr_time, state, deriv, solver_data) != 0) {
+    printf("\nERROR: Derivative failure\n\n");
+  }
+  ((SolverData *)solver_data)->output_precision = 0;
+
+  // Output the current state
+  fprintf(f_output, "#time %1.30le", curr_time);
+  for (int i = 0; i < NV_LENGTH_S(state); ++i)
+    fprintf(f_output, " [%3d] %1.30le", i, state_data[i]);
+  fprintf(f_output, "\n");
+
+  // Vary the model state and recalculate the derivative directly and using
+  // the partial derivative provided
+  for (int i = 0; i < N_OUTPUT_STATES; ++i) {
+    double incr = -i * ind_orig * 1.0e-8 / N_OUTPUT_STATES;
+    state_data[i_ind] += incr;
+    if (state_data[i_ind] < 0.0) break;
+    if (f(curr_time, state, deriv, solver_data) != 0) {
+      printf("\nERROR: Derivative failure\n\n");
+      break;
+    }
+    fprintf(f_output, "%d %1.30le %1.30le %1.30le\n", -i, state_data[i_ind],
+            deriv_data[i_dep],
+            (state_data[i_ind] - ind_orig) * d_rate_d_ind + rate_orig);
+  }
+  state_data[i_ind] = ind_orig;
+  for (int i = 0; i < N_OUTPUT_STATES; ++i) {
+    double incr = i * ind_orig * 1.0e-8 / N_OUTPUT_STATES;
+    state_data[i_ind] += incr;
+    if (f(curr_time, state, deriv, solver_data) != 0) {
+      printf("\nERROR: Derivative failure\n\n");
+      break;
+    }
+    fprintf(f_output, "%d %1.30le %1.30le %1.30le\n", i, state_data[i_ind],
+            deriv_data[i_dep],
+            (state_data[i_ind] - ind_orig) * d_rate_d_ind + rate_orig);
+  }
+  state_data[i_ind] = ind_orig;
+  if (f(curr_time, state, deriv, solver_data) != 0) {
+    printf("\nERROR: Derivative failure\n\n");
+    EXIT_FAILURE;
+  }
+
+  fclose(f_output);
 }

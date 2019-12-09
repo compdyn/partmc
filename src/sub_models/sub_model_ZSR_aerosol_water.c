@@ -19,6 +19,9 @@
 
 #define SMALL_NUMBER_ 1.0e-30
 
+// Smoothing factor for max function
+#define ALPHA_ (-1000.0)
+
 #define ACT_TYPE_JACOBSON 1
 #define ACT_TYPE_EQSAM 2
 
@@ -223,17 +226,15 @@ void sub_model_ZSR_aerosol_water_calculate(int *sub_model_int_data,
 
     // Get the contribution from each ion pair
     for (int i_ion_pair = 0; i_ion_pair < NUM_ION_PAIR_; i_ion_pair++) {
-      double molality;
-      double j_aw, e_aw;
-      double conc;
+      double molality, conc;
 
       // Determine which type of activity calculation should be used
       switch (TYPE_(i_ion_pair)) {
         // Jacobson et al. (1996)
-        case ACT_TYPE_JACOBSON:
+        case ACT_TYPE_JACOBSON:;
 
           // Determine whether to use the minimum RH in the calculation
-          j_aw =
+          double j_aw =
               a_w > JACOB_low_RH_(i_ion_pair) ? a_w : JACOB_low_RH_(i_ion_pair);
 
           // Calculate the molality of the pure binary ion pair solution
@@ -251,17 +252,27 @@ void sub_model_ZSR_aerosol_water_calculate(int *sub_model_int_data,
               state[PHASE_ID_(i_phase) + JACOB_ANION_ID_(i_ion_pair)] /
               JACOB_NUM_ANION_(i_ion_pair) / JACOB_ANION_MW_(i_ion_pair) /
               1000.0;  // (umol/m3)
-          conc = (cation > anion ? anion : cation);
-          conc = (conc > 0.0 ? conc : 0.0);
+
+          // Ensure a smooth transition from cation<->anion saturation
+          // using the 'smooth maximum' function:
+          // conc = (cation * e^(alpha*cation) + anion * e^(alpha*anion))
+          //        -----------------------------------------------------
+          //               (e^(alpha*cation) + e^(alpha*anion))
+          // where alpha is a constant smoothing factor
+          // orig eq: conc = (cation > anion ? anion : cation);
+          double e_ac = exp(ALPHA_ * cation);
+          double e_aa = exp(ALPHA_ * anion);
+          conc = (cation * e_ac + anion * e_aa) / (e_ac + e_aa);
+
           *water += conc / molality * 1000.0;  // (ug/m3)
 
           break;
 
         // EQSAM (Metger et al., 2002)
-        case ACT_TYPE_EQSAM:
+        case ACT_TYPE_EQSAM:;
 
           // Keep the water activity within the range specified in EQSAM
-          e_aw = a_w > 0.99 ? 0.99 : a_w;
+          double e_aw = a_w > 0.99 ? 0.99 : a_w;
           e_aw = e_aw < 0.001 ? 0.001 : e_aw;
 
           // Calculate the molality of the ion pair
@@ -315,19 +326,17 @@ void sub_model_ZSR_aerosol_water_get_jac_contrib(int *sub_model_int_data,
     // Get the contribution from each ion pair
     for (int i_ion_pair = 0; i_ion_pair < NUM_ION_PAIR_; i_ion_pair++) {
       double molality, d_molal_d_wg;
-      double conc, d_conc_d_ion;
-      double e_aw, d_eaw_d_wg;
-      double j_aw, d_jaw_d_wg;
+      double conc;
 
       // Determine which type of activity calculation should be used
       switch (TYPE_(i_ion_pair)) {
         // Jacobson et al. (1996)
-        case ACT_TYPE_JACOBSON:
+        case ACT_TYPE_JACOBSON:;
 
           // Determine whether to use the minimum RH in the calculation
-          j_aw =
+          double j_aw =
               a_w > JACOB_low_RH_(i_ion_pair) ? a_w : JACOB_low_RH_(i_ion_pair);
-          d_jaw_d_wg = a_w > JACOB_low_RH_(i_ion_pair) ? d_aw_d_wg : 0.0;
+          double d_jaw_d_wg = a_w > JACOB_low_RH_(i_ion_pair) ? d_aw_d_wg : 0.0;
 
           // Calculate the molality of the pure binary ion pair solution
           molality = JACOB_Y_(i_ion_pair, 0);
@@ -353,34 +362,40 @@ void sub_model_ZSR_aerosol_water_get_jac_contrib(int *sub_model_int_data,
           double d_anion_d_A = 1.0 / JACOB_NUM_ANION_(i_ion_pair) /
                                JACOB_ANION_MW_(i_ion_pair) / 1000.0;
 
-          // Determine the limiting ion and set Jacobian elements
-          if (cation > anion) {
-            // Anion-limited conditions
-            if (anion > 0.0) {
-              J[JACOB_GAS_WATER_JAC_ID_(i_phase, i_ion_pair)] +=
-                  -2.0 * anion / pow(molality, 3) * 1000.0 * d_molal_d_wg;
-              J[JACOB_ANION_JAC_ID_(i_phase, i_ion_pair)] +=
-                  1.0 / pow(molality, 2) * 1000.0 * d_anion_d_A;
-            }
-          } else {
-            // Cation-limited conditions
-            if (cation > 0.0) {
-              J[JACOB_GAS_WATER_JAC_ID_(i_phase, i_ion_pair)] +=
-                  -2.0 * cation / pow(molality, 3) * 1000.0 * d_molal_d_wg;
-              J[JACOB_CATION_JAC_ID_(i_phase, i_ion_pair)] +=
-                  1.0 / pow(molality, 2) * 1000.0 * d_cation_d_C;
-            }
-          }
+          // Calculate the smooth-maximum ion pair concentration
+          // (see calculate() function for details)
+          double e_ac = exp(ALPHA_ * cation);
+          double e_aa = exp(ALPHA_ * anion);
+          conc = (cation * e_ac + anion * e_aa) / (e_ac + e_aa);
+          double denom = (e_ac + e_aa) * (e_ac + e_aa);
+          double d_conc_d_cation =
+              (e_ac * e_ac +
+               e_ac * e_aa *
+                   (1.0 - ALPHA_ * anion * cation + ALPHA_ * cation * cation)) /
+              denom;
+          double d_conc_d_anion =
+              (e_aa * e_aa +
+               e_ac * e_aa *
+                   (1.0 - ALPHA_ * anion * cation + ALPHA_ * anion * anion)) /
+              denom;
+
+          // Add the Jacobian contributions
+          J[JACOB_GAS_WATER_JAC_ID_(i_phase, i_ion_pair)] +=
+              -2.0 * conc / pow(molality, 3) * 1000.0 * d_molal_d_wg;
+          J[JACOB_ANION_JAC_ID_(i_phase, i_ion_pair)] +=
+              1.0 / pow(molality, 2) * 1000.0 * d_conc_d_anion * d_anion_d_A;
+          J[JACOB_CATION_JAC_ID_(i_phase, i_ion_pair)] +=
+              1.0 / pow(molality, 2) * 1000.0 * d_conc_d_cation * d_cation_d_C;
 
           break;
 
         // EQSAM (Metger et al., 2002)
-        case ACT_TYPE_EQSAM:
+        case ACT_TYPE_EQSAM:;
 
           // Keep the water activity within the range specified in EQSAM
-          e_aw = a_w > 0.99 ? 0.99 : a_w;
+          double e_aw = a_w > 0.99 ? 0.99 : a_w;
           e_aw = e_aw < 0.001 ? 0.001 : e_aw;
-          d_eaw_d_wg = a_w > 0.99 ? 0.0 : d_aw_d_wg;
+          double d_eaw_d_wg = a_w > 0.99 ? 0.0 : d_aw_d_wg;
           d_eaw_d_wg = a_w < 0.001 ? 0.0 : d_eaw_d_wg;
 
           // Calculate the molality of the ion pair
@@ -399,7 +414,7 @@ void sub_model_ZSR_aerosol_water_get_jac_contrib(int *sub_model_int_data,
           for (int i_ion = 0; i_ion < EQSAM_NUM_ION_(i_ion_pair); i_ion++) {
             conc = state[PHASE_ID_(i_phase) + EQSAM_ION_ID_(i_ion_pair, i_ion)];
             conc = (conc > 0.0 ? conc : 0.0);
-            d_conc_d_ion = (conc > 0.0 ? 1.0 : 0.0);
+            double d_conc_d_ion = (conc > 0.0 ? 1.0 : 0.0);
 
             // Gas-phase water contribution
             J[EQSAM_GAS_WATER_JAC_ID_(i_phase, i_ion_pair)] +=

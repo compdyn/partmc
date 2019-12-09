@@ -10,6 +10,7 @@
  */
 #include "time_derivative.h"
 #include <math.h>
+#include <stdio.h>
 
 int time_derivative_initialize(TimeDerivative *time_deriv, int num_spec) {
   if (num_spec <= 0) return 0;
@@ -37,7 +38,8 @@ void time_derivative_reset(TimeDerivative *time_deriv) {
   }
 }
 
-void time_derivative_output(TimeDerivative *time_deriv, double *dest_array) {
+void time_derivative_output(TimeDerivative *time_deriv, double *dest_array,
+                            int output_precision) {
   long double *prod_rate = time_deriv->production_rates;
   long double *loss_rate = time_deriv->loss_rates;
   long double rate, loss_est;
@@ -47,6 +49,7 @@ void time_derivative_output(TimeDerivative *time_deriv, double *dest_array) {
 #endif
 
   for (int i_spec = 0; i_spec < time_deriv->num_spec; ++i_spec) {
+    double prec_loss = 1.0;
     rate = *prod_rate - *loss_rate;
     if (rate == 0.0) {
       loss_est = 1.0;
@@ -55,9 +58,8 @@ void time_derivative_output(TimeDerivative *time_deriv, double *dest_array) {
       loss_est /= (loss_est + MAX_PRECISION_LOSS);
 #ifdef PMC_DEBUG
       if (*prod_rate != 0.0 && *loss_rate != 0.0) {
-        double prec_loss = *prod_rate > *loss_rate
-                               ? 1.0 - *loss_rate / *prod_rate
-                               : 1.0 - *prod_rate / *loss_rate;
+        prec_loss = *prod_rate > *loss_rate ? 1.0 - *loss_rate / *prod_rate
+                                            : 1.0 - *prod_rate / *loss_rate;
         if (prec_loss < time_deriv->last_max_loss_precision)
           time_deriv->last_max_loss_precision = prec_loss;
       }
@@ -66,6 +68,11 @@ void time_derivative_output(TimeDerivative *time_deriv, double *dest_array) {
     *(dest_array++) = loss_est * rate;
     ++prod_rate;
     ++loss_rate;
+#ifdef PMC_DEBUG
+    if (output_precision == 1) {
+      printf("\nspec %d prec_loss %le", i_spec, -log(prec_loss) / log(2.0));
+    }
+#endif
   }
 }
 

@@ -104,6 +104,9 @@ void *solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
 #endif
 #endif
 
+  // Do not output precision loss by default
+  sd->output_precision = 0;
+
   // Save the number of state variables per grid cell
   sd->model_data.n_per_cell_state_var = n_state_var;
 
@@ -899,7 +902,7 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
     rxn_calc_deriv(md, &(sd->time_deriv), (double)time_step);
 
     // Update the deriv array
-    time_derivative_output(&(sd->time_deriv), deriv_data);
+    time_derivative_output(&(sd->time_deriv), deriv_data, sd->output_precision);
 #else
       // Add contributions from reactions not implemented on GPU
       // FIXME need to fix this to use TimeDerivative
@@ -1177,6 +1180,8 @@ bool check_Jac(realtype t, N_Vector y, SUNMatrix J, N_Vector deriv,
                    i_spec, i_cell * md->n_per_cell_state_var + i_spec,
                    md->total_state[i_cell * md->n_per_cell_state_var + i_spec]);
         retval = false;
+        output_deriv_local_state(t, y, deriv, solver_data, &f, i_dep, i_ind,
+                                 SM_DATA_S(J)[i_elem]);
       }
     }
 #endif

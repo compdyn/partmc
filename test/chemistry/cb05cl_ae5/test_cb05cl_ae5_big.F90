@@ -45,6 +45,8 @@ program pmc_test_cb05cl_ae5
   integer(kind=i_kind), parameter :: KPP_FILE_UNIT = 11
   ! CAMP-chem output file unit
   integer(kind=i_kind), parameter :: CAMP_FILE_UNIT = 12
+  ! CAMP-chem output profiling stats file unit
+  integer(kind=i_kind), parameter :: CAMP_FILE_UNIT_PROFILE = 13
   ! Number of timesteps to integrate over
   integer(kind=i_kind), parameter :: NUM_TIME_STEPS = 1
   ! Number of cells
@@ -57,6 +59,18 @@ program pmc_test_cb05cl_ae5
   real(kind=dp), parameter :: SMALL_NUM = 1.0d-30
   ! Used to check availability of a solver
   type(camp_solver_data_t), pointer :: camp_solver_data
+
+  !Command arguments mapping
+  integer(kind=i_kind), parameter :: MAP_I_START = 1
+  integer(kind=i_kind), parameter :: MAP_J_START = 2
+  integer(kind=i_kind), parameter :: MAP_K_START = 3
+  integer(kind=i_kind), parameter :: MAP_T_START = 4
+  integer(kind=i_kind), parameter :: MAP_I_N = 5
+  integer(kind=i_kind), parameter :: MAP_J_N = 6
+  integer(kind=i_kind), parameter :: MAP_K_N = 7
+  integer(kind=i_kind), parameter :: MAP_T_N = 8
+
+  integer(kind=i_kind), parameter :: N_COMMAND_ARGUMENTS = 8
 
 #ifdef DEBUG
   integer(kind=i_kind), parameter :: DEBUG_UNIT = 13
@@ -205,22 +219,103 @@ contains
     integer :: i_start = 136
     integer :: j_start= 134
     integer :: k_start = 1
-    integer :: t_start = 25
+    integer :: t_start = 14
     integer :: i_n = 5 !20
     integer :: j_n = 5 !20
     integer :: k_n = 5 !48
-    integer :: t_n = 1 !48
+    integer :: t_n = 1 !1
     character(len=:), allocatable :: ncfile
 
+    character(len=:), allocatable :: out_path
+    character(len=500), allocatable :: lines(:)
+    character(len=200) :: line
+    integer(kind=i_kind) ::n_lines
+
+    call read_args(i_start, MAP_I_START)
+    call read_args(j_start, MAP_J_START)
+    call read_args(k_start, MAP_K_START)
+    call read_args(t_start, MAP_T_START)
+    call read_args(i_n, MAP_I_N)
+    call read_args(j_n, MAP_J_N)
+    call read_args(k_n, MAP_K_N)
+    call read_args(t_n, MAP_T_N)
+
     n_repeats = 1!2000
-    n_cells = i_n*j_n*k_n! 1
-    !n_cells = i_n*j_n*k_n
+    n_cells = i_n*j_n*k_n
 
     ncfile = '/esarchive/exp/monarch/a2bk/original_files/000/2016083012/MONARCH_d01_2016083012.nc'
 
-    KPP_ICNTRL( : ) = 0
+!#ifdef PMC_PROFILE
 
-    !todo: temps
+    !Write in a file this test configuration
+
+    out_path = "../../../../../profile_stats.csv"
+
+    !this open empty the file :(
+    !open(unit=CAMP_FILE_UNIT_PROFILE, file=out_path, status="replace", action="write")
+    !write(CAMP_FILE_UNIT_PROFILE,*) " using 1:"//trim(to_string(i_spec+1))//" title '"// &
+    !        trim(spec_names(i_spec)%string)//" (camp)'"
+
+    !open(CAMP_FILE_UNIT_PROFILE,file=out_path,action='write',position='append')!, pad="NO"
+    open(CAMP_FILE_UNIT_PROFILE,file=out_path, iostat=stat)
+    if (stat /= 0 ) stop "Error opening file profile_stats"
+    !backspace(unit=CAMP_FILE_UNIT_PROFILE)
+
+
+    !get first line-> add name at the end
+
+    !Fortran needs to copy the content in order to modify first line
+
+    n_lines = 0
+
+    do
+      read(CAMP_FILE_UNIT_PROFILE, '(A)', iostat=stat) line
+      if (stat /= 0) exit
+      n_lines = n_lines + 1
+    end do
+
+    allocate(lines(n_lines))
+
+    rewind(CAMP_FILE_UNIT_PROFILE)
+
+    do i = 1, n_lines
+      read(CAMP_FILE_UNIT_PROFILE, '(A)')lines(i)
+    end do
+
+    print*,trim(lines(1))
+
+    !we need only to modify first and last line
+
+    rewind(CAMP_FILE_UNIT_PROFILE)
+
+    write(CAMP_FILE_UNIT_PROFILE,*) trim(lines(1)), ",tsteps_test"
+
+    do i = 2, n_lines-1
+      write(CAMP_FILE_UNIT_PROFILE,*) trim(lines(i))
+    end do
+
+    write(CAMP_FILE_UNIT_PROFILE,*) trim(lines(n_lines)),",", trim(to_string(NUM_TIME_STEPS))
+
+
+    !write(CAMP_FILE_UNIT_PROFILE,"(a)", advance="no")"tsteps_test"
+
+
+
+    !get last line ->> add value at the end
+
+    !write(CAMP_FILE_UNIT_PROFILE,"(a)", advance="no")","//trim(to_string(k_n))//""
+
+    !write(CAMP_FILE_UNIT_PROFILE,*) "Input parameters:"
+    !write(CAMP_FILE_UNIT_PROFILE,*) "N cells" //trim(to_string(k_n))//""
+
+    deallocate(lines)
+
+    close(CAMP_FILE_UNIT_PROFILE)
+
+!#endif
+
+
+    KPP_ICNTRL( : ) = 0
 
     temperature = 272.5
     pressure = 0.8
@@ -567,6 +662,7 @@ contains
 
 
 
+
     !Netcdf n cells exp values
     !todo: move this part to a function called "set_input_from_netcdf"
     stat =  nf90_open &
@@ -598,21 +694,9 @@ contains
     !print *, "hola ",spec_names(i_spec)%string, working_array(1,1)
     !todo: change prints for tests that check the correct reading of netcdf variables
 
-    !Reorder correctly
-    !do i=1, i_n
-    !  do j=1, j_n
-    !    do k=1, k_n
+    !Set in state array
     do i_cell=0, n_cells-1
           do i_spec = 1, state_size_cell
-
-            !stat =  nf90_inq_varid(input_id,spec_names(i_spec)%string,varid)
-            !stat =  nf90_get_var(input_id,varid,conc_aux, &
-            !        start=(/i_start+i,j_start+j,k_start+k,t_start/),count=(/1,1,1,1/))
-
-            !Calculate cell id
-            !i_cell = (i-1)*(k_n*j_n) + (j-1)*(k_n) + (k-1)
-
-            !camp_state%state_var(i_cell*state_size_cell+i_spec) = conc_aux(1)!working_array(1)!camp_state%state_var(i_spec)
 
             !camp_state%state_var(i_cell*state_size_cell+i_spec) = camp_state%state_var(i_spec)
             camp_state%state_var(i_cell*state_size_cell+i_spec) = working_array(i_cell,i_spec)
@@ -620,9 +704,6 @@ contains
             !print*, i_cell, spec_names(i_spec)%string, camp_state%state_var(i_cell*state_size_cell+i_spec)
           end do
     end do
-    !    end do
-    !  end do
-    !end do
 
     do i_cell = 0, n_cells-1
       do j = 1, state_size_cell
@@ -630,22 +711,13 @@ contains
       end do
     end do
 
-    print *, "hola2 ", state_size_cell, size(chem_spec_data%get_spec_names())
-
-    call cpu_time(comp_end)
-    comp_camp = comp_camp + (comp_end-comp_start)
-    print*, comp_camp
-    comp_camp = 0.0
-
     !temps
     stat =  nf90_inq_varid(input_id,'T',varid)
     stat =  nf90_get_var(input_id,varid,temperatures, &
             start=(/i_start,j_start,k_start,t_start/),count=(/i_n,j_n,k_n,t_n/))
     !start=(/i_start,j_start,k_start,t_start/),count=(/1,1,1,1/))
 
-    !todo: press
-
-    !print *, "hola ",temperatures
+    !todo: pressure
 
     do i_cell = 1, n_cells
       !call camp_state%env_states(i_cell)%set_temperature_K( real( temperature, kind=dp ) )
@@ -654,6 +726,11 @@ contains
       call camp_state%env_states(i_cell)%set_pressure_Pa( pressure * const%air_std_press )
     end do
 
+    call cpu_time(comp_end)
+    comp_camp = comp_camp + (comp_end-comp_start)
+    print*, "netcdf reading time", comp_camp
+    comp_camp = 0.0
+
 
     stat = nf90_close(input_id)
     deallocate (working_array)
@@ -661,6 +738,9 @@ contains
     deallocate(temperatures)
     deallocate(pressures)
     deallocate(water_concs)
+
+
+
 
 
 
@@ -1355,6 +1435,27 @@ contains
 
   end subroutine compare_rates
 
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine read_args(input_int, id)
+
+    integer, intent(inout) :: input_int
+    integer, intent(in), optional :: id
+    integer :: status_code
+    character(len=50) :: arg
+
+    call get_command_argument(id, arg, status=status_code)
+
+    if (LEN_TRIM(arg) == 0) then
+#ifdef PMC_DEBUG
+      print*, "Argument ", id, " not present, setting default values..."
+#endif
+    else
+      arg = trim(arg)
+      read(arg,*)input_int
+    end if
+
+  end subroutine read_args
 
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

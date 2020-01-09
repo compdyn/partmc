@@ -124,7 +124,7 @@ void rxn_emission_update_env_state(ModelData *model_data, int *rxn_int_data,
  * this reaction.
  *
  * \param model_data Pointer to the model data, including the state array
- * \param time_deriv Pointer to the TimeDerivative object
+ * \param time_deriv TimeDerivative object
  * \param rxn_int_data Pointer to the reaction integer data
  * \param rxn_float_data Pointer to the reaction floating-point data
  * \param rxn_env_data Pointer to the environment-dependent parameters
@@ -132,7 +132,7 @@ void rxn_emission_update_env_state(ModelData *model_data, int *rxn_int_data,
  */
 #ifdef PMC_USE_SUNDIALS
 void rxn_emission_calc_deriv_contrib(ModelData *model_data,
-                                     TimeDerivative *time_deriv,
+                                     TimeDerivative time_deriv,
                                      int *rxn_int_data, double *rxn_float_data,
                                      double *rxn_env_data, realtype time_step) {
   int *int_data = rxn_int_data;
@@ -151,14 +151,14 @@ void rxn_emission_calc_deriv_contrib(ModelData *model_data,
 /** \brief Calculate contributions to the Jacobian from this reaction
  *
  * \param model_data Pointer to the model data
- * \param J Pointer to the sparse Jacobian matrix to add contributions to
+ * \param jac Reaction Jacobian
  * \param rxn_int_data Pointer to the reaction integer data
  * \param rxn_float_data Pointer to the reaction floating-point data
  * \param rxn_env_data Pointer to the environment-dependent parameters
  * \param time_step Current time step being calculated (s)
  */
 #ifdef PMC_USE_SUNDIALS
-void rxn_emission_calc_jac_contrib(ModelData *model_data, realtype *J,
+void rxn_emission_calc_jac_contrib(ModelData *model_data, Jacobian jac,
                                    int *rxn_int_data, double *rxn_float_data,
                                    double *rxn_env_data, realtype time_step) {
   int *int_data = rxn_int_data;

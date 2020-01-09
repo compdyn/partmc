@@ -12,6 +12,7 @@
 #define CAMP_COMMON_H
 
 #include <time.h>
+#include "Jacobian.h"
 #include "time_derivative.h"
 
 /* SUNDIALS Header files with a description of contents used */
@@ -81,6 +82,11 @@ typedef struct {
   SUNMatrix J_rxn;     // Matrix for Jacobian contributions from reactions
   SUNMatrix J_params;  // Matrix for Jacobian contributions from sub model
                        // parameter calculations
+  SUNMatrix J_solver;  // Solver Jacobian
+  N_Vector J_state;    // Last state used to calculate the Jacobian
+  N_Vector J_deriv;    // Last derivative used to calculate the Jacobian
+  N_Vector J_tmp;      // Working vector (size of J_state and J_deriv)
+  N_Vector J_tmp2;     // Working vector (size of J_state and J_deriv)
 #endif
   JacMap *jac_map;         // Array of Jacobian mapping elements
   JacMap *jac_map_params;  // Array of Jacobian mapping elements to account for
@@ -178,6 +184,8 @@ typedef struct {
   SUNLinearSolver ls;         // linear solver
   TimeDerivative time_deriv;  // CAMP derivative structure for use in
                               // calculating deriv
+  Jacobian jac;               // CAMP Jacobian structure for use in
+                              // calculating the Jacobian
   N_Vector deriv;      // used to calculate the derivative outside the solver
   SUNMatrix J;         // Jacobian matrix
   SUNMatrix J_guess;   // Jacobian matrix for improving guesses sent to linear
@@ -188,6 +196,8 @@ typedef struct {
   int Jac_eval_fails;  // Number of Jacobian evaluation failures
   int solver_flag;     // Last flag returned by a call to CVode()
   int output_precision;  // Flag indicating whether to output precision loss
+  int use_deriv_est;     // Flag indicating whether to use an estimated
+                         // derivative in the f() calculations
 #ifdef PMC_DEBUG
   booleantype debug_out;  // Output debugging information during solving
   booleantype eval_Jac;   // Evalute Jacobian data during solving

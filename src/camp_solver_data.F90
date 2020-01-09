@@ -453,13 +453,13 @@ contains
     !! Use parameters in pmc_rxn_data to specify phase:
     !! GAS_RXN, AERO_RXN, GAS_AERO_RXN
     integer(kind=i_kind), intent(in) :: rxn_phase
+    !> Number of cells to compute
+    integer(kind=i_kind), optional :: n_cells
 
     ! Variable types
     integer(kind=c_int), pointer :: var_type_c(:)
     ! Absolute tolerances
     real(kind=c_double), pointer :: abs_tol_c(:)
-    !> Number of cells to compute
-    integer(kind=i_kind), optional :: n_cells
     ! Indices for iteration
     integer(kind=i_kind) :: i_mech, i_rxn, i_aero_phase, i_aero_rep, &
             i_sub_model
@@ -512,9 +512,13 @@ contains
     integer(kind=c_int) :: n_sub_model_float_param
     ! Number of environment-dependent sub model parameters
     integer(kind=c_int) :: n_sub_model_env_param
+    ! Number of cells to compute
+    integer(kind=c_int) :: l_n_cells
 
-    if (.not.present(n_cells)) then
-      n_cells = 1
+    if (present(n_cells)) then
+      l_n_cells = n_cells
+    else
+      l_n_cells = 1
     end if
 
     ! Make sure the variable type and absolute tolerance arrays are of
@@ -609,7 +613,7 @@ contains
     ! Get a new solver object
     this%solver_c_ptr = solver_new( &
             int(size(var_type_c), kind=c_int), & ! Size of the state variable
-            n_cells,                           & ! # of cells computed at once
+            l_n_cells,                         & ! # of cells computed at once
             c_loc(var_type_c),                 & ! Variable types
             n_rxn,                             & ! # of reactions
             n_rxn_int_param,                   & ! # of rxn data int params

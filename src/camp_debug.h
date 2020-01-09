@@ -13,7 +13,7 @@ int file_name_prefix = 1;
 #define MAX_FILE_NAME 256
 
 // Number of points to advance state for output
-#define N_OUTPUT_STATES 10000
+#define N_OUTPUT_STATES 1000
 
 #ifdef PMC_DEBUG
 #define PMC_DEBUG_SPEC_ 0
@@ -203,9 +203,11 @@ void output_deriv_local_state(realtype curr_time, N_Vector state,
   // Vary the model state and recalculate the derivative directly and using
   // the partial derivative provided
   for (int i = 0; i < N_OUTPUT_STATES; ++i) {
-    double incr = -i * ind_orig * 1.0e-8 / N_OUTPUT_STATES;
-    state_data[i_ind] += incr;
+    double incr = i * (nextafter(ind_orig, 0.0) -
+                       ind_orig);  // -i * ind_orig * 1.0e-8 / N_OUTPUT_STATES;
+    state_data[i_ind] = nextafter(state_data[i_ind], 0.0);
     if (state_data[i_ind] < 0.0) break;
+
     if (f(curr_time, state, deriv, solver_data) != 0) {
       printf("\nERROR: Derivative failure\n\n");
       break;
@@ -216,8 +218,9 @@ void output_deriv_local_state(realtype curr_time, N_Vector state,
   }
   state_data[i_ind] = ind_orig;
   for (int i = 0; i < N_OUTPUT_STATES; ++i) {
-    double incr = i * ind_orig * 1.0e-8 / N_OUTPUT_STATES;
-    state_data[i_ind] += incr;
+    double incr = i * (nextafter(ind_orig, HUGE_VAL) -
+                       ind_orig);  // * 1.0e-8 / N_OUTPUT_STATES;
+    state_data[i_ind] = nextafter(state_data[i_ind], HUGE_VAL);
     if (f(curr_time, state, deriv, solver_data) != 0) {
       printf("\nERROR: Derivative failure\n\n");
       break;

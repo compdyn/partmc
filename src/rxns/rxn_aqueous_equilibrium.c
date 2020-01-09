@@ -260,7 +260,6 @@ void rxn_aqueous_equilibrium_update_env_state(ModelData *model_data,
  * \param rxn_int_data Pointer to the reaction integer data
  * \param rxn_float_data Pointer to the reaction floating point data
  * \param rxn_env_data Pointer to the environment-dependent parameters
- * \param i_phase Index for the aerosol phase being calculated
  * \param is_water_partial Flag indicating whether the calculation should
  *                         return the partial derivative d_rate/d_H2O
  * \param rate_forward [output] calculated forward rate
@@ -301,63 +300,11 @@ long double calc_standard_rate(int *rxn_int_data, double *rxn_float_data,
   }
 }
 
-/** \brief Calculate the overall per-particle reaction rate per
- **        mixing ratio of water [M_X/s*ug_H2O/m^3]
- *
- * This function attempts to reduce loss-of-significance errors in the
- * reaction rate calculation when rate_forward ~ rate_reverse.
- *
- * \param rxn_int_data Pointer to the reaction integer data
- * \param rxn_float_data Pointer to the reaction floating-point data
- * \param rxn_env_data Pointer to the environment-dependent parameters
- * \param state State array
- * \param i_phase Index for the aerosol phase being calcualted
- * \param is_water_partial Flag indicating whether the calculation should
- *                         return the partial derivative d_rate/d_H2O
- * \return reaction rate per mixing ratio of water [M_X/s*ug_H2O/m^3]
- */
-#ifdef PMC_USE_SUNDIALS
-long double calc_overall_rate(int *rxn_int_data, double *rxn_float_data,
-                              double *rxn_env_data, realtype *state,
-                              int i_phase, bool is_water_partial) {
-  int *int_data = rxn_int_data;
-  double *float_data = rxn_float_data;
-
-  long double rate_forward, rate_reverse;
-
-  // Set the concentrations for all species and the activity coefficient
-  for (int i_react = 0; i_react < NUM_REACT_; ++i_react)
-    REACT_CONC_(i_react) = state[REACT_(i_phase * NUM_REACT_ + i_react)];
-  for (int i_prod = 0; i_prod < NUM_PROD_; ++i_prod)
-    PROD_CONC_(i_prod) = state[PROD_(i_phase * NUM_PROD_ + i_prod)];
-  WATER_CONC_ = state[WATER_(i_phase)];
-  if (ACTIVITY_COEFF_(i_phase) >= 0) {
-    ACTIVITY_COEFF_VALUE_ = state[ACTIVITY_COEFF_(i_phase)];
-  } else {
-    ACTIVITY_COEFF_VALUE_ = 1.0;
-  }
-
-  // Get the rate using the standard calculation
-  long double std_rate =
-      calc_standard_rate(rxn_int_data, rxn_float_data, rxn_env_data,
-                         is_water_partial, &rate_forward, &rate_reverse);
-  if (std_rate == 0.0) return std_rate;
-
-  // Estimate the loss of precision near equilibrium
-  long double loss_est =
-      fabsl((rate_forward - rate_reverse) / (rate_forward + rate_reverse));
-  loss_est /= (loss_est + MAX_PRECISION_LOSS);
-
-  // Return adjusted rate
-  return loss_est * std_rate;
-}
-#endif
-
 /** \brief Calculate contributions to the time derivative \f$f(t,y)\f$ from
  * this reaction.
  *
  * \param model_data Pointer to the model data, including the state array
- * \param time_deriv Pointer to the TimeDerivative object
+ * \param time_deriv TimeDerivative object
  * \param rxn_int_data Pointer to the reaction integer data
  * \param rxn_float_data Pointer to the reaction floating-point data
  * \param rxn_env_data Pointer to the environment-dependent parameters
@@ -365,7 +312,7 @@ long double calc_overall_rate(int *rxn_int_data, double *rxn_float_data,
  */
 #ifdef PMC_USE_SUNDIALS
 void rxn_aqueous_equilibrium_calc_deriv_contrib(
-    ModelData *model_data, TimeDerivative *time_deriv, int *rxn_int_data,
+    ModelData *model_data, TimeDerivative time_deriv, int *rxn_int_data,
     double *rxn_float_data, double *rxn_env_data, double time_step) {
   int *int_data = rxn_int_data;
   double *float_data = rxn_float_data;
@@ -437,7 +384,7 @@ void rxn_aqueous_equilibrium_calc_deriv_contrib(
 /** \brief Calculate contributions to the Jacobian from this reaction
  *
  * \param model_data Pointer to the model data
- * \param J Pointer to the sparse Jacobian matrix to add contributions to
+ * \param jac Reaction Jacobian
  * \param rxn_int_data Pointer to the reaction integer data
  * \param rxn_float_data Pointer to the reaction floating-point data
  * \param rxn_env_data Pointer to the environment-dependent parameters
@@ -445,7 +392,7 @@ void rxn_aqueous_equilibrium_calc_deriv_contrib(
  */
 #ifdef PMC_USE_SUNDIALS
 void rxn_aqueous_equilibrium_calc_jac_contrib(ModelData *model_data,
-                                              realtype *J, int *rxn_int_data,
+                                              Jacobian jac, int *rxn_int_data,
                                               double *rxn_float_data,
                                               double *rxn_env_data,
                                               double time_step) {
@@ -479,10 +426,6 @@ void rxn_aqueous_equilibrium_calc_jac_contrib(ModelData *model_data,
     if (ACTIVITY_COEFF_(i_phase) >= 0)
       reverse_rate *= state[ACTIVITY_COEFF_(i_phase)];
 
-    // Calculate d_rate/d_H2O
-    long double rate = calc_overall_rate(rxn_int_data, rxn_float_data,
-                                         rxn_env_data, state, i_phase, true);
-
     // Add dependence on reactants for reactants and products (forward reaction)
     for (int i_react_ind = 0; i_react_ind < NUM_REACT_; i_react_ind++) {
       for (int i_react_dep = 0; i_react_dep < NUM_REACT_; i_react_dep++) {
@@ -490,19 +433,20 @@ void rxn_aqueous_equilibrium_calc_jac_contrib(ModelData *model_data,
           i_jac++;
           continue;
         }
-        J[JAC_ID_(i_jac++)] +=
-            (-forward_rate) /
-            state[REACT_(i_phase * NUM_REACT_ + i_react_ind)] /
-            MASS_FRAC_TO_M_(i_react_dep) * water;
+        jacobian_add_value(
+            jac, (unsigned int)JAC_ID_(i_jac++), JACOBIAN_LOSS,
+            forward_rate / state[REACT_(i_phase * NUM_REACT_ + i_react_ind)] /
+                MASS_FRAC_TO_M_(i_react_dep) * water);
       }
       for (int i_prod_dep = 0; i_prod_dep < NUM_PROD_; i_prod_dep++) {
         if (JAC_ID_(i_jac) < 0 || forward_rate == 0.0) {
           i_jac++;
           continue;
         }
-        J[JAC_ID_(i_jac++)] +=
-            (forward_rate) / state[REACT_(i_phase * NUM_REACT_ + i_react_ind)] /
-            MASS_FRAC_TO_M_(NUM_REACT_ + i_prod_dep) * water;
+        jacobian_add_value(
+            jac, (unsigned int)JAC_ID_(i_jac++), JACOBIAN_PRODUCTION,
+            forward_rate / state[REACT_(i_phase * NUM_REACT_ + i_react_ind)] /
+                MASS_FRAC_TO_M_(NUM_REACT_ + i_prod_dep) * water);
       }
     }
 
@@ -513,18 +457,20 @@ void rxn_aqueous_equilibrium_calc_jac_contrib(ModelData *model_data,
           i_jac++;
           continue;
         }
-        J[JAC_ID_(i_jac++)] += (reverse_rate) /
-                               state[PROD_(i_phase * NUM_PROD_ + i_prod_ind)] /
-                               MASS_FRAC_TO_M_(i_react_dep) * water;
+        jacobian_add_value(
+            jac, (unsigned int)JAC_ID_(i_jac++), JACOBIAN_PRODUCTION,
+            reverse_rate / state[PROD_(i_phase * NUM_PROD_ + i_prod_ind)] /
+                MASS_FRAC_TO_M_(i_react_dep) * water);
       }
       for (int i_prod_dep = 0; i_prod_dep < NUM_PROD_; i_prod_dep++) {
         if (JAC_ID_(i_jac) < 0 || reverse_rate == 0.0) {
           i_jac++;
           continue;
         }
-        J[JAC_ID_(i_jac++)] += (-reverse_rate) /
-                               state[PROD_(i_phase * NUM_PROD_ + i_prod_ind)] /
-                               MASS_FRAC_TO_M_(NUM_REACT_ + i_prod_dep) * water;
+        jacobian_add_value(
+            jac, (unsigned int)JAC_ID_(i_jac++), JACOBIAN_LOSS,
+            reverse_rate / state[PROD_(i_phase * NUM_PROD_ + i_prod_ind)] /
+                MASS_FRAC_TO_M_(NUM_REACT_ + i_prod_dep) * water);
       }
     }
 
@@ -534,15 +480,26 @@ void rxn_aqueous_equilibrium_calc_jac_contrib(ModelData *model_data,
         i_jac++;
         continue;
       }
-      J[JAC_ID_(i_jac++)] += rate / MASS_FRAC_TO_M_(i_react_dep) / water;
+      jacobian_add_value(
+          jac, (unsigned int)JAC_ID_(i_jac), JACOBIAN_LOSS,
+          -forward_rate / MASS_FRAC_TO_M_(i_react_dep) * (NUM_REACT_ - 1));
+      jacobian_add_value(
+          jac, (unsigned int)JAC_ID_(i_jac++), JACOBIAN_PRODUCTION,
+          -reverse_rate / MASS_FRAC_TO_M_(i_react_dep) * (NUM_PROD_ - 1));
     }
     for (int i_prod_dep = 0; i_prod_dep < NUM_PROD_; i_prod_dep++) {
       if (JAC_ID_(i_jac) < 0) {
         i_jac++;
         continue;
       }
-      J[JAC_ID_(i_jac++)] -=
-          rate / MASS_FRAC_TO_M_(NUM_REACT_ + i_prod_dep) / water;
+      jacobian_add_value(jac, (unsigned int)JAC_ID_(i_jac), JACOBIAN_PRODUCTION,
+                         -forward_rate /
+                             MASS_FRAC_TO_M_(NUM_REACT_ + i_prod_dep) *
+                             (NUM_REACT_ - 1));
+      jacobian_add_value(jac, (unsigned int)JAC_ID_(i_jac++), JACOBIAN_LOSS,
+                         -reverse_rate /
+                             MASS_FRAC_TO_M_(NUM_REACT_ + i_prod_dep) *
+                             (NUM_PROD_ - 1));
     }
 
     // Add dependence on activity coefficients for reactants and products
@@ -555,16 +512,19 @@ void rxn_aqueous_equilibrium_calc_jac_contrib(ModelData *model_data,
         i_jac++;
         continue;
       }
-      J[JAC_ID_(i_jac++)] += reverse_rate / state[ACTIVITY_COEFF_(i_phase)] /
-                             MASS_FRAC_TO_M_(i_react_dep) * water;
+      jacobian_add_value(jac, (unsigned int)JAC_ID_(i_jac++),
+                         JACOBIAN_PRODUCTION,
+                         reverse_rate / state[ACTIVITY_COEFF_(i_phase)] /
+                             MASS_FRAC_TO_M_(i_react_dep) * water);
     }
     for (int i_prod_dep = 0; i_prod_dep < NUM_PROD_; i_prod_dep++) {
       if (JAC_ID_(i_jac) < 0) {
         i_jac++;
         continue;
       }
-      J[JAC_ID_(i_jac++)] -= reverse_rate / state[ACTIVITY_COEFF_(i_phase)] /
-                             MASS_FRAC_TO_M_(NUM_REACT_ + i_prod_dep) * water;
+      jacobian_add_value(jac, (unsigned int)JAC_ID_(i_jac++), JACOBIAN_LOSS,
+                         reverse_rate / state[ACTIVITY_COEFF_(i_phase)] /
+                             MASS_FRAC_TO_M_(NUM_REACT_ + i_prod_dep) * water);
     }
   }
 

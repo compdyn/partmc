@@ -33,7 +33,7 @@
 // Default solver initial time step relative to total integration time
 #define DEFAULT_TIME_STEP 1.0
 // State advancement factor for Jacobian element evaluation
-#define JAC_CHECK_ADV 1.0E-1
+#define JAC_CHECK_ADV 1.0E-8
 // Relative tolerance for Jacobian element evaluation against GSL absolute
 // errors
 #define JAC_CHECK_GSL_REL_TOL 1.0e-4
@@ -106,6 +106,9 @@ void *solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
 
   // Do not output precision loss by default
   sd->output_precision = 0;
+
+  // Use the Jacobian estimated derivative in f() by default
+  sd->use_deriv_est = 1;
 
   // Save the number of state variables per grid cell
   sd->model_data.n_per_cell_state_var = n_state_var;
@@ -702,6 +705,8 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
  * \param Jac_evals_total       Total calls to `Jac()`
  * \param RHS_time__s           Compute time for calls to f() [s]
  * \param Jac_time__s           Compute time for calls to Jac() [s]
+ * \param max_loss_precision    Indicators of loss of precision in derivative
+ *                              calculation for each species
  */
 void solver_get_statistics(void *solver_data, int *solver_flag, int *num_steps,
                            int *RHS_evals, int *LS_setups,
@@ -833,6 +838,9 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
   // Get a pointer to the derivative data
   double *deriv_data = N_VGetArrayPointer(deriv);
 
+  // Get a pointer to the Jacobian estimated derivative data
+  double *jac_deriv_data = N_VGetArrayPointer(md->J_tmp);
+
   // Get the grid cell dimensions
   int n_cells = md->n_cells;
   int n_state_var = md->n_per_cell_state_var;
@@ -850,6 +858,11 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
   // concentrations.
   if (camp_solver_update_model_state(y, md, ZERO, ZERO) != CAMP_SOLVER_SUCCESS)
     return 1;
+
+  // Get the Jacobian-estimated derivative
+  N_VLinearSum(1.0, y, -1.0, md->J_state, md->J_tmp);
+  SUNMatMatvec(md->J_solver, md->J_tmp, md->J_tmp2);
+  N_VLinearSum(1.0, md->J_deriv, 1.0, md->J_tmp2, md->J_tmp);
 
 #ifdef PMC_DEBUG
   // Measure calc_deriv time execution
@@ -896,28 +909,34 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
 
 #ifndef PMC_USE_GPU
     // Reset the TimeDerivative
-    time_derivative_reset(&(sd->time_deriv));
+    time_derivative_reset(sd->time_deriv);
 
     // Calculate the time derivative f(t,y)
-    rxn_calc_deriv(md, &(sd->time_deriv), (double)time_step);
+    rxn_calc_deriv(md, sd->time_deriv, (double)time_step);
 
     // Update the deriv array
-    time_derivative_output(&(sd->time_deriv), deriv_data, sd->output_precision);
+    if (sd->use_deriv_est == 1) {
+      time_derivative_output(sd->time_deriv, deriv_data, jac_deriv_data,
+                             sd->output_precision);
+    } else {
+      time_derivative_output(sd->time_deriv, deriv_data, NULL,
+                             sd->output_precision);
+    }
 #else
       // Add contributions from reactions not implemented on GPU
       // FIXME need to fix this to use TimeDerivative
-      rxn_calc_deriv_specific_types(md, &(sd->time_deriv), (double)time_step);
+      rxn_calc_deriv_specific_types(md, sd->time_deriv, (double)time_step);
 #endif
 
 #ifdef PMC_DEBUG
     clock_t end2 = clock();
     sd->timeDeriv += (end2 - start2);
-    sd->max_loss_precision =
-        time_derivative_max_loss_precision(&(sd->time_deriv));
+    sd->max_loss_precision = time_derivative_max_loss_precision(sd->time_deriv);
 #endif
 
     // Advance the derivative for the next cell
     deriv_data += n_dep_var;
+    jac_deriv_data += n_dep_var;
   }
 
   // Return 0 if success
@@ -967,6 +986,16 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
 
   // !!!! Do not use tmp2 - it is the same as y !!!! //
   // FIXME Find out why cvode is sending tmp2 as y
+
+  // Calculate the the derivative for the current state y without
+  // the estimated derivative from the last Jacobian calculation
+  sd->use_deriv_est = 0;
+  if (f(t, y, deriv, solver_data) != 0) {
+    printf("\n Derivative calculation failed.\n");
+    sd->use_deriv_est = 1;
+    return false;
+  }
+  sd->use_deriv_est = 1;
 
   // Update the state array with the current dependent variable values
   // Signal a recoverable error (positive return value) for negative
@@ -1021,7 +1050,7 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
     // Reset the sub-model and reaction Jacobians
     for (int i = 0; i < SM_NNZ_S(md->J_params); ++i)
       SM_DATA_S(md->J_params)[i] = 0.0;
-    for (int i = 0; i < SM_NNZ_S(md->J_rxn); ++i) SM_DATA_S(md->J_rxn)[i] = 0.0;
+    jacobian_reset(sd->jac);
 
     // Update the aerosol representations
     aero_rep_update_state(md);
@@ -1036,14 +1065,11 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
 #endif
 
 #ifndef PMC_USE_GPU
-
     // Calculate the reaction Jacobian
-    rxn_calc_jac(md, J_rxn_data, time_step);
-    PMC_DEBUG_JAC(md->J_rxn, "reaction Jacobian");
-
+    rxn_calc_jac(md, sd->jac, time_step);
 #else
       // Add contributions from reactions not implemented on GPU
-      rxn_calc_jac_specific_types(md, J_rxn_data, time_step);
+      rxn_calc_jac_specific_types(md, sd->jac, time_step);
 #endif
 
 // rxn_calc_jac_specific_types(md, J_rxn_data, time_step);
@@ -1051,6 +1077,10 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
     clock_t end = clock();
     sd->timeJac += (end - start);
 #endif
+
+    // Output the Jacobian to the SUNDIALS J_rxn
+    jacobian_output(sd->jac, SM_DATA_S(md->J_rxn));
+    PMC_DEBUG_JAC(md->J_rxn, "reaction Jacobian");
 
     // Set the solver Jacobian using the reaction and sub-model Jacobians
     JacMap *jac_map = md->jac_map;
@@ -1062,6 +1092,12 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
           SM_DATA_S(md->J_params)[jac_map[i_map].param_id];
     PMC_DEBUG_JAC(J, "solver Jacobian");
   }
+
+  // Save the Jacobian for use with derivative calculations
+  for (int i_elem = 0; i_elem < SM_NNZ_S(J); ++i_elem)
+    SM_DATA_S(md->J_solver)[i_elem] = SM_DATA_S(J)[i_elem];
+  N_VScale(1.0, y, md->J_state);
+  N_VScale(1.0, deriv, md->J_deriv);
 
 #ifdef PMC_DEBUG
   // Evaluate the Jacobian if flagged to do so
@@ -1414,6 +1450,15 @@ SUNMatrix get_jac_init(SolverData *solver_data) {
   solver_data->model_data.J_rxn =
       SUNSparseMatrix(n_state_var, n_state_var, n_jac_elem_rxn, CSC_MAT);
 
+  // Initialize the Jacobian for reactions
+  // TODO: Adapt the Jacobian structure for general use to avoid using
+  // SUNSparseMatrix outside of the solver interface
+  if (jacobian_initialize(&(solver_data->jac), (unsigned int)n_state_var,
+                          jac_struct_rxn) != 1) {
+    printf("\n\nERROR allocating Jacobian structure\n\n");
+    EXIT_FAILURE;
+  }
+
   // Set the column and row indices
   int i_col = 0, i_elem = 0;
   for (int i = 0; i < n_state_var; i++) {
@@ -1594,6 +1639,8 @@ SUNMatrix get_jac_init(SolverData *solver_data) {
   // Initialize the sparse matrix (for full state array)
   SUNMatrix M = SUNSparseMatrix(n_dep_var_total, n_dep_var_total,
                                 n_jac_elem_solver * n_cells, CSC_MAT);
+  solver_data->model_data.J_solver = SUNSparseMatrix(
+      n_dep_var_total, n_dep_var_total, n_jac_elem_solver * n_cells, CSC_MAT);
 
   // Set the column and row indices
   i_col = 0, i_elem = 0;
@@ -1601,11 +1648,15 @@ SUNMatrix get_jac_init(SolverData *solver_data) {
     for (int i = 0; i < n_state_var; i++) {
       if (solver_data->model_data.var_type[i] != CHEM_SPEC_VARIABLE) continue;
       (SM_INDEXPTRS_S(M))[i_col] = i_elem;
+      (SM_INDEXPTRS_S(solver_data->model_data.J_solver))[i_col] = i_elem;
       for (int j = 0, i_row = 0; j < n_state_var; j++) {
         if (solver_data->model_data.var_type[j] != CHEM_SPEC_VARIABLE) continue;
         if (jac_struct_solver[j][i] == true) {
           (SM_DATA_S(M))[i_elem] = (realtype)0.0;
-          (SM_INDEXVALS_S(M))[i_elem++] = i_row + n_dep_var * i_cell;
+          (SM_DATA_S(solver_data->model_data.J_solver))[i_elem] = (realtype)0.0;
+          (SM_INDEXVALS_S(M))[i_elem] = i_row + n_dep_var * i_cell;
+          (SM_INDEXVALS_S(solver_data->model_data.J_solver))[i_elem++] =
+              i_row + n_dep_var * i_cell;
         }
         i_row++;
       }
@@ -1613,6 +1664,7 @@ SUNMatrix get_jac_init(SolverData *solver_data) {
     }
   }
   (SM_INDEXPTRS_S(M))[i_col] = i_elem;
+  (SM_INDEXPTRS_S(solver_data->model_data.J_solver))[i_col] = i_elem;
 
   // Build the set of Jacobian ids
   int **jac_ids_solver = (int **)jac_struct_solver;
@@ -1676,6 +1728,17 @@ SUNMatrix get_jac_init(SolverData *solver_data) {
     printf("[ERROR-340355266] Internal error");
     EXIT_FAILURE;
   }
+
+  // Create vectors to store Jacobian state and derivative data
+  solver_data->model_data.J_state = N_VClone(solver_data->y);
+  solver_data->model_data.J_deriv = N_VClone(solver_data->y);
+  solver_data->model_data.J_tmp = N_VClone(solver_data->y);
+  solver_data->model_data.J_tmp2 = N_VClone(solver_data->y);
+
+  // Initialize the Jacobian state and derivative arrays to zero
+  // for use before the first call to Jac()
+  N_VConst(0.0, solver_data->model_data.J_state);
+  N_VConst(0.0, solver_data->model_data.J_deriv);
 
   // Free the memory used
   for (int i_spec = 0; i_spec < n_state_var; i_spec++)
@@ -1821,7 +1884,10 @@ void solver_free(void *solver_data) {
   N_VDestroy(sd->abs_tol_nv);
 
   // free the TimeDerivative
-  time_derivative_free(&(sd->time_deriv));
+  time_derivative_free(sd->time_deriv);
+
+  // free the Jacobian
+  jacobian_free(sd->jac);
 
   // free the derivative vectors
   N_VDestroy(sd->y);
@@ -1900,6 +1966,11 @@ void model_free(ModelData model_data) {
   SUNMatDestroy(model_data.J_init);
   SUNMatDestroy(model_data.J_rxn);
   SUNMatDestroy(model_data.J_params);
+  SUNMatDestroy(model_data.J_solver);
+  N_VDestroy(model_data.J_state);
+  N_VDestroy(model_data.J_deriv);
+  N_VDestroy(model_data.J_tmp);
+  N_VDestroy(model_data.J_tmp2);
 #endif
   free(model_data.jac_map);
   free(model_data.jac_map_params);

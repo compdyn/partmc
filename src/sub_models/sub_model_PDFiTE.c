@@ -167,7 +167,7 @@ void sub_model_PDFiTE_calculate(int *sub_model_int_data,
   double *float_data = sub_model_float_data;
 
   // Calculate the water activity---i.e., relative humidity (0-1)
-  double a_w = PPM_TO_RH_ * state[GAS_WATER_ID_];
+  long double a_w = PPM_TO_RH_ * state[GAS_WATER_ID_];
 
   // Keep a_w within 0-1
   // TODO Filter =( try to remove
@@ -177,7 +177,7 @@ void sub_model_PDFiTE_calculate(int *sub_model_int_data,
   // Calculate ion_pair activity coefficients in each phase
   for (int i_phase = 0; i_phase < NUM_PHASE_; i_phase++) {
     // Initialize omega' (defined below)
-    double omega_prime = 0.0;
+    long double omega_prime = 0.0;
 
     // Calculate the number of moles of each ion and omega' for the phase
     for (int i_ion_pair = 0; i_ion_pair < NUM_ION_PAIRS_; i_ion_pair++) {
@@ -209,12 +209,13 @@ void sub_model_PDFiTE_calculate(int *sub_model_int_data,
 
       // Calculate omega for this ion_pair
       // (eq. 15 in \cite{Topping2009})
-      double omega = omega_prime -
-                     2.0 * (NUM_CATION_(i_ion_pair) + NUM_ANION_(i_ion_pair)) *
-                         CATION_N_(i_ion_pair) * ANION_N_(i_ion_pair);
+      long double omega =
+          omega_prime - 2.0 *
+                            (NUM_CATION_(i_ion_pair) + NUM_ANION_(i_ion_pair)) *
+                            CATION_N_(i_ion_pair) * ANION_N_(i_ion_pair);
 
       // Initialize ln(gamma)
-      double ln_gamma = 0.0;
+      long double ln_gamma = 0.0;
 
       // Add contributions from each interacting ion_pair
       for (int i_inter = 0; i_inter < NUM_INTER_(i_ion_pair); i_inter++) {
@@ -230,7 +231,7 @@ void sub_model_PDFiTE_calculate(int *sub_model_int_data,
         int j_ion_pair = INTER_SPEC_ID_(i_ion_pair, i_inter);
 
         // Calculate ln_gamma_inter
-        double ln_gamma_inter = 0.0;
+        long double ln_gamma_inter = 0.0;
         for (int i_B = 0; i_B < NUM_B_(i_ion_pair, i_inter); i_B++) {
           ln_gamma_inter += B_Z_(i_ion_pair, i_inter, i_B) * pow(a_w, i_B);
         }

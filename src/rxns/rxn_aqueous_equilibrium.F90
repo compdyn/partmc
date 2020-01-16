@@ -246,6 +246,10 @@ contains
 
     end do
 
+    ! Make sure there is at least one phase present
+    call assert_msg(925748425, num_phase.gt.0, &
+                    "No aerosol phase '"//phase_name//"' present.")
+
     ! Allocate space in the condensed data arrays
     allocate(this%condensed_data_int(NUM_INT_PROP_ + &
             num_phase * (num_spec_per_phase * (num_spec_per_phase + 4) + 2)))

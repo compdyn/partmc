@@ -258,7 +258,7 @@
       },
       {
         "type" : "AQUEOUS_EQUILIBRIUM",
-        "aerosol phase" : "aqueous sulfate",
+        "aerosol phase" : "aqueous aerosol",
         "aerosol-phase water" : "H2O_aq",
         "A" : 1.8e-16,
         "C" : -6800.0,
@@ -273,7 +273,7 @@
       },
       {
         "type" : "AQUEOUS_EQUILIBRIUM",
-        "aerosol phase" : "aqueous sulfate",
+        "aerosol phase" : "aqueous aerosol",
         "aerosol-phase water" : "H2O_aq",
         "A" : 3.17e-7,
         "C" : -560.0,
@@ -290,7 +290,7 @@
       },
       {
         "type" : "AQUEOUS_EQUILIBRIUM",
-        "aerosol phase" : "aqueous sulfate",
+        "aerosol phase" : "aqueous aerosol",
         "aerosol-phase water" : "H2O_aq",
         "A" : 22.0,
         "C" : 1800.0,

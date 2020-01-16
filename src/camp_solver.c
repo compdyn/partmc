@@ -33,7 +33,7 @@
 // Default solver initial time step relative to total integration time
 #define DEFAULT_TIME_STEP 1.0
 // State advancement factor for Jacobian element evaluation
-#define JAC_CHECK_ADV 1.0E-8
+#define JAC_CHECK_ADV 1.0E-15
 // Relative tolerance for Jacobian element evaluation against GSL absolute
 // errors
 #define JAC_CHECK_GSL_REL_TOL 1.0e-4
@@ -42,7 +42,7 @@
 // Set MAX_TIMESTEP_WARNINGS to a negative number to prevent output
 #define MAX_TIMESTEP_WARNINGS -1
 // Maximum number of steps in discreet addition guess helper
-#define GUESS_MAX_ITER 10
+#define GUESS_MAX_ITER 5
 
 // Status codes for calls to camp_solver functions
 #define CAMP_SOLVER_SUCCESS 0
@@ -1167,14 +1167,12 @@ bool check_Jac(realtype t, N_Vector y, SUNMatrix J, N_Vector deriv,
     // Reset tmp to the initial state
     N_VScale(ONE, y, tmp);
 
-    // Guess the initial step size
+    // Save the independent species concentration and index
     double x = d_state[i_ind];
-    double h = x * JAC_CHECK_ADV;
+    gsl_param.ind_var = i_ind;
 
     // Skip small concentrations
-    if (h < TINY) continue;
-
-    gsl_param.ind_var = i_ind;
+    if (x < SMALL) continue;
 
     // Do the numerical differentiation for each potentially non-zero
     // Jacobian element
@@ -1187,13 +1185,16 @@ bool check_Jac(realtype t, N_Vector y, SUNMatrix J, N_Vector deriv,
 
       gsl_param.dep_var = i_dep;
 
+      // Set the intial step size
+      double h = (1.0 + 1.0 / fabs(SM_DATA_S(J)[i_elem])) * x * JAC_CHECK_ADV;
+
       // Get the partial derivative d_fy/dx
       if (gsl_deriv_forward(&gsl_func, x, h, &partial_deriv, &abs_err) == 1) {
         printf("\nERROR in numerical differentiation for J[%d][%d]", i_ind,
                i_dep);
       }
 
-      double abs_tol = fabs(abs_err);
+      double abs_tol = 1.2 * fabs(abs_err);
       abs_tol =
           abs_tol > JAC_CHECK_GSL_ABS_TOL ? abs_tol : JAC_CHECK_GSL_ABS_TOL;
 
@@ -1721,8 +1722,8 @@ SUNMatrix get_jac_init(SolverData *solver_data) {
 
   SolverData *sd = solver_data;
   PMC_DEBUG_JAC_STRUCT(sd->model_data.J_params, "Param struct");
-  PMC_DEBUG_JAC_STRUCT(sd->model_data.J_rxn, "Param struct");
-  PMC_DEBUG_JAC_STRUCT(M, "Param struct");
+  PMC_DEBUG_JAC_STRUCT(sd->model_data.J_rxn, "Reaction struct");
+  PMC_DEBUG_JAC_STRUCT(M, "Solver struct");
 
   if (i_mapped_value != n_mapped_values) {
     printf("[ERROR-340355266] Internal error");

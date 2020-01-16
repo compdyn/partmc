@@ -404,21 +404,21 @@ void rxn_aqueous_equilibrium_calc_jac_contrib(ModelData *model_data,
   // Calculate Jacobian contributions for each aerosol phase
   for (int i_phase = 0, i_jac = 0; i_phase < NUM_AERO_PHASE_; i_phase++) {
     // If not aerosol water is present, no reaction occurs
-    realtype water = state[WATER_(i_phase)];
+    long double water = state[WATER_(i_phase)];
     if (water < MIN_WATER_ * SMALL_WATER_CONC_(i_phase)) {
       i_jac += (NUM_REACT_ + NUM_PROD_) * (NUM_REACT_ + NUM_PROD_ + 2);
       continue;
     }
 
     // Calculate the forward rate (M/s)
-    realtype forward_rate = RATE_CONST_FORWARD_;
+    long double forward_rate = RATE_CONST_FORWARD_;
     for (int i_react = 0; i_react < NUM_REACT_; i_react++) {
       forward_rate *= state[REACT_(i_phase * NUM_REACT_ + i_react)] *
                       MASS_FRAC_TO_M_(i_react) / water;
     }
 
     // Calculate the reverse rate (M/s)
-    realtype reverse_rate = RATE_CONST_REVERSE_;
+    long double reverse_rate = RATE_CONST_REVERSE_;
     for (int i_prod = 0; i_prod < NUM_PROD_; i_prod++) {
       reverse_rate *= state[PROD_(i_phase * NUM_PROD_ + i_prod)] *
                       MASS_FRAC_TO_M_(NUM_REACT_ + i_prod) / water;

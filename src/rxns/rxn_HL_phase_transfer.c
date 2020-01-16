@@ -239,60 +239,6 @@ void rxn_HL_phase_transfer_update_env_state(ModelData *model_data,
   return;
 }
 
-/** \brief Calculate the overall per-particle reaction rate ([ppm]/s)
- *
- * This function is called by the deriv and Jac functions to get the overall
- * reaction rate on a per-particle basis, trying to avoid floating-point
- * subtraction errors.
- *
- * \param rxn_int_data Pointer to the reaction integer data
- * \param rxn_float_data Pointer to the reaction floating-point data
- * \param rxn_env_data Pointer to the environment-dependent parameters
- * \param state State array
- * \param cond_rc Condensation rate constant ([ppm]^(-n_react+1)s^-1)
- * \param evap_rc Evaporation rate constant ([ppm]^(-n_prod+1)s^-1)
- * \param i_phase Index for the aerosol phase being calculated
- */
-#ifdef PMC_USE_SUNDIALS
-long double rxn_HL_phase_transfer_calc_overall_rate(
-    int *rxn_int_data, double *rxn_float_data, double *rxn_env_data,
-    realtype *state, realtype cond_rc, realtype evap_rc, int i_phase) {
-  int *int_data = rxn_int_data;
-  double *float_data = rxn_float_data;
-
-  // Calculate the overall rate.
-  // These equations are set up to try to avoid loss of accuracy from
-  // subtracting two almost-equal numbers when rate_cond ~ rate_evap.
-  // When modifying these calculations, be sure to use the Jacobian checker
-  // during unit testing.
-  long double rate = ZERO;
-  long double aero_conc = state[AERO_SPEC_(i_phase)];
-  long double aero_water = state[AERO_WATER_(i_phase)];
-  long double gas_conc = state[GAS_SPEC_];
-  long double cond_rate = cond_rc * gas_conc;
-  long double evap_rate = evap_rc * aero_conc / aero_water;
-
-  rate = evap_rate - cond_rate;
-
-  long double loss_est = fabsl(rate / (evap_rate + cond_rate));
-  loss_est /= (loss_est + MAX_PRECISION_LOSS);
-
-  return loss_est * rate;
-#if 0
-  if (l_evap_rc == ZERO || l_cond_rc == ZERO) {
-    rate = l_evap_rc * aero_conc / aero_water - l_cond_rc * gas_conc;
-  } else if (l_evap_rc * aero_conc / aero_water < l_cond_rc * gas_conc) {
-    realtype gas_eq = aero_conc * (l_evap_rc / l_cond_rc);
-    rate = (gas_eq - gas_conc * aero_water) * (l_cond_rc / aero_water);
-  } else {
-    realtype aero_eq = gas_conc * aero_water * (l_cond_rc / l_evap_rc);
-    rate = (aero_conc - aero_eq) * (l_evap_rc / aero_water);
-  }
-  return (realtype)rate;
-#endif
-}
-#endif
-
 /** \brief Calculate contributions to the time derivative \f$f(t,y)\f$ from
  * this reaction.
  *
@@ -456,9 +402,9 @@ void rxn_HL_phase_transfer_calc_jac_contrib(ModelData *model_data, Jacobian jac,
     realtype evap_rate = cond_rate / (EQUIL_CONST_);
 
     // Get the overall rate for certain Jac elements
-    long double rate = rxn_HL_phase_transfer_calc_overall_rate(
-        rxn_int_data, rxn_float_data, rxn_env_data, state, cond_rate, evap_rate,
-        i_phase);
+    long double rate =
+        evap_rate * state[AERO_SPEC_(i_phase)] / state[AERO_WATER_(i_phase)] -
+        cond_rate * state[GAS_SPEC_];
 
     // Update evap rate to be for aerosol species concentrations
     evap_rate /= (UGM3_TO_PPM_ * state[AERO_WATER_(i_phase)]);

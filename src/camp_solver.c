@@ -16,6 +16,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
 #include "aero_rep_solver.h"
 #include "rxn_solver.h"
@@ -1921,6 +1922,96 @@ void error_handler(int error_code, const char *module, const char *function,
   // Do nothing
 }
 
+void write_profile_stats(){
+
+  FILE *fptr;
+  FILE *fptr1;
+  FILE *fptr2;
+  char filename[] = "../../../../../profile_stats.csv";
+  char filename2[] = "../../../../../profile_stats2.csv";
+  char ch;
+
+  fptr = fopen(filename, "r");
+  fptr1 = fptr;
+  fptr2 = fopen(filename2, "w");
+
+  if (fptr == NULL)
+  {
+
+    printf("Cannot open file profile_stats \n");
+    exit(0);
+
+  }
+
+  char line[1024];
+  const char* tok;
+  int counter = 0;
+  int counter2 = 0;
+
+  //Set name first line
+  fgets(line,1024,fptr1);
+  strcat ("timeDeriv,",line);
+  fputs(line, fptr2);
+
+  while (fgets(line, 1024, fptr1))
+  {
+    //count number of lines
+    counter++;
+  }
+
+  while (fgets(line, 1024, fptr))
+  {
+    //tmp = strdup(line);
+    //printf("Field 3 would be %s\n", getfield(tmp, 3));
+    // NOTE strtok clobbers tmp
+
+    /*for (tok = strtok(line, ",");
+         tok && *tok;
+         tok = strtok(NULL, ";\n"))
+
+    {
+      if (!--num)
+        return tok;
+    }
+     */
+
+    counter2++;
+
+    /*if (counter2==counter){
+      strcat ("2,",line);
+      fputs(line, fptr2);
+    }*/
+
+
+    //strcat ("timeDeriv,",line);
+    //fputs(line, fptr2);
+
+    //free(tmp);
+  }
+
+  /*ch = fgetc(fptr);
+  while (feof(ch))
+  {
+    printf ("%c", ch);
+    ch = fgetc(fptr);
+
+    if (ch == '\n')
+    {
+      fputs("holaaaaaaaaaaa",fptr2);
+    }
+  }
+*/
+
+
+  fclose(fptr);
+  fclose(fptr2);
+  remove(filename);
+  rename(filename2, filename);
+
+
+}
+
+
 /** \brief Free a ModelData object
  *
  * \param model_data Pointer to the ModelData object to free
@@ -1933,6 +2024,10 @@ void model_free(ModelData model_data) {
   printf("timeRates %lf\n", (((double)timeRates) ) / CLOCKS_PER_SEC);
   printf("counterDeriv2 %d\n", counterDeriv2);
   printf("counterJac2 %d\n", counterJac2);
+
+  //todo print this in profile_stats file
+  //write_profile_stats();
+
 
 #ifdef PMC_USE_GPU
   free_gpu_cu(&model_data);

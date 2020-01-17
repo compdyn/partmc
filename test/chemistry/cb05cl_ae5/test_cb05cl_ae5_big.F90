@@ -226,11 +226,6 @@ contains
     integer :: t_n = 1 !1
     character(len=:), allocatable :: ncfile
 
-    character(len=:), allocatable :: out_path
-    character(len=500), allocatable :: lines(:)
-    character(len=200) :: line
-    integer(kind=i_kind) ::n_lines
-
     call read_args(i_start, MAP_I_START)
     call read_args(j_start, MAP_J_START)
     call read_args(k_start, MAP_K_START)
@@ -244,76 +239,6 @@ contains
     n_cells = i_n*j_n*k_n
 
     ncfile = '/esarchive/exp/monarch/a2bk/original_files/000/2016083012/MONARCH_d01_2016083012.nc'
-
-!#ifdef PMC_PROFILE
-
-    !Write in a file this test configuration
-
-    out_path = "../../../../../profile_stats.csv"
-
-    !this open empty the file :(
-    !open(unit=CAMP_FILE_UNIT_PROFILE, file=out_path, status="replace", action="write")
-    !write(CAMP_FILE_UNIT_PROFILE,*) " using 1:"//trim(to_string(i_spec+1))//" title '"// &
-    !        trim(spec_names(i_spec)%string)//" (camp)'"
-
-    !open(CAMP_FILE_UNIT_PROFILE,file=out_path,action='write',position='append')!, pad="NO"
-    open(CAMP_FILE_UNIT_PROFILE,file=out_path, iostat=stat)
-    if (stat /= 0 ) stop "Error opening file profile_stats"
-    !backspace(unit=CAMP_FILE_UNIT_PROFILE)
-
-
-    !get first line-> add name at the end
-
-    !Fortran needs to copy the content in order to modify first line
-
-    n_lines = 0
-
-    do
-      read(CAMP_FILE_UNIT_PROFILE, '(A)', iostat=stat) line
-      if (stat /= 0) exit
-      n_lines = n_lines + 1
-    end do
-
-    allocate(lines(n_lines))
-
-    rewind(CAMP_FILE_UNIT_PROFILE)
-
-    do i = 1, n_lines
-      read(CAMP_FILE_UNIT_PROFILE, '(A)')lines(i)
-    end do
-
-    print*,trim(lines(1))
-
-    !we need only to modify first and last line
-
-    rewind(CAMP_FILE_UNIT_PROFILE)
-
-    write(CAMP_FILE_UNIT_PROFILE,*) trim(lines(1)), ",tsteps_test"
-
-    do i = 2, n_lines-1
-      write(CAMP_FILE_UNIT_PROFILE,*) trim(lines(i))
-    end do
-
-    write(CAMP_FILE_UNIT_PROFILE,*) trim(lines(n_lines)),",", trim(to_string(NUM_TIME_STEPS))
-
-
-    !write(CAMP_FILE_UNIT_PROFILE,"(a)", advance="no")"tsteps_test"
-
-
-
-    !get last line ->> add value at the end
-
-    !write(CAMP_FILE_UNIT_PROFILE,"(a)", advance="no")","//trim(to_string(k_n))//""
-
-    !write(CAMP_FILE_UNIT_PROFILE,*) "Input parameters:"
-    !write(CAMP_FILE_UNIT_PROFILE,*) "N cells" //trim(to_string(k_n))//""
-
-    deallocate(lines)
-
-    close(CAMP_FILE_UNIT_PROFILE)
-
-!#endif
-
 
     KPP_ICNTRL( : ) = 0
 

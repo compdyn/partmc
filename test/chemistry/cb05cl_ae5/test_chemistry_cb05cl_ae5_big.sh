@@ -40,7 +40,7 @@ t_n=(1 1)
 #todo pass profile_stats string and num_time_steps as a parameter
 
 #Save test config for stats
-echo "i,j,k,t,i_n,j_n,k_n,t_n" > ../../../../../profile_stats.csv
+echo "i,j,k,t,i_n,j_n,k_n,t_n,test_tsteps" > ../../../../../profile_stats.csv
 
 #Test with different parameters
 for id in ${!i_n[@]};
@@ -49,7 +49,7 @@ do
 #todo each iteration create a new line on the profile_stats.csv file
 
     echo "${i[$id]},${j[$id]},${k[$id]},\
-${t[$id]},${i_n[$id]},${j_n[$id]},${k_n[$id]},${t_n[$id]}" >> ../../../../../profile_stats.csv
+${t[$id]},${i_n[$id]},${j_n[$id]},${k_n[$id]},${t_n[$id]},1" >> ../../../../../profile_stats.csv
 
     exec_str="../../../test_chemistry_cb05cl_ae5_big ${i[$id]} ${j[$id]} ${k[$id]} \
 ${t[$id]} ${i_n[$id]} ${j_n[$id]} ${k_n[$id]} ${t_n[$id]}"

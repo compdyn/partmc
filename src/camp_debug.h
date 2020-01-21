@@ -171,11 +171,13 @@ static void print_derivative(N_Vector deriv) {
  * \param i_ind Independent species index
  * \param d_rate_d_ind Change in rate for dependent species with change in
  *                         independent species
+ * \param d_ind Increment to use in plot of rate_dep vs conc_ind
  */
 void output_deriv_local_state(realtype curr_time, N_Vector state,
                               N_Vector deriv, void *solver_data,
                               int (*f)(realtype, N_Vector, N_Vector, void *),
-                              int i_dep, int i_ind, double d_rate_d_ind) {
+                              int i_dep, int i_ind, double d_rate_d_ind,
+                              double d_ind) {
   realtype *deriv_data = NV_DATA_S(deriv);
   realtype *state_data = NV_DATA_S(state);
   realtype rate_orig = deriv_data[i_dep];
@@ -188,6 +190,7 @@ void output_deriv_local_state(realtype curr_time, N_Vector state,
   char file_name[MAX_FILE_NAME];
   sprintf(file_name, "local_%d_i%d_d%d", file_name_prefix++, i_ind, i_dep);
   f_output = fopen(file_name, "w");
+  printf("\nOutputting deriv local state file: %s", file_name);
 
   // Output the loss of precision for all species
   ((SolverData *)solver_data)->output_precision = 1;
@@ -205,8 +208,7 @@ void output_deriv_local_state(realtype curr_time, N_Vector state,
   // Vary the model state and recalculate the derivative directly and using
   // the partial derivative provided
   for (int i = 0; i < N_OUTPUT_STATES; ++i) {
-    double inc = state_data[i_ind] - nextafter(state_data[i_ind], 0.0);
-    state_data[i_ind] -= i * inc;  // nextafter(state_data[i_ind], 0.0);
+    state_data[i_ind] -= d_ind;
     if (state_data[i_ind] < 0.0) break;
 
     if (f(curr_time, state, deriv, solver_data) != 0) {
@@ -219,8 +221,7 @@ void output_deriv_local_state(realtype curr_time, N_Vector state,
   }
   state_data[i_ind] = ind_orig;
   for (int i = 0; i < N_OUTPUT_STATES; ++i) {
-    double inc = state_data[i_ind] - nextafter(state_data[i_ind], 0.0);
-    state_data[i_ind] += i * inc;  // nextafter(state_data[i_ind], HUGE_VAL);
+    state_data[i_ind] += d_ind;
     if (f(curr_time, state, deriv, solver_data) != 0) {
       printf("\nERROR: Derivative failure\n\n");
       break;
@@ -235,6 +236,7 @@ void output_deriv_local_state(realtype curr_time, N_Vector state,
     EXIT_FAILURE;
   }
 
+  printf("\nEnd output deriv local state file: %s", file_name);
   fclose(f_output);
 }
 

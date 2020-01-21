@@ -15,7 +15,7 @@
 #include <stdlib.h>
 
 // Threshhold for precisition loss in rate calculations
-#define MAX_PRECISION_LOSS 1.0e-5
+#define MAX_PRECISION_LOSS 1.0e-14
 
 /* Time derivative for solver species */
 typedef struct {

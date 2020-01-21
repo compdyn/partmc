@@ -179,7 +179,7 @@ void sub_model_PDFiTE_calculate(int *sub_model_int_data,
     // Initialize omega' (defined below)
     long double omega_prime = 0.0;
 
-    // Calculate the number of moles of each ion and omega' for the phase
+    // Calculate the number of moles of each ion
     for (int i_ion_pair = 0; i_ion_pair < NUM_ION_PAIRS_; i_ion_pair++) {
       // N (mol_i/m3) = c_i (ug/m3) / 10^6 (ug/g) / MW_i (ug/umol)
       CATION_N_(i_ion_pair) =
@@ -187,17 +187,6 @@ void sub_model_PDFiTE_calculate(int *sub_model_int_data,
           CATION_MW_(i_ion_pair) / 1000000.0;
       ANION_N_(i_ion_pair) = state[PHASE_ID_(i_phase) + ANION_ID_(i_ion_pair)] /
                              ANION_MW_(i_ion_pair) / 1000000.0;
-
-      // Calculate omega' (eq. 14 in \cite Topping 2009) as
-      //   v_e^C = 2 * ( v_cation + v_anion) * N_cation * N_anion
-      // where v_x is the stoichiometric coefficient for species x in
-      // the ion_pair and N_x is its concentration summed across all
-      // ion_pairs.
-      // For each activity coefficient
-      //   omega = omega' - omega_x
-      // where omega_x is the contribution of ion_pair x to omega'
-      omega_prime += 2.0 * (NUM_CATION_(i_ion_pair) + NUM_ANION_(i_ion_pair)) *
-                     CATION_N_(i_ion_pair) * ANION_N_(i_ion_pair);
 
     }  // Loop on primary ion_pair
 
@@ -208,11 +197,18 @@ void sub_model_PDFiTE_calculate(int *sub_model_int_data,
       if (NUM_INTER_(i_ion_pair) == 0) break;
 
       // Calculate omega for this ion_pair
-      // (eq. 15 in \cite{Topping2009})
-      long double omega =
-          omega_prime - 2.0 *
-                            (NUM_CATION_(i_ion_pair) + NUM_ANION_(i_ion_pair)) *
-                            CATION_N_(i_ion_pair) * ANION_N_(i_ion_pair);
+      // (eq. 15 in \cite{Topping2009}) as the sum of
+      //   v_e^C = 2 * ( v_cation + v_anion) * N_cation * N_anion
+      // across all other ion pairs (not i_ion_pair)
+      // where v_x is the stoichiometric coefficient for species x in
+      // the other ion_pair and N_x is its concentration.
+      long double omega = 0.0;
+      for (int j_ion_pair = 0; j_ion_pair < NUM_ION_PAIRS_; ++j_ion_pair) {
+        if (i_ion_pair == j_ion_pair) continue;
+        omega += (long double)2.0 *
+                 (NUM_CATION_(j_ion_pair) + NUM_ANION_(j_ion_pair)) *
+                 CATION_N_(j_ion_pair) * ANION_N_(j_ion_pair);
+      }
 
       // Initialize ln(gamma)
       long double ln_gamma = 0.0;
@@ -296,9 +292,9 @@ void sub_model_PDFiTE_get_jac_contrib(int *sub_model_int_data,
   // Calculate ion_pair activity coefficients in each phase
   for (int i_phase = 0; i_phase < NUM_PHASE_; i_phase++) {
     // Initialize omega' (defined below)
-    double omega_prime = 0.0;
+    long double omega_prime = 0.0;
 
-    // Calculate the number of moles of each ion and omega' for the phase
+    // Calculate the number of moles of each ion
     for (int i_ion_pair = 0; i_ion_pair < NUM_ION_PAIRS_; i_ion_pair++) {
       // N (mol_i/m3) = c_i (ug/m3) / 10^6 (ug/g) / MW_i (ug/umol)
       CATION_N_(i_ion_pair) =
@@ -306,17 +302,6 @@ void sub_model_PDFiTE_get_jac_contrib(int *sub_model_int_data,
           CATION_MW_(i_ion_pair) / 1000000.0;
       ANION_N_(i_ion_pair) = state[PHASE_ID_(i_phase) + ANION_ID_(i_ion_pair)] /
                              ANION_MW_(i_ion_pair) / 1000000.0;
-
-      // Calculate omega' (eq. 14 in \cite Topping 2009) as
-      //   v_e^C = 2 * ( v_cation + v_anion) * N_cation * N_anion
-      // where v_x is the stoichiometric coefficient for species x in
-      // the ion_pair and N_x is its concentration summed across all
-      // ion_pairs.
-      // For each activity coefficient
-      //   omega = omega' - omega_x
-      // where omega_x is the contribution of ion_pair x to omega'
-      omega_prime += 2.0 * (NUM_CATION_(i_ion_pair) + NUM_ANION_(i_ion_pair)) *
-                     CATION_N_(i_ion_pair) * ANION_N_(i_ion_pair);
 
     }  // Loop on primary ion_pair
 
@@ -327,13 +312,21 @@ void sub_model_PDFiTE_get_jac_contrib(int *sub_model_int_data,
       if (NUM_INTER_(i_ion_pair) == 0) break;
 
       // Calculate omega for this ion_pair
-      // (eq. 15 in \cite{Topping2009})
-      double omega = omega_prime -
-                     2.0 * (NUM_CATION_(i_ion_pair) + NUM_ANION_(i_ion_pair)) *
-                         CATION_N_(i_ion_pair) * ANION_N_(i_ion_pair);
+      // (eq. 15 in \cite{Topping2009}) as the sum of
+      //   v_e^C = 2 * ( v_cation + v_anion) * N_cation * N_anion
+      // across all other ion pairs (not i_ion_pair)
+      // where v_x is the stoichiometric coefficient for species x in
+      // the other ion_pair and N_x is its concentration.
+      long double omega = 0.0;
+      for (int j_ion_pair = 0; j_ion_pair < NUM_ION_PAIRS_; ++j_ion_pair) {
+        if (i_ion_pair == j_ion_pair) continue;
+        omega += (long double)2.0 *
+                 (NUM_CATION_(j_ion_pair) + NUM_ANION_(j_ion_pair)) *
+                 CATION_N_(j_ion_pair) * ANION_N_(j_ion_pair);
+      }
 
       // Initialize ln(gamma)
-      double ln_gamma = 0.0;
+      long double ln_gamma = 0.0;
 
       // Add contributions from each interacting ion_pair
       for (int i_inter = 0; i_inter < NUM_INTER_(i_ion_pair); i_inter++) {
@@ -349,7 +342,7 @@ void sub_model_PDFiTE_get_jac_contrib(int *sub_model_int_data,
         int j_ion_pair = INTER_SPEC_ID_(i_ion_pair, i_inter);
 
         // Calculate ln_gamma_inter
-        double ln_gamma_inter = 0.0;
+        long double ln_gamma_inter = 0.0;
         for (int i_B = 0; i_B < NUM_B_(i_ion_pair, i_inter); i_B++) {
           ln_gamma_inter += B_Z_(i_ion_pair, i_inter, i_B) * pow(a_w, i_B);
         }
@@ -374,7 +367,7 @@ void sub_model_PDFiTE_get_jac_contrib(int *sub_model_int_data,
 
       }  // Loop on interacting ion_pairs
 
-      double gamma_i = exp(ln_gamma);
+      long double gamma_i = exp(ln_gamma);
 
       // Loop through the ion pairs to set the partial derivatives
       for (int i_inter = 0; i_inter < NUM_INTER_(i_ion_pair); i_inter++) {
@@ -390,8 +383,8 @@ void sub_model_PDFiTE_get_jac_contrib(int *sub_model_int_data,
         int j_ion_pair = INTER_SPEC_ID_(i_ion_pair, i_inter);
 
         // Calculate ln_gamma_inter and dln_gamma_inter_d_water
-        double ln_gamma_inter = B_Z_(i_ion_pair, i_inter, 0);
-        double d_ln_gamma_inter_d_water = 0.0;
+        long double ln_gamma_inter = B_Z_(i_ion_pair, i_inter, 0);
+        long double d_ln_gamma_inter_d_water = 0.0;
         for (int i_B = 1; i_B < NUM_B_(i_ion_pair, i_inter); i_B++) {
           ln_gamma_inter += B_Z_(i_ion_pair, i_inter, i_B) * pow(a_w, i_B);
           d_ln_gamma_inter_d_water +=
@@ -507,6 +500,16 @@ void sub_model_PDFiTE_print(int *sub_model_int_data,
     printf("\n   Cation concentration (mol m-3): %le", CATION_N_(i_pair));
     printf("\n   Anion concentration (mol m-3):  %le", ANION_N_(i_pair));
     printf("\n   Number of ion-pair interactions: %d", NUM_INTER_(i_pair));
+    printf("\n   * Jacobian Omega ids *");
+    for (int i_oip = 0; i_oip < NUM_ION_PAIRS_; ++i_oip) {
+      printf("\n  Ion pair index: %d", i_oip);
+      printf("\n    Anion  (by phase)");
+      for (int i_phase = 0; i_phase < NUM_PHASE_; ++i_phase)
+        printf(" %d", JAC_ANION_ID_(i_phase, i_pair, i_oip));
+      printf("\n    Cation (by phase)");
+      for (int i_phase = 0; i_phase < NUM_PHASE_; ++i_phase)
+        printf(" %d", JAC_CATION_ID_(i_phase, i_pair, i_oip));
+    }
     printf("\n   * Ion-pair interaction data *");
     for (int i_inter = 0; i_inter < NUM_INTER_(i_pair); ++i_inter) {
       printf("\n   Interaction %d:", i_inter);

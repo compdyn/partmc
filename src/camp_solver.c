@@ -33,7 +33,8 @@
 // Default solver initial time step relative to total integration time
 #define DEFAULT_TIME_STEP 1.0
 // State advancement factor for Jacobian element evaluation
-#define JAC_CHECK_ADV 1.0E-15
+#define JAC_CHECK_ADV_MAX 1.0E-02
+#define JAC_CHECK_ADV_MIN 1.0E-12
 // Relative tolerance for Jacobian element evaluation against GSL absolute
 // errors
 #define JAC_CHECK_GSL_REL_TOL 1.0e-4
@@ -1185,31 +1186,47 @@ bool check_Jac(realtype t, N_Vector y, SUNMatrix J, N_Vector deriv,
 
       gsl_param.dep_var = i_dep;
 
-      // Set the intial step size
-      double h = (1.0 + 1.0 / fabs(SM_DATA_S(J)[i_elem])) * x * JAC_CHECK_ADV;
+      bool test_pass = false;
+      double h, abs_tol, rel_diff, scaling;
 
-      // Get the partial derivative d_fy/dx
-      if (gsl_deriv_forward(&gsl_func, x, h, &partial_deriv, &abs_err) == 1) {
-        printf("\nERROR in numerical differentiation for J[%d][%d]", i_ind,
-               i_dep);
+      // Evaluate the Jacobian element over a range of initial step sizes
+      for (scaling = JAC_CHECK_ADV_MIN;
+           scaling <= JAC_CHECK_ADV_MAX && test_pass == false;
+           scaling *= 10.0) {
+        // Get the current initial step size
+        h = x * scaling;
+
+        // Get the partial derivative d_fy/dx
+        if (gsl_deriv_forward(&gsl_func, x, h, &partial_deriv, &abs_err) == 1) {
+          printf("\nERROR in numerical differentiation for J[%d][%d]", i_ind,
+                 i_dep);
+        }
+
+        // Evaluate the results
+        abs_tol = 1.2 * fabs(abs_err);
+        abs_tol =
+            abs_tol > JAC_CHECK_GSL_ABS_TOL ? abs_tol : JAC_CHECK_GSL_ABS_TOL;
+        rel_diff = 1.0;
+        if (partial_deriv != 0.0)
+          rel_diff =
+              fabs((SM_DATA_S(J)[i_elem] - partial_deriv) / partial_deriv);
+        if (fabs(SM_DATA_S(J)[i_elem] - partial_deriv) < abs_tol ||
+            rel_diff < JAC_CHECK_GSL_REL_TOL)
+          test_pass = true;
       }
 
-      double abs_tol = 1.2 * fabs(abs_err);
-      abs_tol =
-          abs_tol > JAC_CHECK_GSL_ABS_TOL ? abs_tol : JAC_CHECK_GSL_ABS_TOL;
-
-      // Evaluate the results
-      double rel_diff = 1.0;
-      if (partial_deriv != 0.0)
-        rel_diff = fabs((SM_DATA_S(J)[i_elem] - partial_deriv) / partial_deriv);
-      if (fabs(SM_DATA_S(J)[i_elem] - partial_deriv) > abs_tol &&
-          rel_diff > JAC_CHECK_GSL_REL_TOL) {
+      // If the test does not pass with any initial step size, print out the
+      // failure, output the local derivative state and return false
+      if (test_pass == false) {
         printf(
             "\nError in Jacobian[%d][%d]: Got %le; expected %le"
             "\n  difference %le is greater than error %le",
             i_ind, i_dep, SM_DATA_S(J)[i_elem], partial_deriv,
             fabs(SM_DATA_S(J)[i_elem] - partial_deriv), abs_tol);
-        printf("\n  relative error %le intial time step %le", rel_diff, h);
+        printf("\n  relative error %le intial step size %le", rel_diff, h);
+        printf("\n  initial rate %le initial state %le", d_deriv[i_dep],
+               d_state[i_ind]);
+        printf(" scaling %le", scaling);
         ModelData *md = &(((SolverData *)solver_data)->model_data);
         for (int i_cell = 0; i_cell < md->n_cells; ++i_cell)
           for (int i_spec = 0; i_spec < md->n_per_cell_state_var; ++i_spec)
@@ -1218,7 +1235,7 @@ bool check_Jac(realtype t, N_Vector y, SUNMatrix J, N_Vector deriv,
                    md->total_state[i_cell * md->n_per_cell_state_var + i_spec]);
         retval = false;
         output_deriv_local_state(t, y, deriv, solver_data, &f, i_dep, i_ind,
-                                 SM_DATA_S(J)[i_elem]);
+                                 SM_DATA_S(J)[i_elem], h / 10.0);
       }
     }
 #endif

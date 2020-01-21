@@ -391,13 +391,10 @@ contains
     end if
 
 
-#if 0
 #ifdef PMC_DEBUG
     ! Evaluate the Jacobian during solving
     solver_stats%eval_Jac = .true.
 #endif
-#endif
-
 
     k_end = size(MONARCH_conc,3)
 
@@ -438,17 +435,17 @@ contains
             call this%camp_core%solve(this%camp_state, &
                     real(time_step, kind=dp), solver_stats = solver_stats)
 
-#if 0
 #ifdef PMC_DEBUG
-              ! Check the Jacobian evaluations
-              call warn_assert_msg(611569150, solver_stats%Jac_eval_fails.eq.0,&
+            ! Check the Jacobian evaluations
+            call assert_msg(611569150, solver_stats%Jac_eval_fails.eq.0,&
                           trim( to_string( solver_stats%Jac_eval_fails ) )// &
                           " Jacobian evaluation failures at time "// &
                           trim( to_string( start_time ) ) )
-#endif
-#endif
 
-
+            ! Only evaluate the Jacobian for the first cell because it is
+            ! time consuming
+            solver_stats%eval_Jac = .false.
+#endif
 
             ! Update the MONARCH tracer array with new species concentrations
             MONARCH_conc(i,j,k_flip,this%map_monarch_id(:)) = &

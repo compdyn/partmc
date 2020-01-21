@@ -85,6 +85,11 @@
 !!
 !! Follow the \ref camp_tutorial "Boot CAMP" tutorial to see how to
 !! integrate CAMP into your favorite model!
+!!
+!! Are you interested in contributing to CAMP? Follow the \ref camp_dev_tutorial
+!! "Dev CAMP" tutorial for developing CAMP!
+!!
+!!
 
 !> The camp_core_t structure and associated subroutines.
 module pmc_camp_core

@@ -105,8 +105,15 @@
 !!
 !! Each reaction type calculates its rate differently.
 !! The simplest example of a typical atmospheric reaction is an
-!! \ref camp_rxn_arrhenius "Arrhenius-like reaction". For more information,
-!! check the other \ref camp_rxn "reaction" types pages.
+!! \ref camp_rxn_arrhenius "Arrhenius-like reaction".
+!!
+!! \f[
+!! r_j = k_j \prod_{i=1}^my_i^{c_i}
+!! \f]
+!!
+!! where \f$k_j\f$ is referred to as the rate constant.
+!! For more information about the rate constant, check the
+!! \ref camp_rxn "reaction" types pages.
 !!
 !! ## ODE properties ##
 !!
@@ -175,7 +182,7 @@
 !!  environmental program variables. The most remarkables are temperature
 !!  and pressure.
 !!  - \ref pmc_camp_solver_data "camp_solver_data":
-!!  Allows the CAMP_core interface (programmed in fortran)
+!!  Allows the CAMP_core interface (programmed in Fortran)
 !!  use the functions from the solving system (programmed in C as a
 !!  requisite of the CVODE package).
 !!  - \ref pmc_chem_spec_data "chem_spec_data" : Reads JSON data.
@@ -231,8 +238,9 @@
 !!
 !! This section describes the CAMP solving process. This process receive as
 !! an input data the arrays explained in the previous section
-!! (int_data, float_data, state_var and env_data), solve the derivative and
-!! Jacobian functions defined in section 1 and send the results to the CVODE
+!! (int_data, float_data, state_var and env_data), solve the Derivative and
+!! Jacobian functions defined in \ref camp_dev_tutorial_part_1
+!! and send the results to the CVODE
 !! package. The CVODE package will handle the rest to solve the system ODE.
 !!
 !! The CAMP_core interface interacts only (or should it be) with the
@@ -250,8 +258,7 @@
 !! in a reaction are defined in the JSON files, and the Jacobian must be
 !! set following the sparse structure.
 !!
-!! 2- Configure CVODE with the optimal solver options defined in section 1
-!! (BDF, KLU sparse, etc.).
+!! 2- Configure CVODE with the optimal solver options (BDF, KLU sparse, etc.).
 !!
 !! 3- Calculate the possible rate constants or reaction parameters for each
 !! reaction. There are reactions with rate constant/s that only depends
@@ -261,7 +268,7 @@
 !!
 !! ## Derivative and Jacobian##
 !!
-!! CAMP needs to define the function f and Jac, which computes the derivative
+!! CAMP needs to define the function f and Jac, which computes the Derivative
 !! and the Jacobian respectively. The declaration of these functions is
 !! defined in the CVODE package (including the input parameters). We only
 !! need to fill the content.
@@ -269,29 +276,28 @@
 !! These functions will be called in the middle of the CVODE solving process,
 !! depending of the system will be called less or more times. CVODE will
 !! pass as a function parameters the current concentration array (state_var),
-!! the pointer to the future concentration array or Jacobian (our function
-!! result must be stored here), the current model time (s) and the pointer
-!! to the main CAMP data structure (solver_data). solver_data contains all
+!! the pointer to the future concentration array or Jacobian (deriv or J
+!! variables), the current model time (s) and the pointer
+!! to the main CAMP data structure (solver_data struct). solver_data contains all
 !! the CAMP data used during the solving. For example, this struct
 !! contains the int_data and float_data arrays, necessaries for solving
-!! both derivative and Jacobian.
-
-Now, both derivative and Jacobian functions must calculate the
-the rate of change \f$r_j\f$ (mentioned in section 1) for each participating species
-\f$y_i\f$ in each reaction, and sum the reaction contributions for the
-same species. Example: specie 1 is present in reaction 2 and 3, so the rate
-calculated in these reactions corresponding to specie 1 must be added. Remember
-also that the sign changes if the species act as a reactant (-) or as a product (+).
-Some reaction parameters like the yield can affect also the rate.
-
-
-
-
-
-
-
-
-
+!! both Derivative and Jacobian.
+!!
+!! Once Derivative and Jacobian finish, CVODE will try to solve the ODE. The implicit
+!! solving method configured (BDF) will aproximate the result. If the
+!! aproximation is near enough to the correct result (convergence), the ODE is solved and
+!! CAMP returns to the CAMP solver interface part. Otherwise, CVODE will
+!! repeat the iteration using the last result obtained.
+!!
+!! \image html workflow_deriv_jac.jpg
+!!
+!! These functions must solve the operations defined at
+!! \ref camp_dev_tutorial_part_1. Remember that they can be more
+!! or less complex, depending if the reaction rate constant was calculated
+!! before the solving or it needs to be calculated in these function.
+!! Some reaction parameters like the \ref camp_rxn_arrhenius "arrhenius yield"
+!! can also affect the rate.
+!!
 !! <hr>
 !! <b> < Previous: </b> \ref camp_dev_tutorial_part_2
 !! \image{inline} html icon_trail.png
@@ -304,8 +310,119 @@ Some reaction parameters like the yield can affect also the rate.
 ! ***********************************************************************
 ! ***********************************************************************
 
-!> \page camp_dev_tutorial_part_4 Dev CAMP: Part 4 - GPU Interface
+!> \page camp_dev_tutorial_part_4 Dev CAMP: Part 4 - GPU interface
 !!
+!!
+!!
+!! In order to accelerate the CAMP module, a GPU module was developed.
+!!
+!! This module is developed in the CUDA language. The idea behind this
+!! module is translate the most computational expensive part (Solving
+!! system) to the GPU. The user can choose to compute all the module in
+!! the CPU (set as default) or enable the GPU execution.
+!!
+!! At the present, only the Derivative and Jacobian functions has a GPU
+!! version. However, our team is currently investigating alternatives for
+!! a complete GPU ODE solver. ODE solvers, (including CVODE) are releasing
+!! increasingly more options to compute expensive operations in GPU,
+!! related mostly with matrix operations and linear solving (search cuBLAS and
+!! cuSolver for more information). In the future, more GPU solving parts
+!! will be implemented to reduce the high computational time of big experiments.
+!!
+!! ## Parallelization strategy ##
+!!
+!! The parallelization strategy can be translated briefly into the
+!! following question: How we divide the work?
+!!
+!! Reminding the concepts learned in this tutorial, both Derivative and Jacobian
+!! solves a reaction by computing the rate of change \f$r_j\f$ for each
+!! participating species \f$y_i\f$. The resulting rate of change is added to the
+!! next iteration specie concentration. In this way, each reaction represents
+!! a contribution to the related species, and can increase or decrease its value.
+!!
+!! This concept means that there are no relation with each reaction till we
+!! sum the resulting rates of change. In other words, the calculations done
+!! in each reaction before the sum can be computed in parallel.
+!!
+!! So, in conclusion and in the code meanings, instead of a loop iterating
+!! all the reactions we will have GPU threads doing this work in parallell.
+!!
+!! ## GPU pre-solving ##
+!!
+!! At the start of the solving system, before calling the CVODE solving process,
+!! some preparations must to be done:
+!!
+!!  - Allocate in the GPU all the CAMP variables necessaries for the solving. The
+!!  solver_data struct, int_data and float_data arrays, etc.
+!!  - Check GPU properties. Check the maximum capacities of the GPU available
+!!  to adjust the parallelism accordingly (enough threads, blocks, etc). This
+!!  can be done in runtime thanks to the CUDA library.
+!!  - Update GPU variables computed in the CPU, like the rate constants and the
+!!  Jacobian indices.
+!!
+!! During the updating of GPU variables, an extra preparation can be done
+!! to improve the GPU execution. Taking into account that all the reaction
+!! information (int_data and float_data) is stored consecutively in memory and
+!! the GPU threads acces simultaneously each reaction first value, we have to
+!! set all the first reaction values consecutively in memory. In other words,
+!! instead of having in the firsts values of the int_data array the values
+!! for the first reaction, we will have as first value the first value of
+!! the first reaction, as second the first value of the second reaction, and
+!! so on.
+!!
+!! \image html reverse_rxn_data.jpg
+!!
+!! Note that this optimization will change the way that we read the data.
+!! We name that implementation as "reverse optimization" to refer to it later.
+!!
+!! ## Derivative and Jacobian ##
+!!
+!! To launch a kernel in CUDA is necessary define the number of threads and
+!! blocks required by the program. For our case, the number of threads is
+!! directly the number of reactions, meanwhile the number of blocks can be
+!! the minimum (assign the maximum number of threads per block).
+!!
+!! \code{.c}
+!! int n_threads = n_reactions
+!! int n_blocks = (n_threads + max_threads_per_block - 1) / max_threads_per_block);
+!! \endcode
+!!
+!! After this, we can launch a kernel passing as input parameter all the pointers
+!! to the data previously stored during the GPU pre-solving. Now the kernel function
+!! must realize two tasks: divide the work for each thread and call the appropiate
+!! Derivative or Jacobian function. Note that starting from this step, all the
+!! code will be computed in parallel for all the threads enable.
+!!
+!! Divide the work is basically assign to each thread a diffent reaction pointer
+!! for each input data variable. In the same manner that we update that pointer
+!! to point the first value of each reaction in the base version reaction loop,
+!! now we use the threads unique id as a loop iterator.
+!! Note that with the reverse optimization, the first value of each reaction
+!! is directly the next value in the reaction parameter arrays.
+!!
+!! \code{.c}
+!! int index = blockIdx.x * blockDim.x + threadIdx.x;
+!!
+!! double *rxn_float_data = &(float_data)[index]);
+!! int *rxn_int_data = &(int_data)[index]);
+!! double *rxn_rate_constants = &(rate_constants[index*n_reaction_rate_constants]
+!!
+!! \endcode
+
+!! division in threads, defines, get n_rxn, atomic, err idk (but this should be named before)
+
+
+!! ## Multi-cells approach ##
+
+!! Basically:
+
+!! - Amplify state deriv and rate constants array with each indepedent value.
+!! - Multiply the number of threads also for the number of cells
+!! (apart from the number of reactions).
+!! - Assign to the block of reactions of each cell, the corresponding
+!! state_array, deriv array and rate constants for that cell.
+
+
 !!
 !! <hr>
 !! <b> < Previous: </b> \ref camp_dev_tutorial_part_3

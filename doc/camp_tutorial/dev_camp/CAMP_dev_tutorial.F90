@@ -38,6 +38,12 @@
 
 !> \page camp_dev_tutorial_part_0 Dev CAMP: Part 0 - Introduction
 !!
+todo add a part mentioning the host model, the user add json and the host model adds the concentrations
+and others. Remark the advantage that the json files are added only one time for the user, and the host
+model runs over time the host model (and the data from json files is updated only one time, the concentrations
+and others are updated as many times the host model executes the model). Oriol remarked to put effort to
+show all the details in this diagram. Like adding the initializations maybe?
+
 !! CAMP can be divided into the following main components:
 !!
 !! - Input user data: All input data received by CAMP.
@@ -117,6 +123,18 @@
 !!
 !! ## ODE properties ##
 !!
+
+todo: remark that CAMP can be used with another package apart from CVODE or another method.
+we have 
+
+todo: something about you have the big diagram with a colour, and then something that
+you can guide someone through the details. I guess its use shapes and colours. BASICALLY
+que en la parte de cvode no se entiende bien k de repente ponga una imagen de covde
+poner otra k linke con la 1r imagen (como ampliando esa parte) y asi el user va viendo
+oo esto es del camp solving system vale vale y eso. MOVER la config de CVODE de la parte
+matematica a la seccion de camp solving, y dejar el mathematical considerationns solo con
+matematicas, y ya en el solving pues se menciona. tampoco 
+
 !! Solving an ODE implies selecting the solving method that better fills
 !! its properties.
 !!
@@ -203,8 +221,10 @@
 !!  adds to the integer array some data necesary for future calculations and
 !!  iterate the arrays, like the number of reactants and products.
 !!  todo: rxn_factory? differences between rxn data, aero_rep_data, aero_phase_data and submodel_data?
-!!
-!! The workflow corresponds to: (todo: diagram)
+!! 
+
+
+!! The workflow corresponds to: (todo: diagram with classes and interaction)
 !!
 !! - <b> From the user point of view </b>: initialize camp_core, create camp_state,
 !!  call chem_spec_data through camp_core, set camp_state chemical data and solve.
@@ -309,6 +329,8 @@
 ! ***********************************************************************
 ! ***********************************************************************
 ! ***********************************************************************
+
+todo add before GPU an mpi programmer section maybe
 
 !> \page camp_dev_tutorial_part_4 Dev CAMP: Part 4 - GPU interface
 !!

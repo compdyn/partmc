@@ -367,7 +367,7 @@ contains
        gas_state, do_optical)
 
 #ifdef PMC_USE_MOSAIC
-    use module_data_mosaic_main, only: msolar
+    use module_data_mosaic_main, only: msolar, dt_sec
 #endif
 
     !> Environment state.
@@ -390,6 +390,14 @@ contains
        end subroutine SolarZenithAngle
        subroutine IntegrateChemistry()
        end subroutine IntegrateChemistry
+       subroutine GasChemistry(t_in, t_out)
+         real(kind(0d0)) :: t_in
+         real(kind(0d0)) :: t_out
+       end subroutine GasChemistry
+       subroutine AerChemistry(t_in, t_out)
+         real(kind(0.d0)) :: t_in
+         real(kind(0.d0)) :: t_out
+       end subroutine AerChemistry
        subroutine aerosol_optical()
        end subroutine aerosol_optical
     end interface
@@ -402,7 +410,9 @@ contains
       call SolarZenithAngle
     end if
 
-    call IntegrateChemistry
+    !call IntegrateChemistry
+    call GasChemistry(0.0d0, dt_sec)
+    call AerChemistry(0.0d0, dt_sec)
 
     ! map MOSAIC -> PartMC
     if (do_optical) then

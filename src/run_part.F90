@@ -68,6 +68,8 @@ module pmc_run_part
      logical :: do_mosaic
      !> Whether to compute optical properties.
      logical :: do_optical
+     !> Whether to output during chemistry timestep.
+     logical :: do_mid_chem_output
      !> Whether to have explicitly selected weighting.
      logical :: do_select_weighting
      !> Type of particle weighting scheme.
@@ -136,13 +138,14 @@ contains
     real(kind=dp) :: t_start, t_wall_now, t_wall_elapsed, t_wall_remain
     type(env_state_t) :: old_env_state
     integer :: n_time, i_time, i_time_start, pre_i_time
-    integer :: i_state, i_state_netcdf, i_output
+    integer :: i_state, i_state_netcdf, i_output, i_chem_output
 
     rank = pmc_mpi_rank()
     n_proc = pmc_mpi_size()
 
     i_time = 0
     i_output = 1
+    i_chem_output = 1
     i_state = 1
     i_state_netcdf = 1
     time = 0d0
@@ -260,7 +263,11 @@ contains
 
        if (run_part_opt%do_mosaic) then
           call mosaic_timestep(env_state, aero_data, aero_state, gas_data, &
-               gas_state, run_part_opt%do_optical)
+               gas_state, run_part_opt%do_optical, &
+               run_part_opt%output_prefix, run_part_opt%output_type, &
+               i_chem_output, time, run_part_opt%i_repeat, &
+               run_part_opt%uuid, run_part_opt%do_mid_chem_output)
+          i_chem_output = i_chem_output + 1
        end if
 
        if (run_part_opt%mix_timescale > 0d0) then

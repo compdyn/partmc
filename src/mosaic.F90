@@ -14,6 +14,7 @@ module pmc_mosaic
   use pmc_env_state
   use pmc_gas_data
   use pmc_gas_state
+  use pmc_output
   use pmc_util
 
 contains
@@ -364,7 +365,8 @@ contains
   !! really matters, however. Because of this mosaic_aero_optical() is
   !! currently disabled.
   subroutine mosaic_timestep(env_state, aero_data, aero_state, gas_data, &
-       gas_state, do_optical)
+       gas_state, do_optical, output_prefix, output_type, index, time, &
+       i_repeat, uuid, do_intermediate_output)
 
 #ifdef PMC_USE_MOSAIC
     use module_data_mosaic_main, only: msolar, dt_sec
@@ -382,6 +384,22 @@ contains
     type(gas_state_t), intent(inout) :: gas_state
     !> Whether to compute optical properties.
     logical, intent(in) :: do_optical
+    !> Prefix of state file.
+    character(len=*), intent(in) :: output_prefix
+    !> Output type for parallel runs (see module constants).
+    integer, intent(in) :: output_type
+    !> Filename index.
+    integer, intent(in) :: index
+    !> Current time (s).
+    real(kind=dp), intent(in) :: time
+    !> Current repeat number.
+    integer, intent(in) :: i_repeat
+    !> UUID of the simulation.
+    character(len=PMC_UUID_LEN), intent(in) :: uuid
+    !> Whether to output during chemistry timestep.
+    logical, intent(in) :: do_intermediate_output
+
+    character(len=len(output_prefix)+100) :: filename_prefix
 
 #ifdef PMC_USE_MOSAIC
     ! MOSAIC function interfaces
@@ -411,7 +429,23 @@ contains
     end if
 
     !call IntegrateChemistry
+    if (do_intermediate_output) then
+       write(filename_prefix, '(a,a)') trim(output_prefix), "_before"
+       call output_state(filename_prefix, output_type, aero_data, aero_state, &
+            gas_data, gas_state, env_state, index, time, dt_sec, i_repeat, &
+            .false., .false., uuid)
+    end if
     call GasChemistry(0.0d0, dt_sec)
+    if (do_intermediate_output) then
+       ! Map back
+       call mosaic_to_partmc(env_state, aero_data, aero_state, gas_data, &
+            gas_state)
+       ! Output after gas chemistry
+       write(filename_prefix, '(a,a)') trim(output_prefix), "_intermediate"
+       call output_state(filename_prefix, output_type, aero_data, aero_state, &
+            gas_data, gas_state, env_state, index, time, dt_sec, i_repeat, &
+            .false., .false., uuid)
+    end if
     call AerChemistry(0.0d0, dt_sec)
 
     ! map MOSAIC -> PartMC
@@ -425,6 +459,13 @@ contains
 
     call mosaic_to_partmc(env_state, aero_data, aero_state, gas_data, &
          gas_state)
+    if (do_intermediate_output) then
+       ! Output after gas chemistry
+       write(filename_prefix, '(a,a)') trim(output_prefix), "_after"
+       call output_state(filename_prefix, output_type, aero_data, aero_state, &
+            gas_data, gas_state, env_state, index, time, dt_sec, i_repeat, &
+            .false., .false., uuid)
+    end if
 #endif
 
   end subroutine mosaic_timestep

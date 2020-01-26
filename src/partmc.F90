@@ -367,6 +367,9 @@ contains
     !!   - \b do_optical (logical): whether to compute optical
     !!     properties of the aersol particles for the output files ---
     !!     see output_format_aero_state
+    !!   - \b do_intermediate_output (logical): whether to output
+    !!     aerosol particle and gas state before, during and after
+    !!     each process in a MOSAIC timestep
     !! - \b do_nucleation (logical): whether to perform particle
     !!   nucleation. If \c do_nucleation is \c yes, then the following
     !!   parameters must also be provided:
@@ -499,6 +502,13 @@ contains
        else
           run_part_opt%do_optical = .false.
        end if
+       if (run_part_opt%do_mosaic) then
+          call spec_file_read_logical(file, 'do_intermediate_output', &
+               run_part_opt%do_mid_chem_output)
+       else
+          run_part_opt%do_mid_chem_output = .false.
+       end if
+
 
        call spec_file_read_logical(file, 'do_nucleation', &
             run_part_opt%do_nucleation)

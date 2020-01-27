@@ -231,9 +231,7 @@ contains
        call AllocateMemory()
     end if
     aer = 0d0    ! initialize to zero
-    ! work backwards for consistency with mosaic_to_partmc(), which
-    ! has specific ordering requirements
-    do i_part = aero_state_n_part(aero_state),1,-1
+    do i_part = 1,aero_state_n_part(aero_state)
        num_conc = aero_weight_array_num_conc(aero_state%awa, &
             aero_state%apa%particle(i_part), aero_data)
        do i_spec = 1,aero_data_n_spec(aero_data)
@@ -323,7 +321,7 @@ contains
     ! aerosol data: map MOSAIC -> PartMC
     call aero_state_num_conc_for_reweight(aero_state, aero_data, &
          reweight_num_conc)
-    do i_part = 1,aero_state_n_part(aero_state),1
+    do i_part = 1,aero_state_n_part(aero_state)
        num_conc = aero_weight_array_num_conc(aero_state%awa, &
             aero_state%apa%particle(i_part), aero_data)
        do i_spec = 1,aero_data_n_spec(aero_data)
@@ -513,9 +511,7 @@ contains
 !    call aerosol_optical
 
     ! map MOSAIC -> PartMC
-    ! work backwards for consistency with mosaic_to_partmc(), which
-    ! has specific ordering requirements
-    do i_part = aero_state_n_part(aero_state),1,-1
+    do i_part = 1,aero_state_n_part(aero_state)
        aero_state%apa%particle(i_part)%absorb_cross_sect = (ext_cross(i_part) &
             - scat_cross(i_part)) / 1d4                       ! (m^2)
        aero_state%apa%particle(i_part)%scatter_cross_sect = &

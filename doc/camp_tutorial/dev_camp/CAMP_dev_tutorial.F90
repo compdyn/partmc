@@ -31,6 +31,8 @@
 !! This tutorial focuses in main concepts. Some of the concepts explained can differ
 !! in the future if better implementations are found, but the tutorial should be
 !! enough to replicate a consistent CAMP skeleton.
+!!
+!! todo: add here a big diagram trying to show all the concepts learned after the tutorial
 
 ! ***********************************************************************
 ! ***********************************************************************
@@ -38,11 +40,12 @@
 
 !> \page camp_dev_tutorial_part_0 Dev CAMP: Part 0 - Introduction
 !!
-todo add a part mentioning the host model, the user add json and the host model adds the concentrations
-and others. Remark the advantage that the json files are added only one time for the user, and the host
-model runs over time the host model (and the data from json files is updated only one time, the concentrations
-and others are updated as many times the host model executes the model). Oriol remarked to put effort to
-show all the details in this diagram. Like adding the initializations maybe?
+
+!! todo add to diagram a part mentioning the host model, the user add json and the host model adds the concentrations
+!! and others. Remark the advantage that the json files are added only one time for the user, and the host
+!! model runs over time the host model (and the data from json files is updated only one time, the concentrations
+!! and others are updated as many times the host model executes the model). Oriol remarked to put effort to
+!! show all the details in this diagram. Like adding the initializations maybe?
 
 !! CAMP can be divided into the following main components:
 !!
@@ -60,7 +63,7 @@ show all the details in this diagram. Like adding the initializations maybe?
 !! chemical mechanism. Includes the solving of the chemical reactions equations and the
 !! ODE solver. At present, the external package CVODE is used as the CAMP ODE solver.
 !!
-!! \image html very_simple_CAMP_components.jpg
+!! \image html very_simple_CAMP_components_2.jpg
 !!
 !! <hr>
 !! \image{inline} html icon_trail.png
@@ -121,54 +124,6 @@ show all the details in this diagram. Like adding the initializations maybe?
 !! For more information about the rate constant, check the
 !! \ref camp_rxn "reaction" types pages.
 !!
-!! ## ODE properties ##
-!!
-
-todo: remark that CAMP can be used with another package apart from CVODE or another method.
-we have 
-
-todo: something about you have the big diagram with a colour, and then something that
-you can guide someone through the details. I guess its use shapes and colours. BASICALLY
-que en la parte de cvode no se entiende bien k de repente ponga una imagen de covde
-poner otra k linke con la 1r imagen (como ampliando esa parte) y asi el user va viendo
-oo esto es del camp solving system vale vale y eso. MOVER la config de CVODE de la parte
-matematica a la seccion de camp solving, y dejar el mathematical considerationns solo con
-matematicas, y ya en el solving pues se menciona. tampoco 
-
-!! Solving an ODE implies selecting the solving method that better fills
-!! its properties.
-!!
-!! For the chemical mechanism scope, the system to solve can be either
-!! a non-stiff problem as a stiff problem.
-!! Since CAMP aims to solve all the types of mechanisms, the ODE method
-!! must be implicit to secure stability and a
-!! reasonable number of solving time-steps for stiff mechanism cases.
-!!
-!! All solver methods require the system derivative in each solver iteration.
-!! But implicit methods tipically needs also the system Jacobian.
-!!
-!! Solving the derivative and the Jacobian also includes a wide range
-!! of solver options that depends on the system properties. Common mechanisms
-!! consist of a great number of reactions (from tens to hundreds) and a
-!! high number of total different parameters. These properties translate
-!! into a small Jacobian matrix with few non-zero values, suitable for
-!! direct sparse solving methods.
-!!
-!! ## CVODE configuration ##
-!!
-!! To fullfill the properties explained, CAMP uses the
-!! <a href=https://computing.llnl.gov/projects/sundials/cvode>CVODE</a>
-!! solving package
-!! with the following configuration:
-!!
-!! - Stiffness: Backward Differentiation Formula (BDF) method.
-!! - Direct sparse linear solver: KLU sparse solver.
-!! - Level of parallelization: No parallelization, serial execution.
-!!
-!! Overral structure diagram of the CVODE package with the options
-!! configured inside red circles:
-!!
-!! \image html cvode_configuration.png
 !!
 !! <hr>
 !! <b> < Previous: </b> \ref camp_dev_tutorial_part_0
@@ -220,11 +175,15 @@ matematicas, y ya en el solving pues se menciona. tampoco
 !!  and stores them in the integer and float arrays defined in rxn_data. It also
 !!  adds to the integer array some data necesary for future calculations and
 !!  iterate the arrays, like the number of reactants and products.
+!!  - \ref pmc_mpi "mpi" : Interface to MPI library. Apart from including a MPI
+!!  call on each function, these functions checks if the MPI call success. The
+!!  purpose is to compress complex MPI implementations in one call (for example,
+!!  broadcasting to all nodes a 2d matrix).
+!!
 !!  todo: rxn_factory? differences between rxn data, aero_rep_data, aero_phase_data and submodel_data?
-!! 
-
-
-!! The workflow corresponds to: (todo: diagram with classes and interaction)
+!!  todo: any relevant class left?
+!!
+!! The workflow corresponds to: (todo: diagram)
 !!
 !! - <b> From the user point of view </b>: initialize camp_core, create camp_state,
 !!  call chem_spec_data through camp_core, set camp_state chemical data and solve.
@@ -253,6 +212,16 @@ matematicas, y ya en el solving pues se menciona. tampoco
 ! ***********************************************************************
 ! ***********************************************************************
 
+!! todo: Guide the tutorial with images with clearly identified shapes and colours
+!! for each module. Basically regarding the user where this part comes from the initial
+!! basic diagram, but with a more specific diagram for the part explained.
+
+!! todo: algorithmic part about operations (multiplying this variable or
+!! getting this index), workflow, and this kind of things must be clear.
+!! add more diagrams or data structures image with okay i have this jacobian
+!! with this indices, something like that. or this struct data image
+!! with all of this necessary data (apart from writing it).
+
 !> \page camp_dev_tutorial_part_3 Dev CAMP: Part 3 - Solving system
 !!
 !!
@@ -260,11 +229,53 @@ matematicas, y ya en el solving pues se menciona. tampoco
 !! an input data the arrays explained in the previous section
 !! (int_data, float_data, state_var and env_data), solve the Derivative and
 !! Jacobian functions defined in \ref camp_dev_tutorial_part_1
-!! and send the results to the CVODE
-!! package. The CVODE package will handle the rest to solve the system ODE.
+!! and send the results to the ODE solver
+!! package.
 !!
-!! The CAMP_core interface interacts only (or should it be) with the
-!! \ref camp_solver.c "camp_solver" file, the main file of the solving system.
+!! The \ref camp_solver.c "camp_solver" file have to be the only file that interacts
+!! with the external solving parts (CAMP_core interface and ODE solver).
+!!
+!! todo: diagram showing ode solver and camp_core_interface, derivative and jac
+!!
+!! ## Choosing the ODE solver: CVODE ##
+!!
+
+
+!! Solving an ODE implies selecting the solving method that better fills
+!! its properties.
+!!
+!! For the chemical mechanism scope, the system to solve can be either
+!! a non-stiff problem as a stiff problem.
+!! Since CAMP aims to solve all the types of mechanisms, the ODE method
+!! have to be implicit to secure a
+!! reasonable number of solving time-steps for stiff mechanism cases.
+!!
+!! All solver methods require the system derivative in each solver iteration.
+!! But implicit methods tipically needs also the system Jacobian.
+!!
+!! Solving the derivative and the Jacobian also includes a wide range
+!! of solver options that depends on the system properties. Common mechanisms
+!! consist of a great number of reactions (from tens to hundreds) and a
+!! high number of total different parameters. These properties translate
+!! into a small Jacobian matrix with few non-zero values, suitable for
+!! direct sparse solving methods.
+!!
+!! To fullfill the properties explained, CAMP uses the
+!! <a href=https://computing.llnl.gov/projects/sundials/cvode>CVODE</a>
+!! solving package
+!! with the following configuration:
+!!
+!! - Stiffness: Backward Differentiation Formula (BDF) method.
+!! - Direct sparse linear solver: KLU sparse solver.
+!! - Level of parallelization: No parallelization, serial execution.
+!!
+!! Note that <b>CAMP is not locked to CVODE<\b> and can be adapted to any ODE
+!! solver availabe with the proper implementation. The only requirements
+!! to achieve an optimal behaviour is select a solver designed for stiff systems.
+!!
+!! todo diagram showing the configuration used and linking to the CAMP solving system
+!! and the entire module (like big box of camp, and inside mention the integrating parts of
+!! solving system, and remarking the cvode box with the config remarked)
 !!
 !! ## Pre-solver operations ##
 !!
@@ -330,9 +341,27 @@ matematicas, y ya en el solving pues se menciona. tampoco
 ! ***********************************************************************
 ! ***********************************************************************
 
-todo add before GPU an mpi programmer section maybe
+!> \page camp_dev_tutorial_part_4 Dev CAMP: Part 4 - MPI
+!!
+!!
+!! All the calls are done throught the MPI class, which derives from the PartMC original
+!! module. This class adapt more of the MPI functions with a safe call, checking
+!! the flag MPI_SUCCESS and exiting the program if the call do not success.
+!!
+!!
+!! <hr>
+!! <b> < Previous: </b> \ref camp_dev_tutorial_part_3
+!! \image{inline} html icon_trail.png
+!! \ref camp_dev_tutorial "Index"
+!! \image{inline} html icon_trail.png
+!! <b> Next: </b>
+!! \ref camp_dev_tutorial_part_5 <b> > </b>
 
-!> \page camp_dev_tutorial_part_4 Dev CAMP: Part 4 - GPU interface
+! ***********************************************************************
+! ***********************************************************************
+! ***********************************************************************
+
+!> \page camp_dev_tutorial_part_5 Dev CAMP: Part5 - GPU interface
 !!
 !!
 !!
@@ -415,12 +444,13 @@ todo add before GPU an mpi programmer section maybe
 !! Derivative or Jacobian function. Note that starting from this step, all the
 !! code will be computed in parallel for all the threads enable.
 !!
-!! Divide the work is basically assign to each thread a diffent reaction pointer
+!! Divide the work translates to assign to each thread a diffent reaction pointer
 !! for each input data variable. In the same manner that we update that pointer
 !! to point the first value of each reaction in the base version reaction loop,
 !! now we use the threads unique id as a loop iterator.
 !! Note that with the reverse optimization, the first value of each reaction
-!! is directly the next value in the reaction parameter arrays.
+!! is directly the next value in the reaction parameter arrays. After that,
+!! only remains call the appropiate reaction function.
 !!
 !! \code{.c}
 !! int index = blockIdx.x * blockDim.x + threadIdx.x;
@@ -428,6 +458,14 @@ todo add before GPU an mpi programmer section maybe
 !! double *rxn_float_data = &(float_data)[index]);
 !! int *rxn_int_data = &(int_data)[index]);
 !! double *rxn_rate_constants = &(rate_constants[index*n_reaction_rate_constants]
+!!
+!! int rxn_type = int_data[0];
+!! rxn_int_data = &(int_data[1*n_rxn]);
+!! switch (rxn_type){
+!!   case ARRHENIUS:
+!!      rxn_arrhenius_calc_deriv_contrib(solver_data, deriv_data, rxn_int_data,
+!!      rxn_float_data, rxn_rate_constants)
+!!  }
 !!
 !! \endcode
 
@@ -444,23 +482,6 @@ todo add before GPU an mpi programmer section maybe
 !! - Assign to the block of reactions of each cell, the corresponding
 !! state_array, deriv array and rate constants for that cell.
 
-
-!!
-!! <hr>
-!! <b> < Previous: </b> \ref camp_dev_tutorial_part_3
-!! \image{inline} html icon_trail.png
-!! \ref camp_dev_tutorial "Index"
-!! \image{inline} html icon_trail.png
-!! <b> Next: </b>
-!! \ref camp_dev_tutorial_part_5 <b> > </b>
-
-! ***********************************************************************
-! ***********************************************************************
-! ***********************************************************************
-
-!> \page camp_dev_tutorial_part_5 Dev CAMP: Part5 - Testing
-!!
-!!
 !! <hr>
 !! <b> < Previous: </b> \ref camp_dev_tutorial_part_4
 !! \image{inline} html icon_trail.png
@@ -473,7 +494,7 @@ todo add before GPU an mpi programmer section maybe
 ! ***********************************************************************
 ! ***********************************************************************
 
-!> \page camp_dev_tutorial_part_6 Dev CAMP: Part 6 -
+!> \page camp_dev_tutorial_part_6 Dev CAMP: Part 6 - Testing
 !!
 !!
 !! <hr>
@@ -481,5 +502,46 @@ todo add before GPU an mpi programmer section maybe
 !! \image{inline} html icon_trail.png
 !! \ref camp_dev_tutorial "Index"
 !! \image{inline} html icon_trail.png
+!!
+!!
+
+! ***********************************************************************
+! ***********************************************************************
+! ***********************************************************************
+
+!> \page camp_dev_tutorial_part_6 Dev CAMP: Part 7 -
+!!
+!!
+!! <hr>
+!! <b> < Previous: </b> \ref camp_dev_tutorial_part_5
+!! \image{inline} html icon_trail.png
+!! \ref camp_dev_tutorial "Index"
+!! \image{inline} html icon_trail.png
+!!
+!!
+
+!! todo: notes from Mario: Ensure to write the part of optimization
+!! changes, like this was the speedup of base version and now this optimize
+!! this part, etc. NOTE that normally for the thesis people ask if the CPU
+!! version was optimized already, thing that I can say NO, because I optimize
+!! this, but the sparse atleast is optimized blablabla. Maybe something like
+!! "patch notes" related to optimization, but with a more extensive section.
+!! Don't know if let this in the tutorial, or MENTION it in the end or somewhere
+!! and link to the documentation. With this done, the phd thesis will be
+!! only copy pasting from the documentation.
+
+
+!! todo: create some section to write current development, like a historial. Example:
+!! I defined an issue explaining a problem. OKAY, this problem should be
+!! yes or yes in documentation as recent changes or something like that
+!! Once finish, if is an optimization work, check the last optimization work
+!! time result and compare the improvement to said okay this optimization
+!! changes the time measured last time with the last optimization
+!! from 1s to 0.8, so 20% improvement so nice.
+
+!! todo: Create sections to fill as much kind of documentation as possible
+!! (like the one written in papers, manuals, or technical reports)
+!! (maybe state of the art can suits too?)
+!!
 !!
 !!

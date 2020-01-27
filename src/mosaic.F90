@@ -269,7 +269,7 @@ contains
 
   !> Map all data MOSAIC -> PartMC.
   subroutine mosaic_to_partmc(env_state, aero_data, aero_state, gas_data, &
-       gas_state)
+       gas_state, map_aerosols, map_gases)
 
 #ifdef PMC_USE_MOSAIC
     use module_data_mosaic_aero, only: nbin_a, aer, num_a, jhyst_leg, &
@@ -290,6 +290,10 @@ contains
     type(gas_data_t), intent(in) :: gas_data
     !> Gas state.
     type(gas_state_t), intent(inout) :: gas_state
+    !> Whether to map aerosols.
+    logical, intent(in) :: map_aerosols
+    !> Whether to map gases.
+    logical, intent(in) :: map_gases
 
 #ifdef PMC_USE_MOSAIC
     ! local variables
@@ -315,40 +319,46 @@ contains
     cair_molm3 = 1d6*pr_atm/(82.056d0*te)    ! air conc [mol/m^3]
     ppb = 1d9
 
-    ! We're modifying particle diameters, so the bin sort is now invalid
-    aero_state%valid_sort = .false.
+    if (map_aerosols) then
+       ! We're modifying particle diameters, so the bin sort is now invalid
+       aero_state%valid_sort = .false.
 
-    ! aerosol data: map MOSAIC -> PartMC
-    call aero_state_num_conc_for_reweight(aero_state, aero_data, &
-         reweight_num_conc)
-    do i_part = 1,aero_state_n_part(aero_state)
-       num_conc = aero_weight_array_num_conc(aero_state%awa, &
-            aero_state%apa%particle(i_part), aero_data)
-       do i_spec = 1,aero_data_n_spec(aero_data)
-          i_spec_mosaic = aero_data%mosaic_index(i_spec)
-          if (i_spec_mosaic > 0) then
-             aero_state%apa%particle(i_part)%vol(i_spec) = &
-                  ! convert nmol(species)/m^3(air) to m^3(species)
-                  aer(i_spec_mosaic, 3, i_part) / (conv_fac(i_spec) * num_conc)
-          end if
+       ! aerosol data: map MOSAIC -> PartMC
+       call aero_state_num_conc_for_reweight(aero_state, aero_data, &
+            reweight_num_conc)
+       do i_part = 1,aero_state_n_part(aero_state)
+          num_conc = aero_weight_array_num_conc(aero_state%awa, &
+               aero_state%apa%particle(i_part), aero_data)
+          do i_spec = 1,aero_data_n_spec(aero_data)
+             i_spec_mosaic = aero_data%mosaic_index(i_spec)
+             if (i_spec_mosaic > 0) then
+                aero_state%apa%particle(i_part)%vol(i_spec) = &
+                     ! convert nmol(species)/m^3(air) to m^3(species)
+                     aer(i_spec_mosaic, 3, i_part) / (conv_fac(i_spec) &
+                     * num_conc)
+             end if
+          end do
+          aero_state%apa%particle(i_part)%water_hyst_leg = jhyst_leg(i_part)
+          ! handle water specially
+          ! convert kg(water)/m^3(air) to m^3(water)
+          aero_state%apa%particle(i_part)%vol(aero_data%i_water) = &
+               water_a(i_part) / aero_data%density(aero_data%i_water) &
+               / num_conc
        end do
-       aero_state%apa%particle(i_part)%water_hyst_leg = jhyst_leg(i_part)
-       ! handle water specially
-       ! convert kg(water)/m^3(air) to m^3(water)
-       aero_state%apa%particle(i_part)%vol(aero_data%i_water) = &
-            water_a(i_part) / aero_data%density(aero_data%i_water) / num_conc
-    end do
-    ! adjust particles to account for weight changes
-    call aero_state_reweight(aero_state, aero_data, reweight_num_conc)
+       ! adjust particles to account for weight changes
+       call aero_state_reweight(aero_state, aero_data, reweight_num_conc)
+    end if
 
     ! gas chemistry: map MOSAIC -> PartMC
-    do i_spec = 1,gas_data_n_spec(gas_data)
-       i_spec_mosaic = gas_data%mosaic_index(i_spec)
-       if (i_spec_mosaic > 0) then
-          ! convert molec/cc to ppbv
-          gas_state%mix_rat(i_spec) = cnn(i_spec_mosaic) / cair_mlc * ppb
-       end if
-    end do
+    if (map_gases) then
+       do i_spec = 1,gas_data_n_spec(gas_data)
+          i_spec_mosaic = gas_data%mosaic_index(i_spec)
+          if (i_spec_mosaic > 0) then
+             ! convert molec/cc to ppbv
+             gas_state%mix_rat(i_spec) = cnn(i_spec_mosaic) / cair_mlc * ppb
+          end if
+       end do
+    end if
 #endif
 
   end subroutine mosaic_to_partmc
@@ -437,7 +447,7 @@ contains
     if (do_intermediate_output) then
        ! Map back
        call mosaic_to_partmc(env_state, aero_data, aero_state, gas_data, &
-            gas_state)
+            gas_state, .false., .true.)
        ! Output after gas chemistry
        write(filename_prefix, '(a,a)') trim(output_prefix), "_intermediate"
        call output_state(filename_prefix, output_type, aero_data, aero_state, &
@@ -456,7 +466,7 @@ contains
     end if
 
     call mosaic_to_partmc(env_state, aero_data, aero_state, gas_data, &
-         gas_state)
+         gas_state, .true., .true.)
     if (do_intermediate_output) then
        ! Output after gas chemistry
        write(filename_prefix, '(a,a)') trim(output_prefix), "_after"

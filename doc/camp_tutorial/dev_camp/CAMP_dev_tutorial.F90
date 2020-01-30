@@ -509,6 +509,26 @@
 
 !> \page camp_dev_tutorial_part_6 Dev CAMP: Part 6 - Testing
 !!
+!! Check accuracy, types of tests, functionalities that have to be test,
+!! checkings alongside the program...
+!!
+!! ## Testing through CMakeLists ##
+!!
+!! Explain that CMake leads the test execution through CMakeLists. The tests
+!! should be added to this file.
+!!
+!! The organization of CMake is: blablbla (remark that all the tests should be
+!! here to allow automatic execution with "make test" command)
+!!
+!!
+!! ## Check GPU: CMAKE ##
+!!
+!! GPU is checked through generating extra compiled files with GPU_flag ON
+!!
+!! ## Developing a test: Common test parts with test_unit_rxn example
+!!
+!! Explain the test_unit_rxn test example to ensure all the items are
+!! check (multi-cells,
 !!
 !! <hr>
 !! <b> < Previous: </b> \ref camp_dev_tutorial_part_5
@@ -522,8 +542,35 @@
 ! ***********************************************************************
 ! ***********************************************************************
 
-!> \page camp_dev_tutorial_part_6 Dev CAMP: Part 7 -
+!> \page camp_dev_tutorial_part_6 Dev CAMP: Chapter 7 - Documenting your contribution
 !!
+!! Explain a bit how Doxygen works, contact main developers, blablabla. How to
+!! add comments to the code, and this kind of basic things that sometimes are not
+!! so basic.
+!!
+!! <hr>
+!! <b> < Previous: </b> \ref camp_dev_tutorial_part_5
+!! \image{inline} html icon_trail.png
+!! \ref camp_dev_tutorial "Index"
+!! \image{inline} html icon_trail.png
+!!
+!!
+
+! ***********************************************************************
+! ***********************************************************************
+! ***********************************************************************
+
+!> \page camp_dev_tutorial_part_6 Dev CAMP: Extra chapter - Performance & Optimization
+!!
+!! ## How performance is measured ##
+!!
+!! ## Optimization tips ##
+!!
+!! ...
+!!
+!! In the Github project you can find all the existent changes of CAMP including
+!! all the optimizations, but if you want only information about the most
+!! relevants, you can find them in the ""CAMP Performance timeline"" page.
 !!
 !! <hr>
 !! <b> < Previous: </b> \ref camp_dev_tutorial_part_5
@@ -539,7 +586,7 @@
 !! version was optimized already, thing that I can say NO, because I optimize
 !! this, but the sparse atleast is optimized blablabla. Maybe something like
 !! "patch notes" related to optimization, but with a more extensive section.
-!! Don't know if let this in the tutorial, or MENTION it in the end or somewhere
+!! Don't know if write this in the tutorial, or MENTION it in the end or somewhere
 !! and link to the documentation. With this done, the phd thesis should be
 !! more or less copy paste from the documentation.
 

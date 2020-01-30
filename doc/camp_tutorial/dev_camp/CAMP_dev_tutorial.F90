@@ -79,6 +79,15 @@
 !!
 !! \image html very_simple_CAMP_components_2.jpg
 !!
+note use in the image run the experiment instead submit
+meet: process.st/uml-tutorial/ first level user, then host model, camp and then solver something like that
+the first part of the very simple components can be used, and then start with the model and all 
+this things, configuring the host model etc, not super detail but something to see all the steps to
+describe as best as possible. use  rombos something like that to remark camp_core, camp solver... REMARK
+that is only a WORKFLOW diagram, so no variable description necessary
+
+
+
 !! <hr>
 !! \image{inline} html icon_trail.png
 !! \ref camp_dev_tutorial "Index"
@@ -222,6 +231,15 @@
 !! float_data from now on. Only the environmental data array (env_data) and the
 !! concentrations array (concs_data) are outside off int_data and float_data.
 !!
+
+Matt aconseja usar class diagram por estas secciones especificas, para describir claramente las
+data structures presentes (si, en el camp_solving system tmb). Mantener el workflow diagram
+global para la introduccion.
+
+Pendiente: intentar explicar lo de sub models y aeros, pero matt lo corregira para ponerlo bien
+FOCUS en las 2 imagenes de workflow y de data classes, y enviarlas a matt cuando las tenga
+para que vaya corrigiendo. 
+
 !! <hr>
 !! <b> < Previous: </b> \ref camp_dev_tutorial_part_1
 !! \image{inline} html icon_trail.png

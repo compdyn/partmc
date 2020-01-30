@@ -2,6 +2,16 @@
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
+!! todo: Guide the tutorial with images with clearly identified shapes and colours
+!! for each module. Basically regarding the user where this part comes from the initial
+!! basic diagram, but with a more specific diagram for the part explained.
+
+!! todo: algorithmic part about operations (multiplying this variable or
+!! getting this index), workflow, and this kind of things must be clear.
+!! add more diagrams or data structures image with okay i have this jacobian
+!! with this indices, something like that. or this struct data image
+!! with all of this necessary data (apart from writing it).
+
 !> \page camp_dev_tutorial Dev CAMP: The CAMP developer guide
 !!
 !! Welcome developer!
@@ -13,7 +23,7 @@
 !! guide will help you to understand the insides of CAMP and allows you
 !! to contribute to the CAMP development.
 !!
-!! Before starting, it's recommended have finalized the \ref camp_tutorial
+!! Before starting, it's recommended to have finalized the \ref camp_tutorial
 !! Boot CAMP tutorial.
 !!
 !! - \ref camp_dev_tutorial_part_0
@@ -32,7 +42,17 @@
 !! in the future if better implementations are found, but the tutorial should be
 !! enough to replicate a consistent CAMP skeleton.
 !!
-!! todo: add here a big diagram trying to show all the concepts learned after the tutorial
+!! After complete the tutorial, we recommend take a look at the complete
+!! sequence diagram of CAMP version 1.0. It contains most of the variable and functions
+!! explained during the tutorial and some more.
+!!
+!!  <a href=https://www.draw.io/#G1XbNwQZ58d3RWbOK_6_aVvFr9_vW0hwBc>CAMP
+!!  sequence diagram</a>
+!!
+!! Q: develop using the link?
+!!
+!! \image html CAMP_complete_sequence.jpg
+!!
 
 ! ***********************************************************************
 ! ***********************************************************************
@@ -40,13 +60,7 @@
 
 !> \page camp_dev_tutorial_part_0 Dev CAMP: Part 0 - Introduction
 !!
-
-!! todo add to diagram a part mentioning the host model, the user add json and the host model adds the concentrations
-!! and others. Remark the advantage that the json files are added only one time for the user, and the host
-!! model runs over time the host model (and the data from json files is updated only one time, the concentrations
-!! and others are updated as many times the host model executes the model). Oriol remarked to put effort to
-!! show all the details in this diagram. Like adding the initializations maybe?
-
+!!
 !! CAMP can be divided into the following main components:
 !!
 !! - Input user data: All input data received by CAMP.
@@ -165,8 +179,8 @@
 !!  \ref pmc_property::property_t "property_t".
 !!  Includes declarations of the arrays where JSON data is stored: one array for
 !!  integer type data and other for floating data (for example, qty from \ref
-!!  camp_rxn_arrhenius "arrhenius reaction" is an integer, but \f$A\f$ is floating data).
-!!  todo: why more than 1 class read JSON data?
+!!  camp_rxn_arrhenius "arrheniufs reaction" is an integer, but \f$A\f$ is floating data).
+!!  Q: why more than 1 class read JSON data?
 !!  - \ref pmc_rxn_arrhenius::rxn_arrhenius_t "rxn_REACTIONTYPE" : Set of classes,
 !!  one for each reaction type defined in CAMP,
 !!  where REACTIONTYPE is the reaction name (arrhenius, photolysis, etc.)
@@ -175,13 +189,21 @@
 !!  and stores them in the integer and float arrays defined in rxn_data. It also
 !!  adds to the integer array some data necesary for future calculations and
 !!  iterate the arrays, like the number of reactants and products.
-!!  - \ref pmc_mpi "mpi" : Interface to MPI library. Apart from including a MPI
+!!  - \ref pmc_mpi "pmc_mpi" : Interface to MPI library. Apart from including a MPI
 !!  call on each function, these functions checks if the MPI call success. The
 !!  purpose is to compress complex MPI implementations in one call (for example,
 !!  broadcasting to all nodes a 2d matrix).
+!!  - \ref pmc_rxn_factory::rxn_factory_t "rxn_factory": Interface to create and
+!!  add to the system a new reaction in runtime. Apart from JSON files, this can be
+!!  another way to enter the reaction data. Check \ref camp_rxn_add for more information.
+!!  - \ref pmc_util "pmc_util": Treat an array of characters as a string_t object. Used to store string
+!!   informations like species names in chem_spec_data or camp_core.
 !!
-!!  todo: rxn_factory? differences between rxn data, aero_rep_data, aero_phase_data and submodel_data?
-!!  todo: any relevant class left?
+!!  todo: identify what partmc files are used and which ones not:
+!! Used (explain before): mpi, util,
+!! Not used: stats, run_coagulation, run_part, run_sect,  aero_binned, aero_state,
+!! spec_file (integrated in env_state but only used by partmc)
+!!   ...
 !!
 !! The workflow corresponds to: (todo: diagram)
 !!
@@ -198,7 +220,7 @@
 !! Notice that all the reaction data read in the JSON files will be stored
 !! in the integer and the float aray. We will name these arrays as int_data and
 !! float_data from now on. Only the environmental data array (env_data) and the
-!! concentrations array (state_var) are outside off int_data and float_data.
+!! concentrations array (concs_data) are outside off int_data and float_data.
 !!
 !! <hr>
 !! <b> < Previous: </b> \ref camp_dev_tutorial_part_1
@@ -212,35 +234,23 @@
 ! ***********************************************************************
 ! ***********************************************************************
 
-!! todo: Guide the tutorial with images with clearly identified shapes and colours
-!! for each module. Basically regarding the user where this part comes from the initial
-!! basic diagram, but with a more specific diagram for the part explained.
-
-!! todo: algorithmic part about operations (multiplying this variable or
-!! getting this index), workflow, and this kind of things must be clear.
-!! add more diagrams or data structures image with okay i have this jacobian
-!! with this indices, something like that. or this struct data image
-!! with all of this necessary data (apart from writing it).
-
 !> \page camp_dev_tutorial_part_3 Dev CAMP: Part 3 - Solving system
-!!
 !!
 !! This section describes the CAMP solving process. This process receive as
 !! an input data the arrays explained in the previous section
-!! (int_data, float_data, state_var and env_data), solve the Derivative and
+!! (int_data, float_data, concs_data and env_data), solve the Derivative and
 !! Jacobian functions defined in \ref camp_dev_tutorial_part_1
 !! and send the results to the ODE solver
 !! package.
 !!
-!! The \ref camp_solver.c "camp_solver" file have to be the only file that interacts
-!! with the external solving parts (CAMP_core interface and ODE solver).
+!! The \ref camp_solver.c "CAMP_solver" file have to be the only file that interacts
+!! with the external solving parts (CAMP_core interface and ODE solver). The following
+!! image illustrates the overall solving system structure:
 !!
-!! todo: diagram showing ode solver and camp_core_interface, derivative and jac
+!! \image html camp_solving_system.jpg
 !!
 !! ## Choosing the ODE solver: CVODE ##
 !!
-
-
 !! Solving an ODE implies selecting the solving method that better fills
 !! its properties.
 !!
@@ -269,25 +279,28 @@
 !! - Direct sparse linear solver: KLU sparse solver.
 !! - Level of parallelization: No parallelization, serial execution.
 !!
-!! Note that <b>CAMP is not locked to CVODE<\b> and can be adapted to any ODE
+!! Note that <b> CAMP is not locked to CVODE </b> and can be adapted to any ODE
 !! solver availabe with the proper implementation. The only requirements
 !! to achieve an optimal behaviour is select a solver designed for stiff systems.
 !!
-!! todo diagram showing the configuration used and linking to the CAMP solving system
-!! and the entire module (like big box of camp, and inside mention the integrating parts of
-!! solving system, and remarking the cvode box with the config remarked)
+!! We recommend check the sparse matrix structure before continuing the tutorial.
+!! Good documentation about the KLU sparse solver and his structure can be found at
+!! <a href=https://fossies.org/linux/SuiteSparse/KLU/Doc/palamadai_e.pdf>
+!! "KLU-A HIGH PERFORMANCE SPARSE LINEAR SOLVER FOR CIRCUIT SIMULATION
+!! PROBLEMS", by Ekanathan Palamadai Natarajan</a>
 !!
 !! ## Pre-solver operations ##
 !!
 !! Before calling the CVODE solving process, some operations must be done:
 !!
-!! 1- Mount the sparse Jacobian structure. Save the index to the
-!! non-zero values in the Jacobian. Each index should correspond to a reaction
-!! (Jacobian row) and the species (Jacobian species), given that the Jacobian
-!! value for a position is zero if the reactant do not exists for this reaction,
-!! and non-zero otherwise. Remember that the species present
-!! in a reaction are defined in the JSON files, and the Jacobian must be
-!! set following the sparse structure.
+!! 1- Mount the sparse Jacobian structure. A sparse matrix has the data
+!! values array and two arrays of indices that indicates the matrix rows
+!! and columns. For our case, rows represents the system reactions and
+!! columns represents the species. Each row has a value for all the species
+!! present, but if the reaction does not affect the specie the value will be
+!! zero everytime and won't be stored in the sparse data array. In addition
+!! to this, an extra index structure is created to link reactions with Jacobian
+!! in CAMP (\ref JacMap "JacMap").
 !!
 !! 2- Configure CVODE with the optimal solver options (BDF, KLU sparse, etc.).
 !!
@@ -306,7 +319,7 @@
 !!
 !! These functions will be called in the middle of the CVODE solving process,
 !! depending of the system will be called less or more times. CVODE will
-!! pass as a function parameters the current concentration array (state_var),
+!! pass as a function parameters the current concentration array (concs_data),
 !! the pointer to the future concentration array or Jacobian (deriv or J
 !! variables), the current model time (s) and the pointer
 !! to the main CAMP data structure (solver_data struct). solver_data contains all
@@ -361,7 +374,7 @@
 ! ***********************************************************************
 ! ***********************************************************************
 
-!> \page camp_dev_tutorial_part_5 Dev CAMP: Part5 - GPU interface
+!> \page camp_dev_tutorial_part_5 Dev CAMP: Part 5 - GPU interface
 !!
 !!
 !!
@@ -527,8 +540,8 @@
 !! this, but the sparse atleast is optimized blablabla. Maybe something like
 !! "patch notes" related to optimization, but with a more extensive section.
 !! Don't know if let this in the tutorial, or MENTION it in the end or somewhere
-!! and link to the documentation. With this done, the phd thesis will be
-!! only copy pasting from the documentation.
+!! and link to the documentation. With this done, the phd thesis should be
+!! more or less copy paste from the documentation.
 
 
 !! todo: create some section to write current development, like a historial. Example:

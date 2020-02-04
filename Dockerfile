@@ -33,8 +33,8 @@ RUN curl -LO https://github.com/jacobwilliams/json-fortran/archive/6.1.0.tar.gz 
 COPY . /partmc/
 
 # Install a modified version of CVODE
-RUN tar -zxvf /partmc/cvode-1.0-alpha.tar.gz \
-    && cd cvode-1.0-alpha \
+RUN tar -zxvf /partmc/cvode-3.4-alpha.tar.gz \
+    && cd cvode-3.4-alpha \
     && mkdir build \
     && cd build \
     && cmake -D CMAKE_BUILD_TYPE=release \

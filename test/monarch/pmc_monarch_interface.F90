@@ -10,7 +10,8 @@ module pmc_monarch_interface
 
   use pmc_constants,                  only : i_kind
   use pmc_mpi
-  use pmc_util,                       only : assert_msg, string_t
+  use pmc_util,                       only : assert_msg, string_t, &
+                                             warn_assert_msg
   use pmc_camp_core
   use pmc_camp_state
   use pmc_aero_rep_data
@@ -434,6 +435,10 @@ contains
             ! Integrate the PMC mechanism
             call this%camp_core%solve(this%camp_state, &
                     real(time_step, kind=dp), solver_stats = solver_stats)
+
+            call warn_assert_msg(376450931, solver_stats%status_code.eq.0, &
+                            "Solver failed with code "// &
+                            to_string(solver_stats%solver_flag))
 
 #ifdef PMC_DEBUG
             ! Check the Jacobian evaluations

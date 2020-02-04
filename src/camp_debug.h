@@ -109,6 +109,13 @@ void pmc_debug_print_jac(void *solver_data, SUNMatrix J, const char *message) {
 #endif
 }
 
+realtype pmc_jac_elem(SUNMatrix J, unsigned int j, unsigned int i) {
+  for (int i_elem = SM_INDEXPTRS_S(J)[j]; i_elem < SM_INDEXPTRS_S(J)[j + 1];
+       ++i_elem) {
+    if (i == SM_INDEXVALS_S(J)[i_elem]) return SM_DATA_S(J)[i_elem];
+  }
+  return 0.0;
+}
 #else
 #define PMC_DEBUG_PRINT(x)
 #define PMC_DEBUG_PRINT_INT(x, y)

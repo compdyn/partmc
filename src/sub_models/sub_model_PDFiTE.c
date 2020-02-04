@@ -176,9 +176,6 @@ void sub_model_PDFiTE_calculate(int *sub_model_int_data,
 
   // Calculate ion_pair activity coefficients in each phase
   for (int i_phase = 0; i_phase < NUM_PHASE_; i_phase++) {
-    // Initialize omega' (defined below)
-    long double omega_prime = 0.0;
-
     // Calculate the number of moles of each ion
     for (int i_ion_pair = 0; i_ion_pair < NUM_ION_PAIRS_; i_ion_pair++) {
       // N (mol_i/m3) = c_i (ug/m3) / 10^6 (ug/g) / MW_i (ug/umol)
@@ -291,9 +288,6 @@ void sub_model_PDFiTE_get_jac_contrib(int *sub_model_int_data,
 
   // Calculate ion_pair activity coefficients in each phase
   for (int i_phase = 0; i_phase < NUM_PHASE_; i_phase++) {
-    // Initialize omega' (defined below)
-    long double omega_prime = 0.0;
-
     // Calculate the number of moles of each ion
     for (int i_ion_pair = 0; i_ion_pair < NUM_ION_PAIRS_; i_ion_pair++) {
       // N (mol_i/m3) = c_i (ug/m3) / 10^6 (ug/g) / MW_i (ug/umol)

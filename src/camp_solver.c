@@ -33,7 +33,7 @@
 // Default solver initial time step relative to total integration time
 #define DEFAULT_TIME_STEP 1.0
 // State advancement factor for Jacobian element evaluation
-#define JAC_CHECK_ADV_MAX 1.0E-02
+#define JAC_CHECK_ADV_MAX 1.0E-00
 #define JAC_CHECK_ADV_MIN 1.0E-12
 // Relative tolerance for Jacobian element evaluation against GSL absolute
 // errors
@@ -629,12 +629,17 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
     if (flag < 0) {
 #else
     if (check_flag(&flag, "CVode", 1) == CAMP_SOLVER_FAIL) {
+      if (flag == -6) {
+        long int lsflag;
+        int lastflag = CVDlsGetLastFlag(sd->cvode_mem, &lsflag);
+        printf("\nLinear Solver Setup Fail: %d %ld", lastflag, lsflag);
+      }
       N_Vector deriv = N_VClone(sd->y);
       flag = f(t_initial, sd->y, deriv, sd);
       if (flag != 0)
         printf("\nCall to f() at failed state failed with flag %d\n", flag);
       for (int i_cell = 0; i_cell < md->n_cells; ++i_cell) {
-        printf("\n Cell: %d ");
+        printf("\n Cell: %d ", i_cell);
         printf("temp = %le pressure = %le\n", env[i_cell * PMC_NUM_ENV_PARAM_],
                env[i_cell * PMC_NUM_ENV_PARAM_ + 1]);
         for (int i_spec = 0, i_dep_var = 0; i_spec < md->n_per_cell_state_var;
@@ -649,7 +654,8 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
             printf("spec %d = %le\n", i_spec,
                    state[i_cell * md->n_per_cell_state_var + i_spec]);
           }
-        solver_print_stats(sd->cvode_mem);
+      }
+      solver_print_stats(sd->cvode_mem);
 #endif
       return CAMP_SOLVER_FAIL;
     }
@@ -768,11 +774,11 @@ void solver_get_statistics(void *solver_data, int *solver_flag, int *num_steps,
   *Jac_time__s = ((double)sd->timeJac) / CLOCKS_PER_SEC;
   *max_loss_precision = sd->max_loss_precision;
 #else
-    *RHS_evals_total = -1;
-    *Jac_evals_total = -1;
-    *RHS_time__s = 0.0;
-    *Jac_time__s = 0.0;
-    *max_loss_precision = 0.0;
+  *RHS_evals_total = -1;
+  *Jac_evals_total = -1;
+  *RHS_time__s = 0.0;
+  *Jac_time__s = 0.0;
+  *max_loss_precision = 0.0;
 #endif
 #endif
 }
@@ -924,9 +930,9 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
                              sd->output_precision);
     }
 #else
-      // Add contributions from reactions not implemented on GPU
-      // FIXME need to fix this to use TimeDerivative
-      rxn_calc_deriv_specific_types(md, sd->time_deriv, (double)time_step);
+    // Add contributions from reactions not implemented on GPU
+    // FIXME need to fix this to use TimeDerivative
+    rxn_calc_deriv_specific_types(md, sd->time_deriv, (double)time_step);
 #endif
 
 #ifdef PMC_DEBUG
@@ -994,7 +1000,7 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
   if (f(t, y, deriv, solver_data) != 0) {
     printf("\n Derivative calculation failed.\n");
     sd->use_deriv_est = 1;
-    return false;
+    return 1;
   }
   sd->use_deriv_est = 1;
 
@@ -1011,12 +1017,12 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
   /// \todo #83 Figure out how to stop CVODE from resizing the Jacobian
   ///       during solving
   SM_NNZ_S(J) = SM_NNZ_S(md->J_init);
-  for (int i = 0; i < SM_NNZ_S(J); i++) {
-    (SM_DATA_S(J))[i] = (realtype)0.0;
-    (SM_INDEXVALS_S(J))[i] = (SM_INDEXVALS_S(md->J_init))[i];
-  }
   for (int i = 0; i <= SM_NP_S(J); i++) {
     (SM_INDEXPTRS_S(J))[i] = (SM_INDEXPTRS_S(md->J_init))[i];
+  }
+  for (int i = 0; i < SM_NNZ_S(J); i++) {
+    (SM_INDEXVALS_S(J))[i] = (SM_INDEXVALS_S(md->J_init))[i];
+    (SM_DATA_S(J))[i] = (realtype)0.0;
   }
 
 #ifdef PMC_DEBUG
@@ -1069,8 +1075,8 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
     // Calculate the reaction Jacobian
     rxn_calc_jac(md, sd->jac, time_step);
 #else
-      // Add contributions from reactions not implemented on GPU
-      rxn_calc_jac_specific_types(md, sd->jac, time_step);
+    // Add contributions from reactions not implemented on GPU
+    rxn_calc_jac_specific_types(md, sd->jac, time_step);
 #endif
 
 // rxn_calc_jac_specific_types(md, J_rxn_data, time_step);

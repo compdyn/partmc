@@ -437,19 +437,13 @@ contains
     end if
 
     !call IntegrateChemistry
-    if (do_intermediate_output) then
-       write(filename_prefix, '(a,a)') trim(output_prefix), "_before"
-       call output_state(filename_prefix, output_type, aero_data, aero_state, &
-            gas_data, gas_state, env_state, index, time, dt_sec, i_repeat, &
-            .false., .false., uuid)
-    end if
     call GasChemistry(0.0d0, dt_sec)
     if (do_intermediate_output) then
        ! Map back
        call mosaic_to_partmc(env_state, aero_data, aero_state, gas_data, &
             gas_state, .false., .true.)
        ! Output after gas chemistry
-       write(filename_prefix, '(a,a)') trim(output_prefix), "_intermediate"
+       write(filename_prefix, '(a,a)') trim(output_prefix), "_5_gas"
        call output_state(filename_prefix, output_type, aero_data, aero_state, &
             gas_data, gas_state, env_state, index, time, dt_sec, i_repeat, &
             .false., .false., uuid)
@@ -469,7 +463,7 @@ contains
          gas_state, .true., .true.)
     if (do_intermediate_output) then
        ! Output after gas chemistry
-       write(filename_prefix, '(a,a)') trim(output_prefix), "_after"
+       write(filename_prefix, '(a,a)') trim(output_prefix), "_6_aerosol"
        call output_state(filename_prefix, output_type, aero_data, aero_state, &
             gas_data, gas_state, env_state, index, time, dt_sec, i_repeat, &
             .false., .false., uuid)

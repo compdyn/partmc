@@ -69,7 +69,7 @@ module pmc_run_part
      !> Whether to compute optical properties.
      logical :: do_optical
      !> Whether to output during chemistry timestep.
-     logical :: do_mid_chem_output
+     logical :: do_intermediate_output
      !> Whether to have explicitly selected weighting.
      logical :: do_select_weighting
      !> Type of particle weighting scheme.
@@ -139,6 +139,7 @@ contains
     type(env_state_t) :: old_env_state
     integer :: n_time, i_time, i_time_start, pre_i_time
     integer :: i_state, i_state_netcdf, i_output, i_chem_output
+    character(len=PMC_MAX_FILENAME_LEN+100) :: filename_prefix
 
     rank = pmc_mpi_rank()
     n_proc = pmc_mpi_size()
@@ -211,10 +212,28 @@ contains
 
     do i_time = i_time_start,n_time
 
+       if (run_part_opt%do_intermediate_output) then
+          write(filename_prefix, '(a,a)') trim(run_part_opt%output_prefix), &
+               "_1_start"
+          call output_state(filename_prefix, run_part_opt%output_type, &
+               aero_data, aero_state, gas_data, gas_state, env_state, i_time, &
+               time, run_part_opt%del_t, run_part_opt%i_repeat, .false., &
+               .false., run_part_opt%uuid)
+       end if
+
        time = real(i_time, kind=dp) * run_part_opt%del_t
 
        old_env_state = env_state
        call scenario_update_env_state(scenario, env_state, time + t_start)
+
+       if (run_part_opt%do_intermediate_output) then
+          write(filename_prefix, '(a,a)') trim(run_part_opt%output_prefix), &
+               "_2_env"
+          call output_state(filename_prefix, run_part_opt%output_type, &
+               aero_data, aero_state, gas_data, gas_state, env_state, i_time, &
+               time, run_part_opt%del_t, run_part_opt%i_repeat, .false., &
+               .false., run_part_opt%uuid)
+       end if
 
        if (run_part_opt%do_nucleation) then
           n_part_before = aero_state_total_particles(aero_state)
@@ -243,6 +262,14 @@ contains
           progress_n_samp = progress_n_samp + n_samp
           progress_n_coag = progress_n_coag + n_coag
        end if
+       if (run_part_opt%do_intermediate_output) then
+          write(filename_prefix, '(a,a)') trim(run_part_opt%output_prefix), &
+               "_3_coag"
+          call output_state(filename_prefix, run_part_opt%output_type, &
+               aero_data, aero_state, gas_data, gas_state, env_state, i_time, &
+               time, run_part_opt%del_t, run_part_opt%i_repeat, .false., &
+               .false., run_part_opt%uuid)
+       end if
 
 #ifdef PMC_USE_SUNDIALS
        if (run_part_opt%do_condensation) then
@@ -261,12 +288,21 @@ contains
        progress_n_dil_in = progress_n_dil_in + n_dil_in
        progress_n_dil_out = progress_n_dil_out + n_dil_out
 
+       if (run_part_opt%do_intermediate_output) then
+          write(filename_prefix, '(a,a)') trim(run_part_opt%output_prefix), &
+               "_4_emit"
+          call output_state(filename_prefix, run_part_opt%output_type, &
+               aero_data, aero_state, gas_data, gas_state, env_state, i_time, &
+               time, run_part_opt%del_t, run_part_opt%i_repeat, .false., &
+               .false., run_part_opt%uuid)
+       end if
+
        if (run_part_opt%do_mosaic) then
           call mosaic_timestep(env_state, aero_data, aero_state, gas_data, &
                gas_state, run_part_opt%do_optical, &
                run_part_opt%output_prefix, run_part_opt%output_type, &
                i_chem_output, time, run_part_opt%i_repeat, &
-               run_part_opt%uuid, run_part_opt%do_mid_chem_output)
+               run_part_opt%uuid, run_part_opt%do_intermediate_output)
           i_chem_output = i_chem_output + 1
        end if
 
@@ -425,6 +461,7 @@ contains
          + pmc_mpi_pack_size_logical(val%do_condensation) &
          + pmc_mpi_pack_size_logical(val%do_mosaic) &
          + pmc_mpi_pack_size_logical(val%do_optical) &
+         + pmc_mpi_pack_size_logical(val%do_intermediate_output) &
          + pmc_mpi_pack_size_logical(val%do_select_weighting) &
          + pmc_mpi_pack_size_integer(val%weighting_type) &
          + pmc_mpi_pack_size_real(val%weighting_exponent) &
@@ -473,6 +510,7 @@ contains
     call pmc_mpi_pack_logical(buffer, position, val%do_condensation)
     call pmc_mpi_pack_logical(buffer, position, val%do_mosaic)
     call pmc_mpi_pack_logical(buffer, position, val%do_optical)
+    call pmc_mpi_pack_logical(buffer, position, val%do_intemediate_output)
     call pmc_mpi_pack_logical(buffer, position, val%do_select_weighting)
     call pmc_mpi_pack_integer(buffer, position, val%weighting_type)
     call pmc_mpi_pack_real(buffer, position, val%weighting_exponent)
@@ -524,6 +562,7 @@ contains
     call pmc_mpi_unpack_logical(buffer, position, val%do_condensation)
     call pmc_mpi_unpack_logical(buffer, position, val%do_mosaic)
     call pmc_mpi_unpack_logical(buffer, position, val%do_optical)
+    call pmc_mpi_unpack_logical(buffer, position, val%do_intemediate_output)
     call pmc_mpi_unpack_logical(buffer, position, val%do_select_weighting)
     call pmc_mpi_unpack_integer(buffer, position, val%weighting_type)
     call pmc_mpi_unpack_real(buffer, position, val%weighting_exponent)

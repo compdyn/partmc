@@ -52,11 +52,11 @@ module pmc_env_state
      !> Eddy diffusivity coefficient (m^2 s^{-2}).
      real(kind=dp) :: diff_coef
      !> Transfer probability in all directions due to advection.
-     real(kind=dp), allocatable :: prob_advection(:,:,:)
+     real(kind=dp), allocatable :: prob_advection(:,:,:,:)
      !> Transfer probability in all directions due to diffusion.
-     real(kind=dp), allocatable :: prob_diffusion(:,:,:)
+     real(kind=dp), allocatable :: prob_diffusion(:,:,:,:)
      !>
-     real(kind=dp), allocatable :: prob_vert_diffusion(:)
+     real(kind=dp), allocatable :: prob_vert_diffusion(:,:)
 #endif
      !> Start time (s since 00:00 UTC on \c start_day).
      real(kind=dp) :: start_time
@@ -352,9 +352,9 @@ contains
          + pmc_mpi_pack_size_integer(val%iy) &
          + pmc_mpi_pack_size_integer(val%iz) &
          + pmc_mpi_pack_size_real(val%diff_coef) &
-         + pmc_mpi_pack_size_real_array_3d(val%prob_advection) &
-         + pmc_mpi_pack_size_real_array_3d(val%prob_diffusion) &
-         + pmc_mpi_pack_size_real_array(val%prob_vert_diffusion) &
+         + pmc_mpi_pack_size_real_array_4d(val%prob_advection) &
+         + pmc_mpi_pack_size_real_array_4d(val%prob_diffusion) &
+         + pmc_mpi_pack_size_real_array_2d(val%prob_vert_diffusion) &
 #endif
          + pmc_mpi_pack_size_real(val%start_time) &
          + pmc_mpi_pack_size_integer(val%start_day) &
@@ -394,9 +394,9 @@ contains
     call pmc_mpi_pack_integer(buffer, position, val%iy)
     call pmc_mpi_pack_integer(buffer, position, val%iz)
     call pmc_mpi_pack_real(buffer, position, val%diff_coef)
-    call pmc_mpi_pack_real_array_3d(buffer, position, val%prob_advection)
-    call pmc_mpi_pack_real_array_3d(buffer, position, val%prob_diffusion)
-    call pmc_mpi_pack_real_array(buffer, position, val%prob_vert_diffusion)
+    call pmc_mpi_pack_real_array_4d(buffer, position, val%prob_advection)
+    call pmc_mpi_pack_real_array_4d(buffer, position, val%prob_diffusion)
+    call pmc_mpi_pack_real_array_2d(buffer, position, val%prob_vert_diffusion)
 #endif
     call pmc_mpi_pack_real(buffer, position, val%start_time)
     call pmc_mpi_pack_integer(buffer, position, val%start_day)
@@ -439,9 +439,9 @@ contains
     call pmc_mpi_unpack_integer(buffer, position, val%iy)
     call pmc_mpi_unpack_integer(buffer, position, val%iz)
     call pmc_mpi_unpack_real(buffer, position, val%diff_coef)
-    call pmc_mpi_unpack_real_array_3d(buffer, position, val%prob_advection)
-    call pmc_mpi_unpack_real_array_3d(buffer, position, val%prob_diffusion)
-    call pmc_mpi_unpack_real_array(buffer, position, val%prob_vert_diffusion)
+    call pmc_mpi_unpack_real_array_4d(buffer, position, val%prob_advection)
+    call pmc_mpi_unpack_real_array_4d(buffer, position, val%prob_diffusion)
+    call pmc_mpi_unpack_real_array_2d(buffer, position, val%prob_vert_diffusion)
 #endif
     call pmc_mpi_unpack_real(buffer, position, val%start_time)
     call pmc_mpi_unpack_integer(buffer, position, val%start_day)

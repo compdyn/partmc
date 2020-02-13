@@ -152,6 +152,7 @@ void solver_new_gpu_cu(ModelData *model_data, int n_dep_var,
   }
 
   printf("small_data:%d\n", model_data->small_data);
+  //printf("threads_per_block :%d\n", max_n_gpu_thread);
 
   //GPU create streams
   for (int i = 0; i < n_streams; ++i)
@@ -379,13 +380,16 @@ __global__ void solveDerivative(double *state_init, double *deriv_init,
                                 int rxn_env_data_size_cell, int n_rxn, int n_cells,
                                 int *int_pointer, double *double_pointer,
                                 double *rxn_env_data_init, int *rxn_env_data_idx,
-                                double *env_init) //Interface CPU/GPU
+                                double *env_init, int n_kernels, int i_kernel) //Interface CPU/GPU
 {
   //Get thread id
   int index = blockIdx.x * blockDim.x + threadIdx.x;
 
+  int offset1 = (n_rxn*n_cells/n_kernels)*i_kernel;
+  int offset2 = (n_rxn*n_cells/n_kernels)*(i_kernel+1);
+
   //Maximum number of threads to compute all reactions
-  if(index < n_rxn*n_cells){
+  if( (offset1 < index) && (index < (offset2)) ){
 
     //Thread index for deriv and state,
     // till we don't finish all reactions of a cell, we stay on same index
@@ -490,6 +494,7 @@ void rxn_calc_deriv_gpu(ModelData *model_data, N_Vector deriv, realtype time_ste
   // Get a pointer to the derivative data
   realtype *deriv_data = N_VGetArrayPointer(deriv);
   int n_cells = model_data->n_cells;
+  int n_kernels = 2; // Divide load into multiple kernel calls
   int n_rxn = model_data->n_rxn;
   int n_rxn_threads = n_rxn*n_cells; //Reaction group per number of repetitions/cells
   int n_blocks = ((n_rxn_threads + max_n_gpu_thread - 1) / max_n_gpu_thread);
@@ -519,14 +524,21 @@ void rxn_calc_deriv_gpu(ModelData *model_data, N_Vector deriv, realtype time_ste
   timeDerivSend += (clock() - t1);
   clock_t t2 = clock();
 
-  cudaDeviceSynchronize();
-  solveDerivative << < (n_blocks), max_n_gpu_thread >> >
-   (model_data->state_gpu, model_data->deriv_gpu_data, time_step, model_data->n_per_cell_dep_var,
-   model_data->n_per_cell_state_var, model_data->n_rxn_env_data,
-   n_rxn, n_cells, model_data->int_pointer_gpu, model_data->double_pointer_gpu,
-   model_data->rxn_env_data_gpu, model_data->rxn_env_data_idx_gpu, model_data->env_gpu);
+  for (int i_kernel=0; i_kernel<n_kernels;i_kernel++){
 
-  cudaDeviceSynchronize();
+    //cudaDeviceSynchronize();
+    solveDerivative << < (n_blocks), max_n_gpu_thread >> >
+     (model_data->state_gpu, model_data->deriv_gpu_data, time_step, model_data->n_per_cell_dep_var,
+     model_data->n_per_cell_state_var, model_data->n_rxn_env_data,
+     n_rxn, n_cells, model_data->int_pointer_gpu, model_data->double_pointer_gpu,
+     model_data->rxn_env_data_gpu, model_data->rxn_env_data_idx_gpu, model_data->env_gpu,
+     n_kernels, i_kernel);
+
+
+
+  }
+
+    cudaDeviceSynchronize();
   timeDerivKernel += (clock() - t2);
   t3 = clock();
 

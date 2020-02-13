@@ -31,15 +31,15 @@ program mock_monarch
   !> Number of total species in mock MONARCH
   integer, parameter :: NUM_MONARCH_SPEC = 800
   !> Number of vertical cells in mock MONARCH
-  integer, parameter :: NUM_VERT_CELLS = 100
+  integer, parameter :: NUM_VERT_CELLS = 48
   !> Starting W-E cell for camp-chem call
   integer, parameter :: I_W = 1
   !> Ending W-E cell for camp-chem call
-  integer, parameter :: I_E = 10
+  integer, parameter :: I_E = 15
   !> Starting S-N cell for camp-chem call
   integer, parameter :: I_S = 1
   !> Ending S-N cell for camp-chem call
-  integer, parameter :: I_N = 10
+  integer, parameter :: I_N = 15
   !> Number of W-E cells in mock MONARCH
   integer, parameter :: NUM_WE_CELLS = I_E-I_W+1
   !> Number of S-N cells in mock MONARCH
@@ -51,7 +51,7 @@ program mock_monarch
   !> Time step (min)
   real, parameter :: TIME_STEP = 1.6
   !> Number of time steps to integrate over
-  integer, parameter :: NUM_TIME_STEP = 1!20
+  integer, parameter :: NUM_TIME_STEP = 5!20
   !> Index for water vapor in water_conc()
   integer, parameter :: WATER_VAPOR_ID = 5
   !> Start time
@@ -144,6 +144,8 @@ program mock_monarch
   output_file_prefix = trim(arg)
   
   call model_initialize(output_file_prefix)
+
+  print*, "n_cells", n_cells
 
   !Repeat in case we want create a checksum
   do i=1, pmc_cases

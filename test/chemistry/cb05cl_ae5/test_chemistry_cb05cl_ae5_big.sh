@@ -43,7 +43,8 @@ t_n=(1 1)
 echo "i,j,k,t,i_n,j_n,k_n,t_n,test_tsteps" > ../../../../../profile_stats.csv
 
 #Test with different parameters
-for id in ${!i_n[@]};
+#for id in ${!i_n[@]}; #good
+for id in ${!i_n[@]-1}; #test only 1 execution
 do
 
 #todo each iteration create a new line on the profile_stats.csv file

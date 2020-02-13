@@ -164,13 +164,10 @@ contains
     real, allocatable :: photo_rates(:)
     ! Temperature (K)
     real :: temperature
-    real(kind=dp), allocatable :: temperatures(:)
     ! Pressure (atm)
     real :: pressure
-    real(kind=dp), allocatable :: pressures(:)
     ! Water vapor concentration (ppmV)
     real :: water_conc
-    real(kind=dp), allocatable :: water_concs(:)
 
     ! CAMP-chem core
     type(camp_core_t), pointer :: camp_core
@@ -213,32 +210,10 @@ contains
     integer(kind=i_kind) :: n_cells, compare_results, i, j, k, s, state_size_cell, i_cell
     integer(kind=i_kind) :: n_repeats
     !netcdf
-    integer(kind=i_kind) :: input_id, varid, stat
-    real(kind=dp), allocatable :: working_array(:,:), conc_aux(:)
-    real(kind=dp), pointer :: pointer
-    integer :: i_start = 136
-    integer :: j_start= 134
-    integer :: k_start = 1
-    integer :: t_start = 14
-    integer :: i_n = 5 !20
-    integer :: j_n = 5 !20
-    integer :: k_n = 5 !48
-    integer :: t_n = 1 !1
-    character(len=:), allocatable :: ncfile
-
-    call read_args(i_start, MAP_I_START)
-    call read_args(j_start, MAP_J_START)
-    call read_args(k_start, MAP_K_START)
-    call read_args(t_start, MAP_T_START)
-    call read_args(i_n, MAP_I_N)
-    call read_args(j_n, MAP_J_N)
-    call read_args(k_n, MAP_K_N)
-    call read_args(t_n, MAP_T_N)
+    integer(kind=i_kind) :: input_id, varid
 
     n_repeats = 1!2000
-    n_cells = i_n*j_n*k_n
-
-    ncfile = '/esarchive/exp/monarch/a2bk/original_files/000/2016083012/MONARCH_d01_2016083012.nc'
+    n_cells = 1000 !i_n*j_n*k_n
 
     KPP_ICNTRL( : ) = 0
 
@@ -585,88 +560,20 @@ contains
     KPP_PRESS = pressure * 1013.25 ! KPP pressure in hPa
     CALL KPP_Update_RCONST()
 
-
-
-
-    !Netcdf n cells exp values
-    !todo: move this part to a function called "set_input_from_netcdf"
-    stat =  nf90_open &
-            (ncfile, &
-            NF90_NOWRITE,input_id)
-
     state_size_cell = size(chem_spec_data%get_spec_names()) !size(camp_state%state_var) / n_cells
     spec_names = chem_spec_data%get_spec_names()
 
-    allocate(working_array(n_cells,state_size_cell))
-    allocate(conc_aux(1))
-    allocate(temperatures(n_cells))
-    allocate(pressures(n_cells))
-    allocate(water_concs(n_cells))
-
-    !CONCS
-    call cpu_time(comp_start)
-    do i_spec = 1 ,state_size_cell
-
-      !Save concs in temporal array
-      stat =  nf90_inq_varid(input_id,spec_names(i_spec)%string,varid)
-      stat =  nf90_get_var(input_id,varid,working_array(:,i_spec), &
-              start=(/i_start,j_start,k_start,t_start/),count=(/i_n,j_n,k_n,t_n/))
-              !start=(/i_start,j_start,k_start,t_start/),count=(/1,1,1,1/))
+    !Netcdf n cells exp values
+    !todo: move this part to a function called "set_input_from_netcdf"
+    !call set_input_from_netcdf(ncfile, state_size_cell, spec_names)
 
 
-      !print *, "hola ",spec_names(i_spec)%string
-    end do
-    !print *, "hola ",spec_names(i_spec)%string, working_array(1,1)
-    !todo: change prints for tests that check the correct reading of netcdf variables
 
-    !Set in state array
-    do i_cell=0, n_cells-1
-          do i_spec = 1, state_size_cell
-
-            !camp_state%state_var(i_cell*state_size_cell+i_spec) = camp_state%state_var(i_spec)
-            camp_state%state_var(i_cell*state_size_cell+i_spec) = working_array(i_cell,i_spec)
-
-            !print*, i_cell, spec_names(i_spec)%string, camp_state%state_var(i_cell*state_size_cell+i_spec)
-          end do
-    end do
-
-    do i_cell = 0, n_cells-1
-      do j = 1, state_size_cell
-        !camp_state%state_var(i_cell*state_size_cell+j) = camp_state%state_var(j)
-      end do
-    end do
-
-    !temps
-    stat =  nf90_inq_varid(input_id,'T',varid)
-    stat =  nf90_get_var(input_id,varid,temperatures, &
-            start=(/i_start,j_start,k_start,t_start/),count=(/i_n,j_n,k_n,t_n/))
-    !start=(/i_start,j_start,k_start,t_start/),count=(/1,1,1,1/))
-
-    !todo: pressure
-
+    !Set default temperature & pressure to all cells
     do i_cell = 1, n_cells
-      !call camp_state%env_states(i_cell)%set_temperature_K( real( temperature, kind=dp ) )
-      call camp_state%env_states(i_cell)%set_temperature_K( real( temperatures(i_cell), kind=dp ) )
-      !call camp_state%env_states(i_cell)%set_pressure_Pa( pressures(i_cell) * const%air_std_press )
+      call camp_state%env_states(i_cell)%set_temperature_K( real( temperature, kind=dp ) )
       call camp_state%env_states(i_cell)%set_pressure_Pa( pressure * const%air_std_press )
     end do
-
-    call cpu_time(comp_end)
-    comp_camp = comp_camp + (comp_end-comp_start)
-    print*, "netcdf reading time", comp_camp
-    comp_camp = 0.0
-
-
-    stat = nf90_close(input_id)
-    deallocate (working_array)
-    deallocate(conc_aux)
-    deallocate(temperatures)
-    deallocate(pressures)
-    deallocate(water_concs)
-
-
-
-
 
 
     ! Save the initial states for repeat calls
@@ -806,6 +713,123 @@ contains
     passed = .true.
 
   end function run_standard_cb05cl_ae5_test
+
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine set_input_from_netcdf(camp_state, state_size_cell, spec_names)
+
+    !todo fix arguments
+
+    type(camp_state_t), intent(inout) :: camp_state
+    type(string_t), intent(in) :: spec_names(:)
+    integer(kind=i_kind), intent(in) :: state_size_cell
+
+    real(kind=dp), allocatable :: working_array(:,:), conc_aux(:)
+    real(kind=dp), allocatable :: temperatures(:)
+    real(kind=dp), allocatable :: pressures(:)
+    real:: pressure
+    real(kind=dp), allocatable :: water_concs(:)
+    integer(kind=i_kind) :: stat
+    real(kind=dp) :: comp_start, comp_end, comp_camp
+
+    integer(kind=i_kind) :: n_cells, i, j, k, s, i_cell, i_spec
+    integer(kind=i_kind) :: n_repeats
+    !netcdf
+    integer(kind=i_kind) :: input_id, varid
+
+    integer :: i_start = 136
+    integer :: j_start= 134
+    integer :: k_start = 1
+    integer :: t_start = 14
+    integer :: i_n = 5 !20
+    integer :: j_n = 5 !20
+    integer :: k_n = 5 !48
+    integer :: t_n = 1 !1
+    character(len=:), allocatable :: ncfile
+    
+    ! Get from the .sh script the command arguments
+    call read_args(i_start, MAP_I_START)
+    call read_args(j_start, MAP_J_START)
+    call read_args(k_start, MAP_K_START)
+    call read_args(t_start, MAP_T_START)
+    call read_args(i_n, MAP_I_N)
+    call read_args(j_n, MAP_J_N)
+    call read_args(k_n, MAP_K_N)
+    call read_args(t_n, MAP_T_N)
+
+    pressure = 0.8
+
+    ncfile = '/esarchive/exp/monarch/a2bk/original_files/000/2016083012/MONARCH_d01_2016083012.nc'
+
+    stat =  nf90_open &
+            (ncfile, &
+            NF90_NOWRITE,input_id)
+
+    allocate(working_array(n_cells,state_size_cell))
+    allocate(conc_aux(1))
+    allocate(temperatures(n_cells))
+    allocate(pressures(n_cells))
+    allocate(water_concs(n_cells))
+
+    !CONCS
+    call cpu_time(comp_start)
+    do i_spec = 1 ,state_size_cell
+
+      !Save concs in temporal array
+      stat =  nf90_inq_varid(input_id,spec_names(i_spec)%string,varid)
+      stat =  nf90_get_var(input_id,varid,working_array(:,i_spec), &
+              start=(/i_start,j_start,k_start,t_start/),count=(/i_n,j_n,k_n,t_n/))
+      !start=(/i_start,j_start,k_start,t_start/),count=(/1,1,1,1/))
+
+
+      !print *, "hola ",spec_names(i_spec)%string
+    end do
+    !print *, "hola ",spec_names(i_spec)%string, working_array(1,1)
+    !todo: change prints for tests that check the correct reading of netcdf variables
+
+    !Set in state array
+    do i_cell=0, n_cells-1
+      do i_spec = 1, state_size_cell
+
+
+        camp_state%state_var(i_cell*state_size_cell+i_spec) = working_array(i_cell,i_spec)
+
+        !print*, i_cell, spec_names(i_spec)%string, camp_state%state_var(i_cell*state_size_cell+i_spec)
+      end do
+    end do
+
+    do i_cell = 0, n_cells-1
+      do j = 1, state_size_cell
+        !camp_state%state_var(i_cell*state_size_cell+j) = camp_state%state_var(j)
+      end do
+    end do
+
+    !temps
+    stat =  nf90_inq_varid(input_id,'T',varid)
+    stat =  nf90_get_var(input_id,varid,temperatures, &
+            start=(/i_start,j_start,k_start,t_start/),count=(/i_n,j_n,k_n,t_n/))
+    !start=(/i_start,j_start,k_start,t_start/),count=(/1,1,1,1/))
+
+    !todo: pressure
+    do i_cell = 1, n_cells
+      call camp_state%env_states(i_cell)%set_temperature_K( real( temperatures(i_cell), kind=dp ) )
+      call camp_state%env_states(i_cell)%set_pressure_Pa( pressure * const%air_std_press )
+    end do
+
+    call cpu_time(comp_end)
+    comp_camp = comp_camp + (comp_end-comp_start)
+    print*, "netcdf reading time", comp_camp
+    comp_camp = 0.0
+
+    stat = nf90_close(input_id)
+    deallocate (working_array)
+    deallocate(conc_aux)
+    deallocate(temperatures)
+    deallocate(pressures)
+    deallocate(water_concs)
+
+
+  end subroutine set_input_from_netcdf
 
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

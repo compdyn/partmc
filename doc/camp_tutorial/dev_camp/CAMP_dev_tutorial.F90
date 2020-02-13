@@ -2,16 +2,6 @@
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
-!! todo: Guide the tutorial with images with clearly identified shapes and colours
-!! for each module. Basically regarding the user where this part comes from the initial
-!! basic diagram, but with a more specific diagram for the part explained.
-
-!! todo: algorithmic part about operations (multiplying this variable or
-!! getting this index), workflow, and this kind of things must be clear.
-!! add more diagrams or data structures image with okay i have this jacobian
-!! with this indices, something like that. or this struct data image
-!! with all of this necessary data (apart from writing it).
-
 !> \page camp_dev_tutorial Dev CAMP: The CAMP developer guide
 !!
 !! Welcome developer!
@@ -23,7 +13,7 @@
 !! guide will help you to understand the insides of CAMP and allows you
 !! to contribute to the CAMP development.
 !!
-!! Before starting, it's recommended to have finalized the \ref camp_tutorial
+!! Before starting, it's recommended to have finalized \ref camp_tutorial
 !! Boot CAMP tutorial.
 !!
 !! - \ref camp_dev_tutorial_part_0
@@ -34,6 +24,7 @@
 !! - \ref camp_dev_tutorial_part_5
 !! - \ref camp_dev_tutorial_part_6
 !! - \ref camp_dev_tutorial_part_7
+!! - \ref camp_dev_tutorial_part_7
 !!
 !! Model code described in Dev CAMP can be found in
 !! \c doc/camp_tutorial/dev_camp.
@@ -41,17 +32,6 @@
 !! This tutorial focuses in main concepts. Some of the concepts explained can differ
 !! in the future if better implementations are found, but the tutorial should be
 !! enough to replicate a consistent CAMP skeleton.
-!!
-!! After complete the tutorial, we recommend take a look at the complete
-!! sequence diagram of CAMP version 1.0. It contains most of the variable and functions
-!! explained during the tutorial and some more.
-!!
-!!  <a href=https://www.draw.io/#G1XbNwQZ58d3RWbOK_6_aVvFr9_vW0hwBc>CAMP
-!!  sequence diagram</a>
-!!
-!! Q: develop using the link?
-!!
-!! \image html CAMP_complete_sequence.jpg
 !!
 
 ! ***********************************************************************
@@ -79,13 +59,15 @@
 !!
 !! \image html very_simple_CAMP_components_2.jpg
 !!
-note use in the image run the experiment instead submit
-meet: process.st/uml-tutorial/ first level user, then host model, camp and then solver something like that
-the first part of the very simple components can be used, and then start with the model and all 
-this things, configuring the host model etc, not super detail but something to see all the steps to
-describe as best as possible. use  rombos something like that to remark camp_core, camp solver... REMARK
-that is only a WORKFLOW diagram, so no variable description necessary
 
+
+!! todo: process.st/uml-tutorial/ first level user, then host model, camp and then solver something like that
+!! the first part of the very simple components can be used, and then start with the model and all
+!! this things, configuring the host model etc, not super detail but something to see all the steps to
+!! describe as best as possible. use  rombos something like that to remark camp_core, camp solver... REMARK
+!! that is only a WORKFLOW diagram, so no variable description necessary
+!! ITS more like an overview diagram, so no worries so much. He only wants to remark
+!! more the parts than putting a box.
 
 
 !! <hr>
@@ -205,8 +187,9 @@ that is only a WORKFLOW diagram, so no variable description necessary
 !!  - \ref pmc_rxn_factory::rxn_factory_t "rxn_factory": Interface to create and
 !!  add to the system a new reaction in runtime. Apart from JSON files, this can be
 !!  another way to enter the reaction data. Check \ref camp_rxn_add for more information.
-!!  - \ref pmc_util "pmc_util": Treat an array of characters as a string_t object. Used to store string
-!!   informations like species names in chem_spec_data or camp_core.
+!!  - \ref pmc_util "pmc_util": Treat an array of characters as a string_t object.
+!!   Used to store string information like species names in chem_spec_data or camp_core.
+!!  - \ref pmc_solver_stats "solver_stats":
 !!
 !!  todo: identify what partmc files are used and which ones not:
 !! Used (explain before): mpi, util,
@@ -232,14 +215,6 @@ that is only a WORKFLOW diagram, so no variable description necessary
 !! concentrations array (concs_data) are outside off int_data and float_data.
 !!
 
-Matt aconseja usar class diagram por estas secciones especificas, para describir claramente las
-data structures presentes (si, en el camp_solving system tmb). Mantener el workflow diagram
-global para la introduccion.
-
-Pendiente: intentar explicar lo de sub models y aeros, pero matt lo corregira para ponerlo bien
-FOCUS en las 2 imagenes de workflow y de data classes, y enviarlas a matt cuando las tenga
-para que vaya corrigiendo. 
-
 !! <hr>
 !! <b> < Previous: </b> \ref camp_dev_tutorial_part_1
 !! \image{inline} html icon_trail.png
@@ -262,11 +237,23 @@ para que vaya corrigiendo.
 !! package.
 !!
 !! The \ref camp_solver.c "CAMP_solver" file have to be the only file that interacts
-!! with the external solving parts (CAMP_core interface and ODE solver). The following
-!! image illustrates the overall solving system structure:
+!! with the external solving parts (CAMP_core interface and ODE solver). It's
+!! recommended to check the documentation generated for this file, including
+!! the main functions described during this section and specially their
+!! call graphs.
+!!
+!! \image html camp_solving_system_classes_overall.jpg
 !!
 !! \image html camp_solving_system.jpg
 !!
+
+!! todo Matt aconseja usar class diagram por estas secciones especificas, para describir claramente las
+!! data structures presentes (si, en el camp_solving system tmb). Mantener el workflow diagram
+!! global para la introduccion. (and he show a class diagram from tutorials point)
+!! si eso hacerlo basico, pero poniendo pues todas las grandes estructuras como lo de aero
+!! y submodel y quiza lo escrito en este diagrama de pues el solver state y eso (only
+!! to take a view, el workflow de datos lo puedo hacer despues de alguna manera)
+
 !! ## Choosing the ODE solver: CVODE ##
 !!
 !! Solving an ODE implies selecting the solving method that better fills
@@ -394,8 +381,6 @@ para que vaya corrigiendo.
 
 !> \page camp_dev_tutorial_part_5 Dev CAMP: Part 5 - GPU interface
 !!
-!!
-!!
 !! In order to accelerate the CAMP module, a GPU module was developed.
 !!
 !! This module is developed in the CUDA language. The idea behind this
@@ -500,6 +485,10 @@ para que vaya corrigiendo.
 !!
 !! \endcode
 
+!! Warn the developer about taking into account that gpu only achieves positive
+!! speedup when big data is present (refer to optimization page to see scalability
+!! tests)
+
 !! division in threads, defines, get n_rxn, atomic, err idk (but this should be named before)
 
 
@@ -529,6 +518,10 @@ para que vaya corrigiendo.
 !!
 !! Check accuracy, types of tests, functionalities that have to be test,
 !! checkings alongside the program...
+!!
+!! Mention the time-counters to measure the time execution and take care
+!! if it goes ahead. If the user is more interested in the performance and
+!! developing optimizations, go to the "optimization" page.
 !!
 !! ## Testing through CMakeLists ##
 !!
@@ -560,17 +553,19 @@ para que vaya corrigiendo.
 ! ***********************************************************************
 ! ***********************************************************************
 
-!> \page camp_dev_tutorial_part_6 Dev CAMP: Chapter 7 - Documenting your contribution
+!> \page camp_dev_tutorial_part_7 Dev CAMP: Part 7 - Documenting your contribution
 !!
 !! Explain a bit how Doxygen works, contact main developers, blablabla. How to
 !! add comments to the code, and this kind of basic things that sometimes are not
 !! so basic.
 !!
 !! <hr>
-!! <b> < Previous: </b> \ref camp_dev_tutorial_part_5
+!! <b> < Previous: </b> \ref camp_dev_tutorial_part_6
 !! \image{inline} html icon_trail.png
 !! \ref camp_dev_tutorial "Index"
 !! \image{inline} html icon_trail.png
+!! <b> Next: </b>
+!! \ref camp_dev_tutorial_part_8 <b> > </b>
 !!
 !!
 
@@ -578,9 +573,9 @@ para que vaya corrigiendo.
 ! ***********************************************************************
 ! ***********************************************************************
 
-!> \page camp_dev_tutorial_part_6 Dev CAMP: Extra chapter - Performance & Optimization
+!> \page camp_dev_tutorial_part_8 Dev CAMP: Extra chapter - Performance & Optimization
 !!
-!! ## How performance is measured ##
+!! ## How performance is measured - Debug variables ##
 !!
 !! ## Optimization tips ##
 !!
@@ -590,15 +585,17 @@ para que vaya corrigiendo.
 !! all the optimizations, but if you want only information about the most
 !! relevants, you can find them in the ""CAMP Performance timeline"" page.
 !!
+
+!!
 !! <hr>
-!! <b> < Previous: </b> \ref camp_dev_tutorial_part_5
+!! <b> < Previous: </b> \ref camp_dev_tutorial_part_7
 !! \image{inline} html icon_trail.png
 !! \ref camp_dev_tutorial "Index"
 !! \image{inline} html icon_trail.png
 !!
 !!
 
-!! todo: notes from Mario: Ensure to write the part of optimization
+!! notes from Mario: Ensure to write the part of optimization
 !! changes, like this was the speedup of base version and now this optimize
 !! this part, etc. NOTE that normally for the thesis people ask if the CPU
 !! version was optimized already, thing that I can say NO, because I optimize
@@ -609,7 +606,7 @@ para que vaya corrigiendo.
 !! more or less copy paste from the documentation.
 
 
-!! todo: create some section to write current development, like a historial. Example:
+!! create some section to write current development, like a historial. Example:
 !! I defined an issue explaining a problem. OKAY, this problem should be
 !! yes or yes in documentation as recent changes or something like that
 !! Once finish, if is an optimization work, check the last optimization work
@@ -617,7 +614,7 @@ para que vaya corrigiendo.
 !! changes the time measured last time with the last optimization
 !! from 1s to 0.8, so 20% improvement so nice.
 
-!! todo: Create sections to fill as much kind of documentation as possible
+!! Create sections to fill as much kind of documentation as possible
 !! (like the one written in papers, manuals, or technical reports)
 !! (maybe state of the art can suits too?)
 !!

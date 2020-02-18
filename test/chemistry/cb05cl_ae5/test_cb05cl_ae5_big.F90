@@ -17,6 +17,7 @@ program pmc_test_cb05cl_ae5
   use pmc_util,                         only: i_kind, dp, assert, assert_msg, &
                                               almost_equal, string_t, &
                                               to_string, warn_assert_msg
+  !use pmc_mpi
   use pmc_camp_core
   use pmc_camp_state
   use pmc_camp_solver_data
@@ -211,6 +212,14 @@ contains
     integer(kind=i_kind) :: n_repeats
     !netcdf
     integer(kind=i_kind) :: input_id, varid
+
+#ifdef PMC_USE_MPI
+    !character, allocatable :: buffer(:), buffer_copy(:)
+    !integer(kind=i_kind) :: pack_size, pos, i_elem, results, mpi_threads
+#endif
+
+    ! initialize MPI
+    !call pmc_mpi_init()
 
     n_repeats = 1!2000
     n_cells = 1000 !i_n*j_n*k_n
@@ -567,8 +576,6 @@ contains
     !todo: move this part to a function called "set_input_from_netcdf"
     !call set_input_from_netcdf(ncfile, state_size_cell, spec_names)
 
-
-
     !Set default temperature & pressure to all cells
     do i_cell = 1, n_cells
       call camp_state%env_states(i_cell)%set_temperature_K( real( temperature, kind=dp ) )
@@ -576,10 +583,19 @@ contains
     end do
 
 
+
+
     ! Save the initial states for repeat calls
     allocate(ebi_init(size(YC)))
     allocate(kpp_init(size(KPP_C)))
+
+!#ifdef PMC_USE_MPI
+    !allocate(camp_init(size(camp_state%state_var/mpi_threads)))
     allocate(camp_init(size(camp_state%state_var)))
+!#else
+!    allocate(camp_init(size(camp_state%state_var)))
+!#endif
+
     ebi_init(:) = YC(:)
     kpp_init(:) = KPP_C(:)
     camp_init(:) = camp_state%state_var(:)
@@ -711,6 +727,8 @@ contains
     deallocate(camp_core)
 
     passed = .true.
+
+    !call pmc_mpi_finalize( )
 
   end function run_standard_cb05cl_ae5_test
 

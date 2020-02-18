@@ -106,6 +106,11 @@ endif()
 # MPI
 
 if(ENABLE_MPI)
+
+    if(NOT MPI_FOUND)
+        message( WARNING "Not MPI found")
+    endif()
+
   add_definitions(-DPMC_USE_MPI)
 endif()
 

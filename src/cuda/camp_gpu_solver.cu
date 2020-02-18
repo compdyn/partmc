@@ -164,6 +164,7 @@ void solver_new_gpu_cu(ModelData *model_data, int n_dep_var,
            n_blocks, max_n_gpu_blocks);
   }
 
+
 #ifdef PMC_DEBUG_PRINT
   print_gpu_specs();
 #endif
@@ -494,7 +495,7 @@ void rxn_calc_deriv_gpu(ModelData *model_data, N_Vector deriv, realtype time_ste
   // Get a pointer to the derivative data
   realtype *deriv_data = N_VGetArrayPointer(deriv);
   int n_cells = model_data->n_cells;
-  int n_kernels = 2; // Divide load into multiple kernel calls
+  int n_kernels = 1; // Divide load into multiple kernel calls
   int n_rxn = model_data->n_rxn;
   int n_rxn_threads = n_rxn*n_cells; //Reaction group per number of repetitions/cells
   int n_blocks = ((n_rxn_threads + max_n_gpu_thread - 1) / max_n_gpu_thread);

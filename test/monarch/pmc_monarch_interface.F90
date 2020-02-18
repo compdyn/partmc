@@ -162,6 +162,10 @@ contains
       new_obj%n_cells=n_cells
     end if
 
+    if (MONARCH_PROCESS.eq.1) then
+    print*, "MPI RANK", MONARCH_PROCESS
+
+    end if
     ! Check for an available solver
     camp_solver_data => camp_solver_data_t()
     call assert_msg(332298164, camp_solver_data%is_solver_available(), &
@@ -170,6 +174,8 @@ contains
 
     ! Initialize the time-invariant model data on each node
     if (MONARCH_PROCESS.eq.0) then
+
+
 
       ! Start the computation timer on the primary node
       call cpu_time(comp_start)

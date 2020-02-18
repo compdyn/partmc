@@ -143,7 +143,7 @@ program mock_monarch
   call get_command_argument(3, arg, status=status_code)
   call assert_msg(234156729, status_code.eq.0, "Error getting output file prefix")
   output_file_prefix = trim(arg)
-  
+
   call model_initialize(output_file_prefix)
 
   !Repeat in case we want create a checksum

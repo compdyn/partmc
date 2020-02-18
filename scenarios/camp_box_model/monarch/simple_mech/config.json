@@ -13,16 +13,20 @@
     "../../../../mechanisms_run/simple_mech/aerosol_species.json",
     "../../../../mechanisms_run/simple_mech/cloud_and_rain_partitioning.json",
     "../../../../mechanisms_run/simple_mech/gas_species.json",
-    "../../../../mechanisms_run/simple_mech/mechanism.json"
+    "../../../../mechanisms_run/simple_mech/mechanism.json",
+    "../../../../mechanisms_run/simple_mech/inorganic_aerosol_SO4_NH4_NO3/activity.json",
+    "../../../../mechanisms_run/simple_mech/inorganic_aerosol_SO4_NH4_NO3/aerosol_phase.json",
+    "../../../../mechanisms_run/simple_mech/inorganic_aerosol_SO4_NH4_NO3/partitioning.json",
+    "../../../../mechanisms_run/simple_mech/inorganic_aerosol_SO4_NH4_NO3/reactions.json"
   ],
   "camp-box-model" : {
-    "total integration time [s]" : 180.0,
-    "output time step [s]" : 1.0,
+    "total integration time [s]" : 18000.0,
+    "output time step [s]" : 180.0,
     "temperature [K]" : {
-      "initial" : 298.0
+      "initial" : 295.214019775391
     },
     "pressure [Pa]" : {
-      "initial" : 101325.0
+      "initial" : 99923.4765625000
     },
     "aerosol representations" : {
       "monarch aero rep" : {
@@ -37,64 +41,78 @@
       }
     },
     "initial state" : {
-      "O3" : 1.0,
-      "O2" : 209500.0,
-      "clouds and rain.cloud and rain water.H2O_aq" : 1.0
+      "O" : 1.00000555150441E-30,
+      "O3" : 0.0362560898065567,
+      "NO" : 0.000230328238103538,
+      "NO2" : 0.000641645805444568,
+      "O2" : 209500,
+      "H2O" : 8954.28585905667,
+      "RH" : 0.000100000273960176,
+      "RO2" : 1.00000555150441E-30,
+      "RCHO" : 1.00000555150441E-30,
+      "RCOO2" : 1.00000555150441E-30,
+      "CO" : 0.0964167043566703,
+      "CO2" : 350,
+      "HNO3" : 0.00021240345085971,
+      "RCOO2NO2" : 0.000058395122323418,
+      "SO2" : 0.000304516550386324,
+      "NH3" : 0.000100000273960176,
+      "H2SO4" : 1.0000007932831E-08
     },
     "rates" : {
       "photo-NO2" : {
-        "initial" : 0.001
+        "initial" : 0.000
       },
       "photo-RCHO" : {
-        "initial" : 0.001
+        "initial" : 0.000
       },
       "emission-NO" : {
-        "initial" : 0.001
+        "initial" : 0.000
       },
       "emission-NO2" : {
-        "initial" : 0.001
+        "initial" : 0.000
       },
       "emission-RH" : {
-        "initial" : 0.001
+        "initial" : 2.392029310452348E-012
       },
       "emission-RCHO" : {
-        "initial" : 0.001
+        "initial" : 1.064591965908780E-013
       },
       "emission-SO2" : {
-        "initial" : 0.001
+        "initial" : 0.000
       },
       "emission-NH3" : {
-        "initial" : 0.001
+        "initial" : 0.000
       },
       "wet-deposition-clouds-and-rain" : {
-        "initial" : 0.001
+        "initial" : 0.000
       },
       "dry-deposition-NO2" : {
-        "initial" : 0.001
+        "initial" : 0.000
       },
       "dry-deposition-NO" : {
-        "initial" : 0.001
+        "initial" : 0.000
       },
       "dry-deposition-O3" : {
-        "initial" : 0.001
+        "initial" : 0.000
       },
       "dry-deposition-RH" : {
-        "initial" : 0.001
+        "initial" : 0.000
       },
       "dry-deposition-RCHO" : {
-        "initial" : 0.001
+        "initial" : 0.000
       },
       "dry-deposition-CO" : {
-        "initial" : 0.001
+        "initial" : 0.000
       },
       "dry-deposition-HNO3" : {
-        "initial" : 0.001
+        "initial" : 0.000
       },
       "dry-deposition-SO2" : {
-        "initial" : 0.001
+        "initial" : 0.000
       },
       "dry-deposition-NH3" : {
-        "initial" : 0.001
+        "initial" : 0.000
       }
     }
   }

@@ -7,6 +7,10 @@
 
 !> Test for the cb05cl_ae5 mechanism from MONARCH. This program runs the
 !! MONARCH CB5 code and the CAMP-chem version and compares the output.
+
+! define DEBUG to evaluate Jacobian and output diagnostic info
+!#define DEBUG
+
 program pmc_test_cb05cl_ae5
 
   use pmc_constants,                    only: const
@@ -567,9 +571,22 @@ contains
     ! Repeatedly solve the mechanism
     do i_repeat = 1, 100
 
+#ifdef DEBUG
+    ! Evaluate the Jacobian during solving on the first repeat
+    if (i_repeat.eq.1) then
+      solver_stats%eval_Jac = .true.
+    else
+      solver_stats%eval_Jac = .false.
+    end if
+#endif
+
     YC(:) = ebi_init(:)
     KPP_C(:) = kpp_init(:)
     camp_state%state_var(:) = camp_init(:)
+
+#ifdef DEBUG
+    call camp_core%print()
+#endif
 
     ! Solve the mechanism
     do i_time = 1, NUM_TIME_STEPS
@@ -655,6 +672,17 @@ contains
         write(*,*) "Compute time Jac()", solver_stats%Jac_time__s, "s"
 
         call solver_stats%print()
+
+        ! Check the Jacobian evaluations
+        call assert_msg(896545510, solver_stats%Jac_eval_fails.eq.0, &
+                        trim( to_string( solver_stats%Jac_eval_fails ) )// &
+                        " Jacobian evaluation failures at time "// &
+                        trim( to_string( (i_time-1) * EBI_TMSTEP*60.0 ) ) )
+        ! Reset the timers so they are not affected by debugging done
+        ! during the first solve
+        comp_ebi = 0.0
+        comp_kpp = 0.0
+        comp_camp = 0.0
       end if
 #endif
 

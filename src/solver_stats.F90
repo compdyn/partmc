@@ -25,6 +25,8 @@ module pmc_solver_stats
     real(kind=dp) :: start_time__s
     !> Integration end time [s]
     real(kind=dp) :: end_time__s
+    !> Last flag returned by the solver
+    integer(kind=i_kind) :: solver_flag
     !> Number of steps
     integer(kind=i_kind) :: num_steps
     !> Right-hand side evaluations
@@ -55,6 +57,8 @@ module pmc_solver_stats
     real(kind=dp) :: RHS_time__s
     !> Compute time for calls to `Jac()` [s]
     real(kind=dp) :: Jac_time__s
+    !> Maximum loss of precision on last deriv call
+    real(kind=dp) :: max_loss_precision
 #ifdef PMC_DEBUG
     !> Flag to output debugging info during solving
     !! THIS PRINTS A LOT OF TEXT TO THE STANDARD OUTPUT
@@ -91,6 +95,7 @@ contains
     write(f_unit,*) "Status code:                 ", this%status_code
     write(f_unit,*) "Integration start time [s]:  ", this%start_time__s
     write(f_unit,*) "Integration end time [s]:    ", this%end_time__s
+    write(f_unit,*) "Last solver flag:            ", this%solver_flag
     write(f_unit,*) "Number of steps:             ", this%num_steps
     write(f_unit,*) "Right-hand side evals:       ", this%RHS_evals
     write(f_unit,*) "Linear solver setups:        ", this%LS_setups
@@ -101,6 +106,7 @@ contains
     write(f_unit,*) "DLS Right-hand side evals:   ", this%DLS_RHS_evals
     write(f_unit,*) "Last time step [s]:          ", this%last_time_step__s
     write(f_unit,*) "Next time step [s]:          ", this%next_time_step__s
+    write(f_unit,*) "Maximum loss of precision    ", this%max_loss_precision
 #ifdef PMC_DEBUG
     write(f_unit,*) "Output debugging info:       ", this%debug_out
     write(f_unit,*) "Evaluate Jacobian:           ", this%eval_Jac
@@ -124,6 +130,7 @@ contains
     this%status_code           = new_value
     this%start_time__s         = real( new_value, kind=dp )
     this%end_time__s           = real( new_value, kind=dp )
+    this%solver_flag           = new_value
     this%num_steps             = new_value
     this%RHS_evals             = new_value
     this%LS_setups             = new_value
@@ -135,6 +142,7 @@ contains
     this%last_time_step__s     = real( new_value, kind=dp )
     this%next_time_step__s     = real( new_value, kind=dp )
     this%Jac_eval_fails        = new_value
+    this%max_loss_precision    = new_value
 
   end subroutine assignValue
 

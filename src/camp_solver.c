@@ -33,17 +33,17 @@
 // Default solver initial time step relative to total integration time
 #define DEFAULT_TIME_STEP 1.0
 // State advancement factor for Jacobian element evaluation
-#define JAC_CHECK_ADV 1.0E-8
-// Tolerance for Jacobian element evaluation
-#define JAC_CHECK_TOL 1.0E-6
-// Tolerance for Jacobian element evaluation against GSL absolute errors
-#define JAC_CHECK_GSL_TOL 2.0
+#define JAC_CHECK_ADV_MAX 1.0E-00
+#define JAC_CHECK_ADV_MIN 1.0E-12
+// Relative tolerance for Jacobian element evaluation against GSL absolute
+// errors
+#define JAC_CHECK_GSL_REL_TOL 1.0e-4
+// Absolute Jacobian error tolerance
+#define JAC_CHECK_GSL_ABS_TOL 1.0e-9
 // Set MAX_TIMESTEP_WARNINGS to a negative number to prevent output
 #define MAX_TIMESTEP_WARNINGS -1
 // Maximum number of steps in discreet addition guess helper
-#define GUESS_MAX_ITER 50
-// Guess advance scaling factor
-#define GUESS_ADV_SCALE 0.618
+#define GUESS_MAX_ITER 5
 
 // Status codes for calls to camp_solver functions
 #define CAMP_SOLVER_SUCCESS 0
@@ -105,6 +105,12 @@ void *solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
 #endif
 #endif
 
+  // Do not output precision loss by default
+  sd->output_precision = 0;
+
+  // Use the Jacobian estimated derivative in f() by default
+  sd->use_deriv_est = 1;
+
   // Save the number of state variables per grid cell
   sd->model_data.n_per_cell_state_var = n_state_var;
 
@@ -129,6 +135,12 @@ void *solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
   sd->model_data.n_per_cell_dep_var = n_dep_var;
 
 #ifdef PMC_USE_SUNDIALS
+  // Set up a TimeDerivative object to use during solving
+  if (time_derivative_initialize(&(sd->time_deriv), n_dep_var) != 1) {
+    printf("\n\nERROR initializing the TimeDerivative\n\n");
+    EXIT_FAILURE;
+  }
+
   // Set up the solver variable array and helper derivative array
   sd->y = N_VNew_Serial(n_dep_var * n_cells);
   sd->deriv = N_VNew_Serial(n_dep_var * n_cells);
@@ -372,6 +384,9 @@ void solver_initialize(void *solver_data, double *abs_tol, double rel_tol,
   int n_cells;      // number of cells to solve simultaneously
   int *var_type;    // state variable types
 
+  // Seed the random number generator
+  srand((unsigned int)100);
+
   // Get a pointer to the SolverData
   sd = (SolverData *)solver_data;
 
@@ -609,16 +624,22 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   realtype t_rt = (realtype)t_initial;
   if (!sd->no_solve) {
     flag = CVode(sd->cvode_mem, (realtype)t_final, sd->y, &t_rt, CV_NORMAL);
+    sd->solver_flag = flag;
 #ifndef FAILURE_DETAIL
     if (flag < 0) {
 #else
     if (check_flag(&flag, "CVode", 1) == CAMP_SOLVER_FAIL) {
+      if (flag == -6) {
+        long int lsflag;
+        int lastflag = CVDlsGetLastFlag(sd->cvode_mem, &lsflag);
+        printf("\nLinear Solver Setup Fail: %d %ld", lastflag, lsflag);
+      }
       N_Vector deriv = N_VClone(sd->y);
       flag = f(t_initial, sd->y, deriv, sd);
       if (flag != 0)
         printf("\nCall to f() at failed state failed with flag %d\n", flag);
       for (int i_cell = 0; i_cell < md->n_cells; ++i_cell) {
-        printf("\n Cell: %d ");
+        printf("\n Cell: %d ", i_cell);
         printf("temp = %le pressure = %le\n", env[i_cell * PMC_NUM_ENV_PARAM_],
                env[i_cell * PMC_NUM_ENV_PARAM_ + 1]);
         for (int i_spec = 0, i_dep_var = 0; i_spec < md->n_per_cell_state_var;
@@ -633,7 +654,8 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
             printf("spec %d = %le\n", i_spec,
                    state[i_cell * md->n_per_cell_state_var + i_spec]);
           }
-        solver_print_stats(sd->cvode_mem);
+      }
+      solver_print_stats(sd->cvode_mem);
 #endif
       return CAMP_SOLVER_FAIL;
     }
@@ -666,6 +688,7 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
 /** \brief Get solver statistics after an integration attempt
  *
  * \param solver_data           Pointer to the solver data
+ * \param solver_flag           Last flag returned by the solver
  * \param num_steps             Pointer to set to the number of integration
  *                              steps
  * \param RHS_evals             Pointer to set to the number of right-hand side
@@ -689,21 +712,25 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
  * \param Jac_evals_total       Total calls to `Jac()`
  * \param RHS_time__s           Compute time for calls to f() [s]
  * \param Jac_time__s           Compute time for calls to Jac() [s]
+ * \param max_loss_precision    Indicators of loss of precision in derivative
+ *                              calculation for each species
  */
-void solver_get_statistics(void *solver_data, int *num_steps, int *RHS_evals,
-                           int *LS_setups, int *error_test_fails,
-                           int *NLS_iters, int *NLS_convergence_fails,
-                           int *DLS_Jac_evals, int *DLS_RHS_evals,
-                           double *last_time_step__s, double *next_time_step__s,
-                           int *Jac_eval_fails, int *RHS_evals_total,
-                           int *Jac_evals_total, double *RHS_time__s,
-                           double *Jac_time__s) {
+void solver_get_statistics(void *solver_data, int *solver_flag, int *num_steps,
+                           int *RHS_evals, int *LS_setups,
+                           int *error_test_fails, int *NLS_iters,
+                           int *NLS_convergence_fails, int *DLS_Jac_evals,
+                           int *DLS_RHS_evals, double *last_time_step__s,
+                           double *next_time_step__s, int *Jac_eval_fails,
+                           int *RHS_evals_total, int *Jac_evals_total,
+                           double *RHS_time__s, double *Jac_time__s,
+                           double *max_loss_precision) {
 #ifdef PMC_USE_SUNDIALS
   SolverData *sd = (SolverData *)solver_data;
   long int nst, nfe, nsetups, nje, nfeLS, nni, ncfn, netf, nge;
   realtype last_h, curr_h;
   int flag;
 
+  *solver_flag = sd->solver_flag;
   flag = CVodeGetNumSteps(sd->cvode_mem, &nst);
   if (check_flag(&flag, "CVodeGetNumSteps", 1) == CAMP_SOLVER_FAIL) return;
   *num_steps = (int)nst;
@@ -745,11 +772,13 @@ void solver_get_statistics(void *solver_data, int *num_steps, int *RHS_evals,
   *Jac_evals_total = sd->counterJac;
   *RHS_time__s = ((double)sd->timeDeriv) / CLOCKS_PER_SEC;
   *Jac_time__s = ((double)sd->timeJac) / CLOCKS_PER_SEC;
+  *max_loss_precision = sd->max_loss_precision;
 #else
-    *RHS_evals_total = -1;
-    *Jac_evals_total = -1;
-    *RHS_time__s = 0.0;
-    *Jac_time__s = 0.0;
+  *RHS_evals_total = -1;
+  *Jac_evals_total = -1;
+  *RHS_time__s = 0.0;
+  *Jac_time__s = 0.0;
+  *max_loss_precision = 0.0;
 #endif
 #endif
 }
@@ -816,6 +845,9 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
   // Get a pointer to the derivative data
   double *deriv_data = N_VGetArrayPointer(deriv);
 
+  // Get a pointer to the Jacobian estimated derivative data
+  double *jac_deriv_data = N_VGetArrayPointer(md->J_tmp);
+
   // Get the grid cell dimensions
   int n_cells = md->n_cells;
   int n_state_var = md->n_per_cell_state_var;
@@ -834,8 +866,10 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
   if (camp_solver_update_model_state(y, md, ZERO, ZERO) != CAMP_SOLVER_SUCCESS)
     return 1;
 
-  // Reset the derivative vector
-  N_VConst(ZERO, deriv);
+  // Get the Jacobian-estimated derivative
+  N_VLinearSum(1.0, y, -1.0, md->J_state, md->J_tmp);
+  SUNMatMatvec(md->J_solver, md->J_tmp, md->J_tmp2);
+  N_VLinearSum(1.0, md->J_deriv, 1.0, md->J_tmp2, md->J_tmp);
 
 #ifdef PMC_DEBUG
   // Measure calc_deriv time execution
@@ -843,6 +877,9 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
 #endif
 
 #ifdef PMC_USE_GPU
+  // Reset the derivative vector
+  N_VConst(ZERO, deriv);
+
   // Calculate the time derivative f(t,y)
   // (this is for all grid cells at once)
   rxn_calc_deriv_gpu(md, deriv, (double)time_step);
@@ -878,20 +915,35 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
 #endif
 
 #ifndef PMC_USE_GPU
+    // Reset the TimeDerivative
+    time_derivative_reset(sd->time_deriv);
+
     // Calculate the time derivative f(t,y)
-    rxn_calc_deriv(md, deriv_data, (double)time_step);
+    rxn_calc_deriv(md, sd->time_deriv, (double)time_step);
+
+    // Update the deriv array
+    if (sd->use_deriv_est == 1) {
+      time_derivative_output(sd->time_deriv, deriv_data, jac_deriv_data,
+                             sd->output_precision);
+    } else {
+      time_derivative_output(sd->time_deriv, deriv_data, NULL,
+                             sd->output_precision);
+    }
 #else
-      // Add contributions from reactions not implemented on GPU
-      rxn_calc_deriv_specific_types(md, deriv_data, (double)time_step);
+    // Add contributions from reactions not implemented on GPU
+    // FIXME need to fix this to use TimeDerivative
+    rxn_calc_deriv_specific_types(md, sd->time_deriv, (double)time_step);
 #endif
 
 #ifdef PMC_DEBUG
     clock_t end2 = clock();
     sd->timeDeriv += (end2 - start2);
+    sd->max_loss_precision = time_derivative_max_loss_precision(sd->time_deriv);
 #endif
 
     // Advance the derivative for the next cell
     deriv_data += n_dep_var;
+    jac_deriv_data += n_dep_var;
   }
 
   // Return 0 if success
@@ -942,6 +994,16 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
   // !!!! Do not use tmp2 - it is the same as y !!!! //
   // FIXME Find out why cvode is sending tmp2 as y
 
+  // Calculate the the derivative for the current state y without
+  // the estimated derivative from the last Jacobian calculation
+  sd->use_deriv_est = 0;
+  if (f(t, y, deriv, solver_data) != 0) {
+    printf("\n Derivative calculation failed.\n");
+    sd->use_deriv_est = 1;
+    return 1;
+  }
+  sd->use_deriv_est = 1;
+
   // Update the state array with the current dependent variable values
   // Signal a recoverable error (positive return value) for negative
   // concentrations.
@@ -955,12 +1017,12 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
   /// \todo #83 Figure out how to stop CVODE from resizing the Jacobian
   ///       during solving
   SM_NNZ_S(J) = SM_NNZ_S(md->J_init);
-  for (int i = 0; i < SM_NNZ_S(J); i++) {
-    (SM_DATA_S(J))[i] = (realtype)0.0;
-    (SM_INDEXVALS_S(J))[i] = (SM_INDEXVALS_S(md->J_init))[i];
-  }
   for (int i = 0; i <= SM_NP_S(J); i++) {
     (SM_INDEXPTRS_S(J))[i] = (SM_INDEXPTRS_S(md->J_init))[i];
+  }
+  for (int i = 0; i < SM_NNZ_S(J); i++) {
+    (SM_INDEXVALS_S(J))[i] = (SM_INDEXVALS_S(md->J_init))[i];
+    (SM_DATA_S(J))[i] = (realtype)0.0;
   }
 
 #ifdef PMC_DEBUG
@@ -995,7 +1057,7 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
     // Reset the sub-model and reaction Jacobians
     for (int i = 0; i < SM_NNZ_S(md->J_params); ++i)
       SM_DATA_S(md->J_params)[i] = 0.0;
-    for (int i = 0; i < SM_NNZ_S(md->J_rxn); ++i) SM_DATA_S(md->J_rxn)[i] = 0.0;
+    jacobian_reset(sd->jac);
 
     // Update the aerosol representations
     aero_rep_update_state(md);
@@ -1010,14 +1072,11 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
 #endif
 
 #ifndef PMC_USE_GPU
-
     // Calculate the reaction Jacobian
-    rxn_calc_jac(md, J_rxn_data, time_step);
-    PMC_DEBUG_JAC(md->J_rxn, "reaction Jacobian");
-
+    rxn_calc_jac(md, sd->jac, time_step);
 #else
-      // Add contributions from reactions not implemented on GPU
-      rxn_calc_jac_specific_types(md, J_rxn_data, time_step);
+    // Add contributions from reactions not implemented on GPU
+    rxn_calc_jac_specific_types(md, sd->jac, time_step);
 #endif
 
 // rxn_calc_jac_specific_types(md, J_rxn_data, time_step);
@@ -1025,6 +1084,10 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
     clock_t end = clock();
     sd->timeJac += (end - start);
 #endif
+
+    // Output the Jacobian to the SUNDIALS J_rxn
+    jacobian_output(sd->jac, SM_DATA_S(md->J_rxn));
+    PMC_DEBUG_JAC(md->J_rxn, "reaction Jacobian");
 
     // Set the solver Jacobian using the reaction and sub-model Jacobians
     JacMap *jac_map = md->jac_map;
@@ -1036,6 +1099,12 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
           SM_DATA_S(md->J_params)[jac_map[i_map].param_id];
     PMC_DEBUG_JAC(J, "solver Jacobian");
   }
+
+  // Save the Jacobian for use with derivative calculations
+  for (int i_elem = 0; i_elem < SM_NNZ_S(J); ++i_elem)
+    SM_DATA_S(md->J_solver)[i_elem] = SM_DATA_S(J)[i_elem];
+  N_VScale(1.0, y, md->J_state);
+  N_VScale(1.0, deriv, md->J_deriv);
 
 #ifdef PMC_DEBUG
   // Evaluate the Jacobian if flagged to do so
@@ -1105,14 +1174,12 @@ bool check_Jac(realtype t, N_Vector y, SUNMatrix J, N_Vector deriv,
     // Reset tmp to the initial state
     N_VScale(ONE, y, tmp);
 
-    // Guess the initial step size
+    // Save the independent species concentration and index
     double x = d_state[i_ind];
-    double h = x * JAC_CHECK_ADV;
+    gsl_param.ind_var = i_ind;
 
     // Skip small concentrations
-    if (h < TINY) continue;
-
-    gsl_param.ind_var = i_ind;
+    if (x < SMALL) continue;
 
     // Do the numerical differentiation for each potentially non-zero
     // Jacobian element
@@ -1125,27 +1192,47 @@ bool check_Jac(realtype t, N_Vector y, SUNMatrix J, N_Vector deriv,
 
       gsl_param.dep_var = i_dep;
 
-      // Get the partial derivative d_fy/dx
-      if (gsl_deriv_forward(&gsl_func, x, h, &partial_deriv, &abs_err) == 1) {
-        printf("\nERROR in numerical differentiation for J[%d][%d]", i_ind,
-               i_dep);
+      bool test_pass = false;
+      double h, abs_tol, rel_diff, scaling;
+
+      // Evaluate the Jacobian element over a range of initial step sizes
+      for (scaling = JAC_CHECK_ADV_MIN;
+           scaling <= JAC_CHECK_ADV_MAX && test_pass == false;
+           scaling *= 10.0) {
+        // Get the current initial step size
+        h = x * scaling;
+
+        // Get the partial derivative d_fy/dx
+        if (gsl_deriv_forward(&gsl_func, x, h, &partial_deriv, &abs_err) == 1) {
+          printf("\nERROR in numerical differentiation for J[%d][%d]", i_ind,
+                 i_dep);
+        }
+
+        // Evaluate the results
+        abs_tol = 1.2 * fabs(abs_err);
+        abs_tol =
+            abs_tol > JAC_CHECK_GSL_ABS_TOL ? abs_tol : JAC_CHECK_GSL_ABS_TOL;
+        rel_diff = 1.0;
+        if (partial_deriv != 0.0)
+          rel_diff =
+              fabs((SM_DATA_S(J)[i_elem] - partial_deriv) / partial_deriv);
+        if (fabs(SM_DATA_S(J)[i_elem] - partial_deriv) < abs_tol ||
+            rel_diff < JAC_CHECK_GSL_REL_TOL)
+          test_pass = true;
       }
 
-      double abs_tol =
-          fabs(abs_err) > SMALL ? fabs(abs_err) * JAC_CHECK_GSL_TOL : SMALL;
-
-      // Evaluate the results
-      double rel_diff = 1.0;
-      if (partial_deriv != 0.0)
-        rel_diff = fabs((SM_DATA_S(J)[i_elem] - partial_deriv) / partial_deriv);
-      if (fabs(SM_DATA_S(J)[i_elem] - partial_deriv) > abs_tol &&
-          rel_diff > 1.0e-4) {
+      // If the test does not pass with any initial step size, print out the
+      // failure, output the local derivative state and return false
+      if (test_pass == false) {
         printf(
             "\nError in Jacobian[%d][%d]: Got %le; expected %le"
             "\n  difference %le is greater than error %le",
             i_ind, i_dep, SM_DATA_S(J)[i_elem], partial_deriv,
             fabs(SM_DATA_S(J)[i_elem] - partial_deriv), abs_tol);
-        printf("\n  relative error %le intial time step %le", rel_diff, h);
+        printf("\n  relative error %le intial step size %le", rel_diff, h);
+        printf("\n  initial rate %le initial state %le", d_deriv[i_dep],
+               d_state[i_ind]);
+        printf(" scaling %le", scaling);
         ModelData *md = &(((SolverData *)solver_data)->model_data);
         for (int i_cell = 0; i_cell < md->n_cells; ++i_cell)
           for (int i_spec = 0; i_spec < md->n_per_cell_state_var; ++i_spec)
@@ -1153,6 +1240,8 @@ bool check_Jac(realtype t, N_Vector y, SUNMatrix J, N_Vector deriv,
                    i_spec, i_cell * md->n_per_cell_state_var + i_spec,
                    md->total_state[i_cell * md->n_per_cell_state_var + i_spec]);
         retval = false;
+        output_deriv_local_state(t, y, deriv, solver_data, &f, i_dep, i_ind,
+                                 SM_DATA_S(J)[i_elem], h / 10.0);
       }
     }
 #endif
@@ -1265,26 +1354,19 @@ int guess_helper(const realtype t_n, const realtype h_n, N_Vector y_n,
       }
     }
 
-    // Scale h_j unless t_n can be reached
-    if (i_fast >= 0 && h_n > ZERO) h_j *= GUESS_ADV_SCALE;
+    // Scale incomplete jumps
+    if (i_fast >= 0 && h_n > ZERO)
+      h_j *= 0.95 + 0.1 * rand() / (double)RAND_MAX;
+    h_j = t_n < t_0 + t_j + h_j ? t_n - (t_0 + t_j) : h_j;
 
     // Only make small changes to adjustment vectors used in Newton iteration
-    if (h_n == ZERO && ONE - h_j > ((CVodeMem)sd->cvode_mem)->cv_reltol)
-      return 0;
-
-    // Avoid advancing state past zero
-    if (h_n > ZERO) h_j = nextafter(h_j, ZERO);
+    if (h_n == ZERO &&
+        t_n - (h_j + t_j + t_0) > ((CVodeMem)sd->cvode_mem)->cv_reltol)
+      return -1;
 
     // Advance the state
     N_VLinearSum(ONE, tmp1, h_j, corr, tmp1);
-
     PMC_DEBUG_PRINT_FULL("Advanced state");
-
-    // If just scaling an adjustment vector, exit the loop
-    if (h_n == ZERO) break;
-
-    h_j = nextafter(h_j, HUGE_VAL);
-    h_j = t_0 + t_j + h_j > t_n ? t_n - (t_0 + t_j) : h_j;
 
     // Advance t_j
     t_j += h_j;
@@ -1297,11 +1379,10 @@ int guess_helper(const realtype t_n, const realtype h_n, N_Vector y_n,
     }
     ((CVodeMem)sd->cvode_mem)->cv_nfe++;
 
-#ifdef PMC_DEBUG
     if (iter == GUESS_MAX_ITER - 1 && t_0 + t_j < t_n) {
       PMC_DEBUG_PRINT("Max guess iterations reached!");
+      if (h_n == ZERO) return -1;
     }
-#endif
   }
 
   PMC_DEBUG_PRINT_INT("Guessed y_h in steps:", iter);
@@ -1309,8 +1390,8 @@ int guess_helper(const realtype t_n, const realtype h_n, N_Vector y_n,
   // Set the correction vector
   N_VLinearSum(ONE, tmp1, -ONE, y_n, corr);
 
-  // Scale the correction so we don't overshoot
-  N_VScale(0.999, corr, corr);
+  // Scale the initial corrections
+  if (h_n > ZERO) N_VScale(0.999, corr, corr);
 
   // Update the hf vector
   N_VLinearSum(ONE, tmp1, -ONE, y_n1, hf);
@@ -1392,6 +1473,15 @@ SUNMatrix get_jac_init(SolverData *solver_data) {
   // Initialize the sparse matrix (sized for one grid cell)
   solver_data->model_data.J_rxn =
       SUNSparseMatrix(n_state_var, n_state_var, n_jac_elem_rxn, CSC_MAT);
+
+  // Initialize the Jacobian for reactions
+  // TODO: Adapt the Jacobian structure for general use to avoid using
+  // SUNSparseMatrix outside of the solver interface
+  if (jacobian_initialize(&(solver_data->jac), (unsigned int)n_state_var,
+                          jac_struct_rxn) != 1) {
+    printf("\n\nERROR allocating Jacobian structure\n\n");
+    EXIT_FAILURE;
+  }
 
   // Set the column and row indices
   int i_col = 0, i_elem = 0;
@@ -1573,6 +1663,8 @@ SUNMatrix get_jac_init(SolverData *solver_data) {
   // Initialize the sparse matrix (for full state array)
   SUNMatrix M = SUNSparseMatrix(n_dep_var_total, n_dep_var_total,
                                 n_jac_elem_solver * n_cells, CSC_MAT);
+  solver_data->model_data.J_solver = SUNSparseMatrix(
+      n_dep_var_total, n_dep_var_total, n_jac_elem_solver * n_cells, CSC_MAT);
 
   // Set the column and row indices
   i_col = 0, i_elem = 0;
@@ -1580,11 +1672,15 @@ SUNMatrix get_jac_init(SolverData *solver_data) {
     for (int i = 0; i < n_state_var; i++) {
       if (solver_data->model_data.var_type[i] != CHEM_SPEC_VARIABLE) continue;
       (SM_INDEXPTRS_S(M))[i_col] = i_elem;
+      (SM_INDEXPTRS_S(solver_data->model_data.J_solver))[i_col] = i_elem;
       for (int j = 0, i_row = 0; j < n_state_var; j++) {
         if (solver_data->model_data.var_type[j] != CHEM_SPEC_VARIABLE) continue;
         if (jac_struct_solver[j][i] == true) {
           (SM_DATA_S(M))[i_elem] = (realtype)0.0;
-          (SM_INDEXVALS_S(M))[i_elem++] = i_row + n_dep_var * i_cell;
+          (SM_DATA_S(solver_data->model_data.J_solver))[i_elem] = (realtype)0.0;
+          (SM_INDEXVALS_S(M))[i_elem] = i_row + n_dep_var * i_cell;
+          (SM_INDEXVALS_S(solver_data->model_data.J_solver))[i_elem++] =
+              i_row + n_dep_var * i_cell;
         }
         i_row++;
       }
@@ -1592,6 +1688,7 @@ SUNMatrix get_jac_init(SolverData *solver_data) {
     }
   }
   (SM_INDEXPTRS_S(M))[i_col] = i_elem;
+  (SM_INDEXPTRS_S(solver_data->model_data.J_solver))[i_col] = i_elem;
 
   // Build the set of Jacobian ids
   int **jac_ids_solver = (int **)jac_struct_solver;
@@ -1648,13 +1745,24 @@ SUNMatrix get_jac_init(SolverData *solver_data) {
 
   SolverData *sd = solver_data;
   PMC_DEBUG_JAC_STRUCT(sd->model_data.J_params, "Param struct");
-  PMC_DEBUG_JAC_STRUCT(sd->model_data.J_rxn, "Param struct");
-  PMC_DEBUG_JAC_STRUCT(M, "Param struct");
+  PMC_DEBUG_JAC_STRUCT(sd->model_data.J_rxn, "Reaction struct");
+  PMC_DEBUG_JAC_STRUCT(M, "Solver struct");
 
   if (i_mapped_value != n_mapped_values) {
     printf("[ERROR-340355266] Internal error");
     EXIT_FAILURE;
   }
+
+  // Create vectors to store Jacobian state and derivative data
+  solver_data->model_data.J_state = N_VClone(solver_data->y);
+  solver_data->model_data.J_deriv = N_VClone(solver_data->y);
+  solver_data->model_data.J_tmp = N_VClone(solver_data->y);
+  solver_data->model_data.J_tmp2 = N_VClone(solver_data->y);
+
+  // Initialize the Jacobian state and derivative arrays to zero
+  // for use before the first call to Jac()
+  N_VConst(0.0, solver_data->model_data.J_state);
+  N_VConst(0.0, solver_data->model_data.J_deriv);
 
   // Free the memory used
   for (int i_spec = 0; i_spec < n_state_var; i_spec++)
@@ -1799,6 +1907,12 @@ void solver_free(void *solver_data) {
   // free the absolute tolerance vector
   N_VDestroy(sd->abs_tol_nv);
 
+  // free the TimeDerivative
+  time_derivative_free(sd->time_deriv);
+
+  // free the Jacobian
+  jacobian_free(sd->jac);
+
   // free the derivative vectors
   N_VDestroy(sd->y);
   N_VDestroy(sd->deriv);
@@ -1876,6 +1990,11 @@ void model_free(ModelData model_data) {
   SUNMatDestroy(model_data.J_init);
   SUNMatDestroy(model_data.J_rxn);
   SUNMatDestroy(model_data.J_params);
+  SUNMatDestroy(model_data.J_solver);
+  N_VDestroy(model_data.J_state);
+  N_VDestroy(model_data.J_deriv);
+  N_VDestroy(model_data.J_tmp);
+  N_VDestroy(model_data.J_tmp2);
 #endif
   free(model_data.jac_map);
   free(model_data.jac_map_params);

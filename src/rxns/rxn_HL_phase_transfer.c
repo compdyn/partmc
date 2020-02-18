@@ -239,56 +239,11 @@ void rxn_HL_phase_transfer_update_env_state(ModelData *model_data,
   return;
 }
 
-/** \brief Calculate the overall per-particle reaction rate ([ppm]/s)
- *
- * This function is called by the deriv and Jac functions to get the overall
- * reaction rate on a per-particle basis, trying to avoid floating-point
- * subtraction errors.
- *
- * \param rxn_int_data Pointer to the reaction integer data
- * \param rxn_float_data Pointer to the reaction floating-point data
- * \param rxn_env_data Pointer to the environment-dependent parameters
- * \param state State array
- * \param cond_rc Condensation rate constant ([ppm]^(-n_react+1)s^-1)
- * \param evap_rc Evaporation rate constant ([ppm]^(-n_prod+1)s^-1)
- * \param i_phase Index for the aerosol phase being calculated
- */
-#ifdef PMC_USE_SUNDIALS
-realtype rxn_HL_phase_transfer_calc_overall_rate(
-    int *rxn_int_data, double *rxn_float_data, double *rxn_env_data,
-    realtype *state, realtype cond_rc, realtype evap_rc, int i_phase) {
-  int *int_data = rxn_int_data;
-  double *float_data = rxn_float_data;
-
-  // Calculate the overall rate.
-  // These equations are set up to try to avoid loss of accuracy from
-  // subtracting two almost-equal numbers when rate_cond ~ rate_evap.
-  // When modifying these calculations, be sure to use the Jacobian checker
-  // during unit testing.
-  long double rate = ZERO;
-  long double aero_conc = state[AERO_SPEC_(i_phase)];
-  long double aero_water = state[AERO_WATER_(i_phase)];
-  long double gas_conc = state[GAS_SPEC_];
-  long double l_cond_rc = cond_rc;
-  long double l_evap_rc = evap_rc;
-  if (l_evap_rc == ZERO || l_cond_rc == ZERO) {
-    rate = l_evap_rc * aero_conc / aero_water - l_cond_rc * gas_conc;
-  } else if (l_evap_rc * aero_conc / aero_water < l_cond_rc * gas_conc) {
-    realtype gas_eq = aero_conc * (l_evap_rc / l_cond_rc);
-    rate = (gas_eq - gas_conc * aero_water) * (l_cond_rc / aero_water);
-  } else {
-    realtype aero_eq = gas_conc * aero_water * (l_cond_rc / l_evap_rc);
-    rate = (aero_conc - aero_eq) * (l_evap_rc / aero_water);
-  }
-  return (realtype)rate;
-}
-#endif
-
 /** \brief Calculate contributions to the time derivative \f$f(t,y)\f$ from
  * this reaction.
  *
  * \param model_data Pointer to the model data, including the state array
- * \param deriv Pointer to the time derivative to add contributions to
+ * \param time_deriv TimeDerivative object
  * \param rxn_int_data Pointer to the reaction integer data
  * \param rxn_float_data Pointer to the reaction floating-point data
  * \param rxn_env_data Pointer to the environment-dependent parameters
@@ -296,7 +251,7 @@ realtype rxn_HL_phase_transfer_calc_overall_rate(
  */
 #ifdef PMC_USE_SUNDIALS
 void rxn_HL_phase_transfer_calc_deriv_contrib(
-    ModelData *model_data, realtype *deriv, int *rxn_int_data,
+    ModelData *model_data, TimeDerivative time_deriv, int *rxn_int_data,
     double *rxn_float_data, double *rxn_env_data, realtype time_step) {
   int *int_data = rxn_int_data;
   double *float_data = rxn_float_data;
@@ -344,26 +299,32 @@ void rxn_HL_phase_transfer_calc_deriv_contrib(
 
     // Calculate the rate constant for diffusion limited mass transfer to the
     // aerosol phase (1/s)
-    realtype cond_rate = 1.0 / (radius * radius / (3.0 * DIFF_COEFF_) +
-                                4.0 * radius / (3.0 * C_AVG_ALPHA_));
+    long double cond_rate =
+        ((long double)1.0) / (radius * radius / (3.0 * DIFF_COEFF_) +
+                              4.0 * radius / (3.0 * C_AVG_ALPHA_));
 
     // Calculate the evaporation rate constant (1/s)
-    realtype evap_rate = cond_rate / (EQUIL_CONST_);
+    long double evap_rate = cond_rate / (EQUIL_CONST_);
 
-    // Get the overall rate
-    realtype rate = rxn_HL_phase_transfer_calc_overall_rate(
-        rxn_int_data, rxn_float_data, rxn_env_data, state, cond_rate, evap_rate,
-        i_phase);
+    // Calculate the evaporation and condensation rates
+    cond_rate *= state[GAS_SPEC_];
+    evap_rate *= state[AERO_SPEC_(i_phase)] / state[AERO_WATER_(i_phase)];
 
     // Change in the gas-phase is evaporation - condensation (ppm/s)
     if (DERIV_ID_(0) >= 0) {
-      deriv[DERIV_ID_(0)] += number_conc * rate;
+      time_derivative_add_value(time_deriv, DERIV_ID_(0),
+                                number_conc * evap_rate);
+      time_derivative_add_value(time_deriv, DERIV_ID_(0),
+                                -number_conc * cond_rate);
     }
 
     // Change in the aerosol-phase species is condensation - evaporation
     // (ug/m^3/s)
     if (DERIV_ID_(1 + i_phase) >= 0)
-      deriv[DERIV_ID_(1 + i_phase)] -= rate / UGM3_TO_PPM_;
+      time_derivative_add_value(time_deriv, DERIV_ID_(1 + i_phase),
+                                -evap_rate / UGM3_TO_PPM_);
+    time_derivative_add_value(time_deriv, DERIV_ID_(1 + i_phase),
+                              cond_rate / UGM3_TO_PPM_);
   }
 
   return;
@@ -373,14 +334,14 @@ void rxn_HL_phase_transfer_calc_deriv_contrib(
 /** \brief Calculate contributions to the Jacobian from this reaction
  *
  * \param model_data Pointer to the model data
- * \param J Pointer to the sparse Jacobian matrix to add contributions to
+ * \param jac Reaction Jacobian
  * \param rxn_int_data Pointer to the reaction integer data
  * \param rxn_float_data Pointer to the reaction floating-point data
  * \param rxn_env_data Pointer to the environment-dependent parameters
  * \param time_step Current time step being calculated (s)
  */
 #ifdef PMC_USE_SUNDIALS
-void rxn_HL_phase_transfer_calc_jac_contrib(ModelData *model_data, realtype *J,
+void rxn_HL_phase_transfer_calc_jac_contrib(ModelData *model_data, Jacobian jac,
                                             int *rxn_int_data,
                                             double *rxn_float_data,
                                             double *rxn_env_data,
@@ -441,31 +402,40 @@ void rxn_HL_phase_transfer_calc_jac_contrib(ModelData *model_data, realtype *J,
     realtype evap_rate = cond_rate / (EQUIL_CONST_);
 
     // Get the overall rate for certain Jac elements
-    realtype rate = rxn_HL_phase_transfer_calc_overall_rate(
-        rxn_int_data, rxn_float_data, rxn_env_data, state, cond_rate, evap_rate,
-        i_phase);
+    long double rate =
+        evap_rate * state[AERO_SPEC_(i_phase)] / state[AERO_WATER_(i_phase)] -
+        cond_rate * state[GAS_SPEC_];
 
     // Update evap rate to be for aerosol species concentrations
     evap_rate /= (UGM3_TO_PPM_ * state[AERO_WATER_(i_phase)]);
 
     // Change in the gas-phase is evaporation - condensation (ppm/s)
     if (JAC_ID_(1 + i_phase * 5 + 1) >= 0)
-      J[JAC_ID_(1 + i_phase * 5 + 1)] += number_conc * evap_rate * UGM3_TO_PPM_;
+      jacobian_add_value(jac, (unsigned int)JAC_ID_(1 + i_phase * 5 + 1),
+                         JACOBIAN_PRODUCTION,
+                         number_conc * evap_rate * UGM3_TO_PPM_);
     if (JAC_ID_(1 + i_phase * 5 + 3) >= 0)
-      J[JAC_ID_(1 + i_phase * 5 + 3)] -=
-          number_conc * evap_rate * UGM3_TO_PPM_ * state[AERO_SPEC_(i_phase)] /
-          state[AERO_WATER_(i_phase)];
-    if (JAC_ID_(0) >= 0) J[JAC_ID_(0)] -= number_conc * cond_rate;
+      jacobian_add_value(
+          jac, (unsigned int)JAC_ID_(1 + i_phase * 5 + 3), JACOBIAN_PRODUCTION,
+          -number_conc * evap_rate * UGM3_TO_PPM_ * state[AERO_SPEC_(i_phase)] /
+              state[AERO_WATER_(i_phase)]);
+    if (JAC_ID_(0) >= 0)
+      jacobian_add_value(jac, (unsigned int)JAC_ID_(0), JACOBIAN_LOSS,
+                         number_conc * cond_rate);
 
     // Change in the aerosol-phase species is condensation - evaporation
     // (ug/m^3/s)
     if (JAC_ID_(1 + i_phase * 5) >= 0)
-      J[JAC_ID_(1 + i_phase * 5)] += cond_rate / UGM3_TO_PPM_;
+      jacobian_add_value(jac, (unsigned int)JAC_ID_(1 + i_phase * 5),
+                         JACOBIAN_PRODUCTION, cond_rate / UGM3_TO_PPM_);
     if (JAC_ID_(1 + i_phase * 5 + 2) >= 0)
-      J[JAC_ID_(1 + i_phase * 5 + 2)] -= evap_rate;
+      jacobian_add_value(jac, (unsigned int)JAC_ID_(1 + i_phase * 5 + 2),
+                         JACOBIAN_LOSS, evap_rate);
     if (JAC_ID_(1 + i_phase * 5 + 4) >= 0)
-      J[JAC_ID_(1 + i_phase * 5 + 4)] +=
-          evap_rate * state[AERO_SPEC_(i_phase)] / state[AERO_WATER_(i_phase)];
+      jacobian_add_value(jac, (unsigned int)JAC_ID_(1 + i_phase * 5 + 4),
+                         JACOBIAN_LOSS,
+                         -evap_rate * state[AERO_SPEC_(i_phase)] /
+                             state[AERO_WATER_(i_phase)]);
 
     // Add contributions from species used in aerosol property calculations
 
@@ -482,19 +452,28 @@ void rxn_HL_phase_transfer_calc_jac_contrib(ModelData *model_data, realtype *J,
       // Gas-phase species dependencies
       if (PHASE_JAC_ID_(i_phase, JAC_GAS, i_elem) > 0) {
         // species involved in effective radius calculation
-        J[PHASE_JAC_ID_(i_phase, JAC_GAS, i_elem)] +=
-            number_conc * d_rate_d_radius * EFF_RAD_JAC_ELEM_(i_phase, i_elem);
+        jacobian_add_value(
+            jac, (unsigned int)PHASE_JAC_ID_(i_phase, JAC_GAS, i_elem),
+            JACOBIAN_LOSS,
+            -number_conc * d_rate_d_radius *
+                EFF_RAD_JAC_ELEM_(i_phase, i_elem));
 
         // species involved in numer concentration
-        J[PHASE_JAC_ID_(i_phase, JAC_GAS, i_elem)] +=
-            number_conc * d_rate_d_number * NUM_CONC_JAC_ELEM_(i_phase, i_elem);
+        jacobian_add_value(
+            jac, (unsigned int)PHASE_JAC_ID_(i_phase, JAC_GAS, i_elem),
+            JACOBIAN_LOSS,
+            -number_conc * d_rate_d_number *
+                NUM_CONC_JAC_ELEM_(i_phase, i_elem));
       }
 
       // Aerosol-phase species dependencies
       if (PHASE_JAC_ID_(i_phase, JAC_AERO, i_elem) > 0) {
         // species involved in effective radius calculation
-        J[PHASE_JAC_ID_(i_phase, JAC_AERO, i_elem)] -=
-            d_rate_d_radius / UGM3_TO_PPM_ * EFF_RAD_JAC_ELEM_(i_phase, i_elem);
+        jacobian_add_value(
+            jac, (unsigned int)PHASE_JAC_ID_(i_phase, JAC_AERO, i_elem),
+            JACOBIAN_PRODUCTION,
+            -d_rate_d_radius / UGM3_TO_PPM_ *
+                EFF_RAD_JAC_ELEM_(i_phase, i_elem));
       }
     }
   }

@@ -170,7 +170,7 @@ void rxn_condensed_phase_arrhenius_update_env_state(ModelData *model_data,
  * reaction.
  *
  * \param model_data Pointer to the model data, including the state array
- * \param deriv Pointer to the time derivative to add contributions to
+ * \param time_deriv TimeDerivative object
  * \param rxn_int_data Pointer to the reaction integer data
  * \param rxn_float_data Pointer to the reaction floating-point data
  * \param rxn_env_data Pointer to the environment-dependent parameters
@@ -178,7 +178,7 @@ void rxn_condensed_phase_arrhenius_update_env_state(ModelData *model_data,
  */
 #ifdef PMC_USE_SUNDIALS
 void rxn_condensed_phase_arrhenius_calc_deriv_contrib(
-    ModelData *model_data, realtype *deriv, int *rxn_int_data,
+    ModelData *model_data, TimeDerivative time_deriv, int *rxn_int_data,
     double *rxn_float_data, double *rxn_env_data, double time_step) {
   int *int_data = rxn_int_data;
   double *float_data = rxn_float_data;
@@ -188,7 +188,7 @@ void rxn_condensed_phase_arrhenius_calc_deriv_contrib(
   // Calculate derivative contributions for each aerosol phase
   for (int i_phase = 0, i_deriv = 0; i_phase < NUM_AERO_PHASE_; i_phase++) {
     // If this is an aqueous reaction, get the unit conversion from mol/m3 -> M
-    realtype unit_conv = 1.0;
+    long double unit_conv = 1.0;
     if (WATER_(i_phase) >= 0) {
       unit_conv = state[WATER_(i_phase)] * 1.0e-9;  // convert from ug/m3->L/m3
 
@@ -202,7 +202,7 @@ void rxn_condensed_phase_arrhenius_calc_deriv_contrib(
     }
 
     // Calculate the reaction rate rate (M/s or mol/m3/s)
-    realtype rate = RATE_CONSTANT_;
+    long double rate = RATE_CONSTANT_;
     for (int i_react = 0; i_react < NUM_REACT_; i_react++) {
       rate *= state[REACT_(i_phase * NUM_REACT_ + i_react)] *
               UGM3_TO_MOLM3_(i_react) * unit_conv;
@@ -214,8 +214,8 @@ void rxn_condensed_phase_arrhenius_calc_deriv_contrib(
         i_deriv++;
         continue;
       }
-      deriv[DERIV_ID_(i_deriv++)] -=
-          rate / (UGM3_TO_MOLM3_(i_react) * unit_conv);
+      time_derivative_add_value(time_deriv, DERIV_ID_(i_deriv++),
+                                -rate / (UGM3_TO_MOLM3_(i_react) * unit_conv));
     }
 
     // Products change
@@ -224,9 +224,10 @@ void rxn_condensed_phase_arrhenius_calc_deriv_contrib(
         i_deriv++;
         continue;
       }
-      deriv[DERIV_ID_(i_deriv++)] +=
+      time_derivative_add_value(
+          time_deriv, DERIV_ID_(i_deriv++),
           rate * YIELD_(i_prod) /
-          (UGM3_TO_MOLM3_(NUM_REACT_ + i_prod) * unit_conv);
+              (UGM3_TO_MOLM3_(NUM_REACT_ + i_prod) * unit_conv));
     }
   }
 
@@ -237,7 +238,7 @@ void rxn_condensed_phase_arrhenius_calc_deriv_contrib(
 /** \brief Calculate contributions to the Jacobian from this reaction
  *
  * \param model_data Pointer to the model data
- * \param J Pointer to the sparse Jacobian matrix to add contributions to
+ * \param jac Reaction Jacobian
  * \param rxn_int_data Pointer to the reaction integer data
  * \param rxn_float_data Pointer to the reaction floating-point data
  * \param rxn_env_data Pointer to the environment-dependent parameters
@@ -245,7 +246,7 @@ void rxn_condensed_phase_arrhenius_calc_deriv_contrib(
  */
 #ifdef PMC_USE_SUNDIALS
 void rxn_condensed_phase_arrhenius_calc_jac_contrib(
-    ModelData *model_data, realtype *J, int *rxn_int_data,
+    ModelData *model_data, Jacobian jac, int *rxn_int_data,
     double *rxn_float_data, double *rxn_env_data, double time_step) {
   int *int_data = rxn_int_data;
   double *float_data = rxn_float_data;
@@ -282,21 +283,26 @@ void rxn_condensed_phase_arrhenius_calc_jac_contrib(
       }
 
       // Add the Jacobian elements
+      //
+      // For reactant dependence on reactants
       for (int i_react_dep = 0; i_react_dep < NUM_REACT_; i_react_dep++) {
         if (JAC_ID_(i_jac) < 0) {
           i_jac++;
           continue;
         }
-        J[JAC_ID_(i_jac++)] -= rate / (UGM3_TO_MOLM3_(i_react_dep) * unit_conv);
+        jacobian_add_value(jac, (unsigned int)JAC_ID_(i_jac++), JACOBIAN_LOSS,
+                           rate / (UGM3_TO_MOLM3_(i_react_dep) * unit_conv));
       }
+      // For product dependence on reactants
       for (int i_prod_dep = 0; i_prod_dep < NUM_PROD_; i_prod_dep++) {
         if (JAC_ID_(i_jac) < 0) {
           i_jac++;
           continue;
         }
-        J[JAC_ID_(i_jac++)] +=
+        jacobian_add_value(
+            jac, (unsigned int)JAC_ID_(i_jac++), JACOBIAN_PRODUCTION,
             rate * YIELD_(i_prod_dep) /
-            (UGM3_TO_MOLM3_(NUM_REACT_ + i_prod_dep) * unit_conv);
+                (UGM3_TO_MOLM3_(NUM_REACT_ + i_prod_dep) * unit_conv));
       }
     }
 
@@ -314,22 +320,26 @@ void rxn_condensed_phase_arrhenius_calc_jac_contrib(
               UGM3_TO_MOLM3_(i_react) * unit_conv;
     }
 
+    // Dependence of reactants on aerosol-phase water
     for (int i_react_dep = 0; i_react_dep < NUM_REACT_; i_react_dep++) {
       if (JAC_ID_(i_jac) < 0) {
         i_jac++;
         continue;
       }
-      J[JAC_ID_(i_jac++)] +=
-          (NUM_REACT_ - 1) * rate * 1e-9 / UGM3_TO_MOLM3_(i_react_dep);
+      jacobian_add_value(
+          jac, (unsigned int)JAC_ID_(i_jac++), JACOBIAN_LOSS,
+          -(NUM_REACT_ - 1) * rate * 1e-9 / UGM3_TO_MOLM3_(i_react_dep));
     }
+    // Dependence of products on aerosol-phase water
     for (int i_prod_dep = 0; i_prod_dep < NUM_PROD_; i_prod_dep++) {
       if (JAC_ID_(i_jac) < 0) {
         i_jac++;
         continue;
       }
-      J[JAC_ID_(i_jac++)] -= (NUM_REACT_ - 1) * rate * 1e-9 *
-                             YIELD_(i_prod_dep) /
-                             UGM3_TO_MOLM3_(NUM_REACT_ + i_prod_dep);
+      jacobian_add_value(jac, (unsigned int)JAC_ID_(i_jac++),
+                         JACOBIAN_PRODUCTION,
+                         -(NUM_REACT_ - 1) * rate * 1e-9 * YIELD_(i_prod_dep) /
+                             UGM3_TO_MOLM3_(NUM_REACT_ + i_prod_dep));
     }
   }
 

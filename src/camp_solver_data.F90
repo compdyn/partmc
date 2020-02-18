@@ -155,16 +155,18 @@ module pmc_camp_solver_data
     end subroutine solver_reset_timers
 
     !> Get the solver statistics
-    subroutine solver_get_statistics( solver_data, num_steps, RHS_evals, &
-                    LS_setups, error_test_fails, NLS_iters, &
+    subroutine solver_get_statistics( solver_data, solver_flag, num_steps, &
+                    RHS_evals, LS_setups, error_test_fails, NLS_iters, &
                     NLS_convergence_fails, DLS_Jac_evals, DLS_RHS_evals, &
                     last_time_step__s, next_time_step__s, Jac_eval_fails, &
                     RHS_evals_total, Jac_evals_total, RHS_time__s, &
-                    Jac_time__s) bind (c)
+                    Jac_time__s, max_loss_precision) bind (c)
       use iso_c_binding
       !> Pointer to the solver data
       type(c_ptr), value :: solver_data
-      !> Number of stesp
+      !> Last flag returned by the solver
+      type(c_ptr), value :: solver_flag
+      !> Number of steps
       type(c_ptr), value :: num_steps
       !> Right-hand side evaluations
       type(c_ptr), value :: RHS_evals
@@ -194,6 +196,8 @@ module pmc_camp_solver_data
       type(c_ptr), value :: RHS_time__s
       !> Compute time for calls to `Jac()`
       type(c_ptr), value :: Jac_time__s
+      !> Maximum loss of precision on last call the f()
+      type(c_ptr), value :: max_loss_precision
     end subroutine solver_get_statistics
 
     !> Add condensed reaction data to the solver data block
@@ -449,13 +453,13 @@ contains
     !! Use parameters in pmc_rxn_data to specify phase:
     !! GAS_RXN, AERO_RXN, GAS_AERO_RXN
     integer(kind=i_kind), intent(in) :: rxn_phase
+    !> Number of cells to compute
+    integer(kind=i_kind), optional :: n_cells
 
     ! Variable types
     integer(kind=c_int), pointer :: var_type_c(:)
     ! Absolute tolerances
     real(kind=c_double), pointer :: abs_tol_c(:)
-    !> Number of cells to compute
-    integer(kind=i_kind), optional :: n_cells
     ! Indices for iteration
     integer(kind=i_kind) :: i_mech, i_rxn, i_aero_phase, i_aero_rep, &
             i_sub_model
@@ -508,9 +512,13 @@ contains
     integer(kind=c_int) :: n_sub_model_float_param
     ! Number of environment-dependent sub model parameters
     integer(kind=c_int) :: n_sub_model_env_param
+    ! Number of cells to compute
+    integer(kind=c_int) :: l_n_cells
 
-    if (.not.present(n_cells)) then
-      n_cells = 1
+    if (present(n_cells)) then
+      l_n_cells = n_cells
+    else
+      l_n_cells = 1
     end if
 
     ! Make sure the variable type and absolute tolerance arrays are of
@@ -605,7 +613,7 @@ contains
     ! Get a new solver object
     this%solver_c_ptr = solver_new( &
             int(size(var_type_c), kind=c_int), & ! Size of the state variable
-            n_cells,                           & ! # of cells computed at once
+            l_n_cells,                         & ! # of cells computed at once
             c_loc(var_type_c),                 & ! Variable types
             n_rxn,                             & ! # of reactions
             n_rxn_int_param,                   & ! # of rxn data int params
@@ -936,6 +944,7 @@ contains
 
     call solver_get_statistics( &
             this%solver_c_ptr,                             & ! Solver data
+            c_loc( solver_stats%solver_flag           ),   & ! Last flag returned CVode
             c_loc( solver_stats%num_steps             ),   & ! Number of steps
             c_loc( solver_stats%RHS_evals             ),   & ! Right-hand side evals
             c_loc( solver_stats%LS_setups             ),   & ! Linear solver setups
@@ -950,7 +959,8 @@ contains
             c_loc( solver_stats%RHS_evals_total       ),   & ! total f() calls
             c_loc( solver_stats%Jac_evals_total       ),   & ! total Jac() calls
             c_loc( solver_stats%RHS_time__s           ),   & ! Compute time f() [s]
-            c_loc( solver_stats%Jac_time__s           ) )    ! Compute time Jac() [s]
+            c_loc( solver_stats%Jac_time__s           ),   & ! Compute time Jac() [s]
+            c_loc( solver_stats%max_loss_precision    ) )    ! Maximum loss of precision
 
   end subroutine get_solver_stats
 

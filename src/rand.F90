@@ -364,6 +364,9 @@ contains
        ! normal approximation with continuity correction
        k = nint(rand_normal(np, sqrt(np * (1d0 - p))))
        rand_binomial = min(max(k, 0), n)
+    elseif (p < 1d-15) then
+       ! Method below needs to compute log(1-p) so p can not be too small
+       rand_binomial = 0
     elseif (np < 1d-200) then
        rand_binomial = 0
     elseif (nomp < 1d-200) then

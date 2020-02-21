@@ -1,0 +1,18 @@
+{
+  "description" : [
+    "Wet deposition reactions"
+  ],
+  "pmc-data" : [
+    {
+      "name" : "MONARCH mod37",
+      "type" : "MECHANISM",
+      "reactions" : [
+        {
+          "type" : "WET_DEPOSITION",
+          "aerosol phase" : "cloud and rain water",
+          "rxn id" : "rain loss"
+        }
+      ]
+    }
+  ]
+}

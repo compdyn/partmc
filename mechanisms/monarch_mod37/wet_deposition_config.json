@@ -1,0 +1,16 @@
+{
+  "wet-dep-data" : {
+    "resoved clouds" : {
+      "calculate" : true,
+      "output rates" : false
+    },
+    "sub-grid scale clouds" : {
+      "calculate" : true,
+      "output rates" : false
+    },
+    "vertical mixing" : {
+      "calculate" : true,
+      "output rates" : false
+    }
+  }
+}

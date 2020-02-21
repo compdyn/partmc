@@ -822,8 +822,8 @@ contains
     type(camp_core_t), intent(in) :: camp_core
 
     character(len=:), allocatable :: rep_name, prop_name
-    type(string_t), allocatable :: spec_names(:)
-    integer :: num_spec, i_spec
+    type(string_t), allocatable :: spec_names(:), tmp_spec_names(:)
+    integer :: num_spec, i_spec, spec_type
     type(chem_spec_data_t), pointer :: chem_spec_data
     type(property_t), pointer :: property_set
 
@@ -837,8 +837,25 @@ contains
             camp_core%get_chem_spec_data(chem_spec_data), &
             "No chemical species data in camp_core.")
 
+    ! Only include real aerosol species (no activity coefficients)
     spec_names = this%aero_rep_ptr%unique_names()
-    num_spec = size(spec_names)
+    allocate(tmp_spec_names(size(spec_names)))
+    num_spec = 0
+    do i_spec = 1, size(spec_names)
+      call assert(496388827, chem_spec_data%get_type( &
+                  this%aero_rep_ptr%spec_name(spec_names(i_spec)%string), &
+                  spec_type))
+      if( spec_type.ne.CHEM_SPEC_VARIABLE .and. &
+          spec_type.ne.CHEM_SPEC_CONSTANT .and. &
+          spec_type.ne.CHEM_SPEC_PSSA ) cycle
+      num_spec = num_spec + 1
+      tmp_spec_names(num_spec)%string = spec_names(i_spec)%string
+    end do
+    deallocate(spec_names)
+    allocate(spec_names(num_spec))
+    spec_names(1:num_spec) = tmp_spec_names(1:num_spec)
+    deallocate(tmp_spec_names)
+
     allocate(this%name(num_spec))
     allocate(this%mosaic_index(num_spec))
     allocate(this%density(num_spec))
@@ -848,6 +865,12 @@ contains
     allocate(this%camp_spec_id(num_spec))
 
     do i_spec = 1, num_spec
+      call assert(496388827, chem_spec_data%get_type( &
+                  this%aero_rep_ptr%spec_name(spec_names(i_spec)%string), &
+                  spec_type))
+      if( spec_type.ne.CHEM_SPEC_VARIABLE .and. &
+          spec_type.ne.CHEM_SPEC_CONSTANT .and. &
+          spec_type.ne.CHEM_SPEC_PSSA ) num_spec = num_spec - 1
       this%name(i_spec) = spec_names(i_spec)%string
       if (.not.chem_spec_data%get_property_set( &
         this%aero_rep_ptr%spec_name(spec_names(i_spec)%string), &

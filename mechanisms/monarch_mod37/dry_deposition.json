@@ -1,0 +1,641 @@
+{
+  "description" : [
+    "Dry deposition reactions and species properties",
+    "TODO Consider updating diffusion coefficients according to Tang et al. Atmos. Chem. Phys., 14, 9233-9247 (2014)",
+    "   available at https://www.atmos-chem-phys.net/14/9233/2014/acp-14-9233-2014.pdf"
+  ],
+  "pmc-data" : [
+    {
+      "name" : "NO2",
+      "type" : "CHEM_SPEC",
+      "HLC(298K) [M Pa-1]" :6.316E-08,
+      "HLC exp factor [K]" :2.500E+03,
+      "dry dep reactivity factor [unitless]" :1.000E-01,
+      "diffusion coeff [m2 s-1]" :1.470E-05,
+      "dry dep notes" : [
+        "HLC seems to be on the low end of measured values",
+        "(https://webbook.nist.gov/cgi/cbook.cgi?ID=C10102440&Mask=10)"
+      ]
+    },
+    {
+      "name" : "NO",
+      "type" : "CHEM_SPEC",
+      "HLC(298K) [M Pa-1]" :1.875E-08,
+      "HLC exp factor [K]" :1.480E+03,
+      "dry dep reactivity factor [unitless]" :0.000E+00,
+      "diffusion coeff [m2 s-1]" :1.830E-05
+    },
+    {
+      "name" : "O3",
+      "type" : "CHEM_SPEC",
+      "HLC(298K) [M Pa-1]" :1.115E-07,
+      "HLC exp factor [K]" :2.300E+03,
+      "dry dep reactivity factor [unitless]" :1.000E+00,
+      "diffusion coeff [m2 s-1]" :1.750E-05
+    },
+    {
+      "name" : "NO3",
+      "type" : "CHEM_SPEC",
+      "HLC(298K) [M Pa-1]" :1.480E-04,
+      "HLC exp factor [K]" :0.000E+00,
+      "dry dep reactivity factor [unitless]" :1.000E+00,
+      "diffusion coeff [m2 s-1]" :1.270E-05,
+      "dry dep notes" : [
+        "HLC seems to be on the high end of measured values",
+        "(https://webbook.nist.gov/cgi/cbook.cgi?ID=C12033497&Units=SI&Mask=10#Solubility)"
+      ]
+    },
+    {
+      "name" : "N2O5",
+      "type" : "CHEM_SPEC",
+      "HLC(298K) [M Pa-1]" :9.869E+04,
+      "HLC exp factor [K]" :0.000E+00,
+      "dry dep reactivity factor [unitless]" :1.000E+00,
+      "diffusion coeff [m2 s-1]" :1.100E-05
+    },
+    {
+      "name" : "HNO3",
+      "type" : "CHEM_SPEC",
+      "HLC(298K) [M Pa-1]" :0.98692,
+      "HLC exp factor [K]" :8.684E+03,
+      "dry dep reactivity factor [unitless]" :0.000E+00,
+      "diffusion coeff [m2 s-1]" :1.260E-05,
+      "dry dep notes" : [
+        "Original HLC(298K)=2.69e13 (M atm-1) is orders of magnitude higher that nist values (~1e5); exp factor ok",
+        "https://webbook.nist.gov/cgi/cbook.cgi?ID=C7697372&Units=SI&Mask=10#Solubility",
+        "switched to nist value"
+      ]
+    },
+    {
+      "name" : "HCL",
+      "type" : "CHEM_SPEC",
+      "HLC(298K) [M Pa-1]" :0.98692,
+      "HLC exp factor [K]" :8.684E+03,
+      "dry dep reactivity factor [unitless]" :0.000E+00,
+      "diffusion coeff [m2 s-1]" :1.260E-05,
+      "dry dep notes" : [
+        "Using parameters from HNO3"
+      ]
+    },
+    {
+      "name" : "SULF",
+      "type" : "CHEM_SPEC",
+      "HLC(298K) [M Pa-1]" :9.8692e5,
+      "HLC exp factor [K]" :8.684E+03,
+      "dry dep reactivity factor [unitless]" :0.000E+00,
+      "diffusion coeff [m2 s-1]" :1.260E-05,
+      "dry dep notes" : [
+        "using HLC from nist (https://webbook.nist.gov/cgi/cbook.cgi?ID=C7664939&Units=SI&Mask=10#Solubility)"
+      ]
+    },
+    {
+      "name" : "HONO",
+      "type" : "CHEM_SPEC",
+      "HLC(298K) [M Pa-1]" :3.425E+00,
+      "HLC exp factor [K]" :3.775E+03,
+      "dry dep reactivity factor [unitless]" :1.000E-01,
+      "diffusion coeff [m2 s-1]" :1.530E-05
+    },
+    {
+      "name" : "PNA",
+      "type" : "CHEM_SPEC",
+      "HLC(298K) [M Pa-1]" :1.974E+08,
+      "HLC exp factor [K]" :0.000E+00,
+      "dry dep reactivity factor [unitless]" :1.000E-01,
+      "diffusion coeff [m2 s-1]" :1.130E-05
+    },
+    {
+      "name" : "H2O2",
+      "type" : "CHEM_SPEC",
+      "HLC(298K) [M Pa-1]" :7.353E-01,
+      "HLC exp factor [K]" :6.615E+03,
+      "dry dep reactivity factor [unitless]" :1.000E+00,
+      "diffusion coeff [m2 s-1]" :1.710E-05
+    },
+    {
+      "name" : "NTR",
+      "type" : "CHEM_SPEC",
+      "HLC(298K) [M Pa-1]" :1.115E-05,
+      "HLC exp factor [K]" :5.487E+03,
+      "dry dep reactivity factor [unitless]" :0.000E+00,
+      "diffusion coeff [m2 s-1]" :9.200E-06
+    },
+    {
+      "name" : "ROOH",
+      "type" : "CHEM_SPEC",
+      "HLC(298K) [M Pa-1]" :1.658E+01,
+      "HLC exp factor [K]" :1.024E+04,
+      "dry dep reactivity factor [unitless]" :1.000E-01,
+      "diffusion coeff [m2 s-1]" :1.270E-05
+    },
+    {
+      "name" : "FORM",
+      "type" : "CHEM_SPEC",
+      "HLC(298K) [M Pa-1]" :2.931E-02,
+      "HLC exp factor [K]" :7.190E+03,
+      "dry dep reactivity factor [unitless]" :0.000E+00,
+      "diffusion coeff [m2 s-1]" :1.830E-05
+    },
+    {
+      "name" : "MEOH",
+      "type" : "CHEM_SPEC",
+      "HLC(298K) [M Pa-1]" :2.931E-02,
+      "HLC exp factor [K]" :7.190E+03,
+      "dry dep reactivity factor [unitless]" :0.000E+00,
+      "diffusion coeff [m2 s-1]" :1.830E-05,
+      "dry dep notes" : [
+        "Using values from FORM"
+      ]
+    },
+    {
+      "name" : "ETOH",
+      "type" : "CHEM_SPEC",
+      "HLC(298K) [M Pa-1]" :2.931E-02,
+      "HLC exp factor [K]" :7.190E+03,
+      "dry dep reactivity factor [unitless]" :0.000E+00,
+      "diffusion coeff [m2 s-1]" :1.830E-05,
+      "dry dep notes" : [
+        "Using values from FORM"
+      ]
+    },
+    {
+      "name" : "ALD2",
+      "type" : "CHEM_SPEC",
+      "HLC(298K) [M Pa-1]" :1.125E-04,
+      "HLC exp factor [K]" :6.266E+03,
+      "dry dep reactivity factor [unitless]" :0.000E+00,
+      "diffusion coeff [m2 s-1]" :1.510E-05
+    },
+    {
+      "name" : "ALDX",
+      "type" : "CHEM_SPEC",
+      "HLC(298K) [M Pa-1]" :1.125E-04,
+      "HLC exp factor [K]" :6.266E+03,
+      "dry dep reactivity factor [unitless]" :0.000E+00,
+      "diffusion coeff [m2 s-1]" :1.510E-05
+    },
+    {
+      "name" : "PAR",
+      "type" : "CHEM_SPEC",
+      "HLC(298K) [M Pa-1]" :1.115E-08,
+      "HLC exp factor [K]" :0.000E+00,
+      "dry dep reactivity factor [unitless]" :0.000E+00,
+      "diffusion coeff [m2 s-1]" :1.180E-05
+    },
+    {
+      "name" : "CO",
+      "type" : "CHEM_SPEC",
+      "HLC(298K) [M Pa-1]" :8.093E-08,
+      "HLC exp factor [K]" :0.000E+00,
+      "dry dep reactivity factor [unitless]" :0.000E+00,
+      "diffusion coeff [m2 s-1]" :1.890E-05
+    },
+    {
+      "name" : "MEPX",
+      "type" : "CHEM_SPEC",
+      "HLC(298K) [M Pa-1]" :2.181E-03,
+      "HLC exp factor [K]" :5.607E+03,
+      "dry dep reactivity factor [unitless]" :1.000E-01,
+      "diffusion coeff [m2 s-1]" :1.440E-05
+    },
+    {
+      "name" : "FACD",
+      "type" : "CHEM_SPEC",
+      "HLC(298K) [M Pa-1]" :9.721E+01,
+      "HLC exp factor [K]" :5.716E+03,
+      "dry dep reactivity factor [unitless]" :0.000E+00,
+      "diffusion coeff [m2 s-1]" :1.530E-05
+    },
+    {
+      "name" : "PAN",
+      "type" : "CHEM_SPEC",
+      "HLC(298K) [M Pa-1]" :2.931E-05,
+      "HLC exp factor [K]" :5.760E+03,
+      "dry dep reactivity factor [unitless]" :1.000E-01,
+      "diffusion coeff [m2 s-1]" :9.100E-06
+    },
+    {
+      "name" : "PANX",
+      "type" : "CHEM_SPEC",
+      "HLC(298K) [M Pa-1]" :2.931E-05,
+      "HLC exp factor [K]" :5.760E+03,
+      "dry dep reactivity factor [unitless]" :1.000E-01,
+      "diffusion coeff [m2 s-1]" :9.100E-06,
+      "dry dep notes" : [
+        "Using values from PAN"
+      ]
+    },
+    {
+      "name" : "PACD",
+      "type" : "CHEM_SPEC",
+      "HLC(298K) [M Pa-1]" :4.668E-03,
+      "HLC exp factor [K]" :0.000E+00,
+      "dry dep reactivity factor [unitless]" :1.000E-01,
+      "diffusion coeff [m2 s-1]" :1.150E-05
+    },
+    {
+      "name" : "AACD",
+      "type" : "CHEM_SPEC",
+      "HLC(298K) [M Pa-1]" :9.504E+00,
+      "HLC exp factor [K]" :8.374E+03,
+      "dry dep reactivity factor [unitless]" :0.000E+00,
+      "diffusion coeff [m2 s-1]" :1.240E-05
+    },
+    {
+      "name" : "OLE",
+      "type" : "CHEM_SPEC",
+      "HLC(298K) [M Pa-1]" :4.698E-08,
+      "HLC exp factor [K]" :0.000E+00,
+      "dry dep reactivity factor [unitless]" :0.000E+00,
+      "diffusion coeff [m2 s-1]" :1.540E-05
+    },
+    {
+      "name" : "ETH",
+      "type" : "CHEM_SPEC",
+      "HLC(298K) [M Pa-1]" :4.609E-08,
+      "HLC exp factor [K]" :0.000E+00,
+      "dry dep reactivity factor [unitless]" :0.000E+00,
+      "diffusion coeff [m2 s-1]" :1.890E-05
+    },
+    {
+      "name" : "IOLE",
+      "type" : "CHEM_SPEC",
+      "HLC(298K) [M Pa-1]" :1.332E-08,
+      "HLC exp factor [K]" :0.000E+00,
+      "dry dep reactivity factor [unitless]" :0.000E+00,
+      "diffusion coeff [m2 s-1]" :1.210E-05
+    },
+    {
+      "name" : "TOL",
+      "type" : "CHEM_SPEC",
+      "HLC(298K) [M Pa-1]" :1.490E-06,
+      "HLC exp factor [K]" :0.000E+00,
+      "dry dep reactivity factor [unitless]" :0.000E+00,
+      "diffusion coeff [m2 s-1]" :1.040E-05
+    },
+    {
+      "name" : "CRES",
+      "type" : "CHEM_SPEC",
+      "HLC(298K) [M Pa-1]" :3.948E+00,
+      "HLC exp factor [K]" :0.000E+00,
+      "dry dep reactivity factor [unitless]" :0.000E+00,
+      "diffusion coeff [m2 s-1]" :9.600E-06
+    },
+    {
+      "name" : "MGLY",
+      "type" : "CHEM_SPEC",
+      "HLC(298K) [M Pa-1]" :3.661E-02,
+      "HLC exp factor [K]" :7.541E+03,
+      "dry dep reactivity factor [unitless]" :0.000E+00,
+      "diffusion coeff [m2 s-1]" :1.180E-05
+    },
+    {
+      "name" : "XYL",
+      "type" : "CHEM_SPEC",
+      "HLC(298K) [M Pa-1]" :1.431E-06,
+      "HLC exp factor [K]" :0.000E+00,
+      "dry dep reactivity factor [unitless]" :0.000E+00,
+      "diffusion coeff [m2 s-1]" :9.700E-06
+    },
+    {
+      "name" : "OPEN",
+      "type" : "CHEM_SPEC",
+      "HLC(298K) [M Pa-1]" :1.431E-06,
+      "HLC exp factor [K]" :0.000E+00,
+      "dry dep reactivity factor [unitless]" :0.000E+00,
+      "diffusion coeff [m2 s-1]" :9.700E-06,
+      "dry dep notes" : [
+        "Using values from XYL"
+      ]
+    },
+    {
+      "name" : "ISOP",
+      "type" : "CHEM_SPEC",
+      "HLC(298K) [M Pa-1]" :4.698E-08,
+      "HLC exp factor [K]" :0.000E+00,
+      "dry dep reactivity factor [unitless]" :0.000E+00,
+      "diffusion coeff [m2 s-1]" :1.210E-05
+    },
+    {
+      "name" : "TERP",
+      "type" : "CHEM_SPEC",
+      "HLC(298K) [M Pa-1]" :4.698E-08,
+      "HLC exp factor [K]" :0.000E+00,
+      "dry dep reactivity factor [unitless]" :0.000E+00,
+      "diffusion coeff [m2 s-1]" :1.210E-05,
+      "dry dep notes" : [
+        "Using values from ISOP"
+      ]
+    },
+    {
+      "name" : "ISPD",
+      "type" : "CHEM_SPEC",
+      "HLC(298K) [M Pa-1]" :4.698E-08,
+      "HLC exp factor [K]" :0.000E+00,
+      "dry dep reactivity factor [unitless]" :0.000E+00,
+      "diffusion coeff [m2 s-1]" :1.210E-05
+    },
+    {
+      "name" : "SO2",
+      "type" : "CHEM_SPEC",
+      "HLC(298K) [M Pa-1]" :2.497E+00,
+      "HLC exp factor [K]" :5.816E+03,
+      "dry dep reactivity factor [unitless]" :0.000E+00,
+      "diffusion coeff [m2 s-1]" :1.260E-05,
+      "special dry deposition species" : "SO2"
+    },
+    {
+      "name" : "ETHA",
+      "type" : "CHEM_SPEC",
+      "HLC(298K) [M Pa-1]" :1.974E-08,
+      "HLC exp factor [K]" :0.000E+00,
+      "dry dep reactivity factor [unitless]" :0.000E+00,
+      "diffusion coeff [m2 s-1]" :1.830E-05
+    },
+    {
+      "name" : "NH3",
+      "type" : "CHEM_SPEC",
+      "HLC(298K) [M Pa-1]" :1.026E-01,
+      "HLC exp factor [K]" :3.660E+03,
+      "dry dep reactivity factor [unitless]" :0.000E+00,
+      "diffusion coeff [m2 s-1]" :2.270E-05,
+      "special dry deposition species" : "NH3"
+    },
+    {
+      "name" : "ISOP-P1",
+      "type" : "CHEM_SPEC",
+      "HLC(298K) [M Pa-1]" :9.721E+01,
+      "HLC exp factor [K]" :5.716E+03,
+      "dry dep reactivity factor [unitless]" :0.000E+00,
+      "diffusion coeff [m2 s-1]" :1.530E-05
+    },
+    {
+      "name" : "ISOP-P2",
+      "type" : "CHEM_SPEC",
+      "HLC(298K) [M Pa-1]" :9.721E+01,
+      "HLC exp factor [K]" :5.716E+03,
+      "dry dep reactivity factor [unitless]" :0.000E+00,
+      "diffusion coeff [m2 s-1]" :1.530E-05,
+      "dry dep notes" : "changed diff coeff from 0.0 to match ISOP-P1"
+    },
+    {
+      "name" : "TERP-P1",
+      "type" : "CHEM_SPEC",
+      "HLC(298K) [M Pa-1]" :9.721E+01,
+      "HLC exp factor [K]" :5.716E+03,
+      "dry dep reactivity factor [unitless]" :0.000E+00,
+      "diffusion coeff [m2 s-1]" :1.530E-05
+    },
+    {
+      "name" : "TERP-P2",
+      "type" : "CHEM_SPEC",
+      "HLC(298K) [M Pa-1]" :9.721E+01,
+      "HLC exp factor [K]" :5.716E+03,
+      "dry dep reactivity factor [unitless]" :0.000E+00,
+      "diffusion coeff [m2 s-1]" :1.530E-05,
+      "dry dep notes" : "changed diff coeff from 0.0 to match ISOP-P2"
+    },
+    {
+      "name" : "DMS",
+      "type" : "CHEM_SPEC",
+      "HLC(298K) [M Pa-1]" : 5.59585E-06,
+      "HLC exp factor [K]" : 3500.0,
+      "dry dep reactivity factor [unitless]" :0.000E+00,
+      "diffusion coeff [m2 s-1]" :9.900E-03,
+      "dry dep notes" : [
+        "got HLC params from nist webbook https://webbook.nist.gov/cgi/cbook.cgi?ID=C75183&Mask=10#Solubility"
+      ]
+    },
+    {
+      "name" : "MONARCH mod37",
+      "type" : "MECHANISM",
+      "reactions" : [
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "SULF"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "MEOH"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "ETOH"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "OPEN"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "HCL"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "TERP"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "PANX"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "NO2"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "NO"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "O3"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "NO3"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "N2O5"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "HNO3"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "HONO"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "PNA"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "H2O2"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "NTR"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "ROOH"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "FORM"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "ALD2"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "ALDX"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "PAR"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "CO"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "MEPX"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "FACD"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "PAN"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "PACD"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "AACD"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "OLE"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "ETH"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "IOLE"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "TOL"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "CRES"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "MGLY"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "XYL"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "ISOP"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "ISPD"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "SO2"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "ETHA"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "NH3"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "ISOP-P1"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "ISOP-P2"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "TERP-P1"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "TERP-P2"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "DMS"
+        }
+      ]
+    }
+  ]
+}

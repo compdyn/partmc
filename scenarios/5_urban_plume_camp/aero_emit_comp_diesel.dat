@@ -1,4 +1,6 @@
 #       mass fractions
-OC             0.3
-BC             0.7
+organic_matter.PM_phob  0.2
+organic_matter.PM_phil  0.1
+black_carbon.BC_phob    0.5
+black_carbon.BC_phil    0.2
 

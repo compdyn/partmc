@@ -4,26 +4,27 @@ n_repeat 1                      # number of Monte Carlo repeats
 n_part 1000                     # total number of particles
 restart no                      # whether to restart from saved state (yes/no)
 
-t_max 3600                     # total simulation time (s)
+t_max 3600                      # total simulation time (s)
 del_t 60                        # timestep (s)
-t_output 60                   # output interval (0 disables) (s)
-t_progress 60                  # progress printing interval (0 disables) (s)
+t_output 60                     # output interval (0 disables) (s)
+t_progress 60                   # progress printing interval (0 disables) (s)
 
-do_camp_chem yes
-camp_config config_1.json
-gas_init gas_init_camp.dat           # initial gas concentrations
+do_camp_chem yes                # whether to use CAMP for chemistry
+camp_config config.json         # CAMP configuration file
+
+gas_init gas_init.dat           # initial gas concentrations
 
 do_fractal no                   # whether to do fractal treatment
-aerosol_init aero_init_dist_camp.dat # aerosol initial condition file
+aerosol_init aero_init_dist.dat # aerosol initial condition file
 
-temp_profile temp_camp.dat           # temperature profile file
-pressure_profile pres.dat            # pressure profile file
-height_profile height_camp.dat       # height profile file
-gas_emissions gas_emit_camp.dat      # gas emissions file
-gas_background gas_back_camp.dat     # background gas concentrations file
-aero_emissions aero_emit_camp.dat    # aerosol emissions file
-aero_background aero_back_camp.dat   # aerosol background file
-loss_function none                   # loss function specification
+temp_profile temp.dat           # temperature profile file
+pressure_profile pres.dat       # pressure profile file
+height_profile height.dat       # height profile file
+gas_emissions gas_emit.dat      # gas emissions file
+gas_background gas_back.dat     # background gas concentrations file
+aero_emissions aero_emit.dat    # aerosol emissions file
+aero_background aero_back.dat   # aerosol background file
+loss_function none              # loss function specification
 
 rel_humidity 0.95               # initial relative humidity (1)
 latitude 0                      # latitude (degrees, -90 to 90)

@@ -1,0 +1,73 @@
+{
+  "description" : [
+    "ZSR aerosol water calculation for inorganic aerosols"
+  ],
+  "pmc-data" : [
+   {
+      "type" : "SUB_MODEL_ZSR_AEROSOL_WATER",
+      "name" : "MONARCH inorganic aerosol water",
+      "notes" : [ "Y_j parameters taken from Jacobson et al. (1996) Table 2" ],
+      "aerosol phase" : "aqueous sulfate",
+      "gas-phase water" : "H2O",
+      "aerosol-phase water" : "H2O_aq",
+      "ion pairs" : {
+        "H-HSO4" : {
+          "type" : "JACOBSON",
+          "ions" : {
+            "H_p" : {},
+            "HSO4_m" : {}
+          },
+          "Y_j" : [5.611895, -1.387446e1, 1.750682e1, 7.138146e1, -3.109173e2, 4.662288e2, -3.128612e2, 7.767097e1],
+          "low RH" : 0.0
+        },
+        "H2-SO4" : {
+          "type" : "JACOBSON",
+          "ions" : {
+            "H_p" : { "qty" : 2 },
+            "SO4_mm" : {}
+          },
+          "Y_j" : [5.611895, -1.387446e1, 1.750682e1, 7.138146e1, -3.109173e2, 4.662288e2, -3.128612e2, 7.767097e1],
+          "low RH" : 0.0
+        },
+        "H-NO3" : {
+          "type" : "JACOBSON",
+          "ions" : {
+            "H_p" : {},
+            "NO3_m" : {}
+          },
+          "Y_j" : [4.852977, -6.621314, 3.390133e1, -1.985191e2, 6.281150e2, -1.038494e3, 8.498917e2, -2.729090e2],
+          "low RH" : 0.0
+        },
+        "NH4-HSO4" : {
+          "type" : "JACOBSON",
+          "ions" : {
+            "NH4_p" : {},
+            "HSO4_m" : {}
+          },
+          "Y_j" : [5.515580, 3.588744, -6.363443e1, 3.687630e2, -1.023972e3, 1.394436e3, -9.168213e2, 2.328726e2],
+          "low RH" : 0.0
+        },
+        "(NH4)2-SO4" : {
+          "type" : "JACOBSON",
+          "ions" : {
+            "NH4_p" : { "qty" : 2 },
+            "SO4_mm" : {}
+          },
+          "Y_j" : [4.363511e2, -4.947645e3, 2.399693e4, -6.364664e4, 9.952891e4, -9.179112e4, 4.626748e4, -9.844195e3],
+          "low RH" : 0.47
+        },
+        "NH4-NO3" : {
+          "type" : "JACOBSON",
+          "ions" : {
+            "NH4_p" : {},
+            "NO3_m" : {}
+          },
+          "Y_j" : [1.235157e4, -1.097966e5, 4.173924e5, -8.792165, 1.108433e6, -8.364973e5, 3.499527e5, -6.261910e4],
+          "low RH" : 0.62
+        }
+      }
+    }
+  ]
+}
+
+

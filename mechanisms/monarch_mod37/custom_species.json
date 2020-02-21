@@ -1,0 +1,83 @@
+{
+  "description" : [
+    "These additional species are needed for the MONARCH 'mod37' configuration",
+    "Densities are taken from Spada et al. (2015) manuscript - ",
+    "'Global Aerosols in the online multiscale NMMB/BSC Chemical Transport Model",
+    "or estimated from bulk densities.",
+    "TODO check about molecular weights"
+  ],
+  "pmc-data" : [
+    {
+      "name" : "NH3",
+      "type" : "CHEM_SPEC",
+      "absolute integration tolerance" : 1.0E-03,
+      "description" : "ammonia"
+    },
+    {
+      "name" : "DMS",
+      "type" : "CHEM_SPEC",
+      "absolute integration tolerance" : 1.0E-03,
+      "description" : "dimethylsulfide"
+    },
+    {
+      "name" : "lumped high-density dust species",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-05,
+      "molecular weight [kg mol-1]" : 0.1,
+      "density [kg m-3]" : 2650.0
+    },
+    {
+      "name" : "lumped low-density dust species",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-05,
+      "molecular weight [kg mol-1]" : 0.1,
+      "density [kg m-3]" : 2650.0
+    },
+    {
+      "name" : "lumped sea salt species",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-05,
+      "molecular weight [kg mol-1]" : 0.1,
+      "density [kg m-3]" : 2160.0
+    },
+    {
+      "name" : "BC_phob",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-05,
+      "density [kg m-3]" : 1000.0,
+      "molecular weight [kg mol-1]" : 0.1,
+      "description" : "hydrophobic black carbon"
+    },
+    {
+      "name" : "BC_phil",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-05,
+      "density [kg m-3]" : 1000.0,
+      "molecular weight [kg mol-1]" : 0.1,
+      "description" : "hydrophilic black carbon"
+    },
+    {
+      "name" : "other PM",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-05,
+      "molecular weight [kg mol-1]" : 0.1,
+      "density [kg m-3]" : 1800.0,
+      "description" : "unspecified particulate matter FIXME"
+    },
+    {
+      "name" : "other other PM",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-05,
+      "molecular weight [kg mol-1]" : 0.1,
+      "density [kg m-3]" : 1800.0,
+      "description" : "second unspecified particulate matter species FIXME"
+    }
+  ]
+}

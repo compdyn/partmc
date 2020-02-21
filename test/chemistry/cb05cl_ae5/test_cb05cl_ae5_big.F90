@@ -17,7 +17,7 @@ program pmc_test_cb05cl_ae5
   use pmc_util,                         only: i_kind, dp, assert, assert_msg, &
                                               almost_equal, string_t, &
                                               to_string, warn_assert_msg
-  !use pmc_mpi
+  use pmc_mpi
   use pmc_camp_core
   use pmc_camp_state
   use pmc_camp_solver_data
@@ -214,12 +214,12 @@ contains
     integer(kind=i_kind) :: input_id, varid
 
 #ifdef PMC_USE_MPI
-    !character, allocatable :: buffer(:), buffer_copy(:)
-    !integer(kind=i_kind) :: pack_size, pos, i_elem, results, mpi_threads
+    character, allocatable :: buffer(:), buffer_copy(:)
+    integer(kind=i_kind) :: pack_size, pos, i_elem, results, mpi_threads
 #endif
 
     ! initialize MPI
-    !call pmc_mpi_init()
+     call pmc_mpi_init()
 
     n_repeats = 1!2000
     n_cells = 1000 !i_n*j_n*k_n
@@ -294,7 +294,9 @@ contains
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !!! Initialize camp-chem !!!
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
+#ifdef PMC_USE_MPI
+    if( pmc_mpi_rank( ) .eq. 0 ) then
+#endif
     call cpu_time(comp_start)
     camp_input_file = "config_cb05cl_ae5_big.json"
     camp_core => camp_core_t(camp_input_file, n_cells)
@@ -305,6 +307,7 @@ contains
     ! Find the CB5 mechanism
     key = "cb05cl_ae5"
     call assert(418262750, camp_core%get_mechanism(key, mechanism))
+
 
     ! Set the photolysis rate ids
     key = "rxn id"
@@ -338,8 +341,57 @@ contains
     end do
     call assert(322300770, n_photo_rxn.eq.i_photo_rxn)
 
+#ifdef PMC_USE_MPI
+
+    ! Pack the cores and the unit test
+    pack_size = camp_core%pack_size( )
+    allocate( buffer( pack_size ) )
+    pos = 0
+    call camp_core%bin_pack(  buffer, pos )
+    call assert( 881897913, pos .eq. pack_size )
+
+
+    end if
+
+
+
+    ! Broadcast the buffer size
+    call pmc_mpi_bcast_integer( pack_size )
+
+    if (pmc_mpi_rank().eq.1) then
+      ! allocate the buffer to receive data
+      allocate(buffer(pack_size))
+    end if
+
+    ! broadcast the data
+    call pmc_mpi_bcast_packed(buffer)
+
+    if( pmc_mpi_rank( ) .eq. 1 ) then
+
+      ! unpack the data
+      camp_core  => camp_core_t( )
+      pos = 0
+      call camp_core%bin_unpack(  buffer, pos )
+
+      ! Try repacking the data and making sure it stays the same
+      allocate( buffer_copy( pack_size ) )
+      pos = 0
+      call camp_core%bin_pack(  buffer_copy, pos )
+      call assert( 276642139, pos .eq. pack_size )
+      do i_elem = 1, pack_size
+        call assert_msg( 443440270, buffer( i_elem ) .eq. &
+                buffer_copy( i_elem ), &
+                "Mismatch in element "//trim( to_string( i_elem ) ) )
+      end do
+      deallocate( buffer_copy )
+
+    end if
+
+#endif
+
     ! Initialize the solver
     call camp_core%solver_initialize()
+
 
     ! Get an new state variable
     camp_state => camp_core%new_state()
@@ -348,6 +400,7 @@ contains
 
     call cpu_time(comp_end)
     write(*,*) "CAMP-chem initialization time: ", comp_end-comp_start," s"
+
 
 
     ! Get the chemical species data
@@ -583,8 +636,6 @@ contains
     end do
 
 
-
-
     ! Save the initial states for repeat calls
     allocate(ebi_init(size(YC)))
     allocate(kpp_init(size(KPP_C)))
@@ -728,7 +779,7 @@ contains
 
     passed = .true.
 
-    !call pmc_mpi_finalize( )
+    call pmc_mpi_finalize( )
 
   end function run_standard_cb05cl_ae5_test
 

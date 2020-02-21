@@ -31,15 +31,15 @@ program mock_monarch
   !> Number of total species in mock MONARCH
   integer, parameter :: NUM_MONARCH_SPEC = 800
   !> Number of vertical cells in mock MONARCH
-  integer, parameter :: NUM_VERT_CELLS = 10
+  integer, parameter :: NUM_VERT_CELLS = 4096/8
   !> Starting W-E cell for camp-chem call
   integer, parameter :: I_W = 1
   !> Ending W-E cell for camp-chem call
-  integer, parameter :: I_E = 10
+  integer, parameter :: I_E = 4
   !> Starting S-N cell for camp-chem call
   integer, parameter :: I_S = 1
   !> Ending S-N cell for camp-chem call
-  integer, parameter :: I_N = 10
+  integer, parameter :: I_N = 8
   !> Number of W-E cells in mock MONARCH
   integer, parameter :: NUM_WE_CELLS = I_E-I_W+1
   !> Number of S-N cells in mock MONARCH
@@ -51,7 +51,7 @@ program mock_monarch
   !> Time step (min)
   real, parameter :: TIME_STEP = 1.6
   !> Number of time steps to integrate over
-  integer, parameter :: NUM_TIME_STEP = 5!20
+  integer, parameter :: NUM_TIME_STEP = 1!20
   !> Index for water vapor in water_conc()
   integer, parameter :: WATER_VAPOR_ID = 5
   !> Start time
@@ -106,6 +106,10 @@ program mock_monarch
   !> Results file prefix
   character(len=:), allocatable :: output_file_prefix
 
+  ! MPI
+  character, allocatable :: buffer(:)
+  integer(kind=i_kind) :: pos, pack_size
+
   character(len=500) :: arg
   integer :: status_code, i_time, i_spec, i, j, k
   !> Partmc nº of cases to test
@@ -144,8 +148,6 @@ program mock_monarch
   output_file_prefix = trim(arg)
   
   call model_initialize(output_file_prefix)
-
-  print*, "n_cells", n_cells
 
   !Repeat in case we want create a checksum
   do i=1, pmc_cases
@@ -191,7 +193,14 @@ program mock_monarch
 
     end do
 
-    write(*,*) "Model run time: ", comp_time, " s"
+    !if (pmc_mpi_rank().ne.0) then
+    !  call pmc_mpi_transfer_integer(n_cells, n_cells, 1, 0)
+    !end if
+
+    if (pmc_mpi_rank().eq.0) then
+      write(*,*) "Model run time: ", comp_time, " s"
+
+    end if
 
     !Save results
     if(i.eq.1) then
@@ -206,7 +215,7 @@ program mock_monarch
   !print*, species_conc(1,2,1,:)
 
   !#ifdef DEBUG
-  print*, "SPECIES CONC", species_conc(:,1,1,100)
+  !print*, "SPECIES CONC", species_conc(:,1,1,100)
   !print*, "SPECIES CONC COPY", species_conc_copy(:,1,1,100)
   !#endif
 
@@ -231,28 +240,31 @@ program mock_monarch
     end do
   end if
 
-  write(*,*) "MONARCH interface tests - PASS"
+  if (pmc_mpi_rank().eq.0) then
+    write(*,*) "MONARCH interface tests - PASS"
+  end if
 
   ! Output results and scripts
   if (pmc_mpi_rank().eq.0) then
     call output_results(curr_time)
     call create_gnuplot_script(pmc_interface, output_file_prefix, &
             plot_start_time, curr_time)
+    ! close the output file
+    close(RESULTS_FILE_UNIT)
   end if
+
+
 
   ! Deallocation
   deallocate(camp_input_file)
   deallocate(interface_input_file)
-
-  ! Free the interface and the solver
-  deallocate(pmc_interface)
-
-  ! close the output file
-  close(RESULTS_FILE_UNIT)
   deallocate(output_file_prefix)
 
   ! finalize mpi
   call pmc_mpi_finalize()
+
+  ! Free the interface and the solver
+  !deallocate(pmc_interface) !not work on MPI
 
 contains
 

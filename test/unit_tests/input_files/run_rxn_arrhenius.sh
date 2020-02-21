@@ -15,7 +15,7 @@ do
   echo Attempt $counter
 
 if [[ $1 == "MPI" ]]; then
-  exec_str="mpirun -v -np 2 ../../../unit_test_rxn_arrhenius"
+  exec_str="mpirun -v -np 4 ../../../unit_test_rxn_arrhenius"
 else
   exec_str="../../../unit_test_rxn_arrhenius"
 fi

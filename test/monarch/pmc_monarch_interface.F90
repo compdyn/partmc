@@ -162,10 +162,6 @@ contains
       new_obj%n_cells=n_cells
     end if
 
-    if (MONARCH_PROCESS.eq.1) then
-    print*, "MPI RANK", MONARCH_PROCESS
-
-    end if
     ! Check for an available solver
     camp_solver_data => camp_solver_data_t()
     call assert_msg(332298164, camp_solver_data%is_solver_available(), &
@@ -174,8 +170,6 @@ contains
 
     ! Initialize the time-invariant model data on each node
     if (MONARCH_PROCESS.eq.0) then
-
-
 
       ! Start the computation timer on the primary node
       call cpu_time(comp_start)
@@ -235,6 +229,11 @@ contains
       call new_obj%load_init_conc()
 
 #ifdef PMC_USE_MPI
+
+      ! Change a bit init_conc
+      new_obj%init_conc(:) = &
+              new_obj%init_conc(:) + 0.1*MONARCH_PROCESS
+
       pack_size = new_obj%camp_core%pack_size() + &
               update_data_GMD%pack_size() + &
               update_data_GSD%pack_size() + &
@@ -381,6 +380,12 @@ contains
     !> Pressure (Pa)
     real, intent(in) :: pressure(:,:,:)
 
+    ! MPI
+    character, allocatable :: buffer(:)
+    integer(kind=i_kind) :: pos, pack_size
+    integer :: local_comm
+    real(kind=dp), allocatable :: mpi_conc(:)
+
     integer :: i, j, k, k_flip, i_spec, z, o, i2
     integer :: k_end
 
@@ -395,6 +400,8 @@ contains
     else
       state_size_per_cell = this%camp_core%state_size_per_cell()
     end if
+
+    local_comm = MPI_COMM_WORLD
 
     k_end = size(MONARCH_conc,3)
 
@@ -513,6 +520,9 @@ contains
       end do
 
     end if
+
+    !W8 until all process to send data and measure correctly times
+    call pmc_mpi_barrier()
 
     !todo move this comp_time to only the solve part, like the other tests
     call cpu_time(comp_end)

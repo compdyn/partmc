@@ -108,7 +108,7 @@ contains
   !> Write the current state.
   subroutine output_state(prefix, output_type, aero_data, aero_state, &
        gas_data, gas_state, env_state, index, time, del_t, i_repeat, &
-       record_removals, record_optical, uuid)
+       record_removals, record_optical, uuid, do_particle_projection)
 
     !> Prefix of state file.
     character(len=*), intent(in) :: prefix
@@ -138,8 +138,11 @@ contains
     logical, intent(in) :: record_optical
     !> UUID of the simulation.
     character(len=PMC_UUID_LEN), intent(in) :: uuid
+    !> Whether to output a projection of the particle data.
+    logical, optional, intent(in) :: do_particle_projection
 
     integer :: rank, n_proc
+    logical :: part_proj
 #ifdef PMC_USE_MPI
     type(env_state_t) :: env_state_write
     type(gas_state_t) :: gas_state_write
@@ -147,6 +150,12 @@ contains
     integer :: ierr, status(MPI_STATUS_SIZE), i_proc, position
     character, allocatable :: buffer(:)
 #endif
+
+    if (present(do_particle_projection)) then
+       part_proj = do_particle_projection
+    else
+       part_proj = .false.
+    end if 
 
     rank = pmc_mpi_rank()
     n_proc = pmc_mpi_size()
@@ -156,12 +165,12 @@ contains
        if (rank == 0) then
           call output_state_to_file(prefix, aero_data, aero_state, gas_data, &
                gas_state, env_state, index, time, del_t, i_repeat, &
-               record_removals, record_optical, uuid, rank, n_proc)
+               record_removals, record_optical, uuid, part_proj, rank, n_proc)
 #ifdef PMC_USE_MPI
           do i_proc = 1,(n_proc - 1)
              call recv_output_state_central(prefix, aero_data, gas_data, &
                   index, time, del_t, i_repeat, record_removals, &
-                  record_optical, uuid, i_proc)
+                  record_optical, uuid, part_proj, i_proc)
           end do
 #endif
        else ! rank /= 0
@@ -171,12 +180,12 @@ contains
        ! have each process write its own data directly
        call output_state_to_file(prefix, aero_data, aero_state, gas_data, &
             gas_state, env_state, index, time, del_t, i_repeat, &
-            record_removals, record_optical, uuid, rank, n_proc)
+            record_removals, record_optical, uuid, part_proj, rank, n_proc)
     elseif (output_type == OUTPUT_TYPE_SINGLE) then
        if (n_proc == 1) then
           call output_state_to_file(prefix, aero_data, aero_state, gas_data, &
                gas_state, env_state, index, time, del_t, i_repeat, &
-               record_removals, record_optical, uuid, rank, n_proc)
+               record_removals, record_optical, uuid, part_proj, rank, n_proc)
        else
 #ifdef PMC_USE_MPI
           ! collect all data onto process 0 and then write it to a
@@ -190,7 +199,7 @@ contains
              call output_state_to_file(prefix, aero_data, aero_state_write, &
                   gas_data, gas_state_write, env_state_write, index, time, &
                   del_t, i_repeat, record_removals, record_optical, uuid, &
-                  rank, 1)
+                  part_proj, rank, 1)
           end if
 #endif
        end if
@@ -277,7 +286,7 @@ contains
   !> subroutine directly, but rather call output_state().
   subroutine output_state_to_file(prefix, aero_data, aero_state, gas_data, &
        gas_state, env_state, index, time, del_t, i_repeat, record_removals, &
-       record_optical, uuid, write_rank, write_n_proc)
+       record_optical, uuid, particle_projection, write_rank, write_n_proc)
 
     !> Prefix of state file.
     character(len=*), intent(in) :: prefix
@@ -305,6 +314,8 @@ contains
     logical, intent(in) :: record_optical
     !> UUID of the simulation.
     character(len=PMC_UUID_LEN), intent(in) :: uuid
+    !> Whether to output a projection of the particle data.
+    logical, intent(in) :: particle_projection
     !> Rank to write into file.
     integer, intent(in), optional :: write_rank
     !> Number of processes to write into file.
@@ -312,6 +323,9 @@ contains
 
     character(len=len(prefix)+100) :: filename
     integer :: ncid
+    type(aero_binned_t) :: aero_binned
+    type(bin_grid_t) :: bin_grid
+    integer :: n_bin
 
     !> \page output_format_general Output File Format: General Information
     !!
@@ -373,8 +387,20 @@ contains
     call gas_data_output_netcdf(gas_data, ncid)
     call gas_state_output_netcdf(gas_state, ncid, gas_data)
     call aero_data_output_netcdf(aero_data, ncid)
-    call aero_state_output_netcdf(aero_state, ncid, aero_data, &
-         record_removals, record_optical)
+
+    if (particle_projection) then
+       n_bin = 10
+       call bin_grid_make(bin_grid, BIN_GRID_TYPE_LOG, n_bin, 1d-9, 1d-5)
+       call aero_binned_set_sizes(aero_binned, n_bin, aero_data_n_spec( &
+            aero_data))
+       call aero_state_to_binned_dry(bin_grid, aero_data, aero_state, &
+            aero_binned)
+       call aero_binned_output_netcdf(aero_binned, ncid, bin_grid, &
+            aero_data)
+    else
+       call aero_state_output_netcdf(aero_state, ncid, aero_data, &
+            record_removals, record_optical)
+    end if
 
     call pmc_nc_check(nf90_close(ncid))
 

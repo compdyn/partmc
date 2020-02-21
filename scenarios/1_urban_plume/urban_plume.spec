@@ -37,7 +37,7 @@ coag_kernel brown               # coagulation kernel
 do_condensation no              # whether to do condensation (yes/no)
 do_mosaic yes                   # whether to do MOSAIC (yes/no)
 do_optical no                  # whether to compute optical props (yes/no)
-do_intermediate_output yes       # whether to output during a MOSAIC timestep (yes/no)
+do_intermediate_output no       # whether to output during a MOSAIC timestep (yes/no)
 do_nucleation no                # whether to do nucleation (yes/no)
 
 rand_init 0                     # random initialization (0 to use time)

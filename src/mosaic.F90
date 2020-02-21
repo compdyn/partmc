@@ -446,7 +446,7 @@ contains
        write(filename_prefix, '(a,a)') trim(output_prefix), "_5_gas"
        call output_state(filename_prefix, output_type, aero_data, aero_state, &
             gas_data, gas_state, env_state, index, time, dt_sec, i_repeat, &
-            .false., .false., uuid)
+            .false., .false., uuid, do_particle_projection=.true.)
     end if
     call AerChemistry(0.0d0, dt_sec)
 
@@ -466,7 +466,7 @@ contains
        write(filename_prefix, '(a,a)') trim(output_prefix), "_6_aerosol"
        call output_state(filename_prefix, output_type, aero_data, aero_state, &
             gas_data, gas_state, env_state, index, time, dt_sec, i_repeat, &
-            .false., .false., uuid)
+            .false., .false., uuid, do_particle_projection=.true.)
     end if
 #endif
 

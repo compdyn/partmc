@@ -218,7 +218,7 @@ contains
           call output_state(filename_prefix, run_part_opt%output_type, &
                aero_data, aero_state, gas_data, gas_state, env_state, i_time, &
                time, run_part_opt%del_t, run_part_opt%i_repeat, .false., &
-               .false., run_part_opt%uuid)
+               .false., run_part_opt%uuid, do_particle_projection=.true.)
        end if
 
        time = real(i_time, kind=dp) * run_part_opt%del_t
@@ -232,7 +232,7 @@ contains
           call output_state(filename_prefix, run_part_opt%output_type, &
                aero_data, aero_state, gas_data, gas_state, env_state, i_time, &
                time, run_part_opt%del_t, run_part_opt%i_repeat, .false., &
-               .false., run_part_opt%uuid)
+               .false., run_part_opt%uuid, do_particle_projection=.true.)
        end if
 
        if (run_part_opt%do_nucleation) then
@@ -268,7 +268,7 @@ contains
           call output_state(filename_prefix, run_part_opt%output_type, &
                aero_data, aero_state, gas_data, gas_state, env_state, i_time, &
                time, run_part_opt%del_t, run_part_opt%i_repeat, .false., &
-               .false., run_part_opt%uuid)
+               .false., run_part_opt%uuid, do_particle_projection=.true.)
        end if
 
 #ifdef PMC_USE_SUNDIALS
@@ -294,7 +294,7 @@ contains
           call output_state(filename_prefix, run_part_opt%output_type, &
                aero_data, aero_state, gas_data, gas_state, env_state, i_time, &
                time, run_part_opt%del_t, run_part_opt%i_repeat, .false., &
-               .false., run_part_opt%uuid)
+               .false., run_part_opt%uuid, do_particle_projection=.true.)
        end if
 
        if (run_part_opt%do_mosaic) then

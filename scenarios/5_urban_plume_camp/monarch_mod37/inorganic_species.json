@@ -38,6 +38,7 @@
       "density [kg m-3]" : 1000.0,
       "molecular weight [kg mol-1]" : 0.01801528,
       "decscription" : "aerosol-phase water",
+      "PartMC name" : "H2O",
       "num_ions" : 0,
       "kappa" : 0
     },
@@ -86,7 +87,7 @@
       "molecular weight [kg mol-1]" : 0.096063,
       "description" : "sulfate ion",
       "num_ions" : 2,
-      "kappa" : 0.65
+      "kappa" : 0
     },
     {
       "name" : "HSO4_m",
@@ -98,7 +99,7 @@
       "molecular weight [kg mol-1]" : 0.097069,
       "description" : "bisulfate ion",
       "num_ions" : 1,
-      "kappa" : 0.65
+      "kappa" : 0
     },
     {
       "name" : "HNO3_aq",
@@ -121,7 +122,7 @@
       "molecular weight [kg mol-1]" : 0.0620049,
       "description" : "nitrate ion",
       "num_ions" : 1,
-      "kappa" : 0.65
+      "kappa" : 0
     },
     {
       "name" : "NH3_aq",
@@ -144,7 +145,7 @@
       "molecular weight [kg mol-1]" : 0.018039,
       "description" : "ammonium ion",
       "num_ions" : 1,
-      "kappa" : 0.65
+      "kappa" : 0
     },
     {
       "name" : "(NH4)2-SO4",

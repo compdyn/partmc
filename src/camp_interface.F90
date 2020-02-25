@@ -16,6 +16,7 @@ module pmc_camp_interface
   use pmc_gas_state
   use pmc_camp_core
   use pmc_camp_state
+  use pmc_photolysis
   use pmc_rxn_data
   use pmc_util,                       only : die_msg, string_t
 
@@ -27,7 +28,7 @@ contains
 
   !> Run the CAMP module for the current PartMC state
   subroutine pmc_camp_interface_solve(camp_core, camp_state, aero_data, &
-            aero_state, gas_state, del_t)
+            aero_state, gas_state, photolysis, del_t)
 
     !> CAMP core
     type(camp_core_t), intent(in) :: camp_core
@@ -39,6 +40,8 @@ contains
     type(aero_state_t), intent(inout) :: aero_state
     !> Gas state
     type(gas_state_t), intent(inout) :: gas_state
+    !> Photolysis calculator
+    type(photolysis_t), intent(inout) :: photolysis
     !> Time step (s)
     real(kind=dp), intent(in) :: del_t
 
@@ -48,6 +51,9 @@ contains
 
     ! Set the camp chem  gas-phase species
     call gas_state%set_camp_conc(camp_state)
+
+    ! Recalculate the photolysis rate constants
+    call photolysis%update_rate_constants()
 
     ! Solve gas-phase chemistry
     call camp_core%solve(camp_state, del_t, GAS_RXN)

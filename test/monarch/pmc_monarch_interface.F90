@@ -436,7 +436,7 @@ contains
             call this%camp_core%solve(this%camp_state, &
                     real(time_step, kind=dp), solver_stats = solver_stats)
 
-            call warn_assert_msg(376450931, solver_stats%status_code.eq.0, &
+            call assert_msg(376450931, solver_stats%status_code.eq.0, &
                             "Solver failed with code "// &
                             to_string(solver_stats%solver_flag))
 

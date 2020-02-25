@@ -73,6 +73,10 @@ contains
       this%name(i_spec) = gas_spec_names(i_spec)%string
     end do
 
+    ! Allocate the mosaic index array and set to zero
+    allocate(this%mosaic_index(size(gas_spec_names)))
+    this%mosaic_index(:) = 0
+
   end subroutine gas_data_initialize
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

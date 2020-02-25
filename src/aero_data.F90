@@ -733,12 +733,14 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read full state.
-  subroutine aero_data_input_netcdf(aero_data, ncid)
+  subroutine aero_data_input_netcdf(aero_data, ncid, camp_core)
 
     !> Aero_data to read.
     type(aero_data_t), intent(inout) :: aero_data
     !> NetCDF file ID, in data mode.
     integer, intent(in) :: ncid
+    !> CAMP core
+    type(camp_core_t), pointer, optional, intent(in) :: camp_core
 
     integer, parameter :: MAX_SPECIES = 1000
     integer, parameter :: MAX_SOURCES = 1000
@@ -749,6 +751,7 @@ contains
     character(len=((AERO_NAME_LEN + 2) * MAX_SPECIES)) :: aero_species_names
     character(len=((AERO_SOURCE_NAME_LEN + 2) * MAX_SPECIES)) &
          :: aero_source_names
+    type(aero_data_t) :: camp_aero_data
 
     call pmc_nc_check(nf90_inq_dimid(ncid, "aero_species", &
          dimid_aero_species))
@@ -805,7 +808,12 @@ contains
     end do
     call assert(377166446, aero_source_names == "")
 
-    call aero_data_set_water_index(aero_data)
+    if (present(camp_core)) then
+      call camp_aero_data%initialize(camp_core)
+      aero_data%i_water = camp_aero_data%i_water
+    else
+      call aero_data_set_water_index(aero_data)
+    end if
 
     call fractal_input_netcdf(aero_data%fractal, ncid)
 
@@ -821,7 +829,7 @@ contains
     !> CAMP core
     type(camp_core_t), intent(in) :: camp_core
 
-    character(len=:), allocatable :: rep_name, prop_name
+    character(len=:), allocatable :: rep_name, prop_name, str_val
     type(string_t), allocatable :: spec_names(:), tmp_spec_names(:)
     integer :: num_spec, i_spec, spec_type
     type(chem_spec_data_t), pointer :: chem_spec_data
@@ -864,6 +872,9 @@ contains
     allocate(this%kappa(num_spec))
     allocate(this%camp_spec_id(num_spec))
 
+    ! Assume no aerosol water
+    this%i_water = 0
+
     do i_spec = 1, num_spec
       call assert(496388827, chem_spec_data%get_type( &
                   this%aero_rep_ptr%spec_name(spec_names(i_spec)%string), &
@@ -897,6 +908,14 @@ contains
       if (.not. property_set%get_real(prop_name, this%kappa(i_spec))) then
         call die_msg(944207343, "Missing kappa for aerosol species "//&
              spec_names(i_spec)%string)
+      end if
+      prop_name = "PartMC name"
+      if (property_set%get_string(prop_name, str_val)) then
+        if (str_val.eq."H2O") then
+          call assert_msg(227489086, this%i_water.eq.0, &
+                          "Two aerosol water species")
+          this%i_water = i_spec
+        end if
       end if
       this%camp_spec_id(i_spec) = &
           this%aero_rep_ptr%spec_state_id(spec_names(i_spec)%string)

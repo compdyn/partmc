@@ -438,7 +438,7 @@
       "density [kg m-3]" : 1000.0,
       "description" : "chloride ion",
       "num_ions" : 1,
-      "kappa" : 0.53
+      "kappa" : 0
     },
     {
       "name" : "DMS",

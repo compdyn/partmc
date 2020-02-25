@@ -548,7 +548,7 @@ add_library(partmclib src/aero_state.F90 src/integer_varray.F90
   src/camp_core.F90 src/camp_solver_data.F90 src/aero_rep_data.F90
   src/aero_phase_data.F90 src/aero_rep_factory.F90 src/camp_interface.F90
   src/rxn_factory.F90 src/sub_model_data.F90 src/sub_model_factory.F90
-  src/solver_stats.F90 src/camp_box_model_data.F90
+  src/solver_stats.F90 src/camp_box_model_data.F90 src/photolysis.F90
   ${CAMP_C_SRC} ${AEROSOL_REPS_SRC} ${SUB_MODELS_SRC} ${REACTIONS_SRC}
   ${SUNDIALS_SRC} ${GSL_SRC} ${C_SORT_SRC} ${CAMP_CUDA_SRC} ${CAMP_CXX_SRC} )
 
@@ -883,7 +883,7 @@ target_link_libraries(numeric_diff partmclib)
 add_executable(numeric_average src/numeric_average.F90)
 
 ######################################################################
-# scenarios/1_urban_plume/urban_plum_process
+# scenarios/1_urban_plume/urban_plume_process
 
 add_executable(urban_plume_process
   scenarios/1_urban_plume/urban_plume_process.F90)
@@ -895,6 +895,13 @@ target_link_libraries(urban_plume_process partmclib)
 add_executable(chamber_process
   scenarios/4_chamber/chamber_process.F90)
 target_link_libraries(chamber_process partmclib)
+
+######################################################################
+# scenarios/5_urban_plume_camp/urban_plume_camp_process
+
+add_executable(urban_plume_camp_process
+  scenarios/5_urban_plume_camp/urban_plume_camp_process.F90)
+target_link_libraries(urban_plume_camp_process partmclib)
 
 ######################################################################
 endif()

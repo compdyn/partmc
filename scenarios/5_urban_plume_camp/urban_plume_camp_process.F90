@@ -30,6 +30,7 @@ program process
   type(stats_1d_t) :: stats_num_dist, stats_d_alpha, stats_tot_num_conc, &
        stats_tot_mass_conc, stats_d_gamma, stats_chi
   type(stats_2d_t) :: stats_diam_bc_dist, stats_diam_sc_dist
+  type(camp_core_t), pointer :: camp_core
 
   call pmc_mpi_init()
 
@@ -44,6 +45,9 @@ program process
   scs = [ real(kind=dp) :: ] ! silence compiler warnings
   bc_fracs = [ real(kind=dp) :: ]
 
+  camp_core => camp_core_t("config.json")
+  call camp_core%initialize()
+
   do i_index = 1,n_index
      do i_repeat = 1,n_repeat
         call make_filename(in_filename, prefix, ".nc", i_index, i_repeat)
@@ -52,7 +56,7 @@ program process
         ! time or something? Or init to "" and check if not this.
         call input_state(in_filename, index, time, del_t, repeat, &
              uuid, aero_data=aero_data, aero_state=aero_state, &
-             env_state=env_state)
+             env_state=env_state, camp_core=camp_core)
 
         times(i_index) = time
 
@@ -69,9 +73,9 @@ program process
         call stats_1d_add_entry(stats_tot_mass_conc, tot_mass_conc, i_index)
 
         dry_masses = aero_state_masses(aero_state, aero_data, &
-             exclude=(/"H2O"/))
+             exclude=(/"aqueous.H2O_aq"/))
         bc_masses = aero_state_masses(aero_state, aero_data, &
-             include=(/"BC"/))
+             include=(/"black_carbon.BC_phob","black_carbon.BC_phil"/))
         bc_fracs = bc_masses / dry_masses
         diam_bc_dist = bin_grid_histogram_2d(diam_grid, dry_diameters, &
              bc_grid, bc_fracs, num_concs)
@@ -85,7 +89,7 @@ program process
         call stats_2d_add(stats_diam_sc_dist, diam_sc_dist)
 
         call aero_state_mixing_state_metrics(aero_state, aero_data, &
-             d_alpha, d_gamma, chi, exclude=(/"H2O"/))
+             d_alpha, d_gamma, chi, exclude=(/"aqueous.H2O_aq"/))
 
         call stats_1d_add_entry(stats_d_alpha, d_alpha, i_index)
         call stats_1d_add_entry(stats_d_gamma, d_gamma, i_index)

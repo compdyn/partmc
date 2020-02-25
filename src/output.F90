@@ -71,6 +71,7 @@ module pmc_output
   use pmc_aero_data
   use pmc_aero_state
   use pmc_aero_binned
+  use pmc_camp_core
   use pmc_netcdf
   use pmc_gas_state
   use pmc_env_state
@@ -494,7 +495,7 @@ contains
 
   !> Read the current state.
   subroutine input_state(filename, index, time, del_t, i_repeat, uuid, &
-       aero_data, aero_state, gas_data, gas_state, env_state)
+       aero_data, aero_state, gas_data, gas_state, env_state, camp_core)
 
     !> Prefix of state file.
     character(len=*), intent(in) :: filename
@@ -518,6 +519,8 @@ contains
     type(gas_state_t), optional, intent(inout) :: gas_state
     !> Environment state.
     type(env_state_t), optional, intent(inout) :: env_state
+    !> CAMP core
+    type(camp_core_t), pointer, optional, intent(in) :: camp_core
 
     integer :: ncid
 
@@ -534,7 +537,11 @@ contains
     call pmc_nc_read_integer(ncid, index, "timestep_index")
 
     if (present(aero_data)) then
-       call aero_data_input_netcdf(aero_data, ncid)
+       if (present(camp_core)) then
+         call aero_data_input_netcdf(aero_data, ncid, camp_core)
+       else
+         call aero_data_input_netcdf(aero_data, ncid)
+       end if
        if (present(aero_state)) then
           call aero_state_input_netcdf(aero_state, ncid, aero_data)
        end if

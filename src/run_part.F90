@@ -25,6 +25,7 @@ module pmc_run_part
   use pmc_camp_core
   use pmc_camp_state
   use pmc_camp_interface
+  use pmc_photolysis
 #ifdef PMC_USE_SUNDIALS
   use pmc_condense
 #endif
@@ -109,7 +110,7 @@ contains
 
   !> Do a particle-resolved Monte Carlo simulation.
   subroutine run_part(scenario, env_state, aero_data, aero_state, gas_data, &
-       gas_state, run_part_opt, camp_core)
+       gas_state, run_part_opt, camp_core, photolysis)
 
     !> Environment state.
     type(scenario_t), intent(in) :: scenario
@@ -126,7 +127,9 @@ contains
     !> Monte Carlo options.
     type(run_part_opt_t), intent(in) :: run_part_opt
     !> CAMP chemistry core
-    type(camp_core_t), pointer, intent(in), optional :: camp_core
+    type(camp_core_t), pointer, intent(inout), optional :: camp_core
+    !> Photolysis calculator
+    type(photolysis_t), pointer, intent(inout), optional :: photolysis
 
 
     type(camp_state_t), pointer :: camp_state
@@ -274,7 +277,7 @@ contains
 #ifdef PMC_USE_SUNDIALS
        if (run_part_opt%do_camp_chem) then
           call pmc_camp_interface_solve(camp_core, camp_state, aero_data, &
-               aero_state, gas_state, run_part_opt%del_t)
+               aero_state, gas_state, photolysis, run_part_opt%del_t)
        end if
 #endif
 

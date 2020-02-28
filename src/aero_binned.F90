@@ -277,6 +277,7 @@ contains
     else
        aero_binned%num_conc = dist_num_conc
        aero_binned%vol_conc = dist_vol_conc
+       allocate(aero_binned%water_hyst_leg(size(dist_num_conc)))
        aero_binned%water_hyst_leg = 0d0
     end if
 

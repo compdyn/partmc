@@ -958,6 +958,16 @@ contains
                + aero_state%apa%particle(i_part)%vol * factor
           aero_binned%num_conc(i_bin) = aero_binned%num_conc(i_bin) &
                + factor
+          aero_binned%water_hyst_leg(i_bin) =&
+               aero_binned%water_hyst_leg(i_bin) + factor &
+               * aero_state%apa%particle(i_part)%water_hyst_leg
+       end if
+    end do
+
+    do i_bin = 1,bin_grid_size(bin_grid)
+       if (aero_binned%num_conc(i_bin) > 0d0) then
+          aero_binned%water_hyst_leg(i_bin) = &
+               aero_binned%water_hyst_leg(i_bin) / aero_binned%num_conc(i_bin)
        end if
     end do
 
@@ -1448,6 +1458,7 @@ contains
 
     aero_binned%num_conc = 0d0
     aero_binned%vol_conc = 0d0
+    aero_binned%water_hyst_leg = 0d0
     do i_part = 1,aero_state_n_part(aero_state)
        i_bin = bin_grid_find(bin_grid, &
             aero_particle_solute_radius(aero_state%apa%particle(i_part), &
@@ -1464,6 +1475,16 @@ contains
                + aero_state%apa%particle(i_part)%vol * factor
           aero_binned%num_conc(i_bin) = aero_binned%num_conc(i_bin) &
                + factor
+          aero_binned%water_hyst_leg(i_bin) =&
+               aero_binned%water_hyst_leg(i_bin) + factor & 
+               * aero_state%apa%particle(i_part)%water_hyst_leg
+       end if
+    end do
+
+    do i_bin = 1,bin_grid_size(bin_grid)
+       if (aero_binned%num_conc(i_bin) > 0d0) then
+          aero_binned%water_hyst_leg(i_bin) = &
+               aero_binned%water_hyst_leg(i_bin) / aero_binned%num_conc(i_bin)
        end if
     end do
 

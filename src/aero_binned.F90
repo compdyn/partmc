@@ -42,6 +42,8 @@ module pmc_aero_binned
      !! Array size is <tt>bin_grid_size(bin_grid) x
      !! aero_data_n_spec(aero_data)</tt>.
      real(kind=dp), allocatable :: vol_conc(:,:)
+     !> Averarge water hysteresis curve section (0 = lower, 1 = upper)
+     real(kind=dp), allocatable :: water_hyst_leg(:)
   end type aero_binned_t
 
 contains
@@ -59,8 +61,11 @@ contains
     valid = .true.
     valid = valid .and. allocated(aero_binned%num_conc)
     valid = valid .and. allocated(aero_binned%vol_conc)
+    valid = valid .and. allocated(aero_binned%water_hyst_leg)
     valid = valid &
          .and. (size(aero_binned%num_conc) == size(aero_binned%num_conc, 1))
+    valid = valid &
+         .and. (size(aero_binned%num_conc) == size(aero_binned%water_hyst_leg))
     aero_binned_is_allocated = valid
 
   end function aero_binned_is_allocated
@@ -80,8 +85,11 @@ contains
 
     if (allocated(aero_binned%num_conc)) deallocate(aero_binned%num_conc)
     if (allocated(aero_binned%vol_conc)) deallocate(aero_binned%vol_conc)
+    if (allocated(aero_binned%water_hyst_leg)) &
+         deallocate(aero_binned%water_hyst_leg)
     allocate(aero_binned%num_conc(n_bin))
     allocate(aero_binned%vol_conc(n_bin, n_spec))
+    allocate(aero_binned%water_hyst_leg(n_bin))
     call aero_binned_zero(aero_binned)
 
   end subroutine aero_binned_set_sizes
@@ -97,6 +105,7 @@ contains
     if (aero_binned_is_allocated(aero_binned)) then
        aero_binned%num_conc = 0d0
        aero_binned%vol_conc = 0d0
+       aero_binned%water_hyst_leg = 0d0
     end if
 
   end subroutine aero_binned_zero
@@ -115,6 +124,10 @@ contains
 
     if (aero_binned_is_allocated(aero_binned_delta)) then
        if (aero_binned_is_allocated(aero_binned)) then
+          aero_binned%water_hyst_leg = ((aero_binned%num_conc &
+               * aero_binned%water_hyst_leg) + (aero_binned_delta%num_conc &
+               * aero_binned_delta%water_hyst_leg)) &
+               / (aero_binned%num_conc + aero_binned_delta%num_conc)
           aero_binned%num_conc = aero_binned%num_conc &
                + aero_binned_delta%num_conc
           aero_binned%vol_conc = aero_binned%vol_conc &
@@ -122,6 +135,7 @@ contains
        else
           aero_binned%num_conc = aero_binned_delta%num_conc
           aero_binned%vol_conc = aero_binned_delta%vol_conc
+          aero_binned%water_hyst_leg = aero_binned_delta%water_hyst_leg
        end if
     end if
 
@@ -143,6 +157,10 @@ contains
 
     if (aero_binned_is_allocated(aero_binned_delta)) then
        if (aero_binned_is_allocated(aero_binned)) then
+          aero_binned%water_hyst_leg = ((aero_binned%num_conc &
+               * aero_binned%water_hyst_leg) + (aero_binned_delta%num_conc &
+               * aero_binned_delta%water_hyst_leg * alpha)) &
+               / (aero_binned%num_conc + alpha * aero_binned_delta%num_conc)
           aero_binned%num_conc = aero_binned%num_conc &
                + alpha * aero_binned_delta%num_conc
           aero_binned%vol_conc = aero_binned%vol_conc &
@@ -150,6 +168,7 @@ contains
        else
           aero_binned%num_conc = aero_binned_delta%num_conc
           aero_binned%vol_conc = aero_binned_delta%vol_conc
+          aero_binned%water_hyst_leg = aero_binned_delta%water_hyst_leg
        end if
     end if
 
@@ -169,6 +188,10 @@ contains
 
     if (aero_binned_is_allocated(aero_binned_delta)) then
        if (aero_binned_is_allocated(aero_binned)) then
+          aero_binned%water_hyst_leg = ((aero_binned%num_conc &
+               * aero_binned%water_hyst_leg) - (aero_binned_delta%num_conc &
+               * aero_binned_delta%water_hyst_leg)) &
+               / (aero_binned%num_conc - aero_binned_delta%num_conc)
           aero_binned%num_conc = aero_binned%num_conc &
                - aero_binned_delta%num_conc
           aero_binned%vol_conc = aero_binned%vol_conc &
@@ -176,6 +199,7 @@ contains
        else
           aero_binned%num_conc = - aero_binned_delta%num_conc
           aero_binned%vol_conc = - aero_binned_delta%vol_conc
+          aero_binned%water_hyst_leg = aero_binned_delta%water_hyst_leg
        end if
     end if
 
@@ -245,11 +269,15 @@ contains
     call aero_dist_vol_conc(aero_dist, bin_grid, aero_data, &
          dist_vol_conc)
     if (aero_binned_is_allocated(aero_binned)) then
+       aero_binned%water_hyst_leg = (aero_binned%num_conc &
+            * aero_binned%water_hyst_leg) / (aero_binned%num_conc &
+            + dist_num_conc)
        aero_binned%num_conc = aero_binned%num_conc + dist_num_conc
        aero_binned%vol_conc = aero_binned%vol_conc + dist_vol_conc
     else
        aero_binned%num_conc = dist_num_conc
        aero_binned%vol_conc = dist_vol_conc
+       aero_binned%water_hyst_leg = 0d0
     end if
 
   end subroutine aero_binned_add_aero_dist
@@ -266,7 +294,8 @@ contains
 
     pmc_mpi_pack_size_aero_binned = &
          pmc_mpi_pack_size_real_array(val%num_conc) &
-         + pmc_mpi_pack_size_real_array_2d(val%vol_conc)
+         + pmc_mpi_pack_size_real_array_2d(val%vol_conc) &
+         + pmc_mpi_pack_size_real_array(val%water_hyst_leg)
 
   end function pmc_mpi_pack_size_aero_binned
 
@@ -290,6 +319,7 @@ contains
     prev_position = position
     call pmc_mpi_pack_real_array(buffer, position, val%num_conc)
     call pmc_mpi_pack_real_array_2d(buffer, position, val%vol_conc)
+    call pmc_mpi_pack_real_array(buffer, position, val%water_hyst_leg)
     call assert(348207873, &
          position - prev_position <= pmc_mpi_pack_size_aero_binned(val))
 #endif
@@ -316,6 +346,7 @@ contains
     prev_position = position
     call pmc_mpi_unpack_real_array(buffer, position, val%num_conc)
     call pmc_mpi_unpack_real_array_2d(buffer, position, val%vol_conc)
+    call pmc_mpi_unpack_real_array(buffer, position, val%water_hyst_leg)
     call assert(878267066, &
          position - prev_position <= pmc_mpi_pack_size_aero_binned(val))
 #endif
@@ -428,6 +459,10 @@ contains
          // "d M(r,s)/d ln D --- multiply by aero_diam_widths(i) " &
          // "and sum over i to compute the total mass concentration of " &
          // "species s")
+    call pmc_nc_write_real_1d(ncid, aero_binned%water_hyst_leg, &
+         "aero_water_hyst_leg", (/ dimid_aero_diam /), &
+         long_name="average leg of the water hysteresis curve leg of each " &
+         // "aerosol bin")
 
   end subroutine aero_binned_output_netcdf
 

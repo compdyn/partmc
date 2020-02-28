@@ -946,6 +946,8 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
     rxn_fusion_deriv_gpu(md, deriv);
 #endif
 
+  //print_derivative(deriv);
+
   timeDeriv2 += (clock() - start3);
   counterDeriv2++;
 
@@ -1102,6 +1104,8 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
     }
   }
 #endif
+
+  //print_jacobian(J);
 
   timeJac2 += (clock() - start4);
   counterJac2++;

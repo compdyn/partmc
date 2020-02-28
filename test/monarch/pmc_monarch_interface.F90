@@ -230,7 +230,7 @@ contains
 
 #ifdef PMC_USE_MPI
 
-      ! Change a bit init_conc
+      ! Change a bit init_conc to denote different initial values
       new_obj%init_conc(:) = &
               new_obj%init_conc(:) + 0.1*MONARCH_PROCESS
 
@@ -401,8 +401,6 @@ contains
       state_size_per_cell = this%camp_core%state_size_per_cell()
     end if
 
-    local_comm = MPI_COMM_WORLD
-
     k_end = size(MONARCH_conc,3)
 
     call cpu_time(comp_start)
@@ -522,7 +520,9 @@ contains
     end if
 
     !W8 until all process to send data and measure correctly times
+#ifdef PMC_USE_MPI
     call pmc_mpi_barrier()
+#endif
 
     !todo move this comp_time to only the solve part, like the other tests
     call cpu_time(comp_end)

@@ -195,6 +195,7 @@ typedef struct {
   size_t rxn_env_data_idx_size;
   int small_data;
   bool implemented_all;
+  bool continue_f;
   int *int_pointer_gpu;
   double *double_pointer_gpu;
   double *state_gpu;

@@ -97,9 +97,11 @@ void solver_new_gpu_cu(ModelData *model_data, int n_dep_var,
   model_data->rxn_env_data_idx_size = (n_rxn+1) * sizeof(int);
   model_data->small_data = 0;
   model_data->implemented_all = true;
+  model_data->continue_f = true;
   counterDeriv=0;
   counterJac=0;
   timeDeriv=0;
+ timeDerivCPU=0;
   timeDerivKernel=0;
   timeDerivSend=0;
   timeDerivReceive=0;
@@ -505,7 +507,6 @@ void rxn_calc_deriv_gpu(ModelData *model_data, N_Vector deriv, realtype time_ste
 
   t1 = clock();
 
-  //TODO: overlap state data transfer with kernel exec dividing into multiple async streams
   //Faster, use for few values
   if (model_data->small_data){
     //This method of passing them as a function parameter has a theoric maximum of 4kb of data
@@ -525,8 +526,8 @@ void rxn_calc_deriv_gpu(ModelData *model_data, N_Vector deriv, realtype time_ste
   timeDerivSend += (clock() - t1);
   clock_t t2 = clock();
 
+  //Loop to test multiple kernel executions
   for (int i_kernel=0; i_kernel<n_kernels;i_kernel++){
-
     //cudaDeviceSynchronize();
     solveDerivative << < (n_blocks), max_n_gpu_thread >> >
      (model_data->state_gpu, model_data->deriv_gpu_data, time_step, model_data->n_per_cell_dep_var,
@@ -535,11 +536,10 @@ void rxn_calc_deriv_gpu(ModelData *model_data, N_Vector deriv, realtype time_ste
      model_data->rxn_env_data_gpu, model_data->rxn_env_data_idx_gpu, model_data->env_gpu,
      n_kernels, i_kernel);
 
-
-
   }
 
-    cudaDeviceSynchronize();
+  cudaDeviceSynchronize();
+
   timeDerivKernel += (clock() - t2);
   t3 = clock();
 
@@ -549,12 +549,15 @@ void rxn_calc_deriv_gpu(ModelData *model_data, N_Vector deriv, realtype time_ste
     memcpy(deriv_data, model_data->deriv_aux, model_data->deriv_size);
   }
   else {
-    HANDLE_ERROR(cudaMemcpyAsync(model_data->deriv_aux, model_data->deriv_gpu_data,
-            model_data->deriv_size, cudaMemcpyDeviceToHost,
-            model_data->stream_gpu[STREAM_DERIV_GPU]));
+    //Async
+    //HANDLE_ERROR(cudaMemcpyAsync(model_data->deriv_aux, model_data->deriv_gpu_data,
+    //model_data->deriv_size, cudaMemcpyDeviceToHost, model_data->stream_gpu[STREAM_DERIV_GPU]));
 
-    //HANDLE_ERROR(cudaMemcpy(deriv_data, model_data->deriv_gpu_data, model_data->deriv_size, cudaMemcpyDeviceToHost));
+    //Sync
+    HANDLE_ERROR(cudaMemcpy(model_data->deriv_aux, model_data->deriv_gpu_data, model_data->deriv_size, cudaMemcpyDeviceToHost));
   }
+
+  cudaDeviceSynchronize();
 
   timeDerivReceive += (clock() - t3);
   timeDeriv += (clock() - t1);
@@ -562,10 +565,16 @@ void rxn_calc_deriv_gpu(ModelData *model_data, N_Vector deriv, realtype time_ste
 
 }
 
+/** \brief Fusion deriv data calculated from CPU and GPU
+ * (either from funtions only implemented on CPU or work balancing between CPU and GPU)
+ *
+ * \param model_data Pointer to the model data
+ * \param deriv NVector to hold the calculated vector
+ * \param time_step Current model time step (s)
+ */
 void rxn_fusion_deriv_gpu(ModelData *model_data, N_Vector deriv) {
 
-
-  timeDerivCPU += (clock() - t1);
+ timeDerivCPU += (clock() - t3);
 
   // Get a pointer to the derivative data
   realtype *deriv_data = N_VGetArrayPointer(deriv);
@@ -582,6 +591,12 @@ void rxn_fusion_deriv_gpu(ModelData *model_data, N_Vector deriv) {
       //Add to deriv the auxiliar contributions from gpu
       deriv_data[i] += model_data->deriv_aux[i];
     }
+  }
+
+  if(model_data->continue_f){
+    //do next solver function after f
+
+
   }
 
 }
@@ -798,8 +813,6 @@ void rxn_calc_jac_gpu(ModelData *model_data, SUNMatrix jac, realtype time_step) 
   double *state = model_data->total_state;
   double *rxn_env_data = model_data->rxn_env_data;
 
-  //TODO: in jacobian is not need to pass the state? should be the same than deriv state?
-
   //Faster, use for few values
   if (model_data->small_data){
     //This method of passing them as a function parameter has a theoric maximum of 4kb of data
@@ -831,7 +844,6 @@ void rxn_calc_jac_gpu(ModelData *model_data, SUNMatrix jac, realtype time_step) 
   }
 
 }
-
 
 /** \brief Free GPU data structures
  */

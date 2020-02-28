@@ -31,15 +31,15 @@ program mock_monarch
   !> Number of total species in mock MONARCH
   integer, parameter :: NUM_MONARCH_SPEC = 800
   !> Number of vertical cells in mock MONARCH
-  integer, parameter :: NUM_VERT_CELLS = 4096/8
+  integer, parameter :: NUM_VERT_CELLS = 1 !4096
   !> Starting W-E cell for camp-chem call
   integer, parameter :: I_W = 1
   !> Ending W-E cell for camp-chem call
-  integer, parameter :: I_E = 4
+  integer, parameter :: I_E = 2 !4
   !> Starting S-N cell for camp-chem call
   integer, parameter :: I_S = 1
   !> Ending S-N cell for camp-chem call
-  integer, parameter :: I_N = 8
+  integer, parameter :: I_N = 2 !8
   !> Number of W-E cells in mock MONARCH
   integer, parameter :: NUM_WE_CELLS = I_E-I_W+1
   !> Number of S-N cells in mock MONARCH
@@ -107,8 +107,10 @@ program mock_monarch
   character(len=:), allocatable :: output_file_prefix
 
   ! MPI
+#ifdef PMC_USE_MPI
   character, allocatable :: buffer(:)
   integer(kind=i_kind) :: pos, pack_size
+#endif
 
   character(len=500) :: arg
   integer :: status_code, i_time, i_spec, i, j, k
@@ -197,10 +199,14 @@ program mock_monarch
     !  call pmc_mpi_transfer_integer(n_cells, n_cells, 1, 0)
     !end if
 
+#ifdef PMC_USE_MPI
     if (pmc_mpi_rank().eq.0) then
       write(*,*) "Model run time: ", comp_time, " s"
 
     end if
+#else
+    write(*,*) "Model run time: ", comp_time, " s"
+#endif
 
     !Save results
     if(i.eq.1) then
@@ -216,7 +222,7 @@ program mock_monarch
 
   !#ifdef DEBUG
   !print*, "SPECIES CONC", species_conc(:,1,1,100)
-  !print*, "SPECIES CONC COPY", species_conc_copy(:,1,1,100)
+  print*, "SPECIES CONC COPY", species_conc_copy(:,1,1,100)
   !#endif
 
   !If something to compare
@@ -240,6 +246,7 @@ program mock_monarch
     end do
   end if
 
+#ifdef PMC_USE_MPI
   if (pmc_mpi_rank().eq.0) then
     write(*,*) "MONARCH interface tests - PASS"
   end if
@@ -252,7 +259,10 @@ program mock_monarch
     ! close the output file
     close(RESULTS_FILE_UNIT)
   end if
-
+#else
+ write(*,*) "MONARCH interface tests - PASS"
+ close(RESULTS_FILE_UNIT)
+#endif
 
 
   ! Deallocation
@@ -264,7 +274,11 @@ program mock_monarch
   call pmc_mpi_finalize()
 
   ! Free the interface and the solver
-  !deallocate(pmc_interface) !not work on MPI
+#ifdef PMC_USE_MPI
+
+#else
+ deallocate(pmc_interface) !not work on MPI
+#endif
 
 contains
 

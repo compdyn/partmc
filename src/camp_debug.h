@@ -126,12 +126,12 @@ static void print_jacobian(SUNMatrix M) {
   printf("\n NNZ JAC: %lld \n", SM_NNZ_S(M));
   printf("DATA | INDEXVALS:\n");
   for (int i = 0; i < SM_NNZ_S(M); i++) {
-    printf("% -le \n", (SM_DATA_S(M))[i]);
+    printf("% -le, ", (SM_DATA_S(M))[i]);
     printf("%lld \n", (SM_INDEXVALS_S(M))[i]);
   }
   printf("PTRS:\n");
   for (int i = 0; i <= SM_NP_S(M); i++) {
-    printf("%lld \n", (SM_INDEXPTRS_S(M))[i]);
+    printf("%lld, ", (SM_INDEXPTRS_S(M))[i]);
   }
 }
 
@@ -140,9 +140,10 @@ static void print_jacobian(SUNMatrix M) {
  * \param deriv Derivative array
  */
 static void print_derivative(N_Vector deriv) {
-  // printf(" deriv length: %d\n", NV_LENGTH_S(deriv));
+  printf(" deriv length: %d\n", NV_LENGTH_S(deriv));
   for (int i = 0; i < NV_LENGTH_S(deriv); i++) {  // NV_LENGTH_S(deriv)
-    printf(" deriv: % -le", NV_DATA_S(deriv)[i]);
-    printf(" index: %d \n", i);
+    printf("% -le, ", NV_DATA_S(deriv)[i]);
+    //printf(" index: %d \n", i);
   }
+  printf("\n");
 }

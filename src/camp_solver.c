@@ -471,7 +471,7 @@ void solver_initialize(void *solver_data, double *abs_tol, double rel_tol,
 
 // Set gpu rxn values
 #ifdef PMC_USE_GPU
-  solver_set_rxn_data_gpu(&(sd->model_data));
+  solver_set_rxn_data_gpu(sd);
 #endif
 
 #ifndef FAILURE_DETAIL
@@ -774,7 +774,10 @@ void solver_get_statistics(void *solver_data, int *num_steps, int *RHS_evals,
 #else
     *RHS_evals_total = -1;
     *Jac_evals_total = -1;
-    *RHS_time__s = 0.0;
+
+    //*RHS_time__s = 0.0;
+    *RHS_time__s = ((double)timeDeriv2) / CLOCKS_PER_SEC;
+
     *Jac_time__s = 0.0;
 #endif
 #endif
@@ -918,7 +921,6 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
       //if(md->small_data){
       if(0){
         rxn_calc_deriv(md, deriv_data, (double)time_step);
-
       }else{
         // Add contributions from reactions not implemented on GPU
         //TODO: compute hl & simpol on gpu to avoid this waste of time
@@ -949,7 +951,10 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
   //print_derivative(deriv);
 
   timeDeriv2 += (clock() - start3);
+  //timeDeriv2 += sd->timeDeriv;
   counterDeriv2++;
+
+  //printf("timeDeriv2 %lf\n", (((double)timeDeriv2) ) / CLOCKS_PER_SEC);
 
   // Return 0 if success
   return (0);
@@ -1011,8 +1016,6 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
   CVodeGetCurrentStep(sd->cvode_mem, &time_step);
 
   // Reset the primary Jacobian
-  /// \todo #83 Figure out how to stop CVODE from resizing the Jacobian
-  ///       during solving
   SM_NNZ_S(J) = SM_NNZ_S(md->J_init);
   for (int i = 0; i < SM_NNZ_S(J); i++) {
     (SM_DATA_S(J))[i] = (realtype)0.0;
@@ -1028,7 +1031,7 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
 
 #ifdef PMC_USE_GPU
   // Calculate the Jacobian
-//  rxn_calc_jac_gpu(md, J, time_step);
+//  rxn_calc_jac_gpu(sd, J, time_step);
 #endif
 
 #ifdef PMC_DEBUG
@@ -1105,7 +1108,10 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
   }
 #endif
 
-  //print_jacobian(J);
+  //if(counterJac2==0) print_jacobian_file(J, "/gpfs/scratch/bsc32/bsc32815/gpupartmc/matrix_cb05_1000.csr");
+
+  //Calc SUNMatScaleAddI
+  //rxn_calc_jac_gpu(sd, J, time_step);
 
   timeJac2 += (clock() - start4);
   counterJac2++;

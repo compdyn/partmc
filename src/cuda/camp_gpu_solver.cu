@@ -14,7 +14,6 @@ extern "C" {
 #include "camp_gpu_solver.h"
 #include "rxns_gpu.h"
 
-
 // Reaction types (Must match parameters defined in pmc_rxn_factory)
 #define RXN_ARRHENIUS 1
 #define RXN_TROE 2
@@ -101,7 +100,7 @@ void solver_new_gpu_cu(ModelData *model_data, int n_dep_var,
   counterDeriv=0;
   counterJac=0;
   timeDeriv=0;
- timeDerivCPU=0;
+  timeDerivCPU=0;
   timeDerivKernel=0;
   timeDerivSend=0;
   timeDerivReceive=0;
@@ -180,8 +179,9 @@ void solver_new_gpu_cu(ModelData *model_data, int n_dep_var,
  * \param md Pointer to the model data
  */
 
-void solver_set_rxn_data_gpu(ModelData *model_data) {
+void solver_set_rxn_data_gpu(SolverData *sd) {
 
+  ModelData *model_data = &(sd->model_data);
   int n_rxn = model_data->n_rxn;
   int n_cells = model_data->n_cells;
   unsigned int int_max_length = 0;
@@ -327,6 +327,27 @@ void solver_set_rxn_data_gpu(ModelData *model_data) {
   if(model_data->small_data){
     cudaMallocHost((void**)&model_data->jac_aux, model_data->jac_size);
   }
+
+  //Jac sparse ids
+
+  // Reset the primary Jacobian
+  SUNMatrix J = sd->J;
+  SM_NNZ_S(J) = SM_NNZ_S(model_data->J_init);
+  for (int i = 0; i < SM_NNZ_S(J); i++) {
+    (SM_INDEXVALS_S(J))[i] = (SM_INDEXVALS_S(model_data->J_init))[i];
+  }
+  for (int i = 0; i <= SM_NP_S(J); i++) {
+    (SM_INDEXPTRS_S(J))[i] = (SM_INDEXPTRS_S(model_data->J_init))[i];
+  }
+
+  cudaMalloc((void **) &model_data->indexvals_gpu, SM_NNZ_S(J)*sizeof(int));
+  cudaMalloc((void **) &model_data->indexptrs_gpu, SM_NP_S(J)*sizeof(int));
+
+  //HANDLE_ERROR(cudaMemcpy(model_data->nnz_gpu, SM_NNZ_S(J), sizeof(int), cudaMemcpyHostToDevice));//pass as parameter
+  //HANDLE_ERROR(cudaMemcpy(model_data->np_gpu, SM_NP_S(J), sizeof(int), cudaMemcpyHostToDevice));
+  HANDLE_ERROR(cudaMemcpy(model_data->indexvals_gpu, SM_INDEXVALS_S(J), SM_NNZ_S(J)*sizeof(int), cudaMemcpyHostToDevice));
+  HANDLE_ERROR(cudaMemcpy(model_data->indexptrs_gpu, SM_INDEXPTRS_S(J), SM_NP_S(J)*sizeof(int), cudaMemcpyHostToDevice));
+
 
   free(int_pointer);
   free(double_pointer);
@@ -793,6 +814,25 @@ __global__ void solveJacobian(double *state_init, double *jac_init,
 
 }
 
+
+__global__ void SUNMatScaleAddI_gpu(int nrows, double* dA, int* djA, int* diA, double alpha)
+{
+  int row= threadIdx.x + blockDim.x*blockIdx.x;
+  if(row < nrows){
+    for(int j=diA[row]; j<diA[row+1]; j++)
+    {
+      if(djA[j]==row){
+        dA[j] = 1.0 + alpha*dA[j];
+      }
+      else{
+        dA[j] = alpha*dA[j];
+      }
+    }
+  }
+
+}
+
+
 /** \brief Calculate the Jacobian on GPU
  *
  * \param model_data Pointer to the model data
@@ -800,11 +840,12 @@ __global__ void solveJacobian(double *state_init, double *jac_init,
  * \param time_step Current model time step (s)
  */
 
-void rxn_calc_jac_gpu(ModelData *model_data, SUNMatrix jac, realtype time_step) {
+void rxn_calc_jac_gpu(SolverData *sd, SUNMatrix jac, realtype time_step) {
 
   //TODO: Fix jacobian with jac_ids...
 
   // Get a pointer to the jacobian data
+  ModelData *model_data = &(sd->model_data);
   double *jac_data = SM_DATA_S(jac);
   int n_cells = model_data->n_cells;
   int n_rxn = model_data->n_rxn;
@@ -817,16 +858,14 @@ void rxn_calc_jac_gpu(ModelData *model_data, SUNMatrix jac, realtype time_step) 
   if (model_data->small_data){
     //This method of passing them as a function parameter has a theoric maximum of 4kb of data
     model_data->state_gpu= state;
-    model_data->rxn_env_data_gpu= rxn_env_data;
   }
     //Slower, use for large values
   else{
     HANDLE_ERROR(cudaMemcpy(model_data->state_gpu, state, model_data->state_size, cudaMemcpyHostToDevice));
-    HANDLE_ERROR(cudaMemcpy(model_data->rxn_env_data_gpu, rxn_env_data, model_data->rxn_env_data_size, cudaMemcpyHostToDevice));
   }
 
   HANDLE_ERROR(cudaMemset(model_data->jac_gpu_data, 0, model_data->jac_size));
-
+/*
   solveJacobian << < (n_blocks), max_n_gpu_thread >> >
     (model_data->state_gpu, model_data->jac_gpu_data, time_step, model_data->n_per_cell_rxn_jac_elem,
     model_data->n_per_cell_state_var, model_data->n_rxn_env_data,
@@ -842,6 +881,22 @@ void rxn_calc_jac_gpu(ModelData *model_data, SUNMatrix jac, realtype time_step) 
   else {
     HANDLE_ERROR(cudaMemcpy(jac_data, model_data->jac_gpu_data, model_data->jac_size, cudaMemcpyDeviceToHost));
   }
+
+*/
+
+//SUNMatScaleAddI_gpu
+
+//todo set it properly
+  realtype gamma = -6.0;//-sd->gamma;
+  int np = SUNMIN(SM_ROWS_S(jac), SM_COLUMNS_S(jac));
+
+  //SM_NP_S(J)
+  //SUNMIN(SM_ROWS_S(jac)
+  SUNMatScaleAddI_gpu<<<(n_blocks), max_n_gpu_thread>>>
+  (np, model_data->jac_gpu_data,
+    model_data->indexvals_gpu, model_data->indexptrs_gpu, gamma);
+
+  HANDLE_ERROR(cudaMemcpy(jac_data, model_data->jac_gpu_data, model_data->jac_size, cudaMemcpyDeviceToHost));
 
 }
 

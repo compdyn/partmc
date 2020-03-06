@@ -122,17 +122,49 @@ static void print_data_sizes(ModelData *md) {
  *
  * \param M Jacobian matrix
  */
-static void print_jacobian(SUNMatrix M) {
-  printf("\n NNZ JAC: %lld \n", SM_NNZ_S(M));
+static void print_jacobian(SUNMatrix J) {
+
+  printf("\n NNZ JAC: %lld \n", SM_NNZ_S(J));
   printf("DATA | INDEXVALS:\n");
-  for (int i = 0; i < SM_NNZ_S(M); i++) {
-    printf("% -le, ", (SM_DATA_S(M))[i]);
-    printf("%lld \n", (SM_INDEXVALS_S(M))[i]);
+  for (int i = 0; i < SM_NNZ_S(J); i++) {
+    printf("% -le, ", (SM_DATA_S(J))[i]);
+    printf("%lld \n", (SM_INDEXVALS_S(J))[i]);
   }
   printf("PTRS:\n");
-  for (int i = 0; i <= SM_NP_S(M); i++) {
-    printf("%lld, ", (SM_INDEXPTRS_S(M))[i]);
+  for (int i = 0; i <= SM_NP_S(J); i++) {
+    printf("%lld, ", (SM_INDEXPTRS_S(J))[i]);
   }
+}
+
+static void print_jacobian_file(SUNMatrix J, char *filepath) {
+
+  // *A pointer to matrix coefficients
+// *jA pointer to matrix colums
+// *iA pointer to matrix row indexes
+// nrows number of rows
+// nnz   number of non zero values
+  //void printMatrix(double* A, int* jA, int* iA, int nrows, int nnz)
+
+  FILE *fp;
+  fp= fopen(filepath,"w");
+
+
+  fprintf(fp," %d",SM_NNZ_S(J));
+  fprintf(fp," %d",SM_NP_S(J));
+  fprintf(fp," \n");
+
+  for(int i=0;i<SM_NNZ_S(J);i++)
+    fprintf(fp," %lf",SM_DATA_S(J)[i]);
+  fprintf(fp," \n");
+  for(int i=0;i<SM_NNZ_S(J);i++)
+    fprintf(fp," %d",SM_INDEXVALS_S(J)[i]);
+  fprintf(fp," \n");
+  for(int i=0;i<=SM_NP_S(J);i++)
+    fprintf(fp," %d",SM_INDEXPTRS_S(J)[i]);
+  fprintf(fp," \n");
+
+  fclose(fp);
+
 }
 
 /** \brief Print derivative array

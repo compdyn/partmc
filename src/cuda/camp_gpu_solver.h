@@ -31,12 +31,12 @@
 
 void solver_new_gpu_cu(ModelData *model_data, int n_dep_var, int n_state_var, int n_rxn,
      int n_rxn_int_param, int n_rxn_float_param, int n_rxn_env_param, int n_cells);
-void solver_set_rxn_data_gpu(ModelData *model_data);
+void solver_set_rxn_data_gpu(SolverData *sd);
 void rxn_update_env_state_gpu(ModelData *model_data);
 void rxn_calc_deriv_gpu(ModelData *model_data, N_Vector deriv, realtype time_step);
 void rxn_calc_deriv_aux(ModelData *model_data, double *deriv_data, realtype time_step);
 void rxn_fusion_deriv_gpu(ModelData *model_data, N_Vector deriv);
-void rxn_calc_jac_gpu(ModelData *model_data, SUNMatrix jac, realtype time_step);
+void rxn_calc_jac_gpu(SolverData *sd, SUNMatrix jac, realtype time_step);
 void free_gpu_cu(ModelData *model_data);
 void bubble_sort_gpu(unsigned int *n_zeros, unsigned int *rxn_position, int n_rxn);
 void print_gpu_specs();

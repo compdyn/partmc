@@ -187,6 +187,8 @@ typedef struct {
   double *deriv_aux;
   double *jac_gpu_data;
   double *jac_aux;
+  int *indexvals_gpu;
+  int *indexptrs_gpu;
   size_t deriv_size;
   size_t jac_size;
   size_t state_size;
@@ -222,6 +224,7 @@ typedef struct {
                         // is current
   realtype J_guess_t;   // Last time (t) for which J_guess was calculated
   int Jac_eval_fails;   // Number of Jacobian evaluation failures
+  realtype gamma;           // Scale factor jacobian (M=I-gJ)
 #ifdef PMC_DEBUG
   booleantype debug_out;  // Output debugging information during solving
   booleantype eval_Jac;   // Evalute Jacobian data during solving

@@ -528,7 +528,14 @@ contains
     call cpu_time(comp_end)
     comp_time = comp_time + (comp_end-comp_start)
 
-    ! call solver_stats%print( )
+
+#ifdef PMC_USE_MPI
+
+if (pmc_mpi_rank().eq.0) then
+  call solver_stats%print( )
+end if
+
+#endif
 
   end subroutine integrate
 

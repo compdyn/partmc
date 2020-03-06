@@ -101,6 +101,7 @@ contains
     write(f_unit,*) "DLS Right-hand side evals:   ", this%DLS_RHS_evals
     write(f_unit,*) "Last time step [s]:          ", this%last_time_step__s
     write(f_unit,*) "Next time step [s]:          ", this%next_time_step__s
+    write(f_unit,*) "Right-hand side time [s]:    ", this%RHS_time__s
 #ifdef PMC_DEBUG
     write(f_unit,*) "Output debugging info:       ", this%debug_out
     write(f_unit,*) "Evaluate Jacobian:           ", this%eval_Jac

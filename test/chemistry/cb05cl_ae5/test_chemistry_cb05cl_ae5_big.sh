@@ -53,12 +53,12 @@ do
 ${t[$id]},${i_n[$id]},${j_n[$id]},${k_n[$id]},${t_n[$id]},1" >> ../../../../../profile_stats.csv
 
 # Not MPI
-#    exec_str="../../../test_chemistry_cb05cl_ae5_big ${i[$id]} ${j[$id]} ${k[$id]} \
-#${t[$id]} ${i_n[$id]} ${j_n[$id]} ${k_n[$id]} ${t_n[$id]}"
+    exec_str="../../../test_chemistry_cb05cl_ae5_big ${i[$id]} ${j[$id]} ${k[$id]} \
+${t[$id]} ${i_n[$id]} ${j_n[$id]} ${k_n[$id]} ${t_n[$id]}"
 
 # MPI (todo improve personalization)
-    exec_str="mpirun -v -np 2 ../../../test_chemistry_cb05cl_ae5_big ${i[$id]} ${j[$id]} ${k[$id]} \
-${t[$id]} ${i_n[$id]} ${j_n[$id]} ${k_n[$id]} ${t_n[$id]}"
+    #exec_str="mpirun -v -np 2 ../../../test_chemistry_cb05cl_ae5_big ${i[$id]} ${j[$id]} ${k[$id]} \
+#${t[$id]} ${i_n[$id]} ${j_n[$id]} ${k_n[$id]} ${t_n[$id]}"
 
     if ! $exec_str; then
         echo Failure "$counter"

@@ -3,9 +3,9 @@
 #SBATCH --job-name=mpi
 #SBATCH --output=mpi_%j.out
 #SBATCH --error=mpi_%j.err
-#SBATCH --ntasks=16
-# #SBATCH --cpus-per-task=4
-# #SBATCH --tasks-per-node=1
+#SBATCH --ntasks=48
+#   #SBATCH --cpus-per-task=4
+#   #SBATCH --tasks-per-node=1
 
 
 # exit on error
@@ -25,10 +25,16 @@ do
   echo Attempt $counter
 
 if [[ $1 == "MPI" ]]; then
-  exec_str="mpirun -v -np 8 ../../mock_monarch config_simple.json interface_simple.json out/simple"
-  #exec_str="srun ../../mock_monarch config_simple.json interface_simple.json out/simple"
+  #exec_str="mpirun -v -np 2 ../../mock_monarch config_simple.json interface_simple.json out/simple"
+  exec_str="srun ../../mock_monarch config_simple.json interface_simple.json out/simple"
 else
+
   exec_str="../../mock_monarch config_simple.json interface_simple.json out/simple"
+
+  #exec_str="nvprof --analysis-metrics --cpu-profiling on \
+  #-o ../../../../mock_monarch_10000_cpu.nvprof \
+  #../../mock_monarch config_simple.json interface_simple.json out/simple \
+  #"
 fi
 
   if ! $exec_str; then 

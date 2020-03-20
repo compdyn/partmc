@@ -384,6 +384,7 @@
   {
     "name" : "H2O",
     "type" : "CHEM_SPEC",
+    "is gas-phase water" : true,
     "description" : "water vapor"
   },
   {

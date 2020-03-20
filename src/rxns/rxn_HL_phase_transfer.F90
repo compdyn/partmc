@@ -354,7 +354,6 @@ contains
     key_name = "HLC(298K) [M Pa-1]"
     call assert_msg(637925661, spec_props%get_real(key_name, A_), &
                     "Missing Henry's Law constant at 298 K"//error_msg)
-    A_ = A_ * 101325.0 * 1.0d-6; ! save A in (M/ppm)
 
     key_name = "HLC exp factor [K]"
     call assert_msg(801365019, spec_props%get_real(key_name, C_), &

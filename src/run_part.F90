@@ -117,7 +117,7 @@ contains
     !> Environment state.
     type(env_state_t), intent(inout) :: env_state
     !> Aerosol data.
-    type(aero_data_t), intent(in) :: aero_data
+    type(aero_data_t), intent(inout) :: aero_data
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     !> Gas data.
@@ -277,7 +277,8 @@ contains
 #ifdef PMC_USE_SUNDIALS
        if (run_part_opt%do_camp_chem) then
           call pmc_camp_interface_solve(camp_core, camp_state, aero_data, &
-               aero_state, gas_state, photolysis, run_part_opt%del_t)
+               aero_state, gas_data, gas_state, photolysis, &
+               run_part_opt%del_t)
        end if
 #endif
 

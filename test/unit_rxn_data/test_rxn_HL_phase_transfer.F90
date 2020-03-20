@@ -116,7 +116,6 @@ contains
 
     ! For setting particle radius and number concentration
     type(aero_rep_factory_t) :: aero_rep_factory
-    type(aero_rep_update_data_single_particle_radius_t) :: radius_update
     type(aero_rep_update_data_single_particle_number_t) :: number_update
 
     integer(kind=i_kind) :: i_sect_unused, i_sect_the_mode
@@ -176,8 +175,6 @@ contains
       if (scenario.eq.1) then
         select type (aero_rep_ptr)
           type is (aero_rep_single_particle_t)
-            call camp_core%initialize_update_object( aero_rep_ptr, &
-                                                     radius_update)
             call camp_core%initialize_update_object( aero_rep_ptr, &
                                                      number_update)
           class default
@@ -258,7 +255,6 @@ contains
       pack_size = camp_core%pack_size()
       if (scenario.eq.1) then
         pack_size = pack_size &
-                  + radius_update%pack_size() &
                   + number_update%pack_size()
       else if (scenario.eq.2) then
         pack_size = pack_size &
@@ -269,7 +265,6 @@ contains
       pos = 0
       call camp_core%bin_pack(buffer, pos)
       if (scenario.eq.1) then
-        call radius_update%bin_pack(buffer, pos)
         call number_update%bin_pack(buffer, pos)
       else if (scenario.eq.2) then
         call update_data_GMD%bin_pack(buffer, pos)
@@ -314,7 +309,6 @@ contains
       pos = 0
       call camp_core%bin_unpack(buffer, pos)
       if (scenario.eq.1) then
-        call radius_update%bin_unpack(buffer, pos)
         call number_update%bin_unpack(buffer, pos)
       else if (scenario.eq.2) then
         call update_data_GMD%bin_unpack(buffer, pos)
@@ -325,7 +319,6 @@ contains
       pos = 0
       call camp_core%bin_pack(buffer_copy, pos)
       if (scenario.eq.1) then
-        call radius_update%bin_pack(buffer_copy, pos)
         call number_update%bin_pack(buffer_copy, pos)
       else if (scenario.eq.2) then
         call update_data_GMD%bin_pack(buffer_copy, pos)
@@ -392,9 +385,7 @@ contains
 
       ! Update the aerosol representation (single-particle only)
       if (scenario.eq.1) then
-        call radius_update%set_radius(radius)
-        call number_update%set_number(number_conc)
-        call camp_core%update_data(radius_update)
+        call number_update%set_number__n_m3(number_conc)
         call camp_core%update_data(number_update)
       end if
 
@@ -559,6 +550,8 @@ contains
       close(7)
 
       ! Analyze the results (single-particle only)
+      ! TODO figure out if this can be solved analytically with a varying radius
+#if 0
       if (scenario.eq.1) then
         do i_time = 1, NUM_TIME_STEP
           do i_spec = 1, size(model_conc, 2)
@@ -575,7 +568,7 @@ contains
           end do
         end do
       endif
-
+#endif
       deallocate(camp_state)
 
 #ifdef PMC_USE_MPI

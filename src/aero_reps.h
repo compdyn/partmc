@@ -29,11 +29,11 @@ void aero_rep_modal_binned_mass_update_state(ModelData *model_data,
                                              int *aero_rep_int_data,
                                              double *aero_rep_float_data,
                                              double *aero_rep_env_data);
-void aero_rep_modal_binned_mass_get_effective_radius(
+void aero_rep_modal_binned_mass_get_effective_radius__m(
     ModelData *model_data, int aero_phase_idx, double *radius,
     double *partial_deriv, int *aero_rep_int_data, double *aero_rep_float_data,
     double *aero_rep_env_data);
-void aero_rep_modal_binned_mass_get_number_conc(
+void aero_rep_modal_binned_mass_get_number_conc__n_m3(
     ModelData *model_data, int aero_phase_idx, double *number_conc,
     double *partial_deriv, int *aero_rep_int_data, double *aero_rep_float_data,
     double *aero_rep_env_data);
@@ -42,11 +42,11 @@ void aero_rep_modal_binned_mass_get_aero_conc_type(int aero_phase_idx,
                                                    int *aero_rep_int_data,
                                                    double *aero_rep_float_data,
                                                    double *aero_rep_env_data);
-void aero_rep_modal_binned_mass_get_aero_phase_mass(
+void aero_rep_modal_binned_mass_get_aero_phase_mass__ug_m3(
     ModelData *model_data, int aero_phase_idx, double *aero_phase_mass,
     double *partial_deriv, int *aero_rep_int_data, double *aero_rep_float_data,
     double *aero_rep_env_data);
-void aero_rep_modal_binned_mass_get_aero_phase_avg_MW(
+void aero_rep_modal_binned_mass_get_aero_phase_avg_MW__kg_mol(
     ModelData *model_data, int aero_phase_idx, double *aero_phase_avg_MW,
     double *partial_deriv, int *aero_rep_int_data, double *aero_rep_float_data,
     double *aero_rep_env_data);
@@ -82,11 +82,11 @@ void aero_rep_single_particle_update_state(ModelData *model_data,
                                            int *aero_rep_int_data,
                                            double *aero_rep_float_data,
                                            double *aero_rep_env_data);
-void aero_rep_single_particle_get_effective_radius(
+void aero_rep_single_particle_get_effective_radius__m(
     ModelData *model_data, int aero_phase_idx, double *radius,
     double *partial_deriv, int *aero_rep_int_data, double *aero_rep_float_data,
     double *aero_rep_env_data);
-void aero_rep_single_particle_get_number_conc(
+void aero_rep_single_particle_get_number_conc__n_m3(
     ModelData *model_data, int aero_phase_idx, double *number_conc,
     double *partial_deriv, int *aero_rep_int_data, double *aero_rep_float_data,
     double *aero_rep_env_data);
@@ -95,11 +95,11 @@ void aero_rep_single_particle_get_aero_conc_type(int aero_phase_idx,
                                                  int *aero_rep_int_data,
                                                  double *aero_rep_float_data,
                                                  double *aero_rep_env_data);
-void aero_rep_single_particle_get_aero_phase_mass(
+void aero_rep_single_particle_get_aero_phase_mass__ug_m3(
     ModelData *model_data, int aero_phase_idx, double *aero_phase_mass,
     double *partial_deriv, int *aero_rep_int_data, double *aero_rep_float_data,
     double *aero_rep_env_data);
-void aero_rep_single_particle_get_aero_phase_avg_MW(
+void aero_rep_single_particle_get_aero_phase_avg_MW__kg_mol(
     ModelData *model_data, int aero_phase_idx, double *aero_phase_avg_MW,
     double *partial_deriv, int *aero_rep_int_data, double *aero_rep_float_data,
     double *aero_rep_env_data);
@@ -109,13 +109,9 @@ bool aero_rep_single_particle_update_data(void *update_data,
                                           double *aero_rep_env_data);
 void aero_rep_single_particle_print(int *aero_rep_int_data,
                                     double *aero_rep_float_data);
-void *aero_rep_single_particle_create_radius_update_data();
-void aero_rep_single_particle_set_radius_update_data(void *update_data,
-                                                     int aero_rep_id,
-                                                     double radius);
 void *aero_rep_single_particle_create_number_update_data();
-void aero_rep_single_particle_set_number_update_data(void *update_data,
-                                                     int aero_rep_id,
-                                                     double number_conc);
+void aero_rep_single_particle_set_number_update_data__n_m3(void *update_data,
+                                                           int aero_rep_id,
+                                                           double number_conc);
 
 #endif

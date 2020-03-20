@@ -4,10 +4,10 @@ n_repeat 1                      # number of Monte Carlo repeats
 n_part 1000                     # total number of particles
 restart no                      # whether to restart from saved state (yes/no)
 
-t_max 3600                      # total simulation time (s)
+t_max 86400                     # total simulation time (s)
 del_t 60                        # timestep (s)
-t_output 60                     # output interval (0 disables) (s)
-t_progress 60                   # progress printing interval (0 disables) (s)
+t_output 900                    # output interval (0 disables) (s)
+t_progress 900                  # progress printing interval (0 disables) (s)
 
 do_camp_chem yes                # whether to use CAMP for chemistry
 camp_config config.json         # CAMP configuration file
@@ -27,11 +27,11 @@ aero_background aero_back.dat   # aerosol background file
 loss_function none              # loss function specification
 
 rel_humidity 0.95               # initial relative humidity (1)
-latitude 0                      # latitude (degrees, -90 to 90)
+latitude 90                     # latitude (degrees, -90 to 90)
 longitude 0                     # longitude (degrees, -180 to 180)
 altitude 0                      # altitude (m)
-start_time 21600                # start time (s since 00:00 UTC)
-start_day 200                   # start day of year (UTC)
+start_time 43200                # start time (s since 00:00 UTC)
+start_day 187                   # start day of year (UTC)
 
 do_coagulation yes              # whether to do coagulation (yes/no)
 coag_kernel brown               # coagulation kernel

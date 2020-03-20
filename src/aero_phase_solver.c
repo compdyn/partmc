@@ -83,9 +83,9 @@ int aero_phase_get_used_jac_elem(ModelData *model_data, int aero_phase_idx,
  *                 concentration \f$\frac{dMW}{dy_i}\f$ of each component
  *                 species \f$y_i\f$.
  */
-void aero_phase_get_mass(ModelData *model_data, int aero_phase_idx,
-                         double *state_var, double *mass, double *MW,
-                         double *jac_elem_mass, double *jac_elem_MW) {
+void aero_phase_get_mass__ug_m3(ModelData *model_data, int aero_phase_idx,
+                                double *state_var, double *mass, double *MW,
+                                double *jac_elem_mass, double *jac_elem_MW) {
   // Get the requested aerosol phase data
   int *int_data = &(model_data->aero_phase_int_data
                         [model_data->aero_phase_int_indices[aero_phase_idx]]);
@@ -134,9 +134,9 @@ void aero_phase_get_mass(ModelData *model_data, int aero_phase_idx,
  *                 concentration \f$\frac{dv}{dy_i}\f$ of each component
  *                 species \f$y_i\f$.
  */
-void aero_phase_get_volume(ModelData *model_data, int aero_phase_idx,
-                           double *state_var, double *volume,
-                           double *jac_elem) {
+void aero_phase_get_volume__m3_m3(ModelData *model_data, int aero_phase_idx,
+                                  double *state_var, double *volume,
+                                  double *jac_elem) {
   // Get the requested aerosol phase data
   int *int_data = &(model_data->aero_phase_int_data
                         [model_data->aero_phase_int_indices[aero_phase_idx]]);

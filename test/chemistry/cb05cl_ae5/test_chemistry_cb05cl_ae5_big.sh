@@ -53,8 +53,24 @@ do
 ${t[$id]},${i_n[$id]},${j_n[$id]},${k_n[$id]},${t_n[$id]},1" >> ../../../../../profile_stats.csv
 
 # Not MPI
+#    exec_str="../../../test_chemistry_cb05cl_ae5_big ${i[$id]} ${j[$id]} ${k[$id]} \
+#${t[$id]} ${i_n[$id]} ${j_n[$id]} ${k_n[$id]} ${t_n[$id]}"
+
     exec_str="../../../test_chemistry_cb05cl_ae5_big ${i[$id]} ${j[$id]} ${k[$id]} \
 ${t[$id]} ${i_n[$id]} ${j_n[$id]} ${k_n[$id]} ${t_n[$id]}"
+
+#need cd to directory, and the info isn't completed (missing cvode and cuda)
+#    exec_str="gprof ../../../test_chemistry_cb05cl_ae5_big ${i[$id]} ${j[$id]} ${k[$id]} \
+#${t[$id]} ${i_n[$id]} ${j_n[$id]} ${k_n[$id]} ${t_n[$id]} > gprof.txt"
+#-I $pwd
+
+    #exec_str="nvprof --print-gpu-summary \
+    #../../../test_chemistry_cb05cl_ae5_big ${i[$id]} ${j[$id]} ${k[$id]} \
+#${t[$id]} ${i_n[$id]} ${j_n[$id]} ${k_n[$id]} ${t_n[$id]}"
+
+#module load ddt #not working
+#    exec_str="ddt --connect ../../../test_chemistry_cb05cl_ae5_big ${i[$id]} ${j[$id]} ${k[$id]} \
+#${t[$id]} ${i_n[$id]} ${j_n[$id]} ${k_n[$id]} ${t_n[$id]}"
 
 # MPI (todo improve personalization)
     #exec_str="mpirun -v -np 2 ../../../test_chemistry_cb05cl_ae5_big ${i[$id]} ${j[$id]} ${k[$id]} \

@@ -568,7 +568,7 @@ contains
     do i_repeat = 1, 100
 
     YC(:) = ebi_init(:)
-    KPP_C(:) = kpp_init(:)
+    KPP_C(:) = kpp_init(:)0
     camp_state%state_var(:) = camp_init(:)
 
     ! Solve the mechanism

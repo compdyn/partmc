@@ -131,7 +131,7 @@ static void print_jacobian(SUNMatrix J) {
     printf("%lld \n", (SM_INDEXVALS_S(J))[i]);
   }
   printf("PTRS:\n");
-  for (int i = 0; i <= SM_NP_S(J); i++) {
+  for (int i = 0; i < SM_NP_S(J)+1; i++) {
     printf("%lld, ", (SM_INDEXPTRS_S(J))[i]);
   }
 }
@@ -146,7 +146,7 @@ static void print_jacobian_file(SUNMatrix J, char *filepath) {
   //void printMatrix(double* A, int* jA, int* iA, int nrows, int nnz)
 
   FILE *fp;
-  fp= fopen(filepath,"w");
+  fp= fopen("/gpfs/scratch/bsc32/bsc32815/gpupartmc/matrix_basic_1.csr","w");
 
 
   fprintf(fp," %d",SM_NNZ_S(J));
@@ -178,4 +178,17 @@ static void print_derivative(N_Vector deriv) {
     //printf(" index: %d \n", i);
   }
   printf("\n");
+
+  /*FILE *fp;
+  fp= fopen("/gpfs/scratch/bsc32/bsc32815/gpupartmc/rhs_basic2_1_le.csr","w");
+
+  //fprintf(fp," deriv length: %d\n", NV_LENGTH_S(deriv));
+  for (int i = 0; i < NV_LENGTH_S(deriv); i++) {  // NV_LENGTH_S(deriv)
+    fprintf(fp," %-le", NV_DATA_S(deriv)[i]);
+    //printf(" index: %d \n", i);
+  }
+  fprintf(fp," \n");
+
+  fclose(fp);
+*/
 }

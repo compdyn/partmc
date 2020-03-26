@@ -438,15 +438,17 @@ endif()
 # partmc library
 
 #maybe link library lcusolver with cmake like the other libraries? i miss the -L?
-set(STD_C_FLAGS "-std=c99")
+# -lcusolver -lcudart -lcublas -lcusparse_static -lculibos -lpthread -ldl
+set(STD_C_FLAGS "-std=c99") # -L/lib64 -lcudart -lcublas -lcublasLt
 set(STD_CXX_FLAGS "-fpermissive")
 
-set(STD_CUDA_FLAGS "-dc -arch=compute_70 -code=sm_70 -lcusolver -lcudart -lcusparse_static -lculibos -lcudart_static -lpthread -ldl")
-set(STD_CUDA_FLAGS_2 "-dc -lcusolver -lcudart -lcusparse_static -lculibos -lcudart_static -lpthread -ldl")
+#-lcusolver -lcusparse_static -lculibos -lpthread -ldl
+set(STD_CUDA_FLAGS "-dc -arch=compute_70 -code=sm_70 --compiler-options '-fPIC' -lcusolver -lcudart -lcublas -lcusparse_static -lculibos -lpthread -ldl")
+#set(STD_CUDA_FLAGS_2 "-dc -lcusolver -lcudart -lcublas -lcusparse_static -lculibos -lpthread -ldl")
 #set(STD_CUDA_FLAGS "-dc -arch=compute_70 -code=sm_70 ") #-lcusolver -lcudart -lcusparse_static -lculibos
 
 if(${CMAKE_Fortran_COMPILER_ID} MATCHES "Intel")
-  set(STD_F_FLAGS "-extend_source -warn truncated_source ")
+  set(STD_F_FLAGS "-extend_source -warn truncated_source")
 elseif(${CMAKE_Fortran_COMPILER_ID} MATCHES "GNU")
   set(STD_F_FLAGS "-ffree-line-length-none")
 endif()
@@ -563,6 +565,8 @@ if (CUDA_FOUND)
           src/cuda/aeros_gpu/sub_model_solver.cu
           src/cuda/aero_reps_gpu/aero_rep_modal_binned_mass.cu
           src/cuda/aero_reps_gpu/aero_rep_single_particle.cu
+          src/cuda/cvode_gpu2.cu
+          src/cuda/libsolv2.cu
           #src/rxns/rxn2_arrhenius.cu
           #src/cuda/camp_gpu_cusolver.cu
           )
@@ -573,12 +577,12 @@ if (CUDA_FOUND)
   set_source_files_properties(${CAMP_CUDA_SRC} PROPERTIES LANGUAGE CUDA)
 
 
-  set(CAMP_CUDA_SRC_2
-          src/cuda/camp_gpu_cusolver.cu
-          )
+  #set(CAMP_CUDA_SRC_2
+  #        src/cuda/camp_gpu_cusolver.cu
+  #        )
 
-  set_source_files_properties(${CAMP_CUDA_SRC_2} PROPERTIES COMPILE_FLAGS
-          ${STD_CUDA_FLAGS_2})
+  #set_source_files_properties(${CAMP_CUDA_SRC_2} PROPERTIES COMPILE_FLAGS
+  #        ${STD_CUDA_FLAGS_2})
 
   set_source_files_properties(${CAMP_CUDA_SRC_2} PROPERTIES LANGUAGE CUDA)
 

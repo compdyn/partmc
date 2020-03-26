@@ -18,15 +18,41 @@
 #include <cvode/cvode.h>             /* Protoypes for CVODE fcts., consts.  */
 #include <cvode/cvode_direct.h>      /* CVDls interface                     */
 #include <cvode/cvode_impl.h>        /* CVodeMem structure                  */
-#include <nvector/nvector_serial.h>  /* Serial N_Vector types, fcts, macros */
+//#include <cvode/cvode_direct_impl.h> //todo need?
+
+//todo ifndef GPU
+//#ifdef PMC_USE_GPU
+//  #include <nvector/nvector_cuda.h>      /* access to cuda N_Vector             */
+//  #include <sunlinsol/sunlinsol_spgmr.h> /* access to SPGMR SUNLinearSolver     */
+//#else
+  #include <nvector/nvector_serial.h>  /* Serial N_Vector types, fcts, macros */
+  #include <sunlinsol/sunlinsol_klu.h> /* KLU SUNLinearSolver                 */
+//#endif
+
+#include <sunmatrix/sunmatrix_sparse.h> /* sparse SUNMatrix                    */
+#include <sundials/sundials_nvector.h>
+
 #include <sundials/sundials_math.h>  /* SUNDIALS math function macros       */
 #include <sundials/sundials_types.h> /* definition of types                 */
-#include <sunlinsol/sunlinsol_klu.h> /* KLU SUNLinearSolver                 */
-#include <sunmatrix/sunmatrix_sparse.h> /* sparse SUNMatrix                    */
+
+#include <sundials/sundials_direct.h>
+#include <sundials/sundials_matrix.h>
+#include <sundials/sundials_linearsolver.h>
+#include <cvode/cvode_direct_impl.h>
+
 #endif
 
+// todo ifdef cuda gpu
 #include <cuda.h>
 #include <cuda_runtime.h>
+
+//#include "cuda/itsolvergpu2.h"
+
+//#include<cublas.h>
+//#include<cublas_v2.h>
+
+//#include "cuda/cvode_gpu.h"
+
 //#include <cusolverDn.h>
 //#include <cusolverSp.h>
 
@@ -57,11 +83,11 @@
 /* boolean definition */
 // CUDA/C++ already has bool definition: Avoid issues disabling it for GPU
 #ifndef CAMP_GPU_SOLVER_H_
-
+#ifndef CVODE_gpu2_SOLVER_H_
 #ifndef CAMP_GPU_CUSOLVER_H_
 typedef enum { false, true } bool;
 #endif
-
+#endif
 #endif
 
 /* Jacobian map */
@@ -185,7 +211,7 @@ typedef struct {
 //Gpu definitions
   double *deriv_gpu_data;
   double *deriv_aux;
-  double *jac_gpu_data;
+  double *jac_gpu_data;//todo set this pointer to bicg.dA and everyone will be happy
   double *jac_aux;
   int *indexvals_gpu;
   int *indexptrs_gpu;
@@ -197,7 +223,6 @@ typedef struct {
   size_t rxn_env_data_idx_size;
   int small_data;
   bool implemented_all;
-  bool continue_f;
   int *int_pointer_gpu;
   double *double_pointer_gpu;
   double *state_gpu;

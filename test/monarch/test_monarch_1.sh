@@ -31,8 +31,8 @@ else
 
   exec_str="../../mock_monarch config_simple.json interface_simple.json out/simple"
 
-  #exec_str="nvprof --analysis-metrics --cpu-profiling on \
-  #-o ../../../../mock_monarch_10000_cpu.nvprof \
+#--analysis-metrics #-f -o ../../../../mock_monarch_cvode_test.nvprof
+  #exec_str="nvprof --print-gpu-summary --analysis-metrics -f -o ../../../../mock_monarch_cvode2_test.nvprof\
   #../../mock_monarch config_simple.json interface_simple.json out/simple \
   #"
 fi

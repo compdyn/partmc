@@ -23,9 +23,9 @@
 #include "sub_model_solver.h"
 #ifdef PMC_USE_GPU
 #include "cuda/camp_gpu_solver.h"
+#include "cuda/cvode_gpu2.h"
 
 #include "cuda/camp_gpu_cusolver.h"
-
 #endif
 #ifdef PMC_USE_GSL
 #include <gsl/gsl_deriv.h>
@@ -142,8 +142,15 @@ void *solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
 
 #ifdef PMC_USE_SUNDIALS
   // Set up the solver variable array and helper derivative array
-  sd->y = N_VNew_Serial(n_dep_var * n_cells);
-  sd->deriv = N_VNew_Serial(n_dep_var * n_cells);
+
+  //#ifdef PMC_USE_GPU
+  //  sd->y = N_VNew_Serial(n_dep_var * n_cells);N_VNew_Cuda(data->NEQ);
+  //  sd->deriv = N_VNew_Serial(n_dep_var * n_cells);
+  //#else
+    sd->y = N_VNew_Serial(n_dep_var * n_cells);
+    sd->deriv = N_VNew_Serial(n_dep_var * n_cells);
+  //#endif
+
 #endif
 
   // Allocate space for the reaction data and set the number
@@ -349,9 +356,6 @@ void *solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
   sd->model_data.sub_model_env_idx[0] = 0;
 
 #ifdef PMC_USE_GPU
-
-  //todo cusolver
-  //cusolver_test();
 
   solver_new_gpu_cu(&(sd->model_data), n_dep_var, n_state_var, n_rxn,
                     n_rxn_int_param, n_rxn_float_param, n_rxn_env_param,
@@ -632,7 +636,9 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   clock_t start2 = clock();
 
   if (!sd->no_solve) {
-    flag = CVode(sd->cvode_mem, (realtype)t_final, sd->y, &t_rt, CV_NORMAL);
+    //flag = CVode(sd->cvode_mem, (realtype)t_final, sd->y, &t_rt, CV_NORMAL);
+    //todo set gpu flag //todo fix seg fault with cb05 10,000 cells
+    flag = CVode_gpu2(sd->cvode_mem, (realtype)t_final, sd->y, &t_rt, CV_NORMAL, sd);
 #ifndef FAILURE_DETAIL
     if (flag < 0) {
 #else
@@ -657,7 +663,8 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
             printf("spec %d = %le\n", i_spec,
                    state[i_cell * md->n_per_cell_state_var + i_spec]);
           }
-        solver_print_stats(sd->cvode_mem);
+        }
+      solver_print_stats(sd->cvode_mem);
 #endif
       return CAMP_SOLVER_FAIL;
     }
@@ -806,7 +813,7 @@ int camp_solver_update_model_state(N_Vector solver_state, ModelData *model_data,
   for (int i_cell = 0; i_cell < n_cells; i_cell++) {
     for (int i_spec = 0; i_spec < n_state_var; ++i_spec) {
       if (model_data->var_type[i_spec] == CHEM_SPEC_VARIABLE) {
-        if (NV_DATA_S(solver_state)[i_dep_var] < -SMALL) {
+        if (NV_DATA_S(solver_state)[i_dep_var] < -SMALL) {//todo uncomment this triggers failure
 #ifdef FAILURE_DETAIL
           printf("\nFailed model state update: [spec %d] = %le", i_spec,
                  NV_DATA_S(solver_state)[i_dep_var]);
@@ -910,6 +917,7 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
     clock_t start2 = clock();
 #endif
 
+//#ifndef PMC_USE_GPU
 #ifndef PMC_USE_GPU
     // Calculate the time derivative f(t,y)
 
@@ -948,7 +956,7 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
     rxn_fusion_deriv_gpu(md, deriv);
 #endif
 
-  //print_derivative(deriv);
+  //if (counterDeriv2==0)print_derivative(deriv);
 
   timeDeriv2 += (clock() - start3);
   //timeDeriv2 += sd->timeDeriv;
@@ -1092,8 +1100,7 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
     JacMap *jac_map = md->jac_map;
     SM_DATA_S(md->J_params)[0] = 1.0;  // dummy value for non-sub model calcs
     for (int i_map = 0; i_map < md->n_mapped_values; ++i_map)
-      SM_DATA_S(J)
-      [i_cell * md->n_per_cell_solver_jac_elem + jac_map[i_map].solver_id] +=
+      SM_DATA_S(J)[i_cell * md->n_per_cell_solver_jac_elem + jac_map[i_map].solver_id] +=
           SM_DATA_S(md->J_rxn)[jac_map[i_map].rxn_id] *
           SM_DATA_S(md->J_params)[jac_map[i_map].param_id];
     PMC_DEBUG_JAC(J, "solver Jacobian");
@@ -1108,10 +1115,8 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
   }
 #endif
 
-  //if(counterJac2==0) print_jacobian_file(J, "/gpfs/scratch/bsc32/bsc32815/gpupartmc/matrix_cb05_1000.csr");
-
-  //Calc SUNMatScaleAddI
-  //rxn_calc_jac_gpu(sd, J, time_step);
+  //if(counterJac2==0) print_jacobian_file(J, "");
+  //if(counterJac2==0) print_jacobian(J);
 
   timeJac2 += (clock() - start4);
   counterJac2++;
@@ -2012,12 +2017,10 @@ void write_profile_stats(){
   }
 */
 
-
   fclose(fptr);
   fclose(fptr2);
   remove(filename);
   rename(filename2, filename);
-
 
 }
 

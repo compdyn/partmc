@@ -96,7 +96,6 @@ void solver_new_gpu_cu(ModelData *model_data, int n_dep_var,
   model_data->rxn_env_data_idx_size = (n_rxn+1) * sizeof(int);
   model_data->small_data = 0;
   model_data->implemented_all = true;
-  model_data->continue_f = true;
   counterDeriv=0;
   counterJac=0;
   timeDeriv=0;
@@ -348,7 +347,6 @@ void solver_set_rxn_data_gpu(SolverData *sd) {
   HANDLE_ERROR(cudaMemcpy(model_data->indexvals_gpu, SM_INDEXVALS_S(J), SM_NNZ_S(J)*sizeof(int), cudaMemcpyHostToDevice));
   HANDLE_ERROR(cudaMemcpy(model_data->indexptrs_gpu, SM_INDEXPTRS_S(J), SM_NP_S(J)*sizeof(int), cudaMemcpyHostToDevice));
 
-
   free(int_pointer);
   free(double_pointer);
 
@@ -372,10 +370,10 @@ void rxn_update_env_state_gpu(ModelData *model_data){
     model_data->rxn_env_data_gpu= rxn_env_data;
     model_data->env_gpu= env;
   }
-    //Slower, use for large values
+  //Slower, use for large values
   else{
 
-HANDLE_ERROR(cudaMemcpyAsync(model_data->rxn_env_data_gpu, rxn_env_data,
+    HANDLE_ERROR(cudaMemcpyAsync(model_data->rxn_env_data_gpu, rxn_env_data,
             model_data->rxn_env_data_size, cudaMemcpyHostToDevice,
                  model_data->stream_gpu[STREAM_RXN_ENV_GPU]));
     HANDLE_ERROR(cudaMemcpyAsync(model_data->env_gpu, env, model_data->env_size,
@@ -522,7 +520,7 @@ void rxn_calc_deriv_gpu(ModelData *model_data, N_Vector deriv, realtype time_ste
   int n_rxn = model_data->n_rxn;
   int n_rxn_threads = n_rxn*n_cells; //Reaction group per number of repetitions/cells
   int n_blocks = ((n_rxn_threads + max_n_gpu_thread - 1) / max_n_gpu_thread);
-  double *state = model_data->total_state;
+  double *state = model_data->total_state;//todo add the update total_state to gpu to avoid transfers
   double *rxn_env_data = model_data->rxn_env_data;
   double *env = model_data->total_env;
 
@@ -542,8 +540,9 @@ void rxn_calc_deriv_gpu(ModelData *model_data, N_Vector deriv, realtype time_ste
 
   }
 
-  //todo this async later
-  //HANDLE_ERROR(cudaMemset(model_data->deriv_gpu_data, 0.0, model_data->deriv_size));
+  //Reset deriv gpu
+  HANDLE_ERROR(cudaMemset(model_data->deriv_gpu_data, 0.0, model_data->deriv_size));
+
   timeDerivSend += (clock() - t1);
   clock_t t2 = clock();
 
@@ -601,9 +600,8 @@ void rxn_fusion_deriv_gpu(ModelData *model_data, N_Vector deriv) {
   realtype *deriv_data = N_VGetArrayPointer(deriv);
 
   cudaDeviceSynchronize();
-
-  HANDLE_ERROR(cudaMemsetAsync(model_data->deriv_gpu_data, 0.0,
-          model_data->deriv_size, model_data->stream_gpu[STREAM_DERIV_GPU]));
+  //HANDLE_ERROR(cudaMemsetAsync(model_data->deriv_gpu_data, 0.0,
+  //        model_data->deriv_size, model_data->stream_gpu[STREAM_DERIV_GPU]));
 
   if (model_data->small_data){
   }
@@ -614,14 +612,7 @@ void rxn_fusion_deriv_gpu(ModelData *model_data, N_Vector deriv) {
     }
   }
 
-  if(model_data->continue_f){
-    //do next solver function after f
-
-
-  }
-
 }
-
 
 #ifdef PMC_USE_SUNDIALS
 void rxn_calc_deriv_cpu(ModelData *model_data, double *deriv_data,
@@ -815,24 +806,6 @@ __global__ void solveJacobian(double *state_init, double *jac_init,
 }
 
 
-__global__ void SUNMatScaleAddI_gpu(int nrows, double* dA, int* djA, int* diA, double alpha)
-{
-  int row= threadIdx.x + blockDim.x*blockIdx.x;
-  if(row < nrows){
-    for(int j=diA[row]; j<diA[row+1]; j++)
-    {
-      if(djA[j]==row){
-        dA[j] = 1.0 + alpha*dA[j];
-      }
-      else{
-        dA[j] = alpha*dA[j];
-      }
-    }
-  }
-
-}
-
-
 /** \brief Calculate the Jacobian on GPU
  *
  * \param model_data Pointer to the model data
@@ -883,20 +856,6 @@ void rxn_calc_jac_gpu(SolverData *sd, SUNMatrix jac, realtype time_step) {
   }
 
 */
-
-//SUNMatScaleAddI_gpu
-
-//todo set it properly
-  realtype gamma = -6.0;//-sd->gamma;
-  int np = SUNMIN(SM_ROWS_S(jac), SM_COLUMNS_S(jac));
-
-  //SM_NP_S(J)
-  //SUNMIN(SM_ROWS_S(jac)
-  SUNMatScaleAddI_gpu<<<(n_blocks), max_n_gpu_thread>>>
-  (np, model_data->jac_gpu_data,
-    model_data->indexvals_gpu, model_data->indexptrs_gpu, gamma);
-
-  HANDLE_ERROR(cudaMemcpy(jac_data, model_data->jac_gpu_data, model_data->jac_size, cudaMemcpyDeviceToHost));
 
 }
 

@@ -263,7 +263,7 @@ contains
 
        if (run_part_opt%do_mosaic) then
           call mosaic_timestep(env_state, aero_data, aero_state, gas_data, &
-               gas_state, run_part_opt%do_optical)
+               gas_state, run_part_opt%do_optical, run_part_opt%uuid)
        end if
 
        if (run_part_opt%mix_timescale > 0d0) then

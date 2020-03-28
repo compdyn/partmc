@@ -430,6 +430,53 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Read a simple integer 3D array from a NetCDF file.
+  subroutine pmc_nc_read_integer_3d(ncid, var, name, must_be_present)
+
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+    !> Data to read.
+    integer, intent(inout), allocatable :: var(:,:,:)
+    !> Variable name in NetCDF file.
+    character(len=*), intent(in) :: name
+    !> Whether the variable must be present in the NetCDF file
+    !> (default .true.).
+    logical, optional, intent(in) :: must_be_present
+
+    integer :: varid, status, dimids(3), size1, size2, size3
+    logical :: use_must_be_present
+
+    if (present(must_be_present)) then
+       use_must_be_present = must_be_present
+    else
+       use_must_be_present = .true.
+    end if
+    status = nf90_inq_varid(ncid, name, varid)
+    if ((.not. use_must_be_present) .and. (status == NF90_ENOTVAR)) then
+       ! variable was not present, but that's ok
+       var = reshape([integer::], [0, 0, 0])
+       return
+    end if
+    call pmc_nc_check_msg(status, "inquiring variable " // trim(name))
+    call pmc_nc_check_msg(nf90_inquire_variable(ncid, varid, dimids=dimids), &
+         "determining size of variable " // trim(name))
+    call pmc_nc_check_msg(nf90_inquire_dimension(ncid, dimids(1), len=size1), &
+         "determining size of dimension number " &
+         // trim(integer_to_string(dimids(1))))
+    call pmc_nc_check_msg(nf90_inquire_dimension(ncid, dimids(2), len=size2), &
+         "determining size of dimension number " &
+         // trim(integer_to_string(dimids(2))))
+    call pmc_nc_check_msg(nf90_inquire_dimension(ncid, dimids(3), len=size3), &
+         "determining size of dimension number " &
+         // trim(integer_to_string(dimids(3))))
+    call ensure_integer_array_3d_size(var, size1, size2, size3)
+    call pmc_nc_check_msg(nf90_get_var(ncid, varid, var), &
+         "getting variable " // trim(name))
+
+  end subroutine pmc_nc_read_integer_3d
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Read a simple real 3D array from a NetCDF file.
   subroutine pmc_nc_read_real_3d(ncid, var, name, must_be_present)
 
@@ -981,6 +1028,125 @@ contains
          start = start, count = count))
 
   end subroutine pmc_nc_write_integer_2d
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Write a simple integer 3D array to a NetCDF file.
+  subroutine pmc_nc_write_integer_3d(ncid, var, name, dimids, dim_name_1, &
+       dim_name_2, dim_name_3, unit, long_name, standard_name, description)
+
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+    !> Data to write.
+    integer, intent(in) :: var(:,:,:)
+    !> Variable name in NetCDF file.
+    character(len=*), intent(in) :: name
+    !> NetCDF dimension IDs of the variable (either \c dimids or both
+    !> \c dim_name_1 and \c dim_name_2 must be present).
+    integer, optional, intent(in) :: dimids(3)
+    !> First NetCDF dimension name for the variable (either \c dimids
+    !> or all \c dim_name_* must be present).
+    character(len=*), optional, intent(in) :: dim_name_1
+    !> Second NetCDF dimension name for the variable (either \c dimids
+    !> or all \c dim_name_* must be present).
+    character(len=*), optional, intent(in) :: dim_name_2
+    !> Third NetCDF dimension name for the variable (either \c dimids
+    !> or all \c dim_name_* must be present).
+    character(len=*), optional, intent(in) :: dim_name_3
+    !> Unit of variable.
+    character(len=*), optional, intent(in) :: unit
+    !> Long name of variable.
+    character(len=*), optional, intent(in) :: long_name
+    !> Standard name of variable.
+    character(len=*), optional, intent(in) :: standard_name
+    !> Description of variable.
+    character(len=*), optional, intent(in) :: description
+
+    integer :: varid, start(3), count(3), use_dimids(3)
+
+    if (present(dimids)) then
+       use_dimids = dimids
+    elseif (present(dim_name_1) .and. present(dim_name_2) .and. &
+         present(dim_name_3)) then
+       call pmc_nc_ensure_dim(ncid, dim_name_1, use_dimids(1), size(var, 1), 1)
+       call pmc_nc_ensure_dim(ncid, dim_name_2, use_dimids(2), size(var, 2), 2)
+       call pmc_nc_ensure_dim(ncid, dim_name_3, use_dimids(3), size(var, 3), 3)
+    else
+       call die_msg(669381383, &
+            "either dimids or dim_name_1, dim_name_2 and dim_name_3" &
+            // "must be present")
+    end if
+    call pmc_nc_check(nf90_redef(ncid))
+    call pmc_nc_check(nf90_def_var(ncid, name, NF90_INT, use_dimids, varid))
+    call pmc_nc_write_atts(ncid, varid, unit, long_name, standard_name, &
+         description)
+    call pmc_nc_check(nf90_enddef(ncid))
+
+    start = (/ 1, 1, 1 /)
+    count = (/ size(var, 1), size(var, 2) , size(var, 3)/)
+    call pmc_nc_check(nf90_put_var(ncid, varid, var, &
+         start = start, count = count))
+
+  end subroutine pmc_nc_write_integer_3d
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Write a simple real 3D array to a NetCDF file.
+  subroutine pmc_nc_write_real_3d(ncid, var, name, dimids, dim_name_1, &
+       dim_name_2, dim_name_3, unit, long_name, standard_name, description)
+
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+    !> Data to write.
+    real(kind=dp), intent(in) :: var(:,:,:)
+    !> Variable name in NetCDF file.
+    character(len=*), intent(in) :: name
+    !> NetCDF dimension IDs of the variable (either \c dimids or both
+    !> \c dim_name_1 \c dim_name_2 and \c dim_name_3 must be present).
+    integer, optional, intent(in) :: dimids(3)
+    !> First NetCDF dimension name for the variable (either \c dimids
+    !> or all dimension names must be present).
+    character(len=*), optional, intent(in) :: dim_name_1
+    !> Second NetCDF dimension name for the variable (either \c dimids
+    !> or all dimension names must be present).
+    character(len=*), optional, intent(in) :: dim_name_2
+    !> Third NetCDF dimension name for the variable (either \c dimids
+    !> or all dimension names must be present).
+    character(len=*), optional, intent(in) :: dim_name_3
+    !> Unit of variable.
+    character(len=*), optional, intent(in) :: unit
+    !> Long name of variable.
+    character(len=*), optional, intent(in) :: long_name
+    !> Standard name of variable.
+    character(len=*), optional, intent(in) :: standard_name
+    !> Description of variable.
+    character(len=*), optional, intent(in) :: description
+
+    integer :: varid, start(3), count(3), use_dimids(3)
+
+    if (present(dimids)) then
+       use_dimids = dimids
+    elseif (present(dim_name_1) .and. present(dim_name_2) .and. &
+         present(dim_name_3) ) then
+       call pmc_nc_ensure_dim(ncid, dim_name_1, use_dimids(1), size(var, 1), 1)
+       call pmc_nc_ensure_dim(ncid, dim_name_2, use_dimids(2), size(var, 2), 2)
+       call pmc_nc_ensure_dim(ncid, dim_name_2, use_dimids(3), size(var, 3), 3)
+    else
+       call die_msg(959111259, &
+            "either dimids or dim_name_1, dim_name_2 and dim_name_3 must be present")
+    end if
+    call pmc_nc_check(nf90_redef(ncid))
+    call pmc_nc_check(nf90_def_var(ncid, name, NF90_DOUBLE, use_dimids, varid))
+    call pmc_nc_write_atts(ncid, varid, unit, long_name, standard_name, &
+         description)
+    call pmc_nc_check(nf90_enddef(ncid))
+
+    start = (/ 1, 1, 1 /)
+    count = (/ size(var, 1), size(var, 2), size(var, 3) /)
+    call pmc_nc_check(nf90_put_var(ncid, varid, var, &
+         start = start, count = count))
+
+  end subroutine pmc_nc_write_real_3d
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

@@ -219,6 +219,41 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Read a single 64 bit integer from a NetCDF file.
+  subroutine pmc_nc_read_integer64(ncid, var, name, must_be_present)
+
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+    !> Data to write.
+    integer(kind=8), intent(out) :: var
+    !> Variable name in NetCDF file.
+    character(len=*), intent(in) :: name
+    !> Whether the variable must be present in the NetCDF file
+    !> (default .true.).
+    logical, optional, intent(in) :: must_be_present
+
+    integer :: varid, status
+    logical :: use_must_be_present
+
+    if (present(must_be_present)) then
+       use_must_be_present = must_be_present
+    else
+       use_must_be_present = .true.
+    end if
+    status = nf90_inq_varid(ncid, name, varid)
+    if ((.not. use_must_be_present) .and. (status == NF90_ENOTVAR)) then
+       ! variable was not present, but that's ok
+       var = 0
+       return
+    end if
+    call pmc_nc_check_msg(status, "inquiring variable " // trim(name))
+    call pmc_nc_check_msg(nf90_get_var(ncid, varid, var), &
+         "getting variable " // trim(name))
+
+  end subroutine pmc_nc_read_integer64
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Read a simple real array from a NetCDF file.
   subroutine pmc_nc_read_real_1d(ncid, var, name, must_be_present)
 
@@ -729,6 +764,39 @@ contains
     call pmc_nc_check(nf90_put_var(ncid, varid, var))
 
   end subroutine pmc_nc_write_integer
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Write a single 64 bit integer to a NetCDF file.
+  subroutine pmc_nc_write_integer64(ncid, var, name, unit, long_name, &
+       standard_name, description)
+
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+    !> Data to write.
+    integer(kind=8), intent(in) :: var
+    !> Variable name in NetCDF file.
+    character(len=*), intent(in) :: name
+    !> Unit of variable.
+    character(len=*), optional, intent(in) :: unit
+    !> Long name of variable.
+    character(len=*), optional, intent(in) :: long_name
+    !> Standard name of variable.
+    character(len=*), optional, intent(in) :: standard_name
+    !> Description of variable.
+    character(len=*), optional, intent(in) :: description
+
+    integer :: varid, dimids(0)
+
+    call pmc_nc_check(nf90_redef(ncid))
+    call pmc_nc_check(nf90_def_var(ncid, name, NF90_INT64, dimids, varid))
+    call pmc_nc_write_atts(ncid, varid, unit, long_name, standard_name, &
+         description)
+    call pmc_nc_check(nf90_enddef(ncid))
+
+    call pmc_nc_check(nf90_put_var(ncid, varid, var))
+
+  end subroutine pmc_nc_write_integer64
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

@@ -66,6 +66,8 @@ module pmc_run_part
      logical :: do_condensation
      !> Whether to do MOSAIC.
      logical :: do_mosaic
+     !> Whether to do n2o5 hydrolysis.
+     logical :: do_n2o5_hydrolysis
      !> Whether to compute optical properties.
      logical :: do_optical
      !> Whether to have explicitly selected weighting.
@@ -165,7 +167,7 @@ contains
             run_part_opt%do_optical)
        if (run_part_opt%do_optical) then
           call mosaic_aero_optical_init(env_state, aero_data, &
-            aero_state, gas_data, gas_state)
+            aero_state, gas_data, gas_state, run_part_opt%do_n2o5_hydrolysis)
        end if
     end if
 
@@ -260,7 +262,8 @@ contains
 
        if (run_part_opt%do_mosaic) then
           call mosaic_timestep(env_state, aero_data, aero_state, gas_data, &
-               gas_state, run_part_opt%do_optical)
+               gas_state, run_part_opt%do_n2o5_hydrolysis, &
+               run_part_opt%do_optical)
        end if
 
        if (run_part_opt%mix_timescale > 0d0) then
@@ -417,6 +420,7 @@ contains
          + pmc_mpi_pack_size_logical(val%allow_halving) &
          + pmc_mpi_pack_size_logical(val%do_condensation) &
          + pmc_mpi_pack_size_logical(val%do_mosaic) &
+         + pmc_mpi_pack_size_logical(val%do_n2o5_hydrolysis) &
          + pmc_mpi_pack_size_logical(val%do_optical) &
          + pmc_mpi_pack_size_logical(val%do_select_weighting) &
          + pmc_mpi_pack_size_integer(val%weighting_type) &
@@ -465,6 +469,7 @@ contains
     call pmc_mpi_pack_logical(buffer, position, val%allow_halving)
     call pmc_mpi_pack_logical(buffer, position, val%do_condensation)
     call pmc_mpi_pack_logical(buffer, position, val%do_mosaic)
+    call pmc_mpi_pack_logical(buffer, position, val%do_n2o5_hydrolysis)
     call pmc_mpi_pack_logical(buffer, position, val%do_optical)
     call pmc_mpi_pack_logical(buffer, position, val%do_select_weighting)
     call pmc_mpi_pack_integer(buffer, position, val%weighting_type)
@@ -516,6 +521,7 @@ contains
     call pmc_mpi_unpack_logical(buffer, position, val%allow_halving)
     call pmc_mpi_unpack_logical(buffer, position, val%do_condensation)
     call pmc_mpi_unpack_logical(buffer, position, val%do_mosaic)
+    call pmc_mpi_unpack_logical(buffer, position, val%do_n2o5_hydrolysis)
     call pmc_mpi_unpack_logical(buffer, position, val%do_optical)
     call pmc_mpi_unpack_logical(buffer, position, val%do_select_weighting)
     call pmc_mpi_unpack_integer(buffer, position, val%weighting_type)

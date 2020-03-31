@@ -2942,7 +2942,7 @@ contains
     integer :: i_part
     real(kind=dp) :: w_i
     real(kind=dp), allocatable :: volumes(:), volumes_core(:), so4_masses(:), &
-         no3_masses(:), surf_area_concs(:)
+         no3_masses(:), surf_area_concs(:), h2o_masses(:)
     real(kind=dp) :: rad_core, rad_part
     real(kind=dp) :: c_n2o5, gamma_n2o5
     real(kind=dp), parameter :: gamma_1 = 0.02d0
@@ -2959,13 +2959,14 @@ contains
         "NO3", "Cl ", "NH4", "CO3", "Na ", "Ca ", "OIN", "BC ", "H2O"/))
     so4_masses = aero_state_masses(aero_state, aero_data, include=(/"SO4"/))
     no3_masses = aero_state_masses(aero_state, aero_data, include=(/"NO3"/))
-
+    h2o_masses = aero_state_masses(aero_state, aero_data, include=(/"H2O"/))
     c_n2o5 = sqrt((8.0d0 * const%univ_gas_const * env_state%temp) &
          / (const%pi * 108.0 * 1d-3))
 
     gamma_n2o5 = 0d0
     do i_part = 1,aero_state_n_part(aero_state)
-       if ((so4_masses(i_part) + no3_masses(i_part)) > 0.0d0) then
+       if ((so4_masses(i_part) + no3_masses(i_part)) > 0.0d0 &
+            .and. h2o_masses(i_part) > 0.0d0) then
           w_i = so4_masses(i_part) / (so4_masses(i_part) + no3_masses(i_part))
           gamma_core = w_i * gamma_1 + (1d0 - w_i) * gamma_2
           rad_part = sphere_vol2rad(volumes(i_part))

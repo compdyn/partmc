@@ -144,7 +144,7 @@ contains
 
   !> Map all data PartMC -> MOSAIC.
   subroutine mosaic_from_partmc(env_state, aero_data, &
-       aero_state, gas_data, gas_state)
+       aero_state, gas_data, gas_state, do_n2o5_hydrolysis)
 
 #ifdef PMC_USE_MOSAIC
     use module_data_mosaic_aero, only: nbin_a, aer, num_a, jhyst_leg, &
@@ -167,6 +167,8 @@ contains
     type(gas_data_t), intent(in) :: gas_data
     !> Gas state.
     type(gas_state_t), intent(in) :: gas_state
+    !> Whether to do n2o5 hydrolysis.
+    logical, intent(in) :: do_n2o5_hydrolysis
 
 #ifdef PMC_USE_MOSAIC
     ! local variables
@@ -257,8 +259,11 @@ contains
        jhyst_leg(i_part) = aero_state%apa%particle(i_part)%water_hyst_leg
     end do
 
-    k_n2o5 = aero_state_n2o5_uptake(aero_state, aero_data, env_state)
-    rk_het(in2o5) = k_n2o5
+    rk_het = 0.0d0
+    if (do_n2o5_hydrolysis) then
+       k_n2o5 = aero_state_n2o5_uptake(aero_state, aero_data, env_state)
+       rk_het(in2o5) = k_n2o5
+    end if
 
     ! gas chemistry: map PartMC -> MOSAIC
     cnn = 0d0
@@ -371,7 +376,7 @@ contains
   !! really matters, however. Because of this mosaic_aero_optical() is
   !! currently disabled.
   subroutine mosaic_timestep(env_state, aero_data, aero_state, gas_data, &
-       gas_state, do_optical)
+       gas_state, do_n2o5_hydrolysis, do_optical)
 
 #ifdef PMC_USE_MOSAIC
     use module_data_mosaic_main, only: msolar
@@ -387,6 +392,8 @@ contains
     type(gas_data_t), intent(in) :: gas_data
     !> Gas state.
     type(gas_state_t), intent(inout) :: gas_state
+    !> Whether to compute n2o5 hydrolysis.
+    logical, intent(in) :: do_n2o5_hydrolysis
     !> Whether to compute optical properties.
     logical, intent(in) :: do_optical
 
@@ -403,7 +410,7 @@ contains
 
     ! map PartMC -> MOSAIC
     call mosaic_from_partmc(env_state, aero_data, aero_state, gas_data, &
-         gas_state)
+         gas_state, do_n2o5_hydrolysis)
 
     if (msolar == 1) then
       call SolarZenithAngle
@@ -493,7 +500,7 @@ contains
   !> Compute the optical properties of each aerosol particle for initial
   !> timestep.
   subroutine mosaic_aero_optical_init(env_state, aero_data, &
-       aero_state, gas_data, gas_state)
+       aero_state, gas_data, gas_state, do_n2o5_hydrolysis)
 
 #ifdef PMC_USE_MOSAIC
     use module_data_mosaic_aero, only: ri_shell_a, ri_core_a, &
@@ -510,6 +517,8 @@ contains
     type(gas_data_t), intent(in) :: gas_data
     !> Gas state.
     type(gas_state_t), intent(in) :: gas_state
+    !> Whether to do n2o5 hydrolysis.
+    logical, intent(in) :: do_n2o5_hydrolysis
 
 #ifdef PMC_USE_MOSAIC
     ! MOSAIC function interfaces
@@ -524,7 +533,7 @@ contains
 
     ! map PartMC -> MOSAIC
     call mosaic_from_partmc(env_state, aero_data, aero_state, &
-         gas_data, gas_state)
+         gas_data, gas_state, do_n2o5_hydrolysis)
 
     call aerosol_optical
 

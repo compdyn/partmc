@@ -494,6 +494,12 @@ contains
                'cannot use MOSAIC and condensation simultaneously')
        end if
        if (run_part_opt%do_mosaic) then
+          call spec_file_read_logical(file, 'do_n2o5_hydrolysis', &
+               run_part_opt%do_n2o5_hydrolysis)
+       else
+          run_part_opt%do_n2o5_hydrolysis = .false.
+       end if
+       if (run_part_opt%do_mosaic) then
           call spec_file_read_logical(file, 'do_optical', &
                run_part_opt%do_optical)
        else

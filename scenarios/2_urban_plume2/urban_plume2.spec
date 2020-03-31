@@ -36,6 +36,7 @@ do_coagulation yes              # whether to do coagulation (yes/no)
 coag_kernel brown               # coagulation kernel
 do_condensation no              # whether to do condensation (yes/no)
 do_mosaic yes                   # whether to do MOSAIC (yes/no)
+do_n2o5_hydrolysis yes          # whether to do n2o5 hydrolysis (yes/no)
 do_optical yes                  # whether to compute optical props (yes/no)
 do_nucleation no                # whether to do nucleation (yes/no)
 

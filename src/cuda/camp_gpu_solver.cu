@@ -33,25 +33,27 @@ extern "C" {
 #define STREAM_DERIV_GPU 2
 
 //GPU async stream related variables to ensure robustness
-int n_solver_objects=0; //Number of solver_new_gpu calls
+//int n_solver_objects=0; //Number of solver_new_gpu calls
 //cudaStream_t *stream_gpu; //GPU streams to async computation/data movement
-int n_streams = 16;
+//int n_streams = 16;
 
 //Gpu hardware info
-int max_n_gpu_thread;
-int max_n_gpu_blocks;
+//int model_data->max_n_gpu_thread;
+//int model_data->max_n_gpu_blocks;
 
 //Debug info
-int counterDeriv;       // Total calls to f()
-int counterJac;         // Total calls to Jac()
-clock_t timeDeriv;      // Compute time for calls to f()
-clock_t timeJac;        // Compute time for calls to Jac()
-clock_t timeDerivKernel; // Compute time for calls to f() kernel
-clock_t timeDerivSend;
-clock_t timeDerivReceive;
-clock_t timeDerivCPU;
-clock_t t1;             //Auxiliar time counter
-clock_t t3;
+#ifdef PMC_DEBUG_GPU
+  int counterDeriv = 0;       // Total calls to f()
+  int counterJac = 0;         // Total calls to Jac()
+  clock_t timeDeriv = 0;      // Compute time for calls to f()
+  clock_t timeJac = 0;        // Compute time for calls to Jac()
+  clock_t timeDerivKernel = 0; // Compute time for calls to f() kernel
+  clock_t timeDerivSend = 0;
+  clock_t timeDerivReceive = 0;
+  clock_t timeDerivCPU = 0;
+  clock_t t1 = 0;             //Auxiliar time counter
+  clock_t t3 = 0;
+#endif
 
 static void HandleError(cudaError_t err,
                         const char *file,
@@ -87,7 +89,6 @@ void solver_new_gpu_cu(ModelData *model_data, int n_dep_var,
                        int n_rxn_int_param, int n_rxn_float_param, int n_rxn_env_param,
                        int n_cells) {
   //TODO: Select what % of data we want to compute on GPU simultaneously with CPU remaining %
-
   //Lengths
   model_data->state_size = n_state_var * n_cells * sizeof(double);
   model_data->deriv_size = n_dep_var * n_cells * sizeof(double);
@@ -96,25 +97,17 @@ void solver_new_gpu_cu(ModelData *model_data, int n_dep_var,
   model_data->rxn_env_data_idx_size = (n_rxn+1) * sizeof(int);
   model_data->small_data = 0;
   model_data->implemented_all = true;
-  counterDeriv=0;
-  counterJac=0;
-  timeDeriv=0;
-  timeDerivCPU=0;
-  timeDerivKernel=0;
-  timeDerivSend=0;
-  timeDerivReceive=0;
-  timeJac=0;
 
   //TODO: cusolver
   //cusolver_test();
 
   //Allocate streams array and update variables related to streams
-  model_data->model_data_id = n_solver_objects;
+  //model_data->model_data_id = n_solver_objects;
   //if(n_solver_objects==0){
     //stream_gpu = (cudaStream_t *)malloc(n_streams_limit * sizeof(cudaStream_t));
-    model_data->stream_gpu = (cudaStream_t *)malloc(n_streams * sizeof(cudaStream_t));
+      //model_data->stream_gpu = (cudaStream_t *)malloc(n_streams * sizeof(cudaStream_t));
   //}
-  n_solver_objects++;
+  //n_solver_objects++;
 
   //Detect if we are working with few data values
   if (n_dep_var*n_cells < DATA_SIZE_LIMIT_OPT){
@@ -130,9 +123,9 @@ void solver_new_gpu_cu(ModelData *model_data, int n_dep_var,
   cudaGetDeviceProperties(&prop, device);
 
   //Set max threads without triggering too many resources error
-  max_n_gpu_thread = prop.maxThreadsPerBlock/2;
-  max_n_gpu_blocks = prop.maxGridSize[1];
-  int n_blocks = (n_rxn + max_n_gpu_thread - 1) / max_n_gpu_thread;
+  model_data->max_n_gpu_thread = prop.maxThreadsPerBlock/2;
+  model_data->max_n_gpu_blocks = prop.maxGridSize[1];
+  int n_blocks = (n_rxn + model_data->max_n_gpu_thread - 1) / model_data->max_n_gpu_thread;
 
   //GPU allocation
   cudaMalloc((void **) &model_data->deriv_gpu_data, model_data->deriv_size);
@@ -152,16 +145,16 @@ void solver_new_gpu_cu(ModelData *model_data, int n_dep_var,
   }
 
   printf("small_data:%d\n", model_data->small_data);
-  //printf("threads_per_block :%d\n", max_n_gpu_thread);
+  //printf("threads_per_block :%d\n", model_data->max_n_gpu_thread);
 
   //GPU create streams
-  for (int i = 0; i < n_streams; ++i)
-    HANDLE_ERROR( cudaStreamCreate(&model_data->stream_gpu[i]) );
+  //for (int i = 0; i < n_streams; ++i)
+  //  HANDLE_ERROR( cudaStreamCreate(&model_data->stream_gpu[i]) );
 
   // Warning if exceeding GPU limits
-  if( n_blocks > max_n_gpu_blocks){
+  if( n_blocks > model_data->max_n_gpu_blocks){
     printf("\nWarning: More blocks assigned: %d than maximum block numbers: %d",
-           n_blocks, max_n_gpu_blocks);
+           n_blocks, model_data->max_n_gpu_blocks);
   }
 
 
@@ -327,31 +320,10 @@ void solver_set_rxn_data_gpu(SolverData *sd) {
     cudaMallocHost((void**)&model_data->jac_aux, model_data->jac_size);
   }
 
-  //Jac sparse ids
-
-  // Reset the primary Jacobian
-  SUNMatrix J = sd->J;
-  SM_NNZ_S(J) = SM_NNZ_S(model_data->J_init);
-  for (int i = 0; i < SM_NNZ_S(J); i++) {
-    (SM_INDEXVALS_S(J))[i] = (SM_INDEXVALS_S(model_data->J_init))[i];
-  }
-  for (int i = 0; i <= SM_NP_S(J); i++) {
-    (SM_INDEXPTRS_S(J))[i] = (SM_INDEXPTRS_S(model_data->J_init))[i];
-  }
-
-  cudaMalloc((void **) &model_data->indexvals_gpu, SM_NNZ_S(J)*sizeof(int));
-  cudaMalloc((void **) &model_data->indexptrs_gpu, SM_NP_S(J)*sizeof(int));
-
-  //HANDLE_ERROR(cudaMemcpy(model_data->nnz_gpu, SM_NNZ_S(J), sizeof(int), cudaMemcpyHostToDevice));//pass as parameter
-  //HANDLE_ERROR(cudaMemcpy(model_data->np_gpu, SM_NP_S(J), sizeof(int), cudaMemcpyHostToDevice));
-  HANDLE_ERROR(cudaMemcpy(model_data->indexvals_gpu, SM_INDEXVALS_S(J), SM_NNZ_S(J)*sizeof(int), cudaMemcpyHostToDevice));
-  HANDLE_ERROR(cudaMemcpy(model_data->indexptrs_gpu, SM_INDEXPTRS_S(J), SM_NP_S(J)*sizeof(int), cudaMemcpyHostToDevice));
-
   free(int_pointer);
   free(double_pointer);
 
 }
-
 
 void rxn_update_env_state_gpu(ModelData *model_data){
 
@@ -362,7 +334,7 @@ void rxn_update_env_state_gpu(ModelData *model_data){
   double *state = model_data->total_state;
   double *rxn_env_data = model_data->rxn_env_data;
   double *env = model_data->total_env;
-  int n_blocks = ((n_rxn_threads + max_n_gpu_thread - 1) / max_n_gpu_thread);
+  int n_blocks = ((n_rxn_threads + model_data->max_n_gpu_thread - 1) / model_data->max_n_gpu_thread);
 
   //Faster, use for few values
   if (model_data->small_data){
@@ -373,12 +345,15 @@ void rxn_update_env_state_gpu(ModelData *model_data){
   //Slower, use for large values
   else{
 
-    HANDLE_ERROR(cudaMemcpyAsync(model_data->rxn_env_data_gpu, rxn_env_data,
-            model_data->rxn_env_data_size, cudaMemcpyHostToDevice,
-                 model_data->stream_gpu[STREAM_RXN_ENV_GPU]));
+    /*HANDLE_ERROR(cudaMemcpyAsync(model_data->rxn_env_data_gpu, rxn_env_data,
+            model_data->rxn_env_data_size, cudaMemcpyHostToDevice, model_data->stream_gpu[STREAM_RXN_ENV_GPU]));
     HANDLE_ERROR(cudaMemcpyAsync(model_data->env_gpu, env, model_data->env_size,
-            cudaMemcpyHostToDevice,
-                 model_data->stream_gpu[STREAM_ENV_GPU]));
+            cudaMemcpyHostToDevice, model_data->stream_gpu[STREAM_ENV_GPU]));
+*/
+    HANDLE_ERROR(cudaMemcpy(model_data->rxn_env_data_gpu, rxn_env_data,
+                                 model_data->rxn_env_data_size, cudaMemcpyHostToDevice));
+    HANDLE_ERROR(cudaMemcpy(model_data->env_gpu, env, model_data->env_size,
+                                 cudaMemcpyHostToDevice));
 
   }
 
@@ -519,12 +494,16 @@ void rxn_calc_deriv_gpu(ModelData *model_data, N_Vector deriv, realtype time_ste
   int n_kernels = 1; // Divide load into multiple kernel calls
   int n_rxn = model_data->n_rxn;
   int n_rxn_threads = n_rxn*n_cells; //Reaction group per number of repetitions/cells
-  int n_blocks = ((n_rxn_threads + max_n_gpu_thread - 1) / max_n_gpu_thread);
-  double *state = model_data->total_state;//todo add the update total_state to gpu to avoid transfers
+  int n_blocks = ((n_rxn_threads + model_data->max_n_gpu_thread - 1) / model_data->max_n_gpu_thread);
+  double *state = model_data->total_state;
   double *rxn_env_data = model_data->rxn_env_data;
   double *env = model_data->total_env;
 
+#ifdef PMC_DEBUG_GPU
   t1 = clock();
+#endif
+
+  //printf("\nhola\n");
 
   //Faster, use for few values
   if (model_data->small_data){
@@ -543,13 +522,15 @@ void rxn_calc_deriv_gpu(ModelData *model_data, N_Vector deriv, realtype time_ste
   //Reset deriv gpu
   HANDLE_ERROR(cudaMemset(model_data->deriv_gpu_data, 0.0, model_data->deriv_size));
 
+#ifdef PMC_DEBUG_GPU
   timeDerivSend += (clock() - t1);
   clock_t t2 = clock();
+#endif
 
   //Loop to test multiple kernel executions
   for (int i_kernel=0; i_kernel<n_kernels;i_kernel++){
     //cudaDeviceSynchronize();
-    solveDerivative << < (n_blocks), max_n_gpu_thread >> >
+    solveDerivative << < (n_blocks), model_data->max_n_gpu_thread >> >
      (model_data->state_gpu, model_data->deriv_gpu_data, time_step, model_data->n_per_cell_dep_var,
      model_data->n_per_cell_state_var, model_data->n_rxn_env_data,
      n_rxn, n_cells, model_data->int_pointer_gpu, model_data->double_pointer_gpu,
@@ -560,8 +541,10 @@ void rxn_calc_deriv_gpu(ModelData *model_data, N_Vector deriv, realtype time_ste
 
   cudaDeviceSynchronize();
 
+#ifdef PMC_DEBUG_GPU
   timeDerivKernel += (clock() - t2);
   t3 = clock();
+#endif
 
   //Use pinned memory for few values
   if (model_data->small_data){
@@ -579,10 +562,11 @@ void rxn_calc_deriv_gpu(ModelData *model_data, N_Vector deriv, realtype time_ste
 
   cudaDeviceSynchronize();
 
+#ifdef PMC_DEBUG_GPU
   timeDerivReceive += (clock() - t3);
   timeDeriv += (clock() - t1);
   t3 = clock();
-
+#endif
 }
 
 /** \brief Fusion deriv data calculated from CPU and GPU
@@ -594,8 +578,9 @@ void rxn_calc_deriv_gpu(ModelData *model_data, N_Vector deriv, realtype time_ste
  */
 void rxn_fusion_deriv_gpu(ModelData *model_data, N_Vector deriv) {
 
+#ifdef PMC_DEBUG_GPU
  timeDerivCPU += (clock() - t3);
-
+#endif
   // Get a pointer to the derivative data
   realtype *deriv_data = N_VGetArrayPointer(deriv);
 
@@ -823,10 +808,10 @@ void rxn_calc_jac_gpu(SolverData *sd, SUNMatrix jac, realtype time_step) {
   int n_cells = model_data->n_cells;
   int n_rxn = model_data->n_rxn;
   int n_rxn_threads = n_rxn*n_cells; //Reaction group per number of repetitions/cells
-  int n_blocks = ((n_rxn_threads + max_n_gpu_thread - 1) / max_n_gpu_thread);
+  int n_blocks = ((n_rxn_threads + model_data->max_n_gpu_thread - 1) / model_data->max_n_gpu_thread);
   double *state = model_data->total_state;
   double *rxn_env_data = model_data->rxn_env_data;
-
+/*
   //Faster, use for few values
   if (model_data->small_data){
     //This method of passing them as a function parameter has a theoric maximum of 4kb of data
@@ -838,8 +823,8 @@ void rxn_calc_jac_gpu(SolverData *sd, SUNMatrix jac, realtype time_step) {
   }
 
   HANDLE_ERROR(cudaMemset(model_data->jac_gpu_data, 0, model_data->jac_size));
-/*
-  solveJacobian << < (n_blocks), max_n_gpu_thread >> >
+
+  solveJacobian << < (n_blocks), model_data->max_n_gpu_thread >> >
     (model_data->state_gpu, model_data->jac_gpu_data, time_step, model_data->n_per_cell_rxn_jac_elem,
     model_data->n_per_cell_state_var, model_data->n_rxn_env_data,
     n_rxn, n_cells, model_data->int_pointer_gpu, model_data->double_pointer_gpu, model_data->rxn_env_data_gpu, model_data->rxn_env_data_idx_gpu);
@@ -863,16 +848,16 @@ void rxn_calc_jac_gpu(SolverData *sd, SUNMatrix jac, realtype time_step) {
  */
 void free_gpu_cu(ModelData *model_data) {
 
-
+#ifdef PMC_DEBUG_GPU
   printf("timeDeriv %lf\n", (((double)timeDeriv) * 1000) / CLOCKS_PER_SEC);
   printf("timeDerivSend %lf\n", (((double)timeDerivSend) * 1000) / CLOCKS_PER_SEC);
   printf("timeDerivKernel %lf\n", (((double)timeDerivKernel) * 1000) / CLOCKS_PER_SEC);
   printf("timeDerivReceive %lf\n", (((double)timeDerivReceive) * 1000) / CLOCKS_PER_SEC);
   printf("timeDerivCPU %lf\n", (((double)timeDerivCPU) * 1000) / CLOCKS_PER_SEC);
+#endif
 
-
-  for (int i = 0; i < n_streams; ++i)
-    HANDLE_ERROR( cudaStreamDestroy(model_data->stream_gpu[i]) );
+  //for (int i = 0; i < n_streams; ++i)
+  //  HANDLE_ERROR( cudaStreamDestroy(model_data->stream_gpu[i]) );
 /*
 
   */

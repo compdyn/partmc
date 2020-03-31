@@ -1,12 +1,11 @@
 #!/bin/bash
-
-#SBATCH --job-name=mpi
-#SBATCH --output=mpi_%j.out
-#SBATCH --error=mpi_%j.err
-#SBATCH --ntasks=48
+#SBATCH --job-name=test_monarch_1
+#SBATCH --output=out.txt
+#SBATCH --error=err.txt
+#SBATCH --ntasks=1
 #   #SBATCH --cpus-per-task=4
 #   #SBATCH --tasks-per-node=1
-
+##mpi_%j.out ##mpi_%j.err
 
 # exit on error
 set -e
@@ -31,10 +30,11 @@ else
 
   exec_str="../../mock_monarch config_simple.json interface_simple.json out/simple"
 
-#--analysis-metrics #-f -o ../../../../mock_monarch_cvode_test.nvprof
-  #exec_str="nvprof --print-gpu-summary --analysis-metrics -f -o ../../../../mock_monarch_cvode2_test.nvprof\
-  #../../mock_monarch config_simple.json interface_simple.json out/simple \
-  #"
+  #--print-gpu-summary
+  #--analysis-metrics -f -o ../../../../mock_monarch_10800.nvprof
+  #exec_str="nvprof --analysis-metrics -f -o ../../../../mock_monarch_225.nvprof \
+  #../../mock_monarch config_simple.json interface_simple.json out/simple"
+
 fi
 
   if ! $exec_str; then 

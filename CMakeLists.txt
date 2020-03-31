@@ -22,6 +22,7 @@ option(ENABLE_C_SORT "Enable C sorting routines" OFF)
 option(ENABLE_JSON "Enable json-fortran support" ON)
 option(ENABLE_TESTS "Enable tests" ON)
 option(ENABLE_DEBUG "Compile debugging functions" OFF)
+option(ENABLE_DEBUG_GPU "Compile debugging GPU functions" OFF)
 option(FAILURE_DETAIL "Output conditions before and after solver failures" OFF)
 option(ENABLE_CXX "Enable C++" OFF)
 option(ENABLE_GPU "Enable use of GPUs in chemistry solving" OFF)
@@ -198,20 +199,13 @@ endif()
 # debugging options
 
 if (ENABLE_DEBUG)
-  add_definitions(-DPMC_DEBUG)
+    add_definitions(-DPMC_DEBUG)
 endif()
 if (FAILURE_DETAIL)
-  add_definitions(-DFAILURE_DETAIL)
+    add_definitions(-DFAILURE_DETAIL)
 endif()
-
-######################################################################
-# debugging options
-
-if (ENABLE_DEBUG)
-  add_definitions(-DPMC_DEBUG)
-endif()
-if (FAILURE_DETAIL)
-  add_definitions(-DFAILURE_DETAIL)
+if (ENABLE_DEBUG_GPU)
+    add_definitions(-DPMC_DEBUG_GPU)
 endif()
 
 ######################################################################
@@ -442,7 +436,7 @@ endif()
 set(STD_C_FLAGS "-std=c99") # -L/lib64 -lcudart -lcublas -lcublasLt
 set(STD_CXX_FLAGS "-fpermissive")
 
-#-lcusolver -lcusparse_static -lculibos -lpthread -ldl
+#-lcusolver -lcusparse_static -lculibos -lpthread -ldl #--compiler-options '-fPIC'
 set(STD_CUDA_FLAGS "-dc -arch=compute_70 -code=sm_70 --compiler-options '-fPIC' -lcusolver -lcudart -lcublas -lcusparse_static -lculibos -lpthread -ldl")
 #set(STD_CUDA_FLAGS_2 "-dc -lcusolver -lcudart -lcublas -lcusparse_static -lculibos -lpthread -ldl")
 #set(STD_CUDA_FLAGS "-dc -arch=compute_70 -code=sm_70 ") #-lcusolver -lcudart -lcusparse_static -lculibos
@@ -567,6 +561,7 @@ if (CUDA_FOUND)
           src/cuda/aero_reps_gpu/aero_rep_single_particle.cu
           src/cuda/cvode_gpu2.cu
           src/cuda/libsolv2.cu
+          src/cuda/itsolver_gpu.cu
           #src/rxns/rxn2_arrhenius.cu
           #src/cuda/camp_gpu_cusolver.cu
           )

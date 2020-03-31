@@ -34,13 +34,14 @@
 #endif
 #include "camp_debug.h"
 
+#ifdef PMC_DEBUG_GPU
 int counterDeriv2=0;
 int counterJac2=0;
-clock_t timeCVode=0;
-clock_t timeRates=0;
-clock_t timeJac2=0;
-clock_t timeDeriv2=0;
-
+double timeCVode=0;
+double timeRates=0;
+double timeJac2=0;
+double timeDeriv2=0;
+#endif
 
 // Default solver initial time step relative to total integration time
 #define DEFAULT_TIME_STEP 1.0
@@ -476,6 +477,7 @@ void solver_initialize(void *solver_data, double *abs_tol, double rel_tol,
 // Set gpu rxn values
 #ifdef PMC_USE_GPU
   solver_set_rxn_data_gpu(sd);
+  allocSolverGPU(sd->cvode_mem, sd);
 #endif
 
 #ifndef FAILURE_DETAIL
@@ -597,8 +599,9 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
     sub_model_update_env_state(md);
     rxn_update_env_state(md);
   }
-
+#ifdef PMC_DEBUG_GPU
   timeRates += (clock() - start1);
+#endif
 
 //Update data for new environmental state on GPU
 #ifdef PMC_USE_GPU
@@ -636,9 +639,11 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   clock_t start2 = clock();
 
   if (!sd->no_solve) {
-    //flag = CVode(sd->cvode_mem, (realtype)t_final, sd->y, &t_rt, CV_NORMAL);
-    //todo set gpu flag //todo fix seg fault with cb05 10,000 cells
-    flag = CVode_gpu2(sd->cvode_mem, (realtype)t_final, sd->y, &t_rt, CV_NORMAL, sd);
+    #ifdef PMC_USE_GPU
+      flag = CVode_gpu2(sd->cvode_mem, (realtype)t_final, sd->y, &t_rt, CV_NORMAL, sd);
+    #else
+      flag = CVode(sd->cvode_mem, (realtype)t_final, sd->y, &t_rt, CV_NORMAL);
+    #endif
 #ifndef FAILURE_DETAIL
     if (flag < 0) {
 #else
@@ -669,8 +674,9 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
       return CAMP_SOLVER_FAIL;
     }
   }
-
+#ifdef PMC_DEBUG_GPU
   timeCVode += (clock() - start2);
+#endif
 
   // Update the species concentrations on the state array
   i_dep_var = 0;
@@ -782,9 +788,8 @@ void solver_get_statistics(void *solver_data, int *num_steps, int *RHS_evals,
     *RHS_evals_total = -1;
     *Jac_evals_total = -1;
 
-    //*RHS_time__s = 0.0;
-    *RHS_time__s = ((double)timeDeriv2) / CLOCKS_PER_SEC;
-
+    *RHS_time__s = 0.0;
+    //*RHS_time__s = ((double)timeDeriv2) / CLOCKS_PER_SEC;
     *Jac_time__s = 0.0;
 #endif
 #endif
@@ -958,11 +963,12 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
 
   //if (counterDeriv2==0)print_derivative(deriv);
 
+#ifdef PMC_DEBUG_GPU
+
   timeDeriv2 += (clock() - start3);
   //timeDeriv2 += sd->timeDeriv;
   counterDeriv2++;
-
-  //printf("timeDeriv2 %lf\n", (((double)timeDeriv2) ) / CLOCKS_PER_SEC);
+#endif
 
   // Return 0 if success
   return (0);
@@ -1048,7 +1054,6 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
 #endif
 
   // Solving on CPU only
-
   // Loop over the grid cells to calculate sub-model and rxn Jacobians
   for (int i_cell = 0; i_cell < n_cells; ++i_cell) {
     // Set the grid cell state pointers
@@ -1118,8 +1123,10 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
   //if(counterJac2==0) print_jacobian_file(J, "");
   //if(counterJac2==0) print_jacobian(J);
 
+#ifdef PMC_DEBUG_GPU
   timeJac2 += (clock() - start4);
   counterJac2++;
+#endif
 
   return (0);
 }
@@ -2031,16 +2038,19 @@ void write_profile_stats(){
  */
 void model_free(ModelData model_data) {
 
-  printf("timeDeriv2 %lf\n", (((double)timeDeriv2) ) / CLOCKS_PER_SEC);
-  printf("timeJac2 %lf\n", (((double)timeJac2) ) / CLOCKS_PER_SEC);
-  printf("timeCVode %lf\n", (((double)timeCVode) ) / CLOCKS_PER_SEC);
-  printf("timeRates %lf\n", (((double)timeRates) ) / CLOCKS_PER_SEC);
-  printf("counterDeriv2 %d\n", counterDeriv2);
-  printf("counterJac2 %d\n", counterJac2);
+#ifdef PMC_DEBUG_GPU
+  printSolverCounters();
+  //todo move to sd-solver_stats and print percentages
+  printf("timeDeriv2 %lf, counterDeriv2 %d\n",timeDeriv2/CLOCKS_PER_SEC,counterDeriv2);
+  printf("timeJac2 %lf, counterJac2 %d\n",timeJac2/CLOCKS_PER_SEC,counterJac2);
+  printf("timeCVode %lf\n",timeCVode/CLOCKS_PER_SEC);
+  printf("timeRates %lf\n",timeRates/CLOCKS_PER_SEC);
+  //printf("counterDeriv2 %d\n", counterDeriv2);
+  //printf("counterJac2 %d\n", counterJac2);
 
   //todo print this in profile_stats file
   //write_profile_stats();
-
+#endif
 
 #ifdef PMC_USE_GPU
   free_gpu_cu(&model_data);

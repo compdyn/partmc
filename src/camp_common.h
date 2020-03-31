@@ -85,10 +85,61 @@
 #ifndef CAMP_GPU_SOLVER_H_
 #ifndef CVODE_gpu2_SOLVER_H_
 #ifndef CAMP_GPU_CUSOLVER_H_
+#ifndef ITSOLVERGPU_H
 typedef enum { false, true } bool;
 #endif
 #endif
 #endif
+#endif
+
+typedef struct{
+
+    // matrix data
+    double* A;
+    int*    jA;
+    int*    iA;
+    int     nrows;
+    int     nnz;
+
+    //GPU pointers
+    double* dA;
+    int*    djA;
+    int*    diA;
+    double* dx;
+    double* ddiag;
+    double* aux;
+    double* daux;
+
+    // Allocate ewt, acor, tempv, ftemp
+    double* dewt;
+    double* dacor;
+    double* dacor_init;
+    double* dtempv;
+    double* dftemp;
+    double* dzn;
+    double* dcv_y;
+    int threads,blocks;
+
+    // Auxiliary scalars
+    double tolmax;
+    int maxIt;
+    int mattype;
+
+    // Auxiliary vectors
+    double * dr0;
+    double * dr0h;
+    double * dn0;
+    double * dp0;
+    double * dt;
+    double * ds;
+    double * dAx;
+    double * dAx2;
+    double * dy;
+    double * dz;
+    double * diag;
+
+} itsolver2;
+
 
 /* Jacobian map */
 typedef struct {
@@ -209,6 +260,9 @@ typedef struct {
                                  // GPU data
 
 //Gpu definitions
+#ifdef PMC_USE_GPU
+  int max_n_gpu_thread;
+  int max_n_gpu_blocks;
   double *deriv_gpu_data;
   double *deriv_aux;
   double *jac_gpu_data;//todo set this pointer to bicg.dA and everyone will be happy
@@ -230,9 +284,9 @@ typedef struct {
   double *rxn_env_data_gpu;
   int *rxn_env_data_idx_gpu;
   int model_data_id; //Id of the modelData object
-  cudaStream_t *stream_gpu;
+  //cudaStream_t *stream_gpu;
+#endif
 
-  //#endif
 } ModelData;
 
 /* Solver data structure */
@@ -264,6 +318,7 @@ typedef struct {
   bool no_solve;  // Flag to indicate whether to run the solver needs to be
                   // run. Set to true when no reactions are present.
   double init_time_step;  // Initial time step (s)
+  itsolver2 bicg;
 } SolverData;
 
 #endif

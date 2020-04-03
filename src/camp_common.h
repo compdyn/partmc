@@ -42,22 +42,11 @@
 
 #endif
 
-// todo ifdef cuda gpu
-#include <cuda.h>
-#include <cuda_runtime.h>
-
-//#include "cuda/itsolvergpu2.h"
-
-//#include<cublas.h>
-//#include<cublas_v2.h>
-
-//#include "cuda/cvode_gpu.h"
-
-//#include <cusolverDn.h>
-//#include <cusolverSp.h>
-
-//#include <cuda.h>
-//cudaStream_t *stream_gpu;
+#ifdef PMC_USE_GPU
+  #include <cuda.h>
+  #include <cuda_runtime.h>
+  #include "cuda/cuda_structs.h"
+#endif
 
 // State variable types (Must match parameters defined in pmc_chem_spec_data
 // module)
@@ -92,54 +81,7 @@ typedef enum { false, true } bool;
 #endif
 #endif
 
-typedef struct{
-
-    // matrix data
-    double* A;
-    int*    jA;
-    int*    iA;
-    int     nrows;
-    int     nnz;
-
-    //GPU pointers
-    double* dA;
-    int*    djA;
-    int*    diA;
-    double* dx;
-    double* ddiag;
-    double* aux;
-    double* daux;
-
-    // Allocate ewt, acor, tempv, ftemp
-    double* dewt;
-    double* dacor;
-    double* dacor_init;
-    double* dtempv;
-    double* dftemp;
-    double* dzn;
-    double* dcv_y;
-    int threads,blocks;
-
-    // Auxiliary scalars
-    double tolmax;
-    int maxIt;
-    int mattype;
-
-    // Auxiliary vectors
-    double * dr0;
-    double * dr0h;
-    double * dn0;
-    double * dp0;
-    double * dt;
-    double * ds;
-    double * dAx;
-    double * dAx2;
-    double * dy;
-    double * dz;
-    double * diag;
-
-} itsolver2;
-
+//todo set struct itsolver in proper .h file
 
 /* Jacobian map */
 typedef struct {
@@ -263,6 +205,8 @@ typedef struct {
 #ifdef PMC_USE_GPU
   int max_n_gpu_thread;
   int max_n_gpu_blocks;
+  int *index_deriv_state;
+  int *index_deriv_state_gpu;
   double *deriv_gpu_data;
   double *deriv_aux;
   double *jac_gpu_data;//todo set this pointer to bicg.dA and everyone will be happy
@@ -275,6 +219,7 @@ typedef struct {
   size_t env_size;
   size_t rxn_env_data_size;
   size_t rxn_env_data_idx_size;
+  size_t index_deriv_state_size;
   int small_data;
   bool implemented_all;
   int *int_pointer_gpu;
@@ -313,12 +258,14 @@ typedef struct {
   clock_t timeJac;        // Compute time for calls to Jac()
 #endif
 #endif
+#ifdef PMC_USE_GPU
+    itsolver bicg;
+#endif
   void *cvode_mem;       // CVodeMem object
   ModelData model_data;  // Model data (used during initialization and solving)
   bool no_solve;  // Flag to indicate whether to run the solver needs to be
                   // run. Set to true when no reactions are present.
   double init_time_step;  // Initial time step (s)
-  itsolver2 bicg;
 } SolverData;
 
 #endif

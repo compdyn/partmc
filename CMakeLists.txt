@@ -559,8 +559,8 @@ if (CUDA_FOUND)
           src/cuda/aeros_gpu/sub_model_solver.cu
           src/cuda/aero_reps_gpu/aero_rep_modal_binned_mass.cu
           src/cuda/aero_reps_gpu/aero_rep_single_particle.cu
-          src/cuda/cvode_gpu2.cu
-          src/cuda/libsolv2.cu
+          src/cuda/cvode_gpu.cu
+          src/cuda/libsolv.cu
           src/cuda/itsolver_gpu.cu
           #src/rxns/rxn2_arrhenius.cu
           #src/cuda/camp_gpu_cusolver.cu

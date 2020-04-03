@@ -6,35 +6,10 @@
 #include <stdlib.h>
 #include "../camp_common.h"
 
-/*
-#include <cuda.h>
-#include <cuda_runtime.h>
-
-#include <sunmatrix/sunmatrix_sparse.h>
-#include <sundials/sundials_nvector.h>
-
-#include <nvector/nvector_serial.h>
-
-//#include <nvector/nvector_cuda.h> //can't :(
-
-#include <sundials/sundials_math.h>
-#include <sundials/sundials_direct.h>
-#include <sundials/sundials_matrix.h>
-#include <sundials/sundials_linearsolver.h>
-
-#include <cvode/cvode.h>
-#include <cvode/cvode_direct.h>
-#include <cvode/cvode_impl.h>
-#include <cvode/cvode_direct_impl.h>
-
-*/
-
 //#include<cublas.h>
 //#include<cublas_v2.h>
 
 //#define HANDLE_ERROR( err ) (HandleError( err, __FILE__, __LINE__ ))
-
-
 
 void allocSolverGPU(CVodeMem cv_mem, SolverData *sd);
 int CVode_gpu2(void *cvode_mem, realtype tout, N_Vector yout,
@@ -83,7 +58,7 @@ void free_gpu2(CVodeMem cv_mem);
 int linsolsolve_gpu2(SolverData *sd, CVodeMem cv_mem);
 //int linsolsolve_gpu2(int *m, double *del, double *delp, double *dcon, SUNMatrix J, CVodeMem cv_mem, double *x, double *b);
 
-//void setUpSolver(itsolver2 bicg, double reltol, double *ewt, int tnrows,int tnnz,double *tA, int *tjA, int *tiA, int tmattype, int qmax, double *dACamp, double *dftempCamp);
+//void setUpSolver(itsolver bicg, double reltol, double *ewt, int tnrows,int tnnz,double *tA, int *tjA, int *tiA, int tmattype, int qmax, double *dACamp, double *dftempCamp);
 
 int cvHandleFailure_gpu2(CVodeMem cv_mem, int flag);
 

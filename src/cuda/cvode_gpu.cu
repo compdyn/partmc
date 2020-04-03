@@ -6,17 +6,12 @@
  *
  */
 
-#include "itsolvergpu2.h"
+#include "itsolver_gpu.h"
 
 extern "C" {
-#include "cvode_gpu2.h"
+#include "cvode_gpu.h"
 #include "../camp_solver.h"
 }
-
-//todo move itsolver from global variable
-//solutions: create a wrapper with c++ to map itsolver as a struct in cvode_mem ooor
-//wait until late, when cvode_gpu2 will substitute all cvode_run for gpu functions, so don't need to
-//interact with C files from cvode (and still can include cvode.h to use NVector and this kind of things)
 
 //todo good error code checking:
 //Each function at the end update his own cv_mem->function_status code and return the same status.
@@ -236,13 +231,6 @@ extern "C" {
 #define RDIV      TWO
 #define MSBP       20
 
-//todo create struct itsolver (I think in separate.h file and add it in camp_common)
-// aand it will be nice to have a .c file with functions but whatever
-// for only 1 function solve that conforms the conjugate gradient, can be computed with all the functions
-//(dont need to move at the moment, who cares)
-//itsolver bicg;
-//itsolver2 *bicg;
-
 #ifdef PMC_DEBUG_GPU
   int counterSendInit=0;
   int counterMatScaleAddI=0;
@@ -275,16 +263,17 @@ extern "C" {
 
 void allocSolverGPU(CVodeMem cv_mem, SolverData *sd)
 {
-  itsolver2 *bicg = &(sd->bicg);
+  itsolver *bicg = &(sd->bicg);
   ModelData *md = &(sd->model_data);
   CVDlsMem cvdls_mem = (CVDlsMem) cv_mem->cv_lmem;
   SUNMatrix J = cvdls_mem->A;
 
   double *ewt = NV_DATA_S(cv_mem->cv_ewt);
+  double *tempv = NV_DATA_S(cv_mem->cv_tempv);
 
   //Init GPU ODE solver variables
   //Linking Matrix data, later this data must be allocated in GPU
-  bicg->nnz=SM_NNZ_S(J);//todo maybe is not used
+  bicg->nnz=SM_NNZ_S(J);
   bicg->nrows=SM_NP_S(J);
   bicg->mattype=1; //CSC
   bicg->A=(double*)SM_DATA_S(J);
@@ -296,6 +285,7 @@ void allocSolverGPU(CVodeMem cv_mem, SolverData *sd)
   cudaGetDeviceProperties(&prop, device);
   bicg->threads=prop.maxThreadsPerBlock;//1024; //128 set at max gpu
   bicg->blocks=(bicg->nrows+bicg->threads-1)/bicg->threads;
+  bicg->n_cells=md->n_cells;
   bicg->dA=md->jac_gpu_data;//set itsolver gpu pointer to jac pointer initialized at camp
   bicg->dftemp=md->deriv_gpu_data;
 
@@ -308,25 +298,28 @@ void allocSolverGPU(CVodeMem cv_mem, SolverData *sd)
   cudaMalloc((void**)&bicg->dtempv,bicg->nrows*sizeof(double));
   cudaMalloc((void**)&bicg->dzn,bicg->nrows*(cv_mem->cv_qmax+1)*sizeof(double));
   cudaMalloc((void**)&bicg->dcv_y,bicg->nrows*sizeof(double));
-
   cudaMalloc((void**)&bicg->dx,bicg->nrows*sizeof(double));
 
   cudaMemcpy(bicg->djA,bicg->jA,bicg->nnz*sizeof(int),cudaMemcpyHostToDevice);
   cudaMemcpy(bicg->diA,bicg->iA,(bicg->nrows+1)*sizeof(int),cudaMemcpyHostToDevice);
-  cudaMemcpy(bicg->dewt,ewt,bicg->nnz*sizeof(double),cudaMemcpyHostToDevice);
-  cudaMemcpy(bicg->dacor,ewt,bicg->nnz*sizeof(double),cudaMemcpyHostToDevice);
-  cudaMemcpy(bicg->dftemp,ewt,bicg->nnz*sizeof(double),cudaMemcpyHostToDevice);
-
-  // Setting data
-  cudaMemset(bicg->dx, 0.0, bicg->nrows*sizeof(double));
+  cudaMemcpy(bicg->dewt,ewt,bicg->nrows*sizeof(double),cudaMemcpyHostToDevice);
+  cudaMemcpy(bicg->dacor,ewt,bicg->nrows*sizeof(double),cudaMemcpyHostToDevice);
+  cudaMemcpy(bicg->dftemp,ewt,bicg->nrows*sizeof(double),cudaMemcpyHostToDevice);
+  cudaMemcpy(bicg->dx,tempv,bicg->nnz*sizeof(double),cudaMemcpyHostToDevice);
 
   bicg->maxIt=100;
   bicg->tolmax=cv_mem->cv_reltol; //Set to CAMP selected accuracy (1e-8) //1e-10;//1e-6
 
-  //todo include itsolver in common.h to add the struct itsolver to sd
   //Init Linear Solver variables
   createSolver(bicg);
 
+  //Alloc struct gpu //not working for some reason (maybe in the future?)
+/*  //printf("Size of struct %d \n", sizeof(itsolver));
+  cudaMalloc((void**)&dbicg,sizeof(itsolver));
+  //Copy struct gpu
+  cudaMemcpy(dbicg,bicg,sizeof(itsolver),cudaMemcpyHostToDevice);
+  cudaMemcpy(&(dbicg->dx),&(bicg->dx),sizeof(dbicg->dx),cudaMemcpyHostToDevice);
+*/
 }
 
 int CVode_gpu2(void *cvode_mem, realtype tout, N_Vector yout,
@@ -338,9 +331,11 @@ int CVode_gpu2(void *cvode_mem, realtype tout, N_Vector yout,
   int ewtsetOK;
   realtype troundoff, tout_hin, rh, nrm;
   booleantype inactive_roots;
-  clock_t start;
 
+#ifdef PMC_DEBUG_GPU
+  clock_t start;
   start=clock();
+#endif
 
   /*
    * -------------------------------------
@@ -615,7 +610,7 @@ int CVode_gpu2(void *cvode_mem, realtype tout, N_Vector yout,
    */
 
   // GPU initializations
-  set_data_gpu2(cv_mem, sd);
+  //set_data_gpu2(cv_mem, sd);
 
   nstloc = 0;
   for(;;) {
@@ -684,9 +679,9 @@ int CVode_gpu2(void *cvode_mem, realtype tout, N_Vector yout,
 #ifdef PMC_DEBUG_GPU
     timeprecvStep+= clock() - start;
     counterprecvStep++;
-#endif
-    start=clock();
 
+    start=clock();
+#endif
     /* Call cvStep to take a step */
     //kflag = cvStep(cv_mem);
     kflag = cvStep_gpu2(sd, cv_mem);
@@ -1108,10 +1103,6 @@ int cvInitialSetup_gpu2(CVodeMem cv_mem)
 
   return(CV_SUCCESS);
 }
-
-
-
-
 
 /*
  * -----------------------------------------------------------------
@@ -1779,23 +1770,12 @@ int cvRootfind_gpu2(CVodeMem cv_mem)
 //malloc and copy
 void set_data_gpu2(CVodeMem cv_mem, SolverData *sd)
 {
-  itsolver2 *bicg = &(sd->bicg);
+  /*itsolver *bicg = &(sd->bicg);
   ModelData *md = &(sd->model_data);
   CVDlsMem cvdls_mem = (CVDlsMem) cv_mem->cv_lmem;
   SUNMatrix J = cvdls_mem->A;
 
-  double *ewt = NV_DATA_S(cv_mem->cv_ewt);
-
-  //bicg->setUpSolver(cv_mem->cv_reltol, ewt,nrows,nnz,(double*)SM_DATA_S(J),(int*)SM_INDEXVALS_S(J),
-  //        (int*)SM_INDEXPTRS_S(J),1,(cv_mem->cv_qmax+1), md->jac_gpu_data, md->deriv_gpu_data);
-
   //Init GPU ODE solver variables
-  //Linking Matrix data, later this data must be allocated in GPU
-  int device=0;//Selected GPU
-  cudaDeviceProp prop;
-  cudaGetDeviceProperties(&prop, device);
-  bicg->threads=prop.maxThreadsPerBlock;//1024; //128 set at max gpu
-  bicg->blocks=(bicg->nrows+bicg->threads-1)/bicg->threads;
   bicg->nnz=SM_NNZ_S(J);
   bicg->nrows=SM_NP_S(J);
   bicg->mattype=1; //CSC
@@ -1806,17 +1786,9 @@ void set_data_gpu2(CVodeMem cv_mem, SolverData *sd)
   bicg->dftemp=md->deriv_gpu_data;
 
   // Setting data
-  cudaMemset(bicg->dx, 0.0, bicg->nrows*sizeof(double));
-
-  cudaMemcpy(bicg->djA,bicg->jA,bicg->nnz*sizeof(int),cudaMemcpyHostToDevice);
-  cudaMemcpy(bicg->diA,bicg->iA,(bicg->nrows+1)*sizeof(int),cudaMemcpyHostToDevice);
-  cudaMemcpy(bicg->dewt,ewt,bicg->nnz*sizeof(double),cudaMemcpyHostToDevice);
-  cudaMemcpy(bicg->dacor,ewt,bicg->nnz*sizeof(double),cudaMemcpyHostToDevice);
-  cudaMemcpy(bicg->dftemp,ewt,bicg->nnz*sizeof(double),cudaMemcpyHostToDevice);
-
   bicg->maxIt=100;
   bicg->tolmax=cv_mem->cv_reltol; //Set to CAMP selected accuracy (1e-8) //1e-10;//1e-6
-
+*/
 }
 
 /*
@@ -1839,7 +1811,7 @@ void set_data_gpu2(CVodeMem cv_mem, SolverData *sd)
  */
 int cvStep_gpu2(SolverData *sd, CVodeMem cv_mem)
 {
-  itsolver2 *bicg = &(sd->bicg);
+  itsolver *bicg = &(sd->bicg);
   realtype saved_t, dsm;
   int ncf, nef;
   int nflag, kflag, eflag;
@@ -1863,8 +1835,9 @@ int cvStep_gpu2(SolverData *sd, CVodeMem cv_mem)
     cvSet_gpu2(cv_mem);
 
     //nflag = cvNls(cv_mem, nflag);
-
+#ifdef PMC_DEBUG_GPU
     clock_t start=clock();
+#endif
 
     nflag = cvNlsNewton_gpu2(sd, cv_mem, nflag);
 
@@ -1899,7 +1872,7 @@ int cvStep_gpu2(SolverData *sd, CVodeMem cv_mem)
 
   cvCompleteStep_gpu2(cv_mem);
 
-  cvPrepareNextStep_gpu2(cv_mem, dsm);//use tq calculated in cvset
+  cvPrepareNextStep_gpu2(cv_mem, dsm);//use tq calculated in cvset and tempv calc in cvnewton
 
   /* If Stablilty Limit Detection is turned on, call stability limit
      detection routine for possible order reduction. */
@@ -2968,13 +2941,15 @@ int cvEwtSetSV_gpu2(CVodeMem cv_mem, N_Vector cv_ewt, N_Vector weight)
 
 int cvNlsNewton_gpu2(SolverData *sd, CVodeMem cv_mem, int nflag)
 {
-  itsolver2 *bicg = &(sd->bicg);
+  itsolver *bicg = &(sd->bicg);
   N_Vector vtemp1, vtemp2, vtemp3;
   int convfail, retval, ier;
   booleantype callSetup;
-  clock_t start;
 
-  //start2=clock();
+#ifdef PMC_DEBUG_GPU
+  clock_t start;
+  start=clock();
+#endif
 
   //double *acor_init = NV_DATA_S(cv_mem->cv_acor_init); //user-supplied value to improve guesses for zn(0)
   double *acor = NV_DATA_S(cv_mem->cv_acor);
@@ -2987,8 +2962,6 @@ int cvNlsNewton_gpu2(SolverData *sd, CVodeMem cv_mem, int nflag)
     double *zn = NV_DATA_S(cv_mem->cv_zn[i]);
     cudaMemcpy((i*bicg->nrows+bicg->dzn),zn,bicg->nrows*sizeof(double),cudaMemcpyHostToDevice);
   }
-
-  start=clock();
 
   cudaMemcpy(bicg->dacor,acor,bicg->nrows*sizeof(double),cudaMemcpyHostToDevice);
   cudaMemcpy(bicg->dtempv,tempv,bicg->nrows*sizeof(double),cudaMemcpyHostToDevice);
@@ -3040,9 +3013,13 @@ int cvNlsNewton_gpu2(SolverData *sd, CVodeMem cv_mem, int nflag)
     //                      cv_mem->cv_ftemp, cv_mem->cv_user_data);
     //int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data)
 
+#ifdef PMC_DEBUG_GPU
     start=clock();
+#endif
 
     retval = f(cv_mem->cv_tn, cv_mem->cv_y, cv_mem->cv_ftemp, cv_mem->cv_user_data);
+    if (retval < 0) return(CV_RHSFUNC_FAIL);
+    if (retval > 0) return(RHSFUNC_RECVR);
 
 #ifdef PMC_DEBUG_GPU
     timeDerivNewton+= clock() - start;
@@ -3054,7 +3031,9 @@ int cvNlsNewton_gpu2(SolverData *sd, CVodeMem cv_mem, int nflag)
     if (callSetup)
     {
 
+#ifdef PMC_DEBUG_GPU
       start=clock();
+#endif
 
       ier = linsolsetup_gpu2(sd, cv_mem, convfail, vtemp1, vtemp2, vtemp3);
 
@@ -3078,7 +3057,9 @@ int cvNlsNewton_gpu2(SolverData *sd, CVodeMem cv_mem, int nflag)
     //gpu_yequalsx(bicg->dacor, bicg->dacor_init, bicg->nrows, bicg->blocks, bicg->threads);
     cudaMemset(bicg->dacor, 0.0, bicg->nrows*sizeof(double));
 
+#ifdef PMC_DEBUG_GPU
     start=clock();
+#endif
 
     // Do the Newton iteration
     //ier = cvNewtonIteration(cv_mem);
@@ -3099,13 +3080,12 @@ int cvNlsNewton_gpu2(SolverData *sd, CVodeMem cv_mem, int nflag)
   }
 }
 
-//}
 //todo check for possible changes in jac indices(indexptrs) in sunmatscaleaddI
 //todo connect jac and deriv gpu from camp
 //int linsolsetup_gpu2(CVodeMem cv_mem)
 int linsolsetup_gpu2(SolverData *sd, CVodeMem cv_mem,int convfail,N_Vector vtemp1,N_Vector vtemp2,N_Vector vtemp3)
 {
-  itsolver2 *bicg = &(sd->bicg);
+  itsolver *bicg = &(sd->bicg);
   booleantype jbad, jok;
   realtype dgamma;
   CVDlsMem cvdls_mem;
@@ -3160,7 +3140,9 @@ int linsolsetup_gpu2(SolverData *sd, CVodeMem cv_mem,int convfail,N_Vector vtemp
       return(1);
     }
 
+#ifdef PMC_DEBUG_GPU
     clock_t start = clock();
+#endif
 
     retval = SUNMatCopy(cvdls_mem->A, cvdls_mem->savedJ);
 
@@ -3180,16 +3162,17 @@ int linsolsetup_gpu2(SolverData *sd, CVodeMem cv_mem,int convfail,N_Vector vtemp
 
   clock_t start = clock();
 
-  cudaMemcpy(bicg->dA,bicg->A,bicg->nrows*sizeof(double),cudaMemcpyHostToDevice);
+  cudaMemcpy(bicg->dA,bicg->A,bicg->nnz*sizeof(double),cudaMemcpyHostToDevice);
 
 #ifdef PMC_DEBUG_GPU
   timeMatScaleAddISendA+= clock() - start;
   counterMatScaleAddISendA++;
-#endif
 
   clock_t start2 = clock();
+#endif
 
   gpu_matScaleAddI(bicg->nrows,bicg->dA,bicg->djA,bicg->diA,-cv_mem->cv_gamma,bicg->blocks,bicg->threads);
+
 #ifdef PMC_DEBUG_GPU
   timeMatScaleAddI+= clock() - start2;
   counterMatScaleAddI++;
@@ -3204,10 +3187,12 @@ int linsolsetup_gpu2(SolverData *sd, CVodeMem cv_mem,int convfail,N_Vector vtemp
 //translating to cv new iteration
 int linsolsolve_gpu2(SolverData *sd, CVodeMem cv_mem)
 {
-  itsolver2 *bicg = &(sd->bicg);
+  itsolver *bicg = &(sd->bicg);
   int m, retval;
   realtype del, delp, dcon;
+#ifdef PMC_DEBUG_GPU
   clock_t start;
+#endif
 
   cv_mem->cv_mnewt = m = 0;
 
@@ -3229,12 +3214,13 @@ int linsolsolve_gpu2(SolverData *sd, CVodeMem cv_mem)
     //N_VLinearSum(cv_mem->cv_gamma, cv_mem->cv_ftemp, -ONE,
     //             cv_mem->cv_tempv, cv_mem->cv_tempv);
 
+#ifdef PMC_DEBUG_GPU
     start=clock();
-
+#endif
 
     // Call the lsolve function
-    //bicg->solveGPU();//todo separate ode variables from itsolver like dA from d0
-    solveGPU2(bicg,bicg->dA,bicg->djA,bicg->diA,bicg->dx,bicg->dtempv);
+    //todo use cuda get event timer to profile a gpu function with multiple calls to gpu without device_syncronhize
+    solveGPU(bicg,bicg->dA,bicg->djA,bicg->diA,bicg->dx,bicg->dtempv);
 
 #ifdef PMC_DEBUG_GPU
     timeBiConjGrad+= clock() - start;
@@ -3247,10 +3233,11 @@ int linsolsolve_gpu2(SolverData *sd, CVodeMem cv_mem)
       gpu_scaley(bicg->dx, 2.0 / (1.0 + cv_mem->cv_gamrat), bicg->nrows, bicg->blocks, bicg->threads);
     }
 
-    // Get WRMS norm of correction; add correction to acor and y
+    // Get WRMS norm of correction
     //del = vwrms_gpu2(b, cv_mem->cv_ewt);
     del = gpu_VWRMS_Norm(bicg->nrows, bicg->dx, bicg->dewt, bicg->aux, bicg->daux, (bicg->blocks + 1) / 2, bicg->threads);
 
+    //add correction to acor and y
     // z= a*x + b*y
     gpu_zaxpby(1.0, bicg->dacor, 1.0, bicg->dx, bicg->dacor, bicg->nrows, bicg->blocks, bicg->threads);
     gpu_zaxpby(1.0, bicg->dzn, 1.0, bicg->dacor, bicg->dcv_y, bicg->nrows, bicg->blocks, bicg->threads);
@@ -3293,7 +3280,9 @@ int linsolsolve_gpu2(SolverData *sd, CVodeMem cv_mem)
       }
     }
 
+#ifdef PMC_DEBUG_GPU
     start=clock();
+#endif
 
     // Save norm of correction, evaluate f, and loop again
     delp = del;
@@ -3315,10 +3304,23 @@ int linsolsolve_gpu2(SolverData *sd, CVodeMem cv_mem)
     // z= a*x + b*y
     gpu_zaxpby(1.0, bicg->dcv_y, -1.0, bicg->dzn, bicg->dacor, bicg->nrows, bicg->blocks, bicg->threads);
 
+    if (retval < 0){
+      cudaMemcpy(acor,bicg->dacor,bicg->nrows*sizeof(double),cudaMemcpyDeviceToHost);
+      cudaMemcpy(tempv,bicg->dx,bicg->nrows*sizeof(double),cudaMemcpyDeviceToHost);
+      return(CV_RHSFUNC_FAIL);
+    }
+    if (retval > 0) {
+      cudaMemcpy(acor,bicg->dacor,bicg->nrows*sizeof(double),cudaMemcpyDeviceToHost);
+      cudaMemcpy(tempv,bicg->dx,bicg->nrows*sizeof(double),cudaMemcpyDeviceToHost);
+      if ((!cv_mem->cv_jcur) && (cv_mem->cv_lsetup))
+        return(TRY_AGAIN);
+      else
+        return(RHSFUNC_RECVR);
+    }
+
     cv_mem->cv_nfe++;
 
   }
-
   //return 0;
 }
 

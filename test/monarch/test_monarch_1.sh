@@ -32,7 +32,7 @@ else
 
   #--print-gpu-summary
   #--analysis-metrics -f -o ../../../../mock_monarch_10800.nvprof
-  #exec_str="nvprof --analysis-metrics -f -o ../../../../mock_monarch_225.nvprof \
+  #exec_str="nvprof --print-gpu-summary \
   #../../mock_monarch config_simple.json interface_simple.json out/simple"
 
 fi

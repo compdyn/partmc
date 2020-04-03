@@ -23,7 +23,7 @@
 #include "sub_model_solver.h"
 #ifdef PMC_USE_GPU
 #include "cuda/camp_gpu_solver.h"
-#include "cuda/cvode_gpu2.h"
+#include "cuda/cvode_gpu.h"
 
 #include "cuda/camp_gpu_cusolver.h"
 #endif
@@ -818,7 +818,7 @@ int camp_solver_update_model_state(N_Vector solver_state, ModelData *model_data,
   for (int i_cell = 0; i_cell < n_cells; i_cell++) {
     for (int i_spec = 0; i_spec < n_state_var; ++i_spec) {
       if (model_data->var_type[i_spec] == CHEM_SPEC_VARIABLE) {
-        if (NV_DATA_S(solver_state)[i_dep_var] < -SMALL) {//todo uncomment this triggers failure
+        if (NV_DATA_S(solver_state)[i_dep_var] < -SMALL) {//uncomment this triggers failure
 #ifdef FAILURE_DETAIL
           printf("\nFailed model state update: [spec %d] = %le", i_spec,
                  NV_DATA_S(solver_state)[i_dep_var]);
@@ -1023,6 +1023,7 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
   // Update the state array with the current dependent variable values
   // Signal a recoverable error (positive return value) for negative
   // concentrations.
+
   if (camp_solver_update_model_state(y, md, ZERO, ZERO) != CAMP_SOLVER_SUCCESS)
     return 1;
 

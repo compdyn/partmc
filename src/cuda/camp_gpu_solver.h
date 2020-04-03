@@ -21,7 +21,6 @@
 //Value to consider data size too big -> Memory optimization will change below and under the limit
 #define DATA_SIZE_LIMIT_OPT 2000
 
-
 //Functions to debug cuda errors
 #define HANDLE_ERROR( err ) (HandleError( err, __FILE__, __LINE__ ))
 #define HANDLE_ERROR2( ) (HandleError2( __FILE__, __LINE__ ))
@@ -33,6 +32,8 @@ void solver_new_gpu_cu(ModelData *model_data, int n_dep_var, int n_state_var, in
      int n_rxn_int_param, int n_rxn_float_param, int n_rxn_env_param, int n_cells);
 void solver_set_rxn_data_gpu(SolverData *sd);
 void rxn_update_env_state_gpu(ModelData *model_data);
+int camp_solver_update_model_state_gpu(N_Vector solver_state, ModelData *model_data,
+                                       realtype threshhold, realtype replacement_value);
 void rxn_calc_deriv_gpu(ModelData *model_data, N_Vector deriv, realtype time_step);
 void rxn_calc_deriv_aux(ModelData *model_data, double *deriv_data, realtype time_step);
 void rxn_fusion_deriv_gpu(ModelData *model_data, N_Vector deriv);

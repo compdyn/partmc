@@ -13,7 +13,7 @@
 
 //#include "libsolv2.h"
 
-//#include<cublas.h> //todo fix cublas not working
+//#include<cublas.h> //todo fix cublas not compiling fine
 //#include<cublas_v2.h>
 
 using namespace std;
@@ -70,33 +70,31 @@ extern "C++" void cudaGetLastErrorC(){
      }
 }
 
-
 __global__ void cudamatScaleAddI(int nrows, double* dA, int* djA, int* diA, double alpha)
 {
 	int row= threadIdx.x + blockDim.x*blockIdx.x;
-   	if(row < nrows){
-            int jstart = diA[row];
-            int jend   = diA[row+1];
-            for(int j=jstart; j<jend; j++)
-		{
-	            if(djA[j]==row){
-			dA[j] = 1.0 + alpha*dA[j];
-		    }
-		    else{
-			dA[j] = alpha*dA[j];
-		    }	   
-		}
-	}
-        
+  if(row < nrows)
+  {
+    int jstart = diA[row];
+    int jend   = diA[row+1];
+    for(int j=jstart; j<jend; j++)
+    {
+      if(djA[j]==row)
+      {
+        dA[j] = 1.0 + alpha*dA[j];
+      }
+      else{
+        dA[j] = alpha*dA[j];
+      }
+    }
+  }
 }
 
-
-// OJO: La matrix ya tiene que estar cargada en la GPU para que funcione
-// Esta escrito basandose en formato CSR, pero funciona para CSC tambien
-// dA  : array de coeficientes de la matriz en la GPU (tama�o nnz)
-// djA : array de columnas de la matriz en la GPU ( tama�o nnz)
-// diA : array de filas de la matriz en la GPU (tama�o nrows+1)
-// alpha : coeficiente para escalar la matriz (ni idea de donde sale:P )
+// Based on CSR format, works on CSC too
+// dA  : Matrix values (nnz size)
+// djA : Matrix columns (nnz size)
+// diA : Matrix rows (nrows+1 size)
+// alpha : Scale factor
 //extern C
 extern "C++" void gpu_matScaleAddI(int nrows, double* dA, int* djA, int* diA, double alpha, int blocks, int threads)
 {
@@ -163,15 +161,16 @@ extern "C++" void gpu_yequalsconst(double *dy, double constant, int nrows, int b
 __global__ void cudaSpmvCSR(double* dx, double* db, int nrows, double* dA, int* djA, int* diA)
 {
 	int row= threadIdx.x + blockDim.x*blockIdx.x;
-   	if(row < nrows){
-            int jstart = diA[row];
-            int jend   = diA[row+1];
-            double sum = 0.0;
-            for(int j=jstart; j<jend; j++)
-		{
-			sum+= db[djA[j]]*dA[j];
-		}
-	    dx[row]=sum;
+  if(row < nrows)
+  {
+    int jstart = diA[row];
+    int jend   = diA[row+1];
+    double sum = 0.0;
+    for(int j=jstart; j<jend; j++)
+    {
+      sum+= db[djA[j]]*dA[j];
+    }
+    dx[row]=sum;
 	}
  
 }
@@ -180,30 +179,32 @@ __global__ void cudaSpmvCSC(double* dx, double* db, int nrows, double* dA, int* 
 {
 	double mult;
 	int row= threadIdx.x + blockDim.x*blockIdx.x;
-   	if(row < nrows){
-            int jstart = diA[row];
-            int jend   = diA[row+1];
-            for(int j=jstart; j<jend; j++)
-		{
-			mult = db[row]*dA[j];
-			atomicAdd(&(dx[djA[j]]),mult);
-//			dx[djA[j]]+= db[row]*dA[j];
-		}
+  if(row < nrows)
+  {
+    int jstart = diA[row];
+    int jend   = diA[row+1];
+    for(int j=jstart; j<jend; j++)
+    {
+      mult = db[row]*dA[j];
+      atomicAdd(&(dx[djA[j]]),mult);
+//		dx[djA[j]]+= db[row]*dA[j];
+    }
 	}
 }
 
 extern "C++" void gpu_spmv(double* dx ,double* db, int nrows, double* dA, int *djA,int *diA,int mattype,int blocks,int  threads)
 {
    dim3 dimGrid(blocks,1,1);
-   dim3 dimBlock(threads,1,1); 
+   dim3 dimBlock(threads,1,1);
 
-   if(mattype==0) {
-	cudaSpmvCSR<<<dimGrid,dimBlock>>>(dx, db, nrows, dA, djA, diA);		
+   if(mattype==0)
+   {
+     cudaSpmvCSR<<<dimGrid,dimBlock>>>(dx, db, nrows, dA, djA, diA);
    }
    else
    {
-	cudasetconst<<<dimGrid,dimBlock>>>(dx,0.0, nrows);
-	cudaSpmvCSC<<<dimGrid,dimBlock>>>(dx, db, nrows, dA, djA, diA);
+	    cudasetconst<<<dimGrid,dimBlock>>>(dx, 0.0, nrows);
+	    cudaSpmvCSC<<<dimGrid,dimBlock>>>(dx, db, nrows, dA, djA, diA);
    }
 }
 
@@ -266,22 +267,69 @@ __global__ void cudadotxy(double *g_idata1, double *g_idata2, double *g_odata, u
   }
 
   if (tid == 0) g_odata[blockIdx.x] = sdata[0];
+  //__syncthreads();
+  //atomicAdd(&(g_odata[0]),g_odata[blockIdx.x]); //Takes considerably WAY MORE than cpu calc
 }
 
+__global__ void cudareducey(double *g_odata, unsigned int n)
+{
+  extern __shared__ double sdata[];
+  unsigned int tid = threadIdx.x;
+
+  double mySum =  (tid < n) ? g_odata[tid] : 0;
+
+  sdata[tid] = mySum;
+  __syncthreads();
+
+  for (unsigned int s=blockDim.x/2; s>0; s>>=1)
+  {
+    if (tid < s)
+      sdata[tid] = mySum = mySum + sdata[tid + s];
+
+    __syncthreads();
+  }
+
+  if (tid == 0) g_odata[blockIdx.x] = sdata[0];
+}
+
+//threads need to be pow of 2 //todo remove h_temp since not needed now
 extern "C++" double gpu_dotxy(double* vec1, double* vec2, double* h_temp, double* d_temp, int nrows, int blocks,int threads)
 {
   dim3 dimGrid(blocks,1,1);
   dim3 dimBlock(threads,1,1);
 
   cudadotxy<<<dimGrid,dimBlock,threads*sizeof(double)>>>(vec1,vec2,d_temp,nrows);
-  cudaMemcpy(h_temp, d_temp, blocks * sizeof(double), cudaMemcpyDeviceToHost);
 
+  int redsize= sqrt(blocks) +1;
+  redsize=pow(2,redsize);
+
+  dim3 dimGrid2(1,1,1);
+  dim3 dimBlock2(redsize,1,1);
+
+  cudareducey<<<dimGrid2,dimBlock2,redsize*sizeof(double)>>>(d_temp,blocks);
+
+  double sum;
+  cudaMemcpy(&sum, d_temp, sizeof(double), cudaMemcpyDeviceToHost);
+
+  return sum;
+
+/*
+  cudaMemcpy(h_temp, d_temp, blocks * sizeof(double), cudaMemcpyDeviceToHost);
   double sum=0;
   for(int i=0;i<blocks;i++)
   {
     sum+=h_temp[i];
   }
   return sum;
+*/
+  /*dim3 dimGrid2(1,1,1);
+  dim3 dimBlock2(blocks,1,1);
+
+  //Cuda only sum kernel call
+  //cudareducey<<<dimGrid2,dimBlock2,blocks*sizeof(double)>>>(d_temp,blocks); //Takes quasi WAY MORE than cpu calc
+
+  cudaMemcpy(h_temp, d_temp, sizeof(double), cudaMemcpyDeviceToHost);
+  return h_temp[0];*/
 }
 
 /*
@@ -334,9 +382,9 @@ extern "C++" void gpu_multxy(double* dz, double* dx ,double* dy, int nrows, int 
    cudamultxy<<<dimGrid,dimBlock>>>(dz,dx,dy,nrows);
 }
 
-
 // z= a*x + b*y
-__global__ void cudazaxpby(double* dz, double* dx,double* dy, double a, double b, int nrows)
+//__global__ void cudazaxpby(double* dz, double* dx,double* dy, double a, double b, int nrows)
+__global__ void cudazaxpby(double a, double* dx, double b, double* dy, double* dz, int nrows)
 {
 	int row= threadIdx.x + blockDim.x*blockIdx.x;
    	if(row < nrows){
@@ -344,13 +392,13 @@ __global__ void cudazaxpby(double* dz, double* dx,double* dy, double a, double b
 	}
 }
 
-extern "C++" void gpu_zaxpby(double a, double* dx ,double b, double* dy, double* dz, int nrows, int blocks, int threads)
+extern "C++" void gpu_zaxpby(double a, double* dx, double b, double* dy, double* dz, int nrows, int blocks, int threads)
 {
 
    dim3 dimGrid(blocks,1,1);
    dim3 dimBlock(threads,1,1); 
-   
-   cudazaxpby<<<dimGrid,dimBlock>>>(dz,dx,dy,a,b,nrows);
+
+  cudazaxpby<<<dimGrid,dimBlock>>>(a,dx,b,dy,dz,nrows);
 }
 
 // y= a*x + y
@@ -406,12 +454,27 @@ extern "C++" double gpu_VWRMS_Norm(int n, double* vec1,double* vec2,double* h_te
 
   cudaMemcpy(h_temp, d_temp, blocks * sizeof(double), cudaMemcpyDeviceToHost);
 
+  int redsize= sqrt(blocks) +1;
+  redsize=pow(2,redsize);
+
+  dim3 dimGrid2(1,1,1);
+  dim3 dimBlock2(redsize,1,1);
+
+  cudareducey<<<dimGrid2,dimBlock2,redsize*sizeof(double)>>>(d_temp,blocks);
+
+  double sum;
+  cudaMemcpy(&sum, d_temp, sizeof(double), cudaMemcpyDeviceToHost);
+
+  return sqrt(sum/n);
+
+/*
   double sum=0;
   for(int i=0;i<blocks;i++)
   {
     sum+=h_temp[i];
   }
   return sqrt(sum/n);
+  */
 }
 
 // y=alpha*y
@@ -429,5 +492,229 @@ extern "C++" void gpu_scaley(double* dy, double a, int nrows, int blocks, int th
   dim3 dimBlock(threads,1,1);
 
   cudascaley<<<dimGrid,dimBlock>>>(dy,a,nrows);
+}
+
+
+
+
+// Device functions (equivalent to global functions but in device to allow calls from gpu)
+__device__ void cudaDevicematScaleAddI(int nrows, double* dA, int* djA, int* diA, double alpha)
+{
+  int row= threadIdx.x + blockDim.x*blockIdx.x;
+  if(row < nrows)
+  {
+    int jstart = diA[row];
+    int jend   = diA[row+1];
+    for(int j=jstart; j<jend; j++)
+    {
+      if(djA[j]==row)
+      {
+        dA[j] = 1.0 + alpha*dA[j];
+      }
+      else{
+        dA[j] = alpha*dA[j];
+      }
+    }
+  }
+}
+
+// Diagonal precond
+__device__ void cudaDevicediagprecond(int nrows, double* dA, int* djA, int* diA, double* ddiag)
+{
+  int row= threadIdx.x + blockDim.x*blockIdx.x;
+  if(row < nrows){
+    int jstart=diA[row];
+    int jend  =diA[row+1];
+    for(int j=jstart;j<jend;j++){
+      if(djA[j]==row){
+        if(dA[j]!=0.0)
+          ddiag[row]= 1.0/dA[j];
+        else{
+          ddiag[row]= 1.0;
+        }
+      }
+    }
+  }
+
+}
+
+// y = constant
+__device__ void cudaDevicesetconst(double* dy,double constant,int nrows)
+{
+  int row= threadIdx.x + blockDim.x*blockIdx.x;
+  if(row < nrows){
+    dy[row]=constant;
+  }
+}
+
+// x=A*b
+__device__ void cudaDeviceSpmvCSR(double* dx, double* db, int nrows, double* dA, int* djA, int* diA)
+{
+  int row= threadIdx.x + blockDim.x*blockIdx.x;
+  if(row < nrows)
+  {
+    int jstart = diA[row];
+    int jend   = diA[row+1];
+    double sum = 0.0;
+    for(int j=jstart; j<jend; j++)
+    {
+      sum+= db[djA[j]]*dA[j];
+    }
+    dx[row]=sum;
+  }
+
+}
+
+__device__ void cudaDeviceSpmvCSC(double* dx, double* db, int nrows, double* dA, int* djA, int* diA)
+{
+  double mult;
+  int row= threadIdx.x + blockDim.x*blockIdx.x;
+  if(row < nrows)
+  {
+    int jstart = diA[row];
+    int jend   = diA[row+1];
+    for(int j=jstart; j<jend; j++)
+    {
+      mult = db[row]*dA[j];
+      atomicAdd(&(dx[djA[j]]),mult);
+//		dx[djA[j]]+= db[row]*dA[j];
+    }
+  }
+}
+
+// y= a*x+ b*y
+__device__ void cudaDeviceaxpby(double* dy,double* dx, double a, double b, int nrows)
+{
+  int row= threadIdx.x + blockDim.x*blockIdx.x;
+  if(row < nrows){
+    dy[row]= a*dx[row] + b*dy[row];
+  }
+}
+
+// y = x
+__device__ void cudaDeviceyequalsx(double* dy,double* dx,int nrows)
+{
+  int row= threadIdx.x + blockDim.x*blockIdx.x;
+  if(row < nrows){
+    dy[row]=dx[row];
+  }
+}
+
+__device__ void cudaDevicereducey(double *g_odata, unsigned int n)
+{
+  extern __shared__ double sdata[];
+  unsigned int tid = threadIdx.x;
+  //int id = blockIdx.x * blockDim.x + threadIdx.x;
+
+  double mySum =  (tid < n) ? g_odata[tid] : 0;
+
+  sdata[tid] = mySum;
+  __syncthreads();
+
+  for (unsigned int s=blockDim.x/2; s>0; s>>=1)
+  {
+    if (tid < s)
+      sdata[tid] = mySum = mySum + sdata[tid + s];
+
+    __syncthreads();
+  }
+
+  if (tid == 0) g_odata[blockIdx.x] = sdata[0];
+}
+
+__device__ void cudaDevicedotxy(double *g_idata1, double *g_idata2, double *g_odata, unsigned int n)
+{
+  extern __shared__ double sdata[];
+  unsigned int tid = threadIdx.x;
+  unsigned int i = blockIdx.x*(blockDim.x*2) + threadIdx.x;
+
+  double mySum = (i < n) ? g_idata1[i]*g_idata2[i] : 0;
+
+  if (i + blockDim.x < n)
+    mySum += g_idata1[i+blockDim.x]*g_idata2[i+blockDim.x];
+
+  sdata[tid] = mySum;
+  __syncthreads();
+
+  for (unsigned int s=blockDim.x/2; s>0; s>>=1)
+  {
+    if (tid < s)
+      sdata[tid] = mySum = mySum + sdata[tid + s];
+
+    __syncthreads();
+  }
+
+  if (tid == 0) g_odata[blockIdx.x] = sdata[0];
+}
+
+// z= a*z + x + b*y
+__device__ void cudaDevicezaxpbypc(double* dz, double* dx,double* dy, double a, double b, int nrows)
+{
+  int row= threadIdx.x + blockDim.x*blockIdx.x;
+  if(row < nrows){
+    dz[row]=a*dz[row]  + dx[row] + b*dy[row];
+  }
+}
+
+// z= x*y
+__device__ void cudaDevicemultxy(double* dz, double* dx,double* dy, int nrows)
+{
+  int row= threadIdx.x + blockDim.x*blockIdx.x;
+  if(row < nrows){
+    dz[row]=dx[row]*dy[row];
+  }
+}
+
+// z= a*x + b*y
+__device__ void cudaDevicezaxpby(double a, double* dx, double b, double* dy, double* dz, int nrows)
+{
+  int row= threadIdx.x + blockDim.x*blockIdx.x;
+  if(row < nrows){
+    dz[row]=a*dx[row] + b*dy[row];
+  }
+}
+
+// y= a*x + y
+__device__ void cudaDeviceaxpy(double* dy,double* dx, double a, int nrows)
+{
+  int row= threadIdx.x + blockDim.x*blockIdx.x;
+  if(row < nrows){
+    dy[row]=a*dx[row] + dy[row];
+  }
+}
+
+// sqrt(sum ( (x_i*y_i)^2)/n)
+__device__ void cudaDeviceDVWRMS_Norm(double *g_idata1, double *g_idata2, double *g_odata, unsigned int n)
+{
+  extern __shared__ double sdata[];
+  unsigned int tid = threadIdx.x;
+  unsigned int i = blockIdx.x*(blockDim.x*2) + threadIdx.x;
+
+  double mySum = (i < n) ? g_idata1[i]*g_idata1[i]*g_idata2[i]*g_idata2[i] : 0;
+
+  if (i + blockDim.x < n)
+    mySum += g_idata1[i+blockDim.x]*g_idata1[i+blockDim.x]*g_idata2[i+blockDim.x]*g_idata2[i+blockDim.x];
+
+  sdata[tid] = mySum;
+  __syncthreads();
+
+  for (unsigned int s=blockDim.x/2; s>0; s>>=1)
+  {
+    if (tid < s)
+      sdata[tid] = mySum = mySum + sdata[tid + s];
+
+    __syncthreads();
+  }
+
+  if (tid == 0) g_odata[blockIdx.x] = sdata[0];
+}
+
+// y=alpha*y
+__device__ void cudaDevicescaley(double* dy, double a, int nrows)
+{
+  int row= threadIdx.x + blockDim.x*blockIdx.x;
+  if(row < nrows){
+    dy[row]=a*dy[row];
+  }
 }
 

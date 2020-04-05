@@ -325,10 +325,10 @@ int aero_rep_get_aero_conc_type(ModelData *model_data, int aero_rep_idx,
 }
 
 /** \brief Get the total mass of an aerosol phase in this representation
- **        \f$m\f$ (\f$\mbox{\si{\micro\gram\per\cubic\metre}}\f$)
+ **        \f$m\f$ (\f$\mbox{\si{\kilogram\per\cubic\metre}}\f$)
  *
  * Calculates total aerosol phase mass, \f$m\f$
- * (\f$\mbox{\si{\micro\gram\per\cubic\metre}}\f$), as well as the set of
+ * (\f$\mbox{\si{\kilogram\per\cubic\metre}}\f$), as well as the set of
  * \f$\frac{\partial m}{\partial y}\f$ where \f$y\f$ are variables on the
  * solver state array.
  *
@@ -338,12 +338,12 @@ int aero_rep_get_aero_conc_type(ModelData *model_data, int aero_rep_idx,
  *                       representation
  * \param aero_phase_mass Pointer to hold calculated aerosol-phase mass,
  *                        \f$m\f$
- *                        (\f$\mbox{\si{\micro\gram\per\cubic\metre}}\f$)
+ *                        (\f$\mbox{\si{\kilogram\per\cubic\metre}}\f$)
  * \param partial_deriv Pointer to the set of partial derivatives to be
  *                      calculated \f$\frac{\partial m}{\partial y}\f$, or a
  *                      NULL pointer if no partial derivatives are needed
  */
-void aero_rep_get_aero_phase_mass__ug_m3(ModelData *model_data,
+void aero_rep_get_aero_phase_mass__kg_m3(ModelData *model_data,
                                          int aero_rep_idx, int aero_phase_idx,
                                          double *aero_phase_mass,
                                          double *partial_deriv) {
@@ -364,12 +364,12 @@ void aero_rep_get_aero_phase_mass__ug_m3(ModelData *model_data,
   // Get the particle number concentration
   switch (aero_rep_type) {
     case AERO_REP_MODAL_BINNED_MASS:
-      aero_rep_modal_binned_mass_get_aero_phase_mass__ug_m3(
+      aero_rep_modal_binned_mass_get_aero_phase_mass__kg_m3(
           model_data, aero_phase_idx, aero_phase_mass, partial_deriv,
           aero_rep_int_data, aero_rep_float_data, aero_rep_env_data);
       break;
     case AERO_REP_SINGLE_PARTICLE:
-      aero_rep_single_particle_get_aero_phase_mass__ug_m3(
+      aero_rep_single_particle_get_aero_phase_mass__kg_m3(
           model_data, aero_phase_idx, aero_phase_mass, partial_deriv,
           aero_rep_int_data, aero_rep_float_data, aero_rep_env_data);
       break;

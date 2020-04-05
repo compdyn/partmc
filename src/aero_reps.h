@@ -42,7 +42,7 @@ void aero_rep_modal_binned_mass_get_aero_conc_type(int aero_phase_idx,
                                                    int *aero_rep_int_data,
                                                    double *aero_rep_float_data,
                                                    double *aero_rep_env_data);
-void aero_rep_modal_binned_mass_get_aero_phase_mass__ug_m3(
+void aero_rep_modal_binned_mass_get_aero_phase_mass__kg_m3(
     ModelData *model_data, int aero_phase_idx, double *aero_phase_mass,
     double *partial_deriv, int *aero_rep_int_data, double *aero_rep_float_data,
     double *aero_rep_env_data);
@@ -95,7 +95,7 @@ void aero_rep_single_particle_get_aero_conc_type(int aero_phase_idx,
                                                  int *aero_rep_int_data,
                                                  double *aero_rep_float_data,
                                                  double *aero_rep_env_data);
-void aero_rep_single_particle_get_aero_phase_mass__ug_m3(
+void aero_rep_single_particle_get_aero_phase_mass__kg_m3(
     ModelData *model_data, int aero_phase_idx, double *aero_phase_mass,
     double *partial_deriv, int *aero_rep_int_data, double *aero_rep_float_data,
     double *aero_rep_env_data);

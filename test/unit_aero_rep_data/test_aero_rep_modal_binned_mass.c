@@ -24,7 +24,7 @@
 #define N_JAC_ELEM 5   // (bin 4 phase 1)
 #define N_JAC_ELEM_2 6 // (mode 1 phase 2)
 
-// Test concentrations (ug/m3)
+// Test concentrations (kg/m3)
 // (bin 4)
 #define CONC_1A 1.0
 #define CONC_1B 2.0
@@ -120,20 +120,20 @@ int test_number_conc(ModelData * model_data, N_Vector state) {
   double dp_bin4 = pow(10.0,(log10(1.0e-6) - log10(8.0e-9)) / 7.0 * 3.0 + log10(8.0e-9));
   double vp_bin4  = 4.0/3.0*M_PI * pow(dp_bin4/2.0, 3.0);
 
-  double real_number_conc = (CONC_1A * 1.0e-9 / DENSITY_A +
-                             CONC_1B * 1.0e-9 / DENSITY_B +
-                             CONC_1C * 1.0e-9 / DENSITY_C +
-                             CONC_3B * 1.0e-9 / DENSITY_B +
-                             CONC_3E * 1.0e-9 / DENSITY_E) / vp_bin4;
+  double real_number_conc = (CONC_1A / DENSITY_A +
+                             CONC_1B / DENSITY_B +
+                             CONC_1C / DENSITY_C +
+                             CONC_3B / DENSITY_B +
+                             CONC_3E / DENSITY_E) / vp_bin4;
 
   double vp_mode1 = M_PI/6.0 * pow(1.2e-6, 3.0) * exp(9.0/2.0 * 1.2 * 1.2);
 
-  double real_number_conc_2 = (CONC_2_1A * 1.0e-9 / DENSITY_A +
-                               CONC_2_1B * 1.0e-9 / DENSITY_B +
-                               CONC_2_1C * 1.0e-9 / DENSITY_C +
-                               CONC_2_2C * 1.0e-9 / DENSITY_C +
-                               CONC_2_2D * 1.0e-9 / DENSITY_D +
-                               CONC_2_2E * 1.0e-9 / DENSITY_E) / vp_mode1;
+  double real_number_conc_2 = (CONC_2_1A / DENSITY_A +
+                               CONC_2_1B / DENSITY_B +
+                               CONC_2_1C / DENSITY_C +
+                               CONC_2_2C / DENSITY_C +
+                               CONC_2_2D / DENSITY_D +
+                               CONC_2_2E / DENSITY_E) / vp_mode1;
 
   ret_val += ASSERT_MSG(fabs(number_conc-real_number_conc) <
                         1.0e-10 * real_number_conc,
@@ -147,23 +147,23 @@ int test_number_conc(ModelData * model_data, N_Vector state) {
   // (bin 4)
   ret_val += ASSERT_MSG(partial_deriv[0] == 999.9,
                         "Bad Jacobian index (-1)");
-  real_partial = ONE * 1.0e-9 / DENSITY_A / vp_bin4;
+  real_partial = ONE / DENSITY_A / vp_bin4;
   ret_val += ASSERT_MSG(fabs(partial_deriv[1]-real_partial) <
                         1.0e-10 * fabs(real_partial),
                         "Bad Jacobian element");
-  real_partial = ONE * 1.0e-9 / DENSITY_B / vp_bin4;
+  real_partial = ONE / DENSITY_B / vp_bin4;
   ret_val += ASSERT_MSG(fabs(partial_deriv[2]-real_partial) <
                         1.0e-10 * fabs(real_partial),
                         "Bad Jacobian element");
-  real_partial = ONE * 1.0e-9 / DENSITY_C / vp_bin4;
+  real_partial = ONE / DENSITY_C / vp_bin4;
   ret_val += ASSERT_MSG(fabs(partial_deriv[3]-real_partial) <
                         1.0e-10 * fabs(real_partial),
                         "Bad Jacobian element");
-  real_partial = ONE * 1.0e-9 / DENSITY_B / vp_bin4;
+  real_partial = ONE / DENSITY_B / vp_bin4;
   ret_val += ASSERT_MSG(fabs(partial_deriv[4]-real_partial) <
                         1.0e-10 * fabs(real_partial),
                         "Bad Jacobian element");
-  real_partial = ONE * 1.0e-9 / DENSITY_E / vp_bin4;
+  real_partial = ONE / DENSITY_E / vp_bin4;
   ret_val += ASSERT_MSG(fabs(partial_deriv[5]-real_partial) <
                         1.0e-10 * fabs(real_partial),
                         "Bad Jacobian element");
@@ -173,27 +173,27 @@ int test_number_conc(ModelData * model_data, N_Vector state) {
   // (mode 1)
   ret_val += ASSERT_MSG(partial_deriv_2[0] == 999.9,
                         "Bad Jacobian index (-1)");
-  real_partial = ONE * 1.0e-9 / DENSITY_A / vp_mode1;
+  real_partial = ONE / DENSITY_A / vp_mode1;
   ret_val += ASSERT_MSG(fabs(partial_deriv_2[1]-real_partial) <
                         1.0e-10 * fabs(real_partial),
                         "Bad Jacobian element");
-  real_partial = ONE * 1.0e-9 / DENSITY_B / vp_mode1;
+  real_partial = ONE / DENSITY_B / vp_mode1;
   ret_val += ASSERT_MSG(fabs(partial_deriv_2[2]-real_partial) <
                         1.0e-10 * fabs(real_partial),
                         "Bad Jacobian element");
-  real_partial = ONE * 1.0e-9 / DENSITY_C / vp_mode1;
+  real_partial = ONE / DENSITY_C / vp_mode1;
   ret_val += ASSERT_MSG(fabs(partial_deriv_2[3]-real_partial) <
                         1.0e-10 * fabs(real_partial),
                         "Bad Jacobian element");
-  real_partial = ONE * 1.0e-9 / DENSITY_C / vp_mode1;
+  real_partial = ONE / DENSITY_C / vp_mode1;
   ret_val += ASSERT_MSG(fabs(partial_deriv_2[4]-real_partial) <
                         1.0e-10 * fabs(real_partial),
                         "Bad Jacobian element");
-  real_partial = ONE * 1.0e-9 / DENSITY_D / vp_mode1;
+  real_partial = ONE / DENSITY_D / vp_mode1;
   ret_val += ASSERT_MSG(fabs(partial_deriv_2[5]-real_partial) <
                         1.0e-10 * fabs(real_partial),
                         "Bad Jacobian element");
-  real_partial = ONE * 1.0e-9 / DENSITY_E / vp_mode1;
+  real_partial = ONE / DENSITY_E / vp_mode1;
   ret_val += ASSERT_MSG(fabs(partial_deriv_2[6]-real_partial) <
                         1.0e-10 * fabs(real_partial),
                         "Bad Jacobian element");
@@ -216,7 +216,7 @@ int test_aero_phase_mass(ModelData * model_data, N_Vector state) {
 
   for( int i = 0; i < N_JAC_ELEM+2; ++i ) partial_deriv[i] = 999.9;
 
-  aero_rep_get_aero_phase_mass__ug_m3(model_data, AERO_REP_IDX, AERO_PHASE_IDX,
+  aero_rep_get_aero_phase_mass__kg_m3(model_data, AERO_REP_IDX, AERO_PHASE_IDX,
                                &phase_mass, &(partial_deriv[1]));
 
   double mass = CONC_1A + CONC_1B + CONC_1C;

@@ -303,16 +303,16 @@ contains
 
       ! Save the initial concentrations
       true_conc(:,:) = 0.0
-      true_conc(0,idx_A) = 13.5
+      true_conc(0,idx_A) = 13.5d-9
       true_conc(0,idx_B) = 0.0
       true_conc(0,idx_C) = 0.0
       true_conc(:,idx_BC_act) = 0.5
       true_conc(0,idx_D) = 0.0
       true_conc(0,idx_E) = 0.0
-      true_conc(0,idx_F) = 8.0
-      true_conc(0,idx_G) = 12.0
+      true_conc(0,idx_F) = 8.0d-9
+      true_conc(0,idx_G) = 12.0d-9
       true_conc(0,idx_H) = 0.0
-      true_conc(:,idx_H2O) = 1.4e-2
+      true_conc(:,idx_H2O) = 1.4e-11
       model_conc(0,:) = true_conc(0,:)
 
       ! Henry's Law equilibrium constants (M/ppm)
@@ -332,7 +332,7 @@ contains
       k3_reverse = 1.56e-4                                           ! (1/s)
       k3_forward = Keq_3 * k3_reverse                                ! (1/s)
 
-      ! Determine the equilibrium concentrations (ug/m3)
+      ! Determine the equilibrium concentrations (kg/m3)
       !
       ! Reaction 1 (equil values in M)
       !

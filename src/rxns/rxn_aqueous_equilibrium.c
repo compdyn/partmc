@@ -256,7 +256,7 @@ void rxn_aqueous_equilibrium_update_env_state(ModelData *model_data,
 }
 
 /** \brief Calculate the reaction rate for a set of conditions using the
- *         standard equation per mixing ratio of water [M_X/s*ug_H2O/m^3]
+ *         standard equation per mixing ratio of water [M_X/s*kg_H2O/m^3]
  * \param rxn_int_data Pointer to the reaction integer data
  * \param rxn_float_data Pointer to the reaction floating point data
  * \param rxn_env_data Pointer to the environment-dependent parameters
@@ -264,7 +264,7 @@ void rxn_aqueous_equilibrium_update_env_state(ModelData *model_data,
  *                         return the partial derivative d_rate/d_H2O
  * \param rate_forward [output] calculated forward rate
  * \param rate_reverse [output] calculated reverse rate
- * \return reaction rate per mixing ratio of water [M_X/s*ug_H2O/m^3]
+ * \return reaction rate per mixing ratio of water [M_X/s*kg_H2O/m^3]
  */
 long double calc_standard_rate(int *rxn_int_data, double *rxn_float_data,
                                double *rxn_env_data, bool is_water_partial,
@@ -350,7 +350,7 @@ void rxn_aqueous_equilibrium_calc_deriv_contrib(
       continue;
     }
 
-    // Reactants change as (reverse - forward) (ug/m3/s)
+    // Reactants change as (reverse - forward) (kg/m3/s)
     for (int i_react = 0; i_react < NUM_REACT_; i_react++) {
       if (DERIV_ID_(i_deriv) < 0) {
         i_deriv++;
@@ -362,7 +362,7 @@ void rxn_aqueous_equilibrium_calc_deriv_contrib(
                                 rate_reverse / MASS_FRAC_TO_M_(i_react));
     }
 
-    // Products change as (forward - reverse) (ug/m3/s)
+    // Products change as (forward - reverse) (kg/m3/s)
     for (int i_prod = 0; i_prod < NUM_PROD_; i_prod++) {
       if (DERIV_ID_(i_deriv) < 0) {
         i_deriv++;

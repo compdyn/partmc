@@ -77,7 +77,7 @@ int test_effective_radius(ModelData * model_data, N_Vector state) {
                             CONC_2D / DENSITY_D +
                             CONC_2E / DENSITY_E +
                             CONC_3B / DENSITY_B +
-                            CONC_3E / DENSITY_E ) * 1.0e-9; // volume density (m3/m3)
+                            CONC_3E / DENSITY_E ); // volume density (m3/m3)
   double eff_rad_expected = pow( ( 3.0 / 4.0 / 3.14159265359 * volume_density ), 1.0/3.0 );
   ret_val += ASSERT_MSG(fabs(eff_rad-eff_rad_expected) < 1.0e-6*eff_rad_expected,
                         "Bad effective radius");
@@ -85,8 +85,7 @@ int test_effective_radius(ModelData * model_data, N_Vector state) {
   ret_val += ASSERT_MSG(partial_deriv[0] = 999.9,
                         "Bad Jacobian (-1)");
   double d_eff_rad_dx = 1.0 / 4.0 / 3.14159265359 *
-                        pow( 3.0 / 4.0 / 3.14159265359 * volume_density, -2.0/3.0 ) *
-                        1.0e-9;
+                        pow( 3.0 / 4.0 / 3.14159265359 * volume_density, -2.0/3.0 );
   ret_val += ASSERT_MSG(fabs(partial_deriv[1] - d_eff_rad_dx / DENSITY_A) <
                         1.0e-10 * partial_deriv[1], "Bad Jacobian element");
   ret_val += ASSERT_MSG(fabs(partial_deriv[2] - d_eff_rad_dx / DENSITY_B) <
@@ -152,7 +151,7 @@ int test_aero_phase_mass(ModelData * model_data, N_Vector state) {
 
   for( int i = 0; i < N_JAC_ELEM+2; ++i ) partial_deriv[i] = 999.9;
 
-  aero_rep_get_aero_phase_mass__ug_m3(model_data, AERO_REP_IDX, AERO_PHASE_IDX,
+  aero_rep_get_aero_phase_mass__kg_m3(model_data, AERO_REP_IDX, AERO_PHASE_IDX,
                                &phase_mass, &(partial_deriv[1]));
 
   double mass = CONC_2C + CONC_2D + CONC_2E;

@@ -69,7 +69,7 @@
 #define EFFECTIVE_RADIUS_(x, b) \
   (float_data[MODE_FLOAT_PROP_LOC_(x) + b * 3 + 2])
 
-// Real-time phase mass (ug/m^3) - used for modes and bins - for modes, b=0
+// Real-time phase mass (kg/m^3) - used for modes and bins - for modes, b=0
 #define PHASE_MASS_(x, y, b)                                                   \
   (float_data[MODE_FLOAT_PROP_LOC_(x) + 3 * NUM_BINS_(x) + b * NUM_PHASE_(x) + \
               y])
@@ -203,7 +203,7 @@ void aero_rep_modal_binned_mass_update_state(ModelData *model_data,
           state += PHASE_STATE_ID_(i_section, i_phase, 0);
 
           // Set the aerosol-phase mass and average MW
-          aero_phase_get_mass__ug_m3(
+          aero_phase_get_mass__kg_m3(
               model_data, PHASE_MODEL_DATA_ID_(i_section, i_phase, 0), state,
               &(PHASE_MASS_(i_section, i_phase, 0)),
               &(PHASE_AVG_MW_(i_section, i_phase, 0)), NULL, NULL);
@@ -237,7 +237,7 @@ void aero_rep_modal_binned_mass_update_state(ModelData *model_data,
             state += PHASE_STATE_ID_(i_section, i_phase, i_bin);
 
             // Set the aerosol-phase mass and average MW
-            aero_phase_get_mass__ug_m3(
+            aero_phase_get_mass__kg_m3(
                 model_data, PHASE_MODEL_DATA_ID_(i_section, i_phase, i_bin),
                 state, &(PHASE_MASS_(i_section, i_phase, i_bin)),
                 &(PHASE_AVG_MW_(i_section, i_phase, i_bin)), NULL, NULL);
@@ -444,12 +444,12 @@ void aero_rep_modal_binned_mass_get_aero_conc_type(int aero_phase_idx,
 }
 
 /** \brief Get the total mass in an aerosol phase \f$m\f$
- * (\f$\mbox{\si{\micro\gram\per\cubic\metre}}\f$)
+ * (\f$\mbox{\si{\kilogram\per\cubic\metre}}\f$)
  *
  * \param model_data Pointer to the model data, including the state array
  * \param aero_phase_idx Index of the aerosol phase within the representation
  * \param aero_phase_mass Total mass in the aerosol phase, \f$m\f$
- *                        (\f$\mbox{\si{\micro\gram\per\cubic\metre}}\f$)
+ *                        (\f$\mbox{\si{\kilogram\per\cubic\metre}}\f$)
  * \param partial_deriv \f$\frac{\partial m}{\partial y}\f$ where \f$y\f$ are
  *                      the species on the state array
  * \param aero_rep_int_data Pointer to the aerosol representation integer data
@@ -458,7 +458,7 @@ void aero_rep_modal_binned_mass_get_aero_conc_type(int aero_phase_idx,
  * \param aero_rep_env_data Pointer to the aerosol representation
  *                          environment-dependent parameters
  */
-void aero_rep_modal_binned_mass_get_aero_phase_mass__ug_m3(
+void aero_rep_modal_binned_mass_get_aero_phase_mass__kg_m3(
     ModelData *model_data, int aero_phase_idx, double *aero_phase_mass,
     double *partial_deriv, int *aero_rep_int_data, double *aero_rep_float_data,
     double *aero_rep_env_data) {
@@ -483,7 +483,7 @@ void aero_rep_modal_binned_mass_get_aero_phase_mass__ug_m3(
 
             // Get d_mass / d_conc
             double mass, mw;
-            aero_phase_get_mass__ug_m3(
+            aero_phase_get_mass__kg_m3(
                 model_data, PHASE_MODEL_DATA_ID_(i_section, i_phase, i_bin),
                 state, &mass, &mw, partial_deriv, NULL);
             partial_deriv += PHASE_NUM_JAC_ELEM_(i_section, i_phase, i_bin);
@@ -507,7 +507,7 @@ void aero_rep_modal_binned_mass_get_aero_phase_mass__ug_m3(
 }
 
 /** \brief Get the average molecular weight in an aerosol phase
- **        \f$m\f$ (\f$\mbox{\si{\micro\gram\per\cubic\metre}}\f$)
+ **        \f$m\f$ (\f$\mbox{\si{\kilogram\per\mole}}\f$)
  *
  * \param model_data Pointer to the model data, including the state array
  * \param aero_phase_idx Index of the aerosol phase within the representation
@@ -546,7 +546,7 @@ void aero_rep_modal_binned_mass_get_aero_phase_avg_MW__kg_mol(
 
             // Get d_MW / d_conc
             double mass, mw;
-            aero_phase_get_mass__ug_m3(
+            aero_phase_get_mass__kg_m3(
                 model_data, PHASE_MODEL_DATA_ID_(i_section, i_phase, i_bin),
                 state, &mass, &mw, NULL, partial_deriv);
             partial_deriv += PHASE_NUM_JAC_ELEM_(i_section, i_phase, i_bin);

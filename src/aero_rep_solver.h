@@ -28,7 +28,7 @@ void aero_rep_get_number_conc__n_m3(ModelData *model_data, int aero_rep_idx,
                                     double *partial_deriv);
 int aero_rep_get_aero_conc_type(ModelData *model_data, int aero_rep_idx,
                                 int aero_phase_idx);
-void aero_rep_get_aero_phase_mass__ug_m3(ModelData *model_data,
+void aero_rep_get_aero_phase_mass__kg_m3(ModelData *model_data,
                                          int aero_rep_idx, int aero_phase_idx,
                                          double *aero_phase_mass,
                                          double *partial_deriv);

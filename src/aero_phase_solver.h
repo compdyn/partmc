@@ -17,7 +17,7 @@
 /* Solver functions */
 int aero_phase_get_used_jac_elem(ModelData *model_data, int aero_phase_idx,
                                  int state_var_id, bool *jac_struct);
-void aero_phase_get_mass__ug_m3(ModelData *model_data, int aero_phase_idx,
+void aero_phase_get_mass__kg_m3(ModelData *model_data, int aero_phase_idx,
                                 double *state_var, double *mass, double *MW,
                                 double *jac_elem_mass, double *jac_elem_MW);
 void aero_phase_get_volume__m3_m3(ModelData *model_data, int aero_phase_idx,

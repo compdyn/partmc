@@ -112,7 +112,7 @@ contains
     integer(kind=i_kind) :: idx_ethanol, idx_ethanol_aq, idx_H2O_aq
     integer(kind=i_kind) :: i_time, i_spec
     real(kind=dp) :: time_step, time
-    real(kind=dp) :: n_star, del_H, del_S, del_G, alpha, crms, ugm3_to_ppm
+    real(kind=dp) :: n_star, del_H, del_S, del_G, alpha, crms, kgm3_to_ppm
     real(kind=dp) :: VP_ethanol, k_forward, k_backward
     real(kind=dp) :: equil_ethanol, equil_ethanol_aq
     real(kind=dp) :: total_mass, water_mass, VP_0_mass
@@ -376,18 +376,18 @@ contains
       ! Determine the equilibrium concentrations
       ! [A_gas] =  VP_ethanol
       ! [A_aero] = [A_total] - VP_ethanol
-      ugm3_to_ppm = const%univ_gas_const * temperature / (46.07d0 * pressure)
-      total_mass = true_conc(0,idx_ethanol)/ugm3_to_ppm + &
-              true_conc(0,idx_ethanol_aq)*number_conc ! (ug/m3)
+      kgm3_to_ppm = const%univ_gas_const * temperature / (46.07d0 * pressure)
+      total_mass = true_conc(0,idx_ethanol)/kgm3_to_ppm + &
+              true_conc(0,idx_ethanol_aq)*number_conc ! (kg/m3)
 
       ! Iterated to find equil_ethanol_aq
-      equil_ethanol_aq = 1.48804181d1 ! (ug/m3)
-      equil_ethanol = (total_mass-equil_ethanol_aq)*ugm3_to_ppm
+      equil_ethanol_aq = 1.48804181d-2 ! (kg/m3)
+      equil_ethanol = (total_mass-equil_ethanol_aq)*kgm3_to_ppm
       equil_ethanol_aq = equil_ethanol_aq/number_conc
 
       ! Calculate the backwards rate constant based on the equilibrium
       ! conditions and the forward rate (1/s)
-      k_backward = k_forward / ( equil_ethanol/ugm3_to_ppm/equil_ethanol_aq )
+      k_backward = k_forward / ( equil_ethanol/kgm3_to_ppm/equil_ethanol_aq )
 
       ! Set the initial state in the model
       camp_state%state_var(:) = model_conc(0,:)

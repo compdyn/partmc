@@ -40,7 +40,7 @@
   (int_data[NUM_INT_PROP_ + \
             (2 * (NUM_REACT_ + NUM_PROD_) + 1) * NUM_AERO_PHASE_ + x])
 #define YIELD_(x) (float_data[NUM_FLOAT_PROP_ + x])
-#define UGM3_TO_MOLM3_(x) (float_data[NUM_FLOAT_PROP_ + NUM_PROD_ + x])
+#define KGM3_TO_MOLM3_(x) (float_data[NUM_FLOAT_PROP_ + NUM_PROD_ + x])
 
 /** \brief Flag Jacobian elements used by this reaction
  *
@@ -190,7 +190,7 @@ void rxn_condensed_phase_arrhenius_calc_deriv_contrib(
     // If this is an aqueous reaction, get the unit conversion from mol/m3 -> M
     long double unit_conv = 1.0;
     if (WATER_(i_phase) >= 0) {
-      unit_conv = state[WATER_(i_phase)] * 1.0e-9;  // convert from ug/m3->L/m3
+      unit_conv = state[WATER_(i_phase)];  // convert from kg/m3->L/m3
 
       // For aqueous reactions, if no aerosol water is present, no reaction
       // occurs
@@ -205,7 +205,7 @@ void rxn_condensed_phase_arrhenius_calc_deriv_contrib(
     long double rate = RATE_CONSTANT_;
     for (int i_react = 0; i_react < NUM_REACT_; i_react++) {
       rate *= state[REACT_(i_phase * NUM_REACT_ + i_react)] *
-              UGM3_TO_MOLM3_(i_react) * unit_conv;
+              KGM3_TO_MOLM3_(i_react) * unit_conv;
     }
 
     // Reactant change
@@ -215,7 +215,7 @@ void rxn_condensed_phase_arrhenius_calc_deriv_contrib(
         continue;
       }
       time_derivative_add_value(time_deriv, DERIV_ID_(i_deriv++),
-                                -rate / (UGM3_TO_MOLM3_(i_react) * unit_conv));
+                                -rate / (KGM3_TO_MOLM3_(i_react) * unit_conv));
     }
 
     // Products change
@@ -227,7 +227,7 @@ void rxn_condensed_phase_arrhenius_calc_deriv_contrib(
       time_derivative_add_value(
           time_deriv, DERIV_ID_(i_deriv++),
           rate * YIELD_(i_prod) /
-              (UGM3_TO_MOLM3_(NUM_REACT_ + i_prod) * unit_conv));
+              (KGM3_TO_MOLM3_(NUM_REACT_ + i_prod) * unit_conv));
     }
   }
 
@@ -258,7 +258,7 @@ void rxn_condensed_phase_arrhenius_calc_jac_contrib(
     // If this is an aqueous reaction, get the unit conversion from mol/m3 -> M
     realtype unit_conv = 1.0;
     if (WATER_(i_phase) >= 0) {
-      unit_conv = state[WATER_(i_phase)] * 1.0e-9;  // convert from ug/m3->L/m3
+      unit_conv = state[WATER_(i_phase)];  // convert from kg/m3->L/m3
 
       // For aqueous reactions, if no aerosol water is present, no reaction
       // occurs
@@ -275,10 +275,10 @@ void rxn_condensed_phase_arrhenius_calc_jac_contrib(
       realtype rate = RATE_CONSTANT_;
       for (int i_react = 0; i_react < NUM_REACT_; i_react++) {
         if (i_react == i_react_ind) {
-          rate *= UGM3_TO_MOLM3_(i_react) * unit_conv;
+          rate *= KGM3_TO_MOLM3_(i_react) * unit_conv;
         } else {
           rate *= state[REACT_(i_phase * NUM_REACT_ + i_react)] *
-                  UGM3_TO_MOLM3_(i_react) * unit_conv;
+                  KGM3_TO_MOLM3_(i_react) * unit_conv;
         }
       }
 
@@ -291,7 +291,7 @@ void rxn_condensed_phase_arrhenius_calc_jac_contrib(
           continue;
         }
         jacobian_add_value(jac, (unsigned int)JAC_ID_(i_jac++), JACOBIAN_LOSS,
-                           rate / (UGM3_TO_MOLM3_(i_react_dep) * unit_conv));
+                           rate / (KGM3_TO_MOLM3_(i_react_dep) * unit_conv));
       }
       // For product dependence on reactants
       for (int i_prod_dep = 0; i_prod_dep < NUM_PROD_; i_prod_dep++) {
@@ -302,7 +302,7 @@ void rxn_condensed_phase_arrhenius_calc_jac_contrib(
         jacobian_add_value(
             jac, (unsigned int)JAC_ID_(i_jac++), JACOBIAN_PRODUCTION,
             rate * YIELD_(i_prod_dep) /
-                (UGM3_TO_MOLM3_(NUM_REACT_ + i_prod_dep) * unit_conv));
+                (KGM3_TO_MOLM3_(NUM_REACT_ + i_prod_dep) * unit_conv));
       }
     }
 
@@ -317,7 +317,7 @@ void rxn_condensed_phase_arrhenius_calc_jac_contrib(
     realtype rate = RATE_CONSTANT_;
     for (int i_react = 0; i_react < NUM_REACT_; i_react++) {
       rate *= state[REACT_(i_phase * NUM_REACT_ + i_react)] *
-              UGM3_TO_MOLM3_(i_react) * unit_conv;
+              KGM3_TO_MOLM3_(i_react) * unit_conv;
     }
 
     // Dependence of reactants on aerosol-phase water
@@ -328,7 +328,7 @@ void rxn_condensed_phase_arrhenius_calc_jac_contrib(
       }
       jacobian_add_value(
           jac, (unsigned int)JAC_ID_(i_jac++), JACOBIAN_LOSS,
-          -(NUM_REACT_ - 1) * rate * 1e-9 / UGM3_TO_MOLM3_(i_react_dep));
+          -(NUM_REACT_ - 1) * rate / KGM3_TO_MOLM3_(i_react_dep));
     }
     // Dependence of products on aerosol-phase water
     for (int i_prod_dep = 0; i_prod_dep < NUM_PROD_; i_prod_dep++) {
@@ -338,8 +338,8 @@ void rxn_condensed_phase_arrhenius_calc_jac_contrib(
       }
       jacobian_add_value(jac, (unsigned int)JAC_ID_(i_jac++),
                          JACOBIAN_PRODUCTION,
-                         -(NUM_REACT_ - 1) * rate * 1e-9 * YIELD_(i_prod_dep) /
-                             UGM3_TO_MOLM3_(NUM_REACT_ + i_prod_dep));
+                         -(NUM_REACT_ - 1) * rate * YIELD_(i_prod_dep) /
+                             KGM3_TO_MOLM3_(NUM_REACT_ + i_prod_dep));
     }
   }
 
@@ -371,7 +371,7 @@ void rxn_condensed_phase_arrhenius_print(int *rxn_int_data,
   printf("\n *** Reactants ***");
   for (int i_react = 0; i_react < NUM_REACT_; ++i_react) {
     printf("\n reactant %d", i_react);
-    printf("\n   ug/m3 -> mol/m3: %le", UGM3_TO_MOLM3_(i_react));
+    printf("\n   kg/m3 -> mol/m3: %le", KGM3_TO_MOLM3_(i_react));
     printf("\n   state id (by phase):");
     for (int i_phase = 0; i_phase < NUM_AERO_PHASE_; ++i_phase)
       printf(" %d", REACT_(i_phase * NUM_REACT_ + i_react));
@@ -382,7 +382,7 @@ void rxn_condensed_phase_arrhenius_print(int *rxn_int_data,
   printf("\n *** Products ***");
   for (int i_prod = 0; i_prod < NUM_PROD_; ++i_prod) {
     printf("\n product %d", i_prod);
-    printf("\n   ug/m3 -> mol/m3: %le", UGM3_TO_MOLM3_(NUM_REACT_ + i_prod));
+    printf("\n   kg/m3 -> mol/m3: %le", KGM3_TO_MOLM3_(NUM_REACT_ + i_prod));
     printf("\n   yield: %le", YIELD_(i_prod));
     printf("\n   state id (by phase):");
     for (int i_phase = 0; i_phase < NUM_AERO_PHASE_; ++i_phase)

@@ -283,11 +283,11 @@ contains
     call assert_msg(839930958, spec_props%get_real(key_name, MW_), &
             "Missing property 'MW'"//error_msg)
 
-    ! Set the ug/m3 -> ppm conversion prefactor (multiply by T/P to get
+    ! Set the kg/m3 -> ppm conversion prefactor (multiply by T/P to get
     ! conversion)
-    ! (ppm_x*Pa_air*m^3/K/ug_x) = Pa_air*m^3/mol_air/K * mol_x/kg_x *
-    !                   1.0e-9kg_x/ug_x * 1.0e6ppm_x*mol_air/mol_x
-    CONV_ = const%univ_gas_const / MW_ / 1.0e3
+    ! (ppm_x*Pa_air*m^3/K/kg_x) = Pa_air*m^3/mol_air/K * mol_x/kg_x *
+    !                   1.0e6ppm_x*mol_air/mol_x
+    CONV_ = const%univ_gas_const / MW_ * 1.0e6
 
     ! Set the ids of each aerosol-phase species instance
     i_aero_id = 1

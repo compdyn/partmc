@@ -284,9 +284,9 @@ contains
     call assert_msg(209812557, spec_props%get_real(key_name, MW_), &
             "Missing property 'MW' for aerosol species"//error_msg)
 
-    ! Set the ug/m3 -> ppm conversion prefactor (multiply by T/P to get
+    ! Set the kg/m3 -> ppm conversion prefactor (multiply by T/P to get
     ! conversion)
-    CONV_ = const%univ_gas_const / MW_ / 1.0d3
+    CONV_ = const%univ_gas_const / MW_ * 1.0e6
 
     ! Get the aerosol-phase water species
     key_name = "aerosol-phase water"

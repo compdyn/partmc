@@ -35,6 +35,7 @@ module pmc_camp_state
     !> State variable array. This array includes one entry for each
     !! variable whose state will be solved for during the mechanism
     !! integration.
+    !! units are ppm (gases) or kg m-3 (aerosol species)
     real(kind=dp), allocatable :: state_var(:)
     !> Environmental conditions
     type(env_state_ptr), pointer :: env_states(:)

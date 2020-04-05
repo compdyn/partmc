@@ -126,7 +126,7 @@ contains
         do i_spec = 1, size(aero_data%camp_spec_id)
           camp_state%state_var(aero_data%camp_spec_id(i_spec)) = &
                   aero_particle%vol(i_spec) * &
-                  aero_data%density(i_spec) * 1.0e9 ! ug m-3
+                  aero_data%density(i_spec) ! kg m-3
         end do
       class default
         call die_msg(780366884, &
@@ -162,7 +162,7 @@ contains
         do i_spec = 1, size(aero_data%camp_spec_id)
           aero_particle%vol(i_spec) = &
               camp_state%state_var(aero_data%camp_spec_id(i_spec)) / &
-              aero_data%density(i_spec) * 1.0e-9 ! m3
+              aero_data%density(i_spec) ! m3
         end do
       class default
         call die_msg(773649338, &

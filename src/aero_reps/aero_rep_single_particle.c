@@ -111,7 +111,7 @@ void aero_rep_single_particle_update_env_state(ModelData *model_data,
 
 /** \brief Update aerosol representation data for a new state
  *
- * Updates the mass (\f$\mbox{\si{\micro\gram\per\cubic\metre}}\f$) and
+ * Updates the mass (\f$\mbox{\si{\kilogram\per\cubic\metre}}\f$) and
  * average MW (\f$\mbox{\si{\kilogram\per\mole}}\f$) for each aerosol phase in
  * the particle
  *
@@ -139,7 +139,7 @@ void aero_rep_single_particle_update_state(ModelData *model_data,
     state_var += PHASE_STATE_ID_(i_phase);
 
     // Get the mass and average MW
-    aero_phase_get_mass__ug_m3(model_data, PHASE_MODEL_DATA_ID_(i_phase),
+    aero_phase_get_mass__kg_m3(model_data, PHASE_MODEL_DATA_ID_(i_phase),
                                state_var, &(PHASE_MASS_(i_phase)),
                                &(PHASE_AVG_MW_(i_phase)), NULL, NULL);
     // Get the aerosol effective radius (m)
@@ -268,7 +268,7 @@ void aero_rep_single_particle_get_aero_conc_type(int aero_phase_idx,
 }
 
 /** \brief Get the total mass in an aerosol phase \f$m\f$
- * (\f$\mbox{\si{\micro\gram\per\cubic\metre}}\f$)
+ * (\f$\mbox{\si{\kilogram\per\cubic\metre}}\f$)
  *
  * The single particle mass is set for each new state as the sum of the masses
  * of the aerosol phases that compose the particle
@@ -276,7 +276,7 @@ void aero_rep_single_particle_get_aero_conc_type(int aero_phase_idx,
  * \param model_data Pointer to the model data, including the state array
  * \param aero_phase_idx Index of the aerosol phase within the representation
  * \param aero_phase_mass Total mass in the aerosol phase, \f$m\f$
- *                        (\f$\mbox{\si{\micro\gram\per\cubic\metre}}\f$)
+ *                        (\f$\mbox{\si{\kilogram\per\cubic\metre}}\f$)
  * \param partial_deriv \f$\frac{\partial m}{\partial y}\f$ where \f$y\f$ are
  *                      the species on the state array
  * \param aero_rep_int_data Pointer to the aerosol representation integer data
@@ -285,7 +285,7 @@ void aero_rep_single_particle_get_aero_conc_type(int aero_phase_idx,
  * \param aero_rep_env_data Pointer to the aerosol representation
  *                          environment-dependent parameters
  */
-void aero_rep_single_particle_get_aero_phase_mass__ug_m3(
+void aero_rep_single_particle_get_aero_phase_mass__kg_m3(
     ModelData *model_data, int aero_phase_idx, double *aero_phase_mass,
     double *partial_deriv, int *aero_rep_int_data, double *aero_rep_float_data,
     double *aero_rep_env_data) {
@@ -300,7 +300,7 @@ void aero_rep_single_particle_get_aero_phase_mass__ug_m3(
         double *state = (double *)(model_data->grid_cell_state);
         state += PHASE_STATE_ID_(i_phase);
         double mass, mw;
-        aero_phase_get_mass__ug_m3(model_data, aero_phase_idx, state, &mass,
+        aero_phase_get_mass__kg_m3(model_data, aero_phase_idx, state, &mass,
                                    &mw, partial_deriv, NULL);
         partial_deriv += PHASE_NUM_JAC_ELEM_(i_phase);
       } else {
@@ -346,7 +346,7 @@ void aero_rep_single_particle_get_aero_phase_avg_MW__kg_mol(
         double *state = (double *)(model_data->grid_cell_state);
         state += PHASE_STATE_ID_(i_phase);
         double mass, mw;
-        aero_phase_get_mass__ug_m3(model_data, aero_phase_idx, state, &mass,
+        aero_phase_get_mass__kg_m3(model_data, aero_phase_idx, state, &mass,
                                    &mw, NULL, partial_deriv);
         partial_deriv += PHASE_NUM_JAC_ELEM_(i_phase);
       } else {

@@ -103,7 +103,7 @@ contains
             i_time, i_spec
     character(len=:), allocatable :: key, idx_prefix
     real(kind=dp) :: time_step, time, n_star, del_H, del_S, del_G, alpha, &
-            crms, M_to_ppm, ugm3_to_ppm, K_eq_O3, K_eq_H2O2, k_O3_forward, &
+            crms, M_to_ppm, kgm3_to_ppm, K_eq_O3, K_eq_H2O2, k_O3_forward, &
             k_O3_backward, k_H2O2_forward, k_H2O2_backward, equil_O3, &
             equil_O3_aq, equil_H2O2, equil_H2O2_aq, temp, pressure
     real(kind=dp), target :: radius, number_conc
@@ -438,19 +438,19 @@ contains
       ! Determine the equilibrium concentrations
       ! [A_gas] = [A_total] / (1 + 1/K_HL)
       ! [A_aero] = [A_total] / (K_HL + 1)
-      ugm3_to_ppm = const%univ_gas_const * temp / (48.0d0 * pressure)
+      kgm3_to_ppm = const%univ_gas_const * temp / (48.0d0 * pressure)
       equil_O3 = (true_conc(0,idx_O3) + &
-              true_conc(0,idx_O3_aq)*number_conc*ugm3_to_ppm) / &
+              true_conc(0,idx_O3_aq)*number_conc*kgm3_to_ppm) / &
               (K_eq_O3*M_to_ppm + 1.0d0)
-      equil_O3_aq = (true_conc(0,idx_O3)/ugm3_to_ppm/number_conc + &
+      equil_O3_aq = (true_conc(0,idx_O3)/kgm3_to_ppm/number_conc + &
               true_conc(0,idx_O3_aq)) / &
               (1.0d0 + 1.0d0/(K_eq_O3*M_to_ppm))
 
-      ugm3_to_ppm = const%univ_gas_const * temp / (34.0d0 * pressure)
+      kgm3_to_ppm = const%univ_gas_const * temp / (34.0d0 * pressure)
       equil_H2O2 = (true_conc(0,idx_H2O2) + &
-              true_conc(0,idx_H2O2_aq)*number_conc*ugm3_to_ppm) / &
+              true_conc(0,idx_H2O2_aq)*number_conc*kgm3_to_ppm) / &
               (K_eq_H2O2*M_to_ppm + 1.0d0)
-      equil_H2O2_aq = (true_conc(0,idx_H2O2)/ugm3_to_ppm/number_conc + &
+      equil_H2O2_aq = (true_conc(0,idx_H2O2)/kgm3_to_ppm/number_conc + &
               true_conc(0,idx_H2O2_aq)) / &
               (1.0d0 + 1.0d0/(K_eq_H2O2*M_to_ppm))
 

@@ -112,7 +112,7 @@ module pmc_rxn_condensed_phase_arrhenius
 #define DERIV_ID_(x) this%condensed_data_int(NUM_INT_PROP_+(NUM_REACT_+NUM_PROD_+1)*NUM_AERO_PHASE_+x)
 #define JAC_ID_(x) this%condensed_data_int(NUM_INT_PROP_+(2*(NUM_REACT_+NUM_PROD_)+1)*NUM_AERO_PHASE_+x)
 #define YIELD_(x) this%condensed_data_real(NUM_REAL_PROP_+x)
-#define UGM3_TO_MOLM3_(x) this%condensed_data_real(NUM_REAL_PROP_+NUM_PROD_+x)
+#define KGM3_TO_MOLM3_(x) this%condensed_data_real(NUM_REAL_PROP_+NUM_PROD_+x)
 
   public :: rxn_condensed_phase_arrhenius_t
 
@@ -318,8 +318,8 @@ contains
         ! Add the reactant name to the list
         react_names(i_spec)%string = spec_name
 
-        ! Use the MW to calculate the ug/m3 -> mol/m3 conversion
-        UGM3_TO_MOLM3_(i_spec) = 1.0d-9/temp_real
+        ! Use the MW to calculate the kg/m3 -> mol/m3 conversion
+        KGM3_TO_MOLM3_(i_spec) = 1.0/temp_real
 
       end do
 
@@ -348,8 +348,8 @@ contains
            "Missing 'molecular weight' for species '"//trim(spec_name)// &
            "' in condensed phase Arrhenius reaction.")
 
-      ! Use the MW to calculate the ug/m3 -> mol/m3 conversion
-      UGM3_TO_MOLM3_(NUM_REACT_+i_spec) = 1.0d-9/temp_real
+      ! Use the MW to calculate the kg/m3 -> mol/m3 conversion
+      KGM3_TO_MOLM3_(NUM_REACT_+i_spec) = 1.0/temp_real
 
       ! Set properties for each occurance of a reactant in the rxn equation
       call assert(846924553, products%get_property_t(val=spec_props))

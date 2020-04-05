@@ -16,7 +16,7 @@ CH4          2.2E+03
 ETHA         1.0E+00
 FORM         1.2E+00
 MEOH         1.2E-01
-AACD         0.7E+00
+AACD         0.5E+00
 ALD2         1.0E+00
 PAR          2.0E+00
 ETH          0.2E+00
@@ -26,5 +26,6 @@ TOL          0.1E+00
 XYL          0.1E+00
 NTR          0.1E+00
 PAN          0.8E+00
+AACD         0.2E+00
 ROOH         2.5E-02
 ISOP         0.5E+00

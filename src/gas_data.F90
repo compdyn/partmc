@@ -8,12 +8,13 @@
 !> The gas_data_t structure and associated subroutines.
 module pmc_gas_data
 
-  use pmc_spec_file
-  use pmc_mpi
-  use pmc_util
-  use pmc_netcdf
   use pmc_camp_core
   use pmc_chem_spec_data
+  use pmc_mpi
+  use pmc_netcdf
+  use pmc_spec_file
+  use pmc_util
+  use pmc_property
 #ifdef PMC_USE_MPI
   use mpi
 #endif
@@ -35,6 +36,8 @@ module pmc_gas_data
      !> gas_data_n_spec(gas_data)]. \c to_mosaic(i) is the mosaic index of
      !> species \c i, or 0 if there is no match.
      integer, allocatable :: mosaic_index(:)
+     !> Index for gas-phase water in the CAMP state array
+     integer :: i_camp_water = 0
   contains
      !> Initialize the gas_data_t instance
      procedure :: initialize => gas_data_initialize
@@ -55,6 +58,9 @@ contains
     type(chem_spec_data_t), pointer :: chem_spec_data
     integer :: i_spec
     type(string_t), allocatable :: gas_spec_names(:)
+    type(property_t), pointer :: property_set
+    character(len=:), allocatable :: prop_name
+    logical :: bool_val
 
     ! Get the chemical species data
     call assert_msg(139566827, &
@@ -68,10 +74,25 @@ contains
     ! Allocate space for the gas-phase species
     allocate(this%name(size(gas_spec_names)))
 
-    ! Set the species names
+    ! Set the species names and locate gas-phase water
+    prop_name = "is gas-phase water"
     do i_spec = 1, size(gas_spec_names)
       this%name(i_spec) = gas_spec_names(i_spec)%string
+      call assert_msg(990037352, &
+                      chem_spec_data%get_property_set( &
+                        gas_spec_names(i_spec)%string, &
+                        property_set ), &
+                      "Missing property set for gas species "// &
+                      gas_spec_names(i_spec)%string )
+      if (property_set%get_logical(prop_name, bool_val)) then
+        call assert_msg(423633615, this%i_camp_water.eq.0, &
+                        "More than one gas-phase water species specified")
+        this%i_camp_water = i_spec
+      end if
     end do
+
+    call assert_msg(134440820, this%i_camp_water.ne.0, &
+                    "No gas-phase water species specified.")
 
     ! Allocate the mosaic index array and set to zero
     allocate(this%mosaic_index(size(gas_spec_names)))

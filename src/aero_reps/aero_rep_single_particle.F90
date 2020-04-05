@@ -29,10 +29,8 @@
 !! variable sequentially. This may be changed in the future to solve for all
 !! particles simultaneously.
 !!
-!! The number concentration and effective radius for each particle must be
+!! The number concentration for each particle must be
 !! set from an external model using
-!! \c pmc_aero_rep_single_particle::aero_rep_update_data_single_particle_radius_t
-!! and
 !! \c pmc_aero_rep_single_particle::aero_rep_update_data_single_particle_number_t
 !! objects.
 
@@ -67,11 +65,9 @@ module pmc_aero_rep_single_particle
 #define PHASE_AVG_MW_(x) this%condensed_data_real(NUM_REAL_PROP_+NUM_PHASE_+x)
 
   ! Update types (These must match values in aero_rep_single_particle.c)
-  integer(kind=i_kind), parameter, public :: UPDATE_RADIUS = 0
-  integer(kind=i_kind), parameter, public :: UPDATE_NUMBER_CONC = 1
+  integer(kind=i_kind), parameter, public :: UPDATE_NUMBER_CONC = 0
 
   public :: aero_rep_single_particle_t, &
-            aero_rep_update_data_single_particle_radius_t, &
             aero_rep_update_data_single_particle_number_t
 
   !> Single particle aerosol representation
@@ -88,8 +84,6 @@ module pmc_aero_rep_single_particle
     !! the input files have been read in. It ensures all data required during
     !! the model run are included in the condensed data arrays.
     procedure :: initialize
-    !> Initialize an update data radius object
-    procedure :: update_data_initialize_radius => update_data_init_radius
     !> Initialize an update data number object
     procedure :: update_data_initialize_number => update_data_init_number
     !> Get the size of the section of the
@@ -139,27 +133,6 @@ module pmc_aero_rep_single_particle
     procedure :: constructor
   end interface aero_rep_single_particle_t
 
-  !> Single particle update radius object
-  type, extends(aero_rep_update_data_t) :: &
-            aero_rep_update_data_single_particle_radius_t
-  private
-    !> Flag indicating whether the update data is allocated
-    logical :: is_malloced = .false.
-    !> Unique id for finding aerosol representations during initialization
-    integer(kind=i_kind) :: aero_rep_unique_id = 0
-  contains
-    !> Update the radius
-    procedure :: set_radius => update_data_set_radius
-    !> Determine the pack size of the local update data
-    procedure :: internal_pack_size => internal_pack_size_radius
-    !> Pack the local update data to a binary
-    procedure :: internal_bin_pack => internal_bin_pack_radius
-    !> Unpack the local update data from a binary
-    procedure :: internal_bin_unpack => internal_bin_unpack_radius
-    !> Finalize the radius update data
-    final :: update_data_radius_finalize
-  end type aero_rep_update_data_single_particle_radius_t
-
   !> Single particle update number concentration object
   type, extends(aero_rep_update_data_t) :: &
             aero_rep_update_data_single_particle_number_t
@@ -170,7 +143,7 @@ module pmc_aero_rep_single_particle
     integer(kind=i_kind) :: aero_rep_unique_id = 0
   contains
     !> Update the number
-    procedure :: set_number => update_data_set_number
+    procedure :: set_number__n_m3 => update_data_set_number__n_m3
     !> Determine the pack size of the local update data
     procedure :: internal_pack_size => internal_pack_size_number
     !> Pack the local update data to a binary
@@ -184,26 +157,6 @@ module pmc_aero_rep_single_particle
   !> Interface to c aerosol representation functions
   interface
 
-    !> Allocate space for a radius update
-    function aero_rep_single_particle_create_radius_update_data() &
-              result (update_data) bind (c)
-      use iso_c_binding
-      !> Allocated update_data object
-      type(c_ptr) :: update_data
-    end function aero_rep_single_particle_create_radius_update_data
-
-    !> Set a new particle radius
-    subroutine aero_rep_single_particle_set_radius_update_data(update_data, &
-              aero_rep_unique_id, radius) bind (c)
-      use iso_c_binding
-      !> Update data
-      type(c_ptr), value :: update_data
-      !> Aerosol representation unique id
-      integer(kind=c_int), value :: aero_rep_unique_id
-      !> New radius (m)
-      real(kind=c_double), value :: radius
-    end subroutine aero_rep_single_particle_set_radius_update_data
-
     !> Allocate space for a number update
     function aero_rep_single_particle_create_number_update_data() &
               result (update_data) bind (c)
@@ -213,8 +166,8 @@ module pmc_aero_rep_single_particle
     end function aero_rep_single_particle_create_number_update_data
 
     !> Set a new particle number concentration
-    subroutine aero_rep_single_particle_set_number_update_data(update_data, &
-              aero_rep_unique_id, number_conc) bind (c)
+    subroutine aero_rep_single_particle_set_number_update_data__n_m3( &
+              update_data, aero_rep_unique_id, number_conc) bind (c)
       use iso_c_binding
       !> Update data
       type(c_ptr), value :: update_data
@@ -222,7 +175,7 @@ module pmc_aero_rep_single_particle
       integer(kind=c_int), value :: aero_rep_unique_id
       !> New number (m)
       real(kind=c_double), value :: number_conc
-    end subroutine aero_rep_single_particle_set_number_update_data
+    end subroutine aero_rep_single_particle_set_number_update_data__n_m3
 
     !> Free an update data object
     pure subroutine aero_rep_free_update_data(update_data) bind (c)
@@ -561,134 +514,6 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Initialize radius update data object
-  subroutine update_data_init_radius(this, update_data, aero_rep_type)
-
-    use pmc_rand,                                only : generate_int_id
-
-    !> Aerosol representation to update
-    class(aero_rep_single_particle_t), intent(inout) :: this
-    !> Update data object
-    class(aero_rep_update_data_single_particle_radius_t), intent(out) :: &
-        update_data
-    !> Aerosol representaiton id
-    integer(kind=i_kind), intent(in) :: aero_rep_type
-
-    ! If an aerosol representation id has not been generated, do it now
-    if (AERO_REP_ID_.eq.-1) then
-      AERO_REP_ID_ = generate_int_id()
-    end if
-
-    update_data%aero_rep_unique_id = AERO_REP_ID_
-    update_data%aero_rep_type = int(aero_rep_type, kind=c_int)
-    update_data%update_data = &
-      aero_rep_single_particle_create_radius_update_data()
-    update_data%is_malloced = .true.
-
-  end subroutine update_data_init_radius
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Set packed update data for particle radius
-  subroutine update_data_set_radius(this, radius)
-
-    !> Update data
-    class(aero_rep_update_data_single_particle_radius_t), intent(inout) :: &
-            this
-    !> Updated radius
-    real(kind=dp), intent(in) :: radius
-
-    call assert_msg(228446610, this%is_malloced, &
-            "Trying to set radius of uninitialized update object.")
-    call aero_rep_single_particle_set_radius_update_data(this%get_data(), &
-            this%aero_rep_unique_id, radius)
-
-  end subroutine update_data_set_radius
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Determine the size of a binary required to pack the reaction data
-  integer(kind=i_kind) function internal_pack_size_radius(this, comm) &
-      result(pack_size)
-
-    !> Aerosol representation update data
-    class(aero_rep_update_data_single_particle_radius_t), intent(in) :: this
-    !> MPI communicator
-    integer, intent(in) :: comm
-
-    pack_size = &
-      pmc_mpi_pack_size_logical(this%is_malloced, comm) + &
-      pmc_mpi_pack_size_integer(this%aero_rep_unique_id, comm)
-
-  end function internal_pack_size_radius
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Pack the given value to the buffer, advancing position
-  subroutine internal_bin_pack_radius(this, buffer, pos, comm)
-
-    !> Aerosol representation update data
-    class(aero_rep_update_data_single_particle_radius_t), intent(in) :: this
-    !> Memory buffer
-    character, intent(inout) :: buffer(:)
-    !> Current buffer position
-    integer, intent(inout) :: pos
-    !> MPI communicator
-    integer, intent(in) :: comm
-
-#ifdef PMC_USE_MPI
-    integer :: prev_position
-
-    prev_position = pos
-    call pmc_mpi_pack_logical(buffer, pos, this%is_malloced, comm)
-    call pmc_mpi_pack_integer(buffer, pos, this%aero_rep_unique_id, comm)
-    call assert(575109735, &
-         pos - prev_position <= this%pack_size(comm))
-#endif
-
-  end subroutine internal_bin_pack_radius
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Unpack the given value from the buffer, advancing position
-  subroutine internal_bin_unpack_radius(this, buffer, pos, comm)
-
-    !> Aerosol representation update data
-    class(aero_rep_update_data_single_particle_radius_t), intent(inout) :: this
-    !> Memory buffer
-    character, intent(inout) :: buffer(:)
-    !> Current buffer position
-    integer, intent(inout) :: pos
-    !> MPI communicator
-    integer, intent(in) :: comm
-
-#ifdef PMC_USE_MPI
-    integer :: prev_position
-
-    prev_position = pos
-    call pmc_mpi_unpack_logical(buffer, pos, this%is_malloced, comm)
-    call pmc_mpi_unpack_integer(buffer, pos, this%aero_rep_unique_id, comm)
-    call assert(687428080, &
-         pos - prev_position <= this%pack_size(comm))
-    this%update_data = aero_rep_single_particle_create_radius_update_data()
-#endif
-
-  end subroutine internal_bin_unpack_radius
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Finalize a radius update data object
-  elemental subroutine update_data_radius_finalize(this)
-
-    !> Update data object to free
-    type(aero_rep_update_data_single_particle_radius_t), intent(inout) :: this
-
-    if (this%is_malloced) call aero_rep_free_update_data(this%update_data)
-
-  end subroutine update_data_radius_finalize
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   !> Initialize an update data object
   subroutine update_data_init_number(this, update_data, aero_rep_type)
 
@@ -717,8 +542,8 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Set packed update data for particle number
-  subroutine update_data_set_number(this, number_conc)
+  !> Set packed update data for particle number (#/m3)
+  subroutine update_data_set_number__n_m3(this, number_conc)
 
     !> Update data
     class(aero_rep_update_data_single_particle_number_t), intent(inout) :: &
@@ -728,10 +553,10 @@ contains
 
     call assert_msg(897092373, this%is_malloced, &
             "Trying to set number of uninitialized update object.")
-    call aero_rep_single_particle_set_number_update_data(this%get_data(), &
-            this%aero_rep_unique_id, number_conc)
+    call aero_rep_single_particle_set_number_update_data__n_m3( &
+            this%get_data(), this%aero_rep_unique_id, number_conc)
 
-  end subroutine update_data_set_number
+  end subroutine update_data_set_number__n_m3
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

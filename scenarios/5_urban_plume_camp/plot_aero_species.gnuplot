@@ -76,18 +76,13 @@ set ylabel "mass concentration / (ug/m^3)"
 set ytics nomirror
 set y2tics
 
-set multiplot layout 3,1
+set multiplot layout 2,1
 
-plot "out/urban_plume_0001_aero_time.txt" using ($1/3600):(($24+$23)*1e9) axes x1y1 with lines title "NO3", \
-     "out/urban_plume_0001_aero_time.txt" using ($1/3600):(($7+$8)*1e9) axes x1y1 with lines title "OC", \
-     "out/urban_plume_0001_aero_time.txt" using ($1/3600):(($25+$26)*1e9) axes x1y1 with lines title "NH4"
+plot "out/urban_plume_0001_aero_time.txt" using ($1/3600):(($23+$24)*1e9) axes x1y1 with lines title "NO3", \
+     "out/urban_plume_0001_aero_time.txt" using ($1/3600):(($7+$8)*1e9) axes x1y1 with lines title "POA", \
+     "out/urban_plume_0001_aero_time.txt" using ($1/3600):(($25+$26)*1e9) axes x1y1 with lines title "NH4", \
+     "out/urban_plume_0001_aero_time.txt" using ($1/3600):(($17)*1e9) axes x1y1 with lines title "H2O"
 
-plot "out/urban_plume_0001_aero_time.txt" using ($1/3600):(($20+$21+$22)*1e9) axes x1y1 with lines title "SO4", \
-     "out/urban_plume_0001_aero_time.txt" using ($1/3600):(($13+$14)*1e9) axes x1y1 with lines title "BC", \
-     "out/urban_plume_0001_aero_time.txt" using ($1/3600):(($9+$10+$11+$12)*1e9) axes x1y1 with lines title "SOA" # ARO1 + ARO2 + ALK1 + OLE1 + API1 + API2 + LIM1 + LIM2
-
-plot "out/urban_plume_0001_aero_time.txt" using ($1/3600):($29*1e9) axes x1y1 with lines title "NO2", \
-     "out/urban_plume_0001_aero_time.txt" using ($1/3600):($30*1e9) axes x1y1 with lines title "NO", \
-     "out/urban_plume_0001_aero_time.txt" using ($1/3600):($31*1e9) axes x1y1 with lines title "O3"
+plot "out/urban_plume_0001_aero_time.txt" using ($1/3600):(($9+$10+$11+$12+$54+$55+$56+$57)*1e9) axes x1y1 with lines title "SOA" # ISOP-P1 + ISOP-P2 + TERP-P1 + TERP-P2
 
 unset multiplot

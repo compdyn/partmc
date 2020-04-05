@@ -225,12 +225,13 @@ void rxn_HL_phase_transfer_update_env_state(ModelData *model_data,
   C_AVG_ALPHA_ = PRE_C_AVG_ * sqrt(TEMPERATURE_K_) * mass_acc;
 
   // Calculate the Henry's Law equilibrium rate constant in units of
-  // (ug_x/ug_H2O/ppm) where x is the aerosol-phase species. (A was saved in
-  // units of M/ppm.)
+  // (ug_x/ug_H2O/ppm) where x is the aerosol-phase species. (A is in
+  // units of M/Pa.)
   if (C_ == 0.0) {
-    EQUIL_CONST_ = A_ * MW_;
+    EQUIL_CONST_ = A_ * PRESSURE_PA_ * 1.0e-6 * MW_;
   } else {
-    EQUIL_CONST_ = A_ * exp(C_ * (1.0 / TEMPERATURE_K_ - 1.0 / 298.0)) * MW_;
+    EQUIL_CONST_ = A_ * PRESSURE_PA_ * 1.0e-6 *
+                   exp(C_ * (1.0 / TEMPERATURE_K_ - 1.0 / 298.0)) * MW_;
   }
 
   // Calculate the conversion from ug/m^3 -> ppm
@@ -262,7 +263,7 @@ void rxn_HL_phase_transfer_calc_deriv_contrib(
   for (int i_phase = 0; i_phase < NUM_AERO_PHASE_; i_phase++) {
     // Get the particle effective radius (m)
     realtype radius;
-    aero_rep_get_effective_radius(
+    aero_rep_get_effective_radius__m(
         model_data,               // model data
         AERO_REP_ID_(i_phase),    // aerosol representation index
         AERO_PHASE_ID_(i_phase),  // aerosol phase index
@@ -276,16 +277,16 @@ void rxn_HL_phase_transfer_calc_deriv_contrib(
         AERO_REP_ID_(i_phase),     // aerosol representation index
         AERO_PHASE_ID_(i_phase));  // aerosol phase index
 
-    // Get the particle number concentration (#/cc) for per-particle mass
+    // Get the particle number concentration (#/m3) for per-particle mass
     // concentrations; otherwise set to 1
     realtype number_conc = ONE;
     if (aero_conc_type == 0) {
-      aero_rep_get_number_conc(
+      aero_rep_get_number_conc__n_m3(
           model_data,               // model data
           AERO_REP_ID_(i_phase),    // aerosol representation index
           AERO_PHASE_ID_(i_phase),  // aerosol phase index
           &number_conc,             // particle number concentration
-                                    // (#/cc)
+                                    // (#/m3)
           NULL);                    // partial derivative
     }
 
@@ -355,7 +356,7 @@ void rxn_HL_phase_transfer_calc_jac_contrib(ModelData *model_data, Jacobian jac,
   for (int i_phase = 0; i_phase < NUM_AERO_PHASE_; i_phase++) {
     // Get the particle effective radius (m)
     realtype radius;
-    aero_rep_get_effective_radius(
+    aero_rep_get_effective_radius__m(
         model_data,                         // model data
         AERO_REP_ID_(i_phase),              // aerosol representation index
         AERO_PHASE_ID_(i_phase),            // aerosol phase index
@@ -369,16 +370,16 @@ void rxn_HL_phase_transfer_calc_jac_contrib(ModelData *model_data, Jacobian jac,
         AERO_REP_ID_(i_phase),     // aerosol representation index
         AERO_PHASE_ID_(i_phase));  // aerosol phase index
 
-    // Get the particle number concentration (#/cc) for per-particle
+    // Get the particle number concentration (#/m3) for per-particle
     // concentrations
     realtype number_conc = ONE;
     if (aero_conc_type == 0) {
-      aero_rep_get_number_conc(
+      aero_rep_get_number_conc__n_m3(
           model_data,                          // model data
           AERO_REP_ID_(i_phase),               // aerosol representation index
           AERO_PHASE_ID_(i_phase),             // aerosol phase index
           &number_conc,                        // particle number concentration
-                                               // (#/cc)
+                                               // (#/m3)
           &(NUM_CONC_JAC_ELEM_(i_phase, 0)));  // partial derivative
     } else {
       for (int i_elem = 0; i_elem < NUM_AERO_PHASE_JAC_ELEM_(i_phase); ++i_elem)
@@ -443,7 +444,7 @@ void rxn_HL_phase_transfer_calc_jac_contrib(ModelData *model_data, Jacobian jac,
     realtype d_rate_d_radius =
         rate *
         -(2.0 * radius / (3.0 * DIFF_COEFF_) + 4.0 / (3.0 * C_AVG_ALPHA_)) /
-        (2.0 * radius * radius / (3.0 * DIFF_COEFF_) +
+        (radius * radius / (3.0 * DIFF_COEFF_) +
          4.0 * radius / (3.0 * C_AVG_ALPHA_));
     realtype d_rate_d_number = rate / number_conc;
 
@@ -458,7 +459,7 @@ void rxn_HL_phase_transfer_calc_jac_contrib(ModelData *model_data, Jacobian jac,
             -number_conc * d_rate_d_radius *
                 EFF_RAD_JAC_ELEM_(i_phase, i_elem));
 
-        // species involved in numer concentration
+        // species involved in number concentration
         jacobian_add_value(
             jac, (unsigned int)PHASE_JAC_ID_(i_phase, JAC_GAS, i_elem),
             JACOBIAN_LOSS,

@@ -65,6 +65,8 @@ module pmc_aero_data
      type(fractal_t) :: fractal
      !> CAMP aerosol representation pointer
      class(aero_rep_data_t), pointer :: aero_rep_ptr
+     !> CAMP update number conc cookie
+     type(aero_rep_update_data_single_particle_number_t) :: update_number
      !> Aerosol species ids on the camp chem state array
      integer, allocatable :: camp_spec_id(:)
   contains
@@ -484,7 +486,8 @@ contains
          + pmc_mpi_pack_size_real_array(val%molec_weight) &
          + pmc_mpi_pack_size_real_array(val%kappa) &
          + pmc_mpi_pack_size_string_array(val%source_name) &
-         + pmc_mpi_pack_size_fractal(val%fractal)
+         + pmc_mpi_pack_size_fractal(val%fractal) &
+         + val%update_number%pack_size()
 
   end function pmc_mpi_pack_size_aero_data
 
@@ -513,6 +516,7 @@ contains
     call pmc_mpi_pack_real_array(buffer, position, val%kappa)
     call pmc_mpi_pack_string_array(buffer, position, val%source_name)
     call pmc_mpi_pack_fractal(buffer, position, val%fractal)
+    call val%update_number%bin_pack(buffer, position)
     call assert(183834856, &
          position - prev_position <= pmc_mpi_pack_size_aero_data(val))
 #endif
@@ -544,6 +548,7 @@ contains
     call pmc_mpi_unpack_real_array(buffer, position, val%kappa)
     call pmc_mpi_unpack_string_array(buffer, position, val%source_name)
     call pmc_mpi_unpack_fractal(buffer, position, val%fractal)
+    call val%update_number%bin_unpack(buffer, position)
     call assert(188522823, &
          position - prev_position <= pmc_mpi_pack_size_aero_data(val))
 #endif
@@ -920,6 +925,15 @@ contains
       this%camp_spec_id(i_spec) = &
           this%aero_rep_ptr%spec_state_id(spec_names(i_spec)%string)
     end do
+
+    ! Set up the update data objects for number
+    select type( aero_rep => this%aero_rep_ptr )
+      type is(aero_rep_single_particle_t)
+        call camp_core%initialize_update_object( aero_rep, &
+                                                 this%update_number )
+      class default
+        call die_msg(281737350, "Wrong aerosol representation type")
+    end select
 
   end subroutine aero_data_initialize
 

@@ -71,7 +71,7 @@ int test_effective_radius(ModelData * model_data, N_Vector state) {
   for( int i = 0; i < N_JAC_ELEM+2; ++i ) partial_deriv[i] = 999.9;
   for( int i = 0; i < N_JAC_ELEM_2+2; ++i ) partial_deriv_2[i] = 999.9;
 
-  aero_rep_get_effective_radius(model_data, AERO_REP_IDX,
+  aero_rep_get_effective_radius__m(model_data, AERO_REP_IDX,
                                 AERO_PHASE_IDX, &eff_rad, &(partial_deriv[1]));
 
   double dp_bin4 = pow(10.0,(log10(1.0e-6) - log10(8.0e-9)) / 7.0 * 3.0 + log10(8.0e-9));
@@ -80,7 +80,7 @@ int test_effective_radius(ModelData * model_data, N_Vector state) {
                         "Bad effective radius");
 
   double real_rad_2 = 1.2e-6 / 2.0 * exp(9.0/2.0 * 1.2 * 1.2);
-  aero_rep_get_effective_radius(model_data, AERO_REP_IDX,
+  aero_rep_get_effective_radius__m(model_data, AERO_REP_IDX,
                                 AERO_PHASE_IDX_2, &eff_rad, &(partial_deriv_2[1]));
   ret_val += ASSERT_MSG(fabs(eff_rad-real_rad_2)<1.0e-10*real_rad_2,
                         "Bad effective radius");
@@ -112,9 +112,9 @@ int test_number_conc(ModelData * model_data, N_Vector state) {
   for( int i = 0; i < N_JAC_ELEM+2; ++i ) partial_deriv[i] = 999.9;
   for( int i = 0; i < N_JAC_ELEM_2+2; ++i ) partial_deriv_2[i] = 999.9;
 
-  aero_rep_get_number_conc(model_data, AERO_REP_IDX, AERO_PHASE_IDX,
+  aero_rep_get_number_conc__n_m3(model_data, AERO_REP_IDX, AERO_PHASE_IDX,
                            &number_conc, &(partial_deriv[1]));
-  aero_rep_get_number_conc(model_data, AERO_REP_IDX, AERO_PHASE_IDX_2,
+  aero_rep_get_number_conc__n_m3(model_data, AERO_REP_IDX, AERO_PHASE_IDX_2,
                            &number_conc_2, &(partial_deriv_2[1]));
 
   double dp_bin4 = pow(10.0,(log10(1.0e-6) - log10(8.0e-9)) / 7.0 * 3.0 + log10(8.0e-9));
@@ -216,7 +216,7 @@ int test_aero_phase_mass(ModelData * model_data, N_Vector state) {
 
   for( int i = 0; i < N_JAC_ELEM+2; ++i ) partial_deriv[i] = 999.9;
 
-  aero_rep_get_aero_phase_mass(model_data, AERO_REP_IDX, AERO_PHASE_IDX,
+  aero_rep_get_aero_phase_mass__ug_m3(model_data, AERO_REP_IDX, AERO_PHASE_IDX,
                                &phase_mass, &(partial_deriv[1]));
 
   double mass = CONC_1A + CONC_1B + CONC_1C;
@@ -250,7 +250,7 @@ int test_aero_phase_avg_MW(ModelData * model_data, N_Vector state) {
 
   for( int i = 0; i < N_JAC_ELEM+2; ++i ) partial_deriv[i] = 999.9;
 
-  aero_rep_get_aero_phase_avg_MW(model_data, AERO_REP_IDX, AERO_PHASE_IDX,
+  aero_rep_get_aero_phase_avg_MW__kg_mol(model_data, AERO_REP_IDX, AERO_PHASE_IDX,
                                  &avg_mw, &(partial_deriv[1]));
 
   ret_val += ASSERT_MSG(fabs(avg_mw-21.44548402) < 1.0e-8, "Bad phase avg MW");

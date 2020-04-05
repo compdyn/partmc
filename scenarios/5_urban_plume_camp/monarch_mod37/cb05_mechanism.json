@@ -13,7 +13,7 @@
           "O" : {}
         },
         "orig params" : "TUV_J(4, THETA)",
-        "base rate" : 2.39e-3,
+        "base rate" : 4.77e-3,
         "Fast-J id" : "NO2",
         "type" : "PHOTOLYSIS"
       },
@@ -128,7 +128,7 @@
           "O" : {}
         },
         "orig params" : "TUV_J(3, THETA)",
-        "base rate" : 1.27e-4,
+        "base rate" : 2.53e-4,
         "Fast-J id" : "O3",
         "type" : "PHOTOLYSIS"
       },
@@ -141,7 +141,7 @@
           "O1D" : {}
         },
         "orig params" : "TUV_J(2, THETA)",
-        "base rate" : 2.71e-7,
+        "base rate" : 2.26e-6,
         "Fast-J id" : "O3_1d",
         "type" : "PHOTOLYSIS"
       },
@@ -217,7 +217,7 @@
         },
         "orig params" : "TUV_J(6, THETA)",
         "scaling" : 0.89,
-        "base rate" : 9.11e-2,
+        "base rate" : 1.31e-1,
         "Fast-J id" : "NO3_X",
         "type" : "PHOTOLYSIS"
       },
@@ -231,7 +231,7 @@
         },
         "orig params" : "TUV_J(5, THETA)",
         "scaling" : 0.11,
-        "base rate" : 9.11e-2,
+        "base rate" : 1.31e-1,
         "Fast-J id" : "NO3_L",
         "type" : "PHOTOLYSIS"
       },
@@ -399,7 +399,7 @@
           "OH" : {}
         },
         "orig params" : "TUV_J(12, THETA)",
-        "base rate" : 4.44e-4,
+        "base rate" : 9.18e-4,
         "Fast-J id" : "HONO",
         "type" : "PHOTOLYSIS"
       },
@@ -583,7 +583,7 @@
           "OH" : { "yield" : 2.000 }
         },
         "orig params" : "TUV_J(11, THETA)",
-        "base rate" : 1.02e-6,
+        "base rate" : 2.59e-6,
         "Fast-J id" : "H2O2",
         "type" : "PHOTOLYSIS"
       },
@@ -814,7 +814,7 @@
           "NO3" : { "yield" : 0.390 }
         },
         "orig params" : "TUV_J(14, THETA)",
-        "base rate" : 5.93e-7,
+        "base rate" : 1.89e-6,
         "Fast-J id" : "HO2NO2",
         "type" : "PHOTOLYSIS"
       },
@@ -828,7 +828,7 @@
           "NO2" : {}
         },
         "orig params" : "TUV_J(13, THETA)",
-        "base rate" : 1.51e-8,
+        "base rate" : 8.61e-8,
         "Fast-J id" : "HONO2",
         "type" : "PHOTOLYSIS"
       },
@@ -983,7 +983,7 @@
           "PAR" : { "yield" : -0.660 }
         },
         "orig params" : "TUV_J(91, THETA)",
-        "base rate" : 2.39e-7,
+        "base rate" : 4.77e-7,
         "Fast-J id" : "NTR",
         "type" : "PHOTOLYSIS"
       },
@@ -1016,7 +1016,7 @@
           "ALDX" : { "yield" : 0.500 }
         },
         "orig params" : "TUV_J(26, THETA)",
-        "base rate" : 7.12e-7,
+        "base rate" : 1.81e-6,
         "Fast-J id" : "MeOOH",
         "type" : "PHOTOLYSIS"
       },
@@ -1127,7 +1127,7 @@
           "OH" : {}
         },
         "orig params" : "TUV_J(26, THETA)",
-        "base rate" : 7.12e-7,
+        "base rate" : 1.81e-6,
         "Fast-J id" : "MeOOH",
         "type" : "PHOTOLYSIS"
       },
@@ -1173,7 +1173,7 @@
           "CO" : {}
         },
         "orig params" : "TUV_J(15, THETA)",
-        "base rate" : 2.57e-6,
+        "base rate" : 7.93e-6,
         "Fast-J id" : "HCHO_a",
         "type" : "PHOTOLYSIS"
       },
@@ -1186,7 +1186,7 @@
           "CO" : {}
         },
         "orig params" : "TUV_J(16, THETA)",
-        "base rate" : 9.39e-6,
+        "base rate" : 2.20e-5,
         "Fast-J id" : "HCHO_b",
         "type" : "PHOTOLYSIS"
       },
@@ -1359,7 +1359,7 @@
           "HO2" : {}
         },
         "orig params" : "TUV_J(17, THETA)+TUV_J(19, THETA)",
-        "base rate" : 1.10e-6,
+        "base rate" : 2.20e-6,
         "Fast-J id" : "ALD2",
         "type" : "PHOTOLYSIS"
       },
@@ -1524,7 +1524,7 @@
           "OH" : {}
         },
         "orig params" : "TUV_J(26, THETA)",
-        "base rate" : 7.12e-7,
+        "base rate" : 1.81e-6,
         "Fast-J id" : "PACD",
         "type" : "PHOTOLYSIS"
       },
@@ -1601,7 +1601,7 @@
           "HO2" : {}
         },
         "orig params" : "TUV_J(20, THETA)",
-        "base rate" : 1.10e-6,
+        "base rate" : 2.20e-6,
         "Fast-J id" : "ALDX",
         "type" : "PHOTOLYSIS"
       },
@@ -2219,7 +2219,7 @@
         },
 	"scaling factor" : 9.0,
         "orig params" : "9.0 * TUV_J(15, THETA)",
-        "base rate" : 2.32e-5,
+        "base rate" : 7.17e-5,
         "Fast-J id" : "HCHO_a",
         "type" : "PHOTOLYSIS"
       },
@@ -2312,7 +2312,7 @@
           "CO" : {}
         },
         "orig params" : "TUV_J(24, THETA)",
-        "base rate" : 2.48e-5,
+        "base rate" : 7.64e-5,
         "Fast-J id" : "MGLY",
         "type" : "PHOTOLYSIS"
       },
@@ -2486,7 +2486,7 @@
         },
 	"scaling factor" : 0.0036,
         "orig params" : "0.0036 * TUV_J(89, THETA)",
-        "base rate" : 2.35e-7,
+        "base rate" : 5.50e-7,
         "Fast-J id" : "ISPD",
         "type" : "PHOTOLYSIS"
       },

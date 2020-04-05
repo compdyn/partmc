@@ -27,11 +27,11 @@ aero_background aero_back.dat   # aerosol background file
 loss_function none              # loss function specification
 
 rel_humidity 0.95               # initial relative humidity (1)
-latitude 0                      # latitude (degrees, -90 to 90)
+latitude 90                     # latitude (degrees, -90 to 90)
 longitude 0                     # longitude (degrees, -180 to 180)
 altitude 0                      # altitude (m)
-start_time 21600                # start time (s since 00:00 UTC)
-start_day 200                   # start day of year (UTC)
+start_time 43200                # start time (s since 00:00 UTC)
+start_day 187                   # start day of year (UTC)
 
 do_coagulation yes              # whether to do coagulation (yes/no)
 coag_kernel brown               # coagulation kernel

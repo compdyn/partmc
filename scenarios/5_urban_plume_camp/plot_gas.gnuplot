@@ -10,7 +10,7 @@ set title "Gas mixing ratios (with coag)"
 set xrange [0:24]
 set xtics 3
 
-set multiplot layout 2,1
+set multiplot layout 3,1
 
 set xlabel "time / h"
 set ylabel "gas mixing ratio / ppb"
@@ -102,14 +102,17 @@ set ylabel "gas mixing ratio / ppb"
 #    column 85: gas ISOP-P2 mixing ratio (ppb)
 #    column 86: gas TERP-P1 mixing ratio (ppb)
 #    column 87: gas TERP-P2 mixing ratio (ppb)
-#
+
 plot "out/urban_plume_0001_gas.txt" using ($1/3600):5 axes x1y1 with lines title "O3", \
-     "out/urban_plume_0001_gas.txt" using ($1/3600):7 axes x1y1 with lines title "NO2", \
+     "out/urban_plume_0001_gas.txt" using ($1/3600):2 axes x1y1 with lines title "NO2", \
      "out/urban_plume_0001_gas.txt" using ($1/3600):3 axes x1y1 with lines title "NO"
 
 plot "out/urban_plume_0001_gas.txt" using ($1/3600):11 axes x1y1 with lines title "HNO3", \
-     "out/urban_plume_0001_gas.txt" using ($1/3600):19 axes x1y1 with lines title "FORM", \
+     "out/urban_plume_0001_gas.txt" using ($1/3600):19 axes x1y1 with lines title "HCHO", \
      "out/urban_plume_0001_gas.txt" using ($1/3600):53 axes x1y1 with lines title "SO2", \
+     "out/urban_plume_0001_gas.txt" using ($1/3600):51 axes x1y1 with lines title "TERP", \
+     "out/urban_plume_0001_gas.txt" using ($1/3600):49 axes x1y1 with lines title "ISOP", \
      "out/urban_plume_0001_gas.txt" using ($1/3600):83 axes x1y1 with lines title "NH3"
 
+plot "out/urban_plume_0001_gas.txt" using ($77/3600):11 axes x1y1 with lines title "H2O"
 unset multiplot

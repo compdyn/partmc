@@ -18,8 +18,7 @@
 #define TEMPERATURE_K_ env_data[0]
 #define PRESSURE_PA_ env_data[1]
 
-#define UPDATE_RADIUS 0
-#define UPDATE_NUMBER 1
+#define UPDATE_NUMBER 0
 
 #define NUM_PHASE_ int_data[0]
 #define AERO_REP_ID_ int_data[1]
@@ -130,6 +129,9 @@ void aero_rep_single_particle_update_state(ModelData *model_data,
   int *int_data = aero_rep_int_data;
   double *float_data = aero_rep_float_data;
 
+  double volume;
+  RADIUS_ = 0.0;
+
   // Calculate the total aerosol phase masses
   for (int i_phase = 0; i_phase < NUM_PHASE_; i_phase++) {
     // Get a pointer to the phase on the state array
@@ -137,10 +139,15 @@ void aero_rep_single_particle_update_state(ModelData *model_data,
     state_var += PHASE_STATE_ID_(i_phase);
 
     // Get the mass and average MW
-    aero_phase_get_mass(model_data, PHASE_MODEL_DATA_ID_(i_phase), state_var,
-                        &(PHASE_MASS_(i_phase)), &(PHASE_AVG_MW_(i_phase)),
-                        NULL, NULL);
+    aero_phase_get_mass__ug_m3(model_data, PHASE_MODEL_DATA_ID_(i_phase),
+                               state_var, &(PHASE_MASS_(i_phase)),
+                               &(PHASE_AVG_MW_(i_phase)), NULL, NULL);
+    // Get the aerosol effective radius (m)
+    aero_phase_get_volume__m3_m3(model_data, PHASE_MODEL_DATA_ID_(i_phase),
+                                 state_var, &(volume), NULL);
+    RADIUS_ += volume;
   }
+  RADIUS_ = pow((RADIUS_ * 3.0 / 4.0 / 3.14159265359), 1.0 / 3.0);
 
   return;
 }
@@ -164,7 +171,7 @@ void aero_rep_single_particle_update_state(ModelData *model_data,
  * \param aero_rep_env_data Pointer to the aerosol representation
  *                          environment-dependent parameters
  */
-void aero_rep_single_particle_get_effective_radius(
+void aero_rep_single_particle_get_effective_radius__m(
     ModelData *model_data, int aero_phase_idx, double *radius,
     double *partial_deriv, int *aero_rep_int_data, double *aero_rep_float_data,
     double *aero_rep_env_data) {
@@ -172,18 +179,30 @@ void aero_rep_single_particle_get_effective_radius(
   double *float_data = aero_rep_float_data;
 
   *radius = RADIUS_;
+  double total_volume = 4.0 / 3.0 * 3.14159265359 * pow(RADIUS_, 3);
 
   if (partial_deriv) {
-    for (int i_phase = 0; i_phase < NUM_PHASE_; ++i_phase)
-      for (int i_spec = 0; i_spec < PHASE_NUM_JAC_ELEM_(i_phase); ++i_spec)
-        *(partial_deriv++) = ZERO;
+    for (int i_phase = 0; i_phase < NUM_PHASE_; ++i_phase) {
+      double *state = (double *)(model_data->grid_cell_state);
+      state += PHASE_STATE_ID_(i_phase);
+      double volume;
+      aero_phase_get_volume__m3_m3(model_data, PHASE_MODEL_DATA_ID_(i_phase),
+                                   state, &(volume), partial_deriv);
+      for (int i_spec = 0; i_spec < PHASE_NUM_JAC_ELEM_(i_phase); ++i_spec) {
+        *partial_deriv =
+            1.0 / 4.0 / 3.14159265359 *
+            pow((3.0 / 4.0 / 3.14159265359 * total_volume), -2.0 / 3.0) *
+            (*partial_deriv);
+        ++partial_deriv;
+      }
+    }
   }
 
   return;
 }
 
 /** \brief Get the particle number concentration \f$n\f$
- * (\f$\mbox{\si{\#\per\cubic\centi\metre}}\f$)
+ * (\f$\mbox{\si{\#\per\cubic\metre}}\f$)
  *
  * This single particle number concentration is set by the aerosol model prior
  * to solving the chemistry. Thus, all \f$\frac{\partial n}{\partial y}\f$ are
@@ -194,7 +213,7 @@ void aero_rep_single_particle_get_effective_radius(
  * \param aero_phase_idx Index of the aerosol phase within the representation
  *                       (not used)
  * \param number_conc Particle number concentration, \f$n\f$
- *                    (\f$\mbox{\si{\#\per\cubic\centi\metre}}\f$)
+ *                    (\f$\mbox{\si{\#\per\cubic\metre}}\f$)
  * \param partial_deriv \f$\frac{\partial n}{\partial y}\f$ where \f$y\f$ are
  *                      the species on the state array
  * \param aero_rep_int_data Pointer to the aerosol representation integer data
@@ -203,7 +222,7 @@ void aero_rep_single_particle_get_effective_radius(
  * \param aero_rep_env_data Pointer to the aerosol representation
  *                          environment-dependent parameters
  */
-void aero_rep_single_particle_get_number_conc(
+void aero_rep_single_particle_get_number_conc__n_m3(
     ModelData *model_data, int aero_phase_idx, double *number_conc,
     double *partial_deriv, int *aero_rep_int_data, double *aero_rep_float_data,
     double *aero_rep_env_data) {
@@ -227,7 +246,8 @@ void aero_rep_single_particle_get_number_conc(
  *
  * \param aero_phase_idx Index of the aerosol phase within the representation
  * \param aero_conc_type Pointer to int that will hold the concentration type
- *                       code
+ *                       code (0 = per particle mass concentrations;
+ *                       1 = total particle mass concentrations)
  * \param aero_rep_int_data Pointer to the aerosol representation integer data
  * \param aero_rep_float_data Pointer to the aerosol representation
  *                            floating-point data
@@ -265,7 +285,7 @@ void aero_rep_single_particle_get_aero_conc_type(int aero_phase_idx,
  * \param aero_rep_env_data Pointer to the aerosol representation
  *                          environment-dependent parameters
  */
-void aero_rep_single_particle_get_aero_phase_mass(
+void aero_rep_single_particle_get_aero_phase_mass__ug_m3(
     ModelData *model_data, int aero_phase_idx, double *aero_phase_mass,
     double *partial_deriv, int *aero_rep_int_data, double *aero_rep_float_data,
     double *aero_rep_env_data) {
@@ -280,8 +300,8 @@ void aero_rep_single_particle_get_aero_phase_mass(
         double *state = (double *)(model_data->grid_cell_state);
         state += PHASE_STATE_ID_(i_phase);
         double mass, mw;
-        aero_phase_get_mass(model_data, aero_phase_idx, state, &mass, &mw,
-                            partial_deriv, NULL);
+        aero_phase_get_mass__ug_m3(model_data, aero_phase_idx, state, &mass,
+                                   &mw, partial_deriv, NULL);
         partial_deriv += PHASE_NUM_JAC_ELEM_(i_phase);
       } else {
         for (int i_spec = 0; i_spec < PHASE_NUM_JAC_ELEM_(i_phase); ++i_spec)
@@ -294,7 +314,7 @@ void aero_rep_single_particle_get_aero_phase_mass(
 }
 
 /** \brief Get the average molecular weight in an aerosol phase
- **        \f$m\f$ (\f$\mbox{\si{\micro\gram\per\cubic\metre}}\f$)
+ **        \f$m\f$ (\f$\mbox{\si{\kilo\gram\per\mol}}\f$)
  *
  * The single particle mass is set for each new state as the sum of the masses
  * of the aerosol phases that compose the particle
@@ -311,7 +331,7 @@ void aero_rep_single_particle_get_aero_phase_mass(
  * \param aero_rep_env_data Pointer to the aerosol representation
  *                          environment-dependent parameters
  */
-void aero_rep_single_particle_get_aero_phase_avg_MW(
+void aero_rep_single_particle_get_aero_phase_avg_MW__kg_mol(
     ModelData *model_data, int aero_phase_idx, double *aero_phase_avg_MW,
     double *partial_deriv, int *aero_rep_int_data, double *aero_rep_float_data,
     double *aero_rep_env_data) {
@@ -326,8 +346,8 @@ void aero_rep_single_particle_get_aero_phase_avg_MW(
         double *state = (double *)(model_data->grid_cell_state);
         state += PHASE_STATE_ID_(i_phase);
         double mass, mw;
-        aero_phase_get_mass(model_data, aero_phase_idx, state, &mass, &mw, NULL,
-                            partial_deriv);
+        aero_phase_get_mass__ug_m3(model_data, aero_phase_idx, state, &mass,
+                                   &mw, NULL, partial_deriv);
         partial_deriv += PHASE_NUM_JAC_ELEM_(i_phase);
       } else {
         for (int i_spec = 0; i_spec < PHASE_NUM_JAC_ELEM_(i_phase); ++i_spec)
@@ -347,8 +367,8 @@ void aero_rep_single_particle_get_aero_phase_avg_MW(
  *       host model using the
  *       pmc_aero_rep_single_particle::aero_rep_single_particle_t::set_id
  *       function prior to initializing the solver.)
- *  - \b int update_type (Type of update to perform. Can be UPDATE_RADIUS or
- *       UPDATE_NUMBER.)
+ *  - \b int update_type (Type of update to perform. Can be UPDATE_NUMBER
+ *       only.)
  *  - \b double new_value (Either the new radius (m) or the new number
  *       concentration (\f$\mbox{\si{\#\per\cubic\centi\metre}}\f$).)
  *
@@ -374,10 +394,7 @@ bool aero_rep_single_particle_update_data(void *update_data,
   // Set the new radius or number concentration for matching aerosol
   // representations
   if (*aero_rep_id == AERO_REP_ID_ && AERO_REP_ID_ != 0) {
-    if (*update_type == UPDATE_RADIUS) {
-      RADIUS_ = (double)*new_value;
-      return true;
-    } else if (*update_type == UPDATE_NUMBER) {
+    if (*update_type == UPDATE_NUMBER) {
       NUMBER_CONC_ = (double)*new_value;
       return true;
     }
@@ -402,36 +419,6 @@ void aero_rep_single_particle_print(int *aero_rep_int_data,
   return;
 }
 
-/** \brief Create update data for new particle radius
- *
- * \return Pointer to a new radius update data object
- */
-void *aero_rep_single_particle_create_radius_update_data() {
-  int *update_data = (int *)malloc(2 * sizeof(int) + sizeof(double));
-  if (update_data == NULL) {
-    printf("\n\nERROR allocating space for radius update data\n\n");
-    exit(1);
-  }
-  return (void *)update_data;
-}
-
-/** \brief Set radius update data
- *
- * \param update_data Pointer to an allocated radius update data object
- * \param aero_rep_id Id of the aerosol representation(s) to update
- * \param radius New particle radius
- */
-void aero_rep_single_particle_set_radius_update_data(void *update_data,
-                                                     int aero_rep_id,
-                                                     double radius) {
-  int *new_aero_rep_id = (int *)update_data;
-  int *update_type = (int *)&(new_aero_rep_id[1]);
-  double *new_radius = (double *)&(update_type[1]);
-  *new_aero_rep_id = aero_rep_id;
-  *update_type = UPDATE_RADIUS;
-  *new_radius = radius;
-}
-
 /** \brief Create update data for new particle number
  *
  * \return Pointer to a new number update data object
@@ -445,15 +432,15 @@ void *aero_rep_single_particle_create_number_update_data() {
   return (void *)update_data;
 }
 
-/** \brief Set number update data
+/** \brief Set number update data (#/m3)
  *
  * \param update_data Pointer to an allocated number update data object
  * \param aero_rep_id Id of the aerosol representation(s) to update
- * \param number_conc New particle number
+ * \param number_conc New particle number (#/m3)
  */
-void aero_rep_single_particle_set_number_update_data(void *update_data,
-                                                     int aero_rep_id,
-                                                     double number_conc) {
+void aero_rep_single_particle_set_number_update_data__n_m3(void *update_data,
+                                                           int aero_rep_id,
+                                                           double number_conc) {
   int *new_aero_rep_id = (int *)update_data;
   int *update_type = (int *)&(new_aero_rep_id[1]);
   double *new_number_conc = (double *)&(update_type[1]);

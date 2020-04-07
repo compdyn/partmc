@@ -248,12 +248,13 @@ __global__ void cudadotxy(double *g_idata1, double *g_idata2, double *g_odata, u
 {
   extern __shared__ double sdata[];
   unsigned int tid = threadIdx.x;
-  unsigned int i = blockIdx.x*(blockDim.x*2) + threadIdx.x;
+  //unsigned int i = blockIdx.x*(blockDim.x*2) + threadIdx.x;//*2 because init blocks is half
+  unsigned int i = blockIdx.x*blockDim.x + threadIdx.x;//*2 because init blocks is half
 
   double mySum = (i < n) ? g_idata1[i]*g_idata2[i] : 0;
 
-  if (i + blockDim.x < n)
-    mySum += g_idata1[i+blockDim.x]*g_idata2[i+blockDim.x];
+  //if (i + blockDim.x < n)
+  //  mySum += g_idata1[i+blockDim.x]*g_idata2[i+blockDim.x];
 
   sdata[tid] = mySum;
   __syncthreads();
@@ -295,10 +296,15 @@ __global__ void cudareducey(double *g_odata, unsigned int n)
 //threads need to be pow of 2 //todo remove h_temp since not needed now
 extern "C++" double gpu_dotxy(double* vec1, double* vec2, double* h_temp, double* d_temp, int nrows, int blocks,int threads)
 {
+  double sum;
   dim3 dimGrid(blocks,1,1);
   dim3 dimBlock(threads,1,1);
 
+  //todo secure threads==power of 2 and don't surpass max_threads limit
+
   cudadotxy<<<dimGrid,dimBlock,threads*sizeof(double)>>>(vec1,vec2,d_temp,nrows);
+  cudaMemcpy(&sum, d_temp, sizeof(double), cudaMemcpyDeviceToHost);
+  //printf("rho1 %f", sum);
 
   int redsize= sqrt(blocks) +1;
   redsize=pow(2,redsize);
@@ -307,8 +313,6 @@ extern "C++" double gpu_dotxy(double* vec1, double* vec2, double* h_temp, double
   dim3 dimBlock2(redsize,1,1);
 
   cudareducey<<<dimGrid2,dimBlock2,redsize*sizeof(double)>>>(d_temp,blocks);
-
-  double sum;
   cudaMemcpy(&sum, d_temp, sizeof(double), cudaMemcpyDeviceToHost);
 
   return sum;
@@ -450,9 +454,11 @@ extern "C++" double gpu_VWRMS_Norm(int n, double* vec1,double* vec2,double* h_te
   dim3 dimGrid(blocks,1,1);
   dim3 dimBlock(threads,1,1);
 
+  //todo secure threads==power of 2 and don't surpass max_threads limit
+
   cudaDVWRMS_Norm<<<dimGrid,dimBlock,threads*sizeof(double)>>>(vec1,vec2,d_temp,n);
 
-  cudaMemcpy(h_temp, d_temp, blocks * sizeof(double), cudaMemcpyDeviceToHost);
+  //cudaMemcpy(h_temp, d_temp, blocks * sizeof(double), cudaMemcpyDeviceToHost);
 
   int redsize= sqrt(blocks) +1;
   redsize=pow(2,redsize);
@@ -622,21 +628,25 @@ __device__ void cudaDevicereducey(double *g_odata, unsigned int n)
   if (tid == 0) g_odata[blockIdx.x] = sdata[0];
 }
 
+//todo use mix of shared cuda and normal
 __device__ void cudaDevicedotxy(double *g_idata1, double *g_idata2, double *g_odata, unsigned int n)
 {
   extern __shared__ double sdata[];
   unsigned int tid = threadIdx.x;
-  unsigned int i = blockIdx.x*(blockDim.x*2) + threadIdx.x;
+  //unsigned int i = blockIdx.x*(blockDim.x*2) + threadIdx.x;
+  unsigned int i = blockIdx.x*blockDim.x + threadIdx.x;
 
   double mySum = (i < n) ? g_idata1[i]*g_idata2[i] : 0;
 
-  if (i + blockDim.x < n)
-    mySum += g_idata1[i+blockDim.x]*g_idata2[i+blockDim.x];
+  //if (i + blockDim.x < n)
+  //  mySum += g_idata1[i+blockDim.x]*g_idata2[i+blockDim.x];//dont mix values from other blocks!
 
+  //1022
+  if (tid == blockDim.x-1) sdata[tid+1] = 0; //Assign 0 to non interesting sdata
   sdata[tid] = mySum;
-  __syncthreads();
+  __syncthreads(); //careful with syncthreads, an individual thread cant access without the others
 
-  for (unsigned int s=blockDim.x/2; s>0; s>>=1)
+  for (unsigned int s=(blockDim.x+1)/2; s>0; s>>=1)
   {
     if (tid < s)
       sdata[tid] = mySum = mySum + sdata[tid + s];
@@ -644,7 +654,9 @@ __device__ void cudaDevicedotxy(double *g_idata1, double *g_idata2, double *g_od
     __syncthreads();
   }
 
-  if (tid == 0) g_odata[blockIdx.x] = sdata[0];
+  //dont need to access global memory now
+  //if (tid == 0) g_odata[blockIdx.x] = sdata[0];
+  *g_odata = sdata[0];
 }
 
 // z= a*z + x + b*y

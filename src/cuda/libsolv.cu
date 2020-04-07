@@ -256,6 +256,21 @@ __global__ void cudadotxy(double *g_idata1, double *g_idata2, double *g_odata, u
   //if (i + blockDim.x < n)
   //  mySum += g_idata1[i+blockDim.x]*g_idata2[i+blockDim.x];
 
+
+  //1022
+  if (tid == blockDim.x-1) sdata[tid+1] = 0; //Assign 0 to non interesting sdata
+  sdata[tid] = mySum;
+  __syncthreads(); //careful with syncthreads, an individual thread cant access without the others
+
+  for (unsigned int s=(blockDim.x+1)/2; s>0; s>>=1)
+  {
+    if (tid < s)
+      sdata[tid] = mySum = mySum + sdata[tid + s];
+
+    __syncthreads();
+  }
+
+/*
   sdata[tid] = mySum;
   __syncthreads();
 
@@ -266,7 +281,7 @@ __global__ void cudadotxy(double *g_idata1, double *g_idata2, double *g_odata, u
 
     __syncthreads();
   }
-
+*/
   if (tid == 0) g_odata[blockIdx.x] = sdata[0];
   //__syncthreads();
   //atomicAdd(&(g_odata[0]),g_odata[blockIdx.x]); //Takes considerably WAY MORE than cpu calc
@@ -279,6 +294,20 @@ __global__ void cudareducey(double *g_odata, unsigned int n)
 
   double mySum =  (tid < n) ? g_odata[tid] : 0;
 
+  /*
+  //1022
+  if (tid == blockDim.x-1) sdata[tid+1] = 0; //Assign 0 to non interesting sdata
+  sdata[tid] = mySum;
+  __syncthreads(); //careful with syncthreads, an individual thread cant access without the others
+
+  for (unsigned int s=(blockDim.x+1)/2; s>0; s>>=1)
+  {
+    if (tid < s)
+      sdata[tid] = mySum = mySum + sdata[tid + s];
+
+    __syncthreads();
+  }
+*/
   sdata[tid] = mySum;
   __syncthreads();
 
@@ -302,9 +331,9 @@ extern "C++" double gpu_dotxy(double* vec1, double* vec2, double* h_temp, double
 
   //todo secure threads==power of 2 and don't surpass max_threads limit
 
-  cudadotxy<<<dimGrid,dimBlock,threads*sizeof(double)>>>(vec1,vec2,d_temp,nrows);
+  cudadotxy<<<dimGrid,dimBlock,1024*sizeof(double)>>>(vec1,vec2,d_temp,nrows);
   cudaMemcpy(&sum, d_temp, sizeof(double), cudaMemcpyDeviceToHost);
-  //printf("rho1 %f", sum);
+  printf("rho1 %f", sum);
 
   int redsize= sqrt(blocks) +1;
   redsize=pow(2,redsize);

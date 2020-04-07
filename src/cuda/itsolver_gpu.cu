@@ -77,34 +77,38 @@ void cudaSolveGPU(
   dx -= blockIdx.x*idle_threads;
   dtempv -= blockIdx.x*idle_threads;
 */
-  /*
+
   alpha  = 1.0;
   rho0   = 1.0;
   omega0 = 1.0;
 
+  /*beta = 1.0;
+  rho1 = 1.0;
+  temp1 = 1.0;
+  temp2 = 1.0;*/
+
   int it=0;
   do
-  {*/
+  {
 
     //not_working_threads = blockDim.x
 
-    alpha = aux_params[0];
+    /*alpha = aux_params[0];
     rho0 = aux_params[1];
     omega0 = aux_params[2];
     beta = aux_params[3];
     rho1 = aux_params[4];
     temp1 = aux_params[5];
-    temp2 = aux_params[6];
+    temp2 = aux_params[6];*/
 
     //FOR SOME REASON this works when active threads is 1024...
     //if(tid < active_threads) //If tid is inside active_threads
     if(1)
     {
       //rho1=gpu_dotxy(dr0, dr0h, aux, daux, nrows,(blocks + 1) / 2, threads);
-
       //todo if thread==1023 then dont do nothing and at the init modify pointers to
       //-1*blockidx to adjust delay caused by 1023 do nothing
-
+      __syncthreads();
       cudaDevicedotxy(dr0, dr0h, &rho1, nrows);//&rho1
       __syncthreads();
       //cudaDevicereducey(daux, blocks);
@@ -116,8 +120,6 @@ void cudaSolveGPU(
       //gpu_zaxpbypc(dp0,dr0,dn0,beta,-1.0*omega0*beta,nrows,blocks,threads);   //z = ax + by + c
       cudaDevicezaxpbypc(dp0, dr0, dn0, beta, -1.0 * omega0 * beta, nrows);   //z = ax + by + c
       //if (tid == 0)
-
-
 
       //gpu_multxy(dy,ddiag,dp0,nrows,blocks,threads);  // precond y= p0*diag
       cudaDevicemultxy(dy, ddiag, dp0, nrows);
@@ -177,17 +179,7 @@ void cudaSolveGPU(
 
       rho0 = rho1;
 
-      //Notice needed sync with other blocks if no multicells technique is applied
-      if (id == 0)//why block 1 is different that block 0 in daux[0] if daux[0] should be global
-      {
-        aux_params[0]=alpha;
-        aux_params[1]=rho0;
-        aux_params[2]=omega0;
-        aux_params[3]=beta;//0.01;
-        aux_params[4]=rho1;//rho1
-        aux_params[5]=temp1;
-        aux_params[6]=temp2;
-      }
+      __syncthreads();
       /**/
     }
     else {
@@ -203,8 +195,20 @@ void cudaSolveGPU(
       */
     }
 
-  //  it++;
-  //} while(it<maxIt || temp1>tolmax);
+    it++;
+  } while(it<maxIt && temp1>tolmax);//while(it<maxIt && temp1>tolmax);
+
+  //Notice needed sync with other blocks if no multicells technique is applied
+  if (id == 0)//why block 1 is different that block 0 in daux[0] if daux[0] should be global
+  {
+    aux_params[0]=alpha;
+    aux_params[1]=rho0;
+    aux_params[2]=omega0;
+    aux_params[3]=beta;//0.01;
+    aux_params[4]=rho1;//rho1
+    aux_params[5]=temp1;
+    aux_params[6]=temp2;
+  }
 
 }
 
@@ -305,37 +309,43 @@ void solveGPU(itsolver *bicg, double *dA, int *djA, int *diA, double *dx, double
   //cudaMemcpy(x,bicg->dx,bicg->nrows*sizeof(double),cudaMemcpyDeviceToHost);
   //printf("dx0 1 %f %f\n", x[0], x[1]);
 
-  for(int it=0;it<maxIt;it++){
+  /**/aux_params[0] = alpha;
+  aux_params[1] = rho0;
+  aux_params[2] = omega0;
+  aux_params[3] = beta;
+  aux_params[4] = rho1;
+  aux_params[5] = temp1;
+  aux_params[6] = temp2;
+
+  cudaMemcpy(daux_params, aux_params, n_aux_params * sizeof(double), cudaMemcpyHostToDevice);
+  cudaSolveGPU << < blocks, active_threads, threads * sizeof(double) >> >//threads
+                                            (dA, djA, diA, dx, dtempv, nrows2, blocks, threads, maxIt, mattype, n_cells,
+                                                    tolmax, ddiag, dr0, dr0h, dn0, dp0, dt, ds, dAx2, dy, dz, daux,
+                                                    daux_params
+                                            );
+  cudaDeviceSynchronize();
+  cudaMemcpy(aux_params, daux_params, n_aux_params * sizeof(double), cudaMemcpyDeviceToHost);
+
+  alpha = aux_params[0];
+  rho0 = aux_params[1];
+  omega0 = aux_params[2];
+  beta = aux_params[3];
+  rho1 = aux_params[4];
+  temp1 = aux_params[5];
+  temp2 = aux_params[6];
+  printf("temp1 %-le", temp1);
+
+  //for(int it=0;it<maxIt;it++){
+  //int it=0;
+  //do {
 
     //todo maybe set dotxy and reducey to work with 1023 threads to check if same result
     //rho1=gpu_dotxy(dr0, dr0h, aux, daux, nrows,(blocks + 1) / 2, threads);//rho1 =<r0,r0h>
     //rho1=gpu_dotxy(dr0, dr0h, aux, daux, nrows,blocks, threads);//rho1 =<r0,r0h>
     //beta=(rho1/rho0)*(alpha/omega0);
 
-    /**/aux_params[0]=alpha;
-    aux_params[1]=rho0;
-    aux_params[2]=omega0;
-    aux_params[3]=beta;
-    aux_params[4]=rho1;
-    aux_params[5]=temp1;
-    aux_params[6]=temp2;
 
-    cudaMemcpy(daux_params,aux_params,n_aux_params*sizeof(double),cudaMemcpyHostToDevice);
-    cudaSolveGPU<<<blocks,active_threads,threads*sizeof(double)>>>//threads
-                                  (dA,djA,diA,dx,dtempv,nrows2,blocks,threads,maxIt,mattype,n_cells,
-                                          tolmax,ddiag,dr0,dr0h,dn0,dp0,dt,ds,dAx2,dy,dz,daux,
-                                          daux_params
-                                  );
-    cudaDeviceSynchronize();
-    cudaMemcpy(aux_params,daux_params,n_aux_params*sizeof(double),cudaMemcpyDeviceToHost);
 
-    alpha = aux_params[0];
-    rho0 = aux_params[1];
-    omega0 = aux_params[2];
-    beta = aux_params[3];
-    rho1 = aux_params[4];
-    temp1 = aux_params[5];
-    temp2 = aux_params[6];
     //printf("rho1 %f", rho1);
 /**/
 /*
@@ -381,15 +391,18 @@ void solveGPU(itsolver *bicg, double *dA, int *djA, int *diA, double *dx, double
     //temp1=gpu_dotxy(dr0, dr0, aux, daux, nrows,(blocks + 1) / 2, threads);
     temp1=gpu_dotxy(dr0, dr0, aux, daux, nrows,blocks, threads);
     temp1=sqrt(temp1);
-*/
+
     //cout<<it<<": "<<temp1<<endl;
-    printf("temp1 %-le", temp1);
+
+
     if(temp1<tolmax){
       break;
     }
     //rho0=rho1;
-  }
-
+    // }
+    it++;
+  }while(it<maxIt && temp1>tolmax);
+*/
   cudaFreeMem(daux_params);
 
   //cudaMemcpy(x,bicg->dx,bicg->nrows*sizeof(double),cudaMemcpyDeviceToHost);

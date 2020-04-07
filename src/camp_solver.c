@@ -640,8 +640,8 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
 
   if (!sd->no_solve) {
     #ifdef PMC_USE_GPU
-      flag = CVode_gpu2(sd->cvode_mem, (realtype)t_final, sd->y, &t_rt, CV_NORMAL, sd);
-      //flag = CVode(sd->cvode_mem, (realtype)t_final, sd->y, &t_rt, CV_NORMAL);
+      //flag = CVode_gpu2(sd->cvode_mem, (realtype)t_final, sd->y, &t_rt, CV_NORMAL, sd);
+      flag = CVode(sd->cvode_mem, (realtype)t_final, sd->y, &t_rt, CV_NORMAL);
     #else
       flag = CVode(sd->cvode_mem, (realtype)t_final, sd->y, &t_rt, CV_NORMAL);
     #endif
@@ -1349,7 +1349,9 @@ int guess_helper(const realtype t_n, const realtype h_n, N_Vector y_n,
       }
     }
 
+
     // Scale h_j unless t_n can be reached
+    //todo this part change in last chem_mod commit
     if (i_fast >= 0 && h_n > ZERO) h_j *= GUESS_ADV_SCALE;
 
     // Only make small changes to adjustment vectors used in Newton iteration

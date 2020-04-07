@@ -464,6 +464,14 @@ int CVode_gpu2(void *cvode_mem, realtype tout, N_Vector yout,
 
     N_VScale(cv_mem->cv_h, cv_mem->cv_zn[1], cv_mem->cv_zn[1]);
 
+    /* Try to improve initial guess of zn[1] */
+    if (cv_mem->cv_ghfun) {
+      N_VLinearSum(ONE, cv_mem->cv_zn[0], ONE, cv_mem->cv_zn[1], cv_mem->cv_tempv1);
+      cv_mem->cv_ghfun(cv_mem->cv_tn + cv_mem->cv_h, cv_mem->cv_h, cv_mem->cv_tempv1,
+                       cv_mem->cv_zn[0], cv_mem->cv_zn[1], cv_mem->cv_user_data,
+                       cv_mem->cv_tempv2, cv_mem->cv_acor_init);
+    }
+
     /* Check for zeros of root function g at and near t0. */
 
     if (cv_mem->cv_nrtfn > 0) {
@@ -957,6 +965,7 @@ booleantype cvAllocVectors_gpu2(CVodeMem cv_mem, N_Vector tmpl)
     N_VDestroy(cv_mem->cv_acor);
     return(SUNFALSE);
   }
+  N_VConst(ZERO, cv_mem->cv_tempv);
 
   cv_mem->cv_tempv1 = N_VClone(tmpl);
   if (cv_mem->cv_tempv1 == NULL) {
@@ -965,11 +974,22 @@ booleantype cvAllocVectors_gpu2(CVodeMem cv_mem, N_Vector tmpl)
     N_VDestroy(cv_mem->cv_acor);
     return(SUNFALSE);
   }
+  N_VConst(ZERO, cv_mem->cv_tempv1);
 
+  cv_mem->cv_tempv2 = N_VClone(tmpl);
+  if (cv_mem->cv_tempv2 == NULL) {
+    N_VDestroy(cv_mem->cv_tempv);
+    N_VDestroy(cv_mem->cv_tempv1);
+    N_VDestroy(cv_mem->cv_ewt);
+    N_VDestroy(cv_mem->cv_acor);
+    return(SUNFALSE);
+  }
+  N_VConst(ZERO, cv_mem->cv_tempv2);
   cv_mem->cv_acor_init = N_VClone(tmpl);
   if (cv_mem->cv_acor_init == NULL) {
     N_VDestroy(cv_mem->cv_tempv);
     N_VDestroy(cv_mem->cv_tempv1);
+    N_VDestroy(cv_mem->cv_tempv2);
     N_VDestroy(cv_mem->cv_ewt);
     N_VDestroy(cv_mem->cv_acor);
     return(SUNFALSE);
@@ -980,6 +1000,7 @@ booleantype cvAllocVectors_gpu2(CVodeMem cv_mem, N_Vector tmpl)
     N_VDestroy(cv_mem->cv_acor_init);
     N_VDestroy(cv_mem->cv_tempv);
     N_VDestroy(cv_mem->cv_tempv1);
+    N_VDestroy(cv_mem->cv_tempv2);
     N_VDestroy(cv_mem->cv_ewt);
     N_VDestroy(cv_mem->cv_acor);
     return(SUNFALSE);
@@ -991,6 +1012,7 @@ booleantype cvAllocVectors_gpu2(CVodeMem cv_mem, N_Vector tmpl)
     N_VDestroy(cv_mem->cv_acor_init);
     N_VDestroy(cv_mem->cv_tempv);
     N_VDestroy(cv_mem->cv_tempv1);
+    N_VDestroy(cv_mem->cv_tempv2);
     N_VDestroy(cv_mem->cv_ewt);
     N_VDestroy(cv_mem->cv_acor);
     return(SUNFALSE);
@@ -1007,6 +1029,7 @@ booleantype cvAllocVectors_gpu2(CVodeMem cv_mem, N_Vector tmpl)
       N_VDestroy(cv_mem->cv_last_yn);
       N_VDestroy(cv_mem->cv_tempv);
       N_VDestroy(cv_mem->cv_tempv1);
+      N_VDestroy(cv_mem->cv_tempv2);
       N_VDestroy(cv_mem->cv_ftemp);
       for (i=0; i < j; i++) N_VDestroy(cv_mem->cv_zn[i]);
       return(SUNFALSE);
@@ -1039,6 +1062,7 @@ void cvFreeVectors_gpu2(CVodeMem cv_mem)
   N_VDestroy(cv_mem->cv_acor);
   N_VDestroy(cv_mem->cv_tempv);
   N_VDestroy(cv_mem->cv_tempv1);
+  N_VDestroy(cv_mem->cv_tempv2);
   N_VDestroy(cv_mem->cv_acor_init);
   N_VDestroy(cv_mem->cv_last_yn);
   N_VDestroy(cv_mem->cv_ftemp);
@@ -2992,6 +3016,18 @@ int cvNlsNewton_gpu2(SolverData *sd, CVodeMem cv_mem, int nflag)
   //N_VConst(ZERO, cv_mem->cv_acor_init);
   //cudaMemcpyDToGpu(acor_init, bicg->dacor_init, bicg->nrows);
 
+  if (cv_mem->cv_ghfun) {
+    //todo use this ghfun
+    /*N_VScale(cv_mem->cv_rl1, cv_mem->cv_zn[1], cv_mem->cv_ftemp);
+    cv_mem->cv_ghfun(cv_mem->cv_tn, cv_mem->cv_h, cv_mem->cv_zn[0],
+                     N_VLinearSum(ONE, cv_mem->cv_zn[0], -ONE, cv_mem->cv_last_yn, cv_mem->cv_ftemp);
+    retval = cv_mem->cv_ghfun(cv_mem->cv_tn, cv_mem->cv_h, cv_mem->cv_zn[0],
+                              cv_mem->cv_last_yn, cv_mem->cv_ftemp, cv_mem->cv_user_data,
+                              cv_mem->cv_tempv, cv_mem->cv_acor_init);
+    cv_mem->cv_tempv1, cv_mem->cv_acor_init);
+    if (retval<0) return(RHSFUNC_RECVR);*/
+  }
+
   //remove temps, not used in jac
   vtemp1 = cv_mem->cv_acor;  /* rename acor as vtemp1 for readability  */
   vtemp2 = cv_mem->cv_acor;  /* rename y as vtemp2 for readability     */
@@ -3228,10 +3264,33 @@ int linsolsolve_gpu2(SolverData *sd, CVodeMem cv_mem)
 #endif
 
     // scale the correction to account for change in gamma
-    if ((cv_mem->cv_lmm == CV_BDF) && (cv_mem->cv_gamrat != 1.0)) {
+    //todo add this part (from matt merge)
+    /*if ((cv_mem->cv_lmm == CV_BDF) && (cv_mem->cv_gamrat != 1.0)) {
       //N_VScale(TWO/(ONE + cv_mem->cv_gamrat), b, b);
       gpu_scaley(bicg->dx, 2.0 / (1.0 + cv_mem->cv_gamrat), bicg->nrows, bicg->blocks, bicg->threads);
     }
+
+    if (cv_mem->cv_ghfun) {
+      N_VLinearSum(ONE, cv_mem->cv_y, ONE, b, cv_mem->cv_ftemp);
+      retval = cv_mem->cv_ghfun(cv_mem->cv_tn, ZERO, cv_mem->cv_ftemp,
+                                cv_mem->cv_y, b, cv_mem->cv_user_data,
+                                cv_mem->cv_tempv1, cv_mem->cv_tempv2);
+      if (retval==1) {
+        //SUNDIALS_DEBUG_PRINT_FULL("Received updated adjustment from guess helper");
+      } else if (retval<0) {
+        if ((!cv_mem->cv_jcur) && (cv_mem->cv_lsetup))
+          return(TRY_AGAIN);
+        else
+          return(RHSFUNC_RECVR);
+      }
+    }
+    // Check for negative concentrations
+    N_VLinearSum(ONE, cv_mem->cv_y, ONE, b, cv_mem->cv_ftemp);
+    if (N_VMin(cv_mem->cv_ftemp) < -PMC_TINY) {
+      return(CONV_FAIL);
+    }
+*/
+
 
     // Get WRMS norm of correction
     //del = vwrms_gpu2(b, cv_mem->cv_ewt);

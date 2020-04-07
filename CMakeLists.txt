@@ -539,7 +539,7 @@ endif()
 
 
 
-if (CUDA_FOUND)
+if (CUDA_FOUND AND ENABLE_GPU)
   set(CAMP_CUDA_SRC
           src/cuda/camp_gpu_solver.cu
           src/cuda/rxns_gpu/rxn_aqueous_equilibrium.cu

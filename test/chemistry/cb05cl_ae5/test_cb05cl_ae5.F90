@@ -42,7 +42,7 @@ program pmc_test_cb05cl_ae5
   ! CAMP-chem output file unit
   integer(kind=i_kind), parameter :: CAMP_FILE_UNIT = 12
   ! Number of timesteps to integrate over
-  integer(kind=i_kind), parameter :: NUM_TIME_STEPS = 5!5!100
+  integer(kind=i_kind), parameter :: NUM_TIME_STEPS = 5!100
   ! Number of EBI-solver species
   integer(kind=i_kind), parameter :: NUM_EBI_SPEC = 72
   ! Number of EBI-solever photolysis reactions
@@ -565,14 +565,14 @@ contains
     camp_init(:) = camp_state%state_var(:)
 
     ! Repeatedly solve the mechanism
-    do i_repeat = 1, 1!100
+    do i_repeat = 1, 100
 
     YC(:) = ebi_init(:)
     KPP_C(:) = kpp_init(:)
     camp_state%state_var(:) = camp_init(:)
 
     ! Solve the mechanism
-    do i_time = 1, 100!NUM_TIME_STEPS
+    do i_time = 1, NUM_TIME_STEPS
 
 #ifdef DEBUG
       if (i_repeat.eq.1) then

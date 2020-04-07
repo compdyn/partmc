@@ -51,7 +51,7 @@ program pmc_test_cb05cl_ae5
   ! Number of timesteps to integrate over
   integer(kind=i_kind), parameter :: NUM_TIME_STEPS = 1
   ! Number of cells
-  integer(kind=i_kind), parameter :: NUM_CELLS= 10000
+  integer(kind=i_kind), parameter :: NUM_CELLS= 1000
   ! Number of EBI-solver species
   integer(kind=i_kind), parameter :: NUM_EBI_SPEC = 72
   ! Number of EBI-solever photolysis reactions

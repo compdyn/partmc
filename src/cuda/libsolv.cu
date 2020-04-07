@@ -256,13 +256,15 @@ __global__ void cudadotxy(double *g_idata1, double *g_idata2, double *g_odata, u
   //if (i + blockDim.x < n)
   //  mySum += g_idata1[i+blockDim.x]*g_idata2[i+blockDim.x];
 
+  //Last thread assign 0 to empty shr values
+  //if (tid == blockDim.x-1)
+  //    sdata[tid+1] = 0; //Assign 0 to non interesting sdata
 
-  //1022
-  if (tid == blockDim.x-1) sdata[tid+1] = 0; //Assign 0 to non interesting sdata
   sdata[tid] = mySum;
   __syncthreads(); //careful with syncthreads, an individual thread cant access without the others
 
-  for (unsigned int s=(blockDim.x+1)/2; s>0; s>>=1)
+  //for (unsigned int s=(blockDim.x+1)/2; s>0; s>>=1)
+  for (unsigned int s=blockDim.x/2; s>0; s>>=1)
   {
     if (tid < s)
       sdata[tid] = mySum = mySum + sdata[tid + s];
@@ -295,7 +297,6 @@ __global__ void cudareducey(double *g_odata, unsigned int n)
   double mySum =  (tid < n) ? g_odata[tid] : 0;
 
   /*
-  //1022
   if (tid == blockDim.x-1) sdata[tid+1] = 0; //Assign 0 to non interesting sdata
   sdata[tid] = mySum;
   __syncthreads(); //careful with syncthreads, an individual thread cant access without the others
@@ -330,7 +331,7 @@ extern "C++" double gpu_dotxy(double* vec1, double* vec2, double* h_temp, double
   dim3 dimBlock(threads,1,1);
 
   //todo secure threads==power of 2 and don't surpass max_threads limit
-
+  //threads*sizeof(double)
   cudadotxy<<<dimGrid,dimBlock,1024*sizeof(double)>>>(vec1,vec2,d_temp,nrows);
   cudaMemcpy(&sum, d_temp, sizeof(double), cudaMemcpyDeviceToHost);
   //printf("rho1 %f", sum);
@@ -658,7 +659,7 @@ __device__ void cudaDevicereducey(double *g_odata, unsigned int n)
 }
 
 //todo use mix of shared cuda and normal
-__device__ void cudaDevicedotxy(double *g_idata1, double *g_idata2, double *g_odata, unsigned int n)
+__device__ void cudaDevicedotxy(double *g_idata1, double *g_idata2, double *g_odata, unsigned int n, int n_shr_empty)
 {
   extern __shared__ double sdata[];
   unsigned int tid = threadIdx.x;
@@ -670,12 +671,17 @@ __device__ void cudaDevicedotxy(double *g_idata1, double *g_idata2, double *g_od
   //if (i + blockDim.x < n)
   //  mySum += g_idata1[i+blockDim.x]*g_idata2[i+blockDim.x];//dont mix values from other blocks!
 
-  //1022
-  if (tid == blockDim.x-1) sdata[tid+1] = 0; //Assign 0 to non interesting sdata
+  //Last thread assign 0 to empty shr values
+  if (tid == 0)//one thread
+  {
+    for (int j=0; j<n_shr_empty; j++)
+      sdata[blockDim.x+j] = 0; //Assign 0 to non interesting sdata
+  }
   sdata[tid] = mySum;
-  __syncthreads(); //careful with syncthreads, an individual thread cant access without the others
+  __syncthreads();
 
-  for (unsigned int s=(blockDim.x+1)/2; s>0; s>>=1)
+  //todo ensure that n_shr_empty is less than half of the max_threads to have enough threads
+  for (unsigned int s=(blockDim.x+n_shr_empty)/2; s>0; s>>=1)
   {
     if (tid < s)
       sdata[tid] = mySum = mySum + sdata[tid + s];

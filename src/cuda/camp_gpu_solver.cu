@@ -180,7 +180,6 @@ void solver_new_gpu_cu(ModelData *model_data, int n_dep_var,
            n_blocks, model_data->max_n_gpu_blocks);
   }
 
-
 #ifdef PMC_DEBUG_PRINT
   print_gpu_specs();
 #endif

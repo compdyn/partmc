@@ -25,5 +25,7 @@ extern "C" {
 
 void createSolver(itsolver *bicg);
 void solveGPU(itsolver *bicg, double *dA, int *djA, int *diA, double *dx, double *dtempv);
+void solveGPU_multi(itsolver *bicg, double *dA, int *djA, int *diA, double *dx, double *dtempv);
+
 
 #endif

@@ -3238,6 +3238,8 @@ int linsolsolve_gpu2(SolverData *sd, CVodeMem cv_mem)
   double *acor = NV_DATA_S(cv_mem->cv_acor);
   double *cv_y = NV_DATA_S(cv_mem->cv_y);
   double *tempv = NV_DATA_S(cv_mem->cv_tempv);
+  CVDlsMem cvdls_mem = (CVDlsMem) cv_mem->cv_lmem;
+  double *x = NV_DATA_S(cvdls_mem->x);
 
   // Looping point for Newton iteration
   for(;;) {
@@ -3256,7 +3258,12 @@ int linsolsolve_gpu2(SolverData *sd, CVodeMem cv_mem)
 
     // Call the lsolve function
     //todo use cuda get event timer to profile a gpu function with multiple calls to gpu without device_syncronhize
-    solveGPU(bicg,bicg->dA,bicg->djA,bicg->diA,bicg->dx,bicg->dtempv);
+    //solveGPU(bicg,bicg->dA,bicg->djA,bicg->diA,bicg->dx,bicg->dtempv);
+    solveGPU_multi(bicg,bicg->dA,bicg->djA,bicg->diA,bicg->dx,bicg->dtempv);
+
+    //todo improve checking of good results (under flag debug and check all elements)
+    //cudaMemcpy(x,bicg->dx,bicg->nrows*sizeof(double),cudaMemcpyDeviceToHost);
+    //printf("dx3_4 %f %f,", x[3], x[4]); //seems working
 
 #ifdef PMC_DEBUG_GPU
     timeBiConjGrad+= clock() - start;

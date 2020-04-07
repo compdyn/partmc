@@ -261,7 +261,7 @@ __global__ void cudadotxy(double *g_idata1, double *g_idata2, double *g_odata, u
   //    sdata[tid+1] = 0; //Assign 0 to non interesting sdata
 
   sdata[tid] = mySum;
-  __syncthreads(); //careful with syncthreads, an individual thread cant access without the others
+  __syncthreads();
 
   //for (unsigned int s=(blockDim.x+1)/2; s>0; s>>=1)
   for (unsigned int s=blockDim.x/2; s>0; s>>=1)
@@ -296,19 +296,6 @@ __global__ void cudareducey(double *g_odata, unsigned int n)
 
   double mySum =  (tid < n) ? g_odata[tid] : 0;
 
-  /*
-  if (tid == blockDim.x-1) sdata[tid+1] = 0; //Assign 0 to non interesting sdata
-  sdata[tid] = mySum;
-  __syncthreads(); //careful with syncthreads, an individual thread cant access without the others
-
-  for (unsigned int s=(blockDim.x+1)/2; s>0; s>>=1)
-  {
-    if (tid < s)
-      sdata[tid] = mySum = mySum + sdata[tid + s];
-
-    __syncthreads();
-  }
-*/
   sdata[tid] = mySum;
   __syncthreads();
 

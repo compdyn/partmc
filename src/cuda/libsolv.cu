@@ -333,7 +333,7 @@ extern "C++" double gpu_dotxy(double* vec1, double* vec2, double* h_temp, double
 
   cudadotxy<<<dimGrid,dimBlock,1024*sizeof(double)>>>(vec1,vec2,d_temp,nrows);
   cudaMemcpy(&sum, d_temp, sizeof(double), cudaMemcpyDeviceToHost);
-  printf("rho1 %f", sum);
+  //printf("rho1 %f", sum);
 
   int redsize= sqrt(blocks) +1;
   redsize=pow(2,redsize);

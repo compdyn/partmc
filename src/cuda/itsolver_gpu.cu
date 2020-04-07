@@ -117,18 +117,7 @@ void cudaSolveGPU(
       cudaDevicezaxpbypc(dp0, dr0, dn0, beta, -1.0 * omega0 * beta, nrows);   //z = ax + by + c
       //if (tid == 0)
 
-      //Notice needed sync with other blocks if no multicells technique is applied
-      if (id == 0)//why block 1 is different that block 0 in daux[0] if daux[0] should be global
-      {
-        aux_params[0]=alpha;
-        aux_params[1]=rho0;
-        aux_params[2]=omega0;
-        aux_params[3]=beta;//0.01;
-        aux_params[4]=rho1;//rho1
-        aux_params[5]=temp1;
-        aux_params[6]=temp2;
-      }
-      /*
+
 
       //gpu_multxy(dy,ddiag,dp0,nrows,blocks,threads);  // precond y= p0*diag
       cudaDevicemultxy(dy, ddiag, dp0, nrows);
@@ -141,7 +130,7 @@ void cudaSolveGPU(
       cudaDevicedotxy(dr0h, dn0, &temp1, nrows);
       __syncthreads();
       //cudaDevicereducey(daux, blocks);
-      temp1 = daux[0];
+      //temp1 = daux[0];
       alpha = rho1 / temp1;
 
       //gpu_zaxpby(1.0,dr0,-1.0*alpha,dn0,ds,nrows,blocks,threads);
@@ -161,13 +150,13 @@ void cudaSolveGPU(
       cudaDevicedotxy(dz, dAx2, &temp1, nrows);
       __syncthreads();
       //cudaDevicereducey(daux, blocks);
-      temp1 = daux[0];
+      //temp1 = daux[0];
 
       //temp2=gpu_dotxy(dAx2, dAx2, aux, daux, nrows,(blocks + 1) / 2, threads);
       cudaDevicedotxy(dAx2, dAx2, &temp2, nrows);
       __syncthreads();
       //cudaDevicereducey(daux, blocks);
-      temp2 = daux[0];
+      //temp2 = daux[0];
       omega0 = temp1 / temp2;
 
       //gpu_axpy(dx,dy,alpha,nrows,blocks,threads); // x=alpha*y +x
@@ -183,11 +172,23 @@ void cudaSolveGPU(
       cudaDevicedotxy(dr0, dr0, &temp1, nrows);
       __syncthreads();
       //cudaDevicereducey(daux, blocks);
-      temp1 = daux[0];
+      //temp1 = daux[0];
       temp1 = sqrt(temp1);
 
       rho0 = rho1;
-      */
+
+      //Notice needed sync with other blocks if no multicells technique is applied
+      if (id == 0)//why block 1 is different that block 0 in daux[0] if daux[0] should be global
+      {
+        aux_params[0]=alpha;
+        aux_params[1]=rho0;
+        aux_params[2]=omega0;
+        aux_params[3]=beta;//0.01;
+        aux_params[4]=rho1;//rho1
+        aux_params[5]=temp1;
+        aux_params[6]=temp2;
+      }
+      /**/
     }
     else {
       //giving problems AS ALWAYS
@@ -308,10 +309,10 @@ void solveGPU(itsolver *bicg, double *dA, int *djA, int *diA, double *dx, double
 
     //todo maybe set dotxy and reducey to work with 1023 threads to check if same result
     //rho1=gpu_dotxy(dr0, dr0h, aux, daux, nrows,(blocks + 1) / 2, threads);//rho1 =<r0,r0h>
-    rho1=gpu_dotxy(dr0, dr0h, aux, daux, nrows,blocks, threads);//rho1 =<r0,r0h>
-    beta=(rho1/rho0)*(alpha/omega0);
+    //rho1=gpu_dotxy(dr0, dr0h, aux, daux, nrows,blocks, threads);//rho1 =<r0,r0h>
+    //beta=(rho1/rho0)*(alpha/omega0);
 
-    /*aux_params[0]=alpha;
+    /**/aux_params[0]=alpha;
     aux_params[1]=rho0;
     aux_params[2]=omega0;
     aux_params[3]=beta;
@@ -335,8 +336,9 @@ void solveGPU(itsolver *bicg, double *dA, int *djA, int *diA, double *dx, double
     rho1 = aux_params[4];
     temp1 = aux_params[5];
     temp2 = aux_params[6];
-*/
+    //printf("rho1 %f", rho1);
 /**/
+/*
     //Si cada uno lo hace con los threads de su bloque porque usa la mitad de bloques
 
     //    cout<<"rho1 "<<rho1<<" beta "<<beta<<endl;
@@ -351,7 +353,7 @@ void solveGPU(itsolver *bicg, double *dA, int *djA, int *diA, double *dx, double
     temp1=gpu_dotxy(dr0h, dn0, aux, daux, nrows, blocks, threads);
 
     alpha=rho1/temp1;
-    //printf("rho1 %f", rho1);
+
     //       cout<<"temp1 "<<temp1<<" alpha "<<alpha<<endl;
 
     gpu_zaxpby(1.0,dr0,-1.0*alpha,dn0,ds,nrows,blocks,threads);
@@ -379,13 +381,13 @@ void solveGPU(itsolver *bicg, double *dA, int *djA, int *diA, double *dx, double
     //temp1=gpu_dotxy(dr0, dr0, aux, daux, nrows,(blocks + 1) / 2, threads);
     temp1=gpu_dotxy(dr0, dr0, aux, daux, nrows,blocks, threads);
     temp1=sqrt(temp1);
-
+*/
     //cout<<it<<": "<<temp1<<endl;
-    //printf("temp1 %-le", temp1);
+    printf("temp1 %-le", temp1);
     if(temp1<tolmax){
       break;
     }
-    rho0=rho1;
+    //rho0=rho1;
   }
 
   cudaFreeMem(daux_params);

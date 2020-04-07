@@ -697,18 +697,18 @@ set_source_files_properties(${CB5_EBI_SOLVER} PROPERTIES COMPILE_FLAGS
 ######################################################################
 # test_chemistry_cb05cl_ae5_big
 
-add_executable(test_chemistry_cb05cl_ae5_big
-        test/chemistry/cb05cl_ae5/test_cb05cl_ae5_big.F90
+add_executable(test_chemistry_cb05cl_ae5
+        test/chemistry/cb05cl_ae5/test_cb05cl_ae5.F90
         ${CB5_EBI_SOLVER} ${CB5_KPP_SOLVER}
         test/chemistry/cb05cl_ae5/module_BSC_CHEM_DATA.F90)
-target_link_libraries(test_chemistry_cb05cl_ae5_big partmclib)
+target_link_libraries(test_chemistry_cb05cl_ae5 partmclib)
 
 #if (CUDA_FOUND AND NOT ENABLE_GPU AND ENABLE_TESTS)
-#    add_executable(test_chemistry_cb05cl_ae5_big_gpu
-#            test/chemistry/cb05cl_ae5/test_cb05cl_ae5_big.F90
+#    add_executable(test_chemistry_cb05cl_ae5_gpu
+#            test/chemistry/cb05cl_ae5/test_cb05cl_ae5.F90
 #            ${CB5_EBI_SOLVER} ${CB5_KPP_SOLVER}
 #            test/chemistry/cb05cl_ae5/module_BSC_CHEM_DATA.F90)
-#    target_link_libraries(test_chemistry_cb05cl_ae5_big_gpu partmclib_gpu)
+#    target_link_libraries(test_chemistry_cb05cl_ae5_gpu partmclib_gpu)
 #endif()
 
 ######################################################################
@@ -746,18 +746,18 @@ if (ENABLE_TESTS)
 ######################################################################
 # test_chemistry_cb05cl_ae5
 
-add_executable(test_chemistry_cb05cl_ae5
-        test/chemistry/cb05cl_ae5/test_cb05cl_ae5.F90
+add_executable(test_chemistry_cb05cl_ae5_big
+        test/chemistry/cb05cl_ae5/test_cb05cl_ae5_big.F90
         ${CB5_EBI_SOLVER} ${CB5_KPP_SOLVER}
         test/chemistry/cb05cl_ae5/module_BSC_CHEM_DATA.F90)
-target_link_libraries(test_chemistry_cb05cl_ae5 partmclib)
+target_link_libraries(test_chemistry_cb05cl_ae5_big partmclib)
 
 #if (CUDA_FOUND AND NOT ENABLE_GPU AND ENABLE_TESTS)
-#    add_executable(test_chemistry_cb05cl_ae5_gpu
-#            test/chemistry/cb05cl_ae5/test_cb05cl_ae5.F90
+#    add_executable(test_chemistry_cb05cl_ae5_big_gpu
+#            test/chemistry/cb05cl_ae5/test_cb05cl_ae5_big.F90
 #            ${CB5_EBI_SOLVER} ${CB5_KPP_SOLVER}
 #            test/chemistry/cb05cl_ae5/module_BSC_CHEM_DATA.F90)
-#    target_link_libraries(test_chemistry_cb05cl_ae5_gpu partmclib_gpu)
+#    target_link_libraries(test_chemistry_cb05cl_ae5_big_gpu partmclib_gpu)
 #endif()
 
 ######################################################################

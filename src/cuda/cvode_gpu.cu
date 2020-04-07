@@ -308,7 +308,7 @@ void allocSolverGPU(CVodeMem cv_mem, SolverData *sd)
   cudaMemcpy(bicg->dx,tempv,bicg->nnz*sizeof(double),cudaMemcpyHostToDevice);
 
   bicg->maxIt=100;
-  bicg->tolmax=cv_mem->cv_reltol; //Set to CAMP selected accuracy (1e-8) //1e-10;//1e-6
+  bicg->tolmax=1e-10; //cv_mem->cv_reltol CAMP selected accuracy (1e-8) //1e-10;//1e-6
 
   //Init Linear Solver variables
   createSolver(bicg);

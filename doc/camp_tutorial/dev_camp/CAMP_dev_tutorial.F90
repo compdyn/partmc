@@ -24,7 +24,6 @@
 !! - \ref camp_dev_tutorial_part_5
 !! - \ref camp_dev_tutorial_part_6
 !! - \ref camp_dev_tutorial_part_7
-!! - \ref camp_dev_tutorial_part_7
 !!
 !! Model code described in Dev CAMP can be found in
 !! \c doc/camp_tutorial/dev_camp.
@@ -43,33 +42,40 @@
 !!
 !! CAMP can be divided into the following main components:
 !!
-!! - Input user data: All input data received by CAMP.
+!! - <b> Input user data </b>: All input data received by CAMP.
 !! It includes the user-defined JSON files and the variables coming from
 !! the host model such as chemical concentrations and environmental variables
 !! like temperature or pressure. The \ref camp_tutorial "Boot CAMP tutorial"
 !! teaches how to enter these variables in CAMP.
 !!
-!! - CAMP_core interface: User interface.
+!! - <b> CAMP_core interface </b>: User interface.
 !! Responsible for adapting the input data to efficent data structures.
 !! Includes all the files that prepare the data for the solving system.
 !!
-!! - Solving system: Corresponds to all the files related to the resolution of the
-!! chemical mechanism. Includes the solving of the chemical reactions equations and the
-!! ODE solver. At present, the external package CVODE is used as the CAMP ODE solver.
+!! - <b> Solving system </b>: Corresponds to all the files related to the resolution of the
+!! chemical mechanism (and ODE system). Includes the solving of the chemical reactions equations and the
+!! ODE solver to advance in time to the next time-step. In the default version of CAMP 1.0, the ODE solving is
+!! solved iteratively using the Backward Differentiation Formula method from the CVODE package, alongside
+!! the SuiteSparse KLU method as the internal linear solver. These algorithms can differ for other versions
+!! or enabling some options in CAMP, for example enabling the GPU flag can change the linear solving for
+!! performance reasons.
 !!
+!! The following images describes the general workflow of CAMP.
+!!
+!! The first image summarize the main CAMP components and interactions. The chemistry API
+!! refers to the JSON files, chemistry core to CAMP_core interface and the integrated
+!! chemical mechanism and solver part represents the solving system.
+!!
+!! \image html camp_main_components.jpg
+!!
+!! In the second image, the preparations, user and host
+!! model parts corresponds to the category "Input user data". The CAMP_core interface is
+!! inside CAMP, and the solving system is composed by the ODE solver and some calculations
+!! from CAMP like solving the system equations \f$f(y)\f$.
+!!
+!! \image html preparations_camp.jpg
 !! \image html very_simple_CAMP_components_2.jpg
 !!
-
-
-!! todo: process.st/uml-tutorial/ first level user, then host model, camp and then solver something like that
-!! the first part of the very simple components can be used, and then start with the model and all
-!! this things, configuring the host model etc, not super detail but something to see all the steps to
-!! describe as best as possible. use  rombos something like that to remark camp_core, camp solver... REMARK
-!! that is only a WORKFLOW diagram, so no variable description necessary
-!! ITS more like an overview diagram, so no worries so much. He only wants to remark
-!! more the parts than putting a box.
-
-
 !! <hr>
 !! \image{inline} html icon_trail.png
 !! \ref camp_dev_tutorial "Index"
@@ -129,6 +135,11 @@
 !! For more information about the rate constant, check the
 !! \ref camp_rxn "reaction" types pages.
 !!
+!! ## Derivative workflow ##
+!!
+!! The next image summarize the workflow on computing the Derivative.
+!!
+!! \image html Deriv_one_cell.jpg
 !!
 !! <hr>
 !! <b> < Previous: </b> \ref camp_dev_tutorial_part_0
@@ -171,7 +182,6 @@
 !!  Includes declarations of the arrays where JSON data is stored: one array for
 !!  integer type data and other for floating data (for example, qty from \ref
 !!  camp_rxn_arrhenius "arrheniufs reaction" is an integer, but \f$A\f$ is floating data).
-!!  Q: why more than 1 class read JSON data?
 !!  - \ref pmc_rxn_arrhenius::rxn_arrhenius_t "rxn_REACTIONTYPE" : Set of classes,
 !!  one for each reaction type defined in CAMP,
 !!  where REACTIONTYPE is the reaction name (arrhenius, photolysis, etc.)
@@ -189,15 +199,8 @@
 !!  another way to enter the reaction data. Check \ref camp_rxn_add for more information.
 !!  - \ref pmc_util "pmc_util": Treat an array of characters as a string_t object.
 !!   Used to store string information like species names in chem_spec_data or camp_core.
-!!  - \ref pmc_solver_stats "solver_stats":
 !!
-!!  todo: identify what partmc files are used and which ones not:
-!! Used (explain before): mpi, util,
-!! Not used: stats, run_coagulation, run_part, run_sect,  aero_binned, aero_state,
-!! spec_file (integrated in env_state but only used by partmc)
-!!   ...
-!!
-!! The workflow corresponds to: (todo: diagram)
+!! The workflow corresponds to:
 !!
 !! - <b> From the user point of view </b>: initialize camp_core, create camp_state,
 !!  call chem_spec_data through camp_core, set camp_state chemical data and solve.
@@ -212,9 +215,8 @@
 !! Notice that all the reaction data read in the JSON files will be stored
 !! in the integer and the float aray. We will name these arrays as int_data and
 !! float_data from now on. Only the environmental data array (env_data) and the
-!! concentrations array (concs_data) are outside off int_data and float_data.
+!! concentrations array (concs_data) are outside of int_data and float_data.
 !!
-
 !! <hr>
 !! <b> < Previous: </b> \ref camp_dev_tutorial_part_1
 !! \image{inline} html icon_trail.png
@@ -242,18 +244,12 @@
 !! the main functions described during this section and specially their
 !! call graphs.
 !!
-!! \image html camp_solving_system_classes_overall.jpg
+!! The next image is a simple workflow representation to take an overview of the components
+!! interactions. The chemistry core represents the camp core interface and the integrated
+!! chemical mechanism represents the solving system.
 !!
-!! \image html camp_solving_system.jpg
+!! \image html camp_and_solving.jpg
 !!
-
-!! todo Matt aconseja usar class diagram por estas secciones especificas, para describir claramente las
-!! data structures presentes (si, en el camp_solving system tmb). Mantener el workflow diagram
-!! global para la introduccion. (and he show a class diagram from tutorials point)
-!! si eso hacerlo basico, pero poniendo pues todas las grandes estructuras como lo de aero
-!! y submodel y quiza lo escrito en este diagrama de pues el solver state y eso (only
-!! to take a view, el workflow de datos lo puedo hacer despues de alguna manera)
-
 !! ## Choosing the ODE solver: CVODE ##
 !!
 !! Solving an ODE implies selecting the solving method that better fills
@@ -265,8 +261,9 @@
 !! have to be implicit to secure a
 !! reasonable number of solving time-steps for stiff mechanism cases.
 !!
-!! All solver methods require the system derivative in each solver iteration.
-!! But implicit methods tipically needs also the system Jacobian.
+!! All solver methods require the solution to the system equations (\f$f(y)\f$)
+!! in each ODE solver iteration.
+!! But implicit methods tipically needs also the system Jacobian (\f$J = df/dy\f$).
 !!
 !! Solving the derivative and the Jacobian also includes a wide range
 !! of solver options that depends on the system properties. Common mechanisms
@@ -284,7 +281,7 @@
 !! - Direct sparse linear solver: KLU sparse solver.
 !! - Level of parallelization: No parallelization, serial execution.
 !!
-!! Note that <b> CAMP is not locked to CVODE </b> and can be adapted to any ODE
+!! Note that CAMP is not locked to CVODE and can be adapted to any ODE
 !! solver availabe with the proper implementation. The only requirements
 !! to achieve an optimal behaviour is select a solver designed for stiff systems.
 !!
@@ -322,9 +319,12 @@
 !! defined in the CVODE package (including the input parameters). We only
 !! need to fill the content.
 !!
-!! These functions will be called in the middle of the CVODE solving process,
-!! depending of the system will be called less or more times. CVODE will
-!! pass as a function parameters the current concentration array (concs_data),
+!! These functions will be called in the middle of the CVODE solving process. To give an idea,
+!! in the default CVODE version used the Derivative is called a minimum 
+!! of 4 times in different parts of the BDF algorithm, and the Jacobian 1 time in the 
+!! setup of the KLU Sparse solver. The number of calls differs depending on the input system.
+!!  
+!! CVODE will pass as a function parameters the current concentration array (concs_data),
 !! the pointer to the future concentration array or Jacobian (deriv or J
 !! variables), the current model time (s) and the pointer
 !! to the main CAMP data structure (solver_data struct). solver_data contains all
@@ -338,14 +338,19 @@
 !! CAMP returns to the CAMP solver interface part. Otherwise, CVODE will
 !! repeat the iteration using the last result obtained.
 !!
-!! \image html workflow_deriv_jac.jpg
-!!
 !! These functions must solve the operations defined at
 !! \ref camp_dev_tutorial_part_1. Remember that they can be more
-!! or less complex, depending if the reaction rate constant was calculated
-!! before the solving or it needs to be calculated in these function.
-!! Some reaction parameters like the \ref camp_rxn_arrhenius "arrhenius yield"
-!! can also affect the rate.
+!! or less complex, depending on the dependencies of the rate constants.
+!! Maybe all these rate constants can be calculated at the start of these functions
+!! or they have a dependance with the current concentration of some species and need
+!! to be calculated during the solving.
+!!
+!! ## Workflow ##
+!!
+!! The next image summarize the workflow of the solving system. Note this workflow
+!! only represent the main interactions and variables and the last CAMP version can differ.
+!!
+!! \image html camp_solving_system.jpg
 !!
 !! <hr>
 !! <b> < Previous: </b> \ref camp_dev_tutorial_part_2
@@ -366,6 +371,15 @@
 !! module. This class adapt more of the MPI functions with a safe call, checking
 !! the flag MPI_SUCCESS and exiting the program if the call do not success.
 !!
+!! Most of the classes of the CAMP_core interface has some MPI functions to enable
+!! send the class object to another MPI thread. The common approach to communicate
+!! the class data is pack all the components (e.g. integers and floats) in the same
+!! MPI communicator and unpack the data in the receiving node/s.
+!!
+!! Also, the whole module CAMP can be executed in independent MPI threads. This approach
+!! is used when integrating a CAMP into a host model. The host model will replicate
+!! all his modules (including CAMP), divide the work to each node and eventually communicate
+!! the results obtained in each module between the rest of the nodes.
 !!
 !! <hr>
 !! <b> < Previous: </b> \ref camp_dev_tutorial_part_3
@@ -381,20 +395,15 @@
 
 !> \page camp_dev_tutorial_part_5 Dev CAMP: Part 5 - GPU interface
 !!
-!! In order to accelerate the CAMP module, a GPU module was developed.
-!!
-!! This module is developed in the CUDA language. The idea behind this
-!! module is translate the most computational expensive part (Solving
-!! system) to the GPU. The user can choose to compute all the module in
+!! A GPU module was developed in the CUDA language to speedup the solving
+!! for large chemical systems. The user can choose to compute all the module in
 !! the CPU (set as default) or enable the GPU execution.
 !!
-!! At the present, only the Derivative and Jacobian functions has a GPU
-!! version. However, our team is currently investigating alternatives for
-!! a complete GPU ODE solver. ODE solvers, (including CVODE) are releasing
-!! increasingly more options to compute expensive operations in GPU,
-!! related mostly with matrix operations and linear solving (search cuBLAS and
-!! cuSolver for more information). In the future, more GPU solving parts
-!! will be implemented to reduce the high computational time of big experiments.
+!! We will explain the idea of this GPU version with an example: The 
+!! parallelization of the Derivative function. This was the first function
+!! translated to the GPU during the GPU development to test the efficiency of the
+!! GPU, and will be serve also as our introduction point to understand the general
+!! concept of how to parallellize a chemical module like CAMP in the GPU.
 !!
 !! ## Parallelization strategy ##
 !!
@@ -407,12 +416,14 @@
 !! next iteration specie concentration. In this way, each reaction represents
 !! a contribution to the related species, and can increase or decrease its value.
 !!
-!! This concept means that there are no relation with each reaction till we
+!! This concept means that there are no relation with each reaction until we
 !! sum the resulting rates of change. In other words, the calculations done
 !! in each reaction before the sum can be computed in parallel.
 !!
-!! So, in conclusion and in the code meanings, instead of a loop iterating
+!! So, instead of a loop iterating
 !! all the reactions we will have GPU threads doing this work in parallell.
+!!
+!! \image html Deriv_GPU_one_cell.jpg
 !!
 !! ## GPU pre-solving ##
 !!
@@ -424,8 +435,7 @@
 !!  - Check GPU properties. Check the maximum capacities of the GPU available
 !!  to adjust the parallelism accordingly (enough threads, blocks, etc). This
 !!  can be done in runtime thanks to the CUDA library.
-!!  - Update GPU variables computed in the CPU, like the rate constants and the
-!!  Jacobian indices.
+!!  - Update GPU variables computed in the CPU, like the rate constants.
 !!
 !! During the updating of GPU variables, an extra preparation can be done
 !! to improve the GPU execution. Taking into account that all the reaction
@@ -435,14 +445,20 @@
 !! instead of having in the firsts values of the int_data array the values
 !! for the first reaction, we will have as first value the first value of
 !! the first reaction, as second the first value of the second reaction, and
-!! so on.
+!! so on. 
 !!
-!! \image html reverse_rxn_data.jpg
+!! In the next image we consider that the reaction data is organized in
+!! the form of a matrix, where each row represent a different reaction and the
+!! columns the parameters for the reaction. With this implementation, the threads
+!! access the first parameter of each reaction simultaneously. In the original CPU
+!! data structure, these access are not consecutive in memory. So, we apply
+!! this optimization which is similar to invert the original "matrix": Now,
+!! the first parameters accessed are consecutive in memory, improving the memory
+!! access. We call this optimization "reverse matrix" to reference it later.
 !!
-!! Note that this optimization will change the way that we read the data.
-!! We name that implementation as "reverse optimization" to refer to it later.
+!! \image html reverse_matrix.jpg
 !!
-!! ## Derivative and Jacobian ##
+!! ## Derivative##
 !!
 !! To launch a kernel in CUDA is necessary define the number of threads and
 !! blocks required by the program. For our case, the number of threads is
@@ -450,14 +466,14 @@
 !! the minimum (assign the maximum number of threads per block).
 !!
 !! \code{.c}
-!! int n_threads = n_reactions
+!! int n_threads = n_reactions;
 !! int n_blocks = (n_threads + max_threads_per_block - 1) / max_threads_per_block);
 !! \endcode
 !!
 !! After this, we can launch a kernel passing as input parameter all the pointers
 !! to the data previously stored during the GPU pre-solving. Now the kernel function
 !! must realize two tasks: divide the work for each thread and call the appropiate
-!! Derivative or Jacobian function. Note that starting from this step, all the
+!! Derivative function. Note that starting from this step, all the
 !! code will be computed in parallel for all the threads enable.
 !!
 !! Divide the work translates to assign to each thread a diffent reaction pointer
@@ -484,24 +500,74 @@
 !!  }
 !!
 !! \endcode
-
-!! Warn the developer about taking into account that gpu only achieves positive
-!! speedup when big data is present (refer to optimization page to see scalability
-!! tests)
-
-!! division in threads, defines, get n_rxn, atomic, err idk (but this should be named before)
-
-
-!! ## Multi-cells approach ##
-
-!! Basically:
-
-!! - Amplify state deriv and rate constants array with each indepedent value.
-!! - Multiply the number of threads also for the number of cells
-!! (apart from the number of reactions).
-!! - Assign to the block of reactions of each cell, the corresponding
-!! state_array, deriv array and rate constants for that cell.
-
+!!
+!! Warning: Take into account the reverse optimization also when accessing the code
+!! in the reaction type Derivative functions. E.g. in the CPU version accesing the
+!! next reaction parameter is sum 1 in the float_array, but now in the reverse
+!! optimization we need to sum the lenght of the "matrix rows" (n_rxn a.k.a number of
+!! reactions.
+!!
+!! Also notice that in this reaction type Derivative functions we should add the
+!! contribution of each reaction type to the Derivative throught the CUDA instruction
+!! "atomicAdd", since the reactions can affect the same specie and the threads will
+!! try to access simultaneously the same data.
+!!
+!! ## Multi-cells in GPU ##
+!!
+!! In CAMP, the user can compute simultaneously multiple chemical mechanisms (including
+!! in the GPU parts). The user only needs to send the number of cells (a.k.a chemical
+!! mechanisms) present in the concentration array. Then, this array will have a size of
+!! n_reactions * n_cells. Meanwhile in the "original one-cell" implementation the user/host
+!! model sends the mechanism (e.g Carbond Bond 05 mechanism) one per one cell, the user
+!! group the data in the same data structure. This also translates that the ODE solver
+!! will solve the mechanism at once, instead of reinitializing the solving per each cell,
+!! improving the general performance.
+!!
+!! \image html camp_multicells_def.jpg
+!!
+!! In the GPU, we need to take into account these n_cells by:
+!!
+!! - Multiply the number of threads also for the number of cells (apart from the number
+!! of reactions). Notice that n_cells is set to 1 per default, so 
+!! if the user didn't specify n_cells (which mean he don't want
+!! to compute multi-cells), the multiplication per n_cells won't affect the computation.
+!!
+!! \code{.c}
+!! int n_threads = n_reactions * n_cells;
+!! int n_blocks = (n_threads + max_threads_per_block - 1) / max_threads_per_block);
+!! \endcode 
+!!
+!! - Recalculate sizes on the GPU. Now the concentration array is multiplied by n_cells.
+!! The rate constants that depends on environmental data will increase also by
+!! the number of cells, since each cell can have different temperature for example (and
+!! consider also that each reaction type can need more or less rate constants).
+!! The reaction data will remain with the same size, since we are applying the same
+!! chemical mechanism with the same coefficients to all the cells.
+!!
+!! \code{.c}
+!! int index = blockIdx.x * blockDim.x + threadIdx.x;
+!! int i_cell=index/n_rxn;
+!! int i_rxn=index%n_rxn;
+!!
+!! //Get indices of each reaction
+!! double *rxn_float_data = &(float_data)[i_rxn]);
+!! int *rxn_int_data = &(int_data)[i_rxn]);
+!! //Get indices for concentrations
+!! double *rxn_concs = &( concs[n_concs_cell*i_cell]);
+!! //Get indices for rates
+!! double *rxn_rate_constants = &(rate_constants[n_rate_constants_cell*i_cell+
+!! n_rate_constants_reaction[i_rxn]]
+!! 
+!! int rxn_type = int_data[0];
+!! rxn_int_data = &(int_data[1*n_rxn]);
+!! switch (rxn_type){
+!!   case ARRHENIUS:
+!!      rxn_arrhenius_calc_deriv_contrib(solver_data, deriv_data, rxn_int_data,
+!!      rxn_float_data, rxn_rate_constants)
+!!  }
+!!
+!! \endcode
+!!
 !! <hr>
 !! <b> < Previous: </b> \ref camp_dev_tutorial_part_4
 !! \image{inline} html icon_trail.png
@@ -516,36 +582,21 @@
 
 !> \page camp_dev_tutorial_part_6 Dev CAMP: Part 6 - Testing
 !!
-!! Check accuracy, types of tests, functionalities that have to be test,
-!! checkings alongside the program...
-!!
-!! Mention the time-counters to measure the time execution and take care
-!! if it goes ahead. If the user is more interested in the performance and
-!! developing optimizations, go to the "optimization" page.
-!!
 !! ## Testing through CMakeLists ##
 !!
-!! Explain that CMake leads the test execution through CMakeLists. The tests
-!! should be added to this file.
-!!
-!! The organization of CMake is: blablbla (remark that all the tests should be
-!! here to allow automatic execution with "make test" command)
-!!
-!!
-!! ## Check GPU: CMAKE ##
-!!
-!! GPU is checked through generating extra compiled files with GPU_flag ON
-!!
-!! ## Developing a test: Common test parts with test_unit_rxn example
-!!
-!! Explain the test_unit_rxn test example to ensure all the items are
-!! check (multi-cells,
+!! CAMP includes multiple tests with different scenarios (testing each reaction type,
+!! chemical mechanisms like Carbond Bond 05, etc.). CMake leads this test execution 
+!! through CMakeLists. The developer should ensure his implementation passes all these
+!! tests available to execute with the CMake command "make test". The Github CAMP project
+!! also check these tests on each commit.
 !!
 !! <hr>
 !! <b> < Previous: </b> \ref camp_dev_tutorial_part_5
 !! \image{inline} html icon_trail.png
 !! \ref camp_dev_tutorial "Index"
 !! \image{inline} html icon_trail.png
+!! <b> Next: </b>
+!! \ref camp_dev_tutorial_part_7 <b> > </b>
 !!
 !!
 
@@ -555,68 +606,17 @@
 
 !> \page camp_dev_tutorial_part_7 Dev CAMP: Part 7 - Documenting your contribution
 !!
-!! Explain a bit how Doxygen works, contact main developers, blablabla. How to
-!! add comments to the code, and this kind of basic things that sometimes are not
-!! so basic.
+!! CAMP generates all his documentation through Doxygen. Ensure to document properly your
+!! apportation to CAMP with commentaries inside the code and using Doxygen if necessary.
+!! Don't hesitate to contact the main developers for doubts or help in your contribution.
+!! Remember also that the project on Github includes multiple issues with different
+!! ideas in development, so ensure to take a look before developing something that is
+!! already in progress.
 !!
 !! <hr>
 !! <b> < Previous: </b> \ref camp_dev_tutorial_part_6
 !! \image{inline} html icon_trail.png
 !! \ref camp_dev_tutorial "Index"
 !! \image{inline} html icon_trail.png
-!! <b> Next: </b>
-!! \ref camp_dev_tutorial_part_8 <b> > </b>
-!!
-!!
-
-! ***********************************************************************
-! ***********************************************************************
-! ***********************************************************************
-
-!> \page camp_dev_tutorial_part_8 Dev CAMP: Extra chapter - Performance & Optimization
-!!
-!! ## How performance is measured - Debug variables ##
-!!
-!! ## Optimization tips ##
-!!
-!! ...
-!!
-!! In the Github project you can find all the existent changes of CAMP including
-!! all the optimizations, but if you want only information about the most
-!! relevants, you can find them in the ""CAMP Performance timeline"" page.
-!!
-
-!!
-!! <hr>
-!! <b> < Previous: </b> \ref camp_dev_tutorial_part_7
-!! \image{inline} html icon_trail.png
-!! \ref camp_dev_tutorial "Index"
-!! \image{inline} html icon_trail.png
-!!
-!!
-
-!! notes from Mario: Ensure to write the part of optimization
-!! changes, like this was the speedup of base version and now this optimize
-!! this part, etc. NOTE that normally for the thesis people ask if the CPU
-!! version was optimized already, thing that I can say NO, because I optimize
-!! this, but the sparse atleast is optimized blablabla. Maybe something like
-!! "patch notes" related to optimization, but with a more extensive section.
-!! Don't know if write this in the tutorial, or MENTION it in the end or somewhere
-!! and link to the documentation. With this done, the phd thesis should be
-!! more or less copy paste from the documentation.
-
-
-!! create some section to write current development, like a historial. Example:
-!! I defined an issue explaining a problem. OKAY, this problem should be
-!! yes or yes in documentation as recent changes or something like that
-!! Once finish, if is an optimization work, check the last optimization work
-!! time result and compare the improvement to said okay this optimization
-!! changes the time measured last time with the last optimization
-!! from 1s to 0.8, so 20% improvement so nice.
-
-!! Create sections to fill as much kind of documentation as possible
-!! (like the one written in papers, manuals, or technical reports)
-!! (maybe state of the art can suits too?)
-!!
 !!
 !!

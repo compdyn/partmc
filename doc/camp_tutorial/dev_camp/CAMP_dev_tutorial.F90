@@ -22,8 +22,6 @@
 !! - \ref camp_dev_tutorial_part_3
 !! - \ref camp_dev_tutorial_part_4
 !! - \ref camp_dev_tutorial_part_5
-!! - \ref camp_dev_tutorial_part_6
-!! - \ref camp_dev_tutorial_part_7
 !!
 !! Model code described in Dev CAMP can be found in
 !! \c doc/camp_tutorial/dev_camp.
@@ -32,6 +30,21 @@
 !! in the future if better implementations are found, but the tutorial should be
 !! enough to replicate a consistent CAMP skeleton.
 !!
+!! ## Testing through CMake##
+!! CAMP includes multiple tests with different scenarios (testing each reaction type,
+!! chemical mechanisms like Carbond Bond 05, etc.). CMake leads this test execution
+!! through the CMakeList file. The developer should ensure his implementation passes all these
+!! tests available to execute with the CMake command "make test". The Github CAMP project
+!! also check these tests on each commit.
+!!
+!! ## Documenting your contribution ##
+!!
+!! CAMP generates all his documentation through Doxygen. Ensure to document properly your
+!! apportation to CAMP with commentaries inside the code and using Doxygen if necessary.
+!! Don't hesitate to contact the main developers for doubts or help in your contribution.
+!! Remember also that the project on Github includes multiple issues with different
+!! ideas in development, so ensure to take a look before developing something that is
+!! already in progress.
 
 ! ***********************************************************************
 ! ***********************************************************************
@@ -573,50 +586,3 @@
 !! \image{inline} html icon_trail.png
 !! \ref camp_dev_tutorial "Index"
 !! \image{inline} html icon_trail.png
-!! <b> Next: </b>
-!! \ref camp_dev_tutorial_part_6 <b> > </b>
-
-! ***********************************************************************
-! ***********************************************************************
-! ***********************************************************************
-
-!> \page camp_dev_tutorial_part_6 Dev CAMP: Part 6 - Testing
-!!
-!! ## Testing through CMakeLists ##
-!!
-!! CAMP includes multiple tests with different scenarios (testing each reaction type,
-!! chemical mechanisms like Carbond Bond 05, etc.). CMake leads this test execution 
-!! through CMakeLists. The developer should ensure his implementation passes all these
-!! tests available to execute with the CMake command "make test". The Github CAMP project
-!! also check these tests on each commit.
-!!
-!! <hr>
-!! <b> < Previous: </b> \ref camp_dev_tutorial_part_5
-!! \image{inline} html icon_trail.png
-!! \ref camp_dev_tutorial "Index"
-!! \image{inline} html icon_trail.png
-!! <b> Next: </b>
-!! \ref camp_dev_tutorial_part_7 <b> > </b>
-!!
-!!
-
-! ***********************************************************************
-! ***********************************************************************
-! ***********************************************************************
-
-!> \page camp_dev_tutorial_part_7 Dev CAMP: Part 7 - Documenting your contribution
-!!
-!! CAMP generates all his documentation through Doxygen. Ensure to document properly your
-!! apportation to CAMP with commentaries inside the code and using Doxygen if necessary.
-!! Don't hesitate to contact the main developers for doubts or help in your contribution.
-!! Remember also that the project on Github includes multiple issues with different
-!! ideas in development, so ensure to take a look before developing something that is
-!! already in progress.
-!!
-!! <hr>
-!! <b> < Previous: </b> \ref camp_dev_tutorial_part_6
-!! \image{inline} html icon_trail.png
-!! \ref camp_dev_tutorial "Index"
-!! \image{inline} html icon_trail.png
-!!
-!!

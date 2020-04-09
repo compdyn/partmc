@@ -260,6 +260,10 @@ typedef struct {
 #endif
 #ifdef PMC_USE_GPU
     itsolver bicg;
+#ifndef PMC_DEBUG_GPU //todo fix name
+    double max_error_linsolver;
+#endif
+
 #endif
   void *cvode_mem;       // CVodeMem object
   ModelData model_data;  // Model data (used during initialization and solving)

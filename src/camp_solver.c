@@ -1899,6 +1899,10 @@ void solver_free(void *solver_data) {
   SUNLinSolFree(sd->ls);
 #endif
 
+#ifdef PMC_USE_GPU
+  free_ode(sd);
+#endif
+
   // Free the allocated ModelData
   model_free(sd->model_data);
 

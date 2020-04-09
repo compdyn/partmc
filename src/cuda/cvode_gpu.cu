@@ -271,6 +271,9 @@ void allocSolverGPU(CVodeMem cv_mem, SolverData *sd)
   double *ewt = NV_DATA_S(cv_mem->cv_ewt);
   double *tempv = NV_DATA_S(cv_mem->cv_tempv);
 
+#ifndef PMC_DEBUG_GPU
+  sd->max_error_linsolver = 0;
+#endif
   //Init GPU ODE solver variables
   //Linking Matrix data, later this data must be allocated in GPU
   bicg->nnz=SM_NNZ_S(J);
@@ -293,10 +296,13 @@ void allocSolverGPU(CVodeMem cv_mem, SolverData *sd)
   cudaMalloc((void**)&bicg->djA,bicg->nnz*sizeof(int));
   cudaMalloc((void**)&bicg->diA,(bicg->nrows+1)*sizeof(int));
 
+  //ODE aux variables
   cudaMalloc((void**)&bicg->dewt,bicg->nrows*sizeof(double));
   cudaMalloc((void**)&bicg->dacor,bicg->nrows*sizeof(double));
   cudaMalloc((void**)&bicg->dtempv,bicg->nrows*sizeof(double));
   cudaMalloc((void**)&bicg->dzn,bicg->nrows*(cv_mem->cv_qmax+1)*sizeof(double));
+
+  //ODE concs arrays
   cudaMalloc((void**)&bicg->dcv_y,bicg->nrows*sizeof(double));
   cudaMalloc((void**)&bicg->dx,bicg->nrows*sizeof(double));
 
@@ -313,13 +319,14 @@ void allocSolverGPU(CVodeMem cv_mem, SolverData *sd)
   //Init Linear Solver variables
   createSolver(bicg);
 
-  //Alloc struct gpu //not working for some reason (maybe in the future?)
-/*  //printf("Size of struct %d \n", sizeof(itsolver));
-  cudaMalloc((void**)&dbicg,sizeof(itsolver));
-  //Copy struct gpu
-  cudaMemcpy(dbicg,bicg,sizeof(itsolver),cudaMemcpyHostToDevice);
-  cudaMemcpy(&(dbicg->dx),&(bicg->dx),sizeof(dbicg->dx),cudaMemcpyHostToDevice);
-*/
+  //Check if everything is correct
+#ifdef FAILURE_DETAIL
+  if(md->n_per_cell_dep_var > prop.maxThreadsPerBlock/2)
+    printf("ERROR: The GPU can't handle so much species"
+           " [NOT ENOUGH THREADS/BLOCK FOR ALL THE SPECIES]\n");
+#endif
+
+
 }
 
 int CVode_gpu2(void *cvode_mem, realtype tout, N_Vector yout,
@@ -788,7 +795,7 @@ int CVode_gpu2(void *cvode_mem, realtype tout, N_Vector yout,
 
   } /* end looping for internal steps */
 
-  free_gpu2(cv_mem);
+  //free_ode(cv_mem, sd);
 
   return(istate);
 }
@@ -3116,18 +3123,14 @@ int cvNlsNewton_gpu2(SolverData *sd, CVodeMem cv_mem, int nflag)
   }
 }
 
-//todo check for possible changes in jac indices(indexptrs) in sunmatscaleaddI
 //todo connect jac and deriv gpu from camp
-//int linsolsetup_gpu2(CVodeMem cv_mem)
 int linsolsetup_gpu2(SolverData *sd, CVodeMem cv_mem,int convfail,N_Vector vtemp1,N_Vector vtemp2,N_Vector vtemp3)
 {
   itsolver *bicg = &(sd->bicg);
   booleantype jbad, jok;
   realtype dgamma;
-  CVDlsMem cvdls_mem;
+  CVDlsMem cvdls_mem = (CVDlsMem) cv_mem->cv_lmem;;
   int retval = 0;
-
-  cvdls_mem = (CVDlsMem) cv_mem->cv_lmem;
 
   /* Use nst, gamma/gammap, and convfail to set J eval. flag jok */
   dgamma = SUNRabs((cv_mem->cv_gamma/cv_mem->cv_gammap) - ONE);
@@ -3200,6 +3203,12 @@ int linsolsetup_gpu2(SolverData *sd, CVodeMem cv_mem,int convfail,N_Vector vtemp
 
   cudaMemcpy(bicg->dA,bicg->A,bicg->nnz*sizeof(double),cudaMemcpyHostToDevice);
 
+#ifdef FAILURE_DETAIL
+  //check if jac is correct
+  int flag = check_jac_status_error(cvdls_mem->A);
+  //printf("Jac returned error flag %d\n",flag);
+#endif
+
 #ifdef PMC_DEBUG_GPU
   timeMatScaleAddISendA+= clock() - start;
   counterMatScaleAddISendA++;
@@ -3257,13 +3266,68 @@ int linsolsolve_gpu2(SolverData *sd, CVodeMem cv_mem)
 #endif
 
     // Call the lsolve function
-    //todo use cuda get event timer to profile a gpu function with multiple calls to gpu without device_syncronhize
     //solveGPU(bicg,bicg->dA,bicg->djA,bicg->diA,bicg->dx,bicg->dtempv);
-    solveGPU_multi(bicg,bicg->dA,bicg->djA,bicg->diA,bicg->dx,bicg->dtempv);
+    //solveGPU_multi(bicg,bicg->dA,bicg->djA,bicg->diA,bicg->dx,bicg->dtempv);
 
+#ifndef PMC_DEBUG_GPU //todo name it check_GPU
     //todo improve checking of good results (under flag debug and check all elements)
     //cudaMemcpy(x,bicg->dx,bicg->nrows*sizeof(double),cudaMemcpyDeviceToHost);
     //printf("dx3_4 %f %f,", x[3], x[4]); //seems working
+
+    //printf("Checking SolveGPU linear solver...\n");
+
+    double *aux_dx;
+    double *aux_x1;//output case 1
+    double *aux_x2;//output case 2
+    aux_x1=(double*)malloc(bicg->nrows*sizeof(double));
+    aux_x2=(double*)malloc(bicg->nrows*sizeof(double));
+    cudaMalloc((void**)&aux_dx,bicg->nrows*sizeof(double));
+    //save initial input which changes during the case functions
+    gpu_yequalsx(aux_dx, bicg->dx, bicg->nrows, bicg->blocks, bicg->threads);
+
+    //Compute case 1
+    solveGPU(bicg,bicg->dA,bicg->djA,bicg->diA,bicg->dx,bicg->dtempv);
+
+    //Save result
+    cudaMemcpy(aux_x1,bicg->dx,bicg->nrows*sizeof(double),cudaMemcpyDeviceToHost);
+    //printf("Case 1: dx3_4 %f %f,", aux_x1[3], aux_x1[4]); //seems working
+
+    //Reset input
+    gpu_yequalsx(bicg->dx, aux_dx, bicg->nrows, bicg->blocks, bicg->threads);
+    cudaDeviceSynchronize();
+
+    //Compute case 2
+    solveGPU_multi(bicg,bicg->dA,bicg->djA,bicg->diA,bicg->dx,bicg->dtempv);
+    //solveGPU(bicg,bicg->dA,bicg->djA,bicg->diA,bicg->dx,bicg->dtempv);
+
+    //Save result
+    cudaMemcpy(aux_x2,bicg->dx,bicg->nrows*sizeof(double),cudaMemcpyDeviceToHost);
+    //printf("Case 2: dx3_4 %f %f\n", aux_x2[3], aux_x2[4]);
+    //Print accuracy
+    double error;
+    double max_error = aux_x1[0]- aux_x2[0];
+    int max_error_i = 0.0;
+    for (int i=0; i<bicg->nrows; i++){
+      error = fabs(aux_x1[i]-aux_x2[i]);
+      if (error > max_error){
+        max_error = error;
+        max_error_i = i;
+      }
+    }
+    //Local max error
+    //printf("Max Error linsolver dx %-le at %d\n",error, max_error_i);
+    //Global max error (During ODE solver)
+    if (max_error > sd->max_error_linsolver){
+      sd->max_error_linsolver = max_error;
+    }
+    printf("Global max Error linsolver dx %-le\n",sd->max_error_linsolver);
+
+
+    cudaFree(aux_dx);
+    free(aux_x1);
+    free(aux_x2);
+
+#endif
 
 #ifdef PMC_DEBUG_GPU
     timeBiConjGrad+= clock() - start;
@@ -3271,7 +3335,7 @@ int linsolsolve_gpu2(SolverData *sd, CVodeMem cv_mem)
 #endif
 
     // scale the correction to account for change in gamma
-    //todo add this part (from matt merge)
+    //add this part (from matt merge)
     /*if ((cv_mem->cv_lmm == CV_BDF) && (cv_mem->cv_gamrat != 1.0)) {
       //N_VScale(TWO/(ONE + cv_mem->cv_gamrat), b, b);
       gpu_scaley(bicg->dx, 2.0 / (1.0 + cv_mem->cv_gamrat), bicg->nrows, bicg->blocks, bicg->threads);
@@ -3390,6 +3454,78 @@ int linsolsolve_gpu2(SolverData *sd, CVodeMem cv_mem)
   //return 0;
 }
 
+int check_jac_status_error(SUNMatrix A)
+{
+  sunindextype j, i, p, nz, newvals, M, N, cend;
+  booleantype newmat, found;
+  sunindextype *w, *Ap, *Ai, *Cp, *Ci;
+  realtype *x, *Ax, *Cx;
+  SUNMatrix C;
+  int flag;
+
+  /* store shortcuts to matrix dimensions (M is inner dimension, N is outer) */
+  if (SM_SPARSETYPE_S(A) == CSC_MAT) {
+    M = SM_ROWS_S(A);
+    N = SM_COLUMNS_S(A);
+  } else {
+    M = SM_COLUMNS_S(A);
+    N = SM_ROWS_S(A);
+  }
+
+  /* access data arrays from A (return if failure) */
+  Ap = Ai = NULL;
+  Ax = NULL;
+  if (SM_INDEXPTRS_S(A)) Ap = SM_INDEXPTRS_S(A);
+  else return (-1);
+  if (SM_INDEXVALS_S(A)) Ai = SM_INDEXVALS_S(A);
+  else return (-1);
+  if (SM_DATA_S(A)) Ax = SM_DATA_S(A);
+  else return (-1);
+
+
+  /* determine if A: contains values on the diagonal (so I can just be added in);
+     if not, then increment counter for extra storage that should be required. */
+  newvals = 0;
+  for (j = 0; j < SUNMIN(M, N); j++) {
+    /* scan column (row if CSR) of A, searching for diagonal value */
+    found = SUNFALSE;
+    for (i = Ap[j]; i < Ap[j + 1]; i++) {
+      if (Ai[i] == j) {
+        found = SUNTRUE;
+        break;
+      }
+    }
+    /* if no diagonal found, increment necessary storage counter */
+    if (!found) newvals += 1;
+  }
+
+  /* If extra nonzeros required, check whether matrix has sufficient storage space
+     for new nonzero entries  (so I can be inserted into existing storage) */
+  newmat = SUNFALSE;   /* no reallocation needed */
+  if (newvals > (SM_NNZ_S(A) - Ap[N]))
+    newmat = SUNTRUE;
+
+  //case 1: A already contains a diagonal
+  if (newvals == 0) {
+
+    flag = 0;
+    //printf("jac_indices had or need change to fill the diagonal");
+
+  //   case 2: A has sufficient storage, but does not already contain a diagonal
+  } else if (!newmat) {
+
+    printf("Jacobian does not contain a diagonal, jac_indices had/need to change");
+    flag = 1;
+  //case 3: A must be reallocated with sufficient storage */
+  } else {
+
+    printf("Jacobian must be reallocated with sufficient storage");
+    flag = 1;
+  }
+
+  return flag;
+}
+
 /*
  * cvHandleFailure
  *
@@ -3452,8 +3588,21 @@ int cvHandleFailure_gpu2(CVodeMem cv_mem, int flag)
 }
 
 
-void free_gpu2(CVodeMem cv_mem)
+void free_ode(SolverData *sd)
 {
+  itsolver *bicg = &(sd->bicg);
+
+  //ODE aux variables
+  cudaFree(bicg->dewt);
+  cudaFree(bicg->dacor);
+  cudaFree(bicg->dtempv);
+  cudaFree(bicg->dzn);
+
+  //ODE concs arrays
+  cudaFree(bicg->dcv_y);
+  cudaFree(bicg->dx);
+
+  free_itsolver(bicg);
 
   //HANDLE_ERROR(cudaFree(cv_mem->indexvals_gpu2));
   //HANDLE_ERROR(cudaFree(cv_mem->indexptrs_gpu2));

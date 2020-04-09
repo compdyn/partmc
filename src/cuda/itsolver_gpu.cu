@@ -202,10 +202,6 @@ void solveGPU_multi(itsolver *bicg, double *dA, int *djA, int *diA, double *dx, 
   rho0   = 1.0;
   omega0 = 1.0;
 
-  //todo if size_cell > n_threads_max/2 warning to execute in CPU (notice the reduce use
-  // half of the threads to compute the other parts
-  //printf("multi threads %d", multi_threads);
-
   /*int n_aux_params=7;
   double *aux_params;
   aux_params=(double*)malloc(n_aux_params*sizeof(double));
@@ -362,9 +358,39 @@ void solveGPU(itsolver *bicg, double *dA, int *djA, int *diA, double *dx, double
 
 }
 
+void free_itsolver(itsolver *bicg)
+{
+  //Init variables ("public")
+  int nrows = bicg->nrows;
+  int blocks = bicg->blocks;
 
-//todo free
-//void free_gpu(itsolver *bicg)
+  //Auxiliary vectors ("private")
+  double ** dr0 = &bicg->dr0;
+  double ** dr0h = &bicg->dr0h;
+  double ** dn0 = &bicg->dn0;
+  double ** dp0 = &bicg->dp0;
+  double ** dt = &bicg->dt;
+  double ** ds = &bicg->ds;
+  double ** dAx2 = &bicg->dAx2;
+  double ** dy = &bicg->dy;
+  double ** dz = &bicg->dz;
+  double ** daux = &bicg->daux;
+  double ** ddiag = &bicg->ddiag;
+
+  cudaFree(dr0);
+  cudaFree(dr0h);
+  cudaFree(dn0);
+  cudaFree(dp0);
+  cudaFree(dt);
+  cudaFree(ds);
+  cudaFree(dAx2);
+  cudaFree(dy);
+  cudaFree(dz);
+  cudaFree(ddiag);
+  cudaFree(daux);
+  free(bicg->aux);
+
+}
 
  /*
 void setUpSolver(itsolver *bicg, double reltol, double *ewt, int tnrows,int tnnz,double *tA, int *tjA, int *tiA, int tmattype, int qmax, double *dACamp, double *dftempCamp);

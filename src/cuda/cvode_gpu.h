@@ -63,6 +63,6 @@ int linsolsolve_gpu2(SolverData *sd, CVodeMem cv_mem);
 int check_jac_status_error(SUNMatrix A);
 int cvHandleFailure_gpu2(CVodeMem cv_mem, int flag);
 
-void printSolverCounters();
+void printSolverCounters(SolverData *sd);
 
 #endif

@@ -231,36 +231,6 @@ extern "C" {
 #define RDIV      TWO
 #define MSBP       20
 
-#ifdef PMC_DEBUG_GPU
-  int counterSendInit=0;
-  int counterMatScaleAddI=0;
-  int counterMatScaleAddISendA=0;
-  int counterMatCopy=0;
-  int counterNewtonIt=0;
-  int counterLinSolSetup=0;
-  int counterLinSolSolve=0;
-  int counterJacCVODE=0;
-  int countercvStep=0;
-  int counterprecvStep=0;
-  int counterDerivNewton=0;
-  int counterBiConjGrad=0;
-  int counterDerivSolve=0;
-
-  double timeNewtonSendInit=PMC_TINY;
-  double timeMatScaleAddI=PMC_TINY;
-  double timeMatScaleAddISendA=PMC_TINY;
-  double timeMatCopy=PMC_TINY;
-  double timeNewtonIt=PMC_TINY;
-  double timeLinSolSetup=PMC_TINY;
-  double timeLinSolSolve=PMC_TINY;
-  double timeJacCVODE=PMC_TINY;
-  double timecvStep=PMC_TINY;
-  double timeprecvStep=PMC_TINY;
-  double timeDerivNewton=PMC_TINY;
-  double timeBiConjGrad=PMC_TINY;
-  double timeDerivSolve=PMC_TINY;
-#endif
-
 void allocSolverGPU(CVodeMem cv_mem, SolverData *sd)
 {
   itsolver *bicg = &(sd->bicg);
@@ -271,8 +241,10 @@ void allocSolverGPU(CVodeMem cv_mem, SolverData *sd)
   double *ewt = NV_DATA_S(cv_mem->cv_ewt);
   double *tempv = NV_DATA_S(cv_mem->cv_tempv);
 
-#ifndef PMC_DEBUG_GPU
-  sd->max_error_linsolver = 0;
+#ifdef CHECK_GPU_LINSOLVE
+  sd->max_error_linsolver = 0.0;
+  sd->max_error_linsolver_i = 0;
+  sd->n_linsolver_i = 0;
 #endif
   //Init GPU ODE solver variables
   //Linking Matrix data, later this data must be allocated in GPU
@@ -326,6 +298,53 @@ void allocSolverGPU(CVodeMem cv_mem, SolverData *sd)
            " [NOT ENOUGH THREADS/BLOCK FOR ALL THE SPECIES]\n");
 #endif
 
+#ifdef PMC_DEBUG_GPU
+  bicg->counterSendInit=0;
+  bicg->counterMatScaleAddI=0;
+  bicg->counterMatScaleAddISendA=0;
+  bicg->counterMatCopy=0;
+  bicg->counterNewtonIt=0;
+  bicg->counterLinSolSetup=0;
+  bicg->counterLinSolSolve=0;
+  bicg->countercvStep=0;
+  bicg->counterprecvStep=0;
+  bicg->counterDerivNewton=0;
+  bicg->counterBiConjGrad=0;
+  bicg->counterDerivSolve=0;
+  bicg->timeJac=PMC_TINY;
+
+  bicg->timeNewtonSendInit=PMC_TINY;
+  bicg->timeMatScaleAddI=PMC_TINY;
+  bicg->timeMatScaleAddISendA=PMC_TINY;
+  bicg->timeMatCopy=PMC_TINY;
+  bicg->timeNewtonIt=PMC_TINY;
+  bicg->timeLinSolSetup=PMC_TINY;
+  bicg->timeLinSolSolve=PMC_TINY;
+  bicg->timecvStep=PMC_TINY;
+  bicg->timeprecvStep=PMC_TINY;
+  bicg->timeDerivNewton=PMC_TINY;
+  bicg->timeBiConjGrad=PMC_TINY;
+  bicg->timeDerivSolve=PMC_TINY;
+  bicg->timeJac=PMC_TINY;
+
+  cudaEventCreate(&bicg->startDerivNewton);
+  cudaEventCreate(&bicg->startDerivSolve);
+  cudaEventCreate(&bicg->startLinSolSetup);
+  cudaEventCreate(&bicg->startLinSolSolve);
+  cudaEventCreate(&bicg->startNewtonIt);
+  cudaEventCreate(&bicg->startcvStep);
+  cudaEventCreate(&bicg->startBiConjGrad);
+  cudaEventCreate(&bicg->startJac);
+
+  cudaEventCreate(&bicg->stopDerivNewton);
+  cudaEventCreate(&bicg->stopDerivSolve);
+  cudaEventCreate(&bicg->stopLinSolSetup);
+  cudaEventCreate(&bicg->stopLinSolSolve);
+  cudaEventCreate(&bicg->stopNewtonIt);
+  cudaEventCreate(&bicg->stopcvStep);
+  cudaEventCreate(&bicg->stopBiConjGrad);
+  cudaEventCreate(&bicg->stopJac);
+#endif
 
 }
 
@@ -333,6 +352,7 @@ int CVode_gpu2(void *cvode_mem, realtype tout, N_Vector yout,
           realtype *tret, int itask, SolverData *sd)
 {
   CVodeMem cv_mem;
+  itsolver *bicg = &(sd->bicg);
   long int nstloc;
   int retval, hflag, kflag, istate, ir, ier, irfndp;
   int ewtsetOK;
@@ -692,18 +712,27 @@ int CVode_gpu2(void *cvode_mem, realtype tout, N_Vector yout,
     }
 
 #ifdef PMC_DEBUG_GPU
-    timeprecvStep+= clock() - start;
-    counterprecvStep++;
+    //bicg->timeprecvStep+= clock() - start;
+    //bicg->counterprecvStep++;
 
-    start=clock();
+    cudaEventRecord(bicg->startcvStep);
+    //start=clock();
 #endif
     /* Call cvStep to take a step */
     //kflag = cvStep(cv_mem);
     kflag = cvStep_gpu2(sd, cv_mem);
 
 #ifdef PMC_DEBUG_GPU
-    timecvStep+= clock() - start;
-    countercvStep++;
+    cudaEventRecord(bicg->stopcvStep);
+
+    cudaEventSynchronize(bicg->stopcvStep);
+    float mscvStep = 0.0;
+    cudaEventElapsedTime(&mscvStep, bicg->startcvStep, bicg->stopcvStep);
+    bicg->timecvStep+= mscvStep;
+
+
+    //bicg->timecvStep+= clock() - start;
+    bicg->countercvStep++;
 #endif
 
     /* Process failed step cases, and exit loop */
@@ -1867,14 +1896,22 @@ int cvStep_gpu2(SolverData *sd, CVodeMem cv_mem)
 
     //nflag = cvNls(cv_mem, nflag);
 #ifdef PMC_DEBUG_GPU
-    clock_t start=clock();
+    //clock_t start=clock();
+    cudaEventRecord(bicg->startNewtonIt);
 #endif
 
     nflag = cvNlsNewton_gpu2(sd, cv_mem, nflag);
 
 #ifdef PMC_DEBUG_GPU
-    timeNewtonIt+= clock() - start;
-    counterNewtonIt++;
+    cudaEventRecord(bicg->stopNewtonIt);
+
+    cudaEventSynchronize(bicg->stopNewtonIt);
+    float msNewtonIt = 0.0;
+    cudaEventElapsedTime(&msNewtonIt, bicg->startNewtonIt, bicg->stopNewtonIt);
+    bicg->timeNewtonIt+= msNewtonIt;
+
+    //bicg->timeNewtonIt+= clock() - start;
+    bicg->counterNewtonIt++;
 #endif
     kflag = cvHandleNFlag_gpu2(cv_mem, &nflag, saved_t, &ncf);
 
@@ -2978,8 +3015,8 @@ int cvNlsNewton_gpu2(SolverData *sd, CVodeMem cv_mem, int nflag)
   booleantype callSetup;
 
 #ifdef PMC_DEBUG_GPU
-  clock_t start;
-  start=clock();
+  //clock_t start;
+  //start=clock();
 #endif
 
   //double *acor_init = NV_DATA_S(cv_mem->cv_acor_init); //user-supplied value to improve guesses for zn(0)
@@ -2999,8 +3036,8 @@ int cvNlsNewton_gpu2(SolverData *sd, CVodeMem cv_mem, int nflag)
   cudaMemcpy(bicg->dftemp,ftemp,bicg->nrows*sizeof(double),cudaMemcpyHostToDevice);
 
 #ifdef PMC_DEBUG_GPU
-  timeNewtonSendInit+= clock() - start;
-  counterSendInit++;
+  //bicg->timeNewtonSendInit+= clock() - start;
+  //bicg->counterSendInit++;
 #endif
 
   /* Set flag convfail, input to lsetup for its evaluation decision */
@@ -3057,32 +3094,47 @@ int cvNlsNewton_gpu2(SolverData *sd, CVodeMem cv_mem, int nflag)
     //int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data)
 
 #ifdef PMC_DEBUG_GPU
-    start=clock();
+    //start=clock();
+    cudaEventRecord(bicg->startDerivNewton);
 #endif
 
     retval = f(cv_mem->cv_tn, cv_mem->cv_y, cv_mem->cv_ftemp, cv_mem->cv_user_data);
-    if (retval < 0) return(CV_RHSFUNC_FAIL);
-    if (retval > 0) return(RHSFUNC_RECVR);
 
 #ifdef PMC_DEBUG_GPU
-    timeDerivNewton+= clock() - start;
-    counterDerivNewton++;
+    cudaEventRecord(bicg->stopDerivNewton);
+    cudaEventSynchronize(bicg->stopDerivNewton);
+    float msDerivNewton = 0.0;
+    cudaEventElapsedTime(&msDerivNewton, bicg->startDerivNewton, bicg->stopDerivNewton);
+    bicg->timeDerivNewton+= msDerivNewton;
+
+    //bicg->timeDerivNewton+= clock() - start;
+    bicg->counterDerivNewton++;
 #endif
     //cudaMemcpyDToGpu(ftemp, bicg->dftemp, bicg->nrows);
+    if (retval < 0) return(CV_RHSFUNC_FAIL);
+    if (retval > 0) return(RHSFUNC_RECVR);
 
     cv_mem->cv_nfe++;
     if (callSetup)
     {
 
 #ifdef PMC_DEBUG_GPU
-      start=clock();
+      //start=clock();
+      cudaEventRecord(bicg->startLinSolSetup);
 #endif
 
       ier = linsolsetup_gpu2(sd, cv_mem, convfail, vtemp1, vtemp2, vtemp3);
 
 #ifdef PMC_DEBUG_GPU
-      timeLinSolSetup+= clock() - start;
-      counterLinSolSetup++;
+    cudaEventRecord(bicg->stopLinSolSetup);
+
+    cudaEventSynchronize(bicg->stopLinSolSetup);
+    float msLinSolSetup = 0.0;
+    cudaEventElapsedTime(&msLinSolSetup, bicg->startLinSolSetup, bicg->stopLinSolSetup);
+    bicg->timeLinSolSetup+= msLinSolSetup;
+
+    //bicg->timeLinSolSetup+= clock() - start;
+    bicg->counterLinSolSetup++;
 #endif
 
       cv_mem->cv_nsetups++;
@@ -3101,7 +3153,7 @@ int cvNlsNewton_gpu2(SolverData *sd, CVodeMem cv_mem, int nflag)
     cudaMemset(bicg->dacor, 0.0, bicg->nrows*sizeof(double));
 
 #ifdef PMC_DEBUG_GPU
-    start=clock();
+    cudaEventRecord(bicg->startLinSolSolve);
 #endif
 
     // Do the Newton iteration
@@ -3109,8 +3161,13 @@ int cvNlsNewton_gpu2(SolverData *sd, CVodeMem cv_mem, int nflag)
     ier = linsolsolve_gpu2(sd, cv_mem);
 
 #ifdef PMC_DEBUG_GPU
-    timeLinSolSolve+= clock() - start;
-    counterLinSolSolve++;
+    cudaEventRecord(bicg->stopLinSolSolve);
+
+    cudaEventSynchronize(bicg->stopLinSolSolve);
+    float msLinSolSolve = 0.0;
+    cudaEventElapsedTime(&msLinSolSolve, bicg->startLinSolSolve, bicg->stopLinSolSolve);
+    bicg->timeLinSolSolve+= msLinSolSolve;
+    bicg->counterLinSolSolve++;
 #endif
     // If there is a convergence failure and the Jacobian-related
     //   data appears not to be current, loop again with a call to lsetup
@@ -3123,7 +3180,6 @@ int cvNlsNewton_gpu2(SolverData *sd, CVodeMem cv_mem, int nflag)
   }
 }
 
-//todo connect jac and deriv gpu from camp
 int linsolsetup_gpu2(SolverData *sd, CVodeMem cv_mem,int convfail,N_Vector vtemp1,N_Vector vtemp2,N_Vector vtemp3)
 {
   itsolver *bicg = &(sd->bicg);
@@ -3161,12 +3217,21 @@ int linsolsetup_gpu2(SolverData *sd, CVodeMem cv_mem,int convfail,N_Vector vtemp
     //retval = cvdls_mem->jac(cv_mem->cv_tn, cv_mem->cv_y,cv_mem->cv_ftemp, cvdls_mem->A,
     //                        cvdls_mem->J_data, vtemp1, vtemp2, vtemp3);
 
+#ifdef PMC_DEBUG_GPU
+    cudaEventRecord(bicg->startJac);
+#endif
+
     retval = Jac(cv_mem->cv_tn, cv_mem->cv_y,cv_mem->cv_ftemp, cvdls_mem->A,cvdls_mem->J_data, vtemp1, vtemp2, vtemp3);
 
-    /*
-    timeJacCVODE+= clock() - start5;
-    counterJacCVODE++;
-    */
+#ifdef PMC_DEBUG_GPU
+    cudaEventRecord(bicg->stopJac);
+
+    cudaEventSynchronize(bicg->stopJac);
+    float msJac = 0.0;
+    cudaEventElapsedTime(&msJac, bicg->startJac, bicg->stopJac);
+    bicg->timeJac+= msJac;
+    bicg->counterJac++;
+#endif
 
     if (retval < 0) {
       cvProcessError(cv_mem, CVDLS_JACFUNC_UNRECVR, "CVDLS",
@@ -3180,14 +3245,14 @@ int linsolsetup_gpu2(SolverData *sd, CVodeMem cv_mem,int convfail,N_Vector vtemp
     }
 
 #ifdef PMC_DEBUG_GPU
-    clock_t start = clock();
+    //clock_t start = clock();
 #endif
 
     retval = SUNMatCopy(cvdls_mem->A, cvdls_mem->savedJ);
 
 #ifdef PMC_DEBUG_GPU
-    timeMatCopy+= clock() - start;
-    counterMatCopy++;
+    //bicg->timeMatCopy+= clock() - start;
+    //bicg->counterMatCopy++;
 #endif
 
     if (retval) {
@@ -3199,7 +3264,9 @@ int linsolsetup_gpu2(SolverData *sd, CVodeMem cv_mem,int convfail,N_Vector vtemp
 
   }
 
-  clock_t start = clock();
+#ifdef PMC_DEBUG_GPU
+  //clock_t start = clock();
+#endif
 
   cudaMemcpy(bicg->dA,bicg->A,bicg->nnz*sizeof(double),cudaMemcpyHostToDevice);
 
@@ -3210,17 +3277,17 @@ int linsolsetup_gpu2(SolverData *sd, CVodeMem cv_mem,int convfail,N_Vector vtemp
 #endif
 
 #ifdef PMC_DEBUG_GPU
-  timeMatScaleAddISendA+= clock() - start;
-  counterMatScaleAddISendA++;
+  //bicg->timeMatScaleAddISendA+= clock() - start;
+  //bicg->counterMatScaleAddISendA++;
 
-  clock_t start2 = clock();
+  //clock_t start2 = clock();
 #endif
 
   gpu_matScaleAddI(bicg->nrows,bicg->dA,bicg->djA,bicg->diA,-cv_mem->cv_gamma,bicg->blocks,bicg->threads);
 
 #ifdef PMC_DEBUG_GPU
-  timeMatScaleAddI+= clock() - start2;
-  counterMatScaleAddI++;
+  //bicg->timeMatScaleAddI+= clock() - start2;
+  //bicg->counterMatScaleAddI++;
 #endif
 
   gpu_diagprecond(bicg->nrows,bicg->dA,bicg->djA,bicg->diA,bicg->ddiag,bicg->blocks,bicg->threads); //Setup linear solver
@@ -3262,18 +3329,21 @@ int linsolsolve_gpu2(SolverData *sd, CVodeMem cv_mem)
     //             cv_mem->cv_tempv, cv_mem->cv_tempv);
 
 #ifdef PMC_DEBUG_GPU
-    start=clock();
+
+    cudaEventRecord(bicg->startBiConjGrad);
+    //start=clock();
 #endif
+    //todo change CSC for CSR to avoid atomicadds
 
     // Call the lsolve function
     //solveGPU(bicg,bicg->dA,bicg->djA,bicg->diA,bicg->dx,bicg->dtempv);
-    //solveGPU_multi(bicg,bicg->dA,bicg->djA,bicg->diA,bicg->dx,bicg->dtempv);
+    solveGPU_multi(bicg,bicg->dA,bicg->djA,bicg->diA,bicg->dx,bicg->dtempv);
 
-#ifndef PMC_DEBUG_GPU //todo name it check_GPU
-    //todo improve checking of good results (under flag debug and check all elements)
+#ifdef CHECK_GPU_LINSOLVE
     //cudaMemcpy(x,bicg->dx,bicg->nrows*sizeof(double),cudaMemcpyDeviceToHost);
-    //printf("dx3_4 %f %f,", x[3], x[4]); //seems working
-
+    /*
+      Seems CMake definitions only affects the current directory, so I can't apply this definitions in a separate CMakeLists... well, at the moment I left it as a only option `ENABLE_DEBUG` and then alognside `add_definitions(-DPMC_USE_GPU)` I added the rest of debug definitions if `ENABLE_DEBUG` is defined
+    */
     //printf("Checking SolveGPU linear solver...\n");
 
     double *aux_dx;
@@ -3315,14 +3385,16 @@ int linsolsolve_gpu2(SolverData *sd, CVodeMem cv_mem)
       }
     }
     //Local max error
-    //printf("Max Error linsolver dx %-le at %d\n",error, max_error_i);
+    //printf("Max Error linsolver dx %-le at %d\n",max_error, max_error_i);
     //Global max error (During ODE solver)
     if (max_error > sd->max_error_linsolver){
       sd->max_error_linsolver = max_error;
+      sd->max_error_linsolver_i = sd->n_linsolver_i;
     }
-    printf("Global max Error linsolver dx %-le\n",sd->max_error_linsolver);
+    //printf("Global max Error linsolver dx %-le at %d\n",sd->max_error_linsolver,sd->max_error_linsolver_i);
 
-
+    //Iter linsolve
+    sd->n_linsolver_i++;
     cudaFree(aux_dx);
     free(aux_x1);
     free(aux_x2);
@@ -3330,8 +3402,10 @@ int linsolsolve_gpu2(SolverData *sd, CVodeMem cv_mem)
 #endif
 
 #ifdef PMC_DEBUG_GPU
-    timeBiConjGrad+= clock() - start;
-    counterBiConjGrad++;
+    cudaEventRecord(bicg->stopBiConjGrad);
+
+    //bicg->timeBiConjGrad+= clock() - start;
+    bicg->counterBiConjGrad++;
 #endif
 
     // scale the correction to account for change in gamma
@@ -3362,9 +3436,7 @@ int linsolsolve_gpu2(SolverData *sd, CVodeMem cv_mem)
     }
 */
 
-
     // Get WRMS norm of correction
-    //del = vwrms_gpu2(b, cv_mem->cv_ewt);
     del = gpu_VWRMS_Norm(bicg->nrows, bicg->dx, bicg->dewt, bicg->aux, bicg->daux, (bicg->blocks + 1) / 2, bicg->threads);
 
     //add correction to acor and y
@@ -3384,6 +3456,15 @@ int linsolsolve_gpu2(SolverData *sd, CVodeMem cv_mem)
     }
 
     dcon = del * SUNMIN(1.0, cv_mem->cv_crate) / cv_mem->cv_tq[4];
+
+#ifdef PMC_DEBUG_GPU
+
+    cudaEventSynchronize(bicg->stopBiConjGrad); //at the end is the same that cudadevicesynchronyze
+    float msBiConjGrad = 0.0;
+    cudaEventElapsedTime(&msBiConjGrad, bicg->startBiConjGrad, bicg->stopBiConjGrad);
+    bicg->timeBiConjGrad+= msBiConjGrad;
+
+#endif
 
     if (dcon <= 1.0) {
       //cv_mem->cv_acnrm = N_VWrmsNorm(cv_mem->cv_acor, cv_mem->cv_ewt);
@@ -3410,10 +3491,6 @@ int linsolsolve_gpu2(SolverData *sd, CVodeMem cv_mem)
       }
     }
 
-#ifdef PMC_DEBUG_GPU
-    start=clock();
-#endif
-
     // Save norm of correction, evaluate f, and loop again
     delp = del;
 
@@ -3422,11 +3499,23 @@ int linsolsolve_gpu2(SolverData *sd, CVodeMem cv_mem)
     //                      cv_mem->cv_ftemp, cv_mem->cv_user_data);
     //int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data)
 
+#ifdef PMC_DEBUG_GPU
+    //start=clock();
+    cudaEventRecord(bicg->startDerivSolve);
+#endif
+
     retval = f(cv_mem->cv_tn, cv_mem->cv_y, cv_mem->cv_ftemp, cv_mem->cv_user_data);
 
 #ifdef PMC_DEBUG_GPU
-    timeDerivSolve+= clock() - start;
-    counterDerivSolve++;
+    cudaEventRecord(bicg->stopDerivSolve);
+
+    cudaEventSynchronize(bicg->stopDerivSolve);
+    float msDerivSolve = 0.0;
+    cudaEventElapsedTime(&msDerivSolve, bicg->startDerivSolve, bicg->stopDerivSolve);
+    bicg->timeDerivSolve+= msDerivSolve;
+
+    //bicg->timeDerivSolve+= clock() - start;
+    bicg->counterDerivSolve++;
 #endif
     //cudaMemcpyDToGpu(ftemp, bicg->dftemp, bicg->nrows);
 
@@ -3613,66 +3702,38 @@ void free_ode(SolverData *sd)
 
 }
 
-void printSolverCounters()
+void printSolverCounters(SolverData *sd)
 {
-#ifdef PMC_DEBUG_GPU
-  //printf("timeNewtonSendInit %lf, counterSendInit %d\n",timeNewtonSendInit/CLOCKS_PER_SEC,counterSendInit);
-  //printf("timeMatScaleAddI %lf, counterMatScaleAddI %d\n",timeMatScaleAddI/CLOCKS_PER_SEC,counterMatScaleAddI);
-  //printf("timeMatScaleAddISendA %lf, counterMatScaleAddISendA %d\n",timeMatScaleAddISendA/CLOCKS_PER_SEC,counterMatScaleAddISendA);
-  //printf("timeMatCopy %lf, counterMatCopy %d\n",timeMatCopy/CLOCKS_PER_SEC,counterMatCopy);
-  printf("timeDerivNewton %lf, counterDerivNewton %d\n",timeDerivNewton/CLOCKS_PER_SEC,counterDerivNewton);
-  printf("timeDerivSolve %lf, counterDerivSolve %d\n",timeDerivSolve/CLOCKS_PER_SEC,counterDerivSolve);
-  printf("timeBiConjGrad %lf, counterBiConjGrad %d\n",timeBiConjGrad/CLOCKS_PER_SEC,counterBiConjGrad);
-  printf("timeLinSolSetup %lf, counterLinSolSetup %d\n",timeLinSolSetup/CLOCKS_PER_SEC,counterLinSolSetup);
-  printf("timeLinSolSolve %lf, counterLinSolSolve %d\n",timeLinSolSolve/CLOCKS_PER_SEC,counterLinSolSolve);
-  printf("timeNewtonIt %lf, counterNewtonIt %d\n",timeNewtonIt/CLOCKS_PER_SEC,counterNewtonIt);
-  printf("timecvStep %lf, countercvStep %d\n",timecvStep/CLOCKS_PER_SEC,countercvStep);
-  printf("timeprecvStep %lf, counterBiConjGrad %d\n",timeBiConjGrad/CLOCKS_PER_SEC,counterBiConjGrad);
+  itsolver *bicg = &(sd->bicg);
 
-  //printf("timeJacCVODE %lf, counterJacCVODE %d\n",timeJacCVODE/CLOCKS_PER_SEC,counterJacCVODE);
-  //printf("timeprecvStep %lf, counterBiConjGrad %d\n",timeBiConjGrad/CLOCKS_PER_SEC,counterBiConjGrad);
+#ifdef PMC_DEBUG_GPU
+  //printf("timeNewtonSendInit %lf, counterSendInit %d\n",bicg->timeNewtonSendInit/CLOCKS_PER_SEC,bicg->counterSendInit);
+  //printf("timeMatScaleAddI %lf, counterMatScaleAddI %d\n",bicg->timeMatScaleAddI/CLOCKS_PER_SEC,bicg->counterMatScaleAddI);
+  //printf("timeMatScaleAddISendA %lf, counterMatScaleAddISendA %d\n",bicg->timeMatScaleAddISendA/CLOCKS_PER_SEC,bicg->counterMatScaleAddISendA);
+  //printf("timeMatCopy %lf, counterMatCopy %d\n",bicg->timeMatCopy/CLOCKS_PER_SEC,bicg->counterMatCopy);
+
+  //CPU counters
+  /*printf("timeDerivNewton %lf, counterDerivNewton %d\n",bicg->timeDerivNewton/CLOCKS_PER_SEC,bicg->counterDerivNewton);
+  printf("timeDerivSolve %lf, counterDerivSolve %d\n",bicg->timeDerivSolve/CLOCKS_PER_SEC,bicg->counterDerivSolve);
+  printf("timeLinSolSetup %lf, counterLinSolSetup %d\n",bicg->timeLinSolSetup/CLOCKS_PER_SEC,bicg->counterLinSolSetup);
+  printf("timeLinSolSolve %lf, counterLinSolSolve %d\n",bicg->timeLinSolSolve/CLOCKS_PER_SEC,bicg->counterLinSolSolve);
+  printf("timeNewtonIt %lf, counterNewtonIt %d\n",bicg->timeNewtonIt/CLOCKS_PER_SEC,bicg->counterNewtonIt);
+  printf("timecvStep %lf, countercvStep %d\n",bicg->timecvStep/CLOCKS_PER_SEC,bicg->countercvStep);
+  printf("timeprecvStep %lf, counterBiConjGrad %d\n",bicg->timeBiConjGrad/CLOCKS_PER_SEC,bicg->counterBiConjGrad);
+  printf("timeBiConjGrad %lf, counterBiConjGrad %d\n",bicg->timeBiConjGrad/CLOCKS_PER_SEC,bicg->counterBiConjGrad);
+  */
+
+  //Upgraded GPU-CPU counters (Sync with GPU and CPU)
+  printf("timecvStep %lf, countercvStep %d\n",bicg->timecvStep/1000,bicg->countercvStep);
+  printf("timeNewtonIt %lf, counterNewtonIt %d\n",bicg->timeNewtonIt/1000,bicg->counterNewtonIt);
+  printf("timeLinSolSolve %lf, counterLinSolSolve %d\n",bicg->timeLinSolSolve/1000,bicg->counterLinSolSolve);
+  printf("timeDerivNewton %lf, counterDerivNewton %d\n",bicg->timeDerivNewton/1000,bicg->counterDerivNewton);
+  printf("timeLinSolSetup %lf, counterLinSolSetup %d\n",bicg->timeLinSolSetup/1000,bicg->counterLinSolSetup);
+  printf("timeDerivSolve %lf, counterDerivSolve %d\n",bicg->timeDerivSolve/1000,bicg->counterDerivSolve);
+  printf("timeBiConjGrad %lf, counterBiConjGrad %d\n",bicg->timeBiConjGrad/1000,bicg->counterBiConjGrad);
+  printf("timeJac %lf, counterJac %d\n",bicg->timeJac/1000,bicg->counterJac);
+
+  //printf("timeJacCVODE %lf, bicg->counterJacCVODE %d\n",timeJacCVODE/CLOCKS_PER_SEC,bicg->counterJacCVODE);
+  //printf("timeprecvStep %lf, bicg->counterBiConjGrad %d\n",timeBiConjGrad/CLOCKS_PER_SEC,bicg->counterBiConjGrad);
 #endif
 }
-
-
-/*
-//cpu - for testing
-void sun(int nrows, realtype* dA, sunindextype* djA, sunindextype* diA, double gamma) {
-
-  for (int j=0; j < nrows; j++){
-    for (int i = diA[j]; i < diA[j + 1]; i++)
-      if (djA[i] == j) {
-        dA[i] = 1.0 + gamma * dA[i];
-      } else {
-        dA[i] = gamma * dA[i];
-      }
-  }
-}
-
-__global__ void matscaleaddi_global(int nrows, double* dA, sunindextype* djA, sunindextype* diA, double gamma) {
-
-  int j = threadIdx.x + blockDim.x*blockIdx.x;
-  for (int i = diA[j]; i < diA[j + 1]; i++)
-    if (djA[i] == j) {
-      dA[i] = 1.0 + gamma * dA[i];
-    } else {
-      dA[i] = gamma * dA[i];
-    }
-}
-
- int matscaleaddi_gpu2(double gamma, SUNMatrix J, CVodeMem cv_mem)
-{
-
-
-  //Note that don't need to pass again J since pointer A it's the same than J and
-  //its updated automatically!
-
-  //bicg->matScaleAddI(gamma);
-
-  cudaMemcpyDToGpu(bicg->A,bicg->dA,bicg->nnz);
-  gpu_matScaleAddI(bicg->nrows,bicg->dA,bicg->djA,bicg->diA,gamma,bicg->blocks,bicg->threads);
-
-  return 0;
-}
-
-*/

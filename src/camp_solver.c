@@ -1899,6 +1899,23 @@ void solver_free(void *solver_data) {
   SUNLinSolFree(sd->ls);
 #endif
 
+#ifdef PMC_DEBUG_GPU
+  printSolverCounters(sd);
+  printf("timeDeriv2 %lf, counterDeriv2 %d\n",timeDeriv2/CLOCKS_PER_SEC,counterDeriv2);
+  printf("timeJac2 %lf, counterJac2 %d\n",timeJac2/CLOCKS_PER_SEC,counterJac2);
+  printf("timeCVode %lf\n",timeCVode/CLOCKS_PER_SEC);
+  printf("timeRates %lf\n",timeRates/CLOCKS_PER_SEC);
+  //printf("counterDeriv2 %d\n", counterDeriv2);
+  //printf("counterJac2 %d\n", counterJac2);
+
+  //todo print this in profile_stats file
+  //write_profile_stats();
+#endif
+
+#ifdef CHECK_GPU_LINSOLVE
+  printf("ODE iters %d\n", sd->n_linsolver_i);
+#endif
+
 #ifdef PMC_USE_GPU
   free_ode(sd);
 #endif
@@ -2045,20 +2062,6 @@ void write_profile_stats(){
  * \param model_data Pointer to the ModelData object to free
  */
 void model_free(ModelData model_data) {
-
-#ifdef PMC_DEBUG_GPU
-  printSolverCounters();
-  //todo move to sd-solver_stats and print percentages
-  printf("timeDeriv2 %lf, counterDeriv2 %d\n",timeDeriv2/CLOCKS_PER_SEC,counterDeriv2);
-  printf("timeJac2 %lf, counterJac2 %d\n",timeJac2/CLOCKS_PER_SEC,counterJac2);
-  printf("timeCVode %lf\n",timeCVode/CLOCKS_PER_SEC);
-  printf("timeRates %lf\n",timeRates/CLOCKS_PER_SEC);
-  //printf("counterDeriv2 %d\n", counterDeriv2);
-  //printf("counterJac2 %d\n", counterJac2);
-
-  //todo print this in profile_stats file
-  //write_profile_stats();
-#endif
 
 #ifdef PMC_USE_GPU
   free_gpu_cu(&model_data);

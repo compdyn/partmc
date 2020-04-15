@@ -90,12 +90,12 @@ __global__ void cudamatScaleAddI(int nrows, double* dA, int* djA, int* diA, doub
   }
 }
 
+// A = I - gamma*J
 // Based on CSR format, works on CSC too
 // dA  : Matrix values (nnz size)
 // djA : Matrix columns (nnz size)
 // diA : Matrix rows (nrows+1 size)
 // alpha : Scale factor
-//extern C
 extern "C++" void gpu_matScaleAddI(int nrows, double* dA, int* djA, int* diA, double alpha, int blocks, int threads)
 {
 
@@ -187,7 +187,6 @@ __global__ void cudaSpmvCSC(double* dx, double* db, int nrows, double* dA, int* 
     {
       mult = db[row]*dA[j];
       atomicAdd(&(dx[djA[j]]),mult);
-//		dx[djA[j]]+= db[row]*dA[j];
     }
 	}
 }
@@ -248,17 +247,13 @@ __global__ void cudadotxy(double *g_idata1, double *g_idata2, double *g_odata, u
 {
   extern __shared__ double sdata[];
   unsigned int tid = threadIdx.x;
-  //unsigned int i = blockIdx.x*(blockDim.x*2) + threadIdx.x;//*2 because init blocks is half
-  unsigned int i = blockIdx.x*blockDim.x + threadIdx.x;//*2 because init blocks is half
+  unsigned int i = blockIdx.x*(blockDim.x*2) + threadIdx.x;//*2 because init blocks is half
+  //unsigned int i = blockIdx.x*blockDim.x + threadIdx.x;//*2 because init blocks is half
 
   double mySum = (i < n) ? g_idata1[i]*g_idata2[i] : 0;
 
-  //if (i + blockDim.x < n)
-  //  mySum += g_idata1[i+blockDim.x]*g_idata2[i+blockDim.x];
-
-  //Last thread assign 0 to empty shr values
-  //if (tid == blockDim.x-1)
-  //    sdata[tid+1] = 0; //Assign 0 to non interesting sdata
+  if (i + blockDim.x < n)
+    mySum += g_idata1[i+blockDim.x]*g_idata2[i+blockDim.x];
 
   sdata[tid] = mySum;
   __syncthreads();
@@ -272,21 +267,7 @@ __global__ void cudadotxy(double *g_idata1, double *g_idata2, double *g_odata, u
     __syncthreads();
   }
 
-/*
-  sdata[tid] = mySum;
-  __syncthreads();
-
-  for (unsigned int s=blockDim.x/2; s>0; s>>=1)
-  {
-    if (tid < s)
-      sdata[tid] = mySum = mySum + sdata[tid + s];
-
-    __syncthreads();
-  }
-*/
   if (tid == 0) g_odata[blockIdx.x] = sdata[0];
-  //__syncthreads();
-  //atomicAdd(&(g_odata[0]),g_odata[blockIdx.x]); //Takes considerably WAY MORE than cpu calc
 }
 
 __global__ void cudareducey(double *g_odata, unsigned int n)
@@ -317,9 +298,8 @@ extern "C++" double gpu_dotxy(double* vec1, double* vec2, double* h_temp, double
   dim3 dimGrid(blocks,1,1);
   dim3 dimBlock(threads,1,1);
 
-  //todo secure threads==power of 2 and don't surpass max_threads limit
   //threads*sizeof(double)
-  cudadotxy<<<dimGrid,dimBlock,1024*sizeof(double)>>>(vec1,vec2,d_temp,nrows);
+  cudadotxy<<<dimGrid,dimBlock,threads*sizeof(double)>>>(vec1,vec2,d_temp,nrows);
   cudaMemcpy(&sum, d_temp, sizeof(double), cudaMemcpyDeviceToHost);
   //printf("rho1 %f", sum);
 
@@ -470,8 +450,6 @@ extern "C++" double gpu_VWRMS_Norm(int n, double* vec1,double* vec2,double* h_te
 {
   dim3 dimGrid(blocks,1,1);
   dim3 dimBlock(threads,1,1);
-
-  //todo secure threads==power of 2 and don't surpass max_threads limit
 
   cudaDVWRMS_Norm<<<dimGrid,dimBlock,threads*sizeof(double)>>>(vec1,vec2,d_temp,n);
 

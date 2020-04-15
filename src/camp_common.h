@@ -81,8 +81,6 @@ typedef enum { false, true } bool;
 #endif
 #endif
 
-//todo set struct itsolver in proper .h file
-
 /* Jacobian map */
 typedef struct {
   int solver_id;  // solver Jacobian id
@@ -260,10 +258,11 @@ typedef struct {
 #endif
 #ifdef PMC_USE_GPU
     itsolver bicg;
-#ifndef PMC_DEBUG_GPU //todo fix name
+#ifdef CHECK_GPU_LINSOLVE //todo fix name
     double max_error_linsolver;
+    int max_error_linsolver_i;
+    int n_linsolver_i;
 #endif
-
 #endif
   void *cvode_mem;       // CVodeMem object
   ModelData model_data;  // Model data (used during initialization and solving)

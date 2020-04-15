@@ -350,10 +350,7 @@ contains
     call camp_core%bin_pack(  buffer, pos )
     call assert( 881897913, pos .eq. pack_size )
 
-
     end if
-
-
 
     ! Broadcast the buffer size
     call pmc_mpi_bcast_integer( pack_size )
@@ -392,7 +389,6 @@ contains
     ! Initialize the solver
     call camp_core%solver_initialize()
 
-
     ! Get an new state variable
     camp_state => camp_core%new_state()
 
@@ -400,8 +396,6 @@ contains
 
     call cpu_time(comp_end)
     write(*,*) "CAMP-chem initialization time: ", comp_end-comp_start," s"
-
-
 
     ! Get the chemical species data
     call assert(298481296, camp_core%get_chem_spec_data(chem_spec_data))
@@ -425,7 +419,6 @@ contains
     allocate(photo_rates(NUM_EBI_PHOTO_RXN))
 
     !todo: set photo_rates to 0 for night and to X for day
-
     photo_rates(:) = 0.0001 * 60.0 ! EBI solver wants rates in min^-1
     !photo_rates(:) = 0.0
     KPP_PHOTO_RATES(:) = 0.0001
@@ -536,8 +529,6 @@ contains
     ! Set the water concentration for EBI solver (ppmV)
     water_conc = camp_state%state_var(i_H2O)
 
-
-
     ! Set up the output files
     open(EBI_FILE_UNIT, file="out/cb05cl_ae5_ebi_results.txt", status="replace", &
             action="write")
@@ -626,15 +617,20 @@ contains
     spec_names = chem_spec_data%get_spec_names()
 
     !Netcdf n cells exp values
-    !todo: move this part to a function called "set_input_from_netcdf"
     !call set_input_from_netcdf(ncfile, state_size_cell, spec_names)
+
+      ! Set same conc per n_cells
+    do i_cell = 0, n_cells-1
+        do j = 1, state_size_cell
+            camp_state%state_var(i_cell*state_size_cell+j) = camp_state%state_var(j) + 0.1*j
+        end do
+    end do
 
     !Set default temperature & pressure to all cells
     do i_cell = 1, n_cells
       call camp_state%env_states(i_cell)%set_temperature_K( real( temperature, kind=dp ) )
       call camp_state%env_states(i_cell)%set_pressure_Pa( pressure * const%air_std_press )
     end do
-
 
     ! Save the initial states for repeat calls
     allocate(ebi_init(size(YC)))
@@ -859,10 +855,7 @@ contains
     !Set in state array
     do i_cell=0, n_cells-1
       do i_spec = 1, state_size_cell
-
-
         camp_state%state_var(i_cell*state_size_cell+i_spec) = working_array(i_cell,i_spec)
-
         !print*, i_cell, spec_names(i_spec)%string, camp_state%state_var(i_cell*state_size_cell+i_spec)
       end do
     end do

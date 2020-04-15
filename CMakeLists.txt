@@ -22,7 +22,6 @@ option(ENABLE_C_SORT "Enable C sorting routines" OFF)
 option(ENABLE_JSON "Enable json-fortran support" ON)
 option(ENABLE_TESTS "Enable tests" ON)
 option(ENABLE_DEBUG "Compile debugging functions" OFF)
-option(ENABLE_DEBUG_GPU "Compile debugging GPU functions" OFF)
 option(FAILURE_DETAIL "Output conditions before and after solver failures" OFF)
 option(ENABLE_CXX "Enable C++" OFF)
 option(ENABLE_GPU "Enable use of GPUs in chemistry solving" OFF)
@@ -179,7 +178,6 @@ endif()
 ######################################################################
 # GPU support
 
-
 #Compile GPU tests if CUDA detected
 find_package(CUDA)
 if (CUDA_FOUND)
@@ -188,6 +186,13 @@ if (CUDA_FOUND)
     if (ENABLE_GPU)
         #Define global variable of use gpu no matter what test to include user main test
         add_definitions(-DPMC_USE_GPU)
+
+        # Add debugging functions
+        if (NOT ENABLE_DEBUG)
+        #if (ENABLE_DEBUG)
+            #add_definitions(-DCHECK_GPU_LINSOLVE)
+            add_definitions(-DPMC_DEBUG_GPU)
+        endif()
     endif()
 endif()
 
@@ -203,9 +208,6 @@ if (ENABLE_DEBUG)
 endif()
 if (FAILURE_DETAIL)
     add_definitions(-DFAILURE_DETAIL)
-endif()
-if (ENABLE_DEBUG_GPU)
-    add_definitions(-DPMC_DEBUG_GPU)
 endif()
 
 ######################################################################
@@ -536,8 +538,6 @@ if(ENABLE_CXX)
 else()
     set(CAMP_CXX_SRC "")
 endif()
-
-
 
 if (CUDA_FOUND AND ENABLE_GPU)
   set(CAMP_CUDA_SRC

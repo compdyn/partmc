@@ -62,6 +62,21 @@ void cudaSolveGPU(
   int id = blockIdx.x * blockDim.x + threadIdx.x;
   double alpha,rho0,omega0,beta,rho1,temp1,temp2;
 
+  //gpu_spmv(dr0,dx,nrows,dA,djA,diA,mattype,blocks,threads);  // r0= A*x
+  //cudaDevicesetconst(dr0, 0.0, nrows);
+  //cudaDeviceSpmvCSC(dr0,dx,nrows,dA,djA,diA);
+
+  //gpu_axpby(dr0,dtempv,1.0,-1.0,nrows,blocks,threads); // r0=1.0*rhs+-1.0r0 //y=ax+by
+  cudaDeviceaxpby(dr0,dtempv,1.0,-1.0,nrows);
+
+  //gpu_yequalsx(dr0h,dr0,nrows,blocks,threads);  //r0h=r0
+  cudaDeviceyequalsx(dr0h,dr0,nrows);
+
+  //gpu_yequalsconst(dn0,0.0,nrows,blocks,threads);  //n0=0.0 //memset???
+  //gpu_yequalsconst(dp0,0.0,nrows,blocks,threads);  //p0=0.0
+  cudaDevicesetconst(dn0, 0.0, nrows);
+  cudaDevicesetconst(dp0, 0.0, nrows);
+
   alpha  = 1.0;
   rho0   = 1.0;
   omega0 = 1.0;
@@ -81,7 +96,7 @@ void cudaSolveGPU(
     //rho1=gpu_dotxy(dr0, dr0h, aux, daux, nrows,(blocks + 1) / 2, threads);
     __syncthreads();
     cudaDevicedotxy(dr0, dr0h, &rho1, nrows, n_shr_empty);//&rho1
-    __syncthreads();
+    __syncthreads();//necessary to reduce accuracy error
     beta = (rho1 / rho0) * (alpha / omega0);
 
     //gpu_zaxpbypc(dp0,dr0,dn0,beta,-1.0*omega0*beta,nrows,blocks,threads);   //z = ax + by + c
@@ -188,9 +203,9 @@ void solveGPU_multi(itsolver *bicg, double *dA, int *djA, int *diA, double *dx, 
 
   //Function private variables
   double alpha,rho0,omega0,beta,rho1,temp1,temp2;
-
+//todo eliminate atomicadd in spmv through using CSR or something like that
   gpu_spmv(dr0,dx,nrows,dA,djA,diA,mattype,blocks,threads);  // r0= A*x
-
+/*
   gpu_axpby(dr0,dtempv,1.0,-1.0,nrows,blocks,threads); // r0=1.0*rhs+-1.0r0 //y=ax+by
 
   gpu_yequalsx(dr0h,dr0,nrows,blocks,threads);  //r0h=r0
@@ -201,7 +216,7 @@ void solveGPU_multi(itsolver *bicg, double *dA, int *djA, int *diA, double *dx, 
   alpha  = 1.0;
   rho0   = 1.0;
   omega0 = 1.0;
-
+*/
   /*int n_aux_params=7;
   double *aux_params;
   aux_params=(double*)malloc(n_aux_params*sizeof(double));
@@ -211,11 +226,8 @@ void solveGPU_multi(itsolver *bicg, double *dA, int *djA, int *diA, double *dx, 
 
   int max_threads = bicg->threads;
   int size_cell = nrows/n_cells;
-  //only works if n_shr_empty < warp_size (32)... why?
   int n_shr_empty = max_threads%size_cell; //+ size_cell*11 to simulate more shr_empty
   int active_threads = max_threads - n_shr_empty; //last multiple of size_cell before max_threads
-  //Recalculate n_blocks
-  //int multi_blocks = (nrows+multi_threads-1)/multi_threads; //threads = max_threads_block
 
   threads = bicg->threads;//active_threads;//bicg->threads;
   blocks = (nrows+active_threads-1)/active_threads; //blocks counting some threads are not working
@@ -296,12 +308,13 @@ void solveGPU(itsolver *bicg, double *dA, int *djA, int *diA, double *dx, double
   //printf("temp1 %-le", temp1);
   //printf("rho1 %f", rho1);
 
+
   //for(int it=0;it<maxIt;it++){
   int it=0;
   do {
 
-    //rho1=gpu_dotxy(dr0, dr0h, aux, daux, nrows,(blocks + 1) / 2, threads);//rho1 =<r0,r0h>
-    rho1=gpu_dotxy(dr0, dr0h, aux, daux, nrows,blocks, threads);//rho1 =<r0,r0h>
+    rho1=gpu_dotxy(dr0, dr0h, aux, daux, nrows,(blocks + 1) / 2, threads);//rho1 =<r0,r0h>
+    //rho1=gpu_dotxy(dr0, dr0h, aux, daux, nrows,blocks, threads);//rho1 =<r0,r0h>
     beta=(rho1/rho0)*(alpha/omega0);
 
     //    cout<<"rho1 "<<rho1<<" beta "<<beta<<endl;
@@ -312,8 +325,8 @@ void solveGPU(itsolver *bicg, double *dA, int *djA, int *diA, double *dx, double
 
     gpu_spmv(dn0,dy,nrows,dA,djA,diA,mattype,blocks,threads);  // n0= A*y
 
-    //temp1=gpu_dotxy(dr0h, dn0, aux, daux, nrows,(blocks + 1) / 2, threads);
-    temp1=gpu_dotxy(dr0h, dn0, aux, daux, nrows, blocks, threads);
+    temp1=gpu_dotxy(dr0h, dn0, aux, daux, nrows,(blocks + 1) / 2, threads);
+    //temp1=gpu_dotxy(dr0h, dn0, aux, daux, nrows, blocks, threads);
 
     alpha=rho1/temp1;
 
@@ -327,11 +340,11 @@ void solveGPU(itsolver *bicg, double *dA, int *djA, int *diA, double *dx, double
 
     gpu_multxy(dAx2,ddiag,dt,nrows,blocks,threads);
 
-    //temp1=gpu_dotxy(dz, dAx2, aux, daux, nrows,(blocks + 1) / 2, threads);
-    temp1=gpu_dotxy(dz, dAx2, aux, daux, nrows,blocks, threads);
+    temp1=gpu_dotxy(dz, dAx2, aux, daux, nrows,(blocks + 1) / 2, threads);
+    //temp1=gpu_dotxy(dz, dAx2, aux, daux, nrows,blocks, threads);
 
-    //temp2=gpu_dotxy(dAx2, dAx2, aux, daux, nrows,(blocks + 1) / 2, threads);
-    temp2=gpu_dotxy(dAx2, dAx2, aux, daux, nrows,blocks, threads);
+    temp2=gpu_dotxy(dAx2, dAx2, aux, daux, nrows,(blocks + 1) / 2, threads);
+    //temp2=gpu_dotxy(dAx2, dAx2, aux, daux, nrows,blocks, threads);
 
     omega0= temp1/temp2;
 
@@ -341,18 +354,17 @@ void solveGPU(itsolver *bicg, double *dA, int *djA, int *diA, double *dx, double
 
     gpu_zaxpby(1.0,ds,-1.0*omega0,dt,dr0,nrows,blocks,threads);
 
-    //temp1=gpu_dotxy(dr0, dr0, aux, daux, nrows,(blocks + 1) / 2, threads);
-    temp1=gpu_dotxy(dr0, dr0, aux, daux, nrows,blocks, threads);
+    temp1=gpu_dotxy(dr0, dr0, aux, daux, nrows,(blocks + 1) / 2, threads);
+    //temp1=gpu_dotxy(dr0, dr0, aux, daux, nrows,blocks, threads);
     temp1=sqrt(temp1);
 
   //cout<<it<<": "<<temp1<<endl;
 
-    /*
-    if(temp1<tolmax){
-      break;
-    }*/
-    // }
-    //rho0=rho1;
+    rho0=rho1;
+
+    //if(temp1<tolmax){
+    //  break;}}
+
     it++;
   }while(it<maxIt && temp1>tolmax);
 

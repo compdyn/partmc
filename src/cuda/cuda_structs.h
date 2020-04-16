@@ -55,11 +55,11 @@ typedef struct
   int counterMatScaleAddI;
   int counterMatScaleAddISendA;
   int counterMatCopy;
+  int counterprecvStep;
   int counterNewtonIt;
   int counterLinSolSetup;
   int counterLinSolSolve;
   int countercvStep;
-  int counterprecvStep;
   int counterDerivNewton;
   int counterBiConjGrad;
   int counterDerivSolve;
@@ -69,11 +69,11 @@ typedef struct
   double timeMatScaleAddI;
   double timeMatScaleAddISendA;
   double timeMatCopy;
+  double timeprecvStep;
   double timeNewtonIt;
   double timeLinSolSetup;
   double timeLinSolSolve;
   double timecvStep;
-  double timeprecvStep;
   double timeDerivNewton;
   double timeBiConjGrad;
   double timeDerivSolve;

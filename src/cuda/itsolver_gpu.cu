@@ -174,9 +174,9 @@ void cudaSolveGPU(
 
 }
 
-//solveGPU_multi: Each block will compute only a cell/group of cells
+//solveGPU_block: Each block will compute only a cell/group of cells
 //Algorithm: Biconjugate gradient
-void solveGPU_multi(itsolver *bicg, double *dA, int *djA, int *diA, double *dx, double *dtempv)
+void solveGPU_block(itsolver *bicg, double *dA, int *djA, int *diA, double *dx, double *dtempv)
 {
   //Init variables ("public")
   int nrows = bicg->nrows;

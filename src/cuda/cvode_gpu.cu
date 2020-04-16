@@ -252,8 +252,16 @@ void allocSolverGPU(CVodeMem cv_mem, SolverData *sd)
   bicg->nrows=SM_NP_S(J);
   bicg->mattype=1; //CSC
   bicg->A=(double*)SM_DATA_S(J);
-  bicg->jA=(int*)SM_INDEXVALS_S(J);
-  bicg->iA=(int*)SM_INDEXPTRS_S(J);
+
+  //Using int per default as sundindextype give wrong results in CPU, so translate from int64 to int
+  bicg->jA=(int*)malloc(sizeof(int)*SM_NNZ_S(J));
+  bicg->iA=(int*)malloc(sizeof(int)*(SM_NP_S(J)+1));
+  for(int i=0;i<SM_NNZ_S(J);i++)
+    bicg->jA[i]=SM_INDEXVALS_S(J)[i];
+  for(int i=0;i<=SM_NP_S(J);i++)
+    bicg->iA[i]=SM_INDEXPTRS_S(J)[i];
+  //bicg->jA=(int*)SM_INDEXVALS_S(J);
+  //bicg->iA=(int*)SM_INDEXPTRS_S(J);
 
   int device=0;//Selected GPU
   cudaDeviceProp prop;
@@ -299,29 +307,21 @@ void allocSolverGPU(CVodeMem cv_mem, SolverData *sd)
 #endif
 
 #ifdef PMC_DEBUG_GPU
-  bicg->counterSendInit=0;
-  bicg->counterMatScaleAddI=0;
-  bicg->counterMatScaleAddISendA=0;
-  bicg->counterMatCopy=0;
+  bicg->counterprecvStep=0;
   bicg->counterNewtonIt=0;
   bicg->counterLinSolSetup=0;
   bicg->counterLinSolSolve=0;
   bicg->countercvStep=0;
-  bicg->counterprecvStep=0;
   bicg->counterDerivNewton=0;
   bicg->counterBiConjGrad=0;
   bicg->counterDerivSolve=0;
-  bicg->timeJac=PMC_TINY;
+  bicg->counterJac=0;
 
-  bicg->timeNewtonSendInit=PMC_TINY;
-  bicg->timeMatScaleAddI=PMC_TINY;
-  bicg->timeMatScaleAddISendA=PMC_TINY;
-  bicg->timeMatCopy=PMC_TINY;
+  bicg->timeprecvStep=PMC_TINY;
   bicg->timeNewtonIt=PMC_TINY;
   bicg->timeLinSolSetup=PMC_TINY;
   bicg->timeLinSolSolve=PMC_TINY;
   bicg->timecvStep=PMC_TINY;
-  bicg->timeprecvStep=PMC_TINY;
   bicg->timeDerivNewton=PMC_TINY;
   bicg->timeBiConjGrad=PMC_TINY;
   bicg->timeDerivSolve=PMC_TINY;
@@ -416,6 +416,9 @@ int CVode_gpu2(void *cvode_mem, realtype tout, N_Vector yout,
    * ----------------------------------------
    */
 
+  // GPU initializations
+  //set_data_gpu2(cv_mem, sd);
+
   if (cv_mem->cv_nst == 0) {
 
     cv_mem->cv_tretlast = *tret = cv_mem->cv_tn;
@@ -443,6 +446,8 @@ int CVode_gpu2(void *cvode_mem, realtype tout, N_Vector yout,
                      MSGCV_RHSFUNC_FIRST);
       return(CV_FIRST_RHSFUNC_ERR);
     }
+
+
 
     /* Test input tstop for legality. */
 
@@ -490,15 +495,14 @@ int CVode_gpu2(void *cvode_mem, realtype tout, N_Vector yout,
     cv_mem->cv_hprime = cv_mem->cv_h;
 
     N_VScale(cv_mem->cv_h, cv_mem->cv_zn[1], cv_mem->cv_zn[1]);
-
     /* Try to improve initial guess of zn[1] */
     if (cv_mem->cv_ghfun) {
+
       N_VLinearSum(ONE, cv_mem->cv_zn[0], ONE, cv_mem->cv_zn[1], cv_mem->cv_tempv1);
       cv_mem->cv_ghfun(cv_mem->cv_tn + cv_mem->cv_h, cv_mem->cv_h, cv_mem->cv_tempv1,
                        cv_mem->cv_zn[0], cv_mem->cv_zn[1], cv_mem->cv_user_data,
                        cv_mem->cv_tempv2, cv_mem->cv_acor_init);
     }
-
     /* Check for zeros of root function g at and near t0. */
 
     if (cv_mem->cv_nrtfn > 0) {
@@ -643,9 +647,6 @@ int CVode_gpu2(void *cvode_mem, realtype tout, N_Vector yout,
    *         - check if in ONE_STEP mode (must return)
    * --------------------------------------------------
    */
-
-  // GPU initializations
-  //set_data_gpu2(cv_mem, sd);
 
   nstloc = 0;
   for(;;) {
@@ -1831,6 +1832,19 @@ int cvRootfind_gpu2(CVodeMem cv_mem)
 void set_data_gpu2(CVodeMem cv_mem, SolverData *sd)
 {
   /*itsolver *bicg = &(sd->bicg);
+  ModelData *md = &(sd->model_data);
+  CVDlsMem cvdls_mem = (CVDlsMem) cv_mem->cv_lmem;
+  SUNMatrix J = cvdls_mem->A;
+
+  for(int i=0;i<SM_NNZ_S(J);i++)
+    bicg->jA[i]=SM_INDEXVALS_S(J)[i];
+  for(int i=0;i<=SM_NP_S(J);i++)
+    bicg->iA[i]=SM_INDEXPTRS_S(J)[i];
+
+  //cudaMemcpy(bicg->djA,bicg->jA,bicg->nnz*sizeof(int),cudaMemcpyHostToDevice);
+  //cudaMemcpy(bicg->diA,bicg->iA,(bicg->nrows+1)*sizeof(int),cudaMemcpyHostToDevice);
+/*
+/*itsolver *bicg = &(sd->bicg);
   ModelData *md = &(sd->model_data);
   CVDlsMem cvdls_mem = (CVDlsMem) cv_mem->cv_lmem;
   SUNMatrix J = cvdls_mem->A;
@@ -3060,17 +3074,17 @@ int cvNlsNewton_gpu2(SolverData *sd, CVodeMem cv_mem, int nflag)
   //N_VConst(ZERO, cv_mem->cv_acor_init);
   //cudaMemcpyDToGpu(acor_init, bicg->dacor_init, bicg->nrows);
 
-  if (cv_mem->cv_ghfun) {
+  /*if (cv_mem->cv_ghfun) {
     //todo use this ghfun
-    /*N_VScale(cv_mem->cv_rl1, cv_mem->cv_zn[1], cv_mem->cv_ftemp);
+    N_VScale(cv_mem->cv_rl1, cv_mem->cv_zn[1], cv_mem->cv_ftemp);
     cv_mem->cv_ghfun(cv_mem->cv_tn, cv_mem->cv_h, cv_mem->cv_zn[0],
                      N_VLinearSum(ONE, cv_mem->cv_zn[0], -ONE, cv_mem->cv_last_yn, cv_mem->cv_ftemp);
     retval = cv_mem->cv_ghfun(cv_mem->cv_tn, cv_mem->cv_h, cv_mem->cv_zn[0],
                               cv_mem->cv_last_yn, cv_mem->cv_ftemp, cv_mem->cv_user_data,
                               cv_mem->cv_tempv, cv_mem->cv_acor_init);
     cv_mem->cv_tempv1, cv_mem->cv_acor_init);
-    if (retval<0) return(RHSFUNC_RECVR);*/
-  }
+    if (retval<0) return(RHSFUNC_RECVR);
+  }*/
 
   //remove temps, not used in jac
   vtemp1 = cv_mem->cv_acor;  /* rename acor as vtemp1 for readability  */
@@ -3197,8 +3211,8 @@ int linsolsetup_gpu2(SolverData *sd, CVodeMem cv_mem,int convfail,N_Vector vtemp
   jok = !jbad;
 
   // If jok = SUNTRUE, use saved copy of J
-  if (jok) {
-    //if (0) {
+  //if (jok) {
+    if (0) {
     cv_mem->cv_jcur = SUNFALSE;
     retval = SUNMatCopy(cvdls_mem->savedJ, cvdls_mem->A);
 
@@ -3337,7 +3351,7 @@ int linsolsolve_gpu2(SolverData *sd, CVodeMem cv_mem)
 
     // Call the lsolve function
     //solveGPU(bicg,bicg->dA,bicg->djA,bicg->diA,bicg->dx,bicg->dtempv);
-    solveGPU_multi(bicg,bicg->dA,bicg->djA,bicg->diA,bicg->dx,bicg->dtempv);
+    solveGPU_block(bicg,bicg->dA,bicg->djA,bicg->diA,bicg->dx,bicg->dtempv);
 
 #ifdef CHECK_GPU_LINSOLVE
     //cudaMemcpy(x,bicg->dx,bicg->nrows*sizeof(double),cudaMemcpyDeviceToHost);
@@ -3367,7 +3381,7 @@ int linsolsolve_gpu2(SolverData *sd, CVodeMem cv_mem)
     cudaDeviceSynchronize();
 
     //Compute case 2
-    solveGPU_multi(bicg,bicg->dA,bicg->djA,bicg->diA,bicg->dx,bicg->dtempv);
+    solveGPU_block(bicg,bicg->dA,bicg->djA,bicg->diA,bicg->dx,bicg->dtempv);
     //solveGPU(bicg,bicg->dA,bicg->djA,bicg->diA,bicg->dx,bicg->dtempv);
 
     //Save result
@@ -3547,7 +3561,7 @@ int check_jac_status_error(SUNMatrix A)
 {
   sunindextype j, i, p, nz, newvals, M, N, cend;
   booleantype newmat, found;
-  sunindextype *w, *Ap, *Ai, *Cp, *Ci;
+  sunindextype *Ap, *Ai;
   realtype *x, *Ax, *Cx;
   SUNMatrix C;
   int flag;

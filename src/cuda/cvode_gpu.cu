@@ -3211,8 +3211,8 @@ int linsolsetup_gpu2(SolverData *sd, CVodeMem cv_mem,int convfail,N_Vector vtemp
   jok = !jbad;
 
   // If jok = SUNTRUE, use saved copy of J
-  //if (jok) {
-    if (0) {
+  if (jok) {
+  //  if (0) {
     cv_mem->cv_jcur = SUNFALSE;
     retval = SUNMatCopy(cvdls_mem->savedJ, cvdls_mem->A);
 
@@ -3328,8 +3328,8 @@ int linsolsolve_gpu2(SolverData *sd, CVodeMem cv_mem)
   double *acor = NV_DATA_S(cv_mem->cv_acor);
   double *cv_y = NV_DATA_S(cv_mem->cv_y);
   double *tempv = NV_DATA_S(cv_mem->cv_tempv);
-  CVDlsMem cvdls_mem = (CVDlsMem) cv_mem->cv_lmem;
-  double *x = NV_DATA_S(cvdls_mem->x);
+  //CVDlsMem cvdls_mem = (CVDlsMem) cv_mem->cv_lmem;
+  //double *x = NV_DATA_S(cvdls_mem->x);
 
   // Looping point for Newton iteration
   for(;;) {
@@ -3559,11 +3559,10 @@ int linsolsolve_gpu2(SolverData *sd, CVodeMem cv_mem)
 
 int check_jac_status_error(SUNMatrix A)
 {
-  sunindextype j, i, p, nz, newvals, M, N, cend;
+  sunindextype j, i, newvals, M, N;
   booleantype newmat, found;
   sunindextype *Ap, *Ai;
-  realtype *x, *Ax, *Cx;
-  SUNMatrix C;
+  //realtype *Ax;
   int flag;
 
   /* store shortcuts to matrix dimensions (M is inner dimension, N is outer) */
@@ -3577,13 +3576,13 @@ int check_jac_status_error(SUNMatrix A)
 
   /* access data arrays from A (return if failure) */
   Ap = Ai = NULL;
-  Ax = NULL;
+  //Ax = NULL;
   if (SM_INDEXPTRS_S(A)) Ap = SM_INDEXPTRS_S(A);
   else return (-1);
   if (SM_INDEXVALS_S(A)) Ai = SM_INDEXVALS_S(A);
   else return (-1);
-  if (SM_DATA_S(A)) Ax = SM_DATA_S(A);
-  else return (-1);
+  //if (SM_DATA_S(A)) Ax = SM_DATA_S(A);
+  //else return (-1);
 
 
   /* determine if A: contains values on the diagonal (so I can just be added in);

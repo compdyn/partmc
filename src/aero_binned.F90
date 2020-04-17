@@ -63,7 +63,7 @@ contains
     valid = valid .and. allocated(aero_binned%vol_conc)
     valid = valid .and. allocated(aero_binned%water_hyst_leg)
     valid = valid &
-         .and. (size(aero_binned%num_conc) == size(aero_binned%num_conc, 1))
+         .and. (size(aero_binned%num_conc) == size(aero_binned%vol_conc, 1))
     valid = valid &
          .and. (size(aero_binned%num_conc) == size(aero_binned%water_hyst_leg))
     aero_binned_is_allocated = valid

@@ -34,6 +34,7 @@ start_day 200                   # start day of year (UTC)
 
 do_coagulation yes              # whether to do coagulation (yes/no)
 coag_kernel brown               # coagulation kernel
+do_constant_bin_grid no         # whether to keep bin grid constant (yes/no)
 do_condensation no              # whether to do condensation (yes/no)
 do_mosaic yes                   # whether to do MOSAIC (yes/no)
 do_optical no                  # whether to compute optical props (yes/no)

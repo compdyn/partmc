@@ -60,7 +60,11 @@ contains
 
     integer :: b1, b2, c1, c2, b2_start
 
-    call aero_state_sort(aero_state, aero_data)
+    if (aero_state%allow_remake_bin_grid) then
+       call aero_state_sort(aero_state, aero_data)
+    else
+       call aero_state_sort(aero_state, aero_data, aero_state%bin_grid)
+    end if
     if (.not. aero_state%aero_sorted%coag_kernel_bounds_valid) then
        call est_k_minmax_binned_unweighted(aero_state%aero_sorted%bin_grid, &
             coag_kernel_type, aero_data, env_state, &

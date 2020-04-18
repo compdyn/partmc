@@ -56,6 +56,8 @@ module pmc_run_part
      integer :: nucleate_source
      !> Whether to do coagulation.
      logical :: do_coagulation
+     !> Whether to do constant bin grid.
+     logical :: do_constant_bin_grid
      !> Whether to do nucleation.
      logical :: do_nucleation
      !> Allow doubling if needed.
@@ -455,6 +457,7 @@ contains
          + pmc_mpi_pack_size_integer(val%nucleate_type) &
          + pmc_mpi_pack_size_integer(val%nucleate_source) &
          + pmc_mpi_pack_size_logical(val%do_coagulation) &
+         + pmc_mpi_pack_size_logical(val%do_constant_bin_grid) &
          + pmc_mpi_pack_size_logical(val%do_nucleation) &
          + pmc_mpi_pack_size_logical(val%allow_doubling) &
          + pmc_mpi_pack_size_logical(val%allow_halving) &
@@ -504,6 +507,7 @@ contains
     call pmc_mpi_pack_integer(buffer, position, val%nucleate_type)
     call pmc_mpi_pack_integer(buffer, position, val%nucleate_source)
     call pmc_mpi_pack_logical(buffer, position, val%do_coagulation)
+    call pmc_mpi_pack_logical(buffer, position, val%do_constant_bin_grid)
     call pmc_mpi_pack_logical(buffer, position, val%do_nucleation)
     call pmc_mpi_pack_logical(buffer, position, val%allow_doubling)
     call pmc_mpi_pack_logical(buffer, position, val%allow_halving)
@@ -556,6 +560,7 @@ contains
     call pmc_mpi_unpack_integer(buffer, position, val%nucleate_type)
     call pmc_mpi_unpack_integer(buffer, position, val%nucleate_source)
     call pmc_mpi_unpack_logical(buffer, position, val%do_coagulation)
+    call pmc_mpi_unpack_logical(buffer, position, val%do_constant_bin_grid)
     call pmc_mpi_unpack_logical(buffer, position, val%do_nucleation)
     call pmc_mpi_unpack_logical(buffer, position, val%allow_doubling)
     call pmc_mpi_unpack_logical(buffer, position, val%allow_halving)

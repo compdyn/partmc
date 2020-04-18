@@ -146,7 +146,13 @@ contains
 
     call pmc_mpi_barrier()
 
-    call aero_state_sort(aero_state, aero_data, all_procs_same=.true.)
+    if (aero_state%allow_remake_bin_grid) then
+       call aero_state_sort(aero_state, aero_data, all_procs_same=.true.)
+    else
+       call aero_state_sort(aero_state, aero_data, aero_state%bin_grid, &
+            all_procs_same=.true.)
+    end if
+
     if (.not. aero_state%aero_sorted%coag_kernel_bounds_valid) then
        call est_k_minmax_binned_unweighted(aero_state%aero_sorted%bin_grid, &
             coag_kernel_type, aero_data, env_state, &

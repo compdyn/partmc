@@ -633,7 +633,11 @@ contains
        return
     end if
 
-    call aero_state_sort(aero_state, aero_data)
+    if (aero_state%allow_remake_bin_grid) then
+       call aero_state_sort(aero_state, aero_data)
+    else
+       call aero_state_sort(aero_state, aero_data, aero_state%bin_grid)
+    end if
 
     if (.not. aero_state%aero_sorted%removal_rate_bounds_valid) then
        call scenario_loss_rate_bin_max(scenario, &

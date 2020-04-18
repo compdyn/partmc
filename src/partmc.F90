@@ -469,6 +469,8 @@ contains
        if (run_part_opt%do_coagulation) then
           call spec_file_read_coag_kernel_type(file, &
                run_part_opt%coag_kernel_type)
+          call spec_file_read_logical(file, 'do_constant_bin_grid', &
+               run_part_opt%do_constant_bin_grid)
        else
           run_part_opt%coag_kernel_type = COAG_KERNEL_TYPE_INVALID
        end if
@@ -654,6 +656,22 @@ contains
     ! free the buffer
     deallocate(buffer)
 #endif
+
+    if (run_part_opt%do_coagulation) then
+       aero_state%allow_remake_bin_grid = .not. &
+            run_part_opt%do_constant_bin_grid
+       if (run_part_opt%do_constant_bin_grid) then
+          call bin_grid_make(aero_state%bin_grid, BIN_GRID_TYPE_LOG, &
+               n_bin=20, min=1d-9, max=1d-5)
+          allocate(aero_state%bin1_loss(bin_grid_size(aero_state%bin_grid), &
+               bin_grid_size(aero_state%bin_grid)))
+          allocate(aero_state%bin2_loss(bin_grid_size(aero_state%bin_grid), &
+               bin_grid_size(aero_state%bin_grid)))
+          allocate(aero_state%bin3_gain(bin_grid_size(aero_state%bin_grid), &
+               bin_grid_size(aero_state%bin_grid), &
+               bin_grid_size(aero_state%bin_grid)))
+       end if
+    end if
 
     ! re-initialize RNG with the given seed
     call pmc_rand_finalize()

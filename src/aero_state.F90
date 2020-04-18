@@ -73,6 +73,19 @@ module pmc_aero_state
      real(kind=dp), allocatable :: n_part_ideal(:, :)
      !> Information on removed particles.
      type(aero_info_array_t) :: aero_info_array
+     !> Whether to allow a remake of the bin grid.
+     logical :: allow_remake_bin_grid
+     !> Constant bin grid.
+     type(bin_grid_t) :: bin_grid
+     !> Mass concentration removed from bin 1 due to interaction of bin 1 and
+     ! bin 2.
+     real(kind=dp), allocatable :: bin1_loss(:,:)
+     !> Mass concentration removed from bin 2 due to interaction of bin 1 and
+     ! bin 2.
+     real(kind=dp), allocatable :: bin2_loss(:,:)
+     !> Mass concentration added to bin 3 due to interaction of bin 1 and
+     ! 2 where third dimension is all bins.
+     real(kind=dp), allocatable :: bin3_gain(:,:,:)
   end type aero_state_t
 
 contains
@@ -493,7 +506,7 @@ contains
              end if
           end if
           call aero_state_add_particle(aero_state, new_aero_particle, &
-               aero_data)
+               aero_data, allow_resort=aero_state%allow_remake_bin_grid)
        end do
     end if
 
@@ -1513,7 +1526,8 @@ contains
             then
           aero_particle = aero_state%apa%particle(i_part)
           call aero_particle_new_id(aero_particle)
-          call aero_state_add_particle(aero_state, aero_particle, aero_data)
+          call aero_state_add_particle(aero_state, aero_particle, aero_data, &
+               allow_resort=aero_state%allow_remake_bin_grid)
        end if
     end do
     aero_state%valid_sort = .false.
@@ -1650,7 +1664,12 @@ contains
     ! have higher variance for the ratio > 1 case than the current
     ! scheme.
 
-    call aero_state_sort(aero_state, aero_data)
+    if (aero_state%allow_remake_bin_grid) then
+       call aero_state_sort(aero_state, aero_data)
+    else
+       call aero_state_sort(aero_state, aero_data, aero_state%bin_grid)
+    end if
+
     n_part = integer_varray_n_entry( &
          aero_state%aero_sorted%group_class%inverse(i_group, i_class))
 
@@ -2850,7 +2869,8 @@ contains
             aero_weight_array_num_conc(aero_state%awa, aero_particle, &
             aero_data)))
 
-       call aero_state_add_particle(aero_state, aero_particle, aero_data)
+       call aero_state_add_particle(aero_state, aero_particle, aero_data, &
+            allow_resort=aero_state%allow_remake_bin_grid)
     end do
 
     call pmc_nc_read_integer_1d(ncid, aero_removed_id, &

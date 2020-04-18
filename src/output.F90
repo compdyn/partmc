@@ -325,7 +325,6 @@ contains
     integer :: ncid
     type(aero_binned_t) :: aero_binned
     type(bin_grid_t) :: bin_grid
-    integer :: n_bin
 
     !> \page output_format_general Output File Format: General Information
     !!
@@ -389,10 +388,14 @@ contains
     call aero_data_output_netcdf(aero_data, ncid)
 
     if (particle_projection) then
-       n_bin = 10
-       call bin_grid_make(bin_grid, BIN_GRID_TYPE_LOG, n_bin, 1d-9, 1d-5)
-       call aero_binned_set_sizes(aero_binned, n_bin, aero_data_n_spec( &
-            aero_data))
+       if (aero_state%allow_remake_bin_grid) then
+          call bin_grid_make(bin_grid, BIN_GRID_TYPE_LOG, n_bin=10, min=1d-9, &
+               max=1d-5)
+       else
+          bin_grid = aero_state%bin_grid
+       end if
+       call aero_binned_set_sizes(aero_binned, bin_grid_size(bin_grid),&
+            aero_data_n_spec(aero_data))
        call aero_state_to_binned_dry(bin_grid, aero_data, aero_state, &
             aero_binned)
        call aero_binned_output_netcdf(aero_binned, ncid, bin_grid, &

@@ -144,11 +144,12 @@ contains
          aero_state%aero_sorted%bin_grid, b1, b2, c1, c2, cc, f_max)
     k_max = aero_state%aero_sorted%coag_kernel_max(b1, b2) * f_max
 
-    ! FIXME: Disabled for now
-    !call try_per_particle_coag(coag_kernel_type, k_max, env_state, aero_data, &
-    !     aero_state, del_t, tot_n_samp, tot_n_coag, b1, b2, c1, c2, cc, &
-    !     per_particle_coag_succeeded)
-    !if (per_particle_coag_succeeded) return
+    if (aero_state%allow_remake_bin_grid) then
+       call try_per_particle_coag(coag_kernel_type, k_max, env_state, &
+            aero_data, aero_state, del_t, tot_n_samp, tot_n_coag, b1, b2, c1, &
+            c2, cc, per_particle_coag_succeeded)
+    if (per_particle_coag_succeeded) return
+    end if
 
     call per_set_coag(coag_kernel_type, k_max, env_state, aero_data, &
          aero_state, del_t, tot_n_samp, tot_n_coag, b1, b2, c1, c2, cc)

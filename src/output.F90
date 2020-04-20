@@ -325,6 +325,7 @@ contains
     integer :: ncid
     type(aero_binned_t) :: aero_binned
     type(bin_grid_t) :: bin_grid
+    integer :: dimid_aero_bins
 
     !> \page output_format_general Output File Format: General Information
     !!
@@ -396,10 +397,26 @@ contains
        end if
        call aero_binned_set_sizes(aero_binned, bin_grid_size(bin_grid),&
             aero_data_n_spec(aero_data))
-       call aero_state_to_binned_dry(bin_grid, aero_data, aero_state, &
+       call aero_state_to_binned(bin_grid, aero_data, aero_state, &
             aero_binned)
        call aero_binned_output_netcdf(aero_binned, ncid, bin_grid, &
             aero_data)
+
+       if (.not. aero_state%allow_remake_bin_grid) then
+          call pmc_nc_check(nf90_inq_dimid(ncid, "aero_diam", dimid_aero_bins))
+          call pmc_nc_write_real_2d(ncid, aero_state%bin1_loss, &
+               "bin1_loss", (/ dimid_aero_bins, &
+               dimid_aero_bins /), unit="kg", &
+               long_name="mass concentration lost in bin 1 for each bin pair")
+          call pmc_nc_write_real_2d(ncid, aero_state%bin2_loss, &
+               "bin2_loss", (/ dimid_aero_bins, &
+               dimid_aero_bins /), unit="kg", &
+               long_name="mass concentration lost in bin 2 for each bin pair")
+          call pmc_nc_write_real_3d(ncid, aero_state%bin3_gain, &
+               "bin3_gain", (/ dimid_aero_bins, dimid_aero_bins, &
+               dimid_aero_bins /), unit="kg", &
+               long_name="constituent masses of each aerosol particle")
+       end if
     else
        call aero_state_output_netcdf(aero_state, ncid, aero_data, &
             record_removals, record_optical)

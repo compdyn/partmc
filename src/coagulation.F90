@@ -75,6 +75,12 @@ contains
 
     tot_n_samp = 0
     tot_n_coag = 0
+    if (bin_grid_size(aero_state%bin_grid) > 0) then
+       aero_state%bin1_loss = 0.0d0
+       aero_state%bin2_loss = 0.0d0
+       aero_state%bin3_gain = 0.0d0
+    end if
+
     do c1 = 1,aero_sorted_n_class(aero_state%aero_sorted)
        do c2 = 1,c1
           do b1 = 1,aero_sorted_n_bin(aero_state%aero_sorted)
@@ -138,10 +144,11 @@ contains
          aero_state%aero_sorted%bin_grid, b1, b2, c1, c2, cc, f_max)
     k_max = aero_state%aero_sorted%coag_kernel_max(b1, b2) * f_max
 
-    call try_per_particle_coag(coag_kernel_type, k_max, env_state, aero_data, &
-         aero_state, del_t, tot_n_samp, tot_n_coag, b1, b2, c1, c2, cc, &
-         per_particle_coag_succeeded)
-    if (per_particle_coag_succeeded) return
+    ! FIXME: Disabled for now
+    !call try_per_particle_coag(coag_kernel_type, k_max, env_state, aero_data, &
+    !     aero_state, del_t, tot_n_samp, tot_n_coag, b1, b2, c1, c2, cc, &
+    !     per_particle_coag_succeeded)
+    !if (per_particle_coag_succeeded) return
 
     call per_set_coag(coag_kernel_type, k_max, env_state, aero_data, &
          aero_state, del_t, tot_n_samp, tot_n_coag, b1, b2, c1, c2, cc)
@@ -895,7 +902,7 @@ contains
     integer, intent(in) :: cc
 
     type(aero_particle_t) :: ptc
-    integer :: bn
+    integer :: b1, b2, bn
     type(aero_info_t) :: aero_info_1, aero_info_2
     logical :: remove_1, remove_2, create_new, id_1_lost, id_2_lost
 
@@ -903,6 +910,34 @@ contains
          aero_state%apa%particle(p2), ptc, c1, c2, cc, aero_data, &
          aero_state%awa, remove_1, remove_2, create_new, id_1_lost, &
          id_2_lost, aero_info_1, aero_info_2)
+
+    if (allocated(aero_state%bin1_loss)) then
+       b1 = aero_sorted_particle_in_bin(aero_state%aero_sorted, &
+            aero_state%apa%particle(p1), aero_data)
+       b2 = aero_sorted_particle_in_bin(aero_state%aero_sorted, &
+            aero_state%apa%particle(p2), aero_data)
+       if (create_new) then
+          bn = aero_sorted_particle_in_bin(aero_state%aero_sorted, ptc, &
+               aero_data)
+       end if
+       if (remove_1) then
+          aero_state%bin1_loss(b1,b2) = aero_state%bin1_loss(b1,b2) &
+             + aero_particle_mass(aero_state%apa%particle(p1), aero_data) &
+             * aero_state_particle_num_conc(aero_state, &
+             aero_state%apa%particle(p1), aero_data)
+       end if
+       if (remove_2) then
+          aero_state%bin2_loss(b1,b2) = aero_state%bin2_loss(b1,b2) &
+             + aero_particle_mass(aero_state%apa%particle(p2), aero_data) &
+             * aero_state_particle_num_conc(aero_state, &
+             aero_state%apa%particle(p2), aero_data)
+       end if
+       if (create_new) then
+          aero_state%bin3_gain(b1,b2,bn) = aero_state%bin3_gain(b1,b2,bn) &
+             + aero_particle_mass(ptc, aero_data) &
+             * aero_state_particle_num_conc(aero_state, ptc, aero_data)
+       end if
+    end if
 
     ! remove old particles
     if (p2 > p1) then

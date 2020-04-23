@@ -314,6 +314,7 @@ void allocSolverGPU(CVodeMem cv_mem, SolverData *sd)
   bicg->countercvStep=0;
   bicg->counterDerivNewton=0;
   bicg->counterBiConjGrad=0;
+  bicg->counterBiConjGradInternal=0;
   bicg->counterDerivSolve=0;
   bicg->counterJac=0;
 
@@ -3743,7 +3744,8 @@ void printSolverCounters(SolverData *sd)
   printf("timeDerivNewton %lf, counterDerivNewton %d\n",bicg->timeDerivNewton/1000,bicg->counterDerivNewton);
   printf("timeLinSolSetup %lf, counterLinSolSetup %d\n",bicg->timeLinSolSetup/1000,bicg->counterLinSolSetup);
   printf("timeDerivSolve %lf, counterDerivSolve %d\n",bicg->timeDerivSolve/1000,bicg->counterDerivSolve);
-  printf("timeBiConjGrad %lf, counterBiConjGrad %d\n",bicg->timeBiConjGrad/1000,bicg->counterBiConjGrad);
+  printf("timeBiConjGrad %lf, counterBiConjGrad %d, avgCounterBiConjGrad %lf\n",bicg->timeBiConjGrad/1000,
+          bicg->counterBiConjGrad,bicg->counterBiConjGradInternal/(double)bicg->counterBiConjGrad);
   printf("timeJac %lf, counterJac %d\n",bicg->timeJac/1000,bicg->counterJac);
 
   //printf("timeJacCVODE %lf, bicg->counterJacCVODE %d\n",timeJacCVODE/CLOCKS_PER_SEC,bicg->counterJacCVODE);

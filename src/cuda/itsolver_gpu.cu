@@ -44,15 +44,19 @@ void createSolver(itsolver *bicg)
 //of only 1 kernel use 2 or 4 to cubrir huecos (de memoria y eso), y tmb reducir la shared
 //con una implementacion hibrida del dotxy
 
+//todo add debug variables in some way (maybe pass always it pointer or something like that)
 //*se puede probar la funcion en la cpu a ver que hace
 __global__
 void cudaSolveGPU(
-        double *dA, int *djA, int *diA, double *dx, double *dtempv, //Input data
-        int nrows, int blocks, int n_shr_empty, int maxIt, int mattype,
-        int n_cells, double tolmax, double *ddiag, //Init variables
-        double *dr0, double *dr0h, double *dn0, double *dp0,
-        double *dt, double *ds, double *dAx2, double *dy, double *dz,
-        double *daux // Auxiliary vectors
+        double *dA, int *djA, int *diA, double *dx, double *dtempv //Input data
+        ,int nrows, int blocks, int n_shr_empty, int maxIt, int mattype
+        ,int n_cells, double tolmax, double *ddiag //Init variables
+        ,double *dr0, double *dr0h, double *dn0, double *dp0
+        ,double *dt, double *ds, double *dAx2, double *dy, double *dz
+        ,double *daux // Auxiliary vectors
+#ifdef PMC_DEBUG_GPU
+        ,int *it_pointer //debug
+#endif
         //,double *aux_params
         //double *alpha, double *rho0, double* omega0, double *beta,
         //double *rho1, double *temp1, double *temp2 //Auxiliary parameters
@@ -81,10 +85,14 @@ void cudaSolveGPU(
   rho0   = 1.0;
   omega0 = 1.0;
 
+#ifdef PMC_DEBUG_GPU
+  int it=*it_pointer;
+#else
   int it=0;
+#endif
+
   do
   {
-
     /*alpha = aux_params[0];
     rho0 = aux_params[1];
     omega0 = aux_params[2];
@@ -154,10 +162,14 @@ void cudaSolveGPU(
     rho0 = rho1;
 /**/
     __syncthreads();
-    /**/
+/**/
 
     it++;
   } while(it<maxIt && temp1>tolmax);//while(it<maxIt && temp1>tolmax);//while(0);
+
+#ifdef PMC_DEBUG_GPU
+  *it_pointer = it;
+#endif
 
   /*
   if (id == 0) //return aux variables if debugging
@@ -239,13 +251,29 @@ void solveGPU_block(itsolver *bicg, double *dA, int *djA, int *diA, double *dx, 
   aux_params[4] = rho1;
   aux_params[5] = temp1;
   aux_params[6] = temp2;
-
   cudaMemcpy(daux_params, aux_params, n_aux_params * sizeof(double), cudaMemcpyHostToDevice);*/
+
+#ifdef PMC_DEBUG_GPU
+  int it = 0;
+  int *dit_ptr;
+  cudaMalloc((void**)&dit_ptr,sizeof(int));
+  cudaMemcpy(dit_ptr, &it, sizeof(int), cudaMemcpyHostToDevice);
+#endif
+
   cudaSolveGPU << < blocks, active_threads, bicg->threads * sizeof(double) >> >//threads
-                                            (dA, djA, diA, dx, dtempv, nrows, blocks, n_shr_empty, maxIt, mattype, n_cells,
-                                                    tolmax, ddiag, dr0, dr0h, dn0, dp0, dt, ds, dAx2, dy, dz, daux
-                                                    //,daux_params
-                                            );
+          (dA, djA, diA, dx, dtempv, nrows, blocks, n_shr_empty, maxIt, mattype, n_cells
+          ,tolmax, ddiag, dr0, dr0h, dn0, dp0, dt, ds, dAx2, dy, dz, daux
+#ifdef PMC_DEBUG_GPU
+          ,dit_ptr
+#endif
+          //,daux_params
+          );
+
+#ifdef PMC_DEBUG_GPU
+  cudaMemcpy(&it,dit_ptr,sizeof(int),cudaMemcpyDeviceToHost);
+  bicg->counterBiConjGradInternal += it;
+#endif
+
   /*cudaDeviceSynchronize();
   cudaMemcpy(aux_params, daux_params, n_aux_params * sizeof(double), cudaMemcpyDeviceToHost);
 
@@ -367,6 +395,8 @@ void solveGPU(itsolver *bicg, double *dA, int *djA, int *diA, double *dx, double
 
     it++;
   }while(it<maxIt && temp1>tolmax);
+
+  bicg->counterBiConjGradInternal += it;
 
 }
 

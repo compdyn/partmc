@@ -51,7 +51,7 @@ program pmc_test_cb05cl_ae5
   ! Number of timesteps to integrate over
   integer(kind=i_kind), parameter :: NUM_TIME_STEPS = 1
   ! Number of cells
-  integer(kind=i_kind), parameter :: NUM_CELLS= 100
+  integer(kind=i_kind), parameter :: NUM_CELLS= 10000
   ! Number of EBI-solver species
   integer(kind=i_kind), parameter :: NUM_EBI_SPEC = 72
   ! Number of EBI-solever photolysis reactions
@@ -622,7 +622,7 @@ contains
       ! Set same conc per n_cells
     do i_cell = 0, n_cells-1
         do j = 1, state_size_cell
-            camp_state%state_var(i_cell*state_size_cell+j) = camp_state%state_var(j) + 0.1*j
+            camp_state%state_var(i_cell*state_size_cell+j) = camp_state%state_var(j) !+ 0.1*j
         end do
     end do
 

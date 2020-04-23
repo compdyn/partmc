@@ -62,6 +62,7 @@ typedef struct
   int countercvStep;
   int counterDerivNewton;
   int counterBiConjGrad;
+  int counterBiConjGradInternal;
   int counterDerivSolve;
   int counterJac;
 
@@ -96,8 +97,6 @@ typedef struct
   cudaEvent_t stopcvStep;
   cudaEvent_t stopBiConjGrad;
   cudaEvent_t stopJac;
-
-
 
 #endif
 

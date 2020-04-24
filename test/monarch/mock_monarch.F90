@@ -255,7 +255,9 @@ program mock_monarch
   deallocate(interface_input_file)
 
   ! Free the interface and the solver
-  deallocate(pmc_interface)
+  #ifndef PMC_USE_MPI ! Execute without MPI to avoid crash
+    deallocate(pmc_interface)
+  #else
 
   ! close the output file
   close(RESULTS_FILE_UNIT)

@@ -663,12 +663,19 @@ contains
        if (run_part_opt%do_constant_bin_grid) then
           call bin_grid_make(aero_state%bin_grid, BIN_GRID_TYPE_LOG, &
                n_bin=20, min=1d-9, max=1d-5)
-          allocate(aero_state%bin1_loss(bin_grid_size(aero_state%bin_grid), &
+          allocate(aero_state%bin1_loss_mass_conc(bin_grid_size( &
+               aero_state%bin_grid), bin_grid_size(aero_state%bin_grid)))
+          allocate(aero_state%bin2_loss_mass_conc(bin_grid_size( &
+               aero_state%bin_grid), bin_grid_size(aero_state%bin_grid)))
+          allocate(aero_state%bin3_gain_mass_conc(bin_grid_size( &
+               aero_state%bin_grid), bin_grid_size(aero_state%bin_grid), &
                bin_grid_size(aero_state%bin_grid)))
-          allocate(aero_state%bin2_loss(bin_grid_size(aero_state%bin_grid), &
-               bin_grid_size(aero_state%bin_grid)))
-          allocate(aero_state%bin3_gain(bin_grid_size(aero_state%bin_grid), &
-               bin_grid_size(aero_state%bin_grid), &
+          allocate(aero_state%bin1_loss_num_conc(bin_grid_size( &
+               aero_state%bin_grid), bin_grid_size(aero_state%bin_grid)))
+          allocate(aero_state%bin2_loss_num_conc(bin_grid_size( &
+               aero_state%bin_grid), bin_grid_size(aero_state%bin_grid)))
+          allocate(aero_state%bin3_gain_num_conc(bin_grid_size( &
+               aero_state%bin_grid), bin_grid_size(aero_state%bin_grid), &
                bin_grid_size(aero_state%bin_grid)))
        end if
     end if

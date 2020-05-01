@@ -79,13 +79,22 @@ module pmc_aero_state
      type(bin_grid_t) :: bin_grid
      !> Mass concentration removed from bin 1 due to interaction of bin 1 and
      ! bin 2.
-     real(kind=dp), allocatable :: bin1_loss(:,:)
+     real(kind=dp), allocatable :: bin1_loss_mass_conc(:,:)
      !> Mass concentration removed from bin 2 due to interaction of bin 1 and
      ! bin 2.
-     real(kind=dp), allocatable :: bin2_loss(:,:)
+     real(kind=dp), allocatable :: bin2_loss_mass_conc(:,:)
      !> Mass concentration added to bin 3 due to interaction of bin 1 and
      ! 2 where third dimension is all bins.
-     real(kind=dp), allocatable :: bin3_gain(:,:,:)
+     real(kind=dp), allocatable :: bin3_gain_mass_conc(:,:,:)
+     !> Number concentration removed from bin 1 due to interaction of bin 1 and
+     ! bin 2.
+     real(kind=dp), allocatable :: bin1_loss_num_conc(:,:)
+     !> Number concentration removed from bin 2 due to interaction of bin 1 and
+     ! bin 2.
+     real(kind=dp), allocatable :: bin2_loss_num_conc(:,:)
+     !> Number concentration added to bin 3 due to interaction of bin 1 and
+     ! 2 where third dimension is all bins.
+     real(kind=dp), allocatable :: bin3_gain_num_conc(:,:,:)
   end type aero_state_t
 
 contains

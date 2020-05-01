@@ -404,18 +404,30 @@ contains
 
        if (.not. aero_state%allow_remake_bin_grid) then
           call pmc_nc_check(nf90_inq_dimid(ncid, "aero_diam", dimid_aero_bins))
-          call pmc_nc_write_real_2d(ncid, aero_state%bin1_loss, &
-               "bin1_loss", (/ dimid_aero_bins, &
+          call pmc_nc_write_real_2d(ncid, aero_state%bin1_loss_mass_conc, &
+               "bin1_loss_mass_conc", (/ dimid_aero_bins, &
                dimid_aero_bins /), unit="kg", &
                long_name="mass concentration lost in bin 1 for each bin pair")
-          call pmc_nc_write_real_2d(ncid, aero_state%bin2_loss, &
-               "bin2_loss", (/ dimid_aero_bins, &
+          call pmc_nc_write_real_2d(ncid, aero_state%bin2_loss_mass_conc, &
+               "bin2_loss_mass_conc", (/ dimid_aero_bins, &
                dimid_aero_bins /), unit="kg", &
                long_name="mass concentration lost in bin 2 for each bin pair")
-          call pmc_nc_write_real_3d(ncid, aero_state%bin3_gain, &
-               "bin3_gain", (/ dimid_aero_bins, dimid_aero_bins, &
+          call pmc_nc_write_real_3d(ncid, aero_state%bin3_gain_mass_conc, &
+               "bin3_gain_mass_conc", (/ dimid_aero_bins, dimid_aero_bins, &
                dimid_aero_bins /), unit="kg", &
-               long_name="constituent masses of each aerosol particle")
+               long_name="mass concentration gained in bin k for each bin pair")
+          call pmc_nc_write_real_2d(ncid, aero_state%bin1_loss_num_conc, &
+               "bin1_loss_num_conc", (/ dimid_aero_bins, &
+               dimid_aero_bins /), unit="kg", &
+               long_name="num concentration lost in bin 1 for each bin pair")
+          call pmc_nc_write_real_2d(ncid, aero_state%bin2_loss_num_conc, &
+               "bin2_loss_num_conc", (/ dimid_aero_bins, &
+               dimid_aero_bins /), unit="kg", &
+               long_name="number concentration lost in bin 2 for each bin pair")
+          call pmc_nc_write_real_3d(ncid, aero_state%bin3_gain_num_conc, &
+               "bin3_gain_num_conc", (/ dimid_aero_bins, dimid_aero_bins, &
+               dimid_aero_bins /), unit="kg", &
+               long_name="number concentration gained in bin k for each bin pair")
        end if
     else
        call aero_state_output_netcdf(aero_state, ncid, aero_data, &

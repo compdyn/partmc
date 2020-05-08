@@ -715,9 +715,15 @@ set(UNIT_TEST_SRC
 
 set(UNIT_TEST_RXN_ARRHENIUS_SRC
     test/unit_tests/rxns/unit_test_rxn_arrhenius.F90 ${UNIT_TEST_SRC})
-set_source_files_properties(${UNIT_TEST_RXN_ARRHENIUS_SRC} PROPERTIES COMPILE_DEFINITIONS
-  "UNIT_TEST_MODULE_=pmc_unit_test_rxn_arrhenius \
-  ;UNIT_TEST_TYPE_=unit_test_rxn_arrhenius_t()")
+if(${CMAKE_Fortran_COMPILER_ID} MATCHES "Intel")
+  set_source_files_properties(${UNIT_TEST_RXN_ARRHENIUS_SRC} PROPERTIES COMPILE_DEFINITIONS
+    "UNIT_TEST_MODULE_=pmc_unit_test_rxn_arrhenius \
+    ;UNIT_TEST_TYPE_='unit_test_rxn_arrhenius_t()'")
+elseif(${CMAKE_Fortran_COMPILER_ID} MATCHES "GNU")
+  set_source_files_properties(${UNIT_TEST_RXN_ARRHENIUS_SRC} PROPERTIES COMPILE_DEFINITIONS
+    "UNIT_TEST_MODULE_=pmc_unit_test_rxn_arrhenius \
+    ;UNIT_TEST_TYPE_=unit_test_rxn_arrhenius_t()")
+endif()
 set_source_files_properties(${UNIT_TEST_RXN_ARRHENIUS_SRC} PROPERTIES COMPILE_FLAGS
                             ${STD_F_FLAGS})
 add_executable(unit_test_rxn_arrhenius ${UNIT_TEST_RXN_ARRHENIUS_SRC})

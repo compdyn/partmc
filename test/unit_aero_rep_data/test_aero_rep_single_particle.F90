@@ -76,7 +76,13 @@ contains
     camp_solver_data => camp_solver_data_t()
 
     if (camp_solver_data%is_solver_available()) then
-      passed = build_aero_rep_data_set_test()
+      ! The MPI tests only involve packing and unpacking the aero rep
+      ! from a buffer on the primary task
+      if (pmc_mpi_rank().eq.0) then
+        passed = build_aero_rep_data_set_test()
+      else
+        passed = .true.
+      end if
     else
       call warn_msg(594028423, "No solver available")
       passed = .true.

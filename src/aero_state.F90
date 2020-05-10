@@ -2689,6 +2689,14 @@ contains
             // "was not created")
     end if
 
+    call pmc_nc_write_logical(ncid, aero_state%allow_remake_bin_grid, &
+         'allow_remake_bin_grid', description="whether to allow the bin " &
+         // "grid to be remade (1 - yes, 0 - no)")
+    if (.not. aero_state%allow_remake_bin_grid) then
+       call bin_grid_output_netcdf(aero_state%bin_grid, ncid, "bin_grid_rad", &
+            unit="m", long_name="constant bin grid")
+    end if
+
   end subroutine aero_state_output_netcdf
 
   ! this belongs in the subroutine above, but is outside because
@@ -2905,6 +2913,26 @@ contains
           end do
        end if
     end if
+
+   call pmc_nc_read_logical(ncid, aero_state%allow_remake_bin_grid, &
+        "allow_remake_bin_grid")
+   if (.not. aero_state%allow_remake_bin_grid) then
+       call bin_grid_input_netcdf(aero_state%bin_grid, ncid, "bin_grid_rad")
+       allocate(aero_state%bin1_loss_mass_conc(bin_grid_size( &
+            aero_state%bin_grid), bin_grid_size(aero_state%bin_grid)))
+       allocate(aero_state%bin2_loss_mass_conc(bin_grid_size( &
+            aero_state%bin_grid), bin_grid_size(aero_state%bin_grid)))
+       allocate(aero_state%bin3_gain_mass_conc(bin_grid_size( &
+            aero_state%bin_grid), bin_grid_size(aero_state%bin_grid), &
+            bin_grid_size(aero_state%bin_grid)))
+       allocate(aero_state%bin1_loss_num_conc(bin_grid_size( &
+            aero_state%bin_grid), bin_grid_size(aero_state%bin_grid)))
+       allocate(aero_state%bin2_loss_num_conc(bin_grid_size( &
+            aero_state%bin_grid), bin_grid_size(aero_state%bin_grid)))
+       allocate(aero_state%bin3_gain_num_conc(bin_grid_size( &
+            aero_state%bin_grid), bin_grid_size(aero_state%bin_grid), &
+            bin_grid_size(aero_state%bin_grid)))
+   end if
 
   end subroutine aero_state_input_netcdf
 

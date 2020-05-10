@@ -678,6 +678,8 @@ contains
                aero_state%bin_grid), bin_grid_size(aero_state%bin_grid), &
                bin_grid_size(aero_state%bin_grid)))
        end if
+    else
+       aero_state%allow_remake_bin_grid = .true.
     end if
 
     ! re-initialize RNG with the given seed

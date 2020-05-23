@@ -489,8 +489,10 @@ contains
        aero_state, gas_data, gas_state)
 
 #ifdef PMC_USE_MOSAIC
+    use module_data_mosaic_main, only: RH, pr_atm, te
     use module_data_mosaic_aero, only: ri_shell_a, ri_core_a, &
-         ext_cross, scat_cross, asym_particle, dp_core_a
+         ext_cross, scat_cross, asym_particle, dp_core_a, p_atm, &
+         RH_pc, aH2O, T_K
 #endif
 
     !> Environment state.
@@ -518,6 +520,11 @@ contains
     ! map PartMC -> MOSAIC
     call mosaic_from_partmc(env_state, aero_data, aero_state, &
          gas_data, gas_state)
+
+    RH_pc = RH                                ! RH(%)
+    aH2O = 0.01*RH_pc                         ! aH2O (aerosol water activity)
+    P_atm = pr_atm                            ! P(atm)
+    T_K = te                                  ! T(K)
 
     call aerosol_optical
 

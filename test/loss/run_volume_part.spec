@@ -35,6 +35,7 @@ start_day 1                     # start day of year (UTC)
 do_coagulation no               # whether to do coagulation (yes/no)
 do_condensation no              # whether to do condensation (yes/no)
 do_mosaic no                    # whether to do MOSAIC (yes/no)
+do_intermediate_output no       # whether to output during timestep (yes/no)
 do_nucleation no                # whether to do nucleation (yes/no)
 
 rand_init 0                     # random initialization (0 to auto-generate)

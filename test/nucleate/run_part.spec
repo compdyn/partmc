@@ -35,6 +35,7 @@ start_day 1                     # start day of year (UTC)
 do_coagulation no               # whether to do coagulation (yes/no)
 do_condensation no              # whether to do condensation (yes/no)
 do_mosaic no                    # whether to do MOSAIC (yes/no)
+do_intermediate_output no       # whether to output during timestep (yes/no)
 do_nucleation yes               # whether to do nucleation (yes/no)
 nucleate sulf_acid              # nucleation parameterization
 

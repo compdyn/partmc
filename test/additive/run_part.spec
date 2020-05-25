@@ -37,6 +37,7 @@ coag_kernel additive            # coagulation kernel
 do_constant_bin_grid no         # whether to keep bin grid constant (yes/no)
 do_condensation no              # whether to do condensation (yes/no)
 do_mosaic no                    # whether to do MOSAIC (yes/no)
+do_intermediate_output no       # whether to output during timestep (yes/no)
 do_nucleation no                # whether to do nucleation (yes/no)
 
 rand_init 0                     # random initialization (0 to auto-generate)

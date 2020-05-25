@@ -504,13 +504,9 @@ contains
        else
           run_part_opt%do_optical = .false.
        end if
-       if (run_part_opt%do_mosaic) then
-          call spec_file_read_logical(file, 'do_intermediate_output', &
-               run_part_opt%do_intermediate_output)
-       else
-          run_part_opt%do_intermediate_output = .false.
-       end if
 
+       call spec_file_read_logical(file, 'do_intermediate_output', &
+            run_part_opt%do_intermediate_output)
 
        call spec_file_read_logical(file, 'do_nucleation', &
             run_part_opt%do_nucleation)

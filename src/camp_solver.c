@@ -29,6 +29,7 @@
 #include <gsl/gsl_roots.h>
 #endif
 #include "camp_debug.h"
+#include "debug_diff_check.h"
 
 // Default solver initial time step relative to total integration time
 #define DEFAULT_TIME_STEP 1.0
@@ -390,6 +391,10 @@ void solver_initialize(void *solver_data, double *abs_tol, double rel_tol,
   // Get a pointer to the SolverData
   sd = (SolverData *)solver_data;
 
+  // initialize the diff checker
+  diff_check_init(sd->model_data);
+  diff_check("sanity check");
+
   // Create a new solver object
   sd->cvode_mem = CVodeCreate(CV_BDF, CV_NEWTON);
   check_flag_fail((void *)sd->cvode_mem, "CVodeCreate", 0);
@@ -441,10 +446,14 @@ void solver_initialize(void *solver_data, double *abs_tol, double rel_tol,
   flag = CVodeSetMaxHnilWarns(sd->cvode_mem, MAX_TIMESTEP_WARNINGS);
   check_flag_fail(&flag, "CVodeSetMaxHnilWarns", 1);
 
+  diff_check("pre Jac init");
+
   // Get the structure of the Jacobian matrix
   sd->J = get_jac_init(sd);
   sd->model_data.J_init = SUNMatClone(sd->J);
   SUNMatCopy(sd->J, sd->model_data.J_init);
+
+  diff_check_update_only("post Jac init");
 
   // Create a Jacobian matrix for correcting negative predicted concentrations
   // during solving
@@ -483,6 +492,7 @@ void solver_initialize(void *solver_data, double *abs_tol, double rel_tol,
   check_flag_fail(&flag, "CVodeSetErrHandlerFn", 0);
 #endif
 
+  diff_check("end solver init");
 #endif
 }
 

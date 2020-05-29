@@ -240,6 +240,9 @@ void rxn_SIMPOL_phase_transfer_update_env_state(ModelData *model_data,
               B4_ * log(TEMPERATURE_K_);
   vp = 101325.0 * pow(10, vp);
 
+  // testing
+  vp *= 1000.0;
+
   // Calculate the conversion from kg_x/m^3 -> ppm_x
   KGM3_TO_PPM_ = CONV_ * TEMPERATURE_K_ / PRESSURE_PA_;
 
@@ -252,6 +255,10 @@ void rxn_SIMPOL_phase_transfer_update_env_state(ModelData *model_data,
                  / PRESSURE_PA_  // (1/Pa_air)
                  / MW_           // (mol_x/kg_x)
                  * 1.0e6;        // 1.0e6ppm_x*Pa_air/Pa_x
+
+  // printf("\nVP %le Pa, temperature %le K, pressure %le Pa, KGM3-to-PPM %le,
+  // K_eq %le",
+  //       vp, TEMPERATURE_K_, PRESSURE_PA_, KGM3_TO_PPM_, EQUIL_CONST_);
 
   return;
 }
@@ -377,6 +384,10 @@ void rxn_SIMPOL_phase_transfer_calc_deriv_contrib(
         &aero_phase_avg_MW,       // avg MW in the aerosol phase (kg/mol)
         NULL);                    // partial derivatives
 
+    // radius = 1.0e-8;
+    // aero_phase_avg_MW = 0.05;
+    // aero_phase_mass = 1.0e-18;
+
     // If the radius, number concentration, or aerosol-phase mass are zero,
     // no transfer occurs
     if (radius <= ZERO || number_conc <= ZERO || aero_phase_mass <= ZERO)
@@ -404,6 +415,10 @@ void rxn_SIMPOL_phase_transfer_calc_deriv_contrib(
     // Calculate the evaporation and condensation rates
     cond_rate *= state[GAS_SPEC_];
     evap_rate *= state[AERO_SPEC_(i_phase)];
+
+    // printf("\nradius %le evap rate %Le cond rate %Le [G] %le [A] %le",
+    //       radius, evap_rate, cond_rate, state[GAS_SPEC_],
+    //       state[AERO_SPEC_(i_phase)]);
 
     // Change in the gas-phase is evaporation - condensation (ppm/s)
     if (DERIV_ID_(0) >= 0) {
@@ -497,6 +512,10 @@ void rxn_SIMPOL_phase_transfer_calc_jac_contrib(ModelData *model_data,
         &aero_phase_avg_MW,            // avg MW in the aerosol phase (kg/mol)
         &(MW_JAC_ELEM_(i_phase, 0)));  // partial derivatives
 
+    // radius = 1.0e-8;
+    // aero_phase_avg_MW = 0.05;
+    // aero_phase_mass = 1.0e-18;
+
     // If the radius, number concentration, or aerosol-phase mass are zero,
     // no transfer occurs
     if (radius <= ZERO || number_conc <= ZERO || aero_phase_mass <= ZERO)
@@ -549,21 +568,22 @@ void rxn_SIMPOL_phase_transfer_calc_jac_contrib(ModelData *model_data,
 
     // Get the overall rates
     evap_rate *= act_coeff;
-    long double rate = rxn_SIMPOL_phase_transfer_calc_overall_rate(
-        rxn_int_data, rxn_float_data, rxn_env_data, state, cond_rate, evap_rate,
-        i_phase);
     cond_rate *= state[GAS_SPEC_];
     evap_rate *= state[AERO_SPEC_(i_phase)];
 
     // Calculate partial derivatives
-    realtype d_rate_d_radius =
-        rate *
+    realtype d_evap_d_radius =
+        evap_rate *
         -(2.0 * radius / (3.0 * DIFF_COEFF_) + 4.0 / (3.0 * C_AVG_ALPHA_)) /
         (radius * radius / (3.0 * DIFF_COEFF_) +
          4.0 * radius / (3.0 * C_AVG_ALPHA_));
-    realtype d_rate_d_number = rate / number_conc;
-    realtype d_rate_d_mass = -evap_rate / aero_phase_mass;
-    realtype d_rate_d_MW = evap_rate / aero_phase_avg_MW;
+    realtype d_cond_d_radius =
+        cond_rate *
+        -(2.0 * radius / (3.0 * DIFF_COEFF_) + 4.0 / (3.0 * C_AVG_ALPHA_)) /
+        (radius * radius / (3.0 * DIFF_COEFF_) +
+         4.0 * radius / (3.0 * C_AVG_ALPHA_));
+    realtype d_evap_d_mass = -evap_rate / aero_phase_mass;
+    realtype d_evap_d_MW = evap_rate / aero_phase_avg_MW;
 
     /// \todo SIMPOL Jac calculations are not perfect. Seems to be related to
     ///       aerosol representation calculations
@@ -575,50 +595,63 @@ void rxn_SIMPOL_phase_transfer_calc_jac_contrib(ModelData *model_data,
         // species involved in effective radius calculations
         jacobian_add_value(
             jac, (unsigned int)PHASE_JAC_ID_(i_phase, JAC_GAS, i_elem),
+            JACOBIAN_PRODUCTION,
+            number_conc * d_evap_d_radius * EFF_RAD_JAC_ELEM_(i_phase, i_elem));
+        jacobian_add_value(
+            jac, (unsigned int)PHASE_JAC_ID_(i_phase, JAC_GAS, i_elem),
             JACOBIAN_LOSS,
-            -number_conc * d_rate_d_radius *
-                EFF_RAD_JAC_ELEM_(i_phase, i_elem));
+            number_conc * d_cond_d_radius * EFF_RAD_JAC_ELEM_(i_phase, i_elem));
 
         // species involved in number concentration
         jacobian_add_value(
             jac, (unsigned int)PHASE_JAC_ID_(i_phase, JAC_GAS, i_elem),
-            JACOBIAN_LOSS,
-            -number_conc * d_rate_d_number *
-                NUM_CONC_JAC_ELEM_(i_phase, i_elem));
+            JACOBIAN_PRODUCTION,
+            evap_rate * NUM_CONC_JAC_ELEM_(i_phase, i_elem));
+        jacobian_add_value(
+            jac, (unsigned int)PHASE_JAC_ID_(i_phase, JAC_GAS, i_elem),
+            JACOBIAN_LOSS, cond_rate * NUM_CONC_JAC_ELEM_(i_phase, i_elem));
 
         // species involved in mass calculations
         jacobian_add_value(
             jac, (unsigned int)PHASE_JAC_ID_(i_phase, JAC_GAS, i_elem),
-            JACOBIAN_LOSS,
-            -number_conc * d_rate_d_mass * MASS_JAC_ELEM_(i_phase, i_elem));
+            JACOBIAN_PRODUCTION,
+            number_conc * d_evap_d_mass * MASS_JAC_ELEM_(i_phase, i_elem));
 
         // species involved in average MW calculations
         jacobian_add_value(
             jac, (unsigned int)PHASE_JAC_ID_(i_phase, JAC_GAS, i_elem),
-            JACOBIAN_LOSS,
-            -number_conc * d_rate_d_MW * MW_JAC_ELEM_(i_phase, i_elem));
+            JACOBIAN_PRODUCTION,
+            number_conc * d_evap_d_MW * MW_JAC_ELEM_(i_phase, i_elem));
       }
 
       // Aerosol-phase species dependencies
       if (PHASE_JAC_ID_(i_phase, JAC_AERO, i_elem) > 0) {
+        //        printf("\navgMW %le d_avgMW_d_J%d %le", aero_phase_avg_MW,
+        //        i_elem, MW_JAC_ELEM_(i_phase, i_elem));
+
         // species involved in effective radius calculations
         jacobian_add_value(
             jac, (unsigned int)PHASE_JAC_ID_(i_phase, JAC_AERO, i_elem),
+            JACOBIAN_LOSS,
+            d_evap_d_radius / KGM3_TO_PPM_ *
+                EFF_RAD_JAC_ELEM_(i_phase, i_elem));
+        jacobian_add_value(
+            jac, (unsigned int)PHASE_JAC_ID_(i_phase, JAC_AERO, i_elem),
             JACOBIAN_PRODUCTION,
-            -d_rate_d_radius / KGM3_TO_PPM_ *
+            d_cond_d_radius / KGM3_TO_PPM_ *
                 EFF_RAD_JAC_ELEM_(i_phase, i_elem));
 
         // species involved in mass calculations
         jacobian_add_value(
             jac, (unsigned int)PHASE_JAC_ID_(i_phase, JAC_AERO, i_elem),
-            JACOBIAN_PRODUCTION,
-            -d_rate_d_mass / KGM3_TO_PPM_ * MASS_JAC_ELEM_(i_phase, i_elem));
+            JACOBIAN_LOSS,
+            d_evap_d_mass / KGM3_TO_PPM_ * MASS_JAC_ELEM_(i_phase, i_elem));
 
         // species involved in average MW calculations
         jacobian_add_value(
             jac, (unsigned int)PHASE_JAC_ID_(i_phase, JAC_AERO, i_elem),
-            JACOBIAN_PRODUCTION,
-            -d_rate_d_MW / KGM3_TO_PPM_ * MW_JAC_ELEM_(i_phase, i_elem));
+            JACOBIAN_LOSS,
+            d_evap_d_MW / KGM3_TO_PPM_ * MW_JAC_ELEM_(i_phase, i_elem));
       }
     }
   }

@@ -12,6 +12,8 @@ module pmc_camp_interface
   use pmc_aero_particle
   use pmc_aero_state
   use pmc_constants,                  only : i_kind, dp
+  use pmc_debug_diff_check,           only : diff_check, &
+                                             diff_check_update_only
   use pmc_gas_data
   use pmc_gas_state
   use pmc_camp_core
@@ -57,8 +59,12 @@ contains
     ! Set the camp chem  gas-phase species
     call gas_state%set_camp_conc(camp_state, gas_data)
 
+    call diff_check_update_only( "pre rate update" )
+
     ! Recalculate the photolysis rate constants
     call photolysis%update_rate_constants()
+
+    call diff_check( "post rate update" )
 
     ! Solve gas-phase chemistry
     call camp_core%solve(camp_state, del_t, GAS_RXN, &

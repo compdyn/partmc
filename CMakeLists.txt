@@ -492,7 +492,7 @@ set(SUB_MODELS_SRC ${SUB_MODELS_F_SRC} ${SUB_MODELS_C_SRC})
 set(CAMP_C_SRC
         src/camp_solver.c src/rxn_solver.c src/aero_phase_solver.c
         src/aero_rep_solver.c src/sub_model_solver.c
-        src/time_derivative.c src/Jacobian.c)
+        src/time_derivative.c src/Jacobian.c src/debug_diff_check.c)
 
 set_source_files_properties(${CAMP_C_SRC} PROPERTIES COMPILE_FLAGS
         ${STD_C_FLAGS})
@@ -549,6 +549,7 @@ add_library(partmclib src/aero_state.F90 src/integer_varray.F90
   src/aero_phase_data.F90 src/aero_rep_factory.F90 src/camp_interface.F90
   src/rxn_factory.F90 src/sub_model_data.F90 src/sub_model_factory.F90
   src/solver_stats.F90 src/camp_box_model_data.F90 src/photolysis.F90
+  src/debug_diff_check.F90
   ${CAMP_C_SRC} ${AEROSOL_REPS_SRC} ${SUB_MODELS_SRC} ${REACTIONS_SRC}
   ${SUNDIALS_SRC} ${GSL_SRC} ${C_SORT_SRC} ${CAMP_CUDA_SRC} ${CAMP_CXX_SRC} )
 

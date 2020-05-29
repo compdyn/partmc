@@ -213,9 +213,9 @@ int compare_and_update(ModelElement current, ModelElement *last_check,
           last_check->indices.int_data[e + 1]);
       ++num_diff;
     }
+    int count = 0;
     for (int i = last_check->indices.int_data[e];
          i < last_check->indices.int_data[e + 1]; ++i) {
-      int count = 0;
       if (current.ptrs.int_data[i] != last_check->ptrs.int_data[i] &&
           do_compare) {
         printf(
@@ -247,9 +247,9 @@ int compare_and_update(ModelElement current, ModelElement *last_check,
           last_check->indices.float_data[e + 1]);
       ++num_diff;
     }
+    count = 0;
     for (int i = last_check->indices.float_data[e];
          i < last_check->indices.float_data[e + 1]; ++i) {
-      int count = 0;
       if (current.ptrs.float_data[i] != last_check->ptrs.float_data[i] &&
           do_compare) {
         printf(
@@ -288,9 +288,9 @@ int compare_and_update(ModelElement current, ModelElement *last_check,
       double *last_env_ptr =
           last_check->ptrs.env_data +
           i_cell * last_check->indices.env_data[last_check->indices.n_elements];
+      count = 0;
       for (int i = last_check->indices.env_data[e];
            i < last_check->indices.env_data[e + 1]; ++i) {
-        int count = 0;
         if (curr_env_ptr[i] != last_env_ptr[i] && do_compare) {
           printf(
               "\n  %s[%d]: env datum %d (at index %d) for cell %d difference: "

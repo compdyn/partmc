@@ -460,7 +460,7 @@ contains
          present(dim_name_3) ) then
        call pmc_nc_ensure_dim(ncid, dim_name_1, use_dimids(1), size(var, 1), 1)
        call pmc_nc_ensure_dim(ncid, dim_name_2, use_dimids(2), size(var, 2), 2)
-       call pmc_nc_ensure_dim(ncid, dim_name_2, use_dimids(3), size(var, 3), 3)
+       call pmc_nc_ensure_dim(ncid, dim_name_3, use_dimids(3), size(var, 3), 3)
     else
        call die_msg(959111259, &
             "either dimids or dim_name_1, dim_name_2 and dim_name_3 must be \\

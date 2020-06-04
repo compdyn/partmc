@@ -1142,9 +1142,24 @@ contains
 
     !> Chemical model
     class(camp_core_t), intent(inout) :: this
+    type(string_t), allocatable :: spec_names(:)
+    integer :: i_spec, n_gas_spec
+
 
     call assert_msg(662920365, .not.this%solver_is_initialized, &
             "Attempting to initialize the solver twice.")
+
+    !Get spec names
+    !n_gas_spec = this%chem_spec_data%size(spec_phase=CHEM_SPEC_GAS_PHASE)
+    !allocate(spec_names(n_gas_spec))
+    !do i_spec = 1, n_gas_spec
+    !  spec_names(i_spec)%string = this%chem_spec_data%gas_state_name(i_spec)
+    !end do
+
+    !call assert_msg( 731700229,                                              &
+    !        this%get_chem_spec_data(chem_spec_data),                  &
+    !        "No chemical species data in camp_core." )
+    spec_names = this%chem_spec_data%get_spec_names()
 
     ! Set up either two solvers (gas and aerosol) or one solver (combined)
     if (this%split_gas_aero) then
@@ -1168,7 +1183,8 @@ contains
                 this%aero_rep,   & ! Pointer to the aerosol representations
                 this%sub_model,  & ! Pointer to the sub-models
                 GAS_RXN,         & ! Reaction phase
-                this%n_cells   & ! # of cells computed simultaneosly
+                this%n_cells,    & ! # of cells computed simultaneosly
+                spec_names       & ! Species names
                 )
       call this%solver_data_aero%initialize( &
                 this%var_type,   & ! State array variable types
@@ -1178,7 +1194,8 @@ contains
                 this%aero_rep,   & ! Pointer to the aerosol representations
                 this%sub_model,  & ! Pointer to the sub-models
                 AERO_RXN,        & ! Reaction phase
-                this%n_cells   & ! # of cells computed simultaneosly
+                this%n_cells,    & ! # of cells computed simultaneosly
+                spec_names       & ! Species names
                 )
     else
 
@@ -1199,10 +1216,13 @@ contains
                 this%aero_rep,   & ! Pointer to the aerosol representations
                 this%sub_model,  & ! Pointer to the sub-models
                 GAS_AERO_RXN,    & ! Reaction phase
-                this%n_cells   & ! # of cells computed simultaneosly
+                this%n_cells,    & ! # of cells computed simultaneosly
+                spec_names       & ! Species names
                 )
 
     end if
+
+    deallocate(spec_names)
 
     this%solver_is_initialized = .true.
 

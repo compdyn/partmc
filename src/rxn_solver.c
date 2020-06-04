@@ -187,6 +187,8 @@ void rxn_update_env_state(ModelData *model_data) {
   // Get the number of reactions
   int n_rxn = model_data->n_rxn;
 
+  //printf("Rates Arrhenius:\n");
+
   // Loop through the reactions advancing the rxn_data pointer each time
   for (int i_rxn = 0; i_rxn < n_rxn; i_rxn++) {
     // Get pointers to the reaction data

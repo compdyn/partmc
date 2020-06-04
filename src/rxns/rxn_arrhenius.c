@@ -112,7 +112,17 @@ void rxn_arrhenius_update_env_state(ModelData *model_data, int *rxn_int_data,
                    (B_ == 0.0 ? 1.0 : pow(TEMPERATURE_K_ / D_, B_)) *
                    (E_ == 0.0 ? 1.0 : (1.0 + E_ * PRESSURE_PA_)) *
                    pow(CONV_ * PRESSURE_PA_ / TEMPERATURE_K_, NUM_REACT_ - 1);
-
+/*
+  printf("RATE_CONSTANT: %-le\n", RATE_CONSTANT_);
+  printf("A_: %-le\n", A_);
+  printf("B_: %-le\n", B_);
+  printf("C_: %-le\n", C_);
+  printf("D_: %-le\n", D_);
+  printf("E_: %-le\n", E_);
+  printf("TEMPERATURE_K_: %-le\n", TEMPERATURE_K_);
+  printf("PRESSURE_PA_: %-le\n", PRESSURE_PA_);
+  printf("NUM_REACT_: %d\n", NUM_REACT_);
+*/
   return;
 }
 

@@ -159,6 +159,11 @@ contains
     call assert_msg(304540307, &
             this%property_set%get_property_t(key_name, products), &
             "Arrhenius reaction is missing products")
+    key_name = "rxn id"
+
+    !call assert_msg(304540307, &
+    !        this%property_set%get_property_t(key_name, rxn_id), &
+    !        "Arrhenius reaction is missing rxn_id")
 
     ! Count the number of reactants (including those with a qty specified)
     call reactants%iter_reset()
@@ -193,6 +198,10 @@ contains
     ! Get reaction parameters (it might be easiest to keep these at the
     ! beginning of the condensed data array, so they can be accessed using
     ! compliler flags)
+    key_name = "rxn id"
+    if (this%property_set%get_string(key_name, string_val)) then
+        !write (*,*) "Arrhenius RXN id:", string_val
+    endif
     key_name = "A"
     if (.not. this%property_set%get_real(key_name, A_)) then
       A_ = 1.0
@@ -234,12 +243,16 @@ contains
             "D cannot be zero if B is non-zero in Arrhenius reaction.")
 
     ! Get the indices and chemical properties for the reactants
+    !write(*,*) "Species,REACT_ID"
     call reactants%iter_reset()
     i_spec = 1
     do while (reactants%get_key(spec_name))
 
       ! Save the index of this species in the state variable array
       REACT_(i_spec) = chem_spec_data%gas_state_id(spec_name)
+
+      !write(*,*) chem_spec_data%gas_state_name(chem_spec_data%gas_state_id(spec_name)), &
+      !        REACT_(i_spec)
 
       ! Make sure the species exists
       call assert_msg(751684145, REACT_(i_spec).gt.0, &
@@ -259,6 +272,7 @@ contains
       i_spec = i_spec + 1
     end do
 
+    !write(*,*) "Products:"
     ! Get the indices and chemical properties for the products
     call products%iter_reset()
     i_spec = 1
@@ -266,6 +280,8 @@ contains
 
       ! Save the index of this species in the state variable array
       PROD_(i_spec) = chem_spec_data%gas_state_id(spec_name)
+
+      !write(*,*) chem_spec_data%gas_state_name(chem_spec_data%gas_state_id(spec_name))
 
       ! Make sure the species exists
       call assert_msg(234495887, PROD_(i_spec).gt.0, &

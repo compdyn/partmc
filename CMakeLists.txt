@@ -25,6 +25,7 @@ option(ENABLE_DEBUG "Compile debugging functions" OFF)
 option(FAILURE_DETAIL "Output conditions before and after solver failures" OFF)
 option(ENABLE_CXX "Enable C++" OFF)
 option(ENABLE_GPU "Enable use of GPUs in chemistry solving" OFF)
+option(ENABLE_ODE_GPU "Enable ODE solving in GPUs" OFF)
 
 mark_as_advanced(FORCE ENABLE_DEBUG FAILURE_DETAIL)
 
@@ -187,9 +188,12 @@ if (CUDA_FOUND)
         #Define global variable of use gpu no matter what test to include user main test
         add_definitions(-DPMC_USE_GPU)
 
+        if (ENABLE_ODE_GPU)
+            add_definitions(-DPMC_USE_ODE_GPU)
+        endif()
         # Add debugging functions
-        if (NOT ENABLE_DEBUG)
-        #if (ENABLE_DEBUG)
+        #if (NOT ENABLE_DEBUG)
+        if (ENABLE_DEBUG)
             #add_definitions(-DCHECK_GPU_LINSOLVE)
             add_definitions(-DPMC_DEBUG_GPU)
         endif()
@@ -697,18 +701,18 @@ set_source_files_properties(${CB5_EBI_SOLVER} PROPERTIES COMPILE_FLAGS
 ######################################################################
 # test_chemistry_cb05cl_ae5_big
 
-add_executable(test_chemistry_cb05cl_ae5_big
-        test/chemistry/cb05cl_ae5/test_cb05cl_ae5_big.F90
+add_executable(test_chemistry_cb05cl_ae5
+        test/chemistry/cb05cl_ae5/test_cb05cl_ae5.F90
         ${CB5_EBI_SOLVER} ${CB5_KPP_SOLVER}
         test/chemistry/cb05cl_ae5/module_BSC_CHEM_DATA.F90)
-target_link_libraries(test_chemistry_cb05cl_ae5_big partmclib)
+target_link_libraries(test_chemistry_cb05cl_ae5 partmclib)
 
 #if (CUDA_FOUND AND NOT ENABLE_GPU AND ENABLE_TESTS)
-#    add_executable(test_chemistry_cb05cl_ae5_big_gpu
-#            test/chemistry/cb05cl_ae5/test_cb05cl_ae5_big.F90
+#    add_executable(test_chemistry_cb05cl_ae5_gpu
+#            test/chemistry/cb05cl_ae5/test_cb05cl_ae5.F90
 #            ${CB5_EBI_SOLVER} ${CB5_KPP_SOLVER}
 #            test/chemistry/cb05cl_ae5/module_BSC_CHEM_DATA.F90)
-#    target_link_libraries(test_chemistry_cb05cl_ae5_big_gpu partmclib_gpu)
+#    target_link_libraries(test_chemistry_cb05cl_ae5_gpu partmclib_gpu)
 #endif()
 
 ######################################################################
@@ -746,19 +750,20 @@ if (ENABLE_TESTS)
 ######################################################################
 # test_chemistry_cb05cl_ae5
 
-add_executable(test_chemistry_cb05cl_ae5
-        test/chemistry/cb05cl_ae5/test_cb05cl_ae5.F90
+add_executable(test_chemistry_cb05cl_ae5_big
+        test/chemistry/cb05cl_ae5/test_cb05cl_ae5_big.F90
         ${CB5_EBI_SOLVER} ${CB5_KPP_SOLVER}
         test/chemistry/cb05cl_ae5/module_BSC_CHEM_DATA.F90)
-target_link_libraries(test_chemistry_cb05cl_ae5 partmclib)
+target_link_libraries(test_chemistry_cb05cl_ae5_big partmclib)
 
 #if (CUDA_FOUND AND NOT ENABLE_GPU AND ENABLE_TESTS)
-#    add_executable(test_chemistry_cb05cl_ae5_gpu
-#            test/chemistry/cb05cl_ae5/test_cb05cl_ae5.F90
+#    add_executable(test_chemistry_cb05cl_ae5_big_gpu
+#            test/chemistry/cb05cl_ae5/test_cb05cl_ae5_big.F90
 #            ${CB5_EBI_SOLVER} ${CB5_KPP_SOLVER}
 #            test/chemistry/cb05cl_ae5/module_BSC_CHEM_DATA.F90)
-#    target_link_libraries(test_chemistry_cb05cl_ae5_gpu partmclib_gpu)
+#    target_link_libraries(test_chemistry_cb05cl_ae5_big_gpu partmclib_gpu)
 #endif()
+
 
 ######################################################################
 # test_chemistry_eqsam_v03d

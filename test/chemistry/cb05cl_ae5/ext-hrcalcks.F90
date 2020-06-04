@@ -23,6 +23,7 @@
 ! %W% %P% %G% %U%
 !OJORBA3
       SUBROUTINE EXT_HRCALCKS( NJPHOT, LSUNLIGHT, RJIN, TEMP, PRES, H2O, RK )
+          !todo print RJIN y ver a ver aqui los photo rates a ver si tan bien
 !OJORBA3
 !**********************************************************************
 !

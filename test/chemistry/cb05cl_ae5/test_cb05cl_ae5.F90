@@ -42,7 +42,7 @@ program pmc_test_cb05cl_ae5
   ! CAMP-chem output file unit
   integer(kind=i_kind), parameter :: CAMP_FILE_UNIT = 12
   ! Number of timesteps to integrate over
-  integer(kind=i_kind), parameter :: NUM_TIME_STEPS = 5!100
+  integer(kind=i_kind), parameter :: NUM_TIME_STEPS = 100!100
   ! Number of EBI-solver species
   integer(kind=i_kind), parameter :: NUM_EBI_SPEC = 72
   ! Number of EBI-solever photolysis reactions
@@ -354,8 +354,8 @@ contains
     call camp_core%update_data(jo2_rate_update)
     ! Set the remaining rates
     do i_photo_rxn = 1, n_photo_rxn
-      call rate_update(i_photo_rxn)%set_rate(real(0.0001, kind=dp))
-      call camp_core%update_data(rate_update(i_photo_rxn))
+      call rate_update(i_photo_rxn)%set_rate(real(0.0001, kind=dp)) !update_data[0]=photo_did update_data[1]=rate
+      call camp_core%update_data(rate_update(i_photo_rxn)) ! RATE_CONSTANT_ = update_data[0] BASE_RATE_ = update_data[1]
     end do
 
     ! Make sure the right number of reactions is present

@@ -396,7 +396,9 @@ void solveGPU(itsolver *bicg, double *dA, int *djA, int *diA, double *dx, double
     it++;
   }while(it<maxIt && temp1>tolmax);
 
+#ifdef PMC_DEBUG_GPU
   bicg->counterBiConjGradInternal += it;
+#endif
 
 }
 

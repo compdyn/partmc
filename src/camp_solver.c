@@ -367,8 +367,29 @@ void *solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
   if (sd->debug_out) print_data_sizes(&(sd->model_data));
 #endif
 
+  sd->spec_names = (char**) malloc(sizeof(char*)*n_state_var);
+
   // Return a pointer to the new SolverData object
   return (void *)sd;
+}
+
+void solver_set_spec_name(void *solver_data, char *spec_name, int size_spec_name, int i) {
+
+//todo check if exists a name (ranks without a spec name crashes)
+#ifndef PMC_USE_MPI
+
+  SolverData *sd;
+  sd = (SolverData *)solver_data;
+  sd->spec_names[i] = malloc(sizeof(char)*(size_spec_name+1));
+
+  //strncpy(sd->spec_names[i], spec_name, size_spec_name); //Copy size bytes
+  for (int j=0; j<size_spec_name; j++)
+    sd->spec_names[i][j] = spec_name[j];
+
+  sd->spec_names[i][size_spec_name] = '\0'; //Add null terminator
+
+#endif
+
 }
 
 /** \brief Solver initialization
@@ -640,8 +661,13 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
 
   if (!sd->no_solve) {
     #ifdef PMC_USE_GPU
-      flag = CVode_gpu2(sd->cvode_mem, (realtype)t_final, sd->y, &t_rt, CV_NORMAL, sd);
+      #ifdef PMC_USE_ODE_GPU
+        flag = CVode_gpu2(sd->cvode_mem, (realtype)t_final, sd->y, &t_rt, CV_NORMAL, sd);
       //flag = CVode(sd->cvode_mem, (realtype)t_final, sd->y, &t_rt, CV_NORMAL);
+      #else
+        //flag = CVode_gpu2(sd->cvode_mem, (realtype)t_final, sd->y, &t_rt, CV_NORMAL, sd);
+        flag = CVode(sd->cvode_mem, (realtype)t_final, sd->y, &t_rt, CV_NORMAL);
+      #endif
     #else
       flag = CVode(sd->cvode_mem, (realtype)t_final, sd->y, &t_rt, CV_NORMAL);
     #endif
@@ -1122,6 +1148,10 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
   }
 #endif
 
+  //if(counterJac2==0)pmc_debug_print_jac_rel(sd,J,"J relations");//wrong species name seems, maybe I need jac_map or something
+  //if(counterJac2==0)pmc_debug_print_jac_rel(sd,md->J_rxn,"RXN relations");
+
+  //counterJac2++;
   //if(counterJac2==0) print_jacobian_file(J, "");
   //if(counterJac2==0) print_jacobian(J);
 
@@ -1734,8 +1764,13 @@ SUNMatrix get_jac_init(SolverData *solver_data) {
 
   SolverData *sd = solver_data;
   PMC_DEBUG_JAC_STRUCT(sd->model_data.J_params, "Param struct");
-  PMC_DEBUG_JAC_STRUCT(sd->model_data.J_rxn, "Param struct");
-  PMC_DEBUG_JAC_STRUCT(M, "Param struct");
+  PMC_DEBUG_JAC_STRUCT(sd->model_data.J_rxn, " struct");
+  PMC_DEBUG_JAC_STRUCT(M, "M struct");
+
+  //pmc_debug_print_jac_struct2(sd, sd->model_data.J_rxn, "RXN struct"); //Fine
+  //pmc_debug_print_jac_rel(sd, sd->model_data.J_rxn, "RXN relations"); //Fine but strange reactants affecting reactants
+  //pmc_debug_print_jac_rel(sd, M, "M relations"); //todo miss jac_map indices to print correct names
+
 
   if (i_mapped_value != n_mapped_values) {
     printf("[ERROR-340355266] Internal error");

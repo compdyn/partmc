@@ -418,7 +418,7 @@ contains
     is_sunny = .true.
     allocate(photo_rates(NUM_EBI_PHOTO_RXN))
 
-    !todo: set photo_rates to 0 for night and to X for day
+    !todo: set photo_rates to 0 for night and X for day
     photo_rates(:) = 0.0001 * 60.0 ! EBI solver wants rates in min^-1
     !photo_rates(:) = 0.0
     KPP_PHOTO_RATES(:) = 0.0001

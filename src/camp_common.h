@@ -269,6 +269,7 @@ typedef struct {
   bool no_solve;  // Flag to indicate whether to run the solver needs to be
                   // run. Set to true when no reactions are present.
   double init_time_step;  // Initial time step (s)
+  char **spec_names; // Species names
 } SolverData;
 
 #endif

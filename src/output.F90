@@ -327,6 +327,13 @@ contains
     type(bin_grid_t) :: bin_grid
     integer :: dimid_aero_bins
 
+    real(kind=dp), allocatable :: delta_num_concs(:,:), delta_mass_concs(:,:,:)
+    integer, allocatable :: coordinates(:,:)
+    integer :: i_count, max_elements
+    integer :: i_bin, j_bin, k_bin, k_bin_p1
+    integer :: dimid_nnz, dimid_coordinates, dimid_aero_species
+    integer :: status
+
     !> \page output_format_general Output File Format: General Information
     !!
     !! The general information global NetCDF attributes are:
@@ -403,31 +410,74 @@ contains
             aero_data)
 
        if (.not. aero_state%allow_remake_bin_grid) then
-          call pmc_nc_check(nf90_inq_dimid(ncid, "aero_diam", dimid_aero_bins))
-          call pmc_nc_write_real_2d(ncid, aero_state%bin1_loss_mass_conc, &
-               "bin1_loss_mass_conc", (/ dimid_aero_bins, &
-               dimid_aero_bins /), unit="kg", &
-               long_name="mass concentration lost in bin 1 for each bin pair")
-          call pmc_nc_write_real_2d(ncid, aero_state%bin2_loss_mass_conc, &
-               "bin2_loss_mass_conc", (/ dimid_aero_bins, &
-               dimid_aero_bins /), unit="kg", &
-               long_name="mass concentration lost in bin 2 for each bin pair")
-          call pmc_nc_write_real_3d(ncid, aero_state%bin3_gain_mass_conc, &
-               "bin3_gain_mass_conc", (/ dimid_aero_bins, dimid_aero_bins, &
-               dimid_aero_bins /), unit="kg", &
-               long_name="mass concentration gained in bin k for each bin pair")
-          call pmc_nc_write_real_2d(ncid, aero_state%bin1_loss_num_conc, &
-               "bin1_loss_num_conc", (/ dimid_aero_bins, &
-               dimid_aero_bins /), unit="kg", &
-               long_name="num concentration lost in bin 1 for each bin pair")
-          call pmc_nc_write_real_2d(ncid, aero_state%bin2_loss_num_conc, &
-               "bin2_loss_num_conc", (/ dimid_aero_bins, &
-               dimid_aero_bins /), unit="kg", &
-               long_name="number concentration lost in bin 2 for each bin pair")
-          call pmc_nc_write_real_3d(ncid, aero_state%bin3_gain_num_conc, &
-               "bin3_gain_num_conc", (/ dimid_aero_bins, dimid_aero_bins, &
-               dimid_aero_bins /), unit="kg", &
-               long_name="number concentration gained in bin k for each bin pair")
+
+          max_elements = bin_grid_size(bin_grid) * bin_grid_size(bin_grid) &
+              * bin_grid_size(bin_grid)
+          allocate(coordinates(max_elements,4))
+          allocate(delta_mass_concs(max_elements,4,aero_data_n_spec(aero_data)))
+          allocate(delta_num_concs(max_elements,4))
+          i_count = 0
+          do i_bin = 1,bin_grid_size(bin_grid)
+          do j_bin = i_bin,bin_grid_size(bin_grid)
+          if (aero_state%bin1_loss_num_conc(i_bin, j_bin) > 0.0d0 .or. &
+               aero_state%bin1_loss_num_conc(i_bin, j_bin) > 0.0d0) then
+             i_count = i_count + 1
+             k_bin = j_bin
+             k_bin_p1 = min(k_bin+1, bin_grid_size(bin_grid))
+             coordinates(i_count,:) = [i_bin-1, j_bin-1, k_bin-1, k_bin_p1-1]
+             delta_mass_concs(i_count,1,:) = -1.0d0 &
+                  * aero_state%bin1_loss_mass_conc(i_bin, j_bin, :)
+             delta_mass_concs(i_count,2,:) = -1.0d0 &
+                  * aero_state%bin2_loss_mass_conc(i_bin, j_bin, :)
+             delta_mass_concs(i_count,3,:) = aero_state%bin3_gain_mass_conc( &
+                  i_bin, j_bin, k_bin, :)
+             if (k_bin_p1 < bin_grid_size(bin_grid)) then
+                delta_mass_concs(i_count,4,:) = &
+                     aero_state%bin3_gain_mass_conc(i_bin, j_bin, k_bin_p1, :)
+             end if
+             delta_num_concs(i_count,1) = -1.0d0 &
+                  * aero_state%bin2_loss_num_conc(i_bin, j_bin)
+             delta_num_concs(i_count,2) = -1.0d0 &
+                  * aero_state%bin2_loss_num_conc(i_bin, j_bin)
+             delta_num_concs(i_count,3) = aero_state%bin3_gain_num_conc( &
+                  i_bin, j_bin, k_bin)
+             if (k_bin_p1 < bin_grid_size(bin_grid)) then
+                delta_num_concs(i_count,4) = aero_state%bin3_gain_num_conc( &
+                   i_bin, j_bin, k_bin_p1)
+             end if
+
+             if (aero_state%bin3_gain_num_conc(i_bin, j_bin, k_bin_p1+1) &
+                  > 0.0d0) then
+                call warn_msg(980232889, "coagulation result is outside " &
+                     // trim(integer_to_string(i_bin)) &
+                     // trim(integer_to_string(j_bin)) &
+                     // trim(integer_to_string(k_bin_p1+1)))
+             end if
+          end if
+          end do
+          end do
+
+          if (i_count > 0) then
+             status = nf90_inq_dimid(ncid, "aero_species", dimid_aero_species)
+             call pmc_nc_check(nf90_redef(ncid))
+             call pmc_nc_check(nf90_def_dim(ncid, "binned_coag_nnz", &
+                  i_count, dimid_nnz))
+             call pmc_nc_check(nf90_def_dim(ncid, "binned_coag_coordinates", &
+                  size(coordinates,2), dimid_coordinates))
+             call pmc_nc_check(nf90_enddef(ncid))
+             call pmc_nc_write_integer_2d(ncid, coordinates(1:i_count,:), &
+                  "binned_coag_coords", (/ dimid_nnz, dimid_coordinates /), &
+                  unit="(1)", long_name="coordinates for non-zero elements")
+             call pmc_nc_write_real_2d(ncid, delta_num_concs(1:i_count,:), &
+                  "binned_coag_delta_num_concs", &
+                  (/ dimid_nnz, dimid_coordinates /), unit="m^{-3}", &
+                  long_name="delta number concentrations for non-zero bins")
+             call pmc_nc_write_real_3d(ncid, delta_mass_concs(1:i_count,:,:), &
+                  "binned_coag_delta_mass_concs", &
+                  (/ dimid_nnz, dimid_coordinates, dimid_aero_species /), &
+                  unit="kg m^{-3}", &
+                  long_name="delta mass concentrations for non-zero bins")
+          end if
        end if
     else
        call aero_state_output_netcdf(aero_state, ncid, aero_data, &

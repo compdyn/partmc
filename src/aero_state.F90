@@ -79,13 +79,13 @@ module pmc_aero_state
      type(bin_grid_t) :: bin_grid
      !> Mass concentration removed from bin 1 due to interaction of bin 1 and
      ! bin 2.
-     real(kind=dp), allocatable :: bin1_loss_mass_conc(:,:)
+     real(kind=dp), allocatable :: bin1_loss_mass_conc(:,:,:)
      !> Mass concentration removed from bin 2 due to interaction of bin 1 and
      ! bin 2.
-     real(kind=dp), allocatable :: bin2_loss_mass_conc(:,:)
+     real(kind=dp), allocatable :: bin2_loss_mass_conc(:,:,:)
      !> Mass concentration added to bin 3 due to interaction of bin 1 and
      ! 2 where third dimension is all bins.
-     real(kind=dp), allocatable :: bin3_gain_mass_conc(:,:,:)
+     real(kind=dp), allocatable :: bin3_gain_mass_conc(:,:,:,:)
      !> Number concentration removed from bin 1 due to interaction of bin 1 and
      ! bin 2.
      real(kind=dp), allocatable :: bin1_loss_num_conc(:,:)
@@ -2919,12 +2919,15 @@ contains
    if (.not. aero_state%allow_remake_bin_grid) then
        call bin_grid_input_netcdf(aero_state%bin_grid, ncid, "bin_grid_rad")
        allocate(aero_state%bin1_loss_mass_conc(bin_grid_size( &
-            aero_state%bin_grid), bin_grid_size(aero_state%bin_grid)))
+            aero_state%bin_grid), bin_grid_size(aero_state%bin_grid), &
+            aero_data_n_spec(aero_data)))
        allocate(aero_state%bin2_loss_mass_conc(bin_grid_size( &
-            aero_state%bin_grid), bin_grid_size(aero_state%bin_grid)))
+            aero_state%bin_grid), bin_grid_size(aero_state%bin_grid), &
+            aero_data_n_spec(aero_data)))
        allocate(aero_state%bin3_gain_mass_conc(bin_grid_size( &
             aero_state%bin_grid), bin_grid_size(aero_state%bin_grid), &
-            bin_grid_size(aero_state%bin_grid)))
+            bin_grid_size(aero_state%bin_grid), &
+            aero_data_n_spec(aero_data)))
        allocate(aero_state%bin1_loss_num_conc(bin_grid_size( &
             aero_state%bin_grid), bin_grid_size(aero_state%bin_grid)))
        allocate(aero_state%bin2_loss_num_conc(bin_grid_size( &

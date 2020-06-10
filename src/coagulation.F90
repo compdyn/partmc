@@ -925,9 +925,9 @@ contains
                aero_data)
        end if
        if (remove_1) then
-          aero_state%bin1_loss_mass_conc(b1,b2) = &
-               aero_state%bin1_loss_mass_conc(b1,b2) &
-               + aero_particle_mass(aero_state%apa%particle(p1), aero_data) &
+          aero_state%bin1_loss_mass_conc(b1,b2,:) = &
+               aero_state%bin1_loss_mass_conc(b1,b2,:) &
+               + aero_particle_species_masses(aero_state%apa%particle(p1), aero_data) &
                * aero_state_particle_num_conc(aero_state, &
                aero_state%apa%particle(p1), aero_data) &
                / aero_state%bin_grid%widths(b1)
@@ -938,9 +938,9 @@ contains
                / aero_state%bin_grid%widths(b1)
        end if
        if (remove_2) then
-          aero_state%bin2_loss_mass_conc(b1,b2) = &
-               aero_state%bin2_loss_mass_conc(b1,b2) &
-               + aero_particle_mass(aero_state%apa%particle(p2), aero_data) &
+          aero_state%bin2_loss_mass_conc(b1,b2,:) = &
+               aero_state%bin2_loss_mass_conc(b1,b2,:) &
+               + aero_particle_species_masses(aero_state%apa%particle(p2), aero_data) &
                * aero_state_particle_num_conc(aero_state, &
                aero_state%apa%particle(p2), aero_data) &
                / aero_state%bin_grid%widths(b2)
@@ -951,9 +951,9 @@ contains
                / aero_state%bin_grid%widths(b2)
        end if
        if (create_new) then
-          aero_state%bin3_gain_mass_conc(b1,b2,bn) = &
-               aero_state%bin3_gain_mass_conc(b1,b2,bn) &
-               + aero_particle_mass(ptc, aero_data) &
+          aero_state%bin3_gain_mass_conc(b1,b2,bn,:) = &
+               aero_state%bin3_gain_mass_conc(b1,b2,bn,:) &
+               + aero_particle_species_masses(ptc, aero_data) &
                * aero_state_particle_num_conc(aero_state, ptc, aero_data) &
                / aero_state%bin_grid%widths(bn)
           aero_state%bin3_gain_num_conc(b1,b2,bn) = &

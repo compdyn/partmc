@@ -276,6 +276,7 @@ contains
     !                   1.0e-9kg_x/ug_x * 1.0e6ppm_x*mol_air/mol_x
     CONV_ = const%univ_gas_const / MW_ / 1.0e3
 
+    !write(*,*) "SIMPOL_phase species, unique_name, REACT_ID"
     ! Set the ids of each aerosol-phase species instance
     i_aero_id = 1
     PHASE_INT_LOC_(i_aero_id)  = NUM_INT_PROP_+12*NUM_AERO_PHASE_+3

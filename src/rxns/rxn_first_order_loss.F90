@@ -210,6 +210,11 @@ contains
     ! Save the index of this species in the state variable array
     REACT_ = chem_spec_data%gas_state_id(spec_name)
 
+    !print react
+    !write(*,*) "first_order_loss name, id"
+    !write(*,*) chem_spec_data%gas_state_name(chem_spec_data%gas_state_id(spec_name)), &
+    !        REACT_
+
     ! Make sure the species exists
     call assert_msg(331442196, REACT_.gt.0, &
             "Missing first-order loss species: "//spec_name)
@@ -282,6 +287,7 @@ contains
     ! If a reaction id has not yet been generated, do it now
     if (RXN_ID_.eq.-1) then
       RXN_ID_ = generate_int_id()
+      !write(*,*)"first order loss rxn_type,RXN_ID_",rxn_type,RXN_ID_
     endif
 
     update_data%rxn_unique_id = RXN_ID_

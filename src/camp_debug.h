@@ -137,6 +137,60 @@ static void print_data_sizes(ModelData *md) {
   printf("n_dep_var: %d", md->n_per_cell_dep_var * md->n_cells);
 }
 
+//Print jacobian structure
+void pmc_debug_print_jac_struct2(void *solver_data, SUNMatrix J,
+                                 const char *message) {
+  SolverData *sd = (SolverData *)solver_data;
+
+  int n_state_var = SM_COLUMNS_S(J);
+  int i_elem = 0;
+  int next_col = 0;
+  printf("\n\n   Jacobian structure (↓ind →dep) - %s\n     ", message);
+  for (int i_dep = 0; i_dep < n_state_var; i_dep++)
+    printf("[%5.5s]",sd->spec_names[i_dep]);
+  //printf("[%3d]", i_dep);
+  for (int i_ind = 0; i_ind < n_state_var; i_ind++) {
+    printf("\n[%5.5s]",sd->spec_names[i_ind]);
+    //printf("\n[%3d]", i_ind);
+    next_col = SM_INDEXPTRS_S(J)[i_ind + 1];
+    for (int i_dep = 0; i_dep < n_state_var; i_dep++) {
+      if (i_dep == SM_INDEXVALS_S(J)[i_elem] && i_elem < next_col) {
+        //printf(" %3d   ", i_elem++);
+        //printf(" % -1.2le ", SM_DATA_S(J)[i_elem++]);
+        printf(" %3d   ", 1);
+        i_elem++;
+      } else {
+        printf("   -   ");
+      }
+    }
+  }
+}
+
+//Print jac species relations (which species relations with which others)
+// based on nonzero values
+void pmc_debug_print_jac_rel(void *solver_data, SUNMatrix J,
+                             const char *message) {
+  SolverData *sd = (SolverData *)solver_data;
+
+  int n_state_var = SM_COLUMNS_S(J);
+  int i_elem = 0; //Counter non-zero values
+  printf("\n\n   Jacobian structure - %s\n\n", message);
+  for (int i_ind = 0; i_ind < n_state_var; i_ind++) {
+    printf("[%s]: ",sd->spec_names[i_ind]);
+    //printf("\n[%3d]", i_ind);
+    for (int i_dep = 0; i_dep < n_state_var; i_dep++) {
+      if (i_dep == SM_INDEXVALS_S(J)[i_elem] &&
+          i_elem < SM_INDEXPTRS_S(J)[i_ind + 1]) //Avoid next col
+      {
+        printf("%s ",sd->spec_names[i_dep]);
+        i_elem++;
+      }
+    }
+    printf("\n");
+  }
+}
+
+
 /** \brief Print Jacobian matrix in format KLU SPARSE
  *
  * \param M Jacobian matrix
@@ -159,11 +213,11 @@ static void print_jacobian(SUNMatrix M) {
  * \param deriv Derivative array
  */
 static void print_derivative(N_Vector deriv) {
-  // printf(" deriv length: %d\n", NV_LENGTH_S(deriv));
+   printf(" deriv length: %d\n", NV_LENGTH_S(deriv));
   for (int i = 0; i < NV_LENGTH_S(deriv); i++) {  // NV_LENGTH_S(deriv)
-    printf(" deriv: % -le", NV_DATA_S(deriv)[i]);
-    printf(" index: %d \n", i);
+    printf("%-le ", NV_DATA_S(deriv)[i]);
   }
+  printf("\n");
 }
 
 /** \brief Evaluate the derivative and Jacobian near a given state

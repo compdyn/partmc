@@ -45,8 +45,14 @@ program pmc_test_cb05cl_ae5
   integer(kind=i_kind), parameter :: KPP_FILE_UNIT = 11
   ! CAMP-chem output file unit
   integer(kind=i_kind), parameter :: CAMP_FILE_UNIT = 12
+  ! EBI solver output file unit
+  integer(kind=i_kind), parameter :: CAMP_EBI_FILE_UNIT = 14
+  ! file unit
+  integer(kind=i_kind), parameter :: CAMP_KPP_FILE_UNIT = 15
+  ! file unit
+  integer(kind=i_kind), parameter :: EBI_KPP_FILE_UNIT = 16
   ! Number of timesteps to integrate over
-  integer(kind=i_kind), parameter :: NUM_TIME_STEPS = 100
+  integer(kind=i_kind), parameter :: NUM_TIME_STEPS = 1!1!100
   ! Number of EBI-solver species
   integer(kind=i_kind), parameter :: NUM_EBI_SPEC = 72
   ! Number of EBI-solever photolysis reactions
@@ -133,6 +139,8 @@ contains
 
     ! EBI-solver species names
     type(string_t), dimension(NUM_EBI_SPEC) :: ebi_spec_names
+    ! EBI-solver species names in MONARCH order
+    type(string_t), dimension(NUM_EBI_SPEC) :: ebi_monarch_spec_names
 
     ! KPP reaction labels
     type(string_t), allocatable :: kpp_rxn_labels(:)
@@ -147,6 +155,7 @@ contains
     logical :: is_sunny
     ! Photolysis rates (\min)
     real, allocatable :: photo_rates(:)
+    real, allocatable :: new_rates(:)
     ! Temperature (K)
     real :: temperature
     ! Pressure (atm)
@@ -192,11 +201,13 @@ contains
 
     ! Arrays to hold starting concentrations
     real(kind=dp), allocatable :: ebi_init(:), kpp_init(:), camp_init(:)
+    real(kind=dp), dimension(NUM_EBI_SPEC) :: ebi_monarch_init
+    integer, dimension(NUM_EBI_SPEC) :: map_ebi_monarch
 
     KPP_ICNTRL( : ) = 0
 
-    temperature = 272.5
-    pressure = 0.8
+    temperature = 202.9565 !v9:202.9565 !v48:297.93 !orig:272.5
+    pressure = 0.1456779 !v9:0.1456779 !v48:0.998 !orig:0.8
     water_conc = 0.0 ! (Set by CAMP-chem initial concentration)
 
     passed = .false.
@@ -235,7 +246,7 @@ contains
     LOSS(:) = 0.0
     PNEG(:) = 0.0
     ! Set the timestep (min)
-    EBI_TMSTEP = 0.1
+    EBI_TMSTEP = 3. !monarch:3 !orig:0.1
     ! Set the number of timesteps
     N_EBI_STEPS = 1
     ! Set the number of internal timesteps
@@ -254,8 +265,8 @@ contains
     KPP_SUN = 1.0
     ! Set the tolerances
     do i_spec = 1, KPP_NVAR
-      KPP_RTOL(i_spec) = 1.0d-4
-      KPP_ATOL(i_spec) = 1.0d-3
+      KPP_RTOL(i_spec) = 1.0d-4!todo
+      KPP_ATOL(i_spec) = 1.0d-3!
     end do
     CALL KPP_Initialize()
     call cpu_time(comp_end)
@@ -349,17 +360,48 @@ contains
     ! Set the photolysis rates (dummy values for solver comparison)
     is_sunny = .true.
     allocate(photo_rates(NUM_EBI_PHOTO_RXN))
-    photo_rates(:) = 0.0001 * 60.0 ! EBI solver wants rates in min^-1
-    KPP_PHOTO_RATES(:) = 0.0001
+    allocate(new_rates(NUM_EBI_PHOTO_RXN))
+
+    !v48
+    !new_rates = (/0.550871,3.0273698E-2,2.5476560E-3,12.23329,1.575956,0.120056,&
+    !        4.4206658E-4,2.7387924E-4,4.3699056E-5,3.0446171E-3,1.7465037E-4,&
+    !        3.3178381E-4,1.8682621E-3,2.8112135E-3,3.3792580E-4,5.1333202E-5,&
+    !        1.6838829E-5,29445188E-3,5.0825302E-2,10457919E-4,0.0,0.0,0.0/)
+
+    !v9 wrong
+    !new_rates = (/0.8685482,3.6514506E-02,4.0941574E-03,13.91660,1.792809,&
+    !0.1908291,6.7898177E-04,5.7340757E-04,5.6609770E-05,2.2438637E-03,&
+    !1.6916823E-04,6.2022154E-04,3.8634937E-03,5.5694710E-03,7.1730785E-04,&
+    !4.1930823E-05,3.3923301E-05,5.8016707E-03,6.8607539E-02,1.7641661E-04,&
+    !0.0000000E+00,0.0000000E+00,0.0000000E+00/)
+
+    !v9 good
+    new_rates = (/0.8685482,3.6514506E-02,4.0941574E-03,13.91660,1.792809,&
+            0.1908291,6.7898177E-04,5.7340757E-04,5.6609770E-05,2.2438637E-03,&
+            1.6916823E-04,6.2022154E-04,6.2022154E-04,3.8634937E-03,5.5694710E-03,&
+            7.1730785E-04,4.1930823E-05,3.3923301E-05,5.8016707E-03,4.1930823E-05,&
+            3.8634937E-03,6.8607539E-02,1.7641661E-04/)
+
+    !photo_rates(:) = 0.0001 * 60.0 ! EBI solver wants rates in min^-1
+    photo_rates(:) = 0.0
+    !photo_rates(:) = new_rates(:)
+    !KPP_PHOTO_RATES(:) = 0.0001
+    !KPP_PHOTO_RATES(:) = 0.0
+    KPP_PHOTO_RATES(:) = photo_rates(:)/60
+    !write(*,*) "photo_rates/60", new_rates(:)/60
     ! Set O2 + hv rate constant to 0 in KPP (not present in ebi version)
     KPP_PHOTO_RATES(1) = 0.0
     ! Set the O2 + hv rate constant to 0 (not present in ebi version)
     call jo2_rate_update%set_rate(real(0.0, kind=dp))
     call camp_core%update_data(jo2_rate_update)
+    !write (*,*) "id, EBI_photo_rates/60"
     ! Set the remaining rates
     do i_photo_rxn = 1, n_photo_rxn
-      call rate_update(i_photo_rxn)%set_rate(real(0.0001, kind=dp))
-      call camp_core%update_data(rate_update(i_photo_rxn))
+      !call rate_update(i_photo_rxn)%set_rate(real(0.0001, kind=dp)) !update_data[0]=photo_did update_data[1]=rate
+      !call rate_update(i_photo_rxn)%set_rate(real(0.0, kind=dp))
+      !write (*,*) i_photo_rxn, real(new_rates(i_photo_rxn)/60, kind=dp)
+      call rate_update(i_photo_rxn)%set_rate(real(photo_rates(i_photo_rxn)/60, kind=dp))
+      call camp_core%update_data(rate_update(i_photo_rxn)) ! RATE_CONSTANT_ = update_data[0] BASE_RATE_ = update_data[1]
     end do
 
     ! Make sure the right number of reactions is present
@@ -375,13 +417,36 @@ contains
     KPP_C(:) = 0.0
     camp_state%state_var(:) = 0.0
 
-    ! Set the initial concentrations in each module
+    !open(30, file="../../../../test/chemistry/cb05cl_ae5/files/ebi_output_1_1_48_kss_kae.txt", status="old")
+    !open(30, file="../../../../test/chemistry/cb05cl_ae5/files/ebi_output_1_1_9_ksskse_lemisF_ldrydepF_lcldchemF.txt", status="old")
+    !open(30, file="../../../../test/chemistry/cb05cl_ae5/files/ebi_output_1_1_9_ksskse_photo0_lemisF_ldrydepF_lcldchemF.txt", status="old")
+    open(30, file="../../../../test/chemistry/cb05cl_ae5/files/ebi_input&
+            _1_1_9_ksskse_photo0_lemisF_ldrydepF_lcldchemF.txt", status="old")
+    !open(30, file="../../../../test/chemistry/cb05cl_ae5/files/ebi_input&
+    !        _1_1_48_ksskse_photo0_lemisF_ldrydepF_lcldchemF.txt", status="old")
+
+    call set_ebi_monarch_species(ebi_monarch_spec_names)
+    ! Get ebi in MONARCH order
     do i_spec = 1, NUM_EBI_SPEC
+      read(30,*) ebi_monarch_init(i_spec)
+    end do
+
+    ! Set the initial concentrations in each module
+    do i_spec = 1, NUM_EBI_SPEC !72
 
       ! Get initial concentrations from camp-chem input data
       call assert(787326679, chem_spec_data%get_property_set( &
               ebi_spec_names(i_spec)%string, prop_set))
       if (prop_set%get_real(key, real_val)) then
+
+        !DEBUG Set real_val from ebi_monarch file
+        do j_spec = 1, NUM_EBI_SPEC
+          if (trim(ebi_spec_names(i_spec)%string).eq.trim(ebi_monarch_spec_names(j_spec)%string)) then
+            real_val = ebi_monarch_init(j_spec)
+            !save id mapping ebi-monarch (difference between i_spec and j_spec
+            map_ebi_monarch(j_spec)=i_spec
+          end if
+        end do
 
         ! Set the EBI solver concetration (ppm)
         YC(i_spec) = real_val
@@ -407,6 +472,8 @@ contains
         end if
       end do
     end do
+    close(30)
+
 
     ! Set EBI solver constant species concentrations in CAMP-chem
     spec_name = "M"
@@ -480,6 +547,12 @@ contains
             action="write")
     open(CAMP_FILE_UNIT, file="out/cb05cl_ae5_camp_results.txt", status="replace", &
             action="write")
+    open(CAMP_EBI_FILE_UNIT, file="out/cb05cl_ae5_camp_ebi_diff.txt", status="replace", &
+            action="write")
+    open(CAMP_KPP_FILE_UNIT, file="out/cb05cl_ae5_camp_kpp_diff.txt", status="replace", &
+            action="write")
+    open(EBI_KPP_FILE_UNIT, file="out/cb05cl_ae5_ebi_kpp_diff.txt", status="replace", &
+            action="write")
     n_gas_spec = chem_spec_data%size(spec_phase=CHEM_SPEC_GAS_PHASE)
     allocate(camp_spec_names(n_gas_spec))
     do i_spec = 1, n_gas_spec
@@ -491,6 +564,8 @@ contains
             KPP_NSPEC)
     write(CAMP_FILE_UNIT,*) "time ", (camp_spec_names(i_spec)%string//" ", i_spec=1, &
             size(camp_spec_names))
+    write(CAMP_EBI_FILE_UNIT,*) "CAMP order: ", (camp_spec_names(i_spec)%string//" ", i_spec=1, &
+            NUM_EBI_SPEC)
 
     ! Set up the reaction map between camp-chem, kpp and ebi solvers
     key = "rxn id"
@@ -569,7 +644,7 @@ contains
     camp_init(:) = camp_state%state_var(:)
 
     ! Repeatedly solve the mechanism
-    do i_repeat = 1, 100
+    do i_repeat = 1, 1 !todo IDK WHYYY ebi init is different than camp_init
 
 #ifdef DEBUG
     ! Evaluate the Jacobian during solving on the first repeat
@@ -608,12 +683,23 @@ contains
       KPP_C(:) = MAX(KPP_C(:), SMALL_NUM/conv)
       camp_state%state_var(:) = max(camp_state%state_var(:), SMALL_NUM)
 
-      ! Output current time step
-      if (i_repeat.eq.1) then
-      write(EBI_FILE_UNIT,*) i_time*EBI_TMSTEP, YC(:)
-      write(KPP_FILE_UNIT,*) i_time*KPP_DT/60.0d0, KPP_C(:)*conv
-      write(CAMP_FILE_UNIT,*) i_time*EBI_TMSTEP, camp_state%state_var(:)
-      end if
+    !todo IDK why this equals camp to ebi after compute ebi instead of before
+    ! well no differences by setting this before
+    ! Set KPP and camp-chem concentrations to those of EBI at first time step to match steady-state
+    ! EBI species
+    if (i_time.eq.1) then
+      ! Set KPP species in #/cc
+      do i_spec = 1, NUM_EBI_SPEC
+        do j_spec = 1, KPP_NSPEC
+          if (trim(ebi_spec_names(i_spec)%string).eq.trim(KPP_SPC_NAMES(j_spec))) then
+            KPP_C(j_spec) = YC(i_spec) / conv
+          end if
+        end do
+        !camp_state%state_var( &
+        !        chem_spec_data%gas_state_id( &
+        !                ebi_spec_names(i_spec)%string)) = YC(i_spec)
+      end do
+    end if
 
       ! EBI solver
       call cpu_time(comp_start)
@@ -628,39 +714,50 @@ contains
       call cpu_time(comp_end)
       comp_ebi = comp_ebi + (comp_end-comp_start)
 
-      ! Set KPP and camp-chem concentrations to those of EBI at first time step to match steady-state
-      ! EBI species
-      if (i_time.eq.1) then
-        ! Set KPP species in #/cc
-        do i_spec = 1, NUM_EBI_SPEC
-          do j_spec = 1, KPP_NSPEC
-            if (trim(ebi_spec_names(i_spec)%string).eq.trim(KPP_SPC_NAMES(j_spec))) then
-              KPP_C(j_spec) = YC(i_spec) / conv
-            end if
-          end do
-          camp_state%state_var( &
-                  chem_spec_data%gas_state_id( &
-                  ebi_spec_names(i_spec)%string)) = YC(i_spec)
-        end do
-      end if
 
-      ! KPP module
+    ! KPP module
       call cpu_time(comp_start)
       KPP_TIME = (i_time-1)*KPP_DT
       KPP_TEMP = temperature
       KPP_PRESS = pressure * 1013.25 ! KPP pressure in hPa
-      CALL KPP_Update_RCONST()
-      CALL KPP_INTEGRATE( TIN = KPP_TIME, TOUT = (KPP_TIME+KPP_DT), &
-              RSTATUS_U = KPP_RSTATE, ICNTRL_U = KPP_ICNTRL )
+      !CALL KPP_Update_RCONST()
+      !CALL KPP_INTEGRATE( TIN = KPP_TIME, TOUT = (KPP_TIME+KPP_DT), &
+      !        RSTATUS_U = KPP_RSTATE, ICNTRL_U = KPP_ICNTRL )
       call cpu_time(comp_end)
       comp_kpp = comp_kpp + (comp_end-comp_start)
 
-      ! CAMP-chem
+      ! CAMP
       call cpu_time(comp_start)
       call camp_core%solve(camp_state, real(EBI_TMSTEP*60.0, kind=dp), &
                             solver_stats = solver_stats)
       call cpu_time(comp_end)
       comp_camp = comp_camp + (comp_end-comp_start)
+
+    write(*,*) "CAMP-chem calculation time: ", comp_camp," s, tstep",i_time
+
+    ! Output current time step
+    if (i_repeat.eq.1) then
+      !write(EBI_FILE_UNIT,*) i_time*EBI_TMSTEP, YC(:)
+      !write(KPP_FILE_UNIT,*) i_time*KPP_DT/60.0d0, KPP_C(:)*conv
+      !write(CAMP_FILE_UNIT,*) i_time*EBI_TMSTEP, camp_state%state_var(:)
+      !write(CAMP_EBI_FILE_UNIT,*) i_time*EBI_TMSTEP, camp_state%state_var(:)
+      if (i_time.eq.1) then
+        write(CAMP_EBI_FILE_UNIT,*) "Repeat", i_repeat, "timestep", i_time
+        write(CAMP_EBI_FILE_UNIT,*) "spec_name, concentrations rel. error [(camp_state-ebi)/(camp_state+ebi)], camp_state, ebi"
+        do i_spec = 1, NUM_EBI_SPEC
+          associate (camp_var=>camp_state%state_var( &
+                  chem_spec_data%gas_state_id( &
+                          ebi_spec_names(i_spec)%string)))
+            !write(CAMP_EBI_FILE_UNIT,*) ebi_spec_names(i_spec)%string, &
+            !        (abs(camp_var) - abs(real(YC(i_spec), kind=dp))) / &
+            !                (abs(camp_var) + abs(real(YC(i_spec), kind=dp))+ &
+            !                        1.0d-30), & !avoid division by zero, &
+            !        camp_var, &
+            !        real(YC(i_spec), kind=dp)
+          end associate
+        end do
+      end if
+    end if
 
 #ifdef DEBUG
       if (i_repeat.eq.1) then
@@ -689,28 +786,36 @@ contains
     end do
     end do
 
-    ! Output final timestep
-    write(EBI_FILE_UNIT,*) i_time*EBI_TMSTEP, YC(:)
-    write(KPP_FILE_UNIT,*) i_time*EBI_TMSTEP, KPP_C(:)*conv
-    write(CAMP_FILE_UNIT,*) i_time*EBI_TMSTEP, camp_state%state_var(:)
-
     ! Output the computational time
     write(*,*) "EBI calculation time: ", comp_ebi," s"
     write(*,*) "KPP calculation time: ", comp_kpp," s"
     write(*,*) "CAMP-chem calculation time: ", comp_camp," s"
 
+    ! Output final timestep
+    write(EBI_FILE_UNIT,*) i_time*EBI_TMSTEP, YC(:)
+    write(KPP_FILE_UNIT,*) i_time*EBI_TMSTEP, KPP_C(:)*conv
+    write(CAMP_FILE_UNIT,*) i_time*EBI_TMSTEP, camp_state%state_var(:)
+    write(CAMP_EBI_FILE_UNIT,*) "Repeat", i_repeat, "timestep ", NUM_TIME_STEPS
+    write(CAMP_EBI_FILE_UNIT,*) "spec_name, concentrations rel. error [(camp_state-ebi)/(camp_state+ebi)], camp_state, ebi"
+    write(CAMP_KPP_FILE_UNIT,*) "Repeat", i_repeat, "timestep ", NUM_TIME_STEPS
+    write(CAMP_KPP_FILE_UNIT,*) "spec_name, concentrations rel. error [(camp_state-kpp)/(camp_state+kpp)], camp_state, kpp"
+    write(EBI_KPP_FILE_UNIT,*) "Repeat", i_repeat, "timestep ", NUM_TIME_STEPS
+    write(EBI_KPP_FILE_UNIT,*) "spec_name, concentrations rel. error [(èbi-kpp)/(ebi+kpp)], ebi, kpp"
+
+
     ! Compare the results
     ! EBI <-> CAMP-chem
+    if(.true.) then
     do i_spec = 1, NUM_EBI_SPEC
       call assert_msg(749090387, almost_equal(real(YC(i_spec), kind=dp), &
           camp_state%state_var( &
                   chem_spec_data%gas_state_id( &
-                  ebi_spec_names(i_spec)%string)), 1.0d-4, 1.0d-3) .or. &
-          (YC(i_spec).lt.ebi_init(i_spec)*1.0d-2 .and. &
-           camp_state%state_var(chem_spec_data%gas_state_id( &
-                  ebi_spec_names(i_spec)%string)) .lt. &
-           camp_init(chem_spec_data%gas_state_id( &
-                  ebi_spec_names(i_spec)%string))*1.0d-2), &
+                  ebi_spec_names(i_spec)%string)), 1.0d-4, 1.0d-3),& !.or. & !, 1.0d-3
+          !(YC(i_spec).lt.ebi_init(i_spec)*1.0d-2 .and. &
+           !camp_state%state_var(chem_spec_data%gas_state_id( &
+          !        ebi_spec_names(i_spec)%string)) .lt. &
+          ! camp_init(chem_spec_data%gas_state_id( &
+          !        ebi_spec_names(i_spec)%string))*1.0d-2), &
           "Species "//ebi_spec_names(i_spec)%string//" has different result. "// &
           "EBI solver: "//trim(to_string(real(YC(i_spec), kind=dp)))// &
           "; CAMP-chem: "// &
@@ -720,19 +825,32 @@ contains
           trim(to_string(real(ebi_init(i_spec), kind=dp)))//"; camp init: "// &
           trim(to_string(camp_init(chem_spec_data%gas_state_id( &
                   ebi_spec_names(i_spec)%string)))))
+
+      associate (camp_var=>camp_state%state_var( &
+              chem_spec_data%gas_state_id( &
+                      ebi_monarch_spec_names(i_spec)%string)))
+        write(CAMP_EBI_FILE_UNIT,*) ebi_monarch_spec_names(i_spec)%string, &
+                (abs(camp_var) - abs(YC(map_ebi_monarch(i_spec)))) / &
+                        (abs(camp_var) + abs(YC(map_ebi_monarch(i_spec)))+ &
+                                1.0d-30), & !avoid division by zero, &
+                camp_var, &
+                YC(map_ebi_monarch(i_spec))
+      end associate
     end do
+    endif
+
     ! KPP <-> CAMP-chem
     do i_spec = 1, KPP_NSPEC
       str_temp%string = trim(KPP_SPC_NAMES(i_spec))
       call assert_msg(749090436, almost_equal(real(KPP_C(i_spec)*conv, kind=dp), &
           camp_state%state_var( &
                   chem_spec_data%gas_state_id( &
-                  str_temp%string)), 1.0d-4, 1.0d-3) .or. &
-          (KPP_C(i_spec) .lt. KPP_init(i_spec)*1.0d-2 .and. &
-           camp_state%state_var(chem_spec_data%gas_state_id( &
-                  str_temp%string)) .lt. &
-           camp_init(chem_spec_data%gas_state_id( &
-                  str_temp%string))*1.0d-2), &
+                  str_temp%string)), 1.0d-4, 1.0d-3),& !.or. &
+          !(KPP_C(i_spec) .lt. KPP_init(i_spec)*1.0d-2 .and. &
+          ! camp_state%state_var(chem_spec_data%gas_state_id( &
+          !        str_temp%string)) .lt. &
+          ! camp_init(chem_spec_data%gas_state_id( &
+          !        str_temp%string))*1.0d-2), &
           "Species "//str_temp%string//" has different result. "// &
           "KPP solver: "//trim(to_string(real(KPP_C(i_spec)*conv, kind=dp)))// &
           "; CAMP-chem: "// &
@@ -744,12 +862,25 @@ contains
                   chem_spec_data%gas_state_id( &
                   str_temp%string)))))
 
+      associate (camp_var=>camp_state%state_var( &
+              chem_spec_data%gas_state_id( &
+                      str_temp%string)))
+        write(CAMP_KPP_FILE_UNIT,*) str_temp%string, &
+                (abs(camp_var) - abs(real(KPP_C(i_spec)*conv, kind=dp))) / &
+                        (abs(camp_var) + abs(real(KPP_C(i_spec)*conv, kind=dp))+ &
+                                1.0d-30), & !avoid division by zero, &
+                camp_var, &
+                real(KPP_C(i_spec)*conv, kind=dp)
+      end associate
     end do
 
     ! Close the output files
     close(EBI_FILE_UNIT)
     close(KPP_FILE_UNIT)
     close(CAMP_FILE_UNIT)
+    close(CAMP_EBI_FILE_UNIT)
+    close(CAMP_KPP_FILE_UNIT)
+    close(EBI_KPP_FILE_UNIT)
 
     ! Create the gnuplot script
     open(unit=CAMP_FILE_UNIT, file="out/plot_cb05cl_ae.conf", status="replace", action="write")
@@ -879,7 +1010,91 @@ contains
 
   end subroutine set_ebi_species
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Set the EBI-solver species names in MONARCH order
+  subroutine set_ebi_monarch_species(spec_names)
+
+    !> EBI solver species names
+    type(string_t), dimension(NUM_EBI_SPEC) :: spec_names
+
+    !Monarch order
+    spec_names(1)%string = "NO2"
+    spec_names(2)%string = "NO"
+    spec_names(3)%string = "O3"
+    spec_names(4)%string = "NO3"
+    spec_names(5)%string = "N2O5"
+    spec_names(6)%string = "HNO3"
+    spec_names(7)%string = "HONO"
+    spec_names(8)%string = "PNA"
+    spec_names(9)%string = "H2O2"
+    spec_names(10)%string = "NTR"
+    spec_names(11)%string = "ROOH"
+    spec_names(12)%string = "FORM"
+    spec_names(13)%string = "ALD2"
+    spec_names(14)%string = "ALDX"
+    spec_names(15)%string = "PAR"
+    spec_names(16)%string = "CO"
+    spec_names(17)%string = "MEPX"
+    spec_names(18)%string = "MEOH"
+    spec_names(19)%string = "FACD"
+    spec_names(20)%string = "PAN"
+    spec_names(21)%string = "PACD"
+    spec_names(22)%string = "AACD"
+    spec_names(23)%string = "PANX"
+    spec_names(24)%string = "OLE"
+    spec_names(25)%string = "ETH"
+    spec_names(26)%string = "IOLE"
+    spec_names(27)%string = "TOL"
+    spec_names(28)%string = "CRES"
+    spec_names(29)%string = "OPEN"
+    spec_names(30)%string = "MGLY"
+    spec_names(31)%string = "XYL"
+    spec_names(32)%string = "ISOP"
+    spec_names(33)%string = "ISPD"
+    spec_names(34)%string = "TERP"
+    spec_names(35)%string = "SO2"
+    spec_names(36)%string = "SULF"
+    spec_names(37)%string = "ETOH"
+    spec_names(38)%string = "ETHA"
+    spec_names(39)%string = "CL2"
+    spec_names(40)%string = "HOCL"
+    spec_names(41)%string = "FMCL"
+    spec_names(42)%string = "HCL"
+    spec_names(43)%string = "BENZENE"
+    spec_names(44)%string = "SESQ"
+    spec_names(45)%string = "O"
+    spec_names(46)%string = "O1D"
+    spec_names(47)%string = "OH"
+    spec_names(48)%string = "HO2"
+    spec_names(49)%string = "XO2"
+    spec_names(50)%string = "XO2N"
+    spec_names(51)%string = "MEO2"
+    spec_names(52)%string = "HCO3"
+    spec_names(53)%string = "C2O3"
+    spec_names(54)%string = "CXO3"
+    spec_names(55)%string = "ROR"
+    spec_names(56)%string = "TO2"
+    spec_names(57)%string = "TOLRO2"
+    spec_names(58)%string = "CRO"
+    spec_names(59)%string = "XYLRO2"
+    spec_names(60)%string = "ISOPRXN"
+    spec_names(61)%string = "TRPRXN"
+    spec_names(62)%string = "SULRXN"
+    spec_names(63)%string = "CL"
+    spec_names(64)%string = "CLO"
+    spec_names(65)%string = "TOLNRXN"
+    spec_names(66)%string = "TOLHRXN"
+    spec_names(67)%string = "XYLNRXN"
+    spec_names(68)%string = "XYLHRXN"
+    spec_names(69)%string = "BENZRO2"
+    spec_names(70)%string = "BNZNRXN"
+    spec_names(71)%string = "BNZHRXN"
+    spec_names(72)%string = "SESQRXN"
+
+  end subroutine set_ebi_monarch_species
+
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Load a string array with KPP reaction labels
   subroutine get_kpp_rxn_labels(kpp_rxn_labels)

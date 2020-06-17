@@ -285,6 +285,7 @@ contains
             this%property_set%get_string(key_name, water_name), &
             "Missing aerosol-phase water in phase-transfer reaction")
 
+    !write(*,*) "HL_phase_transfer species, unique_name, REACT_ID"
     ! Set the ids of each aerosol-phase species instance
     i_aero_id = 1
     PHASE_INT_LOC_(i_aero_id)  = NUM_INT_PROP_+8*NUM_AERO_PHASE_+3

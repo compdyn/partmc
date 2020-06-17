@@ -431,6 +431,7 @@ contains
         end do
       end if
 
+      !write(*,*) "aqueous species, unique_name, REACT_ID"
       ! Loop through the reactants
       do i_phase_inst = 1, NUM_REACT_
 
@@ -453,6 +454,10 @@ contains
           REACT_((i_aero_phase+j_spec-1)*NUM_REACT_ + i_phase_inst) = &
                   aero_rep(i_aero_rep)%val%spec_state_id( &
                   unique_names(j_spec)%string)
+
+          !write(*,*) react_names(i_phase_inst)%string, &
+          !        unique_names(j_spec)%string, REACT_((i_aero_phase+j_spec-1)*NUM_REACT_ + i_phase_inst)
+
         end do
 
         deallocate(unique_names)
@@ -481,6 +486,9 @@ contains
           PROD_((i_aero_phase+j_spec-1)*NUM_PROD_ + i_phase_inst) = &
                   aero_rep(i_aero_rep)%val%spec_state_id( &
                   unique_names(j_spec)%string)
+
+          !write(*,*) react_names(i_phase_inst)%string, &
+          !        unique_names(j_spec)%string, PROD_((i_aero_phase+j_spec-1)*NUM_PROD_ + i_phase_inst)
         end do
 
         deallocate(unique_names)

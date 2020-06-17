@@ -22,7 +22,8 @@ module pmc_camp_solver_data
   use pmc_sub_model_data
   use pmc_sub_model_factory
   use pmc_util,                        only : assert_msg, to_string, &
-                                              warn_assert_msg, die_msg
+                                              warn_assert_msg, die_msg,&
+                                              string_t
 
   use iso_c_binding
 
@@ -33,11 +34,13 @@ module pmc_camp_solver_data
 
   !> Default relative tolerance for integration
   real(kind=dp), parameter :: PMC_SOLVER_DEFAULT_REL_TOL = 1.0D-8
+! try 1.0D-5
   !> Default max number of integration steps
   integer(kind=i_kind), parameter :: PMC_SOLVER_DEFAULT_MAX_STEPS = 10000
+! try 1000
   !> Default maximum number of integration convergence failures
   integer(kind=i_kind), parameter :: PMC_SOLVER_DEFAULT_MAX_CONV_FAILS = 1000
-
+! try 100
   !> Result code indicating successful completion
   integer, parameter :: PMC_SOLVER_SUCCESS = 0
 
@@ -92,6 +95,19 @@ module pmc_camp_solver_data
       !> Total number of environment-dependent parameters for all sub models
       integer(kind=c_int), value :: n_sub_model_env_param
     end function solver_new
+
+    !> Set specie name
+    subroutine solver_set_spec_name(solver_data, spec_name, size_spec_name, i) bind (c)
+      use iso_c_binding
+      !> Pointer to a SolverData object
+      type(c_ptr), value :: solver_data
+      !> Species name
+      character(1) :: spec_name
+      !> Index spec_name
+      integer(kind=c_int), value :: size_spec_name
+      !> Index spec_name
+      integer(kind=c_int), value :: i
+    end subroutine solver_set_spec_name
 
     !> Solver initialization
     subroutine solver_initialize(solver_data, abs_tol, rel_tol, max_steps, &
@@ -430,7 +446,7 @@ contains
 
   !> Initialize the solver
   subroutine initialize(this, var_type, abs_tol, mechanisms, aero_phases, &
-                  aero_reps, sub_models, rxn_phase, n_cells)
+                  aero_reps, sub_models, rxn_phase, n_cells, spec_names)
 
     !> Solver data
     class(camp_solver_data_t), intent(inout) :: this
@@ -453,16 +469,18 @@ contains
     !! Use parameters in pmc_rxn_data to specify phase:
     !! GAS_RXN, AERO_RXN, GAS_AERO_RXN
     integer(kind=i_kind), intent(in) :: rxn_phase
-    !> Number of cells to compute
-    integer(kind=i_kind), optional :: n_cells
 
     ! Variable types
     integer(kind=c_int), pointer :: var_type_c(:)
     ! Absolute tolerances
     real(kind=c_double), pointer :: abs_tol_c(:)
+    !> Number of cells to compute
+    integer(kind=i_kind), optional :: n_cells
+    type(string_t), allocatable, intent(in) :: spec_names(:)
+    character(len=:), allocatable :: spec_name
     ! Indices for iteration
     integer(kind=i_kind) :: i_mech, i_rxn, i_aero_phase, i_aero_rep, &
-            i_sub_model
+            i_sub_model, i
     ! Reaction pointer
     class(rxn_data_t), pointer :: rxn
     ! Reaction factory object for getting reaction type
@@ -769,6 +787,23 @@ contains
 
     end do
     sub_model => null()
+
+    !int param stills doing same wrong here... wtf
+
+    !Okay maybe is not working because there are gas and aerosol species
+    ! so im trying to print more than caught
+    !Set spec names
+    !todo include gas and aero names to send all the state variable
+    !do i=1,int(size(var_type_c), kind=c_int) ! Size of the state variable
+    !do i=1,40 !approximate gas size (without crashes)
+    !  spec_name = spec_names(i)%string
+    !  call solver_set_spec_name( &
+    !          this%solver_c_ptr, & ! Solver data
+    !          spec_name, & ! Spec name
+    !          len(spec_name), & ! Size spec name
+    !          i-1 & ! Index spec_name for C array
+    !          )
+    !end do
 
     ! Initialize the solver
     call solver_initialize( &

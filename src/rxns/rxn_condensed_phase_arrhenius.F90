@@ -435,6 +435,7 @@ contains
 
       end if
 
+      !write(*,*) "condensed_phase species, unique_name, REACT_ID"
       ! Loop through the reactants
       do i_spec = 1, NUM_REACT_
 
@@ -455,6 +456,9 @@ contains
           REACT_((i_aero_phase+i_phase_inst-1)*NUM_REACT_ + i_spec) = &
                   aero_rep(i_aero_rep)%val%spec_state_id( &
                   unique_names(i_phase_inst)%string)
+
+        !  write(*,*) react_names(i_spec)%string, &
+        !          unique_names(i_phase_inst)%string, REACT_((i_aero_phase+i_phase_inst-1)*NUM_REACT_ + i_spec)
         end do
 
         deallocate(unique_names)
@@ -481,6 +485,9 @@ contains
           PROD_((i_aero_phase+i_phase_inst-1)*NUM_PROD_ + i_spec) = &
                   aero_rep(i_aero_rep)%val%spec_state_id( &
                   unique_names(i_phase_inst)%string)
+
+          !write(*,*) react_names(i_spec)%string, &
+          !        unique_names(i_phase_inst)%string, PROD_((i_aero_phase+i_phase_inst-1)*NUM_PROD_ + i_spec)
         end do
 
         deallocate(unique_names)

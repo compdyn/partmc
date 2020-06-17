@@ -143,6 +143,31 @@ void rxn_photolysis_update_env_state(ModelData *model_data, int *rxn_int_data,
   // Calculate the rate constant in (1/s)
   RATE_CONSTANT_ = SCALING_ * BASE_RATE_;
 
+/*
+#ifdef PMC_USE_MPI
+  int rank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+  if (rank==0) {
+
+    printf("RATE_CONSTANT: %-le\n", RATE_CONSTANT_);
+    printf("SCALING_: %-le\n", SCALING_);
+    printf("BASE_RATE_: %-le\n", BASE_RATE_);
+    printf("NUM_REACT_: %d\n", NUM_REACT_);
+    for(int i=0; i<NUM_REACT_; i++)
+      printf("%d,",REACT_(i));
+    printf("\n");
+    printf("NUM_PROD_: %d\n", NUM_PROD_);
+    for(int i=0; i<NUM_PROD_; i++){
+      printf("%d,",PROD_(i));
+      printf("YIELD_: %-le\n", YIELD_(i));
+    }
+    //printf("BASE_RATE_: %-le\n", BASE_RATE_);
+    //printf("RATE_CONSTANT: %-le\n", RATE_CONSTANT_);
+  }
+#endif
+*/
+
   return;
 }
 
@@ -175,12 +200,14 @@ void rxn_photolysis_calc_deriv_contrib(
     int i_dep_var = 0;
     for (int i_spec = 0; i_spec < NUM_REACT_; i_spec++, i_dep_var++) {
       if (DERIV_ID_(i_dep_var) < 0) continue;
-      time_derivative_add_value(time_deriv, DERIV_ID_(i_dep_var), -rate);
+      //time_derivative_add_value(time_deriv, DERIV_ID_(i_dep_var), -rate);
+      time_derivative_add_value(time_deriv,DERIV_ID_(i_dep_var),-rate*state[REACT_(i_dep_var)]);
     }
     for (int i_spec = 0; i_spec < NUM_PROD_; i_spec++, i_dep_var++) {
       if (DERIV_ID_(i_dep_var) < 0) continue;
       time_derivative_add_value(time_deriv, DERIV_ID_(i_dep_var),
-                                rate * YIELD_(i_spec));
+      //                          rate * YIELD_(i_spec));
+                                  rate * state[PROD_(i_dep_var)] * YIELD_(i_spec));
     }
   }
 

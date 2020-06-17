@@ -207,6 +207,10 @@ contains
     ! Save the index of this species in the state variable array
     SPECIES_ = chem_spec_data%gas_state_id(spec_name)
 
+    !write(*,*) "emission name, id"
+    !write(*,*) chem_spec_data%gas_state_name(chem_spec_data%gas_state_id(spec_name)), &
+    !        SPECIES_
+
     ! Make sure the species exists
     call assert_msg(814240522, SPECIES_.gt.0, &
             "Missing emission species: "//spec_name)
@@ -279,6 +283,7 @@ contains
     ! If a reaction id has not yet been generated, do it now
     if (RXN_ID_.eq.-1) then
       RXN_ID_ = generate_int_id()
+      !write(*,*)"emission rxn_type,RXN_ID_",rxn_type,RXN_ID_
     endif
 
     update_data%rxn_unique_id = RXN_ID_

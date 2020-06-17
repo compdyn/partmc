@@ -30,7 +30,7 @@ module pmc_rand
   integer, parameter :: PMC_RAND_GSL_ALREADY_INIT = 3
 
   !> Next sequential id
-  integer, private :: next_id = 100
+  integer, private :: next_id = 100!100
 
 contains
 

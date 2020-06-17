@@ -27,6 +27,10 @@
 #include <sunmatrix/sunmatrix_sparse.h> /* sparse SUNMatrix                    */
 #endif
 
+#ifdef PMC_USE_MPI
+#include <mpi.h>
+#endif
+
 // State variable types (Must match parameters defined in pmc_chem_spec_data
 // module)
 #define CHEM_SPEC_UNKNOWN_TYPE 0
@@ -208,12 +212,19 @@ typedef struct {
   double
       max_loss_precision;  // Maximum loss of precision during last call to f()
 #endif
+
+//#ifndef PMC_DEBUG_GPU
+  int counterDerivGPU;
+  int counterJacGPU;
+//#endif
+
 #endif
   void *cvode_mem;       // CVodeMem object
   ModelData model_data;  // Model data (used during initialization and solving)
   bool no_solve;  // Flag to indicate whether to run the solver needs to be
                   // run. Set to true when no reactions are present.
   double init_time_step;  // Initial time step (s)
+  char **spec_names; // Species names
 } SolverData;
 
 #endif

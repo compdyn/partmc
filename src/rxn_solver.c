@@ -186,6 +186,16 @@ void rxn_update_ids(ModelData *model_data, int *deriv_ids, int **jac_ids) {
 void rxn_update_env_state(ModelData *model_data) {
   // Get the number of reactions
   int n_rxn = model_data->n_rxn;
+/*
+#ifdef PMC_USE_MPI
+  int rank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  if (rank==0) {
+    //printf("RXN id,type,\n");
+    //printf("Rates Arrhenius:\n");
+  }
+#endif
+*/
 
   // Loop through the reactions advancing the rxn_data pointer each time
   for (int i_rxn = 0; i_rxn < n_rxn; i_rxn++) {
@@ -199,6 +209,17 @@ void rxn_update_env_state(ModelData *model_data) {
 
     // Get the reaction type
     int rxn_type = *(rxn_int_data++);
+
+/*
+#ifdef PMC_USE_MPI
+
+  int rank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  if (rank==0) {
+   // printf("%d,%d", i_rxn, rxn_type);
+    }
+#endif
+*/
 
     // Call the appropriate function
     switch (rxn_type) {

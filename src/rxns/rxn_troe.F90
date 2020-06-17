@@ -245,12 +245,16 @@ contains
     K0_A_ = K0_A_ * real(1.0d6, kind=dp)
 
     ! Get the indices and chemical properties for the reactants
+    !write(*,*) "troe species, unique_name, REACT_ID"
     call reactants%iter_reset()
     i_spec = 1
     do while (reactants%get_key(spec_name))
 
       ! Save the index of this species in the state variable array
       REACT_(i_spec) = chem_spec_data%gas_state_id(spec_name)
+
+      !write(*,*) chem_spec_data%gas_state_name(chem_spec_data%gas_state_id(spec_name)), &
+      !        REACT_(i_spec)
 
       ! Make sure the species exists
       call assert_msg(595701751, REACT_(i_spec).gt.0, &
@@ -277,6 +281,9 @@ contains
 
       ! Save the index of this species in the state variable array
       PROD_(i_spec) = chem_spec_data%gas_state_id(spec_name)
+
+      !write(*,*) chem_spec_data%gas_state_name(chem_spec_data%gas_state_id(spec_name)), &
+      !        PROD_(i_spec)
 
       ! Make sure the species exists
       call assert_msg(480024633, PROD_(i_spec).gt.0, &

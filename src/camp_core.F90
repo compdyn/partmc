@@ -1304,12 +1304,21 @@ contains
   !! the aerosol condensed data needs updated based on changes in, e.g.,
   !! particle size or number concentration. The update types are aerosol-
   !! representation specific.
-  subroutine aero_rep_update_data(this, update_data)
+  subroutine aero_rep_update_data(this, update_data, cell_id)
 
     !> Chemical model
     class(camp_core_t), intent(in) :: this
     !> Update data
-    class(aero_rep_update_data_t), intent(in) :: update_data
+    class(aero_rep_update_data_t), intent(inout) :: update_data
+    !> Cell id
+    integer(kind=i_kind), optional :: cell_id
+
+    if (present(cell_id)) then
+      update_data%cell_id=cell_id;
+    else
+      call assert_msg(593328368, this%n_cells.eq.1,                   &
+              "Missing cell_id on aero_rep_update_data when using multicells" )
+    end if
 
     if (associated(this%solver_data_gas)) &
             call this%solver_data_gas%update_aero_rep_data(update_data)
@@ -1326,12 +1335,21 @@ contains
   !! when reaction parameters need updated from the host model. For example,
   !! this function can be called to update photolysis rates from a host
   !! model's photolysis module.
-  subroutine rxn_update_data(this, update_data)
+  subroutine rxn_update_data(this, update_data, cell_id)
 
     !> Chemical model
     class(camp_core_t), intent(in) :: this
     !> Update data
-    class(rxn_update_data_t), intent(in) :: update_data
+    class(rxn_update_data_t), intent(inout) :: update_data
+    !> Cell id
+    integer(kind=i_kind), optional :: cell_id
+
+    if (present(cell_id)) then
+      update_data%cell_id=cell_id;
+    else
+        call assert_msg(593328368, this%n_cells.eq.1,                   &
+                "Missing cell_id on rxn_update_data when using multicells" )
+    end if
 
     if (associated(this%solver_data_gas)) &
             call this%solver_data_gas%update_rxn_data(update_data)
@@ -1346,12 +1364,21 @@ contains
 
   !> Update data associated with a sub-model. This function should be called
   !! when sub-model parameters need updated from the host model.
-  subroutine sub_model_update_data(this, update_data)
+  subroutine sub_model_update_data(this, update_data, cell_id)
 
     !> Chemical model
     class(camp_core_t), intent(in) :: this
     !> Update data
-    class(sub_model_update_data_t), intent(in) :: update_data
+    class(sub_model_update_data_t), intent(inout) :: update_data
+    !> Cell id
+    integer(kind=i_kind), optional :: cell_id
+
+    if (present(cell_id)) then
+      update_data%cell_id=cell_id;
+    else
+      call assert_msg(593328368, this%n_cells.eq.1,                   &
+              "Missing cell_id on sub_model_update_data when using multicells" )
+    end if
 
     if (associated(this%solver_data_gas)) &
             call this%solver_data_gas%update_sub_model_data(update_data)

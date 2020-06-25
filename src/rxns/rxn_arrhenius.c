@@ -113,7 +113,7 @@ void rxn_arrhenius_update_env_state(ModelData *model_data, int *rxn_int_data,
                    (E_ == 0.0 ? 1.0 : (1.0 + E_ * PRESSURE_PA_)) *
                    pow(CONV_ * PRESSURE_PA_ / TEMPERATURE_K_, NUM_REACT_ - 1);
 
-
+/*
 #ifdef PMC_USE_MPI
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -137,7 +137,7 @@ void rxn_arrhenius_update_env_state(ModelData *model_data, int *rxn_int_data,
     //printf("PROD_(0): %d,\n",PROD_(0));
   }
 #endif
-
+*/
 
   return;
 }

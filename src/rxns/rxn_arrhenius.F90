@@ -194,9 +194,9 @@ contains
     ! beginning of the condensed data array, so they can be accessed using
     ! compliler flags)
     key_name = "rxn id"
-    if (this%property_set%get_string(key_name, string_val)) then
-      write (*,*) "Arrhenius RXN id:", string_val
-    endif
+    !if (this%property_set%get_string(key_name, string_val)) then
+    !  write (*,*) "Arrhenius RXN id:", string_val
+    !endif
     key_name = "A"
     if (.not. this%property_set%get_real(key_name, A_)) then
       A_ = 1.0
@@ -233,15 +233,15 @@ contains
       E_ = 0.0
     end if
 
-    write (*,*) "A_,B_,C_,D_,E_,CONV_"
-    write (*,*) A_,B_,C_,D_,E_,CONV_
+    !write (*,*) "A_,B_,C_,D_,E_,CONV_"
+    !write (*,*) A_,B_,C_,D_,E_,CONV_
 
     call assert_msg(344705857, .not. ((B_.ne.real(0.0, kind=dp)) &
             .and.(D_.eq.real(0.0, kind=dp))), &
             "D cannot be zero if B is non-zero in Arrhenius reaction.")
 
     ! Get the indices and chemical properties for the reactants
-    write(*,*) "arrhenius species,REACT_ID"
+    !write(*,*) "arrhenius species,REACT_ID"
     call reactants%iter_reset()
     i_spec = 1
     do while (reactants%get_key(spec_name))
@@ -249,8 +249,8 @@ contains
       ! Save the index of this species in the state variable array
       REACT_(i_spec) = chem_spec_data%gas_state_id(spec_name)
 
-      write(*,*) chem_spec_data%gas_state_name(chem_spec_data%gas_state_id(spec_name)), &
-              REACT_(i_spec)
+      !write(*,*) chem_spec_data%gas_state_name(chem_spec_data%gas_state_id(spec_name)), &
+      !        REACT_(i_spec)
 
       ! Make sure the species exists
       call assert_msg(751684145, REACT_(i_spec).gt.0, &
@@ -273,7 +273,7 @@ contains
       i_spec = i_spec + 1
     end do
 
-    write(*,*) "arrhenius species, PROD_ID"
+    !write(*,*) "arrhenius species, PROD_ID"
 
     ! Get the indices and chemical properties for the products
     call products%iter_reset()
@@ -283,8 +283,8 @@ contains
       ! Save the index of this species in the state variable array
       PROD_(i_spec) = chem_spec_data%gas_state_id(spec_name)
 
-      write(*,*) chem_spec_data%gas_state_name(chem_spec_data%gas_state_id(spec_name)), &
-              PROD_(i_spec)
+      !write(*,*) chem_spec_data%gas_state_name(chem_spec_data%gas_state_id(spec_name)), &
+      !        PROD_(i_spec)
 
       ! Make sure the species exists
       call assert_msg(234495887, PROD_(i_spec).gt.0, &

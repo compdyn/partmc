@@ -200,14 +200,12 @@ void rxn_photolysis_calc_deriv_contrib(
     int i_dep_var = 0;
     for (int i_spec = 0; i_spec < NUM_REACT_; i_spec++, i_dep_var++) {
       if (DERIV_ID_(i_dep_var) < 0) continue;
-      //time_derivative_add_value(time_deriv, DERIV_ID_(i_dep_var), -rate);
-      time_derivative_add_value(time_deriv,DERIV_ID_(i_dep_var),-rate*state[REACT_(i_dep_var)]);
+      time_derivative_add_value(time_deriv, DERIV_ID_(i_dep_var), -rate);
     }
     for (int i_spec = 0; i_spec < NUM_PROD_; i_spec++, i_dep_var++) {
       if (DERIV_ID_(i_dep_var) < 0) continue;
       time_derivative_add_value(time_deriv, DERIV_ID_(i_dep_var),
-      //                          rate * YIELD_(i_spec));
-                                  rate * state[PROD_(i_dep_var)] * YIELD_(i_spec));
+                                rate * YIELD_(i_spec));
     }
   }
 

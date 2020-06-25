@@ -831,7 +831,7 @@ contains
     !> Solver data
     class(camp_solver_data_t), intent(inout) :: this
     !> Update data
-    class(sub_model_update_data_t), intent(in) :: update_data
+    class(sub_model_update_data_t), intent(inout) :: update_data
 
     call sub_model_update_data( &
             update_data%get_cell_id()-1,     & ! Grid cell to update
@@ -851,7 +851,7 @@ contains
     !> Solver data
     class(camp_solver_data_t), intent(inout) :: this
     !> Update data
-    class(rxn_update_data_t), intent(in) :: update_data
+    class(rxn_update_data_t), intent(inout) :: update_data
 
     call rxn_update_data( &
             update_data%get_cell_id()-1,     & ! Grid cell to update
@@ -872,7 +872,7 @@ contains
     !> Solver data
     class(camp_solver_data_t), intent(inout) :: this
     !> Update data
-    class(aero_rep_update_data_t), intent(in) :: update_data
+    class(aero_rep_update_data_t), intent(inout) :: update_data
 
     call aero_rep_update_data( &
             update_data%get_cell_id()-1,     & ! Grid cell to update

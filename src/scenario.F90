@@ -224,12 +224,14 @@ contains
     type(gas_state_t) :: emissions, background
 
     ! emissions
+    if (size(scenario%gas_emission) > 0) then
     call gas_state_interp_1d(scenario%gas_emission, &
          scenario%gas_emission_time, scenario%gas_emission_rate_scale, &
          env_state%elapsed_time, emissions, emission_rate_scale)
     call gas_state_mole_dens_to_ppb(emissions, env_state)
     p = emission_rate_scale * delta_t / env_state%height
     call gas_state_add_scaled(gas_state, emissions, p)
+    end if
 #ifndef PMC_USE_WRF
     ! dilution
     call gas_state_interp_1d(scenario%gas_background, &
@@ -286,6 +288,7 @@ contains
     type(aero_state_t) :: aero_state_delta
 
     ! emissions
+    if (size(scenario%aero_emission) > 0) then
     call aero_dist_interp_1d(scenario%aero_emission, &
          scenario%aero_emission_time, scenario%aero_emission_rate_scale, &
          env_state%elapsed_time, emissions, emission_rate_scale)
@@ -293,6 +296,7 @@ contains
     call aero_state_add_aero_dist_sample(aero_state, aero_data, &
          emissions, p, env_state%elapsed_time, allow_doubling, allow_halving, &
          n_emit)
+    end if
 #ifndef PMC_USE_WRF
     ! dilution
     call aero_dist_interp_1d(scenario%aero_background, &
@@ -316,10 +320,15 @@ contains
          env_state)
 #endif
 
+#ifdef PMC_USE_WRF
+    call aero_weight_array_scale(aero_state%awa, &
+         old_env_state%rrho * (1.0d0 / env_state%rrho))
+#else
     ! update computational volume
     call aero_weight_array_scale(aero_state%awa, &
          old_env_state%temp * env_state%pressure &
          / (env_state%temp * old_env_state%pressure))
+#endif
 
   end subroutine scenario_update_aero_state
 

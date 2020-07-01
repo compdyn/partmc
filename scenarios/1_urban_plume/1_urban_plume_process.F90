@@ -30,15 +30,17 @@ program process
        organic_volume(:), total_volume(:), core_volume(:), core_diameters(:), &
        coating_thickness(:), wet_surfaces(:), surface_frac(:), &
        dry_masses(:), masses(:), bc_masses(:), so4_masses(:), no3_masses(:), &
-       f_fraction(:), gamma_core(:), gamma_coat(:), gamma(:), bc_fracs(:), &
+       h2o_masses(:), f_fraction(:), gamma_core(:), gamma_coat(:), gamma(:), bc_fracs(:), &
        num_concs_averaged(:), dry_masses_averaged(:), masses_averaged(:), &
        entropies(:), entropies_averaged(:), crit_rhs(:), scs(:), num_dist(:), &
        diam_bc_dist(:,:), diam_sc_dist(:,:), diam_gamma_dist(:,:), entropy_dist(:), &
-       diam_coating_dist(:,:)
+       diam_coating_dist(:,:), num_conc_wet_array(:)
   real(kind=dp) :: total_so4, total_no3, bulk_f_fraction, bulk_gamma, total_surface, &
-       gamma_population
+       gamma_population, num_frac_wet
+  logical, allocatable :: is_wet(:)
   type(stats_1d_t) :: stats_num_dist, stats_entropy_dist, stats_tot_num_conc, &
-       stats_tot_mass_conc, stats_tot_entropy, stats_tot_entropy_averaged
+       stats_tot_mass_conc, stats_tot_entropy, stats_tot_entropy_averaged, &
+       stats_num_frac_wet
   type(stats_2d_t) :: stats_diam_bc_dist, stats_diam_sc_dist, stats_diam_gamma_dist, &
        stats_diam_coating_dist
 
@@ -117,6 +119,16 @@ program process
              include=(/"ARO1", "ARO2", "ALK1", "OLE1", "API1", "API2", "LIM1", "LIM2"/))
         oc_masses = aero_state_masses(aero_state, aero_data, &
              include=(/"OC"/))
+        
+        h2o_masses = aero_state_masses(aero_state, aero_data, &
+             include=(/"H2O"/))
+        is_wet = (h2o_masses > 0d0)
+        write(6,*)'count of is_wet', count(is_wet)
+        num_conc_wet_array = pack(num_concs, is_wet)
+        num_frac_wet = sum(num_conc_wet_array)/tot_num_conc
+        write(6,*)'wet particle fraction ', sum(num_conc_wet_array), tot_num_conc, num_frac_wet
+        call stats_1d_add_entry(stats_num_frac_wet, num_frac_wet, i_index)
+        
 
         soa_volume = soa_masses / 1400d0
         oc_volume = oc_masses / 1000e0
@@ -128,7 +140,7 @@ program process
         core_diameters = (6d0 / 3.14159 * core_volume)**(1./3.)
 
         coating_thickness = (wet_diameters - core_diameters) / 2.
-        write(6,*)'coating ', coating_thickness(50:55)
+        !write(6,*)'coating ', coating_thickness(50:55)
 
         wet_surfaces = pi * wet_diameters**2.
         total_surface = sum(wet_surfaces * num_concs)
@@ -150,8 +162,8 @@ program process
 
         gamma = 1 / (1 / gamma_core + 1 / gamma_coat)
         gamma_population = sum(surface_frac * gamma)
-        write(*,*) 'surface_frac ', sum(surface_frac)
-        write(*,*) 'gamma population and bulk ', i_index, bulk_gamma, gamma_population
+        !write(*,*) 'surface_frac ', sum(surface_frac)
+        !write(*,*) 'gamma population and bulk ', i_index, bulk_gamma, gamma_population
         
         diam_coating_dist = bin_grid_histogram_2d(diam_grid, dry_diameters, &
              coating_grid, coating_thickness, num_concs)
@@ -243,6 +255,8 @@ program process
   call pmc_nc_write_real_1d(ncid, times, "time", dim_name="time", unit="s")
   call stats_1d_output_netcdf(stats_tot_num_conc, ncid, "tot_num_conc", &
        dim_name="time", unit="m^{-3}")
+  call stats_1d_output_netcdf(stats_num_frac_wet, ncid, "num_frac_wet", &
+       dim_name="time", unit="1")
   call stats_1d_output_netcdf(stats_tot_mass_conc, ncid, "tot_mass_conc", &
        dim_name="time", unit="m^{-3}")
   call stats_1d_output_netcdf(stats_tot_entropy, ncid, "tot_entropy", &

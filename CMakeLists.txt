@@ -353,6 +353,10 @@ add_executable(extract_aero_particles
   src/extract_aero_particles.F90 src/getopt.F90)
 target_link_libraries(extract_aero_particles partmclib)
 
+add_executable(extract_aero_particles_kappa
+  src/extract_aero_particles_kappa.F90 src/getopt.F90)
+target_link_libraries(extract_aero_particles_kappa partmclib)
+
 add_executable(extract_aero_size src/extract_aero_size.F90
   src/getopt.F90)
 target_link_libraries(extract_aero_size partmclib)

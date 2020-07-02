@@ -2939,6 +2939,9 @@ contains
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
 
+    type(aero_state_t) :: aero_state_averaged, aero_state_hyd
+    type(bin_grid_t) :: avg_bin_grid
+
     integer :: i_part
     real(kind=dp) :: w_i
     real(kind=dp), allocatable :: volumes(:), volumes_core(:), so4_masses(:), &
@@ -2953,18 +2956,24 @@ contains
 
     aero_state_n2o5_uptake = 0d0
 
-    surf_area_concs = aero_state_surf_area_concs(aero_state, aero_data)
-    volumes = aero_state_volumes(aero_state, aero_data)
-    volumes_core = aero_state_volumes(aero_state, aero_data, include=(/"SO4", &
+    call bin_grid_make(avg_bin_grid, BIN_GRID_TYPE_LOG, 1, 1d-30, 1d10)    
+    aero_state_averaged = aero_state
+    call aero_state_bin_average_comp(aero_state_averaged, avg_bin_grid, &
+         aero_data)
+    aero_state_hyd = aero_state_averaged
+    
+    surf_area_concs = aero_state_surf_area_concs(aero_state_hyd, aero_data)
+    volumes = aero_state_volumes(aero_state_hyd, aero_data)
+    volumes_core = aero_state_volumes(aero_state_hyd, aero_data, include=(/"SO4", &
         "NO3", "Cl ", "NH4", "CO3", "Na ", "Ca ", "OIN", "BC ", "H2O"/))
-    so4_masses = aero_state_masses(aero_state, aero_data, include=(/"SO4"/))
-    no3_masses = aero_state_masses(aero_state, aero_data, include=(/"NO3"/))
-    h2o_masses = aero_state_masses(aero_state, aero_data, include=(/"H2O"/))
+    so4_masses = aero_state_masses(aero_state_hyd, aero_data, include=(/"SO4"/))
+    no3_masses = aero_state_masses(aero_state_hyd, aero_data, include=(/"NO3"/))
+    h2o_masses = aero_state_masses(aero_state_hyd, aero_data, include=(/"H2O"/))
     c_n2o5 = sqrt((8.0d0 * const%univ_gas_const * env_state%temp) &
          / (const%pi * 108.0 * 1d-3))
 
     gamma_n2o5 = 0d0
-    do i_part = 1,aero_state_n_part(aero_state)
+    do i_part = 1,aero_state_n_part(aero_state_hyd)
        if ((so4_masses(i_part) + no3_masses(i_part)) > 0.0d0 &
             .and. h2o_masses(i_part) > 0.0d0) then
           w_i = so4_masses(i_part) / (so4_masses(i_part) + no3_masses(i_part))

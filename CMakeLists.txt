@@ -631,8 +631,6 @@ add_executable(mock_monarch test/monarch/mock_monarch.F90
 
 target_link_libraries(mock_monarch partmclib)
 
-if (ENABLE_TESTS)
-
 ######################################################################
 # test_chemistry_cb05cl_ae5
 
@@ -641,6 +639,8 @@ add_executable(test_chemistry_cb05cl_ae5
     ${CB5_EBI_SOLVER} ${CB5_KPP_SOLVER}
     test/chemistry/cb05cl_ae5/module_BSC_CHEM_DATA.F90)
 target_link_libraries(test_chemistry_cb05cl_ae5 partmclib)
+
+if (ENABLE_TESTS)
 
 ######################################################################
 # test_chemistry_eqsam_v03d

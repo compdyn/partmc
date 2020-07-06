@@ -592,19 +592,21 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   int flag;
   int rank;
 
-#ifdef PMC_DEBUG_GPU
+#ifndef PMC_DEBUG_GPU
 #ifdef PMC_USE_MPI
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   if (rank==0)
   {
     if (sd->counterDerivGPU==0)
     {
-      //printf("camp solver_run start, state length %d\n", md->n_per_cell_state_var);
+      printf("camp solver_run start, state length %d\n", md->n_per_cell_state_var);
       for (int i = 0; i < md->n_per_cell_state_var; i++) {  // NV_LENGTH_S(deriv)
-      //  printf("%-le ", state[i]);
+        printf("%-le ", state[i]);
       }
-      //printf("\n");
-      //printf("env [temp, press]\n%-le, %-le\n", env[0], env[1]);
+      printf("\n");
+      printf("env [temp, press]\n");
+      for (int i=0; i<n_cells;i++)//n_cells
+        printf("%-le, %-le\n", env[0+2*i], env[1+2*i]);
     }
   }
 #endif
@@ -732,7 +734,7 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
       flag = f(t_initial, sd->y, deriv, sd);
       if (flag != 0)
         printf("\nCall to f() at failed state failed with flag %d\n", flag);
-      for (int i_cell = 0; i_cell < md->n_cells; ++i_cell) {
+      /*for (int i_cell = 0; i_cell < md->n_cells; ++i_cell) {
         printf("\n Cell: %d ", i_cell);
         printf("temp = %le pressure = %le\n", env[i_cell * PMC_NUM_ENV_PARAM_],
                env[i_cell * PMC_NUM_ENV_PARAM_ + 1]);
@@ -748,10 +750,16 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
             printf("spec %d = %le\n", i_spec,
                    state[i_cell * md->n_per_cell_state_var + i_spec]);
           }
-      }
+      }*/
       solver_print_stats(sd->cvode_mem);
 #endif
-      //printf("counterDerivGPU:%d\n", sd->counterDerivGPU);
+#ifdef PMC_USE_MPI
+      MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+      if (rank==0)
+      {
+        printf("CAMP_SOLVER_FAIL %d counterDerivGPU:%d\n",flag, sd->counterDerivGPU);
+      }
+#endif
       return CAMP_SOLVER_FAIL;
     }
   }
@@ -785,7 +793,7 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
     }
   }
 
-/*
+
 #ifdef PMC_USE_MPI
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   if (rank==0)
@@ -801,7 +809,7 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
     }
   }
 #endif
-*/
+
   // Re-run the pre-derivative calculations to update equilibrium species
   // and apply adjustments to final state
   sub_model_calculate(md);
@@ -1073,7 +1081,7 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
     jac_deriv_data += n_dep_var;
   }
 
-#ifdef PMC_DEBUG_GPU
+#ifndef PMC_DEBUG_GPU
 #ifdef PMC_USE_MPI
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);

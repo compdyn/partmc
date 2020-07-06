@@ -45,6 +45,8 @@ program pmc_test_cb05cl_ae5
   integer(kind=i_kind), parameter :: KPP_FILE_UNIT = 11
   ! CAMP-chem output file unit
   integer(kind=i_kind), parameter :: CAMP_FILE_UNIT = 12
+  ! CAMP-chem output profiling stats file unit
+  integer(kind=i_kind), parameter :: CAMP_FILE_UNIT_PROFILE = 13
   ! EBI solver output file unit
   integer(kind=i_kind), parameter :: CAMP_EBI_FILE_UNIT = 14
   ! file unit
@@ -265,13 +267,12 @@ contains
     KPP_SUN = 1.0
     ! Set the tolerances
     do i_spec = 1, KPP_NVAR
-      KPP_RTOL(i_spec) = 1.0d-4!todo
-      KPP_ATOL(i_spec) = 1.0d-3!
+      KPP_RTOL(i_spec) = 1.0d-4
+      KPP_ATOL(i_spec) = 1.0d-3
     end do
     CALL KPP_Initialize()
     call cpu_time(comp_end)
     write(*,*) "KPP initialization time: ", comp_end-comp_start," s"
-
 
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !!! Initialize camp-chem !!!
@@ -644,7 +645,7 @@ contains
     camp_init(:) = camp_state%state_var(:)
 
     ! Repeatedly solve the mechanism
-    do i_repeat = 1, 1 !todo IDK WHYYY ebi init is different than camp_init
+    do i_repeat = 1, 1
 
 #ifdef DEBUG
     ! Evaluate the Jacobian during solving on the first repeat
@@ -1493,7 +1494,7 @@ contains
 
   !> Compare calculated rates between the modules
   subroutine compare_rates(camp_core, camp_state, ebi_spec_names, conv, &
-                  ebi_rxn_map, kpp_rxn_map)
+          ebi_rxn_map, kpp_rxn_map)
 
     use EXT_RXCM,                               only : NRXNS, RXLABEL
     use EXT_HRDATA,                             only : EBI_PROD => PROD, &

@@ -1,10 +1,10 @@
 run_type particle               # particle-resolved run
-output_prefix out/urban_plume   # prefix of output files
-n_repeat 3                      # number of Monte Carlo repeats
+output_prefix out/urban_plume_test   # prefix of output files
+n_repeat 1                      # number of Monte Carlo repeats
 n_part 1000                     # total number of particles
 restart no                      # whether to restart from saved state (yes/no)
 
-t_max 86400                     # total simulation time (s)
+t_max 86400                    # total simulation time (s)
 del_t 60                        # timestep (s)
 t_output 3600                   # output interval (0 disables) (s)
 t_progress 600                  # progress printing interval (0 disables) (s)
@@ -36,7 +36,8 @@ do_coagulation yes              # whether to do coagulation (yes/no)
 coag_kernel brown               # coagulation kernel
 do_condensation no              # whether to do condensation (yes/no)
 do_mosaic yes                   # whether to do MOSAIC (yes/no)
-do_n2o5_hydrolysis yes          # whether to do n2o5 hydrolysis (yes/no)
+do_n2o5_hydrolysis no          # whether to do n2o5 hydrolysis (yes/no)
+#n2o5_hydrolysis none            # which n2o5 hydrolysis treatment
 do_optical yes                  # whether to compute optical props (yes/no)
 do_nucleation no                # whether to do nucleation (yes/no)
 

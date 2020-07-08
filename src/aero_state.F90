@@ -50,6 +50,15 @@ module pmc_aero_state
   !> Coupled number/mass weighting by source.
   integer, parameter :: AERO_STATE_WEIGHT_NUMMASS_SOURCE = 7
 
+  !> Type code for an undefined or invalid N2O5 hydrolysis function.
+  integer, parameter :: N2O5_HYDR_INVALID  = 0
+  !> Type code for no N2O5 hydrolysis function.
+  integer, parameter :: N2O5_HYDR_NONE     = 1
+  !> Type code for particle-resolved N2O5 hydrolysis function.
+  integer, parameter :: N2O5_HYDR_PR       = 2
+  !> Type code for composition-averaged N2O5 hydrolysis function.
+  integer, parameter :: N2O5_HYDR_COMP     = 3
+
   !> The current collection of aerosol particles.
   !!
   !! The particles in \c aero_state_t are stored in a single flat
@@ -2930,7 +2939,7 @@ contains
 
   !>
   real(kind=dp) function aero_state_n2o5_uptake(aero_state, aero_data, &
-       env_state)
+       env_state, n2o5_type)
 
     !> Aerosol state.
     type(aero_state_t), intent(in) :: aero_state
@@ -2938,6 +2947,8 @@ contains
     type(aero_data_t), intent(in) :: aero_data
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
+    !> Which type of N2O5 hydrolysis treatment.
+    integer, intent(in) :: n2o5_type
 
     type(aero_state_t) :: aero_state_averaged, aero_state_hyd
     type(bin_grid_t) :: avg_bin_grid
@@ -2947,7 +2958,7 @@ contains
     real(kind=dp), allocatable :: volumes(:), volumes_core(:), so4_masses(:), &
          no3_masses(:), surf_area_concs(:), h2o_masses(:)
     real(kind=dp) :: rad_core, rad_part
-    real(kind=dp) :: c_n2o5, gamma_n2o5
+    real(kind=dp) :: c_n2o5, gamma_n2o5, gamma_coat, gamma_core, gamma_part
     real(kind=dp), parameter :: gamma_1 = 0.02d0
     real(kind=dp), parameter :: gamma_2 = 0.002d0
     real(kind=dp), parameter :: f = 0.03d0
@@ -2956,12 +2967,24 @@ contains
 
     aero_state_n2o5_uptake = 0d0
 
-    call bin_grid_make(avg_bin_grid, BIN_GRID_TYPE_LOG, 1, 1d-30, 1d10)    
-    aero_state_averaged = aero_state
-    call aero_state_bin_average_comp(aero_state_averaged, avg_bin_grid, &
-         aero_data)
-    aero_state_hyd = aero_state_averaged
-    
+    write(6,*)'n2o5 in aero_state ', n2o5_type
+    write(6,*)'type PR ',  N2O5_HYDR_PR
+    write(6,*)'type COMP ', N2O5_HYDR_COMP
+    if (n2o5_type == N2O5_HYDR_PR) then
+       write(6,*) 'type is PR '
+       aero_state_hyd = aero_state
+    else if (n2o5_type == N2O5_HYDR_COMP) then
+       write(6,*) 'type is COMP '
+       call bin_grid_make(avg_bin_grid, BIN_GRID_TYPE_LOG, 1, 1d-30, 1d10)    
+       aero_state_averaged = aero_state
+       call aero_state_bin_average_comp(aero_state_averaged, avg_bin_grid, &
+            aero_data)
+       aero_state_hyd = aero_state_averaged
+    else
+       call die_msg(981734220, "unknown n2o5 type: " // trim(integer_to_string(n2o5_type)))
+    endif
+
+    write(6,*)'now calculate gamma '
     surf_area_concs = aero_state_surf_area_concs(aero_state_hyd, aero_data)
     volumes = aero_state_volumes(aero_state_hyd, aero_data)
     volumes_core = aero_state_volumes(aero_state_hyd, aero_data, include=(/"SO4", &
@@ -2989,8 +3012,37 @@ contains
     end do
 
     aero_state_n2o5_uptake = 0.25d0 * c_n2o5 * gamma_n2o5
+    write(6,*) 'uptake coefficient ', aero_state_n2o5_uptake
 
   end function aero_state_n2o5_uptake
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  
+  subroutine spec_file_read_n2o5_type(file, n2o5_type)
+
+    !> Spec file.
+    type(spec_file_t), intent(inout) :: file
+    !> N2O5 hydrolysis type.
+    integer, intent(out) :: n2o5_type
+
+    character(len=SPEC_LINE_MAX_VAR_LEN) :: n2o5_type_name
+
+    call spec_file_read_string(file, 'n2o5_hydrolysis', n2o5_type_name)
+    write(6,*)'read n2o5 option ', n2o5_type_name
+    
+    if (n2o5_type_name == 'none') then
+       n2o5_type = N2O5_HYDR_NONE
+    else if (n2o5_type_name == 'particle') then
+       n2o5_type = N2O5_HYDR_PR
+    else if (n2o5_type_name == 'comp') then
+       n2o5_type = N2O5_HYDR_COMP
+    else
+       call spec_file_die_msg(485748351, file, "unknown n2o5 type: " &
+            // trim(n2o5_type_name))
+    end if
+    write(6,*)'n2o5 option ', n2o5_type
+
+  end subroutine spec_file_read_n2o5_type
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

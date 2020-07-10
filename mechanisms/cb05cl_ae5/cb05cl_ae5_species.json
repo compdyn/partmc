@@ -382,6 +382,11 @@
     "description" : "molecular oxygen"
   },
   {
+    "name" : "N2",
+    "type" : "CHEM_SPEC",
+    "description" : "molecular hydrogen"
+  },
+  {
     "name" : "H2O",
     "type" : "CHEM_SPEC",
     "description" : "water vapor"

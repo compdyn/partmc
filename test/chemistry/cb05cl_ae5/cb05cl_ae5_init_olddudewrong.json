@@ -369,14 +369,12 @@
   {
     "name" : "N2O",
     "type" : "CHEM_SPEC",
-    "init conc" : 0.3,
-    "tracer type" : "CONSTANT"
+    "init conc" : 0.3
   },
   {
     "name" : "DUMMY",
     "type" : "CHEM_SPEC",
-    "init conc" : 0.0,
-    "tracer type" : "CONSTANT"
+    "init conc" : 0.0
   },
   {
     "name" : "O2",

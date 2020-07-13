@@ -1,0 +1,23 @@
+mode_name mode_1
+mass_frac aero_init_comp.dat
+diam_type geometric         
+mode_type log_normal         
+num_conc NUM_CONC_1       
+geom_mean_diam GEOM_MEAN_DIAM_1    
+log10_geom_std_dev LOG10_GEO_STD_DEV_1
+
+mode_name mode_2
+mass_frac aero_init_comp.dat      
+diam_type geometric
+mode_type log_normal
+num_conc NUM_CONC_2
+geom_mean_diam GEOM_MEAN_DIAM_2
+log10_geom_std_dev LOG10_GEO_STD_DEV_2
+
+mode_name mode_3
+mass_frac aero_init_comp.dat
+diam_type geometric
+mode_type log_normal
+num_conc NUM_CONC_3
+geom_mean_diam GEOM_MEAN_DIAM_3  
+log10_geom_std_dev LOG10_GEO_STD_DEV_3

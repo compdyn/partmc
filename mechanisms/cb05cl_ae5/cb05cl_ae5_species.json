@@ -368,16 +368,9 @@
     "description" : "first generation product from XYL"
   },
   {
-    "name" : "N2O",
-    "type" : "CHEM_SPEC",
-    "description" : "nitrous oxide - does not participate in CB05 reactions",
-    "tracer type" : "CONSTANT"
-  },
-  {
     "name" : "DUMMY",
     "type" : "CHEM_SPEC",
-    "description" : "not sure what this is",
-    "tracer type" : "CONSTANT"
+    "description" : "not sure what this is"
   },
   {
     "name" : "O2",

@@ -1,412 +1,406 @@
-{
-"notes" :"Descriptions are from CB5 Final Report RT-04-00675 (www.camx.com/files/cb05_final_report_120805.aspx) and from notes in the cb05cl_ae5_aq_CMAQ.def mechanism file",
-"pmc-data" : [
+{ "pmc-data" : [
   {
     "name" : "AACD",
     "type" : "CHEM_SPEC",
-    "description" : "acetic and higher carboxylic acids"
+    "init conc" : 1.0E-03
   },
   {
     "name" : "ALD2",
     "type" : "CHEM_SPEC",
-    "description" : "acetaldehyde"
+    "init conc" : 5.0E-03
   },
   {
     "name" : "ALDX",
     "type" : "CHEM_SPEC",
-    "description" : "propionaldehyde and higher aldehydes"
+    "init conc" : 1.0E-03
   },
   {
     "name" : "BENZENE",
     "type" : "CHEM_SPEC",
-    "description" : "benzene"
+    "init conc" : 1.0E-03
   },
   {
     "name" : "BENZRO2",
     "type" : "CHEM_SPEC",
-    "description" : "peroxy radical from benzene oxidation"
+    "init conc" : 0.0
   },
   {
     "name" : "BNZHRXN",
     "type" : "CHEM_SPEC",
-    "description" : "counter species for aerosol from BENZENE - how does this differ from BNZNNRXN?"
+    "init conc" : 0.0
   },
   {
     "name" : "BNZNRXN",
     "type" : "CHEM_SPEC",
-    "description" : "counter species for aerosol from BENZENE"
+    "init conc" : 0.0
   },
   {
     "name" : "C2O3",
     "type" : "CHEM_SPEC",
-    "description" : "acetyl peroxy radical"
+    "init conc" : 0.0
   },
   {
     "name" : "CH4",
     "type" : "CHEM_SPEC",
-    "description" : "methane",
-    "tracer type" : "CONSTANT"
+    "init conc" : 1.85
   },
   {
     "name" : "CL",
     "type" : "CHEM_SPEC",
-    "description" : "chlorine radical"
+    "init conc" : 0.0
   },
   {
     "name" : "CL2",
     "type" : "CHEM_SPEC",
-    "description" : "molecular chlorine"
+    "init conc" : 0.02
   },
   {
     "name" : "CLO",
     "type" : "CHEM_SPEC",
-    "description" : "chlorine monoxide"
+    "init conc" : 0.0
   },
   {
     "name" : "CO",
     "type" : "CHEM_SPEC",
-    "description" : "carbon monoxide"
+    "init conc" : 20.0
   },
   {
     "name" : "CRES",
     "type" : "CHEM_SPEC",
-    "description" : "cresol and higher molecular weight phenols"
+    "init conc" : 5.0E-06
   },
   {
     "name" : "CRO",
     "type" : "CHEM_SPEC",
-    "description" : "methylphenoxy radical"
+    "init conc" : 0.0
   },
   {
     "name" : "CXO3",
     "type" : "CHEM_SPEC",
-    "description" : "C3 and higher acylperoxy radicals"
+    "init conc" : 0.0
   },
   {
     "name" : "ETH",
     "type" : "CHEM_SPEC",
-    "description" : "ethene"
+    "init conc" : 10.0E-03
   },
   {
     "name" : "ETHA",
     "type" : "CHEM_SPEC",
-    "description" : "ethane"
+    "init conc" : 0.5E-03
   },
   {
     "name" : "ETOH",
     "type" : "CHEM_SPEC",
-    "description" : "ethanol"
+    "init conc" : 100.0E-03
   },
   {
     "name" : "FACD",
     "type" : "CHEM_SPEC",
-    "description" : "formic acid"
+    "init conc" : 1.0
   },
   {
     "name" : "FMCL",
     "type" : "CHEM_SPEC",
-    "description" : "formyl chloride (HC(O)Cl)"
+    "init conc" : 0.0
   },
   {
     "name" : "FORM",
     "type" : "CHEM_SPEC",
-    "description" : "formaldehyde"
+    "init conc" : 15.0E-03
   },
   {
     "name" : "H2O2",
     "type" : "CHEM_SPEC",
-    "description" : "hydrogen peroxide"
+    "init conc" : 0.08E-03
   },
   {
     "name" : "HCL",
     "type" : "CHEM_SPEC",
-    "description" : "hydrochlric acid"
+    "init conc" : 0.0,
+    "orig init" : 1.0E-03
   },
   {
     "name" : "HCO3",
     "type" : "CHEM_SPEC",
-    "description" : "formyl peroxy radical? no description in cb05 report"
+    "init conc" : 0.0
   },
   {
     "name" : "HNO3",
     "type" : "CHEM_SPEC",
-    "description" : "nitric acid"
+    "init conc" : 2.0E-03
   },
   {
     "name" : "HO2",
     "type" : "CHEM_SPEC",
-    "description" : "hydroperoxy radical"
+    "init conc" : 0.1E-03
   },
   {
     "name" : "HOCL",
     "type" : "CHEM_SPEC",
-    "description" : "hypochlorous acid"
+    "init conc" : 0.0
   },
   {
     "name" : "HONO",
     "type" : "CHEM_SPEC",
-    "description" : "nitrous acid"
+    "init conc" : 1.0E-03
   },
   {
     "name" : "IOLE",
     "type" : "CHEM_SPEC",
-    "description" : "internal olefin carbon bond (R-C=C)"
+    "init conc" : 0.5E-03
   },
   {
     "name" : "ISOP",
     "type" : "CHEM_SPEC",
-    "description" : "isoprene"
+    "init conc" : 1.0E-03
   },
   {
     "name" : "ISOPRXN",
     "type" : "CHEM_SPEC",
-    "description" : "counter for aerosol from ISOP"
+    "init conc" : 0.0
   },
   {
     "name" : "ISPD",
     "type" : "CHEM_SPEC",
-    "description" : "isoprene products (lumped methacrolein, methyl vinyl ketone, etc.)"
+    "init conc" : 0.0
   },
   {
     "name" : "MEO2",
     "type" : "CHEM_SPEC",
-    "description" : "methyl peroxy radical"
+    "init conc" : 0.0
   },
   {
     "name" : "MEOH",
     "type" : "CHEM_SPEC",
-    "description" : "methanol"
+    "init conc" : 2.0E-03
   },
   {
     "name" : "MEPX",
     "type" : "CHEM_SPEC",
-    "description" : "methylhydroperoxide"
+    "init conc" : 0.0
   },
   {
     "name" : "MGLY",
     "type" : "CHEM_SPEC",
-    "description" : "methylglyoxal and other aromatic products"
+    "init conc" : 0.0
   },
   {
     "name" : "N2O5",
     "type" : "CHEM_SPEC",
-    "description" : "dinitrogen pentoxide"
+    "init conc" : 0.0
   },
   {
     "name" : "NO",
     "type" : "CHEM_SPEC",
-    "description" : "nitric oxide"
+    "init conc" : 2.0E-03
   },
   {
     "name" : "NO2",
     "type" : "CHEM_SPEC",
-    "description" : "nitrogen dioxide"
+    "init conc" : 18.0E-03
   },
   {
     "name" : "NO3",
     "type" : "CHEM_SPEC",
-    "description" : "nitrate radical"
+    "init conc" : 0.0
   },
   {
     "name" : "NTR",
     "type" : "CHEM_SPEC",
-    "description" : "organic nitrate (RNO3)"
+    "init conc" : 0.0
   },
   {
     "name" : "O",
     "type" : "CHEM_SPEC",
-    "description" : "oxygen atom in the O3P electronic state"
+    "init conc" : 0.0
   },
   {
     "name" : "O1D",
     "type" : "CHEM_SPEC",
-    "description" : "oxygen atom in the O1D electronic state"
+    "init conc" : 0.0
   },
   {
     "name" : "O3",
     "type" : "CHEM_SPEC",
-    "description" : "ozone"
+    "init conc" : 60.0E-03
   },
   {
     "name" : "OH",
     "type" : "CHEM_SPEC",
-    "description" : "hydroxyl radical"
+    "init conc" : 1.0E-6
   },
   {
     "name" : "OLE",
     "type" : "CHEM_SPEC",
-    "description" : "terminal olefin carbon bond (R-C=C)"
+    "init conc" : 3.0E-03
   },
   {
     "name" : "OPEN",
     "type" : "CHEM_SPEC",
-    "description" : "aromatic ring opening products"
+    "init conc" : 0.0
   },
   {
     "name" : "PACD",
     "type" : "CHEM_SPEC",
-    "description" : "peroxyacetic and higher peroxycarboxylic acids"
+    "init conc" : 0.0
   },
   {
     "name" : "PAN",
     "type" : "CHEM_SPEC",
-    "description" : "peroxyacetyl nitrate"
+    "init conc" : 0.0
   },
   {
     "name" : "PANX",
     "type" : "CHEM_SPEC",
-    "description" : "C3 and higher peroxyacyl nitrates"
+    "init conc" : 0.0
   },
   {
     "name" : "PAR",
     "type" : "CHEM_SPEC",
-    "description" : "paraffin carbon bond (C-C)"
+    "init conc" : 1.0E-03
   },
   {
     "name" : "PNA",
     "type" : "CHEM_SPEC",
-    "description" : "peroxynitric acid (HNO4)"
+    "init conc" : 0.0
   },
   {
     "name" : "ROOH",
     "type" : "CHEM_SPEC",
-    "description" : "higher organic peroxides"
+    "init conc" : 0.0
   },
   {
     "name" : "ROR",
     "type" : "CHEM_SPEC",
-    "description" : "secondary alkoxy radical"
+    "init conc" : 0.0
   },
   {
     "name" : "SESQ",
     "type" : "CHEM_SPEC",
-    "description" : "sesquiterpene"
+    "init conc" : 0.1E-03
   },
   {
     "name" : "SESQRXN",
     "type" : "CHEM_SPEC",
-    "description" : "counter for aerosol from SESQ"
+    "init conc" : 0.0
   },
   {
     "name" : "SO2",
     "type" : "CHEM_SPEC",
-    "description" : "sulfur dioxide"
+    "init conc" : 4.0E-03
   },
   {
     "name" : "SULF",
     "type" : "CHEM_SPEC",
-    "description" : "sulfuric acid (gaseous)"
+    "init conc" : 0.0
   },
   {
     "name" : "SULRXN",
     "type" : "CHEM_SPEC",
-    "description" : "counter for aerosol from SO2"
+    "init conc" : 0.0
   },
   {
     "name" : "TERP",
     "type" : "CHEM_SPEC",
-    "description" : "terpene"
+    "init conc" : 40.0E-03
   },
   {
     "name" : "TO2",
     "type" : "CHEM_SPEC",
-    "description" : "toluene-hydroxyl radical aduct"
+    "init conc" : 0.0
   },
   {
     "name" : "TOL",
     "type" : "CHEM_SPEC",
-    "description" : "toluene"
+    "init conc" : 8.3E-03
   },
   {
     "name" : "TOLHRXN",
     "type" : "CHEM_SPEC",
-    "description" : "counter for aerosol from TOL - how does this differ from TOLNRXN?"
+    "init conc" : 0.0
   },
   {
     "name" : "TOLNRXN",
     "type" : "CHEM_SPEC",
-    "description" : "counter for aerosol from TOL"
+    "init conc" : 0.0
   },
   {
     "name" : "TOLRO2",
     "type" : "CHEM_SPEC",
-    "description" : "first generation product from TOL"
+    "init conc" : 0.0
   },
   {
     "name" : "TRPRXN",
     "type" : "CHEM_SPEC",
-    "description" : "counter for aerosol from TERP"
+    "init conc" : 0.0
   },
   {
     "name" : "XO2",
     "type" : "CHEM_SPEC",
-    "description" : "NO to NO2 conversion from alkylperoxy (RO2) radical"
+    "init conc" : 0.0
   },
   {
     "name" : "XO2N",
     "type" : "CHEM_SPEC",
-    "description" : "NO to organic nitrate conversion from alkylperoxy (RO2) radical"
+    "init conc" : 0.0
   },
   {
     "name" : "XYL",
     "type" : "CHEM_SPEC",
-    "description" : "xylene and other polyalkyl aromatics"
+    "init conc" : 3.0E-03
   },
   {
     "name" : "XYLHRXN",
     "type" : "CHEM_SPEC",
-    "description" : "counter for aerosol from XYL - how does this differ from XYLNRXN?"
+    "init conc" : 0.0
   },
   {
     "name" : "XYLNRXN",
     "type" : "CHEM_SPEC",
-    "description" : "counter for aerosol from XYL"
+    "init conc" : 0.0
   },
   {
     "name" : "XYLRO2",
     "type" : "CHEM_SPEC",
-    "description" : "first generation product from XYL"
+    "init conc" : 0.0
   },
   {
     "name" : "N2O",
     "type" : "CHEM_SPEC",
-    "description" : "nitrous oxide - does not participate in CB05 reactions",
+    "init conc" : 0.3,
     "tracer type" : "CONSTANT"
   },
   {
     "name" : "DUMMY",
     "type" : "CHEM_SPEC",
-    "description" : "not sure what this is",
+    "init conc" : 0.0,
     "tracer type" : "CONSTANT"
   },
   {
     "name" : "O2",
     "type" : "CHEM_SPEC",
-    "description" : "molecular oxygen",
-    "tracer type" : "CONSTANT"
-  },
-  {
-    "name" : "N2",
-    "type" : "CHEM_SPEC",
-    "description" : "molecular hydrogen",
-    "tracer type" : "CONSTANT"
+    "init conc" : 2.095E05
   },
   {
     "name" : "H2O",
     "type" : "CHEM_SPEC",
-    "description" : "water vapor",
-    "tracer type" : "CONSTANT"
+    "init conc" : 1.0E03
   },
   {
     "name" : "H2",
     "type" : "CHEM_SPEC",
-    "description" : "molecular hydrogen",
-    "tracer type" : "CONSTANT"
+    "init conc" : 5.6E-01
   },
   {
     "name" : "M",
     "type" : "CHEM_SPEC",
-    "description" : "third body",
+    "init conc" : 1.0E06
+  },
+  {
+    "name" : "N2",
+    "type" : "CHEM_SPEC",
+    "init conc" : 7.808E05,
     "tracer type" : "CONSTANT"
   }
 ]}

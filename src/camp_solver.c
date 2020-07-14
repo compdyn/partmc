@@ -131,6 +131,10 @@ void *solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
   for (int i = 0; i < n_state_var; i++)
     if (var_type[i] == CHEM_SPEC_VARIABLE) n_dep_var++;
 
+  printf("(id) var_type\n");
+  for (int i = 0; i < n_state_var; i++)
+    printf("(%d) %d ",i+1,var_type[i]);
+
   // Save the number of solver variables per grid cell
   sd->model_data.n_per_cell_dep_var = n_dep_var;
 
@@ -590,7 +594,7 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   int n_state_var = sd->model_data.n_per_cell_state_var;
   int n_cells = sd->model_data.n_cells;
   int flag;
-  int rank;
+  int rank=0;
 
 #ifndef PMC_DEBUG_GPU
 #ifdef PMC_USE_MPI
@@ -599,13 +603,14 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   {
     if (sd->counterDerivGPU==0)
     {
-      printf("camp solver_run start, state length %d\n", md->n_per_cell_state_var);
-      for (int i = 0; i < md->n_per_cell_state_var; i++) {  // NV_LENGTH_S(deriv)
-        printf("%-le ", state[i]);
+      int n_cell=2;
+      printf("camp solver_run start [(id),conc], n_state_var %d, n_cells %d\n", md->n_per_cell_state_var, n_cells);
+      for (int i = 0; i < md->n_per_cell_state_var*n_cell; i++) {  // NV_LENGTH_S(deriv)
+        printf("(%d) %-le ",i, state[i]);
       }
       printf("\n");
       printf("env [temp, press]\n");
-      for (int i=0; i<n_cells;i++)//n_cells
+      for (int i=0; i<1;i++)//n_cells
         printf("%-le, %-le\n", env[0+2*i], env[1+2*i]);
     }
   }
@@ -632,15 +637,15 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   sd->model_data.total_state = state;
   sd->model_data.total_env = env;
 
-#ifdef PMC_DEBUG_GPU
+#ifndef PMC_DEBUG_GPU
 #ifdef PMC_USE_MPI
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   if (rank==0)
   {
     if (sd->counterDerivGPU==0)
       {
-        //printf("After set y, iter %d...\n", sd->counterDerivGPU);
-        //print_derivative(sd->y);
+        printf("After set y (deriv), iter %d...\n", sd->counterDerivGPU);
+        print_derivative(sd->y);
       }
   }
 #endif
@@ -732,8 +737,11 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
       }
       N_Vector deriv = N_VClone(sd->y);
       flag = f(t_initial, sd->y, deriv, sd);
+#ifdef PMC_USE_MPI
+      MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
       if (flag != 0)
-        printf("\nCall to f() at failed state failed with flag %d\n", flag);
+        printf("\nCall to f() at failed state failed with flag %d, rank %d \n", flag, rank);
       /*for (int i_cell = 0; i_cell < md->n_cells; ++i_cell) {
         printf("\n Cell: %d ", i_cell);
         printf("temp = %le pressure = %le\n", env[i_cell * PMC_NUM_ENV_PARAM_],
@@ -800,9 +808,9 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   {
     if (sd->counterDerivGPU>=0)
     {
-      printf("state after cvode, length %d\n", md->n_per_cell_state_var);
+      printf("state after cvode [(id),conc], length %d\n", md->n_per_cell_state_var);
       for (int i = 0; i < md->n_per_cell_state_var; i++) {  // NV_LENGTH_S(deriv)
-        printf("%-le ", state[i]);
+        printf("(%d) %-le ", i, state[i]);
       }
       printf("\n");
       printf("env [temp, press]\n%-le, %-le\n", env[0], env[1]);
@@ -1956,6 +1964,10 @@ SUNMatrix get_jac_init(SolverData *solver_data) {
  */
 int check_flag(void *flag_value, char *func_name, int opt) {
   int *err_flag;
+  int rank=0;
+#ifdef PMC_USE_MPI
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
 
   /* Check for a NULL pointer */
   if (opt == 0 && flag_value == NULL) {
@@ -1968,8 +1980,8 @@ int check_flag(void *flag_value, char *func_name, int opt) {
   else if (opt == 1) {
     err_flag = (int *)flag_value;
     if (*err_flag < 0) {
-      fprintf(stderr, "\nSUNDIALS_ERROR: %s() failed with flag = %d\n\n",
-              func_name, *err_flag);
+      fprintf(stderr, "\nSUNDIALS_ERROR: %s() failed with flag = %d, rank %d\n\n",
+              func_name, *err_flag, rank);
       return CAMP_SOLVER_FAIL;
     }
   }

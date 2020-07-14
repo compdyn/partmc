@@ -34,6 +34,8 @@ program pmc_test_cb05cl_ae5
 #endif
   use pmc_netcdf
 
+#define PMC_MONARCH_INPUT
+
   ! EBI Solver
   use module_bsc_chem_data
 
@@ -94,6 +96,8 @@ program pmc_test_cb05cl_ae5
 
   open(unit=DEBUG_UNIT, file="out/debug_cb05cl_ae.txt", status="replace", action="write")
 #endif
+
+  call pmc_mpi_init()
 
   camp_solver_data => camp_solver_data_t()
 
@@ -256,7 +260,7 @@ contains
 #endif
 
     ! initialize MPI
-     call pmc_mpi_init()
+     !call pmc_mpi_init()
 
     ! Read from the .sh script the command arguments
     call get_command_argument(1, aux_arg, status=status_code)
@@ -268,11 +272,13 @@ contains
     call get_command_argument(4, aux_arg, status=status_code)
     read(aux_arg,*)pmc_multicells
 
+    call assert_msg(921735481, (pmc_multicells.ne.0 .or. pmc_multicells.ne.1), "Wrong pmc_multicells config value (use 0 or 1)")
+
     !Default init
     !n_cells = NUM_CELLS !i_n*j_n*k_n
     KPP_ICNTRL( : ) = 0
-    temperature = 272.5 !v9:202.9565 !v48:297.93 !orig:272.5
-    pressure = 0.8 !v9:0.1456779 !v48:0.998 !orig:0.8
+    temperature = 297.93 !v9:202.9565 !v48:297.93 !orig:272.5
+    pressure = 0.998 !v9:0.1456779 !v48:0.998 !orig:0.8
     water_conc = 0.0 ! (Set by CAMP-chem initial concentration)
 
     compare_results = 1
@@ -462,6 +468,7 @@ contains
     call assert(298481296, camp_core%get_chem_spec_data(chem_spec_data))
 
     ! Find the constant species in the CB5 mechanism
+    !todo this species are not plot, maybe there are on state but not in deriv I guess?
     spec_name = "M"
     i_M   = chem_spec_data%gas_state_id(spec_name)
     spec_name = "O2"
@@ -523,9 +530,9 @@ contains
         call camp_core%update_data(jo2_rate_update,i_cell+1)
         do i_photo_rxn = 1, n_photo_rxn
 #ifdef PMC_MONARCH_INPUT
-            call rate_update(i_photo_rxn)%set_rate(real(photo_rates(i_photo_rxn)/60+0.000001*i_cell, kind=dp))
+          call rate_update(i_photo_rxn)%set_rate(real(photo_rates(i_photo_rxn)/60, kind=dp))
 #else
-          call rate_update(i_photo_rxn)%set_rate(real(0.0001+0.000001*i_cell, kind=dp))
+          call rate_update(i_photo_rxn)%set_rate(real(0.0001+0.0000001*(i_cell-1), kind=dp))
 #endif
           call camp_core%update_data(rate_update(i_photo_rxn),i_cell)
         end do
@@ -563,10 +570,13 @@ contains
     !open(30, file="../../../../test/chemistry/cb05cl_ae5/files/ebi_output_1_1_48_kss_kae.txt", status="old")
     !open(30, file="../../../../test/chemistry/cb05cl_ae5/files/ebi_output_1_1_9_ksskse_lemisF_ldrydepF_lcldchemF.txt", status="old")
     !open(30, file="../../../../test/chemistry/cb05cl_ae5/files/ebi_output_1_1_9_ksskse_photo0_lemisF_ldrydepF_lcldchemF.txt", status="old")
+    !open(30, file="../../../../test/chemistry/cb05cl_ae5/files/ebi_input&
+    !        _1_1_48_ksskse_photo0_lemisF_ldrydepF_lcldchemF.txt", status="old")
+
     open(30, file="../../../../test/chemistry/cb05cl_ae5/files/ebi_input&
             _all_all_48_ksskse_photo0_lemisF_ldrydepF_lcldchemF_reverse.txt", status="old")
     !open(30, file="../../../../test/chemistry/cb05cl_ae5/files/ebi_input&
-    !        _1_1_48_ksskse_photo0_lemisF_ldrydepF_lcldchemF.txt", status="old")
+    !        _all_all_all_ksskse_photo0_lemisF_ldrydepF_lcldchemF.txt", status="old")
 
     open(31, file="../../../../test/chemistry/cb05cl_ae5/files/ebi_temp_press&
             _all_all_48.txt", status="old")
@@ -597,8 +607,6 @@ contains
       read(31,*) name_cell
       read(31,*) temperatures(i_cell+1)
       read(31,*) pressures(i_cell+1)
-
-
 
       do i_spec = 1, NUM_EBI_SPEC !72
         ! Get initial concentrations from camp-chem input data
@@ -818,6 +826,7 @@ contains
     CALL KPP_Update_RCONST()
 
 #ifdef PMC_MONARCH_INPUT
+    state_size_cell = size(chem_spec_data%get_spec_names())
 #else
     state_size_cell = size(chem_spec_data%get_spec_names()) !size(camp_state%state_var) / n_cells
 #endif
@@ -874,6 +883,18 @@ contains
     ebi_init(:) = YC(:)
     kpp_init(:) = KPP_C(:)
     camp_init(:) = camp_state%state_var(:)
+
+#ifndef PRINT_STATE_INPUT
+    do i_spec = 1, NUM_EBI_SPEC
+      write(EBI_KPP_FILE_UNIT,*) "(id), spec_name, camp input"
+      associate (camp_var=>camp_state%state_var( &
+              chem_spec_data%gas_state_id( &
+                      ebi_monarch_spec_names(i_spec)%string)))
+        write(*,*) i_spec, ebi_monarch_spec_names(i_spec)%string, &
+                camp_var
+      end associate
+    end do
+#endif
 
     ! Repeatedly solve the mechanism
     do i_repeat = 1, n_repeats
@@ -976,10 +997,7 @@ contains
       end do
     end do
 
-#ifdef PMC_COMPARE
     ! Output the computational time
-    write(*,*) "EBI calculation time: ", comp_ebi," s"
-    write(*,*) "KPP calculation time: ", comp_kpp," s"
     write(*,*) "CAMP-chem calculation time: ", comp_camp," s"
 
     ! Output final timestep
@@ -1001,8 +1019,8 @@ contains
 
     ! Compare the results
     ! EBI <-> CAMP-chem
-    if(.true.) then
     do i_spec = 1, NUM_EBI_SPEC
+#ifdef PMC_COMPARE
       call assert_msg(749090387, almost_equal(real(YC(i_spec), kind=dp), &
           camp_state%state_var( &
                   chem_spec_data%gas_state_id( &
@@ -1021,6 +1039,7 @@ contains
           trim(to_string(real(ebi_init(i_spec), kind=dp)))//"; camp init: "// &
           trim(to_string(camp_init(chem_spec_data%gas_state_id( &
                   ebi_spec_names(i_spec)%string)))))
+#endif
 
       associate (camp_var=>camp_state%state_var( &
               chem_spec_data%gas_state_id( &
@@ -1033,8 +1052,8 @@ contains
                 YC(map_ebi_monarch(i_spec))
       end associate
     end do
-    endif
 
+#ifdef PMC_COMPARE_KPP
     ! KPP <-> CAMP-chem
     do i_spec = 1, KPP_NSPEC
       str_temp%string = trim(KPP_SPC_NAMES(i_spec))
@@ -1069,7 +1088,6 @@ contains
                 real(KPP_C(i_spec)*conv, kind=dp)
       end associate
     end do
-
 #endif
 
     ! Close the output files
@@ -1198,9 +1216,9 @@ contains
       !start=(/i_start,j_start,k_start,t_start/),count=(/1,1,1,1/))
 
 
-      !print *, "hola ",spec_names(i_spec)%string
+      !print *, "spec_names(i_spec)%string ",spec_names(i_spec)%string
     end do
-    !print *, "hola ",spec_names(i_spec)%string, working_array(1,1)
+    !print *, "spec_names(i_spec)%string, working_array(1,1) ",spec_names(i_spec)%string, working_array(1,1)
     !todo: change prints for tests that check the correct reading of netcdf variables
 
     !Set in state array

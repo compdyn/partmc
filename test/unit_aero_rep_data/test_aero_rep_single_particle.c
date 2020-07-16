@@ -22,7 +22,7 @@
 // number of Jacobian elements used for the test phase
 #define N_JAC_ELEM 8
 
-// Test concentrations (ug/m3)
+// Test concentrations (kg/m3)
 #define CONC_1A 1.0
 #define CONC_1B 2.0
 #define CONC_1C 3.0
@@ -32,7 +32,7 @@
 #define CONC_3B 7.0
 #define CONC_3E 8.0
 
-// Molecular weight of test species (must match json file)
+// Molecular weight (kg/mol) of test species (must match json file)
 #define MW_A 1.0
 #define MW_B 11.0
 #define MW_C 36.2
@@ -41,7 +41,7 @@
 #define MW_F 623.2
 #define MW_G 72.3
 
-// Density of test species (must match json file)
+// Density (kg/m3) of test species (must match json file)
 #define DENSITY_A 1.0
 #define DENSITY_B 2.0
 #define DENSITY_C 3.0

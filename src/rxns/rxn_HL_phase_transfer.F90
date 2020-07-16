@@ -40,7 +40,7 @@
 !!
 !! Condensation rate constants are calculated as:
 !! \f[
-!!   k_{f} = (\frac{r^2}{3D_g} + \frac{4r}{3 \langle c \rangle \alpha})
+!!   k_{f} = (\frac{r^2}{3D_g} + \frac{4r}{3 \langle c \rangle \alpha})^{-1}
 !! \f]
 !! where \f$r\f$ is the particle radius (\f$\mbox{m}\f$) and
 !! \f$\langle c \rangle \f$ is the mean speed of the gas-phase molecules:

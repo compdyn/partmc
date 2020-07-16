@@ -373,10 +373,12 @@ contains
     real(kind=dp), intent(in), optional :: abs_tol
 
     !> Relative tolerance.
-    real(kind=dp) :: eps = 1d-8
+    real(kind=dp) :: eps
     !> Absolute tolerance.
-    real(kind=dp) :: at = 1d-30
+    real(kind=dp) :: at
 
+    eps = 1d-8
+    at = 1d-30
     if (present(rel_tol)) eps = rel_tol
     if (present(abs_tol)) at  = abs_tol
 

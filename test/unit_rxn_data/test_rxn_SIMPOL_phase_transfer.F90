@@ -369,18 +369,18 @@ contains
       del_G = (del_H - temperature * del_S/1000.0d0) * 4184.0d0
       alpha = exp(-del_G/(const%univ_gas_const*temperature))
       alpha = alpha / (1.0d0 + alpha)
-      crms = sqrt(8.0d0*const%univ_gas_const*temperature/(const%pi*46.07d0))
+      crms = sqrt(8.0d0*const%univ_gas_const*temperature/(const%pi*0.04607d0))
       k_forward = number_conc * ((radius**2 / (3.0d0 * Dg_ethanol) + &
               4.0d0 * radius / (3.0d0 * crms * alpha))**(-1))     ! (1/s)
 
       ! Determine the equilibrium concentrations
       ! [A_gas] =  VP_ethanol
       ! [A_aero] = [A_total] - VP_ethanol
-      kgm3_to_ppm = const%univ_gas_const * temperature / (46.07d0 * pressure)
+      kgm3_to_ppm = const%univ_gas_const * temperature / (0.04607d0 * pressure)
       total_mass = true_conc(0,idx_ethanol)/kgm3_to_ppm + &
               true_conc(0,idx_ethanol_aq)*number_conc ! (kg/m3)
 
-      ! Iterated to find equil_ethanol_aq
+      ! Iterated to find equil_ethanol_aq (FIXME might need to update this after fixing MW units)
       equil_ethanol_aq = 1.48804181d-2 ! (kg/m3)
       equil_ethanol = (total_mass-equil_ethanol_aq)*kgm3_to_ppm
       equil_ethanol_aq = equil_ethanol_aq/number_conc

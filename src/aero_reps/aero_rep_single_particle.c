@@ -179,7 +179,6 @@ void aero_rep_single_particle_get_effective_radius__m(
   double *float_data = aero_rep_float_data;
 
   *radius = RADIUS_;
-  double total_volume = 4.0 / 3.0 * 3.14159265359 * pow(RADIUS_, 3);
 
   if (partial_deriv) {
     for (int i_phase = 0; i_phase < NUM_PHASE_; ++i_phase) {
@@ -190,9 +189,7 @@ void aero_rep_single_particle_get_effective_radius__m(
                                    state, &(volume), partial_deriv);
       for (int i_spec = 0; i_spec < PHASE_NUM_JAC_ELEM_(i_phase); ++i_spec) {
         *partial_deriv =
-            1.0 / 4.0 / 3.14159265359 *
-            pow((3.0 / 4.0 / 3.14159265359 * total_volume), -2.0 / 3.0) *
-            (*partial_deriv);
+            1.0 / 4.0 / 3.14159265359 * pow(*radius, -2.0) * (*partial_deriv);
         ++partial_deriv;
       }
     }

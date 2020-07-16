@@ -254,7 +254,7 @@ int compare_and_update(ModelElement current, ModelElement *last_check,
           do_compare) {
         printf(
             "\n  %s[%d]: float datum %d (at index %d) difference: current = "
-            "%lf, last check = %lf",
+            "%lg, last check = %lg",
             element_type, e, count, i, current.ptrs.float_data[i],
             last_check->ptrs.float_data[i]);
         ++num_diff;
@@ -294,7 +294,7 @@ int compare_and_update(ModelElement current, ModelElement *last_check,
         if (curr_env_ptr[i] != last_env_ptr[i] && do_compare) {
           printf(
               "\n  %s[%d]: env datum %d (at index %d) for cell %d difference: "
-              "current = %lf, last check = %lf",
+              "current = %lg, last check = %lg",
               element_type, e, count, i, i_cell, curr_env_ptr[i],
               last_env_ptr[i]);
           ++num_diff;

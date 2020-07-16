@@ -28,7 +28,7 @@
 !!
 !! Condensation rate constants are calculated as:
 !! \f[
-!!   k_{f} = (\frac{r^2}{3D_g} + \frac{4r}{3 \langle c \rangle \alpha})
+!!   k_{f} = (\frac{r^2}{3D_g} + \frac{4r}{3 \langle c \rangle \alpha})^{-1}
 !! \f]
 !! where \f$r\f$ is the particle radius (\f$\mbox{m}\f$) and
 !! \f$\langle c \rangle \f$ is the mean speed of the gas-phase molecules:
@@ -67,7 +67,7 @@
 !! \b weight \b [kg \b mol-1], which specifies the molecular weight of the
 !! species in \f$\mbox{\si{\kilo\gram\per\mole}}\f$. They may optionally
 !! include the parameter \b N \b star, which will be used to calculate th
-!! mass accomodation coefficient. When this parameter is not included, th
+!! mass accomodation coefficient. When this parameter is not included, the
 !! mass accomodation coefficient is assumed to be 1.0.
 !!
 !! The key-value pair \b B is also required and must have a value of an array
@@ -404,11 +404,11 @@ contains
     call assert_msg(948176709, spec_props%get_real(key_name, DIFF_COEFF_), &
             "Missing diffusion coefficient"//error_msg)
 
-    ! Calculate the constant portion of c_rms [m/(K^2*s)]
+    ! Calculate the constant portion of c_rms [m /( K^(1/2) * s )]
     key_name = "molecular weight [kg mol-1]"
     call assert_msg(272813400, spec_props%get_real(key_name, temp_real), &
             "Missing molecular weight"//error_msg)
-    PRE_C_AVG_ = sqrt(8.0*const%univ_gas_const/(const%pi*temp_real*1.0e3))
+    PRE_C_AVG_ = sqrt(8.0*const%univ_gas_const/(const%pi*temp_real))
 
     ! Check the sizes of the data arrays
     tmp_size = PHASE_INT_LOC_(i_aero_id - 1) + 1 + &

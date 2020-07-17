@@ -111,11 +111,10 @@ module pmc_rxn_SIMPOL_phase_transfer
 #define B4_ this%condensed_data_real(8)
 #define CONV_ this%condensed_data_real(9)
 #define MW_ this%condensed_data_real(10)
-#define SMALL_NUMBER_ this%condensed_data_real(11)
 #define NUM_AERO_PHASE_ this%condensed_data_int(1)
 #define GAS_SPEC_ this%condensed_data_int(2)
 #define NUM_INT_PROP_ 2
-#define NUM_REAL_PROP_ 11
+#define NUM_REAL_PROP_ 10
 #define NUM_ENV_PARAM_ 3
 #define AERO_SPEC_(x) this%condensed_data_int(NUM_INT_PROP_+x)
 #define AERO_ACT_ID_(x) this%condensed_data_int(NUM_INT_PROP_+NUM_AERO_PHASE_+x)

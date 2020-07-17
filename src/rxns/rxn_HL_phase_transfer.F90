@@ -105,11 +105,10 @@ module pmc_rxn_HL_phase_transfer
 #define C_ this%condensed_data_real(6)
 #define CONV_ this%condensed_data_real(7)
 #define MW_ this%condensed_data_real(8)
-#define SMALL_NUMBER_ this%condensed_data_real(9)
 #define NUM_AERO_PHASE_ this%condensed_data_int(1)
 #define GAS_SPEC_ this%condensed_data_int(2)
 #define NUM_INT_PROP_ 2
-#define NUM_REAL_PROP_ 9
+#define NUM_REAL_PROP_ 8
 #define NUM_ENV_PARAM_ 3
 #define DERIV_ID_(x) this%condensed_data_int(NUM_INT_PROP_+x)
 #define JAC_ID_(x) this%condensed_data_int(NUM_INT_PROP_+1+NUM_AERO_PHASE_+x)

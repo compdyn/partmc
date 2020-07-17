@@ -12,6 +12,7 @@
     "monarch_mod37/inorganic_partitioning.json",
     "monarch_mod37/inorganic_reactions.json",
     "monarch_mod37/inorganic_species.json",
+    "monarch_mod37/inorganic_ZSR_water.json",
     "monarch_mod37/partitioning_species_params.json",
     "monarch_mod37/tsigaridis_2_product_SOA_scheme/mechanism.json",
     "monarch_mod37/tsigaridis_2_product_SOA_scheme/species.json"

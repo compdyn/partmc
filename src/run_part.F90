@@ -133,6 +133,7 @@ contains
 
 
     type(camp_state_t), pointer :: camp_state
+    type(camp_state_t), pointer :: camp_pre_aero_state, camp_post_aero_state
     real(kind=dp) :: time, pre_time, pre_del_t, prop_done
     real(kind=dp) :: last_output_time, last_progress_time
     integer :: rank, n_proc, pre_index, ncid
@@ -174,6 +175,8 @@ contains
 
     if (run_part_opt%do_camp_chem) then
        camp_state => camp_core%new_state(env_state)
+       camp_pre_aero_state => camp_core%new_state(env_state)
+       camp_post_aero_state => camp_core%new_state(env_state)
     end if
 
     if (run_part_opt%do_mosaic) then
@@ -276,7 +279,8 @@ contains
 
 #ifdef PMC_USE_SUNDIALS
        if (run_part_opt%do_camp_chem) then
-          call pmc_camp_interface_solve(camp_core, camp_state, aero_data, &
+          call pmc_camp_interface_solve(camp_core, camp_state, &
+               camp_pre_aero_state, camp_post_aero_state, aero_data, &
                aero_state, gas_data, gas_state, photolysis, &
                run_part_opt%del_t)
        end if

@@ -20,8 +20,6 @@
 
 // Universal gas constant (J/mol/K)
 #define UNIV_GAS_CONST_ 8.314472
-// Small number for ignoring low concentrations
-#define VERY_SMALL_NUMBER_ 1.0e-30
 // Factor used to calculate minimum aerosol water concentrations for
 // HL phase transfer
 #define MIN_WATER_ 1.0e-4
@@ -38,14 +36,13 @@
 #define C_ float_data[5]
 #define CONV_ float_data[6]
 #define MW_ float_data[7]
-#define SMALL_NUMBER_ float_data[8]
 #define NUM_AERO_PHASE_ int_data[0]
 #define GAS_SPEC_ (int_data[1] - 1)
 #define C_AVG_ALPHA_ rxn_env_data[0]
 #define EQUIL_CONST_ rxn_env_data[1]
 #define KGM3_TO_PPM_ rxn_env_data[2]
 #define NUM_INT_PROP_ 2
-#define NUM_FLOAT_PROP_ 9
+#define NUM_FLOAT_PROP_ 8
 #define NUM_ENV_PARAM_ 3
 #define DERIV_ID_(x) int_data[NUM_INT_PROP_ + x]
 #define JAC_ID_(x) int_data[NUM_INT_PROP_ + 1 + NUM_AERO_PHASE_ + x]
@@ -177,16 +174,10 @@ void rxn_HL_phase_transfer_update_ids(ModelData *model_data, int *deriv_ids,
     }
   }
 
-  // Calculate a small number based on the integration tolerances to use
-  // during solving. TODO find a better place to do this
-  double *abs_tol = (double *)model_data->abs_tol;
-  SMALL_NUMBER_ = (abs_tol[GAS_SPEC_] > abs_tol[AERO_SPEC_(0)]
-                       ? abs_tol[AERO_SPEC_(0)] / 10.0
-                       : abs_tol[GAS_SPEC_] / 10.0);
-
   // Calculate a small concentration for aerosol-phase water based on the
   // integration tolerances to use during solving. TODO find a better place
   // to do this
+  double *abs_tol = (double *)model_data->abs_tol;
   for (int i_aero_phase = 0; i_aero_phase < NUM_AERO_PHASE_; i_aero_phase++) {
     SMALL_WATER_CONC_(i_aero_phase) = abs_tol[AERO_WATER_(i_aero_phase)] / 10.0;
   }
@@ -396,11 +387,11 @@ void rxn_HL_phase_transfer_calc_jac_contrib(ModelData *model_data, Jacobian jac,
 
     // Calculate the rate constant for diffusion limited mass transfer to the
     // aerosol phase (1/s)
-    realtype cond_rate = 1.0 / (radius * radius / (3.0 * DIFF_COEFF_) +
-                                4.0 * radius / (3.0 * C_AVG_ALPHA_));
+    long double cond_rate = 1.0 / (radius * radius / (3.0 * DIFF_COEFF_) +
+                                   4.0 * radius / (3.0 * C_AVG_ALPHA_));
 
     // Calculate the evaporation rate constant (1/s)
-    realtype evap_rate = cond_rate / (EQUIL_CONST_);
+    long double evap_rate = cond_rate / (EQUIL_CONST_);
 
     // Get the overall rate for certain Jac elements
     long double rate =
@@ -441,12 +432,10 @@ void rxn_HL_phase_transfer_calc_jac_contrib(ModelData *model_data, Jacobian jac,
     // Add contributions from species used in aerosol property calculations
 
     // Calculate d_rate/d_effecive_radius and d_rate/d_number_concentration
-    realtype d_rate_d_radius =
-        rate *
-        -(2.0 * radius / (3.0 * DIFF_COEFF_) + 4.0 / (3.0 * C_AVG_ALPHA_)) /
-        (radius * radius / (3.0 * DIFF_COEFF_) +
-         4.0 * radius / (3.0 * C_AVG_ALPHA_));
-    realtype d_rate_d_number = rate / number_conc;
+    long double d_rate_d_radius =
+        -rate * cond_rate *
+        (2.0 * radius / (3.0 * DIFF_COEFF_) + 4.0 / (3.0 * C_AVG_ALPHA_));
+    long double d_rate_d_number = rate / number_conc;
 
     // Loop through Jac elements and update
     for (int i_elem = 0; i_elem < NUM_AERO_PHASE_JAC_ELEM_(i_phase); ++i_elem) {

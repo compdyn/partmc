@@ -190,7 +190,7 @@ void rxn_update_env_state(ModelData *model_data) {
 #ifdef PMC_USE_MPI
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  if (rank==0) {
+  if (rank==10) {
     //printf("RXN id,type,\n");
     //printf("Rates Arrhenius:\n");
   }
@@ -215,7 +215,7 @@ void rxn_update_env_state(ModelData *model_data) {
 
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  if (rank==0) {
+  if (rank==10) {
    // printf("%d,%d", i_rxn, rxn_type);
     }
 #endif

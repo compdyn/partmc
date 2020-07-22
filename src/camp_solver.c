@@ -49,6 +49,8 @@
 #define CAMP_SOLVER_SUCCESS 0
 #define CAMP_SOLVER_FAIL 1
 
+#define MPI_RANK0 0
+
 /** \brief Get a new solver object
  *
  * Return a pointer to a new SolverData object
@@ -131,9 +133,12 @@ void *solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
   for (int i = 0; i < n_state_var; i++)
     if (var_type[i] == CHEM_SPEC_VARIABLE) n_dep_var++;
 
+#ifdef PMC_DEBUG2_GPU
   printf("(id) var_type\n");
   for (int i = 0; i < n_state_var; i++)
     printf("(%d) %d ",i+1,var_type[i]);
+  printf("\n");
+#endif
 
   // Save the number of solver variables per grid cell
   sd->model_data.n_per_cell_dep_var = n_dep_var;
@@ -369,7 +374,7 @@ void *solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
 #ifdef PMC_USE_MPI
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-      if (rank==0)
+      if (rank==999)
   {
         //printf("n_rxn:%d\n",n_rxn);
   }
@@ -377,7 +382,8 @@ void *solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
 #endif
 #endif
 
-  //sd->spec_names = (char**) malloc(sizeof(char*)*n_state_var);
+  //todo optimize, use for only rank 0 or debug flag
+  sd->spec_names = (char**) malloc(sizeof(char*)*n_state_var);
 
   // Return a pointer to the new SolverData object
   return (void *)sd;
@@ -385,31 +391,31 @@ void *solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
 
 void solver_set_spec_name(void *solver_data, char *spec_name, int size_spec_name, int i) {
 
-  /*
+
 //todo check if exists a name (ranks without a spec name crashes)
 #ifdef PMC_USE_MPI
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank); //ok its not comm_world :/
   //I have to send de comm to camp_core and only call this funct in that case
   //and i guess it will work then?
-    if (rank==0)
+    if (rank==MPI_RANK0)
   {
-      printf("%d aaa", size_spec_name);
+    //printf("%d aaa", size_spec_name);
     SolverData *sd;
     sd = (SolverData *)solver_data;
     sd->spec_names[i] = malloc(sizeof(char)*(size_spec_name+1));
 
-    printf("%d bbb", size_spec_name);
+    //printf("%d bbb", size_spec_name);
 
     //strncpy(sd->spec_names[i], spec_name, size_spec_name); //Copy size bytes
     for (int j=0; j<size_spec_name; j++)
       sd->spec_names[i][j] = spec_name[j];
 
     sd->spec_names[i][size_spec_name] = '\0'; //Add null terminator
-    printf("%d ccc", size_spec_name);
+    //printf("%d ccc", size_spec_name);
   }
 #endif
-*/
+
 
 }
 
@@ -599,7 +605,7 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
 #ifndef PMC_DEBUG_GPU
 #ifdef PMC_USE_MPI
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  if (rank==0)
+  if (rank==999)
   {
     if (sd->counterDerivGPU==0)
     {
@@ -640,7 +646,7 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
 #ifndef PMC_DEBUG_GPU
 #ifdef PMC_USE_MPI
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  if (rank==0)
+  if (rank==999)
   {
     if (sd->counterDerivGPU==0)
       {
@@ -711,7 +717,7 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
 #ifdef PMC_DEBUG_GPU
 #ifdef PMC_USE_MPI
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  if (rank==0)
+  if (rank==999)
   {
     if (sd->counterDerivGPU==0){//never comes because the deriv is computed I think
       //printf("Entering CVodeRun iter %d...\n", sd->counterDerivGPU);
@@ -763,7 +769,7 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
 #endif
 #ifdef PMC_USE_MPI
       MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-      if (rank==0)
+      if (rank==999)
       {
         printf("CAMP_SOLVER_FAIL %d counterDerivGPU:%d\n",flag, sd->counterDerivGPU);
       }
@@ -775,7 +781,7 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
 #ifdef PMC_DEBUG_GPU
 #ifdef PMC_USE_MPI
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  if (rank==0)
+  if (rank==999)
   {
     if (sd->counterDerivGPU>=0)
       {
@@ -804,16 +810,18 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
 
 #ifdef PMC_USE_MPI
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  if (rank==0)
+  if (rank==999)
   {
     if (sd->counterDerivGPU>=0)
     {
-      printf("state after cvode [(id),conc], length %d\n", md->n_per_cell_state_var);
+      /*printf("state after cvode [(id),conc], length %d\n", md->n_per_cell_state_var);
       for (int i = 0; i < md->n_per_cell_state_var; i++) {  // NV_LENGTH_S(deriv)
         printf("(%d) %-le ", i, state[i]);
       }
-      printf("\n");
+      printf("\n");*/
       printf("env [temp, press]\n%-le, %-le\n", env[0], env[1]);
+      printf("counterDeriv:%d\n",sd->counterDerivGPU);
+      sd->counterDerivGPU=0;
     }
   }
 #endif
@@ -1093,7 +1101,7 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
 #ifdef PMC_USE_MPI
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  if (rank==0)
+  if (rank==999)
   {
     if (sd->counterDerivGPU<3)
     {
@@ -1911,13 +1919,13 @@ SUNMatrix get_jac_init(SolverData *solver_data) {
   PMC_DEBUG_JAC_STRUCT(sd->model_data.J_rxn, "Reaction struct");
   PMC_DEBUG_JAC_STRUCT(M, "Solver struct");
 
-#ifdef PMC_DEBUG_GPU
+#ifdef PMC_DEBUG2_GPU
 #ifdef PMC_USE_MPI
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  if (rank==0)
+  if (rank==MPI_RANK0)
   {
-    //pmc_debug_print_jac_rel(sd, sd->model_data.J_rxn, "RXN relations"); //Fine but strange reactants affecting reactants
+    pmc_debug_print_jac_rel(sd, sd->model_data.J_rxn, "RXN relations"); //Fine but strange reactants affecting reactants
   }
 #endif
 #endif

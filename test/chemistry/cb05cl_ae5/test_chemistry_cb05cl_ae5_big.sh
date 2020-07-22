@@ -124,10 +124,10 @@ else
   #supongo que habra algun size o asi
 
   #Arguments are netcdf read parameters: i, j, k, t, i_count, j_count, k_count, t_count
-  n_cells=(2) #(100 1125 3375 5625 7875 10800)
+  n_cells=(200) #(100 1125 3375 5625 7875 10800)
   offset_conc=(0) #0.1
   offset_temp=(0) #0.0006
-  pmc_multicells=(1) #do multicells? 0=false, 1=true
+  pmc_multicells=(0) #do multicells? 0=false, 1=true
 
   echo "Test configuration:" > ../../../../../profile_stats.csv
 

@@ -237,8 +237,8 @@ contains
 
     ! Arrays to hold starting concentrations
     real(kind=dp), allocatable :: ebi_init(:), kpp_init(:), camp_init(:)
-#ifdef PMC_MONARCH_INPUT
     real(kind=dp), allocatable :: temperatures(:), pressures(:)
+#ifdef PMC_MONARCH_INPUT
     real(kind=dp), dimension(NUM_EBI_SPEC) :: ebi_monarch_init
     integer, dimension(NUM_EBI_SPEC) :: map_ebi_monarch
 #endif
@@ -248,7 +248,7 @@ contains
     real(kind=dp) :: offset_temp
     integer(kind=i_kind) :: n_repeats
     !netcdf
-    integer(kind=i_kind) :: input_id, varid
+    integer(kind=i_kind) :: input_id, varid, offset
     character*8 :: t
     character(len=50) :: aux_arg
     integer :: status_code
@@ -444,6 +444,8 @@ contains
 
 #endif
 
+    !write(*,*) "hola"
+
     ! Initialize the solver
     call camp_core%solver_initialize()
 
@@ -564,6 +566,15 @@ contains
     KPP_C(:) = 0.0
     camp_state%state_var(:) = 0.0
 
+    if(pmc_multicells.eq.0) then
+      allocate(model_conc(size(camp_state%state_var)*n_cells))
+    endif
+
+    allocate(temperatures(n_cells))
+    temperatures(:) = temperature
+    allocate(pressures(n_cells))
+    pressures(:) = pressure*const%air_std_press
+
 #ifdef PMC_MONARCH_INPUT
     state_size_cell = size(chem_spec_data%get_spec_names()) !size(camp_state%state_var) / n_cells
 
@@ -573,19 +584,33 @@ contains
     !open(30, file="../../../../test/chemistry/cb05cl_ae5/files/ebi_input&
     !        _1_1_48_ksskse_photo0_lemisF_ldrydepF_lcldchemF.txt", status="old")
 
-    open(30, file="../../../../test/chemistry/cb05cl_ae5/files/ebi_input&
-            _all_all_48_ksskse_photo0_lemisF_ldrydepF_lcldchemF_reverse.txt", status="old")
+    !open(30, file="../../../../test/chemistry/cb05cl_ae5/files/ebi_input&
+    !        _all_all_48_ksskse_photo0_lemisF_ldrydepF_lcldchemF_reverse.txt", status="old")
     !open(30, file="../../../../test/chemistry/cb05cl_ae5/files/ebi_input&
     !        _all_all_all_ksskse_photo0_lemisF_ldrydepF_lcldchemF.txt", status="old")
+    open(30, file="../../../../test/chemistry/cb05cl_ae5/files/ebi_input231&
+            _all_all_all_ksskse_photo0_lemisF_ldrydepF_lcldchemF.txt", status="old")
 
-    open(31, file="../../../../test/chemistry/cb05cl_ae5/files/ebi_temp_press&
-            _all_all_48.txt", status="old")
+    open(31, file="../../../../test/chemistry/cb05cl_ae5/files/ebi231_temp_press&
+            _all_all_all.txt", status="old")
 
+    !Offset
+    offset=0 !690 !1
+    do i_cell = 1, offset
 
-    allocate(temperatures(n_cells))
-    temperatures(:) = temperature
-    allocate(pressures(n_cells))
-    pressures(:) = pressure
+      !write (*,*) "offset concs hola"
+      read(30,*) name_cell !First line indicating layer
+      do i_spec = 1, NUM_EBI_SPEC
+        read(30,*) real_val!ebi_monarch_init(i_spec)
+      end do
+      do i_spec = 1, 6 !Monarch extra species (NH3 and others, cut on 72)
+        read(30,*) real_val !avoid them atm
+      end do
+      read(31,*) name_cell
+      read(31,*) real_val!temperatures(i_cell+1)
+      read(31,*) real_val!pressures(i_cell+1)
+
+    end do
 
     ! Set the initial concentrations in each module
     !todo suppose not multi_cells
@@ -615,7 +640,6 @@ contains
                 ebi_spec_names(i_spec)%string, prop_set))
         if (prop_set%get_real(key, real_val)) then
 
-
           !DEBUG Set real_val from ebi_monarch file
           do j_spec = 1, NUM_EBI_SPEC
             if (trim(ebi_spec_names(i_spec)%string).eq.trim(ebi_monarch_spec_names(j_spec)%string)) then
@@ -625,16 +649,21 @@ contains
             end if
           end do
 
-
           ! Set the EBI solver concetration (ppm)
           YC(i_spec) = real_val
 
-          ! Set the camp-chem concetration (ppm)
-
-          camp_state%state_var( &
-                  chem_spec_data%gas_state_id( &
-                  ebi_spec_names(i_spec)%string)+i_cell*state_size_cell) = real_val
-
+          if(pmc_multicells.eq.1) then
+            ! Set the camp-chem concetration (ppm)
+            camp_state%state_var( &
+                    chem_spec_data%gas_state_id( &
+                    ebi_spec_names(i_spec)%string)+i_cell*state_size_cell) = real_val
+          else
+            camp_state%state_var( &
+                    chem_spec_data%gas_state_id( &
+                            ebi_spec_names(i_spec)%string)) = real_val !not needed en fact
+            model_conc(chem_spec_data%gas_state_id( &
+            ebi_spec_names(i_spec)%string)+i_cell*state_size_cell+j) = real_val
+          end if
         end if
 
         ! Set KPP species concentrations (#/cc)
@@ -836,9 +865,6 @@ contains
     !Netcdf n cells exp values
     !call set_input_from_netcdf(ncfile, state_size_cell, spec_names)
 
-    if(pmc_multicells.eq.0) then
-      allocate(model_conc(size(camp_state%state_var)*n_cells))
-    endif
       ! Set same conc per n_cells
     do i_cell = 0, n_cells-1
         do j = 1, state_size_cell
@@ -849,7 +875,11 @@ contains
             camp_state%state_var(i_cell*state_size_cell+j) = camp_state%state_var(j) + offset_conc*i_cell !0.1*j !todo this should be i_cell...repeat tests
 #endif
           else
+#ifdef PMC_MONARCH_INPUT
+            camp_state%state_var(j) = model_conc(j) + offset_conc*i_cell !+ 0.1*i_cell
+#else
             model_conc(i_cell*state_size_cell+j) = camp_state%state_var(j) + offset_conc*i_cell !+ 0.1*i_cell
+#endif
           endif
         end do
     end do
@@ -857,18 +887,12 @@ contains
     if(pmc_multicells.eq.1) then
       !Set default temperature & pressure to all cells
       do i_cell = 1, n_cells
-#ifdef PMC_MONARCH_INPUT
         call camp_state%env_states(i_cell)%set_temperature_K( real( temperatures(i_cell)+offset_temp*(i_cell-1), kind=dp ) )
-        call camp_state%env_states(i_cell)%set_pressure_Pa( pressures(i_cell) * const%air_std_press )
-#else
-
-        call camp_state%env_states(i_cell)%set_temperature_K( real( temperature+offset_temp*(i_cell-1), kind=dp ) )
-        call camp_state%env_states(i_cell)%set_pressure_Pa( pressure * const%air_std_press )
-#endif
+        call camp_state%env_states(i_cell)%set_pressure_Pa( pressures(i_cell) )
       end do
     else
-      call camp_state%env_states(1)%set_temperature_K( real( temperature, kind=dp ) )
-      call camp_state%env_states(1)%set_pressure_Pa( pressure * const%air_std_press )
+      call camp_state%env_states(1)%set_temperature_K( real( temperatures(1), kind=dp ) )
+      call camp_state%env_states(1)%set_pressure_Pa( pressures(1))
     endif
     ! Save the initial states for repeat calls
     allocate(ebi_init(size(YC)))
@@ -885,7 +909,7 @@ contains
     kpp_init(:) = KPP_C(:)
     camp_init(:) = camp_state%state_var(:)
 
-#ifndef PRINT_STATE_INPUT
+#ifdef PRINT_STATE_INPUT
     do i_spec = 1, NUM_EBI_SPEC
       write(EBI_KPP_FILE_UNIT,*) "(id), spec_name, camp input"
       associate (camp_var=>camp_state%state_var( &
@@ -948,9 +972,9 @@ contains
 #endif
             end do
         else
-            camp_state%state_var( &
-                    chem_spec_data%gas_state_id( &
-                            ebi_spec_names(i_spec)%string)) = YC(i_spec)
+            !camp_state%state_var( &
+            !        chem_spec_data%gas_state_id( &
+            !                ebi_spec_names(i_spec)%string)) = YC(i_spec)
         endif
           end do
         end if
@@ -976,8 +1000,8 @@ contains
         else
           do i_cell = 0, n_cells-1
 
-            call camp_state%env_states(1)%set_temperature_K( real( temperature+offset_temp, kind=dp ) )
-            call camp_state%env_states(1)%set_pressure_Pa( pressure * const%air_std_press )
+            call camp_state%env_states(1)%set_temperature_K( real( temperatures(i_cell+1)+offset_temp, kind=dp ) )
+            call camp_state%env_states(1)%set_pressure_Pa( pressures(i_cell+1))
 
             do j = 1, state_size_cell
               camp_state%state_var(j) = model_conc(i_cell*state_size_cell+j)
@@ -1011,12 +1035,14 @@ contains
     write(*,*) "KPP calculation time: ", comp_kpp," s"
     write(*,*) "CAMP-chem calculation time: ", comp_camp," s"
 
+#ifdef PMC_MONARCH_INPUT
     write(CAMP_EBI_FILE_UNIT,*) "Repeat", i_repeat, "timestep ", NUM_TIME_STEPS
     write(CAMP_EBI_FILE_UNIT,*) "spec_name, concentrations rel. error [(camp_state-ebi)/(camp_state+ebi)], camp_state, ebi"
     write(CAMP_KPP_FILE_UNIT,*) "Repeat", i_repeat, "timestep ", NUM_TIME_STEPS
     write(CAMP_KPP_FILE_UNIT,*) "spec_name, concentrations rel. error [(camp_state-kpp)/(camp_state+kpp)], camp_state, kpp"
     write(EBI_KPP_FILE_UNIT,*) "Repeat", i_repeat, "timestep ", NUM_TIME_STEPS
     write(EBI_KPP_FILE_UNIT,*) "spec_name, concentrations rel. error [(èbi-kpp)/(ebi+kpp)], ebi, kpp"
+#endif
 
     ! Compare the results
     ! EBI <-> CAMP-chem
@@ -1042,6 +1068,7 @@ contains
                   ebi_spec_names(i_spec)%string)))))
 #endif
 
+#ifdef PMC_MONARCH_INPUT
       associate (camp_var=>camp_state%state_var( &
               chem_spec_data%gas_state_id( &
                       ebi_monarch_spec_names(i_spec)%string)))
@@ -1052,6 +1079,7 @@ contains
                 camp_var, &
                 YC(map_ebi_monarch(i_spec))
       end associate
+#endif
     end do
 
 #ifdef PMC_COMPARE_KPP

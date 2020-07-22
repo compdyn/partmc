@@ -795,15 +795,20 @@ contains
     !Set spec names
     !todo include gas and aero names to send all the state variable
     !do i=1,int(size(var_type_c), kind=c_int) ! Size of the state variable
+    !write (*,*) "size(spec_names)",size(spec_names)
+
+#ifdef PMC_DEBUG2_GPU
+    do i=1,size(spec_names)
     !do i=1,40 !approximate gas size (without crashes)
-    !  spec_name = spec_names(i)%string
-    !  call solver_set_spec_name( &
-    !          this%solver_c_ptr, & ! Solver data
-    !          spec_name, & ! Spec name
-    !          len(spec_name), & ! Size spec name
-    !          i-1 & ! Index spec_name for C array
-    !          )
-    !end do
+      spec_name = spec_names(i)%string
+      call solver_set_spec_name( &
+              this%solver_c_ptr, & ! Solver data
+              spec_name, & ! Spec name
+              len(spec_name), & ! Size spec name
+              i-1 & ! Index spec_name for C array
+              )
+    end do
+#endif
 
     ! Initialize the solver
     call solver_initialize( &

@@ -368,13 +368,14 @@ void *solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
 
 #ifndef PMC_DEBUG_GPU
   sd->counterDerivGPU=0;
+  sd->counterSolve=0;
 #endif
 
 #ifdef PMC_DEBUG_GPU
 #ifdef PMC_USE_MPI
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-      if (rank==999)
+      if (rank==0)
   {
         //printf("n_rxn:%d\n",n_rxn);
   }
@@ -605,10 +606,12 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
 #ifndef PMC_DEBUG_GPU
 #ifdef PMC_USE_MPI
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  if (rank==999)
+  if (rank==0)
   {
-    if (sd->counterDerivGPU==0)
+    sd->counterSolve++;
+    if (sd->counterSolve==51)
     {
+
       int n_cell=2;
       printf("camp solver_run start [(id),conc], n_state_var %d, n_cells %d\n", md->n_per_cell_state_var, n_cells);
       for (int i = 0; i < md->n_per_cell_state_var*n_cell; i++) {  // NV_LENGTH_S(deriv)
@@ -646,9 +649,9 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
 #ifndef PMC_DEBUG_GPU
 #ifdef PMC_USE_MPI
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  if (rank==999)
+  if (rank==0)
   {
-    if (sd->counterDerivGPU==0)
+    if (sd->counterSolve==51)
       {
         printf("After set y (deriv), iter %d...\n", sd->counterDerivGPU);
         print_derivative(sd->y);
@@ -717,9 +720,9 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
 #ifdef PMC_DEBUG_GPU
 #ifdef PMC_USE_MPI
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  if (rank==999)
+  if (rank==0)
   {
-    if (sd->counterDerivGPU==0){//never comes because the deriv is computed I think
+    if (sd->counterSolve==51){
       //printf("Entering CVodeRun iter %d...\n", sd->counterDerivGPU);
       //print_derivative(sd->y);
     }
@@ -769,21 +772,22 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
 #endif
 #ifdef PMC_USE_MPI
       MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-      if (rank==999)
+      if (rank==0)
       {
-        printf("CAMP_SOLVER_FAIL %d counterDerivGPU:%d\n",flag, sd->counterDerivGPU);
+        printf("CAMP_SOLVER_FAIL %d counterSolve:%d counterDerivGPU:%d\n",flag,sd->counterSolve,sd->counterDerivGPU);
       }
 #endif
       return CAMP_SOLVER_FAIL;
     }
   }
 
+/*
 #ifdef PMC_DEBUG_GPU
 #ifdef PMC_USE_MPI
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  if (rank==999)
+  if (rank==0)
   {
-    if (sd->counterDerivGPU>=0)
+    if (sd->counterSolve>=0)
       {
         //printf("Deriv after cvode, iter %d...\n", sd->counterDerivGPU);
         //print_derivative(sd->y);
@@ -792,6 +796,7 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   }
 #endif
 #endif
+*/
 
   // Update the species concentrations on the state array
   i_dep_var = 0;
@@ -810,9 +815,9 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
 
 #ifdef PMC_USE_MPI
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  if (rank==999)
+  if (rank==0)
   {
-    if (sd->counterDerivGPU>=0)
+    if (sd->counterSolve>=0)
     {
       /*printf("state after cvode [(id),conc], length %d\n", md->n_per_cell_state_var);
       for (int i = 0; i < md->n_per_cell_state_var; i++) {  // NV_LENGTH_S(deriv)
@@ -820,7 +825,7 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
       }
       printf("\n");*/
       printf("env [temp, press]\n%-le, %-le\n", env[0], env[1]);
-      printf("counterDeriv:%d\n",sd->counterDerivGPU);
+      printf("counterDeriv:%d counterSolve:%d\n",sd->counterDerivGPU, sd->counterSolve);
       sd->counterDerivGPU=0;
     }
   }
@@ -1101,7 +1106,7 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
 #ifdef PMC_USE_MPI
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  if (rank==999)
+  if (rank==0)
   {
     if (sd->counterDerivGPU<3)
     {

@@ -117,7 +117,7 @@ void rxn_arrhenius_update_env_state(ModelData *model_data, int *rxn_int_data,
 #ifdef PMC_USE_MPI
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  if (rank==0) {
+  if (rank==10) {
     printf("RATE_CONSTANT: %-le\n", RATE_CONSTANT_);
     printf("A_: %-le\n", A_);
     printf("B_: %-le\n", B_);

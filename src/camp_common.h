@@ -216,6 +216,7 @@ typedef struct {
 //#ifndef PMC_DEBUG_GPU
   int counterDerivGPU;
   int counterJacGPU;
+  int counterSolve;
 //#endif
 
 #endif

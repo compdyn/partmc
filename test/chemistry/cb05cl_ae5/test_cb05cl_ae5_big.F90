@@ -219,7 +219,7 @@ contains
     integer(kind=i_kind) :: i_spec, j_spec, i_rxn, i_ebi_rxn, i_kpp_rxn, &
             i_time, i_repeat, n_gas_spec
 
-    integer(kind=i_kind) :: i_M, i_O2, i_N2, i_H2O, i_CH4, i_H2
+    integer(kind=i_kind) :: i_M, i_O2, i_N2, i_H2O, i_CH4, i_H2, i_DUMMY
     integer(kind=i_kind), allocatable :: ebi_rxn_map(:), kpp_rxn_map(:)
     integer(kind=i_kind), allocatable :: ebi_spec_map(:), kpp_spec_map(:)
     type(string_t) :: str_temp
@@ -424,7 +424,12 @@ contains
     if( pmc_mpi_rank( ) .eq. 1 ) then
 
       ! unpack the data
-      camp_core  => camp_core_t( )
+      if(pmc_multicells.eq.1) then
+        camp_core => camp_core_t(n_cells=n_cells)
+      else
+        camp_core => camp_core_t()
+      endif
+      !camp_core  => camp_core_t( )
       pos = 0
       call camp_core%bin_unpack(  buffer, pos )
 
@@ -567,8 +572,13 @@ contains
     camp_state%state_var(:) = 0.0
 
     if(pmc_multicells.eq.0) then
+      write(*,*) "size(camp_state%state_var)",size(camp_state%state_var)
       allocate(model_conc(size(camp_state%state_var)*n_cells))
+      model_conc(:)=0.0 !todo worried, whithout this cvode fails on n_cell=50 with n_cells=200 rank231 monarch (but works fine with n_cells=100)
+      !todo missing copy species not from cb05 from state_var to model_conc (or repeat them but well them should be repeated in fact...)
     endif
+
+    !camp_state%state_var(:) = 0.0 !todo check if state is initialized at zero
 
     allocate(temperatures(n_cells))
     temperatures(:) = temperature
@@ -658,9 +668,9 @@ contains
                     chem_spec_data%gas_state_id( &
                     ebi_spec_names(i_spec)%string)+i_cell*state_size_cell) = real_val
           else
-            camp_state%state_var( &
-                    chem_spec_data%gas_state_id( &
-                            ebi_spec_names(i_spec)%string)) = real_val !not needed en fact
+            !camp_state%state_var( &
+            !        chem_spec_data%gas_state_id( &
+            !                ebi_spec_names(i_spec)%string)) = real_val !not needed in fact
             model_conc(chem_spec_data%gas_state_id( &
             ebi_spec_names(i_spec)%string)+i_cell*state_size_cell+j) = real_val
           end if
@@ -759,6 +769,22 @@ contains
     ! Set the water concentration for EBI solver (ppmV)
     water_conc = camp_state%state_var(i_H2O)
 
+    if(pmc_multicells.eq.0) then
+      model_conc(i_M)=camp_state%state_var(i_M)
+      model_conc(i_O2)=camp_state%state_var(i_O2)
+      model_conc(i_N2)=camp_state%state_var(i_N2)
+      model_conc(i_H2O)=camp_state%state_var(i_H2O)
+      model_conc(i_CH4)=camp_state%state_var(i_H2O)
+      model_conc(i_H2)=camp_state%state_var(i_H2)
+      spec_name = "DUMMY"
+      i_DUMMY = chem_spec_data%gas_state_id(spec_name)
+      call assert(663478276, chem_spec_data%get_property_set(spec_name, prop_set))
+      call assert(892572866, associated(prop_set))
+      call assert(722411962, prop_set%get_real(key, real_val))
+      model_conc(i_DUMMY) = real_val
+      write(*,*) "i_DUMMY", i_DUMMY, "model_conc(i_DUMMY)", model_conc(i_DUMMY)
+    end if
+
     ! Set up the output files
     open(EBI_FILE_UNIT, file="out/cb05cl_ae5_ebi_results.txt", status="replace", &
             action="write")
@@ -856,6 +882,7 @@ contains
     CALL KPP_Update_RCONST()
 
 #ifdef PMC_MONARCH_INPUT
+    write(*,*) "state_size_cell", state_size_cell
     state_size_cell = size(chem_spec_data%get_spec_names())
 #else
     state_size_cell = size(chem_spec_data%get_spec_names()) !size(camp_state%state_var) / n_cells

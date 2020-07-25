@@ -33,7 +33,7 @@ module pmc_camp_solver_data
   public :: camp_solver_data_t
 
   !> Default relative tolerance for integration
-  real(kind=dp), parameter :: PMC_SOLVER_DEFAULT_REL_TOL = 1.0D-8
+  real(kind=dp), parameter :: PMC_SOLVER_DEFAULT_REL_TOL = 1.0D-8 !orig:1.0D-8!todo: relax
 ! try 1.0D-5
   !> Default max number of integration steps
   integer(kind=i_kind), parameter :: PMC_SOLVER_DEFAULT_MAX_STEPS = 10000

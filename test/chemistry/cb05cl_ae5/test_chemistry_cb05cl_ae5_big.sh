@@ -124,10 +124,11 @@ else
   #supongo que habra algun size o asi
 
   #Arguments are netcdf read parameters: i, j, k, t, i_count, j_count, k_count, t_count
-  n_cells=(200) #(100 1125 3375 5625 7875 10800)
+  n_cells=(100) #(100 1125 3375 5625 7875 10800)
+  n_blocks=(1)
   offset_conc=(0) #0.1
   offset_temp=(0) #0.0006
-  pmc_multicells=(1) #do multicells? 0=false, 1=true
+  pmc_multicells=(1) #do multicells? 0=false, 1=true, 2=block-cells?
 
   echo "Test configuration:" > ../../../../../profile_stats.csv
 
@@ -135,42 +136,45 @@ else
   for id_pmc_multicells in "${!pmc_multicells[@]}";
   do
     echo "multi_cells ${pmc_multicells[$id_pmc_multicells]}"
-    for id_offset_conc in "${!offset_conc[@]}";
+    for id_n_blocks in "${!n_blocks[@]}";
     do
-      echo "offset_conc ${offset_conc[$id_offset_conc]}"
-      for id_offset_temp in "${!offset_temp[@]}";
+      echo "n_blocks ${n_blocks[$id_n_blocks]}"
+      for id_offset_conc in "${!offset_conc[@]}";
       do
-        echo "offset_temp ${offset_temp[$id_offset_temp]}"
-        for id_n_cells in "${!n_cells[@]}";
+        echo "offset_conc ${offset_conc[$id_offset_conc]}"
+        for id_offset_temp in "${!offset_temp[@]}";
         do
+          echo "offset_temp ${offset_temp[$id_offset_temp]}"
+          for id_n_cells in "${!n_cells[@]}";
+          do
+            echo "n_cells ${n_cells[id_n_cells]}"
 
-          echo "n_cells ${n_cells[id_n_cells]}"
+            #todo in the future save all the interesting profile stats in a file apart from the general output
+            #{
+              #echo "n_cells:${n_cells[id_n_cells]}" >> ../../../../../profile_stats.csv
+              #echo "offset_conc:${offset_conc[$id_offset_conc]}"
+            #} >> ../../../../../profile_stats.csv
 
-          #todo in the future save all the interesting profile stats in a file apart from the general output
-          #{
-            #echo "n_cells:${n_cells[id_n_cells]}" >> ../../../../../profile_stats.csv
-            #echo "offset_conc:${offset_conc[$id_offset_conc]}"
-          #} >> ../../../../../profile_stats.csv
+            # Original
+            exec_str="../../../test_chemistry_cb05cl_ae5_big ${n_cells[id_n_cells]} ${n_blocks[id_n_blocks]} \
+            ${offset_conc[$id_offset_conc]} ${offset_temp[$id_offset_temp]} ${pmc_multicells[$id_pmc_multicells]}"
 
-          # Original
-          exec_str="../../../test_chemistry_cb05cl_ae5_big ${n_cells[id_n_cells]} \
-          ${offset_conc[$id_offset_conc]} ${offset_temp[$id_offset_temp]} ${pmc_multicells[$id_pmc_multicells]}"
+            #--print-gpu-summary
+            #--analysis-metrics -f -o ../../../../mock_monarch_1000.nvprof
+            #exec_str="nvprof --analysis-metrics -f -o ../../../../../test_cb05_10800.nvprof \
+            #../../../test_chemistry_cb05cl_ae5_big ${n_cells[id_n_cells]} \
+            #${offset_conc[$id_offset_conc]} ${offset_temp[$id_offset_temp]} ${pmc_multicells[$id_pmc_multicells]}"
 
-          #--print-gpu-summary
-          #--analysis-metrics -f -o ../../../../mock_monarch_1000.nvprof
-          #exec_str="nvprof --analysis-metrics -f -o ../../../../../test_cb05_10800.nvprof \
-          #../../../test_chemistry_cb05cl_ae5_big ${n_cells[id_n_cells]} \
-          #${offset_conc[$id_offset_conc]} ${offset_temp[$id_offset_temp]} ${pmc_multicells[$id_pmc_multicells]}"
-
-          if ! $exec_str; then
-              echo Failure "$counter"
-               if [ "$counter" -gt 1 ]
-              then
-                echo FAIL
-                exit 1
-              fi
-              ((counter++))
-          fi
+            if ! $exec_str; then
+                echo Failure "$counter"
+                 if [ "$counter" -gt 1 ]
+                then
+                  echo FAIL
+                  exit 1
+                fi
+                ((counter++))
+            fi
+          done
         done
       done
     done

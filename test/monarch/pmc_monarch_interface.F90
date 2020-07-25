@@ -475,7 +475,7 @@ contains
       do i=i_start, i_end
         do j=j_start, j_end
           do k=1, k_end
-            !Remember fortran read matrix in inverse order for optimization!
+            !Remember fortran read matrix in inverse oarder for optimization!
             ! TODO add descriptions for o and z, or preferably use descriptive
             !      variable names
             o = (j-1)*(i_end) + (i-1) !Index to 3D

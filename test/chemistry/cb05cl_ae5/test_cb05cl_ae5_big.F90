@@ -243,7 +243,7 @@ contains
     integer, dimension(NUM_EBI_SPEC) :: map_ebi_monarch
 #endif
     real(kind=dp), allocatable :: model_conc(:)
-    integer(kind=i_kind) :: n_cells, compare_results, i, j, k, s, state_size_cell, i_cell
+    integer(kind=i_kind) :: n_cells, n_blocks, n_cells_block, compare_results, i, j, k, s, state_size_cell, i_cell, i_block
     real(kind=dp) :: offset_conc
     real(kind=dp) :: offset_temp
     integer(kind=i_kind) :: n_repeats
@@ -264,13 +264,18 @@ contains
 
     ! Read from the .sh script the command arguments
     call get_command_argument(1, aux_arg, status=status_code)
-    read(aux_arg,*)n_cells
+    read(aux_arg,*)n_cells_block
     call get_command_argument(2, aux_arg, status=status_code)
-    read(aux_arg,*)offset_conc
+    read(aux_arg,*)n_blocks
     call get_command_argument(3, aux_arg, status=status_code)
-    read(aux_arg,*)offset_temp
+    read(aux_arg,*)offset_conc
     call get_command_argument(4, aux_arg, status=status_code)
+    read(aux_arg,*)offset_temp
+    call get_command_argument(5, aux_arg, status=status_code)
     read(aux_arg,*)pmc_multicells
+
+    n_cells=n_cells_block*n_blocks
+    write(*,*) "n_cells", n_cells, "n_cells_block", n_cells_block, "n_blocks", n_blocks
 
     call assert_msg(921735481, (pmc_multicells.ne.0 .or. pmc_multicells.ne.1), "Wrong pmc_multicells config value (use 0 or 1)")
 
@@ -356,7 +361,7 @@ contains
     call cpu_time(comp_start)
     camp_input_file = "config_cb05cl_ae5_big.json"
     if(pmc_multicells.eq.1) then
-      camp_core => camp_core_t(camp_input_file, n_cells=n_cells)
+      camp_core => camp_core_t(camp_input_file, n_cells=n_cells_block)
     else
       camp_core => camp_core_t(camp_input_file)
     endif
@@ -422,10 +427,11 @@ contains
     call pmc_mpi_bcast_packed(buffer)
 
     if( pmc_mpi_rank( ) .eq. 1 ) then
+      write(*,*) "Rank 1 exists"
 
       ! unpack the data
       if(pmc_multicells.eq.1) then
-        camp_core => camp_core_t(n_cells=n_cells)
+        camp_core => camp_core_t(n_cells=n_cells_block)
       else
         camp_core => camp_core_t()
       endif
@@ -448,8 +454,6 @@ contains
     end if
 
 #endif
-
-    !write(*,*) "hola"
 
     ! Initialize the solver
     call camp_core%solver_initialize()
@@ -531,7 +535,7 @@ contains
     KPP_PHOTO_RATES(1) = 0.0
     ! Set the remaining rates
     if(pmc_multicells.eq.1) then
-      do i_cell = 1, n_cells
+      do i_cell = 1, n_cells_block
         ! Set the O2 + hv rate constant to 0 (not present in ebi version)
         call jo2_rate_update%set_rate(real(0.0, kind=dp))
         call camp_core%update_data(jo2_rate_update,i_cell+1)
@@ -571,14 +575,15 @@ contains
     KPP_C(:) = 0.0
     camp_state%state_var(:) = 0.0
 
-    if(pmc_multicells.eq.0) then
-      write(*,*) "size(camp_state%state_var)",size(camp_state%state_var)
-      allocate(model_conc(size(camp_state%state_var)*n_cells))
-      model_conc(:)=0.0 !todo worried, whithout this cvode fails on n_cell=50 with n_cells=200 rank231 monarch (but works fine with n_cells=100)
-      !todo missing copy species not from cb05 from state_var to model_conc (or repeat them but well them should be repeated in fact...)
-    endif
+    !todo use all time n_cells *n_blocks is bored, group in one variable
 
-    !camp_state%state_var(:) = 0.0 !todo check if state is initialized at zero
+    state_size_cell = size(chem_spec_data%get_spec_names()) !size(camp_state%state_var) / n_cells
+
+    !if(pmc_multicells.eq.0) then
+
+    allocate(model_conc(state_size_cell*n_cells))
+    model_conc(:)=0.0
+    !endif
 
     allocate(temperatures(n_cells))
     temperatures(:) = temperature
@@ -586,7 +591,8 @@ contains
     pressures(:) = pressure*const%air_std_press
 
 #ifdef PMC_MONARCH_INPUT
-    state_size_cell = size(chem_spec_data%get_spec_names()) !size(camp_state%state_var) / n_cells
+    write(*,*) "size(camp_state%state_var)",size(camp_state%state_var), "state_size_cell", state_size_cell
+
 
     !open(30, file="../../../../test/chemistry/cb05cl_ae5/files/ebi_output_1_1_48_kss_kae.txt", status="old")
     !open(30, file="../../../../test/chemistry/cb05cl_ae5/files/ebi_output_1_1_9_ksskse_lemisF_ldrydepF_lcldchemF.txt", status="old")
@@ -598,10 +604,10 @@ contains
     !        _all_all_48_ksskse_photo0_lemisF_ldrydepF_lcldchemF_reverse.txt", status="old")
     !open(30, file="../../../../test/chemistry/cb05cl_ae5/files/ebi_input&
     !        _all_all_all_ksskse_photo0_lemisF_ldrydepF_lcldchemF.txt", status="old")
-    open(30, file="../../../../test/chemistry/cb05cl_ae5/files/ebi_input231&
+    open(30, file="../../../../test/chemistry/cb05cl_ae5/files/ebi_input232&
             _all_all_all_ksskse_photo0_lemisF_ldrydepF_lcldchemF.txt", status="old")
 
-    open(31, file="../../../../test/chemistry/cb05cl_ae5/files/ebi231_temp_press&
+    open(31, file="../../../../test/chemistry/cb05cl_ae5/files/ebi232_temp_press&
             _all_all_all.txt", status="old")
 
     !Offset
@@ -664,15 +670,19 @@ contains
 
           if(pmc_multicells.eq.1) then
             ! Set the camp-chem concetration (ppm)
-            camp_state%state_var( &
-                    chem_spec_data%gas_state_id( &
+            !camp_state%state_var( &
+            !        chem_spec_data%gas_state_id( &
+            !        ebi_spec_names(i_spec)%string)+i_cell*state_size_cell) = real_val
+
+            model_conc(chem_spec_data%gas_state_id( &
                     ebi_spec_names(i_spec)%string)+i_cell*state_size_cell) = real_val
+
           else
             !camp_state%state_var( &
             !        chem_spec_data%gas_state_id( &
             !                ebi_spec_names(i_spec)%string)) = real_val !not needed in fact
             model_conc(chem_spec_data%gas_state_id( &
-            ebi_spec_names(i_spec)%string)+i_cell*state_size_cell+j) = real_val
+                    ebi_spec_names(i_spec)%string)+i_cell*state_size_cell) = real_val
           end if
         end if
 
@@ -714,6 +724,8 @@ contains
       end do
     end do
 #endif
+
+    write (*,*) "Setup model_concs not ebi species"
 
     ! Set EBI solver constant species concentrations in CAMP-chem
     spec_name = "M"
@@ -769,21 +781,23 @@ contains
     ! Set the water concentration for EBI solver (ppmV)
     water_conc = camp_state%state_var(i_H2O)
 
-    if(pmc_multicells.eq.0) then
-      model_conc(i_M)=camp_state%state_var(i_M)
-      model_conc(i_O2)=camp_state%state_var(i_O2)
-      model_conc(i_N2)=camp_state%state_var(i_N2)
-      model_conc(i_H2O)=camp_state%state_var(i_H2O)
-      model_conc(i_CH4)=camp_state%state_var(i_H2O)
-      model_conc(i_H2)=camp_state%state_var(i_H2)
-      spec_name = "DUMMY"
-      i_DUMMY = chem_spec_data%gas_state_id(spec_name)
-      call assert(663478276, chem_spec_data%get_property_set(spec_name, prop_set))
-      call assert(892572866, associated(prop_set))
-      call assert(722411962, prop_set%get_real(key, real_val))
-      model_conc(i_DUMMY) = real_val
-      write(*,*) "i_DUMMY", i_DUMMY, "model_conc(i_DUMMY)", model_conc(i_DUMMY)
-    end if
+    !if(pmc_multicells.eq.0) then
+    spec_name = "DUMMY"
+    i_DUMMY = chem_spec_data%gas_state_id(spec_name)
+    call assert(663478276, chem_spec_data%get_property_set(spec_name, prop_set))
+    call assert(892572866, associated(prop_set))
+    call assert(722411962, prop_set%get_real(key, real_val))
+
+    do i_cell = 0, n_cells-1
+      model_conc(i_cell*state_size_cell+i_DUMMY) = real_val
+      model_conc(i_cell*state_size_cell+i_M)=camp_state%state_var(i_M)
+      model_conc(i_cell*state_size_cell+i_O2)=camp_state%state_var(i_O2)
+      model_conc(i_cell*state_size_cell+i_N2)=camp_state%state_var(i_N2)
+      model_conc(i_cell*state_size_cell+i_H2O)=camp_state%state_var(i_H2O)
+      model_conc(i_cell*state_size_cell+i_CH4)=camp_state%state_var(i_CH4) !interesting, when setting wrong conc like i_h20 it takes soo long
+      model_conc(i_cell*state_size_cell+i_H2)=camp_state%state_var(i_H2)
+    end do
+    !end if
 
     ! Set up the output files
     open(EBI_FILE_UNIT, file="out/cb05cl_ae5_ebi_results.txt", status="replace", &
@@ -882,7 +896,6 @@ contains
     CALL KPP_Update_RCONST()
 
 #ifdef PMC_MONARCH_INPUT
-    write(*,*) "state_size_cell", state_size_cell
     state_size_cell = size(chem_spec_data%get_spec_names())
 #else
     state_size_cell = size(chem_spec_data%get_spec_names()) !size(camp_state%state_var) / n_cells
@@ -892,12 +905,17 @@ contains
     !Netcdf n cells exp values
     !call set_input_from_netcdf(ncfile, state_size_cell, spec_names)
 
-      ! Set same conc per n_cells
-    do i_cell = 0, n_cells-1
+    write(*,*) "First setup camp_state_var"
+
+    ! Set same conc per n_cells
+    !do i_block = 0, n_blocks-1
+      do i_cell = 0, n_cells_block-1
         do j = 1, state_size_cell
           if(pmc_multicells.eq.1) then
+            !todo is this necessary when everything is stored in model_conc and updated later?
 #ifdef PMC_MONARCH_INPUT
             camp_state%state_var(i_cell*state_size_cell+j) = camp_state%state_var(i_cell*state_size_cell+j) + offset_conc*i_cell !0.1*j
+            !camp_state%state_var(i_cell*state_size_cell+j) = model_conc(i_block*(state_size_cell*n_cells_block)+i_cell*state_size_cell+j) + offset_conc*i_cell
 #else
             camp_state%state_var(i_cell*state_size_cell+j) = camp_state%state_var(j) + offset_conc*i_cell !0.1*j !todo this should be i_cell...repeat tests
 #endif
@@ -905,15 +923,16 @@ contains
 #ifdef PMC_MONARCH_INPUT
             camp_state%state_var(j) = model_conc(j) + offset_conc*i_cell !+ 0.1*i_cell
 #else
-            model_conc(i_cell*state_size_cell+j) = camp_state%state_var(j) + offset_conc*i_cell !+ 0.1*i_cell
+            model_conc(i_cell*state_size_cell+j) = camp_state%state_var(j) + offset_conc*i_cell !+ 0.1*i_cell !todo improve this part (make it more clear)
 #endif
           endif
         end do
-    end do
+      end do
+    !end do
 
     if(pmc_multicells.eq.1) then
       !Set default temperature & pressure to all cells
-      do i_cell = 1, n_cells
+      do i_cell = 1, n_cells_block
         call camp_state%env_states(i_cell)%set_temperature_K( real( temperatures(i_cell)+offset_temp*(i_cell-1), kind=dp ) )
         call camp_state%env_states(i_cell)%set_pressure_Pa( pressures(i_cell) )
       end do
@@ -948,9 +967,13 @@ contains
     end do
 #endif
 
+    !write(*,*) model_conc(:)
+    !write(*,*) temperatures(:)
+
     ! Repeatedly solve the mechanism
     do i_repeat = 1, n_repeats
 
+      write(*,*) "Repeat", i_repeat
       !print*, "running"
 
       YC(:) = ebi_init(:)
@@ -989,13 +1012,13 @@ contains
               end if
             end do
         if(pmc_multicells.eq.1) then
-            do i = 0, n_cells-1
+            do i = 0, n_cells_block-1
 #ifdef PMC_MONARCH_INPUT
 #else
-              camp_state%state_var( &
-                chem_spec_data%gas_state_id( &
-                ebi_spec_names(i_spec)%string) &
-                + i*state_size_cell)= YC(i_spec)
+              !camp_state%state_var( &
+              !  chem_spec_data%gas_state_id( &
+              !  ebi_spec_names(i_spec)%string) &
+              !  + i*state_size_cell)= YC(i_spec)
 #endif
             end do
         else
@@ -1018,12 +1041,26 @@ contains
         comp_kpp = comp_kpp + (comp_end-comp_start)
 
         if(pmc_multicells.eq.1) then
-          ! CAMP-chem
-          call cpu_time(comp_start)
-          call camp_core%solve(camp_state, real(EBI_TMSTEP*60.0, kind=dp), &
-                  solver_stats = solver_stats)
-          call cpu_time(comp_end)
-          comp_camp = comp_camp + (comp_end-comp_start)
+          do i_block = 0, n_blocks-1
+            do i_cell = 0, n_cells_block-1
+              !JA comentando esto funciona
+              call camp_state%env_states(i_cell+1)%set_temperature_K( real(temperatures( i_block*n_cells_block+i_cell+1), kind=dp ))
+              call camp_state%env_states(i_cell+1)%set_pressure_Pa( pressures(i_block*n_cells_block+i_cell+1))
+
+              !call camp_state%env_states(i_cell)%set_temperature_K( real( temperatures(i_cell)+offset_temp*(i_cell-1), kind=dp ) )
+              !call camp_state%env_states(i_cell)%set_pressure_Pa( pressures(i_cell) )
+              !Update camp_state
+              do j = 1, state_size_cell
+                camp_state%state_var(state_size_cell*i_cell+j) = model_conc(i_block*(state_size_cell*n_cells_block)+state_size_cell*i_cell+j)
+              end do
+            end do
+
+            call cpu_time(comp_start)
+            call camp_core%solve(camp_state, real(EBI_TMSTEP*60.0, kind=dp), &
+                    solver_stats = solver_stats)
+            call cpu_time(comp_end)
+            comp_camp = comp_camp + (comp_end-comp_start)
+          end do
         else
           do i_cell = 0, n_cells-1
 

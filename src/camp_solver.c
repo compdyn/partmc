@@ -375,7 +375,7 @@ void *solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
 #ifdef PMC_USE_MPI
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-      if (rank==0)
+      if (rank>=0)
   {
         //printf("n_rxn:%d\n",n_rxn);
   }
@@ -603,15 +603,13 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   int flag;
   int rank=0;
 
-#ifndef PMC_DEBUG_GPU
+#ifdef PMC_DEBUG_GPU
 #ifdef PMC_USE_MPI
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  if (rank==0)
+  if (rank>=0)
   {
-    sd->counterSolve++;
-    if (sd->counterSolve==51)
+    if (sd->counterSolve==0)
     {
-
       int n_cell=2;
       printf("camp solver_run start [(id),conc], n_state_var %d, n_cells %d\n", md->n_per_cell_state_var, n_cells);
       for (int i = 0; i < md->n_per_cell_state_var*n_cell; i++) {  // NV_LENGTH_S(deriv)
@@ -646,12 +644,12 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   sd->model_data.total_state = state;
   sd->model_data.total_env = env;
 
-#ifndef PMC_DEBUG_GPU
+#ifdef PMC_DEBUG_GPU
 #ifdef PMC_USE_MPI
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  if (rank==0)
+  if (rank>=0)
   {
-    if (sd->counterSolve==51)
+    if (sd->counterSolve==0)
       {
         printf("After set y (deriv), iter %d...\n", sd->counterDerivGPU);
         print_derivative(sd->y);
@@ -720,9 +718,9 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
 #ifdef PMC_DEBUG_GPU
 #ifdef PMC_USE_MPI
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  if (rank==0)
+  if (rank>=0)
   {
-    if (sd->counterSolve==51){
+    if (sd->counterSolve==0){
       //printf("Entering CVodeRun iter %d...\n", sd->counterDerivGPU);
       //print_derivative(sd->y);
     }
@@ -772,7 +770,7 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
 #endif
 #ifdef PMC_USE_MPI
       MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-      if (rank==0)
+      if (rank>=0)
       {
         printf("CAMP_SOLVER_FAIL %d counterSolve:%d counterDerivGPU:%d\n",flag,sd->counterSolve,sd->counterDerivGPU);
       }
@@ -785,7 +783,7 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
 #ifdef PMC_DEBUG_GPU
 #ifdef PMC_USE_MPI
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  if (rank==0)
+  if (rank>=0)
   {
     if (sd->counterSolve>=0)
       {
@@ -815,7 +813,7 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
 
 #ifdef PMC_USE_MPI
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  if (rank==0)
+  if (rank>=0)
   {
     if (sd->counterSolve>=0)
     {
@@ -823,10 +821,11 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
       for (int i = 0; i < md->n_per_cell_state_var; i++) {  // NV_LENGTH_S(deriv)
         printf("(%d) %-le ", i, state[i]);
       }
-      printf("\n");*/
-      printf("env [temp, press]\n%-le, %-le\n", env[0], env[1]);
+      printf("\n");
+      printf("env [temp, press]\n%-le, %-le\n", env[0], env[1]);*/
       printf("counterDeriv:%d counterSolve:%d\n",sd->counterDerivGPU, sd->counterSolve);
       sd->counterDerivGPU=0;
+      sd->counterSolve++;
     }
   }
 #endif
@@ -1106,7 +1105,7 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
 #ifdef PMC_USE_MPI
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  if (rank==0)
+  if (rank>=0)
   {
     if (sd->counterDerivGPU<3)
     {

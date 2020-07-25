@@ -1,4 +1,11 @@
 #!/bin/bash
+#SBATCH --job-name=cb05_test
+#SBATCH --output=out_cb05.txt
+#SBATCH --error=err_cb05_.txt
+#SBATCH --ntasks=1
+#   #SBATCH --cpus-per-task=4
+#   #SBATCH --tasks-per-node=1
+##mpi_%j.out ##mpi_%j.err
 
 # exit on error
 set -e
@@ -17,7 +24,8 @@ do
   echo Attempt $counter
 
 if [[ $1 == "MPI" ]]; then
-  exec_str="mpirun -v -np 2 ../../mock_monarch config_simple.json interface_simple.json out/simple"
+  exec_str="mpirun -v -np 2 ../../mock_monarch config_simple.json interface_simple.json out/simple" #local
+  #exec_str="srun ../../mock_monarch config_simple.json interface_simple.json out/simple" #clusterelse
 else
   exec_str="../../mock_monarch config_simple.json interface_simple.json out/simple"
 fi

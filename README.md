@@ -6,8 +6,23 @@ PartMC: Particle-resolved Monte Carlo code for atmospheric aerosol simulation
 
 [![Latest version](https://img.shields.io/github/tag/compdyn/partmc.svg?label=version)](https://github.com/compdyn/partmc/blob/master/ChangeLog.md) [![Docker build status](https://img.shields.io/docker/automated/compdyn/partmc.svg)](https://hub.docker.com/r/compdyn/partmc/builds/) [![Build Status](https://img.shields.io/travis/compdyn/partmc/master.svg)](https://travis-ci.org/compdyn/partmc) [![License](https://img.shields.io/github/license/compdyn/partmc.svg)](https://github.com/compdyn/partmc/blob/master/COPYING) [![DOI](https://zenodo.org/badge/24058992.svg)](https://zenodo.org/badge/latestdoi/24058992)
 
-Version 2.5.0  
-Released 2018-11-17
+Version 2.5.0 | Released 2018-11-17
+
+
+<!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
+
+<!-- code_chunk_output -->
+
+- [Information](#information)
+- [Usage](#usage)
+- [Running PartMC with Docker](#running-partmc-with-docker)
+- [Installation (local)](#installation-local)
+- [Installation (HPC)](#installation-hpc)
+
+<!-- /code_chunk_output -->
+
+
+## Information
 
 **Source:** <https://github.com/compdyn/partmc>
 
@@ -16,14 +31,28 @@ Released 2018-11-17
 **Cite as:** M. West, N. Riemer, J. Curtis, M. Michelotti, and J. Tian (2018) PartMC, [![version](https://img.shields.io/github/release/compdyn/partmc.svg?label=version)](https://github.com/compdyn/partmc), [![DOI](https://zenodo.org/badge/24058992.svg)](https://zenodo.org/badge/latestdoi/24058992)
 
 Copyright (C) 2005-2018 Nicole Riemer and Matthew West  
-Portions copyright (C) Andreas Bott, Richard Easter, Jeffrey Curtis,
-Matthew Michelotti, and Jian Tian  
-Licensed under the GNU General Public License version 2 or (at your
-option) any later version.  
-For details see the file COPYING or
-<http://www.gnu.org/licenses/old-licenses/gpl-2.0.html>.
+Portions copyright (C) Andreas Bott, Richard Easter, Jeffrey Curtis, Matthew Michelotti, and Jian Tian  
+Licensed under the GNU General Public License version 2 or (at your option) any later version.  
+For details see the file COPYING or <http://www.gnu.org/licenses/old-licenses/gpl-2.0.html>.
 
-**References:**
+**Dependencies**
+
+Required dependencies:
+
+   * Fortran 2003 compiler - <https://gcc.gnu.org/fortran/> or similar
+   * CMake version 2.6.4 or higher - <http://www.cmake.org/>
+   * NetCDF version 4.2 or higher -
+     <http://www.unidata.ucar.edu/software/netcdf/>
+
+Optional dependencies:
+
+   * MOSAIC chemistry code version 2012-01-25 - Available from Rahul Zaveri - <Rahul.Zaveri@pnl.gov>
+   * MPI parallel support - <http://www.open-mpi.org/>
+   * GSL for random number generators - <http://www.gnu.org/software/gsl/>
+   * SUNDIALS ODE solver version 2.6 for condensation support - <http://www.llnl.gov/casc/sundials/>
+   * gnuplot for testcase plotting - <http://www.gnuplot.info/>
+
+**References**
 
    * N. Riemer, M. West, R. A. Zaveri, and R. C. Easter (2009),
      Simulating the evolution of soot mixing state with a
@@ -95,24 +124,31 @@ For details see the file COPYING or
      mixing state metrics, _Atmosphere_ 9(1), 15, 2018
      <http://dx.doi.org/10.3390/atmos9010015>
 
+## Usage 
 
-Running PartMC with Docker
-==========================
+The main `partmc` command reads `.spec` files and does the run specified therein. Either particle-resolved runs, sectional-code runs, or exact solutions can be generated. A run produces one NetCDF file per output timestep, containing per-particle data (from particle-resolved runs) or binned data (from sectional or exact runs). The `extract_*` programs can read these per-timestep NetCDF files and output ASCII data (the `extract_sectional_*` programs are used for sectional and exact model output).
+
+## Running PartMC with Docker 
 
 This is the fastest way to get running.
 
 * **_Step 1:_** Install [Docker Community Edition](https://www.docker.com/community-edition).
-    * On Linux and MacOS this is straightforward. [Download from here](https://store.docker.com/search?type=edition&offering=community).
-    * On Windows the best version is [Docker Community Edition for Windows](https://store.docker.com/editions/community/docker-ce-desktop-windows), which requires Windows 10 Pro/Edu.
-
+    
+  - On Linux and MacOS this is straightforward. [Download from here](https://store.docker.com/search?type=edition&offering=community).
+  - On Windows the best version is [Docker Community Edition for Windows](https://store.docker.com/editions/community/docker-ce-desktop-windows), which requires Windows 10 Pro/Edu.
+    
 * **_Step 2:_** (Optional) Run the PartMC test suite with:
 
-        docker run -it --rm compdyn/partmc bash -c 'cd /build; make test'
+    ```bash
+    docker run -it --rm compdyn/partmc bash -c 'cd /build; make test'
+    ```
 
 * **_Step 3:_** Run a scenario like the following. This example uses `partmc/scenarios/4_chamber`. This mounts the current directory (`$PWD`, replace with `%cd%` on Windows) into `/run` inside the container, changes into that directory, and then runs PartMC.
 
-        cd partmc/scenarios/4_chamber
-        docker run -it --rm -v $PWD:/run compdyn/partmc bash -c 'cd /run; /build/partmc chamber.spec'
+    ```bash
+    cd partmc/scenarios/4_chamber
+    docker run -it --rm -v $PWD:/run compdyn/partmc bash -c 'cd /run; /build/partmc chamber.spec'
+    ```
 
 In the above `docker run` command the arguments are:
 
@@ -129,124 +165,167 @@ The directory structure inside the docker container is:
     /build/partmc     # the compiled partmc executable
     /run              # the default diretory to run in
 
+## Installation (local) 
 
-Dependencies
-============
+Here we show how to install PartMC (or PartMC-MOSAIC) on your local machine.
 
-Required dependencies:
+**Step 1:** Install cmake and NetCDF (see above). The NetCDF libraries are required to compile PartMC. The `netcdf.mod` Fortran 90 module file is required, and it must be produced by the same compiler being used to compile PartMC.
 
-   * Fortran 2003 compiler - <https://gcc.gnu.org/fortran/> or similar
-   * CMake version 2.6.4 or higher - <http://www.cmake.org/>
-   * NetCDF version 4.2 or higher -
-     <http://www.unidata.ucar.edu/software/netcdf/>
+**Step 2:** Unpack PartMC:
 
-Optional dependencies:
+```bash
+ tar xzvf partmc-2.5.0.tar.gz
+```
 
-   * MOSAIC chemistry code version 2012-01-25 - Available from Rahul
-     Zaveri - <Rahul.Zaveri@pnl.gov>
-   * MPI parallel support - <http://www.open-mpi.org/>
-   * GSL for random number generators -
-     <http://www.gnu.org/software/gsl/>
-   * SUNDIALS ODE solver version 2.6 for condensation support -
-     <http://www.llnl.gov/casc/sundials/>
-   * gnuplot for testcase plotting - <http://www.gnuplot.info/>
+**Step 3:** Change into the main PartMC directory (where this README file is located):
 
+```bash
+ cd partmc-2.5.0
+```
 
-Installation
-============
+**Step 4:** Make a directory called `build` and change into it:
 
-1. Install cmake and NetCDF (see above). The NetCDF libraries are
-   required to compile PartMC. The `netcdf.mod` Fortran 90 module file
-   is required, and it must be produced by the same compiler being
-   used to compile PartMC.
+```bash
+ mkdir build
+ cd build
+```
 
-2. Unpack PartMC:
+**Step 5:** If desired, set environment variables to indicate the install locations of supporting libraries. If running `echo $SHELL` indicates that you are running `bash`, then you can do something like:
 
-        tar xzvf partmc-2.5.0.tar.gz
+```bash
+ export NETCDF_HOME=/
+ export MOSAIC_HOME=${HOME}/mosaic-2012-01-25
+ export SUNDIALS_HOME=${HOME}/opt
+ export GSL_HOME=${HOME}/opt
+```
 
-3. Change into the main PartMC directory (where this README file is
-   located):
+Of course the exact directories will depend on where the libraries are installed. You only need to set variables for libraries installed in non-default locations, and only for those libraries you want to use. Everything except NetCDF is optional.
 
-        cd partmc-2.5.0
+If `echo $SHELL` instead is `tcsh` or similar, then the environment variables can be set like `setenv NETCDF_HOME /` and similarly.
 
-4. Make a directory called `build` and change into it:
+**Step 6:** Run cmake with the main PartMC directory as an argument (note the double-c):
 
-        mkdir build
-        cd build
+```bash
+ ccmake ..
+```
 
-5. If desired, set environment variables to indicate the install
-   locations of supporting libraries. If running `echo $SHELL`
-   indicates that you are running `bash`, then you can do something
-   like:
+**Step 7:** Inside ccmake press `c` to configure, edit the values as needed, press `c` again, then `g` to generate. Optional libraries can be activated by setting the `ENABLE` variable to `ON`. For a parallel build, toggle advanced mode with `t` and set the `CMAKE_Fortran_COMPILER` to `mpif90`, then reconfigure.
 
-        export NETCDF_HOME=/
-        export MOSAIC_HOME=${HOME}/mosaic-2012-01-25
-        export SUNDIALS_HOME=${HOME}/opt
-        export GSL_HOME=${HOME}/opt
+**Step 8:** Optionally, enable compiler warnings by pressing `t` inside ccmake to enable advanced options and then setting `CMAKE_Fortran_FLAGS` to:
 
-   Of course the exact directories will depend on where the libraries
-   are installed. You only need to set variables for libraries
-   installed in non-default locations, and only for those libraries
-   you want to use. Everything except NetCDF is optional.
+```
+ -O2 -g -fimplicit-none -W -Wall -Wconversion -Wunderflow -Wimplicit-interface -Wno-compare-reals -Wno-unused -Wno-unused-parameter -Wno-unused-dummy-argument -fbounds-check
+```
 
-   If `echo $SHELL` instead is `tcsh` or similar, then the environment
-   variables can be set like `setenv NETCDF_HOME /` and similarly.
+**Step 9:** Compile PartMC and test it as follows. Some tests may fail due to bad random initial conditions, so re-run the tests a few times to see if failures persist.
 
-6. Run cmake with the main PartMC directory as an argument (note the
-   double-c):
+```bash
+ make
+ make test
+```
 
-        ccmake ..
+**Step 10:** To run just a single set of tests do something like:
 
-7. Inside ccmake press `c` to configure, edit the values as needed,
-   press `c` again, then `g` to generate. Optional libraries can be
-   activated by setting the `ENABLE` variable to `ON`. For a parallel
-   build, toggle advanced mode with `t` and set the
-   `CMAKE_Fortran_COMPILER` to `mpif90`, then reconfigure.
+```bash
+ ctest -R bidisperse   # argument is a regexp for test names
+```
 
-8. Optionally, enable compiler warnings by pressing `t` inside ccmake
-   to enable advanced options and then setting `CMAKE_Fortran_FLAGS`
-   to:
+**Step 11:** To see what make is doing run it like:
 
-        -O2 -g -fimplicit-none -W -Wall -Wconversion -Wunderflow -Wimplicit-interface -Wno-compare-reals -Wno-unused -Wno-unused-parameter -Wno-unused-dummy-argument -fbounds-check
+```
+ VERBOSE=1 make
+```
 
-8. Compile PartMC and test it as follows. Some tests may fail due to
-   bad random initial conditions, so re-run the tests a few times to
-   see if failures persist.
+**Step 12:** To run tests with visible output or to make some plots from the tests run them as:
 
-        make
-        make test
+```bash
+cd test_run/emission
+./test_emission_1.sh
+./test_emission_2.sh
+./test_emission_3.sh            # similarly for other tests
+gnuplot -persist plot_species.gnuplot # etc...
+```
 
-9. To run just a single set of tests do something like:
+**Step 13:** To run full scenarios, do, for example:
 
-        ctest -R bidisperse   # argument is a regexp for test names
+```bash
+ cd ../scenarios/1_urban_plume
+ ./1_run.sh
+```
 
-10. To see what make is doing run it like:
+## Installation (HPC) 
 
-        VERBOSE=1 make
+Here we show how to install PartMC-MOSAIC on the HPC. We use the [Blue Waters](https://bluewaters.ncsa.illinois.edu/) as an example.
 
-11. To run tests with visible output or to make some plots from the
-    tests run them as:
+**Step 1:** Configure your environment in terms of setting up compilers and NetCDF. For Blue Waters users:
 
-        cd test_run/emission
-        ./test_emission_1.sh
-        ./test_emission_2.sh
-        ./test_emission_3.sh            # similarly for other tests
-        gnuplot -persist plot_species.gnuplot # etc...
+```bash
+module swap PrgEnv-cray PrgEnv-gnu
+module load gcc/6.3.0
+module load cray-netcdf/4.4.1
+module load cmake
+module unload darshan
+```
 
-12. To run full scenarios, do, for example:
+**Step 2:** Build MOSAIC chemistry (you need to have the permission to the MOSAIC software)
 
-        cd ../scenarios/1_urban_plume
-        ./1_run.sh
+```bash
+cd mosaic
+```
 
+- Move "Makefile.local.gfortran" to "Makefile.local"
 
-Usage
-=====
+```bash
+mv Makefile.local.gfortran Makefile.local
+```
 
-The main `partmc` command reads `.spec` files and does the run
-specified therein. Either particle-resolved runs, sectional-code runs,
-or exact solutions can be generated. A run produces one NetCDF file
-per output timestep, containing per-particle data (from
-particle-resolved runs) or binned data (from sectional or exact
-runs). The `extract_*` programs can read these per-timestep NetCDF
-files and output ASCII data (the `extract_sectional_*` programs are
-used for sectional and exact model output).
+- Makefile.local must use ftn as the Fortran compiler so change `FC = gfortran` to `FC = ftn`
+
+- Build MOSAIC
+
+```bash
+make
+```
+
+**Step 3:** Build PartMC-MOSAIC
+
+- Create a build directory and change into it from the partmc-2.4.0, partmc-2.5.0 or cloned directory.
+
+```bash
+git clone git@github.com:compdyn/partmc.git
+cd partmc
+mkdir build
+cd build
+```
+
+- Set the `MOSAIC_HOME` variable to the path of where you have installed MOSAIC (you have to finished step 2)
+
+```bash
+export MOSAIC_HOME=/u/sciteam/your_id/mosaic
+```
+
+- Create a file `bluewaters.cmake` within the `build` fold. The file should contain the following:
+
+```bash
+set(CMAKE_BUILD_TYPE "RELEASE" CACHE STRING "")
+set(ENABLE_MOSAIC ON CACHE BOOL "")
+set(CMAKE_C_COMPILER "/opt/cray/craype/2.5.8/bin/cc" CACHE STRING "") set(CMAKE_Fortran_COMPILER "/opt/cray/craype/2.5.8/bin/ftn" CACHE STRING "") set(NETCDF_C_LIB "/opt/cray/netcdf/4.4.1/GNU/51/lib/libnetcdf.a" CACHE STRING "") set(NETCDF_FORTRAN_LIB "/opt/cray/netcdf/4.4.1/GNU/51/lib/libnetcdff.a" CACHE STRING "") set(NETCDF_INCLUDE_DIR "/opt/cray/netcdf/4.4.1/GNU/51/include" CACHE STRING "")
+```
+
+- Run CMake with the above settings
+
+```bash
+ccmake .. -P bluewaters.cmake
+```
+
+- Build PartMC-MOSAIC
+
+```bash
+make
+```
+
+**Step 4:** Test the build. Make sure you have the test cases such as "test_mosaic_1" and "test_mosaic_2" passed.
+
+```bash
+make test
+```

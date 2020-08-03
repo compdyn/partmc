@@ -17,7 +17,8 @@ Version 2.5.0 | Released 2018-11-17
 - [Usage](#usage)
 - [Running PartMC with Docker](#running-partmc-with-docker)
 - [Installation (local)](#installation-local)
-- [Installation (HPC)](#installation-hpc)
+- [Installation (Blue Waters)](#installation-blue-waters)
+- [Installation (NCAR's Cheyenne)](#installation-ncars-cheyenne)
 
 <!-- /code_chunk_output -->
 
@@ -253,7 +254,7 @@ gnuplot -persist plot_species.gnuplot # etc...
  ./1_run.sh
 ```
 
-## Installation (HPC) 
+## Installation (Blue Waters) 
 
 Here we show how to install PartMC-MOSAIC on the HPC. We use the [Blue Waters](https://bluewaters.ncsa.illinois.edu/) as an example.
 
@@ -333,3 +334,55 @@ make
 ```bash
 make test
 ```
+
+## Installation (NCAR's Cheyenne)  
+
+**Step 1:** Configure your environment in terms of setting up compilers and NetCDF.
+
+```bash
+module load gnu/9.1.0
+module load netcdf/4.7.3
+module load cmake
+module unload darshan
+```
+
+**Step 2:** Build MOSAIC chemistry (you need to have the permission to the MOSAIC software)
+
+```bash
+cd /glade/work/zhonghua/mosaic
+mv Makefile.local.gfortran Makefile.local
+make
+```
+
+**Step 3:** Build PartMC-MOSAIC
+
+```bash
+cd /glade/work/zhonghua/
+git clone git@github.com:compdyn/partmc.git
+cd partmc
+mkdir build
+cd build
+export MOSAIC_HOME=/glade/work/zhonghua/mosaic
+ccmake ..
+```
+
+**First, press "c". Then press "e", and type the following options**:
+
+```
+CMAKE_BUILD_TYPE: RELEASE
+ENABLE_MOSAIC: ON 
+NETCDF_C_LIB: /glade/u/apps/ch/opt/netcdf/4.7.3/gnu/9.1.0/lib/libnetcdf.a 
+NETCDF_FORTRAN_LIB: /glade/u/apps/ch/opt/netcdf/4.7.3/gnu/9.1.0/lib/libnetcdff.a 
+NETCDF_INCLUDE_DIR: /glade/u/apps/ch/opt/netcdf/4.7.3/gnu/9.1.0/include
+```
+
+**Then press "c", then "c" again, and "g".**
+
+Then make and make test:
+
+```bash
+make
+make test
+```
+
+Make sure you have the test cases such as "test_mosaic_1" and "test_mosaic_2" passed.

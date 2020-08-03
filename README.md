@@ -309,7 +309,11 @@ export MOSAIC_HOME=/u/sciteam/your_id/mosaic
 ```bash
 set(CMAKE_BUILD_TYPE "RELEASE" CACHE STRING "")
 set(ENABLE_MOSAIC ON CACHE BOOL "")
-set(CMAKE_C_COMPILER "/opt/cray/craype/2.5.8/bin/cc" CACHE STRING "") set(CMAKE_Fortran_COMPILER "/opt/cray/craype/2.5.8/bin/ftn" CACHE STRING "") set(NETCDF_C_LIB "/opt/cray/netcdf/4.4.1/GNU/51/lib/libnetcdf.a" CACHE STRING "") set(NETCDF_FORTRAN_LIB "/opt/cray/netcdf/4.4.1/GNU/51/lib/libnetcdff.a" CACHE STRING "") set(NETCDF_INCLUDE_DIR "/opt/cray/netcdf/4.4.1/GNU/51/include" CACHE STRING "")
+set(CMAKE_C_COMPILER "/opt/cray/craype/2.5.8/bin/cc" CACHE STRING "") 
+set(CMAKE_Fortran_COMPILER "/opt/cray/craype/2.5.8/bin/ftn" CACHE STRING "") 
+set(NETCDF_C_LIB "/opt/cray/netcdf/4.4.1/GNU/51/lib/libnetcdf.a" CACHE STRING "") 
+set(NETCDF_FORTRAN_LIB "/opt/cray/netcdf/4.4.1/GNU/51/lib/libnetcdff.a" CACHE STRING "") 
+set(NETCDF_INCLUDE_DIR "/opt/cray/netcdf/4.4.1/GNU/51/include" CACHE STRING "")
 ```
 
 - Run CMake with the above settings

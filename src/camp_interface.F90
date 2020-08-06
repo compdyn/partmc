@@ -87,6 +87,9 @@ contains
       end associate
     end do
 
+    ! We're modifying particle diameters, so the bin sort is now invalid
+    aero_state%valid_sort = .false.
+
     ! Do phase-transfer and aerosol-phase chemistry for each particle
     ! in the particle array
     do i_part = 1,aero_state%n_part()

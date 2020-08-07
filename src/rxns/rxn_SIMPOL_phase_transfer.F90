@@ -25,6 +25,8 @@
 !! \f[
 !!   \frac{\alpha}{1-\alpha} = e^{\frac{-\Delta G^{*}}{RT}}
 !! \f]
+!! If \f$\Delta H\f$ and \f$\Delta S\f$ are not provided, the mass accomodation
+!! coefficient is assumed to be 0.1 (\cite Zaveri2008).
 !!
 !! Condensation rate constants are calculated as:
 !! \f[
@@ -115,7 +117,7 @@ module pmc_rxn_SIMPOL_phase_transfer
 #define GAS_SPEC_ this%condensed_data_int(2)
 #define NUM_INT_PROP_ 2
 #define NUM_REAL_PROP_ 10
-#define NUM_ENV_PARAM_ 3
+#define NUM_ENV_PARAM_ 4
 #define AERO_SPEC_(x) this%condensed_data_int(NUM_INT_PROP_+x)
 #define AERO_ACT_ID_(x) this%condensed_data_int(NUM_INT_PROP_+NUM_AERO_PHASE_+x)
 #define AERO_PHASE_ID_(x) this%condensed_data_int(NUM_INT_PROP_+2*NUM_AERO_PHASE_+x)

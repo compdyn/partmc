@@ -14,13 +14,12 @@
 #include "../aero_rep_solver.h"
 #include "../rxns.h"
 #include "../sub_model_solver.h"
+#include "../util.h"
 
 // TODO Lookup environmental indices during initialization
 #define TEMPERATURE_K_ env_data[0]
 #define PRESSURE_PA_ env_data[1]
 
-// Universal gas constant (J/mol/K)
-#define UNIV_GAS_CONST_ 8.314472
 // Small number for ignoring low concentrations
 #define VERY_SMALL_NUMBER_ 1.0e-25
 
@@ -40,12 +39,13 @@
 #define MW_ float_data[9]
 #define NUM_AERO_PHASE_ int_data[0]
 #define GAS_SPEC_ (int_data[1] - 1)
-#define C_AVG_ALPHA_ rxn_env_data[0]
-#define EQUIL_CONST_ rxn_env_data[1]
-#define KGM3_TO_PPM_ rxn_env_data[2]
+#define MFP_M_ rxn_env_data[0]
+#define ALPHA_ rxn_env_data[1]
+#define EQUIL_CONST_ rxn_env_data[2]
+#define KGM3_TO_PPM_ rxn_env_data[3]
 #define NUM_INT_PROP_ 2
 #define NUM_FLOAT_PROP_ 10
-#define NUM_ENV_PARAM_ 3
+#define NUM_ENV_PARAM_ 4
 #define AERO_SPEC_(x) (int_data[NUM_INT_PROP_ + x] - 1)
 #define AERO_ACT_ID_(x) (int_data[NUM_INT_PROP_ + NUM_AERO_PHASE_ + x] - 1)
 #define AERO_PHASE_ID_(x) \
@@ -215,16 +215,22 @@ void rxn_SIMPOL_phase_transfer_update_env_state(ModelData *model_data,
   double *env_data = model_data->grid_cell_env;
 
   // Calculate the mass accomodation coefficient if the N* parameter
-  // was provided, otherwise set it to 1.0
-  double mass_acc = 1.0;
+  // was provided, otherwise set it to 0.1 (per Zaveri 2008)
+  ALPHA_ = 0.1;
   if (DELTA_H_ != 0.0 || DELTA_S_ != 0.0) {
     double del_G = DELTA_H_ - TEMPERATURE_K_ * DELTA_S_;
-    mass_acc = exp(-del_G / (UNIV_GAS_CONST_ * TEMPERATURE_K_));
-    mass_acc = mass_acc / (1.0 + mass_acc);
+    ALPHA_ = exp(-del_G / (UNIV_GAS_CONST_ * TEMPERATURE_K_));
+    ALPHA_ = ALPHA_ / (1.0 + ALPHA_);
   }
 
+  // replaced by transition-regime rate equation
+#if 0
   // Save c_rms * mass_acc for use in mass transfer rate calc
-  C_AVG_ALPHA_ = PRE_C_AVG_ * sqrt(TEMPERATURE_K_) * mass_acc;  // [m/s]
+  MFP_M_ = PRE_C_AVG_ * sqrt(TEMPERATURE_K_) * mass_acc;  // [m/s]
+#endif
+
+  /// save the mean free path [m] for calculating condensation rates
+  MFP_M_ = mean_free_path__m(DIFF_COEFF_, TEMPERATURE_K_, ALPHA_);
 
   // SIMPOL.1 vapor pressure [Pa]
   double vp = B1_ / TEMPERATURE_K_ + B2_ + B3_ * TEMPERATURE_K_ +
@@ -328,11 +334,18 @@ void rxn_SIMPOL_phase_transfer_calc_deriv_contrib(
     if (radius <= ZERO || number_conc <= ZERO || aero_phase_mass <= ZERO)
       continue;
 
-    // Calculate the rate constant for diffusion limited mass transfer to the
-    // aerosol phase (1/s)
+      // This was replaced with the transition-regime condensation rate
+      // equations
+#if 0
     long double cond_rate =
         ((long double)1.0) / (radius * radius / (3.0 * DIFF_COEFF_) +
-                              4.0 * radius / (3.0 * C_AVG_ALPHA_));
+                              4.0 * radius / (3.0 * MFP_M_));
+#endif
+
+    // Calculate the rate constant for diffusion limited mass transfer to the
+    // aerosol phase (m3/#/s)
+    long double cond_rate =
+        gas_aerosol_rxn_rate_constant(DIFF_COEFF_, MFP_M_, radius, ALPHA_);
 
     // Calculate the evaporation rate constant (ppm_x*m^3/kg_x/s)
     long double evap_rate =
@@ -450,11 +463,18 @@ void rxn_SIMPOL_phase_transfer_calc_jac_contrib(ModelData *model_data,
     if (radius <= ZERO || number_conc <= ZERO || aero_phase_mass <= ZERO)
       continue;
 
-    // Calculate the rate constant for diffusion limited mass transfer to the
-    // aerosol phase (1/s)
+      // This was replaced with the transition-regime condensation rate
+      // equations
+#if 0
     long double cond_rate =
         ((long double)1.0) / (radius * radius / (3.0 * DIFF_COEFF_) +
-                              4.0 * radius / (3.0 * C_AVG_ALPHA_));
+                              4.0 * radius / (3.0 * MFP_M_));
+#endif
+
+    // Calculate the rate constant for diffusion limited mass transfer to the
+    // aerosol phase (m3/#/s)
+    long double cond_rate =
+        gas_aerosol_rxn_rate_constant(DIFF_COEFF_, MFP_M_, radius, ALPHA_);
 
     // Calculate the evaporation rate constant (ppm_x*m^3/kg_x/s)
     long double evap_rate =
@@ -506,9 +526,16 @@ void rxn_SIMPOL_phase_transfer_calc_jac_contrib(ModelData *model_data,
     evap_rate *= state[AERO_SPEC_(i_phase)];
 
     // Calculate partial derivatives
+
+    // this was replaced with the transition regime rate equations
+#if 0
     realtype d_cond_d_radius =
-        -(2.0 * radius / (3.0 * DIFF_COEFF_) + 4.0 / (3.0 * C_AVG_ALPHA_)) *
+        -(2.0 * radius / (3.0 * DIFF_COEFF_) + 4.0 / (3.0 * MFP_M_)) *
         cond_rate * cond_rate / state[GAS_SPEC_];
+#endif
+    realtype d_cond_d_radius = d_gas_aerosol_rxn_rate_constant_d_radius(
+                                   DIFF_COEFF_, MFP_M_, radius, ALPHA_) *
+                               state[GAS_SPEC_];
     realtype d_evap_d_radius = d_cond_d_radius / state[GAS_SPEC_] *
                                EQUIL_CONST_ * aero_phase_avg_MW /
                                aero_phase_mass * state[AERO_SPEC_(i_phase)];
@@ -598,7 +625,7 @@ void rxn_SIMPOL_phase_transfer_print(int *rxn_int_data,
   double *float_data = rxn_float_data;
 
   printf("\n\nSIMPOL.1 Phase Transfer reaction\n");
-  printf("\ndelta H: %le delta S: %le diffusion coeff: %le preC_avg: %le",
+  printf("\ndelta H: %le delta S: %le diffusion coeff: %le Pre C_avg: %le",
          DELTA_H_, DELTA_S_, DIFF_COEFF_, PRE_C_AVG_);
   printf("\nB1: %le B2: %le B3:%le B4: %le", B1_, B2_, B3_, B4_);
   printf("\nconv: %le MW: %le", CONV_, MW_);

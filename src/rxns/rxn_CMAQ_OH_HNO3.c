@@ -130,6 +130,17 @@ void rxn_CMAQ_OH_HNO3_update_env_state(ModelData *model_data, int *rxn_int_data,
        k3 / (((double)1.0) + k3 / k2)) *
       pow(conv, NUM_REACT_ - 1) * SCALING_;
 
+#ifdef PMC_DEBUG_RATE_CONSTANTS
+#ifdef PMC_USE_MPI
+  int rank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  if (rank==999 || rank==0)
+  {
+    printf("RATE_CONSTANT CMAQ_OH_HNO3: %-le, rank %d \n", RATE_CONSTANT_,rank);
+  }
+#endif
+#endif
+
   return;
 }
 

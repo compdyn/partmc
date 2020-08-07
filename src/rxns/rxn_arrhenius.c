@@ -113,13 +113,14 @@ void rxn_arrhenius_update_env_state(ModelData *model_data, int *rxn_int_data,
                    (E_ == 0.0 ? 1.0 : (1.0 + E_ * PRESSURE_PA_)) *
                    pow(CONV_ * PRESSURE_PA_ / TEMPERATURE_K_, NUM_REACT_ - 1);
 
-/*
+#ifdef PMC_DEBUG_RATE_CONSTANTS
 #ifdef PMC_USE_MPI
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  if (rank==10) {
-    printf("RATE_CONSTANT: %-le\n", RATE_CONSTANT_);
-    printf("A_: %-le\n", A_);
+  if (rank==999 || rank==0)
+  {
+    printf("RATE_CONSTANT ARRHENIUS: %-le, rank %d \n", RATE_CONSTANT_,rank);
+    /*printf("A_: %-le\n", A_);
     printf("B_: %-le\n", B_);
     printf("C_: %-le\n", C_);
     //printf("D_: %-le\n", D_);
@@ -135,9 +136,10 @@ void rxn_arrhenius_update_env_state(ModelData *model_data, int *rxn_int_data,
     for(int i=0; i<NUM_PROD_; i++)
       printf("%d,",PROD_(i));
     //printf("PROD_(0): %d,\n",PROD_(0));
+     */
   }
 #endif
-*/
+#endif
 
   return;
 }

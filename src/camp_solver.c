@@ -603,17 +603,18 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   int flag;
   int rank=0;
 
-#ifdef PMC_DEBUG_GPU
+#ifndef PMC_DEBUG_GPU
 #ifdef PMC_USE_MPI
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  if (rank>=0)
+  if (rank==999 || rank==0)
   {
     if (sd->counterSolve==0)
     {
       int n_cell=2;
+      printf("Rank %d\n",rank);
       printf("camp solver_run start [(id),conc], n_state_var %d, n_cells %d\n", md->n_per_cell_state_var, n_cells);
       for (int i = 0; i < md->n_per_cell_state_var*n_cell; i++) {  // NV_LENGTH_S(deriv)
-        printf("(%d) %-le ",i, state[i]);
+        printf("(%d) %-le ",i+1, state[i]);
       }
       printf("\n");
       printf("env [temp, press]\n");
@@ -644,14 +645,14 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   sd->model_data.total_state = state;
   sd->model_data.total_env = env;
 
-#ifdef PMC_DEBUG_GPU
+#ifndef PMC_DEBUG_GPU
 #ifdef PMC_USE_MPI
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  if (rank>=0)
+  if (rank==999 || rank==0)
   {
     if (sd->counterSolve==0)
       {
-        printf("After set y (deriv), iter %d...\n", sd->counterDerivGPU);
+        printf("After set y (deriv), iter %d rank %d...\n", sd->counterDerivGPU, rank);
         print_derivative(sd->y);
       }
   }
@@ -822,8 +823,9 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
         printf("(%d) %-le ", i, state[i]);
       }
       printf("\n");
-      printf("env [temp, press]\n%-le, %-le\n", env[0], env[1]);*/
-      printf("counterDeriv:%d counterSolve:%d\n",sd->counterDerivGPU, sd->counterSolve);
+      printf("env [temp, press]\n%-le, %-le\n", env[0], env[1]);
+
+      printf("Rank %d counterDeriv:%d counterSolve:%d\n",rank, sd->counterDerivGPU, sd->counterSolve);*/
       sd->counterDerivGPU=0;
       sd->counterSolve++;
     }
@@ -1105,19 +1107,21 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
 #ifdef PMC_USE_MPI
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  if (rank>=0)
+  //if (rank>=0)
+  if (rank==999 || rank==0)
   {
     if (sd->counterDerivGPU<3)
     {
-        //printf("deriv iter %d", sd->counterDerivGPU);
+        //printf("deriv iter %d rank %d", sd->counterDerivGPU, rank);
         //print_derivative(deriv);
     }
     if (sd->counterDerivGPU>100 && sd->counterDerivGPU<103)
     {
       //print_derivative(deriv);
     }
-  sd->counterDerivGPU++;
+
   }
+  sd->counterDerivGPU++;
 #endif
 #endif
 
@@ -1215,7 +1219,6 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
 #endif
 
   // Solving on CPU only
-
   // Loop over the grid cells to calculate sub-model and rxn Jacobians
   for (int i_cell = 0; i_cell < n_cells; ++i_cell) {
     // Set the grid cell state pointers

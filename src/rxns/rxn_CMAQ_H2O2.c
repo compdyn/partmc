@@ -121,6 +121,17 @@ void rxn_CMAQ_H2O2_update_env_state(ModelData *model_data, int *rxn_int_data,
            conv) *
       pow(conv, NUM_REACT_ - 1);
 
+#ifdef PMC_DEBUG_RATE_CONSTANTS
+#ifdef PMC_USE_MPI
+  int rank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  if (rank==999 || rank==0)
+  {
+    printf("RATE_CONSTANT CMAQ_H2O2: %-le, rank %d \n", RATE_CONSTANT_,rank);
+  }
+#endif
+#endif
+
   /*
 #ifdef PMC_USE_MPI
   int rank;

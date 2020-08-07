@@ -275,6 +275,7 @@ contains
     read(aux_arg,*)pmc_multicells
 
     n_cells=n_cells_block*n_blocks
+    !n_blocks=n_cells/n_cells_block
     write(*,*) "n_cells", n_cells, "n_cells_block", n_cells_block, "n_blocks", n_blocks
 
     call assert_msg(921735481, (pmc_multicells.ne.0 .or. pmc_multicells.ne.1), "Wrong pmc_multicells config value (use 0 or 1)")
@@ -533,6 +534,7 @@ contains
     !write(*,*) "photo_rates/60", new_rates(:)/60
     ! Set O2 + hv rate constant to 0 in KPP (not present in ebi version)
     KPP_PHOTO_RATES(1) = 0.0
+    write(*,*) "n_photo_rxn", n_photo_rxn
     ! Set the remaining rates
     if(pmc_multicells.eq.1) then
       do i_cell = 1, n_cells_block
@@ -602,12 +604,10 @@ contains
 
     !open(30, file="../../../../test/chemistry/cb05cl_ae5/files/ebi_input&
     !        _all_all_48_ksskse_photo0_lemisF_ldrydepF_lcldchemF_reverse.txt", status="old")
-    !open(30, file="../../../../test/chemistry/cb05cl_ae5/files/ebi_input&
-    !        _all_all_all_ksskse_photo0_lemisF_ldrydepF_lcldchemF.txt", status="old")
-    open(30, file="../../../../test/chemistry/cb05cl_ae5/files/ebi_input232&
+    open(30, file="../../../../test/chemistry/cb05cl_ae5/files/ebi_input0&
             _all_all_all_ksskse_photo0_lemisF_ldrydepF_lcldchemF.txt", status="old")
 
-    open(31, file="../../../../test/chemistry/cb05cl_ae5/files/ebi232_temp_press&
+    open(31, file="../../../../test/chemistry/cb05cl_ae5/files/ebi0_temp_press&
             _all_all_all.txt", status="old")
 
     !Offset
@@ -1043,13 +1043,9 @@ contains
         if(pmc_multicells.eq.1) then
           do i_block = 0, n_blocks-1
             do i_cell = 0, n_cells_block-1
-              !JA comentando esto funciona
               call camp_state%env_states(i_cell+1)%set_temperature_K( real(temperatures( i_block*n_cells_block+i_cell+1), kind=dp ))
               call camp_state%env_states(i_cell+1)%set_pressure_Pa( pressures(i_block*n_cells_block+i_cell+1))
 
-              !call camp_state%env_states(i_cell)%set_temperature_K( real( temperatures(i_cell)+offset_temp*(i_cell-1), kind=dp ) )
-              !call camp_state%env_states(i_cell)%set_pressure_Pa( pressures(i_cell) )
-              !Update camp_state
               do j = 1, state_size_cell
                 camp_state%state_var(state_size_cell*i_cell+j) = model_conc(i_block*(state_size_cell*n_cells_block)+state_size_cell*i_cell+j)
               end do
@@ -1058,6 +1054,7 @@ contains
             call cpu_time(comp_start)
             call camp_core%solve(camp_state, real(EBI_TMSTEP*60.0, kind=dp), &
                     solver_stats = solver_stats)
+            !write (*,*) "a", mod(n_cells_block,i_cell)
             call cpu_time(comp_end)
             comp_camp = comp_camp + (comp_end-comp_start)
           end do

@@ -237,11 +237,6 @@ void rxn_SIMPOL_phase_transfer_update_env_state(ModelData *model_data,
               B4_ * log(TEMPERATURE_K_);
   vp = 101325.0 * pow(10, vp);
 
-  // Put some boundaries on vapor pressure
-  // FIXME need to validate this
-  vp = vp > 1.0e-15 ? 1.0e-15 : vp;
-  vp = vp < 1.0e-60 ? 1.0e-60 : vp;
-
   // Calculate the conversion from kg_x/m^3 -> ppm_x
   KGM3_TO_PPM_ = CONV_ * TEMPERATURE_K_ / PRESSURE_PA_;
 
@@ -609,7 +604,6 @@ void rxn_SIMPOL_phase_transfer_calc_jac_contrib(ModelData *model_data,
       }
     }
   }
-
   return;
 }
 #endif

@@ -205,7 +205,7 @@ typedef struct {
 #ifdef PMC_DEBUG
   booleantype debug_out;  // Output debugging information during solving
   booleantype eval_Jac;   // Evalute Jacobian data during solving
-  int counterDeriv;       // Total calls to f()
+  int counterDeriv;
   int counterJac;         // Total calls to Jac()
   clock_t timeDeriv;      // Compute time for calls to f()
   clock_t timeJac;        // Compute time for calls to Jac()
@@ -213,11 +213,13 @@ typedef struct {
       max_loss_precision;  // Maximum loss of precision during last call to f()
 #endif
 
-//#ifndef PMC_DEBUG_GPU
-  int counterDerivGPU;
+  int counterDerivTotal;  // Total calls to f()
+  int counterDerivGPU; //todo set as counterDeriv and fix old counterDeriv
   int counterJacGPU;
   int counterSolve;
-//#endif
+  double timeCVode;
+  double timeCVodeTotal;
+  double timeF;
 
 #endif
   void *cvode_mem;       // CVodeMem object

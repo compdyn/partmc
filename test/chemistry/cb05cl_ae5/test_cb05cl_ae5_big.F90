@@ -595,7 +595,6 @@ contains
 #ifdef PMC_MONARCH_INPUT
     write(*,*) "size(camp_state%state_var)",size(camp_state%state_var), "state_size_cell", state_size_cell
 
-
     !open(30, file="../../../../test/chemistry/cb05cl_ae5/files/ebi_output_1_1_48_kss_kae.txt", status="old")
     !open(30, file="../../../../test/chemistry/cb05cl_ae5/files/ebi_output_1_1_9_ksskse_lemisF_ldrydepF_lcldchemF.txt", status="old")
     !open(30, file="../../../../test/chemistry/cb05cl_ae5/files/ebi_output_1_1_9_ksskse_photo0_lemisF_ldrydepF_lcldchemF.txt", status="old")
@@ -604,10 +603,10 @@ contains
 
     !open(30, file="../../../../test/chemistry/cb05cl_ae5/files/ebi_input&
     !        _all_all_48_ksskse_photo0_lemisF_ldrydepF_lcldchemF_reverse.txt", status="old")
-    open(30, file="../../../../test/chemistry/cb05cl_ae5/files/ebi_input0&
+    open(30, file="../../../../test/chemistry/cb05cl_ae5/files/ebi_input123&
             _all_all_all_ksskse_photo0_lemisF_ldrydepF_lcldchemF.txt", status="old")
 
-    open(31, file="../../../../test/chemistry/cb05cl_ae5/files/ebi0_temp_press&
+    open(31, file="../../../../test/chemistry/cb05cl_ae5/files/ebi123_temp_press&
             _all_all_all.txt", status="old")
 
     !Offset
@@ -642,9 +641,10 @@ contains
         read(30,*) ebi_monarch_init(i_spec)
       end do
 
-      do i_spec = 1, 6 !Monarch extra species (NH3 and others, cut on 72)
-        read(30,*) real_val !avoid them atm
-      end do
+      !do i_spec = 1, 6 !Monarch extra species (NH3 and others, cut on 72)
+      !  read(30,*) real_val !avoid them atm
+      !end do
+      read(30,*) model_conc(i_cell*state_size_cell+i_H2O)
 
       read(31,*) name_cell
       read(31,*) temperatures(i_cell+1)
@@ -657,6 +657,7 @@ contains
         if (prop_set%get_real(key, real_val)) then
 
           !DEBUG Set real_val from ebi_monarch file
+          !Loop to search the same name and id from ebi to monarch names (todo there's a better way to do this)
           do j_spec = 1, NUM_EBI_SPEC
             if (trim(ebi_spec_names(i_spec)%string).eq.trim(ebi_monarch_spec_names(j_spec)%string)) then
               real_val = ebi_monarch_init(j_spec)
@@ -668,22 +669,10 @@ contains
           ! Set the EBI solver concetration (ppm)
           YC(i_spec) = real_val
 
-          if(pmc_multicells.eq.1) then
-            ! Set the camp-chem concetration (ppm)
-            !camp_state%state_var( &
-            !        chem_spec_data%gas_state_id( &
-            !        ebi_spec_names(i_spec)%string)+i_cell*state_size_cell) = real_val
+          ! Set the camp-chem concetration (ppm)
+          model_conc(chem_spec_data%gas_state_id( &
+                  ebi_spec_names(i_spec)%string)+i_cell*state_size_cell) = real_val
 
-            model_conc(chem_spec_data%gas_state_id( &
-                    ebi_spec_names(i_spec)%string)+i_cell*state_size_cell) = real_val
-
-          else
-            !camp_state%state_var( &
-            !        chem_spec_data%gas_state_id( &
-            !                ebi_spec_names(i_spec)%string)) = real_val !not needed in fact
-            model_conc(chem_spec_data%gas_state_id( &
-                    ebi_spec_names(i_spec)%string)+i_cell*state_size_cell) = real_val
-          end if
         end if
 
         ! Set KPP species concentrations (#/cc)
@@ -788,16 +777,17 @@ contains
     call assert(892572866, associated(prop_set))
     call assert(722411962, prop_set%get_real(key, real_val))
 
+#ifdef PMC_MONARCH_INPUT
     do i_cell = 0, n_cells-1
       model_conc(i_cell*state_size_cell+i_DUMMY) = real_val
       model_conc(i_cell*state_size_cell+i_M)=camp_state%state_var(i_M)
       model_conc(i_cell*state_size_cell+i_O2)=camp_state%state_var(i_O2)
       model_conc(i_cell*state_size_cell+i_N2)=camp_state%state_var(i_N2)
-      model_conc(i_cell*state_size_cell+i_H2O)=camp_state%state_var(i_H2O)
+      !model_conc(i_cell*state_size_cell+i_H2O)=camp_state%state_var(i_H2O)
       model_conc(i_cell*state_size_cell+i_CH4)=camp_state%state_var(i_CH4) !interesting, when setting wrong conc like i_h20 it takes soo long
       model_conc(i_cell*state_size_cell+i_H2)=camp_state%state_var(i_H2)
     end do
-    !end if
+#endif
 
     ! Set up the output files
     open(EBI_FILE_UNIT, file="out/cb05cl_ae5_ebi_results.txt", status="replace", &
@@ -902,10 +892,14 @@ contains
 #endif
     spec_names = chem_spec_data%get_spec_names()
 
+    !todo netcdf with monarch input instead txt file
     !Netcdf n cells exp values
-    !call set_input_from_netcdf(ncfile, state_size_cell, spec_names)
+#ifdef NETCDF_INPUT
+    call set_input_from_netcdf(ncfile, state_size_cell, spec_names&
+            ,model_conc, temperatures, pressures, n_cells)
+#endif
 
-    write(*,*) "First setup camp_state_var"
+    !write(*,*) "First setup camp_state_var"
 
     ! Set same conc per n_cells
     !do i_block = 0, n_blocks-1
@@ -1240,37 +1234,45 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine set_input_from_netcdf(camp_state, state_size_cell, spec_names)
+  subroutine set_input_from_netcdf(camp_state, state_size_cell, spec_names&
+          ,model_conc, temperatures, pressures, n_cells)
 
     !todo fix arguments
-
     type(camp_state_t), intent(inout) :: camp_state
     type(string_t), intent(in) :: spec_names(:)
-    integer(kind=i_kind), intent(in) :: state_size_cell
+    integer(kind=i_kind), intent(in) :: state_size_cell, n_cells
+    real(kind=dp), intent(inout) :: model_conc(:)
+    real(kind=dp), intent(inout) :: temperatures(:)
+    real(kind=dp), intent(inout) :: pressures(:)
 
-    real(kind=dp), allocatable :: working_array(:,:), conc_aux(:)
-    real(kind=dp), allocatable :: temperatures(:)
-    real(kind=dp), allocatable :: pressures(:)
-    real:: pressure
+    real(kind=dp), allocatable :: aux_array(:,:)
     real(kind=dp), allocatable :: water_concs(:)
     integer(kind=i_kind) :: stat
     real(kind=dp) :: comp_start, comp_end, comp_camp
 
-    integer(kind=i_kind) :: n_cells, i, j, k, s, i_cell, i_spec
+    integer(kind=i_kind) :: i, j, k, s, i_cell, i_spec
     integer(kind=i_kind) :: n_repeats
     !netcdf
     integer(kind=i_kind) :: input_id, varid
+    character(len=:), allocatable :: ncfile
 
-    integer :: i_start = 136
-    integer :: j_start= 134
-    integer :: k_start = 1
-    integer :: t_start = 14
+    integer :: max_k = 46
+    integer :: max_j = 15
+    integer :: max_i = 15
+    integer :: i_start = 1 !136
+    integer :: j_start= 1 !134
+    integer :: k_start = 3 !1 !cell 1 and 2 are teorically non-chemistry computant
+    integer :: t_start = 1 !14
     integer :: i_n = 5 !20
     integer :: j_n = 5 !20
     integer :: k_n = 5 !48
     integer :: t_n = 1 !1
-    character(len=:), allocatable :: ncfile
 
+#ifdef PMC_USE_MPI
+    if( pmc_mpi_rank( ) .eq. 0 ) then
+#endif
+
+#ifdef ARGS_NETCDF
     ! Get from the .sh script the command arguments
     call read_args(i_start, MAP_I_START)
     call read_args(j_start, MAP_J_START)
@@ -1280,19 +1282,38 @@ contains
     call read_args(j_n, MAP_J_N)
     call read_args(k_n, MAP_K_N)
     call read_args(t_n, MAP_T_N)
+#else
+    !todo: we don't know how many cells has each rank (15 or 16). We will suppose 15 atm
+    !todo check everything is multiple of max i, j and k and compute the non-multiple cells
+    !set to 46 if >=46
+    if(n_cells.ge.max_i) then
+      k_n=max_k
+      if(n_cells.ge.max_k*max_j) then
+        j_n=max_j
+        if(n_cells.ge.max_k*max_j*max_i) then
+          i_n=n_cells/(max_k*max_j)
+          write (*,*) "WARNING More cells than maxs ", max_k, max_j, max_i, ", not computing the rest"
+        else
+          i_n=n_cells/(max_k*max_j)
+        end if
+      else
+        j_n=n_cells/max_k
+      end if
+    else
+      k_n = n_cells
+    end if
 
-    pressure = 0.8
+#endif
 
-    ncfile = '/esarchive/exp/monarch/a2bk/original_files/000/2016083012/MONARCH_d01_2016083012.nc'
+    !ncfile = '/esarchive/exp/monarch/a2bk/original_files/000/2016083012/MONARCH_d01_2016083012.nc'
+    ncfile = '/gpfs/scratch/bsc32/bsc32815/a2s8/nmmb-monarch/OUTPUT/regional/000/20160801/CURRENT_RUN/&
+            nmmb_hst24hAllBlockMulticell_01_nc4_0000h_00m_00.00s_copy.nc'
 
     stat =  nf90_open &
             (ncfile, &
             NF90_NOWRITE,input_id)
 
-    allocate(working_array(n_cells,state_size_cell))
-    allocate(conc_aux(1))
-    allocate(temperatures(n_cells))
-    allocate(pressures(n_cells))
+    allocate(aux_array(n_cells,state_size_cell))
     allocate(water_concs(n_cells))
 
     !CONCS
@@ -1301,27 +1322,22 @@ contains
 
       !Save concs in temporal array
       stat =  nf90_inq_varid(input_id,spec_names(i_spec)%string,varid)
-      stat =  nf90_get_var(input_id,varid,working_array(:,i_spec), &
+      stat =  nf90_get_var(input_id,varid,aux_array(:,i_spec), &
               start=(/i_start,j_start,k_start,t_start/),count=(/i_n,j_n,k_n,t_n/))
       !start=(/i_start,j_start,k_start,t_start/),count=(/1,1,1,1/))
 
 
       !print *, "spec_names(i_spec)%string ",spec_names(i_spec)%string
     end do
-    !print *, "spec_names(i_spec)%string, working_array(1,1) ",spec_names(i_spec)%string, working_array(1,1)
+    !print *, "spec_names(i_spec)%string, aux_array(1,1) ",spec_names(i_spec)%string, aux_array(1,1)
     !todo: change prints for tests that check the correct reading of netcdf variables
 
     !Set in state array
     do i_cell=0, n_cells-1
       do i_spec = 1, state_size_cell
-        camp_state%state_var(i_cell*state_size_cell+i_spec) = working_array(i_cell,i_spec)
+        !camp_state%state_var(i_cell*state_size_cell+i_spec) = aux_array(i_cell,i_spec)
+        model_conc(i_cell*state_size_cell+i_spec) = aux_array(i_cell,i_spec)
         !print*, i_cell, spec_names(i_spec)%string, camp_state%state_var(i_cell*state_size_cell+i_spec)
-      end do
-    end do
-
-    do i_cell = 0, n_cells-1
-      do j = 1, state_size_cell
-        !camp_state%state_var(i_cell*state_size_cell+j) = camp_state%state_var(j)
       end do
     end do
 
@@ -1330,12 +1346,13 @@ contains
     stat =  nf90_get_var(input_id,varid,temperatures, &
             start=(/i_start,j_start,k_start,t_start/),count=(/i_n,j_n,k_n,t_n/))
     !start=(/i_start,j_start,k_start,t_start/),count=(/1,1,1,1/))
+    !return temperatures and later will set them to correct env_state
 
     !todo: pressure
-    do i_cell = 1, n_cells
-      call camp_state%env_states(i_cell)%set_temperature_K( real( temperatures(i_cell), kind=dp ) )
-      call camp_state%env_states(i_cell)%set_pressure_Pa( pressure * const%air_std_press )
-    end do
+    !do i_cell = 1, n_cells
+    !  call camp_state%env_states(i_cell)%set_temperature_K( real( temperatures(i_cell), kind=dp ) )
+    !  call camp_state%env_states(i_cell)%set_pressure_Pa( pressure * const%air_std_press )
+    !end do
 
     call cpu_time(comp_end)
     comp_camp = comp_camp + (comp_end-comp_start)
@@ -1343,12 +1360,14 @@ contains
     comp_camp = 0.0
 
     stat = nf90_close(input_id)
-    deallocate (working_array)
-    deallocate(conc_aux)
-    deallocate(temperatures)
-    deallocate(pressures)
+    deallocate (aux_array)
     deallocate(water_concs)
 
+#ifdef PMC_USE_MPI
+    else
+      write (*,*) "Not rank 0!"
+    end if
+#endif
 
   end subroutine set_input_from_netcdf
 

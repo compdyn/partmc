@@ -124,7 +124,7 @@ else
   #supongo que habra algun size o asi
 
   #Arguments are netcdf read parameters: i, j, k, t, i_count, j_count, k_count, t_count
-  n_cells=(46) #(100 1125 3375 5625 7875 10800)
+  n_cells=(2) #(100 1125 3375 5625 7875 10800)
   n_blocks=(1) #50
   offset_conc=(0) #0.1
   offset_temp=(0) #0.0006

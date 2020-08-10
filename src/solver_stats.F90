@@ -57,6 +57,10 @@ module pmc_solver_stats
     real(kind=dp) :: RHS_time__s
     !> Compute time for calls to `Jac()` [s]
     real(kind=dp) :: Jac_time__s
+    !> Compute time for CVODE solving run [s]
+    real(kind=dp) :: timeCVode = 0.0
+    !> Total compute time accumulated for CVODE solving runs [s]
+    real(kind=dp) :: timeCVodeTotal = 0.0
     !> Maximum loss of precision on last deriv call
     real(kind=dp) :: max_loss_precision
 #ifdef PMC_DEBUG

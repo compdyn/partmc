@@ -367,8 +367,12 @@ void *solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
 #endif
 
 #ifndef PMC_DEBUG_GPU
+  sd->counterDerivTotal=0;
   sd->counterDerivGPU=0;
-  sd->counterSolve=0;
+  sd->counterJacGPU=0;
+  sd->timeCVode=0.0;
+  sd->timeCVodeTotal=0.0;
+  sd->timeF=0.0;
 #endif
 
 #ifdef PMC_DEBUG_GPU
@@ -645,7 +649,7 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   sd->model_data.total_state = state;
   sd->model_data.total_env = env;
 
-#ifndef PMC_DEBUG_GPU
+#ifdef PMC_DEBUG_GPU
 #ifdef PMC_USE_MPI
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   if (rank==999 || rank==0)
@@ -716,7 +720,8 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   flag = CVodeSetInitStep(sd->cvode_mem, sd->init_time_step);
   check_flag_fail(&flag, "CVodeSetInitStep", 1);
 
-#ifdef PMC_DEBUG_GPU
+#ifndef PMC_DEBUG_GPU
+  clock_t start2 = clock();
 #ifdef PMC_USE_MPI
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   if (rank>=0)
@@ -780,6 +785,10 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
     }
   }
 
+#ifndef PMC_DEBUG_GPU
+  sd->timeCVode = (clock() - start2);
+#endif
+
 /*
 #ifdef PMC_DEBUG_GPU
 #ifdef PMC_USE_MPI
@@ -811,24 +820,30 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
     }
   }
 
-
 #ifdef PMC_USE_MPI
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   if (rank>=0)
   {
-    if (sd->counterSolve>=0)
-    {
-      /*printf("state after cvode [(id),conc], length %d\n", md->n_per_cell_state_var);
+    sd->counterDerivTotal+=sd->counterDerivGPU;
+    sd->timeCVodeTotal+=sd->timeCVode;
+    if (sd->counterSolve==0){
+            /*printf("state after cvode [(id),conc], length %d\n", md->n_per_cell_state_var);
       for (int i = 0; i < md->n_per_cell_state_var; i++) {  // NV_LENGTH_S(deriv)
         printf("(%d) %-le ", i, state[i]);
       }
       printf("\n");
       printf("env [temp, press]\n%-le, %-le\n", env[0], env[1]);
 
-      printf("Rank %d counterDeriv:%d counterSolve:%d\n",rank, sd->counterDerivGPU, sd->counterSolve);*/
-      sd->counterDerivGPU=0;
-      sd->counterSolve++;
+      printf("Rank %d counterSolve %d counterDeriv %d counterDerivTotal %d timeCVode %lf timeCVodeTotal %lf"
+             " %%timeF/CVodeTotal %lf \n",rank,sd->counterSolve
+             ,sd->counterDerivGPU, sd->counterDerivTotal,sd->timeCVode/CLOCKS_PER_SEC,sd->timeCVodeTotal/CLOCKS_PER_SEC
+             ,(sd->timeF/CLOCKS_PER_SEC)/(sd->timeCVodeTotal/CLOCKS_PER_SEC)*100);
+*/
     }
+
+    sd->counterDerivGPU=0;
+    sd->counterSolve++;
+
   }
 #endif
 
@@ -880,6 +895,7 @@ void solver_get_statistics(void *solver_data, int *solver_flag, int *num_steps,
                            double *next_time_step__s, int *Jac_eval_fails,
                            int *RHS_evals_total, int *Jac_evals_total,
                            double *RHS_time__s, double *Jac_time__s,
+                           double *timeCVode, double *timeCVodeTotal,
                            double *max_loss_precision) {
 #ifdef PMC_USE_SUNDIALS
   SolverData *sd = (SolverData *)solver_data;
@@ -937,6 +953,11 @@ void solver_get_statistics(void *solver_data, int *solver_flag, int *num_steps,
   *Jac_time__s = 0.0;
   *max_loss_precision = 0.0;
 #endif
+#ifndef PMC_DEBUG_GPU
+  *timeCVode =((double)sd->timeCVode) / CLOCKS_PER_SEC;
+  *timeCVodeTotal =((double)sd->timeCVodeTotal) / CLOCKS_PER_SEC;
+#endif
+
 #endif
 }
 
@@ -1033,6 +1054,10 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
   clock_t start = clock();
 #endif
 
+#ifndef PMC_DEBUG_GPU
+  clock_t start10 = clock();
+#endif
+
 #ifdef PMC_USE_GPU
   // Reset the derivative vector
   N_VConst(ZERO, deriv);
@@ -1104,6 +1129,7 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
   }
 
 #ifndef PMC_DEBUG_GPU
+  sd->timeF += (clock() - start10);
 #ifdef PMC_USE_MPI
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);

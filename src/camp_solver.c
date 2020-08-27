@@ -373,17 +373,13 @@ void *solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
   sd->timeCVode=0.0;
   sd->timeCVodeTotal=0.0;
   sd->timeF=0.0;
-#endif
-
-#ifdef PMC_DEBUG_GPU
 #ifdef PMC_USE_MPI
-  int rank;
+  int rank=0;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-      if (rank>=0)
+  if (rank==411 || rank==999)
   {
-        //printf("n_rxn:%d\n",n_rxn);
+    printf("Rank %d, n_dep_var %d, n_state_var %d, n_rxn %d, n_cells %d\n",rank, n_dep_var, n_state_var, n_rxn, n_cells);
   }
-
 #endif
 #endif
 
@@ -610,12 +606,12 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
 #ifndef PMC_DEBUG_GPU
 #ifdef PMC_USE_MPI
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  if (rank==999 || rank==0)
+  if (rank==411 || rank==999)
   {
     if (sd->counterSolve==0)
     {
       int n_cell=2;
-      printf("Rank %d\n",rank);
+      printf("Rank %d t_initial %-le t_final %-le\n",rank,t_initial,t_final);
       printf("camp solver_run start [(id),conc], n_state_var %d, n_cells %d\n", md->n_per_cell_state_var, n_cells);
       for (int i = 0; i < md->n_per_cell_state_var*n_cell; i++) {  // NV_LENGTH_S(deriv)
         printf("(%d) %-le ",i+1, state[i]);
@@ -652,7 +648,7 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
 #ifdef PMC_DEBUG_GPU
 #ifdef PMC_USE_MPI
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  if (rank==999 || rank==0)
+  if (rank==411 || rank==999)
   {
     if (sd->counterSolve==0)
       {
@@ -833,15 +829,16 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
       }
       printf("\n");
       printf("env [temp, press]\n%-le, %-le\n", env[0], env[1]);
-
+*/
       printf("Rank %d counterSolve %d counterDeriv %d counterDerivTotal %d timeCVode %lf timeCVodeTotal %lf"
              " %%timeF/CVodeTotal %lf \n",rank,sd->counterSolve
              ,sd->counterDerivGPU, sd->counterDerivTotal,sd->timeCVode/CLOCKS_PER_SEC,sd->timeCVodeTotal/CLOCKS_PER_SEC
              ,(sd->timeF/CLOCKS_PER_SEC)/(sd->timeCVodeTotal/CLOCKS_PER_SEC)*100);
-*/
+
     }
 
     sd->counterDerivGPU=0;
+    sd->counterJacGPU=0;
     sd->counterSolve++;
 
   }
@@ -1128,18 +1125,19 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
     jac_deriv_data += n_dep_var;
   }
 
+
 #ifndef PMC_DEBUG_GPU
   sd->timeF += (clock() - start10);
 #ifdef PMC_USE_MPI
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   //if (rank>=0)
-  if (rank==999 || rank==0)
+  if (rank==411 || rank==999)
   {
-    if (sd->counterDerivGPU<3)
+    if (sd->counterDerivGPU<0)
     {
-        //printf("deriv iter %d rank %d", sd->counterDerivGPU, rank);
-        //print_derivative(deriv);
+        printf("Rank %d deriv iter %d jac iter %d counterSolve %d", rank, sd->counterDerivGPU, sd->counterJacGPU, sd->counterSolve);
+        print_derivative(deriv);
     }
     if (sd->counterDerivGPU>100 && sd->counterDerivGPU<103)
     {
@@ -1317,6 +1315,30 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
       ++(sd->Jac_eval_fails);
     }
   }
+#endif
+
+#ifndef PMC_DEBUG_GPU
+#ifdef PMC_USE_MPI
+  int rank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  //if (rank>=0)
+  if (rank==411 || rank==999)
+  {
+    if (sd->counterJacGPU<0)
+    {
+        printf("Rank %d deriv iter %d jac iter %d counterSolve %d", rank, sd->counterDerivGPU, sd->counterJacGPU, sd->counterSolve);
+        print_jacobian(J);
+        //printf("Rank %d deriv iter %d jac iter %d counterSolve %d", rank, sd->counterDerivGPU, sd->counterJacGPU, sd->counterSolve);
+        //pmc_debug_print_jac_struct2(sd, J, "RXN struct");
+    }
+    if (sd->counterDerivGPU>100 && sd->counterDerivGPU<103)
+    {
+      //print_derivative(deriv);
+    }
+
+  }
+  sd->counterJacGPU++;
+#endif
 #endif
 
   return (0);
@@ -1958,7 +1980,7 @@ SUNMatrix get_jac_init(SolverData *solver_data) {
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   if (rank==MPI_RANK0)
   {
-    pmc_debug_print_jac_rel(sd, sd->model_data.J_rxn, "RXN relations"); //Fine but strange reactants affecting reactants
+    pmc_debug_print_jac_rel(sd, sd->model_data.J_rxn, "RXN relations");
   }
 #endif
 #endif

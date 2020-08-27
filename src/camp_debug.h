@@ -142,15 +142,17 @@ void pmc_debug_print_jac_struct2(void *solver_data, SUNMatrix J,
                                  const char *message) {
   SolverData *sd = (SolverData *)solver_data;
 
-  int n_state_var = SM_COLUMNS_S(J);
+  int n_cells = sd->model_data.n_cells;
+  int n_state_var = SM_COLUMNS_S(J)/n_cells;
   int i_elem = 0;
   int next_col = 0;
+
   printf("\n\n   Jacobian structure (↓ind →dep) - %s\n     ", message);
   for (int i_dep = 0; i_dep < n_state_var; i_dep++)
-    printf("[%5.5s]",sd->spec_names[i_dep]);
+    //printf("[%5.5s]",sd->spec_names[i_dep]);
   //printf("[%3d]", i_dep);
   for (int i_ind = 0; i_ind < n_state_var; i_ind++) {
-    printf("\n[%5.5s]",sd->spec_names[i_ind]);
+    //printf("\n[%5.5s]",sd->spec_names[i_ind]);
     //printf("\n[%3d]", i_ind);
     next_col = SM_INDEXPTRS_S(J)[i_ind + 1];
     for (int i_dep = 0; i_dep < n_state_var; i_dep++) {
@@ -165,6 +167,32 @@ void pmc_debug_print_jac_struct2(void *solver_data, SUNMatrix J,
     }
   }
 }
+
+/*
+void pmc_debug_print_jac_struct2(void *solver_data, SUNMatrix J, const char *message) {
+
+  SolverData *sd = (SolverData *)solver_data;
+
+  int n_state_var = SM_COLUMNS_S(J);
+  int i_elem = 0;
+  int next_col = 0;
+  printf("\n\n   Jacobian (↓ind →dep) - %s\n     ", message);
+  for (int i_dep = 0; i_dep < n_state_var; i_dep++)
+    printf("      [%3d]", i_dep);
+  for (int i_ind = 0; i_ind < n_state_var; i_ind++) {
+    printf("\n[%3d]   ", i_ind);
+    next_col = SM_INDEXPTRS_S(J)[i_ind + 1];
+    for (int i_dep = 0; i_dep < n_state_var; i_dep++) {
+      if (i_dep == SM_INDEXVALS_S(J)[i_elem] && i_elem < next_col) {
+        printf(" % -1.2le ", SM_DATA_S(J)[i_elem++]);
+      } else {
+        printf("     -     ");
+      }
+    }
+  }
+
+}
+*/
 
 //Print jac species relations (which species relations with which others)
 // based on nonzero values

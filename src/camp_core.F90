@@ -143,6 +143,7 @@ module pmc_camp_core
     !> Number of cells to compute
     integer(kind=i_kind) :: n_cells = 1
     !> Initial state values
+    real(kind=dp), allocatable :: init_state_cell(:)
     real(kind=dp), allocatable :: init_state(:)
     !> Flag to split gas- and aerosol-phase reactions
     !! (for large aerosol representations, like single-particle)
@@ -771,31 +772,38 @@ contains
     this%core_is_initialized = .true.
 
     ! Set the initial state values
+    !todo init_state depends on n_cells, but we dont have same n_cells for all ranks...
+    allocate(this%init_state_cell(this%size_state_per_cell))
     allocate(this%init_state(this%size_state_per_cell * this%n_cells))
 
     ! Set species concentrations to zero
-    this%init_state(:) = 0.0
+    this%init_state_cell(:) = 0.0
 
     ! Set activity coefficients to 1.0
-      do i_cell = 0, this%n_cells - 1
-        do i_aero_rep = 1, size(this%aero_rep)
+    do i_aero_rep = 1, size(this%aero_rep)
 
-          rep => this%aero_rep(i_aero_rep)%val
+      rep => this%aero_rep(i_aero_rep)%val
 
-          ! Get the ion pairs for which activity coefficients can be calculated
-          unique_names = rep%unique_names(tracer_type = CHEM_SPEC_ACTIVITY_COEFF)
+      ! Get the ion pairs for which activity coefficients can be calculated
+      unique_names = rep%unique_names(tracer_type = CHEM_SPEC_ACTIVITY_COEFF)
 
-          ! Set the activity coefficients to 1.0 as default
-          do i_name = 1, size(unique_names)
-            i_state_elem = rep%spec_state_id(unique_names(i_name)%string)
-            this%init_state(i_state_elem + i_cell * this%size_state_per_cell) = &
-                    real(1.0d0, kind=dp)
-          end do
-
-          deallocate(unique_names)
-
-        end do
+      ! Set the activity coefficients to 1.0 as default
+      do i_name = 1, size(unique_names)
+        i_state_elem = rep%spec_state_id(unique_names(i_name)%string)
+        this%init_state_cell(i_state_elem + i_cell * this%size_state_per_cell) = &
+                real(1.0d0, kind=dp)
       end do
+
+      deallocate(unique_names)
+
+    end do
+
+    do i_cell = 0, this%n_cells - 1
+      do i_state_elem = 1, this%size_state_per_cell
+        this%init_state(i_state_elem + i_cell * this%size_state_per_cell)=&
+                this%init_state_cell(i_state_elem)
+      end do
+    end do
 
   end subroutine initialize
 
@@ -1508,7 +1516,7 @@ contains
                 pmc_mpi_pack_size_real(this%rel_tol, l_comm) + &
                 pmc_mpi_pack_size_real_array(this%abs_tol, l_comm) + &
                 pmc_mpi_pack_size_integer_array(this%var_type, l_comm) + &
-                pmc_mpi_pack_size_real_array(this%init_state, l_comm)
+                pmc_mpi_pack_size_real_array(this%init_state_cell, l_comm)
 #else
     pack_size = 0
 #endif
@@ -1542,6 +1550,7 @@ contains
       l_comm = MPI_COMM_WORLD
     endif
 
+
     call assert_msg(143374295, this%core_is_initialized, &
             "Trying to pack an uninitialized core.")
 
@@ -1571,7 +1580,7 @@ contains
     call pmc_mpi_pack_real(buffer, pos, this%rel_tol, l_comm)
     call pmc_mpi_pack_real_array(buffer, pos, this%abs_tol, l_comm)
     call pmc_mpi_pack_integer_array(buffer, pos, this%var_type, l_comm)
-    call pmc_mpi_pack_real_array(buffer, pos, this%init_state, l_comm)
+    call pmc_mpi_pack_real_array(buffer, pos, this%init_state_cell, l_comm)
     call assert(184050835, &
          pos - prev_position <= this%pack_size(l_comm))
 #endif
@@ -1591,6 +1600,7 @@ contains
     integer, intent(inout) :: pos
     !> MPI communicator
     integer, intent(in), optional :: comm
+    integer :: i_cell, i_state_elem
 
 #ifdef PMC_USE_MPI
     type(aero_rep_factory_t) :: aero_rep_factory
@@ -1637,10 +1647,19 @@ contains
     call pmc_mpi_unpack_real(buffer, pos, this%rel_tol, l_comm)
     call pmc_mpi_unpack_real_array(buffer, pos, this%abs_tol, l_comm)
     call pmc_mpi_unpack_integer_array(buffer, pos, this%var_type, l_comm)
-    call pmc_mpi_unpack_real_array(buffer, pos, this%init_state, l_comm)
+    call pmc_mpi_unpack_real_array(buffer, pos, this%init_state_cell, l_comm)
     this%core_is_initialized = .true.
     call assert(291557168, &
          pos - prev_position <= this%pack_size(l_comm))
+
+    allocate(this%init_state(this%size_state_per_cell * this%n_cells))
+    do i_cell = 0, this%n_cells - 1
+      do i_state_elem = 1, this%size_state_per_cell
+        this%init_state(i_state_elem + i_cell * this%size_state_per_cell)=&
+                this%init_state_cell(i_state_elem)
+      end do
+    end do
+
 #endif
 
   end subroutine bin_unpack

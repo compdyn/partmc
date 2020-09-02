@@ -91,6 +91,13 @@ module pmc_monarch_interface
     procedure :: constructor
   end interface monarch_interface_t
 
+  type :: real_int_t
+    real :: data
+    integer :: id
+    !contains
+    !  procedure :: compar
+  end type
+
   !> MPI node id from MONARCH
   integer(kind=i_kind) :: MONARCH_PROCESS ! TODO replace with MONARCH param
   ! TEMPORARY
@@ -98,6 +105,56 @@ module pmc_monarch_interface
 
 contains
 
+#ifdef COMMENTING
+  recursive subroutine quicksort(A,nA)
+
+    ! DUMMY ARGUMENTS
+    integer, intent(in) :: nA
+    type (real_int_t), dimension(nA), intent(inout) :: A
+
+    ! LOCAL VARIABLES
+    integer :: left, right
+    real:: random
+    real :: pivot
+    type (real_int_t) :: temp
+    integer :: marker
+
+    if (nA > 1) then
+
+      call random_number(random)
+      pivot = A(int(random*real(nA-1))+1)%data   ! random pivor (not best performance, but avoids worst-case)
+      left = 0
+      right = nA + 1
+
+      do while (left < right)
+        right = right - 1
+        do while (A(right)%data > pivot)
+          right = right - 1
+        end do
+        left = left + 1
+        do while (A(left)%data < pivot)
+          left = left + 1
+        end do
+        if (left < right) then
+          temp = A(left)
+          A(left) = A(right)
+          A(right) = temp
+        end if
+      end do
+
+      if (left == right) then
+        marker = left + 1
+      else
+        marker = left
+      end if
+
+      call QSort(A(:marker-1),marker-1)
+      call QSort(A(marker:),nA-marker+1)
+
+    end if
+
+  end subroutine quicksort
+#endif
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

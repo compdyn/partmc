@@ -241,6 +241,8 @@ contains
 #ifdef PMC_MONARCH_INPUT
     real(kind=dp), dimension(NUM_EBI_SPEC) :: ebi_monarch_init
     integer, dimension(NUM_EBI_SPEC) :: map_ebi_monarch
+    integer :: rank_monarch
+    character(len=100) :: aux_str1, aux_str2, aux_str3
 #endif
     real(kind=dp), allocatable :: model_conc(:)
     integer(kind=i_kind) :: n_cells, n_blocks, n_cells_block, compare_results, i, j, k, s, state_size_cell, i_cell, i_block
@@ -595,6 +597,12 @@ contains
 #ifdef PMC_MONARCH_INPUT
     write(*,*) "size(camp_state%state_var)",size(camp_state%state_var), "state_size_cell", state_size_cell
 
+    rank_monarch=411
+    aux_str1="../../../../test/chemistry/cb05cl_ae5/files/ebi_input"
+    write(aux_str2,*) rank_monarch
+    aux_str2=adjustl(aux_str2)
+    aux_str3="_all_all_all_ksskse_photo0_lemisF_ldrydepF_lcldchemF.txt"
+
     !open(30, file="../../../../test/chemistry/cb05cl_ae5/files/ebi_output_1_1_48_kss_kae.txt", status="old")
     !open(30, file="../../../../test/chemistry/cb05cl_ae5/files/ebi_output_1_1_9_ksskse_lemisF_ldrydepF_lcldchemF.txt", status="old")
     !open(30, file="../../../../test/chemistry/cb05cl_ae5/files/ebi_output_1_1_9_ksskse_photo0_lemisF_ldrydepF_lcldchemF.txt", status="old")
@@ -603,11 +611,13 @@ contains
 
     !open(30, file="../../../../test/chemistry/cb05cl_ae5/files/ebi_input&
     !        _all_all_48_ksskse_photo0_lemisF_ldrydepF_lcldchemF_reverse.txt", status="old")
-    open(30, file="../../../../test/chemistry/cb05cl_ae5/files/ebi_input123&
-            _all_all_all_ksskse_photo0_lemisF_ldrydepF_lcldchemF.txt", status="old")
+    open(30, file=trim(aux_str1)//trim(aux_str2)//trim(aux_str3), status="old")
+    !open(30, file="../../../../test/chemistry/cb05cl_ae5/files/ebi_input0&
+    !        _all_all_all_ksskse_photo0_lemisF_ldrydepF_lcldchemF.txt", status="old")
 
-    open(31, file="../../../../test/chemistry/cb05cl_ae5/files/ebi123_temp_press&
-            _all_all_all.txt", status="old")
+    aux_str1="../../../../test/chemistry/cb05cl_ae5/files/ebi"
+    aux_str3="_temp_press_all_all_all.txt"
+    open(31, file=trim(aux_str1)//trim(aux_str2)//trim(aux_str3), status="old")
 
     !Offset
     offset=0 !690 !1
@@ -863,6 +873,7 @@ contains
       spec_name = trim(KPP_SPC_NAMES(i_spec))
       j_spec = chem_spec_data%gas_state_id(spec_name)
       call assert_msg(194404050, j_spec.gt.0, "Missing KPP species: "//trim(KPP_SPC_NAMES(i_spec)))
+      call assert_msg(194404050, j_spec.gt.0, "Missing KPP species: "//trim(KPP_SPC_NAMES(i_spec)))
       kpp_spec_map(j_spec) = i_spec
     end do
 
@@ -1035,6 +1046,9 @@ contains
         comp_kpp = comp_kpp + (comp_end-comp_start)
 
         if(pmc_multicells.eq.1) then
+#ifndef PMC_MULTICELLS2
+          n_blocks=1
+#endif
           do i_block = 0, n_blocks-1
             do i_cell = 0, n_cells_block-1
               call camp_state%env_states(i_cell+1)%set_temperature_K( real(temperatures( i_block*n_cells_block+i_cell+1), kind=dp ))
@@ -1046,12 +1060,22 @@ contains
             end do
 
             call cpu_time(comp_start)
+
+#ifndef PMC_MULTICELLS2
+            call camp_core%solve(camp_state, real(EBI_TMSTEP*60.0, kind=dp), &
+                    n_cells=1, solver_stats = solver_stats)
+#else
             call camp_core%solve(camp_state, real(EBI_TMSTEP*60.0, kind=dp), &
                     solver_stats = solver_stats)
+#endif
+
             !write (*,*) "a", mod(n_cells_block,i_cell)
             call cpu_time(comp_end)
             comp_camp = comp_camp + (comp_end-comp_start)
           end do
+#ifndef PMC_MULTICELLS2
+          n_cells=n_cells_block*n_blocks
+#endif
         else
           do i_cell = 0, n_cells-1
 
@@ -1223,8 +1247,8 @@ contains
     deallocate(kpp_init)
     deallocate(camp_init)
     !deallocate(camp_state_comp)
-    deallocate(camp_state)
-    deallocate(camp_core)
+    !deallocate(camp_state)
+    !deallocate(camp_core)
 
     passed = .true.
 

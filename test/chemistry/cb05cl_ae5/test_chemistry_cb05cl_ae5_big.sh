@@ -122,9 +122,10 @@ else
   #The only that I dont like is that if I want to delete/ºadd one cell I need a lot of work for the others variables...
   #tendre que poner que el string repita si no encuentra xD
   #supongo que habra algun size o asi
+  #less partmc/build/test_run/chemistry/cb05cl_ae5/out/cb05cl_ae5_camp_results.txt
 
   #Arguments are netcdf read parameters: i, j, k, t, i_count, j_count, k_count, t_count
-  n_cells=(2) #(100 1125 3375 5625 7875 10800)
+  n_cells=(1) #(100 1125 3375 5625 7875 10800) (11040) (11776) (10350)
   n_blocks=(1) #50
   offset_conc=(0) #0.1
   offset_temp=(0) #0.0006

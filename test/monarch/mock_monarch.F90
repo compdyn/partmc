@@ -111,7 +111,6 @@ program mock_monarch
   !> Partmc nº of cases to test
   integer :: pmc_cases = 1
 
-
   ! Check the command line arguments
   call assert_msg(129432506, command_argument_count().eq.3, "Usage: "// &
           "./mock_monarch camp_input_file_list.json "// &
@@ -236,19 +235,6 @@ program mock_monarch
   ! The evaluation is based on a run with reasonable seeming values and
   ! few solver modifications. It is used to make sure future modifications
   ! to the solver do not affect the results
-#if 0
-  do i_spec = START_CAMP_ID, END_CAMP_ID
-    call assert_msg( 394742768, &
-        almost_equal( real( species_conc(10,15,1,i_spec), kind=dp ), &
-                      real( comp_species_conc(i_time,i_spec), kind=dp ), &
-                      1.d-4, 1d-3 ), &
-        "Concentration species mismatch for species "// &
-        trim( to_string( i_spec ) )//" at time step "// &
-        trim( to_string( i_time ) )//". Expected: "// &
-        trim( to_string( comp_species_conc(i_time,i_spec) ) )//", got: "// &
-        trim( to_string( species_conc(10,15,1,i_spec) ) ) )
-  end do
-#endif
 
   ! Deallocation
   deallocate(camp_input_file)

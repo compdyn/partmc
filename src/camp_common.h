@@ -83,6 +83,7 @@ typedef struct {
 #ifdef PMC_USE_SUNDIALS
   SUNMatrix J_init;    // sparse solver Jacobian matrix with used elements
                        // initialized to 1.0
+  SUNMatrix J_init2;    // sparse solver Jacobian matrix with used elements
   SUNMatrix J_rxn;     // Matrix for Jacobian contributions from reactions
   SUNMatrix J_params;  // Matrix for Jacobian contributions from sub model
                        // parameter calculations
@@ -185,14 +186,19 @@ typedef struct {
 #ifdef PMC_USE_SUNDIALS
   N_Vector abs_tol_nv;        // abosolute tolerance vector
   N_Vector y;                 // vector of solver variables
+  N_Vector y2;                 // vector of solver variables
   SUNLinearSolver ls;         // linear solver
   TimeDerivative time_deriv;  // CAMP derivative structure for use in
                               // calculating deriv
   Jacobian jac;               // CAMP Jacobian structure for use in
                               // calculating the Jacobian
   N_Vector deriv;      // used to calculate the derivative outside the solver
+  N_Vector deriv2;      // used to calculate the derivative outside the solver
   SUNMatrix J;         // Jacobian matrix
+  SUNMatrix J2;         // Jacobian matrix
   SUNMatrix J_guess;   // Jacobian matrix for improving guesses sent to linear
+                       // solver
+  SUNMatrix J_guess2;   // Jacobian matrix for improving guesses sent to linear
                        // solver
   bool curr_J_guess;   // Flag indicating the Jacobian used by the guess helper
                        // is current

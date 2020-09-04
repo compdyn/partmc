@@ -1402,14 +1402,14 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Integrate the chemical mechanism
-  subroutine solve(this, camp_state, time_step, rxn_phase, solver_stats)
+  subroutine solve(this, camp_state, time_step, rxn_phase, solver_stats, n_cells)
 
     use pmc_rxn_data
     use pmc_solver_stats
     use iso_c_binding
 
     !> Chemical model
-    class(camp_core_t), intent(in) :: this
+    class(camp_core_t), intent(inout) :: this
     !> Current model state
     type(camp_state_t), intent(inout), target :: camp_state
     !> Time step over which to integrate (s)
@@ -1420,6 +1420,7 @@ contains
     integer(kind=i_kind), intent(in), optional :: rxn_phase
     !> Return solver statistics to the host model
     type(solver_stats_t), intent(inout), optional, target :: solver_stats
+    integer, intent(in), optional :: n_cells
 
     ! Phase to solve
     integer(kind=i_kind) :: phase
@@ -1434,6 +1435,13 @@ contains
       phase = rxn_phase
     else
       phase = GAS_AERO_RXN
+    end if
+
+    if (present(n_cells)) then
+      !write(*,*) "n_cells", n_cells, "this%n_cells", this%n_cells
+      call assert_msg(593328368, n_cells.le.this%n_cells,                   &
+              "Trying to solve more cells than allocated cells" )
+      !this%n_cells=n_cells !todo re-check consequences of this
     end if
 
     ! Update the solver array of environmental states
@@ -1457,9 +1465,9 @@ contains
     ! Run the integration
     if (present(solver_stats)) then
       call solver%solve(camp_state, real(0.0, kind=dp), time_step,          &
-                        solver_stats)
+              n_cells, solver_stats)!this%n_cells
     else
-      call solver%solve(camp_state, real(0.0, kind=dp), time_step)
+      call solver%solve(camp_state, real(0.0, kind=dp), time_step, this%n_cells)
     end if
 
   end subroutine solve

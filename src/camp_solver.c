@@ -153,6 +153,10 @@ void *solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
   // Set up the solver variable array and helper derivative array
   sd->y = N_VNew_Serial(n_dep_var * n_cells);
   sd->deriv = N_VNew_Serial(n_dep_var * n_cells);
+#ifndef PMC_MULTICELLS2
+  //sd->y2 = N_VNew_Serial(n_dep_var);
+  //sd->deriv2 = N_VNew_Serial(n_dep_var);
+#endif
 #endif
 
   // Allocate space for the reaction data and set the number
@@ -500,6 +504,19 @@ void solver_initialize(void *solver_data, double *abs_tol, double rel_tol,
   flag = CVodeSetMaxHnilWarns(sd->cvode_mem, MAX_TIMESTEP_WARNINGS);
   check_flag_fail(&flag, "CVodeSetMaxHnilWarns", 1);
 
+#ifndef PMC_MULTICELLS2
+  //Aux J for one-cell
+/*  sd->model_data.n_cells=1;
+  sd->J2 = get_jac_init(sd);
+  sd->model_data.J_init2 = SUNMatClone(sd->J2);
+  SUNMatCopy(sd->J2, sd->model_data.J_init2);
+  sd->model_data.n_cells = n_cells;
+
+  sd->J_guess2 = SUNMatClone(sd->J2);
+  SUNMatCopy(sd->J2, sd->J_guess2);
+*/
+#endif
+
   // Get the structure of the Jacobian matrix
   sd->J = get_jac_init(sd);
   sd->model_data.J_init = SUNMatClone(sd->J);
@@ -583,6 +600,68 @@ int solver_set_eval_jac(void *solver_data, bool eval_Jac) {
 }
 #endif
 
+void swap_pointers_deriv_Jac(SolverData *sd){
+
+
+/*
+  N_Vector ytmp = N_VClone(sd->y);
+  N_Vector derivtmp= N_VClone(sd->deriv);
+
+  N_VDestroy(sd->y);
+  N_VDestroy(sd->deriv);
+
+  sd->y = N_VClone(sd->y2);
+  derivtmp= N_VClone(sd->deriv2);
+
+  N_VDestroy(sd->y2);
+  N_VDestroy(sd->deriv2);
+
+  sd->y2 = N_VClone(ytmp);
+  sd->deriv2= N_VClone(derivtmp);
+
+  N_VDestroy(ytmp);
+  N_VDestroy(derivtmp);
+
+
+  N_Vector ytmp;
+  double* xdata;
+  double* xdata2;
+
+  xdata = N_VGetArrayPointer(sd->y);
+  xdata2 = N_VGetArrayPointer(sd->y2);
+
+  for (int i=0; i<sd->model_data.n_per_cell_dep_var;i++)
+    xdata2[i]=xdata[i];
+
+  N_VSetArrayPointer(xdata, sd->y2);
+  N_VSetArrayPointer(xdata2, sd->y);
+
+  //todo: not working well, try to destroy
+  //printf("hola\n");
+
+*/
+  N_Vector ytmp=sd->y;
+  N_Vector derivtmp=sd->deriv;
+
+  sd->y=sd->y2;
+  sd->deriv=sd->deriv2;
+
+  sd->y2=ytmp;
+  sd->deriv2=derivtmp;
+  //todo: not working well, try to destroy
+
+  SUNMatrix Jtmp=sd->J;//todo deriv is 8 bytes size like pointer but sunmatrix?
+  SUNMatrix J_guesstmp=sd->J_guess;
+  SUNMatrix J_inittmp=sd->model_data.J_init;
+  sd->J=sd->J2;
+  sd->J_guess=sd->J_guess2;
+  sd->model_data.J_init=sd->model_data.J_init2;
+  sd->J2=Jtmp;
+  sd->J_guess2=J_guesstmp;
+  sd->model_data.J_init2=J_inittmp;
+
+}
+
 /** \brief Solve for a given timestep
  *
  * \param solver_data A pointer to the initialized solver data
@@ -594,14 +673,85 @@ int solver_set_eval_jac(void *solver_data, bool eval_Jac) {
  * \return Flag indicating CAMP_SOLVER_SUCCESS or CAMP_SOLVER_FAIL
  */
 int solver_run(void *solver_data, double *state, double *env, double t_initial,
-               double t_final) {
+               double t_final, int n_cells) {
 #ifdef PMC_USE_SUNDIALS
   SolverData *sd = (SolverData *)solver_data;
   ModelData *md = &(sd->model_data);
   int n_state_var = sd->model_data.n_per_cell_state_var;
-  int n_cells = sd->model_data.n_cells;
   int flag;
   int rank=0;
+
+#ifndef PMC_MULTICELLS2
+  if(sd->model_data.n_cells!=n_cells){
+    //Only considering two cases: Multicell with all cells and one-cell
+
+#ifdef PMC_MULTICELLS2_ZEROS
+    for (int j = n_cells; j < sd->model_data.n_cells; j++){
+      for (int i = 0; i < md->n_per_cell_state_var; i++) {
+        //todo crashing on monarch (not convergence and some seg fault)
+        state[i+j*md->n_per_cell_state_var] = 0.0;//state[i];
+      }
+    }
+    n_cells=sd->model_data.n_cells;
+#else
+    for (int j = 1; j < sd->model_data.n_cells; j++){
+      for (int i = 0; i < md->n_per_cell_state_var; i++) {
+        state[i+j*md->n_per_cell_state_var] = state[i];
+        //sd->y[i] = sd->y[i+j*NV_LENGTH_S(sd->y)];
+        //sd->deriv[i] = sd->deriv[i+j*NV_LENGTH_S(sd->y)];
+      }
+    }
+    for (int i=2; i<sd->model_data.n_cells*2;i+=2){
+        env[i]=env[0];
+        env[i+1]=env[1];
+    }
+    n_cells=sd->model_data.n_cells;
+#endif
+
+    /*if(n_cells==1){
+
+      //**Option 1 ** Works
+      //Fill all cells with same conc
+      for (int j = 1; j < sd->model_data.n_cells; j++){
+        for (int i = 0; i < md->n_per_cell_state_var; i++) {
+          //for (int i = 0; i < NV_LENGTH_S(sd->y); i++){
+          //printf("(%d) %-le ",i+1, state[i]);
+          state[i+j*md->n_per_cell_state_var] = 0.0;//state[i];
+          //sd->y[i] = sd->y[i+j*NV_LENGTH_S(sd->y)];
+          //sd->deriv[i] = sd->deriv[i+j*NV_LENGTH_S(sd->y)];
+        }
+      }
+
+      n_cells=sd->model_data.n_cells;
+    }
+    else{*/
+
+    //}
+
+    /*for (int i=2; i<sd->model_data.n_cells*2;i+=2){
+        env[i]=env[0];
+        env[i+1]=env[1];
+    }*/
+
+    //printf("%-le, %-le\n", env[0+2*i], env[1+2*i]);
+
+    //**Option 2** //Not working
+
+    //Set one cell
+    //sd->model_data.n_cells = n_cells;
+
+    //swap_pointers_deriv_Jac(sd);
+
+    //Swap pointers deriv, y and Jacs
+    //swap_pointers_deriv_Jac(sd);
+    //int n=sizeof(sd->y);
+    //printf("size of Nvector %d", n); //Its pointer size
+
+    //todo consider multicells different sizes (Reallocate y, deriv and Jacs with new n_cells, or create new ones and deallocate later)
+  }
+
+#endif
+
 
 #ifndef PMC_DEBUG_GPU
 #ifdef PMC_USE_MPI
@@ -690,7 +840,6 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
     sub_model_update_env_state(md);
     rxn_update_env_state(md);
   }
-
   PMC_DEBUG_JAC_STRUCT(sd->model_data.J_init, "Begin solving");
 
   // Reset the flag indicating a current J_guess

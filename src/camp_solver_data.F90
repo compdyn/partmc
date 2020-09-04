@@ -149,7 +149,7 @@ module pmc_camp_solver_data
 
     !> Run the solver
     integer(kind=c_int) function solver_run(solver_data, state, env, &
-                    t_initial, t_final) bind (c)
+                    t_initial, t_final, n_cells) bind (c)
       use iso_c_binding
       !> Pointer to the initialized solver data
       type(c_ptr), value :: solver_data
@@ -161,6 +161,7 @@ module pmc_camp_solver_data
       real(kind=c_double), value :: t_initial
       !> Final time (s)
       real(kind=c_double), value :: t_final
+      integer, value :: n_cells
     end function solver_run
 
     !> Reset the solver function timers
@@ -895,7 +896,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Solve the mechanism(s) for a specified timestep
-  subroutine solve(this, camp_state, t_initial, t_final, solver_stats)
+  subroutine solve(this, camp_state, t_initial, t_final, n_cells, solver_stats)
 
     !> Solver data
     class(camp_solver_data_t), intent(inout) :: this
@@ -907,6 +908,7 @@ contains
     real(kind=dp), intent(in) :: t_final
     !> Solver statistics
     type(solver_stats_t), intent(inout), optional, target :: solver_stats
+    integer, intent(in), optional:: n_cells
 
     integer(kind=c_int) :: solver_status
 
@@ -948,7 +950,8 @@ contains
             c_loc(camp_state%state_var),   & ! Pointer to state array
             c_loc(camp_state%env_var),     & ! Pointer to environmental vars
             real(t_initial, kind=c_double), & ! Start time (s)
-            real(t_final, kind=c_double)    & ! Final time (s)
+            real(t_final, kind=c_double),    & ! Final time (s)
+            n_cells&
             )
 
     ! Get the solver statistics

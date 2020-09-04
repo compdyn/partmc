@@ -29,7 +29,7 @@ int solver_set_debug_out(void *solver_data, bool do_output);
 int solver_set_eval_jac(void *solver_data, bool eval_Jac);
 #endif
 int solver_run(void *solver_data, double *state, double *env, double t_initial,
-               double t_final);
+               double t_final, int n_cells);
 void solver_get_statistics(void *solver_data, int *solver_flag, int *num_steps,
                            int *RHS_evals, int *LS_setups,
                            int *error_test_fails, int *NLS_iters,

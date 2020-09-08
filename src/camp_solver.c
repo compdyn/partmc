@@ -685,24 +685,32 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   if(sd->model_data.n_cells!=n_cells){
     //Only considering two cases: Multicell with all cells and one-cell
 
-#ifdef PMC_MULTICELLS2_ZEROS
+    //MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    //printf("Rank %d sd->model_data.n_cells %d n_cells %d", rank, sd->model_data.n_cells, n_cells);
+
+#ifndef PMC_MULTICELLS2_ZEROS
     for (int j = n_cells; j < sd->model_data.n_cells; j++){
       for (int i = 0; i < md->n_per_cell_state_var; i++) {
-        //todo crashing on monarch (not convergence and some seg fault)
         state[i+j*md->n_per_cell_state_var] = 0.0;//state[i];
       }
     }
+    for (int i=2*n_cells; i<sd->model_data.n_cells*2;i+=2){
+        env[i]=env[0];
+        env[i+1]=env[1]; //todo this is working fine?
+    }
     n_cells=sd->model_data.n_cells;
+
 #else
-    for (int j = 1; j < sd->model_data.n_cells; j++){
+    //n_cell should be == 1
+    for (int j = n_cells; j < sd->model_data.n_cells; j++){
       for (int i = 0; i < md->n_per_cell_state_var; i++) {
         state[i+j*md->n_per_cell_state_var] = state[i];
         //sd->y[i] = sd->y[i+j*NV_LENGTH_S(sd->y)];
         //sd->deriv[i] = sd->deriv[i+j*NV_LENGTH_S(sd->y)];
       }
     }
-    for (int i=2; i<sd->model_data.n_cells*2;i+=2){
-        env[i]=env[0];
+    for (int i=2*n_cells; i<sd->model_data.n_cells*2;i+=2){
+        env[i]=env[0]; //todo how his works if n_cell!=1
         env[i+1]=env[1];
     }
     n_cells=sd->model_data.n_cells;

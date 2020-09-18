@@ -117,6 +117,17 @@ void rxn_emission_update_env_state(ModelData *model_data, int *rxn_int_data,
   // Calculate the rate constant in (concentration_units/s)
   RATE_ = SCALING_ * BASE_RATE_;
 
+#ifdef PMC_DEBUG_RATE_CONSTANTS
+#ifdef PMC_USE_MPI
+  int rank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  if (rank==411 || rank==0)
+  {
+    printf("RATE_CONSTANT: %-le, rank %d \n", RATE_CONSTANT_,rank);
+  }
+#endif
+#endif
+
   return;
 }
 
@@ -131,6 +142,27 @@ void rxn_emission_update_env_state(ModelData *model_data, int *rxn_int_data,
  * \param time_step Current time step being computed (s)
  */
 #ifdef PMC_USE_SUNDIALS
+
+#ifdef CHANGE_LOOPS_RXN
+
+void rxn_emission_calc_deriv_contrib(ModelData *model_data,
+                                     double *deriv,
+                                     int *rxn_int_data, double *rxn_float_data,
+                                     double *rxn_env_data, realtype time_step) {
+  int *int_data = rxn_int_data;
+  double *float_data = rxn_float_data;
+  double *state = model_data->grid_cell_state;
+  double *env_data = model_data->grid_cell_env;
+
+  // Add contributions to the time derivative
+  if (DERIV_ID_ >= 0)
+    deriv[DERIV_ID_] += RATE_;
+
+  return;
+}
+
+#else
+
 void rxn_emission_calc_deriv_contrib(ModelData *model_data,
                                      TimeDerivative time_deriv,
                                      int *rxn_int_data, double *rxn_float_data,
@@ -146,6 +178,9 @@ void rxn_emission_calc_deriv_contrib(ModelData *model_data,
 
   return;
 }
+
+#endif
+
 #endif
 
 /** \brief Calculate contributions to the Jacobian from this reaction

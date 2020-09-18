@@ -177,6 +177,65 @@ void rxn_condensed_phase_arrhenius_update_env_state(ModelData *model_data,
  * \param time_step Current time step of the itegrator (s)
  */
 #ifdef PMC_USE_SUNDIALS
+
+#ifdef CHANGE_LOOPS_RXN
+
+void rxn_condensed_phase_arrhenius_calc_deriv_contrib(
+    ModelData *model_data, double *deriv, int *rxn_int_data,
+    double *rxn_float_data, double *rxn_env_data, double time_step) {
+  int *int_data = rxn_int_data;
+  double *float_data = rxn_float_data;
+  double *state = model_data->grid_cell_state;
+  double *env_data = model_data->grid_cell_env;
+
+  // Calculate derivative contributions for each aerosol phase
+  for (int i_phase = 0, i_deriv = 0; i_phase < NUM_AERO_PHASE_; i_phase++) {
+    // If this is an aqueous reaction, get the unit conversion from mol/m3 -> M
+    double unit_conv = 1.0;
+    if (WATER_(i_phase) >= 0) {
+      unit_conv = state[WATER_(i_phase)] * 1.0e-9;  // convert from ug/m3->L/m3
+
+      // For aqueous reactions, if no aerosol water is present, no reaction
+      // occurs
+      if (unit_conv <= ZERO) {
+        i_deriv += NUM_REACT_ + NUM_PROD_;
+        continue;
+      }
+      unit_conv = 1.0 / unit_conv;
+    }
+
+    // Calculate the reaction rate rate (M/s or mol/m3/s)
+    double rate = RATE_CONSTANT_;
+    for (int i_react = 0; i_react < NUM_REACT_; i_react++) {
+      rate *= state[REACT_(i_phase * NUM_REACT_ + i_react)] *
+              UGM3_TO_MOLM3_(i_react) * unit_conv;
+    }
+
+    // Reactant change
+    for (int i_react = 0; i_react < NUM_REACT_; i_react++) {
+      if (DERIV_ID_(i_deriv) < 0) {
+        i_deriv++;
+        continue;
+      }
+      deriv[DERIV_ID_(i_deriv++)] -= rate / (UGM3_TO_MOLM3_(i_react) * unit_conv);
+    }
+
+    // Products change
+    for (int i_prod = 0; i_prod < NUM_PROD_; i_prod++) {
+      if (DERIV_ID_(i_deriv) < 0) {
+        i_deriv++;
+        continue;
+      }
+      deriv[DERIV_ID_(i_deriv++)] += rate * YIELD_(i_prod) /
+              (UGM3_TO_MOLM3_(NUM_REACT_ + i_prod) * unit_conv);
+    }
+  }
+
+  return;
+}
+
+#else
+
 void rxn_condensed_phase_arrhenius_calc_deriv_contrib(
     ModelData *model_data, TimeDerivative time_deriv, int *rxn_int_data,
     double *rxn_float_data, double *rxn_env_data, double time_step) {
@@ -233,6 +292,9 @@ void rxn_condensed_phase_arrhenius_calc_deriv_contrib(
 
   return;
 }
+
+#endif
+
 #endif
 
 /** \brief Calculate contributions to the Jacobian from this reaction

@@ -493,7 +493,7 @@ contains
             call this%camp_core%solve(this%camp_state, &
                     real(time_step, kind=dp), solver_stats = solver_stats)
 
-            call warn_assert_msg(376450931, solver_stats%status_code.eq.0, &
+            call assert_msg(376450931, solver_stats%status_code.eq.0, &
                             "Solver failed with code "// &
                             to_string(solver_stats%solver_flag))
 
@@ -532,7 +532,7 @@ contains
       do i=i_start, i_end
         do j=j_start, j_end
           do k=1, k_end
-            !Remember fortran read matrix in inverse oarder for optimization!
+            !Remember fortran read matrix in inverse order for optimization!
             ! TODO add descriptions for o and z, or preferably use descriptive
             !      variable names
             o = (j-1)*(i_end) + (i-1) !Index to 3D

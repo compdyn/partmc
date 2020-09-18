@@ -22,8 +22,13 @@ void rxn_reset_state_adjustments(ModelData *model_data);
 void rxn_adjust_state(ModelData *model_data);
 void rxn_print_data(void *solver_data);
 #ifdef PMC_USE_SUNDIALS
+#ifdef CHANGE_LOOPS
+void rxn_calc_deriv(ModelData *model_data, double *time_deriv,
+                    double time_step);
+#else
 void rxn_calc_deriv(ModelData *model_data, TimeDerivative time_deriv,
                     double time_step);
+#endif
 void rxn_calc_deriv_specific_types(ModelData *model_data,
                                    TimeDerivative time_deriv, double time_step);
 void rxn_calc_jac(ModelData *model_data, Jacobian jac, double time_step);

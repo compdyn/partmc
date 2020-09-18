@@ -153,7 +153,7 @@ void *solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
   // Set up the solver variable array and helper derivative array
   sd->y = N_VNew_Serial(n_dep_var * n_cells);
   sd->deriv = N_VNew_Serial(n_dep_var * n_cells);
-#ifndef PMC_MULTICELLS2
+#ifdef PMC_MULTICELLS2
   //sd->y2 = N_VNew_Serial(n_dep_var);
   //sd->deriv2 = N_VNew_Serial(n_dep_var);
 #endif
@@ -504,7 +504,7 @@ void solver_initialize(void *solver_data, double *abs_tol, double rel_tol,
   flag = CVodeSetMaxHnilWarns(sd->cvode_mem, MAX_TIMESTEP_WARNINGS);
   check_flag_fail(&flag, "CVodeSetMaxHnilWarns", 1);
 
-#ifndef PMC_MULTICELLS2
+#ifdef PMC_MULTICELLS2
   //Aux J for one-cell
 /*  sd->model_data.n_cells=1;
   sd->J2 = get_jac_init(sd);
@@ -681,14 +681,15 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   int flag;
   int rank=0;
 
-#ifndef PMC_MULTICELLS2
+#ifdef PMC_MULTICELLS2
   if(sd->model_data.n_cells!=n_cells){
     //Only considering two cases: Multicell with all cells and one-cell
 
     //MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     //printf("Rank %d sd->model_data.n_cells %d n_cells %d", rank, sd->model_data.n_cells, n_cells);
 
-#ifndef PMC_MULTICELLS2_ZEROS
+#ifdef PMC_MULTICELLS2_ZEROS
+    //works but very slow
     for (int j = n_cells; j < sd->model_data.n_cells; j++){
       for (int i = 0; i < md->n_per_cell_state_var; i++) {
         state[i+j*md->n_per_cell_state_var] = 0.0;//state[i];
@@ -715,45 +716,6 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
     }
     n_cells=sd->model_data.n_cells;
 #endif
-
-    /*if(n_cells==1){
-
-      //**Option 1 ** Works
-      //Fill all cells with same conc
-      for (int j = 1; j < sd->model_data.n_cells; j++){
-        for (int i = 0; i < md->n_per_cell_state_var; i++) {
-          //for (int i = 0; i < NV_LENGTH_S(sd->y); i++){
-          //printf("(%d) %-le ",i+1, state[i]);
-          state[i+j*md->n_per_cell_state_var] = 0.0;//state[i];
-          //sd->y[i] = sd->y[i+j*NV_LENGTH_S(sd->y)];
-          //sd->deriv[i] = sd->deriv[i+j*NV_LENGTH_S(sd->y)];
-        }
-      }
-
-      n_cells=sd->model_data.n_cells;
-    }
-    else{*/
-
-    //}
-
-    /*for (int i=2; i<sd->model_data.n_cells*2;i+=2){
-        env[i]=env[0];
-        env[i+1]=env[1];
-    }*/
-
-    //printf("%-le, %-le\n", env[0+2*i], env[1+2*i]);
-
-    //**Option 2** //Not working
-
-    //Set one cell
-    //sd->model_data.n_cells = n_cells;
-
-    //swap_pointers_deriv_Jac(sd);
-
-    //Swap pointers deriv, y and Jacs
-    //swap_pointers_deriv_Jac(sd);
-    //int n=sizeof(sd->y);
-    //printf("size of Nvector %d", n); //Its pointer size
 
     //todo consider multicells different sizes (Reallocate y, deriv and Jacs with new n_cells, or create new ones and deallocate later)
   }
@@ -848,6 +810,7 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
     sub_model_update_env_state(md);
     rxn_update_env_state(md);
   }
+
   PMC_DEBUG_JAC_STRUCT(sd->model_data.J_init, "Begin solving");
 
   // Reset the flag indicating a current J_guess
@@ -1226,6 +1189,52 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
   sd->timeDeriv += (end - start);
 #endif
 
+#ifdef CHANGE_LOOPS
+
+#ifdef PMC_DEBUG
+    // Measure calc_deriv time execution
+    clock_t start2 = clock();
+#endif
+
+#ifndef PMC_USE_GPU
+
+    // Calculate the time derivative f(t,y)
+    rxn_calc_deriv(md, deriv_data, (double)time_step);
+
+    //todo: after calc all derivs, treat them again with the time_deriv approximation
+
+    /*
+    // Reset the TimeDerivative
+    time_derivative_reset(sd->time_deriv);
+
+
+    // Update the deriv array
+    if (sd->use_deriv_est == 1) {
+      time_derivative_output(sd->time_deriv, deriv_data, jac_deriv_data,
+                             sd->output_precision);
+    } else {
+      time_derivative_output(sd->time_deriv, deriv_data, NULL,
+                             sd->output_precision);
+    }
+     */
+#else
+    // Add contributions from reactions not implemented on GPU
+    // FIXME need to fix this to use TimeDerivative
+    rxn_calc_deriv_specific_types(md, sd->time_deriv, (double)time_step);
+#endif
+
+#ifdef PMC_DEBUG
+    clock_t end2 = clock();
+    sd->timeDeriv += (end2 - start2);
+    sd->max_loss_precision = time_derivative_max_loss_precision(sd->time_deriv);
+#endif
+
+    // Advance the derivative for the next cell
+    deriv_data += n_dep_var;
+    jac_deriv_data += n_dep_var;
+
+#else
+
   // Loop through the grid cells and update the derivative array
   for (int i_cell = 0; i_cell < n_cells; ++i_cell) {
     // Set the grid cell state pointers
@@ -1281,6 +1290,8 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
     deriv_data += n_dep_var;
     jac_deriv_data += n_dep_var;
   }
+
+#endif
 
 
 #ifndef PMC_DEBUG_GPU
@@ -1400,6 +1411,7 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
 #endif
 
   // Solving on CPU only
+
   // Loop over the grid cells to calculate sub-model and rxn Jacobians
   for (int i_cell = 0; i_cell < n_cells; ++i_cell) {
     // Set the grid cell state pointers

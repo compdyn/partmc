@@ -250,6 +250,88 @@ void rxn_HL_phase_transfer_update_env_state(ModelData *model_data,
  * \param time_step Current time step being computed (s)
  */
 #ifdef PMC_USE_SUNDIALS
+
+#ifdef CHANGE_LOOPS_RXN
+
+void rxn_HL_phase_transfer_calc_deriv_contrib(
+    ModelData *model_data, double *deriv, int *rxn_int_data,
+    double *rxn_float_data, double *rxn_env_data, realtype time_step) {
+  int *int_data = rxn_int_data;
+  double *float_data = rxn_float_data;
+  double *state = model_data->grid_cell_state;
+  double *env_data = model_data->grid_cell_env;
+
+  // Calculate derivative contributions for each aerosol phase
+  for (int i_phase = 0; i_phase < NUM_AERO_PHASE_; i_phase++) {
+    // Get the particle effective radius (m)
+    realtype radius;
+    aero_rep_get_effective_radius(
+        model_data,               // model data
+        AERO_REP_ID_(i_phase),    // aerosol representation index
+        AERO_PHASE_ID_(i_phase),  // aerosol phase index
+        &radius,                  // particle effective radius (m)
+        NULL);                    // partial derivative
+
+    // Check the aerosol concentration type (per-particle or total per-phase
+    // mass)
+    int aero_conc_type = aero_rep_get_aero_conc_type(
+        model_data,                // model data
+        AERO_REP_ID_(i_phase),     // aerosol representation index
+        AERO_PHASE_ID_(i_phase));  // aerosol phase index
+
+    // Get the particle number concentration (#/cc) for per-particle mass
+    // concentrations; otherwise set to 1
+    realtype number_conc = ONE;
+    if (aero_conc_type == 0) {
+      aero_rep_get_number_conc(
+          model_data,               // model data
+          AERO_REP_ID_(i_phase),    // aerosol representation index
+          AERO_PHASE_ID_(i_phase),  // aerosol phase index
+          &number_conc,             // particle number concentration
+                                    // (#/cc)
+          NULL);                    // partial derivative
+    }
+
+    // If the radius or number concentration are zero, no transfer occurs
+    if (radius <= ZERO || number_conc <= ZERO) continue;
+
+    // If no aerosol water is present, no transfer occurs
+    if (state[AERO_WATER_(i_phase)] * number_conc <
+        MIN_WATER_ * SMALL_WATER_CONC_(i_phase))
+      continue;
+
+    // Calculate the rate constant for diffusion limited mass transfer to the
+    // aerosol phase (1/s)
+    double cond_rate =
+        ((double)1.0) / (radius * radius / (3.0 * DIFF_COEFF_) +
+                              4.0 * radius / (3.0 * C_AVG_ALPHA_));
+
+    // Calculate the evaporation rate constant (1/s)
+    double evap_rate = cond_rate / (EQUIL_CONST_);
+
+    // Calculate the evaporation and condensation rates
+    cond_rate *= state[GAS_SPEC_];
+    evap_rate *= state[AERO_SPEC_(i_phase)] / state[AERO_WATER_(i_phase)];
+
+    // Change in the gas-phase is evaporation - condensation (ppm/s)
+    if (DERIV_ID_(0) >= 0) {
+      deriv[DERIV_ID_(0)] += number_conc * evap_rate;
+      deriv[DERIV_ID_(0)] += -number_conc * cond_rate;
+    }
+
+    // Change in the aerosol-phase species is condensation - evaporation
+    // (ug/m^3/s)
+    if (DERIV_ID_(1 + i_phase) >= 0)
+      deriv[DERIV_ID_(1 + i_phase)] += -evap_rate / UGM3_TO_PPM_;
+      deriv[DERIV_ID_(1 + i_phase)] += cond_rate / UGM3_TO_PPM_;
+  }
+
+  return;
+}
+
+
+#else
+
 void rxn_HL_phase_transfer_calc_deriv_contrib(
     ModelData *model_data, TimeDerivative time_deriv, int *rxn_int_data,
     double *rxn_float_data, double *rxn_env_data, realtype time_step) {
@@ -329,6 +411,9 @@ void rxn_HL_phase_transfer_calc_deriv_contrib(
 
   return;
 }
+
+#endif
+
 #endif
 
 /** \brief Calculate contributions to the Jacobian from this reaction

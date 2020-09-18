@@ -1421,6 +1421,7 @@ contains
     !> Return solver statistics to the host model
     type(solver_stats_t), intent(inout), optional, target :: solver_stats
     integer, intent(in), optional :: n_cells
+    integer :: n_cells_aux
 
     ! Phase to solve
     integer(kind=i_kind) :: phase
@@ -1442,6 +1443,9 @@ contains
       call assert_msg(593328368, n_cells.le.this%n_cells,                   &
               "Trying to solve more cells than allocated cells" )
       !this%n_cells=n_cells !todo re-check consequences of this
+      n_cells_aux=n_cells
+    else
+      n_cells_aux=this%n_cells
     end if
 
     ! Update the solver array of environmental states
@@ -1465,9 +1469,9 @@ contains
     ! Run the integration
     if (present(solver_stats)) then
       call solver%solve(camp_state, real(0.0, kind=dp), time_step,          &
-              n_cells, solver_stats)!this%n_cells
+              n_cells_aux, solver_stats)!this%n_cells
     else
-      call solver%solve(camp_state, real(0.0, kind=dp), time_step, this%n_cells)
+      call solver%solve(camp_state, real(0.0, kind=dp), time_step, n_cells_aux)
     end if
 
   end subroutine solve

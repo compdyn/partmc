@@ -146,6 +146,29 @@ void rxn_wet_deposition_update_env_state(ModelData *model_data,
  * \param time_step Current time step being computed (s)
  */
 #ifdef PMC_USE_SUNDIALS
+
+#ifdef CHANGE_LOOPS_RXN
+
+void rxn_wet_deposition_calc_deriv_contrib(
+    ModelData *model_data, double *deriv, int *rxn_int_data,
+    double *rxn_float_data, double *rxn_env_data, realtype time_step) {
+  int *int_data = rxn_int_data;
+  double *float_data = rxn_float_data;
+  double *state = model_data->grid_cell_state;
+  double *env_data = model_data->grid_cell_env;
+
+  // Add contributions to the time derivative
+  for (int i_spec = 0; i_spec < NUM_SPEC_; i_spec++) {
+    if (DERIV_ID_(i_spec) >= 0) {
+      deriv[DERIV_ID_(i_spec)] += -RATE_CONSTANT_ * state[REACT_(i_spec)];
+    }
+  }
+
+  return;
+}
+
+#else
+
 void rxn_wet_deposition_calc_deriv_contrib(
     ModelData *model_data, TimeDerivative time_deriv, int *rxn_int_data,
     double *rxn_float_data, double *rxn_env_data, realtype time_step) {
@@ -164,6 +187,9 @@ void rxn_wet_deposition_calc_deriv_contrib(
 
   return;
 }
+
+#endif
+
 #endif
 
 /** \brief Calculate contributions to the Jacobian from this reaction

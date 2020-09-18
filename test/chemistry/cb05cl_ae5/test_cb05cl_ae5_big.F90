@@ -1046,7 +1046,7 @@ contains
         comp_kpp = comp_kpp + (comp_end-comp_start)
 
         if(pmc_multicells.eq.1) then
-#ifndef PMC_MULTICELLS2
+#ifdef PMC_MULTICELLS2
           n_blocks=1
 #endif
           do i_block = 0, n_blocks-1
@@ -1061,7 +1061,7 @@ contains
 
             call cpu_time(comp_start)
 
-#ifndef PMC_MULTICELLS2
+#ifdef PMC_MULTICELLS2
             call camp_core%solve(camp_state, real(EBI_TMSTEP*60.0, kind=dp), &
                     n_cells=1, solver_stats = solver_stats)
 #else
@@ -1073,7 +1073,7 @@ contains
             call cpu_time(comp_end)
             comp_camp = comp_camp + (comp_end-comp_start)
           end do
-#ifndef PMC_MULTICELLS2
+#ifdef PMC_MULTICELLS2
           n_cells=n_cells_block*n_blocks
 #endif
         else

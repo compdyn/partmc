@@ -658,7 +658,7 @@ contains
             run_part_opt%do_constant_bin_grid
        if (run_part_opt%do_constant_bin_grid) then
           call bin_grid_make(aero_state%bin_grid, BIN_GRID_TYPE_LOG, &
-               n_bin=20, min=.5d-9, max=1.0d-3)
+               n_bin=20, min=.5d-9, max=25.0d-6)
           allocate(aero_state%bin1_loss_mass_conc(bin_grid_size( &
                aero_state%bin_grid), bin_grid_size(aero_state%bin_grid), &
                aero_data_n_spec(aero_data)))
@@ -682,7 +682,6 @@ contains
           aero_state%bin1_loss_num_conc = 0.0d0
           aero_state%bin2_loss_num_conc = 0.0d0
           aero_state%bin3_gain_num_conc = 0.0d0
-
        end if
     else
        aero_state%allow_remake_bin_grid = .true.

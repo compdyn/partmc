@@ -8,6 +8,7 @@ Make sure files are up to date:
 README:
   Version
   Released date
+  Year in "cite as"
   Change version in build instructions (2 places)
 ChangeLog: update release info (plus release date)
 CMakeLists.txt:
@@ -26,6 +27,11 @@ cd ~/t
 git clone ~/git/partmc
 cd ~/t/partmc
 git checkout 2.1
+
+cd ~/t/partmc
+# do the same thing as in partmc/.travis.yml as follows:
+docker build -t partmc-test .
+docker run -it partmc-test bash -c 'cd /build; make test'
 
 cd ~/t/partmc/doc
 make

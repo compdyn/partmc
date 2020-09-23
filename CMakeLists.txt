@@ -7,9 +7,9 @@ project(PARTMC Fortran C)
 
 set(PACKAGE_BUGREPORT "mwest@illinois.edu")
 set(PACKAGE_NAME "PartMC")
-set(PACKAGE_STRING "PartMC 2.4.0")
+set(PACKAGE_STRING "PartMC 2.5.0")
 set(PACKAGE_TARNAME "partmc")
-set(PACKAGE_VERSION "2.4.0")
+set(PACKAGE_VERSION "2.5.0")
 
 ######################################################################
 # options
@@ -25,14 +25,14 @@ option(ENABLE_C_SORT "Enable C sorting routines" OFF)
 
 set(CPACK_SOURCE_GENERATOR "TGZ")
 SET(CPACK_SOURCE_PACKAGE_FILE_NAME "${PACKAGE_TARNAME}-${PACKAGE_VERSION}")
-set(CPACK_SOURCE_IGNORE_FILES "${CPACK_SOURCE_IGNORE_FILES};/.*~$;/[.].*/;/build/;/figures/;/scenarios/[^1234].*/;/doc/condensation/;/doc/deposition/;/doc/ship_track/;/old/;/tool/;/TODO")
+set(CPACK_SOURCE_IGNORE_FILES "${CPACK_SOURCE_IGNORE_FILES};/.*~$;/[.].*/;/build/;/figures/;/scenarios/[^1234].*/;/doc/condensation/;/doc/deposition/;/doc/ship_track/;/old/;/tool/;/TODO;/CMakeCache.txt")
 
 include(CPack)
 
 ######################################################################
 # NetCDF
 
-include(tool/netcdf.cmake)
+include(netcdf.cmake)
 
 ######################################################################
 # GSL

@@ -4,16 +4,26 @@ PartMC
 
 PartMC: Particle-resolved Monte Carlo code for atmospheric aerosol simulation
 
-[![Docker build status](https://img.shields.io/docker/automated/compdyn/partmc.svg)](https://cloud.docker.com/swarm/compdyn/repository/docker/compdyn/partmc/builds)
+[![Latest version](https://img.shields.io/github/tag/compdyn/partmc.svg?label=version)](https://github.com/compdyn/partmc/blob/master/ChangeLog.md) [![Docker build status](https://img.shields.io/docker/automated/compdyn/partmc.svg)](https://hub.docker.com/r/compdyn/partmc/builds/) [![Build Status](https://img.shields.io/travis/compdyn/partmc/master.svg)](https://travis-ci.org/compdyn/partmc) [![License](https://img.shields.io/github/license/compdyn/partmc.svg)](https://github.com/compdyn/partmc/blob/master/COPYING) [![DOI](https://zenodo.org/badge/24058992.svg)](https://zenodo.org/badge/latestdoi/24058992)
 
-[![CI Status](https://img.shields.io/travis/compdyn/partmc/master.svg)](https://travis-ci.org/compdyn/partmc)
+Version 2.5.0  
+Released 2018-11-17
 
-Version 2.4.0  
-Released 2017-02-14
+**Source:** <https://github.com/compdyn/partmc>
 
-<http://lagrange.mechse.illinois.edu/partmc/>
+**Homepage:** <http://lagrange.mechse.illinois.edu/partmc/>
 
-References:
+**Cite as:** M. West, N. Riemer, J. Curtis, M. Michelotti, and J. Tian (2018) PartMC, [![version](https://img.shields.io/github/release/compdyn/partmc.svg?label=version)](https://github.com/compdyn/partmc), [![DOI](https://zenodo.org/badge/24058992.svg)](https://zenodo.org/badge/latestdoi/24058992)
+
+Copyright (C) 2005-2018 Nicole Riemer and Matthew West  
+Portions copyright (C) Andreas Bott, Richard Easter, Jeffrey Curtis,
+Matthew Michelotti, and Jian Tian  
+Licensed under the GNU General Public License version 2 or (at your
+option) any later version.  
+For details see the file COPYING or
+<http://www.gnu.org/licenses/old-licenses/gpl-2.0.html>.
+
+**References:**
 
    * N. Riemer, M. West, R. A. Zaveri, and R. C. Easter (2009),
      Simulating the evolution of soot mixing state with a
@@ -62,14 +72,28 @@ References:
      impacts on cloud microphysical properties: Effects of aerosol
      plume and environmental conditions, _J. Geophys. Res._ 121(10),
      5990-6013, 2016 <http://dx.doi.org/10.1002/2016JD024851>
-
-Copyright (C) 2005-2017 Nicole Riemer and Matthew West  
-Portions copyright (C) Andreas Bott, Richard Easter, Jeffrey Curtis,
-and Jian Tian  
-Licensed under the GNU General Public License version 2 or (at your
-option) any later version.  
-For details see the file COPYING or
-<http://www.gnu.org/licenses/old-licenses/gpl-2.0.html>.
+   * J. Ching, J. Fast, M. West, and N. Riemer, Metrics to quantify
+     the importance of mixing state for CCN activity, _Atmos.
+     Chem. and Phys._ 17, 7445-7458, 2017
+     <http://dx.doi.org/10.5194/acp-17-7445-2017>
+   * J. Tian, B. T. Brem, M. West, T. C. Bond, M. J. Rood, and
+     N. Riemer, Simulating aerosol chamber experiments with the
+     particle-resolved aerosol model PartMC, _Aerosol Sci. Technol._
+     51(7), 856-867, 2017
+     <http://dx.doi.org/10.1080/02786826.2017.1311988>
+   * J. H. Curtis, N. Riemer, and M. West, A single-column
+     particle-resolved model for simulating the vertical distribution
+     of aerosol mixing state: WRF-PartMC-MOSAIC-SCM v1.0,
+     _Geosci. Model Dev._ 10, 4057-4079, 2017
+     <http://dx.doi.org/10.5194/gmd-10-4057-2017>
+   * J. Ching, M. West, and N. Riemer, Quantifying impacts of aerosol
+     mixing state on nucleation-scavenging of black carbon aerosol
+     particles, _Atmosphere_ 9(1), 17, 2018
+     <http://dx.doi.org/10.3390/atmos9010017>
+   * M. Hughes, J. K. Kodros, J. R. Pierce, M. West, and N. Riemer,
+     Machine learning to predict the global distribution of aerosol
+     mixing state metrics, _Atmosphere_ 9(1), 15, 2018
+     <http://dx.doi.org/10.3390/atmos9010015>
 
 
 Running PartMC with Docker
@@ -83,16 +107,12 @@ This is the fastest way to get running.
 
 * **_Step 2:_** (Optional) Run the PartMC test suite with:
 
-```text
-docker run -it --rm compdyn/partmc bash -c 'cd /build; make test'
-```
+        docker run -it --rm compdyn/partmc bash -c 'cd /build; make test'
 
 * **_Step 3:_** Run a scenario like the following. This example uses `partmc/scenarios/4_chamber`. This mounts the current directory (`$PWD`, replace with `%cd%` on Windows) into `/run` inside the container, changes into that directory, and then runs PartMC.
 
-```text
-cd partmc/scenarios/4_chamber
-docker run -it --rm -v $PWD:/run compdyn/partmc bash -c 'cd /run; /build/partmc chamber.spec'
-```
+        cd partmc/scenarios/4_chamber
+        docker run -it --rm -v $PWD:/run compdyn/partmc bash -c 'cd /run; /build/partmc chamber.spec'
 
 In the above `docker run` command the arguments are:
 
@@ -104,12 +124,10 @@ In the above `docker run` command the arguments are:
 
 The directory structure inside the docker container is:
 
-```text
-/partmc           # a copy of the partmc git source code repository
-/build            # the diretory in which partmc was compiled
-/build/partmc     # the compiled partmc executable
-/run              # the default diretory to run in
-```
+    /partmc           # a copy of the partmc git source code repository
+    /build            # the diretory in which partmc was compiled
+    /build/partmc     # the compiled partmc executable
+    /run              # the default diretory to run in
 
 
 Dependencies
@@ -144,12 +162,12 @@ Installation
 
 2. Unpack PartMC:
 
-        tar xzvf partmc-2.4.0.tar.gz
+        tar xzvf partmc-2.5.0.tar.gz
 
 3. Change into the main PartMC directory (where this README file is
    located):
 
-        cd partmc-2.4.0
+        cd partmc-2.5.0
 
 4. Make a directory called `build` and change into it:
 

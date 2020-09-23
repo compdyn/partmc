@@ -1,12 +1,18 @@
 
-2.5.0 - XXXX-XX-XX
+__next version__ - XXXX-XX-XX
 
-  * Shift NetCDF CMake rules to `tool/netcdf.cmake` (Matt West).
+  * Clean up README formatting (Matt West).
+
+2.5.0 - 2018-11-17
+
+  * Shift NetCDF CMake rules to `netcdf.cmake` (Matt West).
 
   * Add `include,exclude` parameters to `aero_state_diameters()`
     (Matt West).
 
   * Add Docker build and TravisCI support (Matt West).
+
+  * Fix particle sorting in `test/average` (Matt West).
 
 2.4.0 - 2017-02-14
 

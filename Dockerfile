@@ -1,8 +1,9 @@
-FROM fedora:27
+FROM fedora:29
 
 RUN dnf -y update \
     && dnf -y install \
         gcc-gfortran \
+        make \
         netcdf-fortran-devel \
         sundials-devel \
         gsl-devel \

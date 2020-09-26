@@ -472,14 +472,20 @@ contains
     integer :: n_copies, i_dup, new_group
     type(aero_particle_t) :: new_aero_particle
     type(aero_info_t) :: aero_info
+    logical :: record_removal
 
     n_copies = prob_round(n_part_mean)
     if (n_copies == 0) then
        aero_info%id = aero_state%apa%particle(i_part)%id
        aero_info%action = AERO_INFO_WEIGHT
        aero_info%other_id = 0
-       call aero_state_remove_particle_with_info(aero_state, &
-            i_part, aero_info)
+#ifdef PMC_USE_WRF
+       record_removal = .false.
+#else
+       record_removal = .true.
+#endif
+       call aero_state_remove_particle(aero_state, i_part, &
+            record_removal, aero_info)
     elseif (n_copies > 1) then
        do i_dup = 1,(n_copies - 1)
           new_aero_particle = aero_state%apa%particle(i_part)
@@ -1525,6 +1531,7 @@ contains
 
     integer :: i_part
     type(aero_info_t) :: aero_info
+    logical :: record_removal
 
     do i_part = aero_state_n_part(aero_state),1,-1
        if ((aero_state%apa%particle(i_part)%weight_group == i_group) &
@@ -1533,8 +1540,13 @@ contains
           if (pmc_random() < 0.5d0) then
              aero_info%id = aero_state%apa%particle(i_part)%id
              aero_info%action = AERO_INFO_HALVED
-             call aero_state_remove_particle_with_info(aero_state, i_part, &
-                  aero_info)
+#ifdef PMC_USE_WRF
+             record_removal = .false.
+#else
+             record_removal = .true.
+#endif
+             call aero_state_remove_particle(aero_state, i_part, &
+                  record_removal, aero_info)
           end if
        end if
     end do
@@ -1651,6 +1663,7 @@ contains
     real(kind=dp) :: ratio
     integer :: i_part, i_remove, n_remove, i_entry, n_part
     type(aero_info_t) :: aero_info
+    logical :: record_removal
 
     ! We could use the ratio < 1 case unconditionally, but that would
     ! have higher variance for the ratio > 1 case than the current
@@ -1672,8 +1685,13 @@ contains
                i_class)%entry(i_entry)
           aero_info%id = aero_state%apa%particle(i_part)%id
           aero_info%action = AERO_INFO_HALVED
-          call aero_state_remove_particle(aero_state, i_part, .true., &
-               aero_info)
+#ifdef PMC_USE_WRF
+          record_removal = .false.
+#else
+          record_removal = .true.
+#endif
+          call aero_state_remove_particle(aero_state, i_part, &
+               record_removal, aero_info)
        end do
     elseif ((weight_ratio < 1d0) &
          .and. (allow_doubling .or. (n_part == 0))) then

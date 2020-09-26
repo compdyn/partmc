@@ -49,6 +49,7 @@ PMC_MODULES =                           \
   spec_line.o                   \
   stats.o                       \
   util.o                        \
+  sort.o
 
 OBJS = \
  
@@ -185,6 +186,8 @@ spec_file.o: spec_line.o util.o
 
 spec_line.o: util.o
 
+sort.o: sort.o
+
 stats.o:   util.o netcdf.o
 
-util.o: constants.o
+util.o: constants.o sort.o

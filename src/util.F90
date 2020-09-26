@@ -1574,6 +1574,42 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  subroutine real_sort(data, perm)
+
+    !> Data array to sort, sorted on exit.
+    real(kind=dp), intent(inout) :: data(:)
+    !> Permutation defining the sort: <tt>new_data(i) = data(perm(i))</tt>.
+    integer, intent(out) :: perm(size(data))
+
+#ifdef PMC_USE_C_SORT
+    integer(kind=c_int) :: n_c
+    real(kind=c_double), target :: data_c(size(data))
+    integer(kind=c_int), target :: perm_c(size(data))
+    type(c_ptr) :: data_ptr, perm_ptr
+
+#ifndef DOXYGEN_SKIP_DOC
+    interface
+       subroutine double_sort_c(n_c, data_ptr, perm_ptr) bind(c)
+         use iso_c_binding
+         integer(kind=c_int), value :: n_c
+         type(c_ptr), value :: data_ptr, perm_ptr
+       end subroutine double_sort_c
+    end interface
+#endif
+    data_c = real(data, kind=c_double)
+    perm_c = 0_c_int
+    n_c = int(size(data), kind=c_int)
+    data_ptr = c_loc(data_c)
+    perm_ptr = c_loc(perm_c)
+    call double_sort_c(n_c, data_ptr, perm_ptr)
+    data = real(data_c)
+    perm = int(perm_c)
+#endif
+
+  end subroutine real_sort
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Load a real array from a text file.
   subroutine loadtxt(filename, data)
 

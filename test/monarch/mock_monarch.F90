@@ -31,15 +31,15 @@ program mock_monarch
   !> Number of total species in mock MONARCH
   integer, parameter :: NUM_MONARCH_SPEC = 800
   !> Number of vertical cells in mock MONARCH
-  integer, parameter :: NUM_VERT_CELLS = 3
+  integer, parameter :: NUM_VERT_CELLS = 1
   !> Starting W-E cell for camp-chem call
   integer, parameter :: I_W = 1
   !> Ending W-E cell for camp-chem call
-  integer, parameter :: I_E = 5
+  integer, parameter :: I_E = 1
   !> Starting S-N cell for camp-chem call
   integer, parameter :: I_S = 1
   !> Ending S-N cell for camp-chem call
-  integer, parameter :: I_N = 5
+  integer, parameter :: I_N = 1
   !> Number of W-E cells in mock MONARCH
   integer, parameter :: NUM_WE_CELLS = I_E-I_W+1
   !> Number of S-N cells in mock MONARCH
@@ -47,15 +47,15 @@ program mock_monarch
   !> Starting index for camp-chem species in tracer array
   integer, parameter :: START_CAMP_ID = 100
   !> Ending index for camp-chem species in tracer array
-  integer, parameter :: END_CAMP_ID = 650
+  integer, parameter :: END_CAMP_ID = 350
   !> Time step (min)
-  real, parameter :: TIME_STEP = 1.6
+  real, parameter :: TIME_STEP = 2!1.6
   !> Number of time steps to integrate over
-  integer, parameter :: NUM_TIME_STEP = 5
+  integer, parameter :: NUM_TIME_STEP = 1 !30
   !> Index for water vapor in water_conc()
   integer, parameter :: WATER_VAPOR_ID = 5
   !> Start time
-  real, parameter :: START_TIME = 360.0
+  real, parameter :: START_TIME = 360.0 !mby 0.0?
   !> Number of cells to compute simultaneously
   integer :: n_cells = 1
   !integer :: n_cells = (I_E - I_W+1)*(I_N - I_S+1)*NUM_VERT_CELLS
@@ -79,6 +79,9 @@ program mock_monarch
   real :: air_density(NUM_WE_CELLS, NUM_VERT_CELLS, NUM_SN_CELLS)
   !> Air pressure (Pa)
   real :: pressure(NUM_WE_CELLS, NUM_VERT_CELLS, NUM_SN_CELLS)
+  real :: height
+  real :: conv
+  integer :: i_hour = 1
 
   !> Comparison values
   real :: comp_species_conc(0:NUM_TIME_STEP, NUM_MONARCH_SPEC)
@@ -106,11 +109,16 @@ program mock_monarch
   !> Results file prefix
   character(len=:), allocatable :: output_file_prefix
 
+  ! MPI
+#ifdef PMC_USE_MPI
+  character, allocatable :: buffer(:)
+  integer(kind=i_kind) :: pos, pack_size
+#endif
+
   character(len=500) :: arg
   integer :: status_code, i_time, i_spec, i, j, k
   !> Partmc nº of cases to test
   integer :: pmc_cases = 1
-
 
   ! Check the command line arguments
   call assert_msg(129432506, command_argument_count().eq.3, "Usage: "// &
@@ -165,6 +173,14 @@ program mock_monarch
     ! Run the model
     do i_time=0, NUM_TIME_STEP
 
+      !todo plot after 1 hour: ISOP-P1, ISOP-P2,ISOP-P1_aero, ISOP-P2_aero...
+      !modify ISOP each time_step
+
+      !todo change units to ppm (monarch) instead ppb (scenario 5) (ppm=ppb*1000)
+      !emissions cada hora cambiar y seguir instrucciones skype y esto :https://github.com/compdyn/partmc/blob/develop-137-urban-plume-camp/scenarios/5_urban_plume_camp/gas_emit.dat
+      !conc set to init_conc if not here set 0 (GMD and GSD don't touch) https://github.com/compdyn/partmc/blob/develop-137-urban-plume-camp/scenarios/5_urban_plume_camp/gas_init.dat
+
+
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       ! **** Add to MONARCH during runtime for each time step **** !
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -181,7 +197,9 @@ program mock_monarch
                                    water_conc,        & ! Water concentrations (kg_H2O/kg_air)
                                    WATER_VAPOR_ID,    & ! Index in water_conc() corresponding to water vapor
                                    air_density,       & ! Air density (kg_air/m^3)
-                                   pressure)            ! Air pressure (Pa)
+                                   pressure,          & ! Air pressure (Pa)
+                                   conv,              &
+                                   i_hour)
       curr_time = curr_time + TIME_STEP
 
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -190,7 +208,13 @@ program mock_monarch
 
     end do
 
+#ifdef PMC_USE_MPI
+    if (pmc_mpi_rank().eq.0) then
+      write(*,*) "Model run time: ", comp_time, " s"
+    end if
+#else
     write(*,*) "Model run time: ", comp_time, " s"
+#endif
 
     !Save results
     if(i.eq.1) then
@@ -201,6 +225,16 @@ program mock_monarch
     n_cells = 1
 
   end do
+
+  !print*, species_conc(1,2,1,:)
+
+  !#ifdef DEBUG
+  !print*, "SPECIES CONC", species_conc(:,1,1,100)
+#ifdef PMC_USE_MPI
+#else
+  print*, "SPECIES CONC COPY", species_conc_copy(:,1,1,100)
+#endif
+  !#endif
 
   !If something to compare
   if(pmc_cases.gt.1) then
@@ -215,41 +249,52 @@ program mock_monarch
                   1.d-5, 1d-4 ), &
               "Concentration species mismatch for species "// &
                   trim( to_string( i_spec ) )//". Expected: "// &
-                  trim( to_string( species_conc_copy(i,j,k,i_spec) ) )//", got: "// &
-                  trim( to_string( species_conc(i,j,k,i_spec) ) ) )
+                  trim( to_string( species_conc(i,j,k,i_spec) ) )//", got: "// &
+                  trim( to_string( species_conc_copy(i,j,k,i_spec) ) ) )
           end do
         end do
       end do
     end do
   end if
 
-  write(*,*) "MONARCH interface tests - PASS"
+#ifdef PMC_USE_MPI
+  if (pmc_mpi_rank().eq.0) then
+    write(*,*) "MONARCH interface tests - PASS"
+  end if
 
   ! Output results and scripts
   if (pmc_mpi_rank().eq.0) then
     call output_results(curr_time)
     call create_gnuplot_script(pmc_interface, output_file_prefix, &
             plot_start_time, curr_time)
+    ! close the output file
+    close(RESULTS_FILE_UNIT)
   end if
+#else
+ write(*,*) "MONARCH interface tests - PASS"
+ close(RESULTS_FILE_UNIT)
+#endif
 
-  ! TODO I would still like to implement this once the results are stable
-  ! The evaluation is based on a run with reasonable seeming values and
-  ! few solver modifications. It is used to make sure future modifications
-  ! to the solver do not affect the results
 
   ! Deallocation
   deallocate(camp_input_file)
   deallocate(interface_input_file)
-
-  ! Free the interface and the solver
-  deallocate(pmc_interface)
-
-  ! close the output file
-  close(RESULTS_FILE_UNIT)
   deallocate(output_file_prefix)
 
   ! finalize mpi
   call pmc_mpi_finalize()
+
+  ! Free the interface and the solver
+#ifdef PMC_USE_MPI
+
+  !not work on MPI
+  !if (pmc_mpi_rank().eq.0) then
+  !  deallocate(pmc_interface)
+  !end if
+
+#else
+ deallocate(pmc_interface)
+#endif
 
 contains
 
@@ -268,24 +313,24 @@ contains
     file_name = file_prefix//"_results.txt"
     open(RESULTS_FILE_UNIT, file=file_name, status="replace", action="write")
 
-    ! Open the compare file
-    ! TODO Implement once results are stable
-#if 0
-    file_name = file_prefix//"_comp.txt"
-    open(COMPARE_FILE_UNIT, file=file_name, action="read")
-#endif
-
     ! TODO refine initial model conditions
-    temperature(:,:,:) = 300.614166259766
     species_conc(:,:,:,:) = 0.0
     water_conc(:,:,:,:) = 0.0
     water_conc(:,:,:,WATER_VAPOR_ID) = 0.01
-    air_density(:,:,:) = 1.225
+    height=1
+#ifndef ENABLE_CB05_SOA
+    temperature(:,:,:) = 290.016!300.614166259766
+    pressure(:,:,:) = 100000!94165.7187500000
+    air_density(:,:,:) = pressure(:,:,:)/(287.04*temperature(:,:,:))!1.225
+    conv=0.02897/air_density(1,1,1)*TIME_STEP*1e6/height
+#else
+    temperature(:,:,:) = 300.614166259766
     pressure(:,:,:) = 94165.7187500000
+    air_density(:,:,:) = 1.225
+    conv=0.02897/air_density(1,1,1)*TIME_STEP*1e6/height
 
     !Initialize different axis values
     !Species_conc is modified in monarch_interface%get_init_conc
-
     do i=I_W, I_E
       temperature(i,:,:) = temperature(i,:,:) + 0.1*i
       pressure(i,:,:) = pressure(i,:,:) - 1*i
@@ -301,14 +346,12 @@ contains
       pressure(:,k,:) = pressure(:,k,:) - 6*k
     end do
 
+#endif
+
     deallocate(file_name)
 
     ! Read the compare file
     ! TODO Implement once results are stable
-#if 0
-    call read_comp_file()
-    close(COMPARE_FILE_UNIT)
-#endif
 
   end subroutine model_initialize
 

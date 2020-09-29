@@ -1323,19 +1323,21 @@ contains
     !> Cell id
     integer(kind=i_kind), optional :: cell_id
 
+    !write(*,*) "rxn_update_data"
     if (present(cell_id)) then
       update_data%cell_id=cell_id;
     else
-      call assert_msg(593328368, this%n_cells.eq.1,                   &
-              "Missing cell_id on aero_rep_update_data when using multicells" )
+      !write(*,*) "B", this%n_cells
+      !call assert_msg(593328368, this%n_cells.eq.1,                   &
+      !        "Missing cell_id on aero_rep_update_data when using multicells" )
     end if
 
     if (associated(this%solver_data_gas)) &
-            call this%solver_data_gas%update_aero_rep_data(update_data)
+            call this%solver_data_gas%update_aero_rep_data(update_data, this%n_cells)
     if (associated(this%solver_data_aero)) &
-            call this%solver_data_aero%update_aero_rep_data(update_data)
+            call this%solver_data_aero%update_aero_rep_data(update_data, this%n_cells)
     if (associated(this%solver_data_gas_aero)) &
-            call this%solver_data_gas_aero%update_aero_rep_data(update_data)
+            call this%solver_data_gas_aero%update_aero_rep_data(update_data, this%n_cells)
 
   end subroutine aero_rep_update_data
 
@@ -1354,19 +1356,22 @@ contains
     !> Cell id
     integer(kind=i_kind), optional :: cell_id
 
+    !write(*,*) "rxn_update_data"
+
     if (present(cell_id)) then
       update_data%cell_id=cell_id;
     else
-        call assert_msg(593328368, this%n_cells.eq.1,                   &
-                "Missing cell_id on rxn_update_data when using multicells" )
+      !write(*,*) "B"
+        !call assert_msg(593328368, this%n_cells.eq.1,                   &
+        !        "Missing cell_id on rxn_update_data when using multicells" )
     end if
 
     if (associated(this%solver_data_gas)) &
-            call this%solver_data_gas%update_rxn_data(update_data)
+            call this%solver_data_gas%update_rxn_data(update_data, this%n_cells)
     if (associated(this%solver_data_aero)) &
-            call this%solver_data_aero%update_rxn_data(update_data)
+            call this%solver_data_aero%update_rxn_data(update_data, this%n_cells)
     if (associated(this%solver_data_gas_aero)) &
-            call this%solver_data_gas_aero%update_rxn_data(update_data)
+            call this%solver_data_gas_aero%update_rxn_data(update_data, this%n_cells)
 
   end subroutine rxn_update_data
 
@@ -1386,16 +1391,16 @@ contains
     if (present(cell_id)) then
       update_data%cell_id=cell_id;
     else
-      call assert_msg(593328368, this%n_cells.eq.1,                   &
-              "Missing cell_id on sub_model_update_data when using multicells" )
+      !call assert_msg(593328368, this%n_cells.eq.1,                   &
+      !        "Missing cell_id on sub_model_update_data when using multicells" )
     end if
 
     if (associated(this%solver_data_gas)) &
-            call this%solver_data_gas%update_sub_model_data(update_data)
+            call this%solver_data_gas%update_sub_model_data(update_data, this%n_cells)
     if (associated(this%solver_data_aero)) &
-            call this%solver_data_aero%update_sub_model_data(update_data)
+            call this%solver_data_aero%update_sub_model_data(update_data, this%n_cells)
     if (associated(this%solver_data_gas_aero)) &
-            call this%solver_data_gas_aero%update_sub_model_data(update_data)
+            call this%solver_data_gas_aero%update_sub_model_data(update_data, this%n_cells)
 
   end subroutine sub_model_update_data
 

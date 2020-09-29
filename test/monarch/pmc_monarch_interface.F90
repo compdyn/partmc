@@ -91,13 +91,6 @@ module pmc_monarch_interface
     procedure :: constructor
   end interface monarch_interface_t
 
-  type :: real_int_t
-    real :: data
-    integer :: id
-    !contains
-    !  procedure :: compar
-  end type
-
   !> MPI node id from MONARCH
   integer(kind=i_kind) :: MONARCH_PROCESS ! TODO replace with MONARCH param
   ! TEMPORARY
@@ -105,56 +98,6 @@ module pmc_monarch_interface
 
 contains
 
-#ifdef COMMENTING
-  recursive subroutine quicksort(A,nA)
-
-    ! DUMMY ARGUMENTS
-    integer, intent(in) :: nA
-    type (real_int_t), dimension(nA), intent(inout) :: A
-
-    ! LOCAL VARIABLES
-    integer :: left, right
-    real:: random
-    real :: pivot
-    type (real_int_t) :: temp
-    integer :: marker
-
-    if (nA > 1) then
-
-      call random_number(random)
-      pivot = A(int(random*real(nA-1))+1)%data   ! random pivor (not best performance, but avoids worst-case)
-      left = 0
-      right = nA + 1
-
-      do while (left < right)
-        right = right - 1
-        do while (A(right)%data > pivot)
-          right = right - 1
-        end do
-        left = left + 1
-        do while (A(left)%data < pivot)
-          left = left + 1
-        end do
-        if (left < right) then
-          temp = A(left)
-          A(left) = A(right)
-          A(right) = temp
-        end if
-      end do
-
-      if (left == right) then
-        marker = left + 1
-      else
-        marker = left
-      end if
-
-      call QSort(A(:marker-1),marker-1)
-      call QSort(A(marker:),nA-marker+1)
-
-    end if
-
-  end subroutine quicksort
-#endif
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -287,6 +230,10 @@ contains
       call new_obj%load_init_conc()
 
 #ifdef PMC_USE_MPI
+
+      ! Change a bit init_conc to denote different initial values
+      !new_obj%init_conc(:) = new_obj%init_conc(:) + 0.1*MONARCH_PROCESS
+
       pack_size = new_obj%camp_core%pack_size() + &
               update_data_GMD%pack_size() + &
               update_data_GSD%pack_size() + &
@@ -400,7 +347,7 @@ contains
   !> Integrate the PartMC mechanism for a particular set of cells and timestep
   subroutine integrate(this, start_time, time_step, i_start, i_end, j_start, &
                   j_end, temperature, MONARCH_conc, water_conc, &
-                  water_vapor_index, air_density, pressure)
+                  water_vapor_index, air_density, pressure, conv, i_hour)
 
     !> PartMC-camp <-> MONARCH interface
     class(monarch_interface_t) :: this
@@ -432,8 +379,56 @@ contains
     real, intent(in) :: air_density(:,:,:)
     !> Pressure (Pa)
     real, intent(in) :: pressure(:,:,:)
+    real, intent(in) :: conv
+    integer, intent(inout) :: i_hour
 
-    integer :: i, j, k, k_flip, i_spec, z, o, i2
+#ifndef ENABLE_CB05_SOA
+
+    type(chem_spec_data_t), pointer :: chem_spec_data
+
+    real, dimension(30) :: SO2_emi
+    real, dimension(30) :: NO2_emi
+    real, dimension(30) :: NO_emi
+    real, dimension(30) :: NH3_emi
+    real, dimension(30) :: CO_emi
+    real, dimension(30) :: ALD2_emi
+    real, dimension(30) :: FORM_emi
+    real, dimension(30) :: ETH_emi
+    real, dimension(30) :: IOLE_emi
+    real, dimension(30) :: OLE_emi
+    real, dimension(30) :: TOL_emi
+    real, dimension(30) :: XYL_emi
+    real, dimension(30) :: PAR_emi
+    real, dimension(30) :: ISOP_emi
+    real, dimension(30) :: MEOH_emi
+    real, dimension(30) :: rate_emi
+
+    !todo Should be a better way than this
+    integer :: SO2_id_camp
+    integer :: NO2_id_camp
+    integer :: NO_id_camp
+    integer :: NH3_id_camp
+    integer :: CO_id_camp
+    integer :: ALD2_id_camp
+    integer :: FORM_id_camp
+    integer :: ETH_id_camp
+    integer :: IOLE_id_camp
+    integer :: OLE_id_camp
+    integer :: TOL_id_camp
+    integer :: XYL_id_camp
+    integer :: PAR_id_camp
+    integer :: ISOP_id_camp
+    integer :: MEOH_id_camp
+
+#endif
+
+    ! MPI
+    character, allocatable :: buffer(:)
+    integer(kind=i_kind) :: pos, pack_size
+    integer :: local_comm
+    real(kind=dp), allocatable :: mpi_conc(:)
+
+    integer :: i, j, k, k_flip, i_spec, z, o, i2, i_cell
     integer :: k_end
 
     ! Computation time variables
@@ -448,13 +443,30 @@ contains
       state_size_per_cell = this%camp_core%state_size_per_cell()
     end if
 
-
-#ifdef PMC_DEBUG
-    ! Evaluate the Jacobian during solving
-    solver_stats%eval_Jac = .true.
-#endif
-
     k_end = size(MONARCH_conc,3)
+
+#ifndef ENABLE_CB05_SOA
+    call assert_msg(731700229, &
+            this%camp_core%get_chem_spec_data(chem_spec_data), &
+            "No chemical species data in camp_core.")
+
+    SO2_emi = (/ 4.234E-09, 5.481E-09, 5.089E-09, 5.199E-09, 5.221E-09, 5.284E-09, 5.244E-09, 5.280E-09, 5.560E-09, 5.343E-09, 4.480E-09, 3.858E-09, 3.823E-09, 3.607E-09, 3.533E-09, 3.438E-09, 2.866E-09, 2.667E-09, 2.636E-09, 2.573E-09, 2.558E-09, 2.573E-09, 2.715E-09, 3.170E-09, 4.234E-09, 5.481E-09, 5.089E-09, 5.199E-09, 5.221E-09, 5.284E-09 /)
+    NO2_emi = (/ 3.024E-09, 3.334E-09, 3.063E-09, 3.281E-09, 3.372E-09, 3.523E-09, 3.402E-09, 3.551E-09, 3.413E-09, 3.985E-09, 3.308E-09, 2.933E-09, 2.380E-09, 1.935E-09, 1.798E-09, 1.537E-09, 9.633E-10, 8.873E-10, 7.968E-10, 6.156E-10, 5.920E-10, 6.320E-10, 9.871E-10, 1.901E-09, .024E-09, 3.334E-09, 3.063E-09, 3.281E-09, 3.372E-09, 3.523E-09 /)
+    NO_emi = (/ 5.749E-08, 6.338E-08, 5.825E-08, 6.237E-08, 6.411E-08, 6.699E-08, 6.468E-08, 6.753E-08, 6.488E-08, 7.575E-08, 6.291E-08, 5.576E-08, 4.524E-08, 3.679E-08, 3.419E-08, 2.924E-08, 1.832E-08, 1.687E-08, 1.515E-08, 1.171E-08, 1.125E-08, 1.202E-08, 1.877E-08, 3.615E-08, 5.749E-08, 6.338E-08, 5.825E-08, 6.237E-08, 6.411E-08, 6.699E-08 /)
+    NH3_emi = (/ 8.93E-09, 8.705E-09, 1.639E-08, 1.466E-08, 1.6405E-08, 1.8805E-08, 1.65E-08, 1.8045E-08, 1.347E-08, 6.745E-09, 5.415E-09, 2.553E-09, 2.087E-09, 2.2885E-09, 2.7265E-09, 2.738E-09, 9.96E-10, 2.707E-09, 9.84E-10, 9.675E-10, 9.905E-10, 1.0345E-09, 1.0825E-09, 2.7465E-09, 8.93E-09, 8.705E-09, 1.639E-08, 1.466E-08, 1.6405E-08, 1.8805E-08 /)
+    CO_emi = (/ 7.839E-07, 5.837E-07, 4.154E-07, 4.458E-07, 4.657E-07, 4.912E-07, 4.651E-07, 4.907E-07, 6.938E-07, 8.850E-07, 8.135E-07, 4.573E-07, 3.349E-07, 2.437E-07, 2.148E-07, 1.662E-07, 8.037E-08, 7.841E-08, 6.411E-08, 2.551E-08, 2.056E-08, 3.058E-08, 1.083E-07, 3.938E-07, 7.839E-07, 5.837E-07, 4.154E-07, 4.458E-07, 4.657E-07, 4.912E-07 /)
+    ALD2_emi = (/ 1.702E-09, 1.283E-09, 9.397E-10, 1.024E-09, 1.076E-09, 1.132E-09, 1.068E-09, 1.130E-09, 1.651E-09, 2.132E-09, 1.985E-09, 1.081E-09, 7.847E-10, 5.676E-10, 5.003E-10, 3.838E-10, 1.784E-10, 1.766E-10, 1.430E-10, 5.173E-11, 4.028E-11, 6.349E-11, 2.428E-10, 8.716E-10, 1.702E-09, 1.283E-09, 9.397E-10, 1.024E-09, 1.076E-09, 1.132E-09 /)
+    FORM_emi = (/ 4.061E-09, 3.225E-09, 2.440E-09, 2.639E-09, 2.754E-09, 2.888E-09, 2.741E-09, 2.885E-09, 4.088E-09, 5.186E-09, 4.702E-09, 2.601E-09, 1.923E-09, 1.412E-09, 1.252E-09, 9.776E-10, 4.687E-10, 4.657E-10, 3.836E-10, 1.717E-10, 1.448E-10, 1.976E-10, 6.193E-10, 2.090E-09, 4.061E-09, 3.225E-09, 2.440E-09, 2.639E-09, 2.754E-09, 2.888E-09 /)
+    ETH_emi = (/ 1.849E-08, 1.391E-08, 1.010E-08, 1.095E-08, 1.148E-08, 1.209E-08, 1.142E-08, 1.205E-08, 1.806E-08, 2.320E-08, 2.149E-08, 1.146E-08, 8.384E-09, 6.124E-09, 5.414E-09, 4.119E-09, 1.953E-09, 1.927E-09, 1.575E-09, 6.164E-10, 4.973E-10, 7.420E-10, 2.653E-09, 9.477E-09, 1.849E-08, 1.391E-08, 1.010E-08, 1.095E-08, 1.148E-08, 1.209E-08 /)
+    IOLE_emi = (/ 5.948E-09, 4.573E-09, 3.374E-09, 3.668E-09, 3.851E-09, 4.050E-09, 3.841E-09, 4.052E-09, 6.094E-09, 7.795E-09, 7.215E-09, 3.738E-09, 2.718E-09, 1.973E-09, 1.729E-09, 1.338E-09, 6.333E-10, 6.394E-10, 5.126E-10, 2.089E-10, 1.708E-10, 2.480E-10, 8.947E-10, 3.057E-09, 5.948E-09, 4.573E-09, 3.374E-09, 3.668E-09, 3.851E-09, 4.050E-09 /)
+    OLE_emi = (/ 5.948E-09, 4.573E-09, 3.374E-09, 3.668E-09, 3.851E-09, 4.050E-09, 3.841E-09, 4.052E-09, 6.094E-09, 7.795E-09, 7.215E-09, 3.738E-09, 2.718E-09, 1.973E-09, 1.729E-09, 1.338E-09, 6.333E-10, 6.394E-10, 5.126E-10, 2.089E-10, 1.708E-10, 2.480E-10, 8.947E-10, 3.057E-09, 5.948E-09, 4.573E-09, 3.374E-09, 3.668E-09, 3.851E-09, 4.050E-09 /)
+    TOL_emi = (/ 6.101E-09, 8.706E-09, 7.755E-09, 8.024E-09, 8.202E-09, 8.410E-09, 8.218E-09, 8.407E-09, 1.020E-08, 1.139E-08, 7.338E-09, 4.184E-09, 3.078E-09, 2.283E-09, 2.010E-09, 1.575E-09, 8.966E-10, 6.705E-10, 5.395E-10, 2.462E-10, 2.106E-10, 2.852E-10, 9.300E-10, 3.144E-09, 6.101E-09, 8.706E-09, 7.755E-09, 8.024E-09, 8.202E-09, 8.410E-09 /)
+    XYL_emi = (/ 5.599E-09, 4.774E-09, 3.660E-09, 3.909E-09, 4.060E-09, 4.239E-09, 4.060E-09, 4.257E-09, 6.036E-09, 7.448E-09, 6.452E-09, 3.435E-09, 2.525E-09, 1.859E-09, 1.650E-09, 1.302E-09, 6.852E-10, 6.773E-10, 5.437E-10, 2.697E-10, 2.358E-10, 3.059E-10, 8.552E-10, 2.861E-10, 5.599E-09, 4.774E-09, 3.660E-09, 3.909E-09, 4.060E-09, 4.239E-09 /)
+    PAR_emi = (/ 1.709E-07, 1.953E-07, 1.698E-07, 1.761E-07, 1.808E-07, 1.865E-07, 1.822E-07, 1.859E-07, 2.412E-07, 2.728E-07, 2.174E-07, 1.243E-07, 9.741E-08, 7.744E-08, 6.931E-08, 5.805E-08, 3.900E-08, 3.317E-08, 2.956E-08, 2.306E-08, 2.231E-08, 2.395E-08, 4.284E-08, 9.655E-08, 1.709E-07, 1.953E-07, 1.698E-07, 1.761E-07, 1.808E-07, 1.865E-07 /)
+    ISOP_emi = (/ 2.412E-10, 2.814E-10, 3.147E-10, 4.358E-10, 5.907E-10, 6.766E-10, 6.594E-10, 5.879E-10, 5.435E-10, 6.402E-10, 5.097E-10, 9.990E-11, 7.691E-11, 5.939E-11, 5.198E-11, 4.498E-11, 3.358E-11, 2.946E-11, 2.728E-11, 2.183E-11, 1.953E-11, 1.890E-11, 2.948E-11, 1.635E-10, 2.412E-10, 2.814E-10, 3.147E-10, 4.358E-10, 5.907E-10, 6.766E-10 /)
+    MEOH_emi = (/ 2.368E-10, 6.107E-10, 6.890E-10, 6.890E-10, 6.890E-10, 6.889E-10, 6.886E-10, 6.890E-10, 6.890E-10, 5.414E-10, 3.701E-10, 2.554E-10, 1.423E-10, 6.699E-11, 2.912E-11, 2.877E-11, 2.825E-11, 2.056E-12, 2.056E-12, 2.056E-12, 2.435E-12, 2.435E-12, 4.030E-11, 1.168E-10, 2.368E-10, 6.107E-10, 6.890E-10, 6.890E-10, 6.890E-10, 6.889E-10 /)
+    rate_emi = (/0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 /)
+#endif
 
     call cpu_time(comp_start)
 
@@ -480,6 +492,35 @@ contains
             this%camp_state%state_var(this%gas_phase_water_id) = &
                     water_conc(i,j,k_flip,water_vapor_index) * &
                     air_density(i,k,j) * 1.0d9
+
+#ifndef ENABLE_CB05_SOA
+
+            if(mod(int(start_time),60).eq.0) then
+
+              write(*,*) "i_hour loop", i_hour
+
+              !ISOP scale
+              this%camp_state%state_var(chem_spec_data%gas_state_id("ISOP"))=this%camp_state%state_var(chem_spec_data%gas_state_id("ISOP"))!*10
+
+              !Add emissions
+              this%camp_state%state_var(chem_spec_data%gas_state_id("SO2"))=this%camp_state%state_var(chem_spec_data%gas_state_id("SO2"))+SO2_emi(i_hour)*rate_emi(i_hour)*conv
+              this%camp_state%state_var(chem_spec_data%gas_state_id("NO2"))=this%camp_state%state_var(chem_spec_data%gas_state_id("NO2"))+NO2_emi(i_hour)*rate_emi(i_hour)*conv
+              this%camp_state%state_var(chem_spec_data%gas_state_id("NO"))=this%camp_state%state_var(chem_spec_data%gas_state_id("NO"))+NO_emi(i_hour)*rate_emi(i_hour)*conv
+              this%camp_state%state_var(chem_spec_data%gas_state_id("NH3"))=this%camp_state%state_var(chem_spec_data%gas_state_id("NH3"))+NH3_emi(i_hour)*rate_emi(i_hour)*conv
+              this%camp_state%state_var(chem_spec_data%gas_state_id("CO"))=this%camp_state%state_var(chem_spec_data%gas_state_id("CO"))+CO_emi(i_hour)*rate_emi(i_hour)*conv
+              this%camp_state%state_var(chem_spec_data%gas_state_id("ALD2"))=this%camp_state%state_var(chem_spec_data%gas_state_id("ALD2"))+ALD2_emi(i_hour)*rate_emi(i_hour)*conv
+              this%camp_state%state_var(chem_spec_data%gas_state_id("FORM"))=this%camp_state%state_var(chem_spec_data%gas_state_id("FORM"))+FORM_emi(i_hour)*rate_emi(i_hour)*conv
+              this%camp_state%state_var(chem_spec_data%gas_state_id("ETH"))=this%camp_state%state_var(chem_spec_data%gas_state_id("ETH"))+ETH_emi(i_hour)*rate_emi(i_hour)*conv
+              this%camp_state%state_var(chem_spec_data%gas_state_id("IOLE"))=this%camp_state%state_var(chem_spec_data%gas_state_id("IOLE"))+IOLE_emi(i_hour)*rate_emi(i_hour)*conv
+              this%camp_state%state_var(chem_spec_data%gas_state_id("OLE"))=this%camp_state%state_var(chem_spec_data%gas_state_id("OLE"))+OLE_emi(i_hour)*rate_emi(i_hour)*conv
+              this%camp_state%state_var(chem_spec_data%gas_state_id("TOL"))=this%camp_state%state_var(chem_spec_data%gas_state_id("TOL"))+TOL_emi(i_hour)*rate_emi(i_hour)*conv
+              this%camp_state%state_var(chem_spec_data%gas_state_id("XYL"))=this%camp_state%state_var(chem_spec_data%gas_state_id("XYL"))+XYL_emi(i_hour)*rate_emi(i_hour)*conv
+              this%camp_state%state_var(chem_spec_data%gas_state_id("PAR"))=this%camp_state%state_var(chem_spec_data%gas_state_id("PAR"))+PAR_emi(i_hour)*rate_emi(i_hour)*conv
+              this%camp_state%state_var(chem_spec_data%gas_state_id("ISOP"))=this%camp_state%state_var(chem_spec_data%gas_state_id("ISOP"))+ISOP_emi(i_hour)*rate_emi(i_hour)*conv
+              this%camp_state%state_var(chem_spec_data%gas_state_id("MEOH"))=this%camp_state%state_var(chem_spec_data%gas_state_id("MEOH"))+MEOH_emi(i_hour)*rate_emi(i_hour)*conv
+            end if
+
+#endif
 
             ! Start the computation timer
             if (MONARCH_PROCESS.eq.0 .and. i.eq.i_start .and. j.eq.j_start &
@@ -522,11 +563,11 @@ contains
       ! solve multiple grid cells at once
       !  FIXME this only works if this%n_cells ==
       !       (i_end - i_start + 1) * (j_end - j_start + 1 ) * k_end
-      n_cell_check = (i_end - i_start + 1) * (j_end - j_start + 1 ) * k_end
-      call assert_msg(559245176, this%n_cells .eq. n_cell_check, &
-              "Grid cell number mismatch, got "// &
-                      trim(to_string(n_cell_check))//", expected "// &
-                      trim(to_string(this%n_cells)))
+      !n_cell_check = (i_end - i_start + 1) * (j_end - j_start + 1 ) * k_end
+      !call assert_msg(559245176, this%n_cells .eq. n_cell_check, &
+      !        "Grid cell number mismatch, got "// &
+      !                trim(to_string(n_cell_check))//", expected "// &
+      !                trim(to_string(this%n_cells)))
 
       ! Set initial conditions and environmental parameters for each grid cell
       do i=i_start, i_end
@@ -542,10 +583,19 @@ contains
             k_flip = size(MONARCH_conc,3) - k + 1
 
             ! Update the environmental state
-            call this%camp_state%env_states(1)%set_temperature_K( &
-              real( temperature(i,j,k_flip), kind=dp ) )
-            call this%camp_state%env_states(1)%set_pressure_Pa(   &
-              real( pressure(i,k,j), kind=dp ) )
+            !call this%camp_state%env_states(1)%set_temperature_K(real(temperature(i,j,k_flip),kind=dp))
+            !call this%camp_state%env_states(1)%set_pressure_Pa(real(pressure(i,k,j),kind=dp))
+            call this%camp_state%env_states(z+1)%set_temperature_K(real(temperature(i,j,k_flip),kind=dp))
+            call this%camp_state%env_states(z+1)%set_pressure_Pa(real(pressure(i,k,j),kind=dp))
+
+            !write(*,*) "State_var input",this%camp_state%state_var(this%map_camp_id(:)+(z*state_size_per_cell))
+            !write(*,*) "Monarch_conc input", MONARCH_conc(i,j,k_flip,this%map_monarch_id(:))
+            !todo fix better Nan values
+            this%camp_state%state_var(this%map_camp_id(:)+(z*state_size_per_cell))=&
+                    this%camp_state%state_var(this%map_camp_id(:))
+            MONARCH_conc(i,j,k_flip,this%map_monarch_id(:))=MONARCH_conc(1,1,1,this%map_monarch_id(:))
+            !write(*,*) "Monarch_conc input", MONARCH_conc(i,j,k_flip,this%map_monarch_id(:))
+            !write(*,*) "State_var input",this%camp_state%state_var(this%map_camp_id(:)+(z*state_size_per_cell))
 
             !Reset state conc
             this%camp_state%state_var(this%map_camp_id(:) + &
@@ -585,10 +635,29 @@ contains
 
     end if
 
+#ifndef ENABLE_CB05_SOA
+    if(mod(int(start_time),60).eq.0) then
+      i_hour=i_hour+1
+    end if
+#endif
+
+    !W8 until all process to send data and measure correctly times
+#ifdef PMC_USE_MPI
+    call pmc_mpi_barrier()
+#endif
+
+    !todo move this comp_time to only the solve part, like the other tests
     call cpu_time(comp_end)
     comp_time = comp_time + (comp_end-comp_start)
 
-    ! call solver_stats%print( )
+
+#ifdef PMC_USE_MPI
+
+if (pmc_mpi_rank().eq.0) then
+  call solver_stats%print( )
+end if
+
+#endif
 
   end subroutine integrate
 
@@ -951,6 +1020,13 @@ contains
     real, intent(out) :: MONARCH_air_density(:,:,:)
 
     integer(kind=i_kind) :: i_spec, water_id, i,j,k
+    integer :: factor_ppb_to_ppm
+
+#ifndef ENABLE_CB05_SOA
+    factor_ppb_to_ppm=1000
+#else
+    factor_ppb_to_ppm=1
+#endif
 
     ! Reset the species concentrations in PMC and MONARCH
     this%camp_state%state_var(:) = 0.0
@@ -961,13 +1037,14 @@ contains
     MONARCH_air_density(:,:,:) = 1.225
 
     ! Set initial concentrations in PMC
-    this%camp_state%state_var(this%init_conc_camp_id(:)) = &
-            this%init_conc(:)
+    this%init_conc(:) = this%init_conc(:) * factor_ppb_to_ppm
+    this%camp_state%state_var(this%init_conc_camp_id(:)) = this%init_conc(:)
 
     ! Copy species concentrations to MONARCH array
     forall (i_spec = 1:size(this%map_monarch_id))
       MONARCH_conc(:,:,:,this%map_monarch_id(i_spec)) = &
-              this%camp_state%state_var(this%map_camp_id(i_spec))
+              this%camp_state%state_var(this%map_camp_id(i_spec))&
+      * factor_ppb_to_ppm
     end forall
 
     ! Set the relative humidity

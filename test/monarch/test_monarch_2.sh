@@ -17,8 +17,10 @@ do
   echo Attempt $counter
 
 if [[ $1 == "MPI" ]]; then
-  exec_str="mpirun -v -np 2 ../../mock_monarch config_monarch_mod37.json interface_monarch_mod37.json out/monarch_mod37"
+  exec_str="mpirun -v -np 2 ../../mock_monarch config_monarch_cb05_soa.json interface_monarch_cb05_soa.json out/monarch_cb05_soa"
+  #exec_str="mpirun -v -np 2 ../../mock_monarch config_monarch_mod37.json interface_monarch_mod37.json out/monarch_mod37"
 else
+  #exec_str="../../mock_monarch config_monarch_cb05_soa.json interface_monarch_cb05_soa.json out/monarch_cb05_soa"
   exec_str="../../mock_monarch config_monarch_mod37.json interface_monarch_mod37.json out/monarch_mod37"
 fi
 

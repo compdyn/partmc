@@ -14,9 +14,9 @@ gnuplot -persist plot_aero_total.gnuplot
 gnuplot -persist plot_env.gnuplot
 gnuplot -persist plot_gas.gnuplot
 
-./plot_aero_diam_bc_dist.py
-./plot_aero_diam_sc_dist.py
-./plot_aero_entropy.py
-./plot_aero_total.py
+#./plot_aero_diam_bc_dist.py
+#./plot_aero_diam_sc_dist.py
+#./plot_aero_entropy.py
+#./plot_aero_total.py
 
 # Now view the out/*.pdf files

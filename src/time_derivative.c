@@ -45,7 +45,7 @@ void time_derivative_reset(TimeDerivative time_deriv) {
 
 void time_derivative_output(TimeDerivative time_deriv, double *dest_array,
                             double *deriv_est, unsigned int output_precision) {
-  long double *r_p = time_deriv.production_rates;//todo sudden change from double to long double, can cause problems
+  long double *r_p = time_deriv.production_rates;
   long double *r_l = time_deriv.loss_rates;
 
 #ifdef PMC_DEBUG

@@ -1567,7 +1567,6 @@ contains
       l_comm = MPI_COMM_WORLD
     endif
 
-
     call assert_msg(143374295, this%core_is_initialized, &
             "Trying to pack an uninitialized core.")
 

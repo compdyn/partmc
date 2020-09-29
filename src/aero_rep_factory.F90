@@ -346,14 +346,6 @@ contains
     class(aero_rep_update_data_t), intent(out) :: update_data
 
     select type (update_data)
-      type is (aero_rep_update_data_single_particle_radius_t)
-        select type (aero_rep)
-          type is (aero_rep_single_particle_t)
-            call aero_rep%update_data_initialize_radius(update_data, &
-                                                 AERO_REP_SINGLE_PARTICLE)
-          class default
-            call die_msg(761019956, "Update data <-> aero rep mismatch")
-        end select
       type is (aero_rep_update_data_single_particle_number_t)
         select type (aero_rep)
           type is (aero_rep_single_particle_t)

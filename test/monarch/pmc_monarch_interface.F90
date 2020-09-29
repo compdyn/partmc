@@ -38,7 +38,7 @@ module pmc_monarch_interface
   !! Contains all data required to intialize and run PartMC from MONARCH data
   !! and map state variables between PartMC and MONARCH
   type :: monarch_interface_t
-    private
+    !private
     !> CAMP-chem core
     type(camp_core_t), pointer :: camp_core
     !> CAMP-chem state
@@ -499,9 +499,6 @@ contains
 
               write(*,*) "i_hour loop", i_hour
 
-              !ISOP scale
-              this%camp_state%state_var(chem_spec_data%gas_state_id("ISOP"))=this%camp_state%state_var(chem_spec_data%gas_state_id("ISOP"))!*10
-
               !Add emissions
               this%camp_state%state_var(chem_spec_data%gas_state_id("SO2"))=this%camp_state%state_var(chem_spec_data%gas_state_id("SO2"))+SO2_emi(i_hour)*rate_emi(i_hour)*conv
               this%camp_state%state_var(chem_spec_data%gas_state_id("NO2"))=this%camp_state%state_var(chem_spec_data%gas_state_id("NO2"))+NO2_emi(i_hour)*rate_emi(i_hour)*conv
@@ -521,6 +518,8 @@ contains
             end if
 
 #endif
+
+            !write(*,*) "State_var input",this%camp_state%state_var(this%map_camp_id(:)+(z*state_size_per_cell))
 
             ! Start the computation timer
             if (MONARCH_PROCESS.eq.0 .and. i.eq.i_start .and. j.eq.j_start &
@@ -654,7 +653,7 @@ contains
 #ifdef PMC_USE_MPI
 
 if (pmc_mpi_rank().eq.0) then
-  call solver_stats%print( )
+  !call solver_stats%print( )
 end if
 
 #endif
@@ -1000,6 +999,8 @@ end if
       end do
     end if
 
+    !write(*,*) "Init conc",this%init_conc(:)
+
   end subroutine load_init_conc
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -1020,12 +1021,12 @@ end if
     real, intent(out) :: MONARCH_air_density(:,:,:)
 
     integer(kind=i_kind) :: i_spec, water_id, i,j,k
-    integer :: factor_ppb_to_ppm
+    real :: factor_ppb_to_ppm
 
 #ifndef ENABLE_CB05_SOA
-    factor_ppb_to_ppm=1000
+    factor_ppb_to_ppm=1.0E-3
 #else
-    factor_ppb_to_ppm=1
+    factor_ppb_to_ppm=1.0
 #endif
 
     ! Reset the species concentrations in PMC and MONARCH
@@ -1043,9 +1044,11 @@ end if
     ! Copy species concentrations to MONARCH array
     forall (i_spec = 1:size(this%map_monarch_id))
       MONARCH_conc(:,:,:,this%map_monarch_id(i_spec)) = &
-              this%camp_state%state_var(this%map_camp_id(i_spec))&
-      * factor_ppb_to_ppm
+              this%camp_state%state_var(this%map_camp_id(i_spec))
     end forall
+
+    !write(*,*) "Init conc",this%init_conc(this%map_camp_id(:))
+    !write(*,*) "State_var init",this%camp_state%state_var(this%map_camp_id(:))
 
     ! Set the relative humidity
     MONARCH_water_conc(:,:,:,WATER_VAPOR_ID) = &

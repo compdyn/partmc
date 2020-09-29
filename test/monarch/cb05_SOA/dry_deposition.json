@@ -1,0 +1,240 @@
+{
+  "description" : [
+    "Dry deposition reactions and species properties",
+    "TODO Consider updating diffusion coefficients according to Tang et al. Atmos. Chem. Phys., 14, 9233-9247 (2014)",
+    "   available at https://www.atmos-chem-phys.net/14/9233/2014/acp-14-9233-2014.pdf"
+  ],
+  "pmc-data" : [
+    {
+      "name" : "MONARCH mod37",
+      "type" : "MECHANISM",
+      "reactions" : [
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "SULF"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "MEOH"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "ETOH"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "OPEN"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "HCL"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "TERP"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "PANX"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "NO2"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "NO"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "O3"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "NO3"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "N2O5"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "HNO3"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "HONO"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "PNA"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "H2O2"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "NTR"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "ROOH"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "FORM"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "ALD2"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "ALDX"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "PAR"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "CO"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "MEPX"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "FACD"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "PAN"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "PACD"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "AACD"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "OLE"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "ETH"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "IOLE"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "TOL"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "CRES"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "MGLY"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "XYL"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "ISOP"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "ISPD"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "SO2"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "ETHA"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "NH3"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "ISOP-P1"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "ISOP-P2"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "TERP-P1"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "TERP-P2"
+        },
+        {
+          "type" : "FIRST_ORDER_LOSS",
+          "loss type" : "dry dep",
+          "species" : "DMS"
+        }
+      ]
+    }
+  ]
+}

@@ -69,7 +69,7 @@
 #define EFFECTIVE_RADIUS_(x, b) \
   (float_data[MODE_FLOAT_PROP_LOC_(x) + b * 3 + 2])
 
-// Real-time phase mass (ug/m^3) - used for modes and bins - for modes, b=0
+// Real-time phase mass (kg/m^3) - used for modes and bins - for modes, b=0
 #define PHASE_MASS_(x, y, b)                                                   \
   (float_data[MODE_FLOAT_PROP_LOC_(x) + 3 * NUM_BINS_(x) + b * NUM_PHASE_(x) + \
               y])
@@ -203,16 +203,16 @@ void aero_rep_modal_binned_mass_update_state(ModelData *model_data,
           state += PHASE_STATE_ID_(i_section, i_phase, 0);
 
           // Set the aerosol-phase mass and average MW
-          aero_phase_get_mass(
+          aero_phase_get_mass__kg_m3(
               model_data, PHASE_MODEL_DATA_ID_(i_section, i_phase, 0), state,
               &(PHASE_MASS_(i_section, i_phase, 0)),
               &(PHASE_AVG_MW_(i_section, i_phase, 0)), NULL, NULL);
 
           // Get the phase volume
           double phase_volume = 0.0;
-          aero_phase_get_volume(model_data,
-                                PHASE_MODEL_DATA_ID_(i_section, i_phase, 0),
-                                state, &phase_volume, NULL);
+          aero_phase_get_volume__m3_m3(
+              model_data, PHASE_MODEL_DATA_ID_(i_section, i_phase, 0), state,
+              &phase_volume, NULL);
           volume += phase_volume;
         }
 
@@ -237,14 +237,14 @@ void aero_rep_modal_binned_mass_update_state(ModelData *model_data,
             state += PHASE_STATE_ID_(i_section, i_phase, i_bin);
 
             // Set the aerosol-phase mass and average MW
-            aero_phase_get_mass(
+            aero_phase_get_mass__kg_m3(
                 model_data, PHASE_MODEL_DATA_ID_(i_section, i_phase, i_bin),
                 state, &(PHASE_MASS_(i_section, i_phase, i_bin)),
                 &(PHASE_AVG_MW_(i_section, i_phase, i_bin)), NULL, NULL);
 
             // Get the phase volume
             double phase_volume = 0.0;
-            aero_phase_get_volume(
+            aero_phase_get_volume__m3_m3(
                 model_data, PHASE_MODEL_DATA_ID_(i_section, i_phase, i_bin),
                 state, &phase_volume, NULL);
             volume += phase_volume;
@@ -293,7 +293,7 @@ void aero_rep_modal_binned_mass_update_state(ModelData *model_data,
  * \param aero_rep_env_data Pointer to the aerosol representation
  *                          environment-dependent parameters
  */
-void aero_rep_modal_binned_mass_get_effective_radius(
+void aero_rep_modal_binned_mass_get_effective_radius__m(
     ModelData *model_data, int aero_phase_idx, double *radius,
     double *partial_deriv, int *aero_rep_int_data, double *aero_rep_float_data,
     double *aero_rep_env_data) {
@@ -325,7 +325,7 @@ void aero_rep_modal_binned_mass_get_effective_radius(
 }
 
 /** \brief Get the particle number concentration \f$n\f$
- * (\f$\mbox{\si{\#\per\cubic\centi\metre}}\f$)
+ * (\f$\mbox{\si{\#\per\cubic\metre}}\f$)
  *
  * The modal mass number concentration is calculated for a log-normal
  * distribution where the geometric mean diameter (\f$\tilde{D}_n\f$) and
@@ -364,7 +364,7 @@ void aero_rep_modal_binned_mass_get_effective_radius(
  * \param aero_rep_env_data Pointer to the aerosol representation
  *                          environment-dependent parameters
  */
-void aero_rep_modal_binned_mass_get_number_conc(
+void aero_rep_modal_binned_mass_get_number_conc__n_m3(
     ModelData *model_data, int aero_phase_idx, double *number_conc,
     double *partial_deriv, int *aero_rep_int_data, double *aero_rep_float_data,
     double *aero_rep_env_data) {
@@ -386,7 +386,7 @@ void aero_rep_modal_binned_mass_get_number_conc(
 
             // Get the aerosol phase volume
             double phase_volume = 0.0;
-            aero_phase_get_volume(
+            aero_phase_get_volume__m3_m3(
                 model_data, PHASE_MODEL_DATA_ID_(i_section, i_phase, i_bin),
                 state, &phase_volume, partial_deriv);
 
@@ -444,12 +444,12 @@ void aero_rep_modal_binned_mass_get_aero_conc_type(int aero_phase_idx,
 }
 
 /** \brief Get the total mass in an aerosol phase \f$m\f$
- * (\f$\mbox{\si{\micro\gram\per\cubic\metre}}\f$)
+ * (\f$\mbox{\si{\kilogram\per\cubic\metre}}\f$)
  *
  * \param model_data Pointer to the model data, including the state array
  * \param aero_phase_idx Index of the aerosol phase within the representation
  * \param aero_phase_mass Total mass in the aerosol phase, \f$m\f$
- *                        (\f$\mbox{\si{\micro\gram\per\cubic\metre}}\f$)
+ *                        (\f$\mbox{\si{\kilogram\per\cubic\metre}}\f$)
  * \param partial_deriv \f$\frac{\partial m}{\partial y}\f$ where \f$y\f$ are
  *                      the species on the state array
  * \param aero_rep_int_data Pointer to the aerosol representation integer data
@@ -458,7 +458,7 @@ void aero_rep_modal_binned_mass_get_aero_conc_type(int aero_phase_idx,
  * \param aero_rep_env_data Pointer to the aerosol representation
  *                          environment-dependent parameters
  */
-void aero_rep_modal_binned_mass_get_aero_phase_mass(
+void aero_rep_modal_binned_mass_get_aero_phase_mass__kg_m3(
     ModelData *model_data, int aero_phase_idx, double *aero_phase_mass,
     double *partial_deriv, int *aero_rep_int_data, double *aero_rep_float_data,
     double *aero_rep_env_data) {
@@ -483,9 +483,9 @@ void aero_rep_modal_binned_mass_get_aero_phase_mass(
 
             // Get d_mass / d_conc
             double mass, mw;
-            aero_phase_get_mass(model_data,
-                                PHASE_MODEL_DATA_ID_(i_section, i_phase, i_bin),
-                                state, &mass, &mw, partial_deriv, NULL);
+            aero_phase_get_mass__kg_m3(
+                model_data, PHASE_MODEL_DATA_ID_(i_section, i_phase, i_bin),
+                state, &mass, &mw, partial_deriv, NULL);
             partial_deriv += PHASE_NUM_JAC_ELEM_(i_section, i_phase, i_bin);
           }
 
@@ -507,7 +507,7 @@ void aero_rep_modal_binned_mass_get_aero_phase_mass(
 }
 
 /** \brief Get the average molecular weight in an aerosol phase
- **        \f$m\f$ (\f$\mbox{\si{\micro\gram\per\cubic\metre}}\f$)
+ **        \f$m\f$ (\f$\mbox{\si{\kilogram\per\mole}}\f$)
  *
  * \param model_data Pointer to the model data, including the state array
  * \param aero_phase_idx Index of the aerosol phase within the representation
@@ -521,7 +521,7 @@ void aero_rep_modal_binned_mass_get_aero_phase_mass(
  * \param aero_rep_env_data Pointer to the aerosol representation
  *                          environment-dependent parameters
  */
-void aero_rep_modal_binned_mass_get_aero_phase_avg_MW(
+void aero_rep_modal_binned_mass_get_aero_phase_avg_MW__kg_mol(
     ModelData *model_data, int aero_phase_idx, double *aero_phase_avg_MW,
     double *partial_deriv, int *aero_rep_int_data, double *aero_rep_float_data,
     double *aero_rep_env_data) {
@@ -546,9 +546,9 @@ void aero_rep_modal_binned_mass_get_aero_phase_avg_MW(
 
             // Get d_MW / d_conc
             double mass, mw;
-            aero_phase_get_mass(model_data,
-                                PHASE_MODEL_DATA_ID_(i_section, i_phase, i_bin),
-                                state, &mass, &mw, NULL, partial_deriv);
+            aero_phase_get_mass__kg_m3(
+                model_data, PHASE_MODEL_DATA_ID_(i_section, i_phase, i_bin),
+                state, &mass, &mw, NULL, partial_deriv);
             partial_deriv += PHASE_NUM_JAC_ELEM_(i_section, i_phase, i_bin);
           }
 
@@ -606,7 +606,7 @@ bool aero_rep_modal_binned_mass_update_data(void *update_data,
   // Set the new GMD or GSD for matching aerosol representations
   if (*aero_rep_id == AERO_REP_ID_ && AERO_REP_ID_ != 0) {
     if (*update_type == UPDATE_GMD) {
-      GMD_(*section_id) = (double)*new_value;
+      GMD_(*section_id) = (double)*new_value;  // [m]
       ret_val = true;
     } else if (*update_type == UPDATE_GSD) {
       GSD_(*section_id) = (double)*new_value;
@@ -615,7 +615,7 @@ bool aero_rep_modal_binned_mass_update_data(void *update_data,
   }
 
   if (ret_val == true) {
-    // Recalculate the effective radius
+    // Recalculate the effective radius [m]
     double gsd = GSD_(*section_id);
     EFFECTIVE_RADIUS_(*section_id, 0) =
         GMD_(*section_id) / 2.0 * exp(9.0 / 2.0 * gsd * gsd);

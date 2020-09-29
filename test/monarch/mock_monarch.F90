@@ -45,17 +45,17 @@ program mock_monarch
   !> Number of S-N cells in mock MONARCH
   integer, parameter :: NUM_SN_CELLS = I_N-I_S+1
   !> Starting index for camp-chem species in tracer array
-  integer, parameter :: START_CAMP_ID = 100
+  integer, parameter :: START_CAMP_ID = 1!100
   !> Ending index for camp-chem species in tracer array
-  integer, parameter :: END_CAMP_ID = 350
+  integer, parameter :: END_CAMP_ID = 210!350
   !> Time step (min)
   real, parameter :: TIME_STEP = 2!1.6
   !> Number of time steps to integrate over
-  integer, parameter :: NUM_TIME_STEP = 1 !30
+  integer, parameter :: NUM_TIME_STEP = 1!720!30
   !> Index for water vapor in water_conc()
   integer, parameter :: WATER_VAPOR_ID = 5
   !> Start time
-  real, parameter :: START_TIME = 360.0 !mby 0.0?
+  real, parameter :: START_TIME = 0.0 !mby 0.0?
   !> Number of cells to compute simultaneously
   integer :: n_cells = 1
   !integer :: n_cells = (I_E - I_W+1)*(I_N - I_S+1)*NUM_VERT_CELLS
@@ -171,21 +171,25 @@ program mock_monarch
     ! call pmc_interface%print( )
 
     ! Run the model
-    do i_time=0, NUM_TIME_STEP
+    do i_time=1, NUM_TIME_STEP
 
       !todo plot after 1 hour: ISOP-P1, ISOP-P2,ISOP-P1_aero, ISOP-P2_aero...
       !modify ISOP each time_step
 
-      !todo change units to ppm (monarch) instead ppb (scenario 5) (ppm=ppb*1000)
+      !todo print photo_rates
+      !todo print conc names and species
+      !todo change cb05 and other files to scenarios 5 files
+      !change units to ppm (monarch) instead ppb (scenario 5) (ppm=ppb*1000)
       !emissions cada hora cambiar y seguir instrucciones skype y esto :https://github.com/compdyn/partmc/blob/develop-137-urban-plume-camp/scenarios/5_urban_plume_camp/gas_emit.dat
       !conc set to init_conc if not here set 0 (GMD and GSD don't touch) https://github.com/compdyn/partmc/blob/develop-137-urban-plume-camp/scenarios/5_urban_plume_camp/gas_init.dat
+
 
 
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       ! **** Add to MONARCH during runtime for each time step **** !
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-      call output_results(curr_time)
+      call output_results(curr_time,pmc_interface,species_conc)
       call pmc_interface%integrate(curr_time,         & ! Starting time (min)
                                    TIME_STEP,         & ! Time step (min)
                                    I_W,               & ! Starting W->E grid cell
@@ -226,7 +230,7 @@ program mock_monarch
 
   end do
 
-  !print*, species_conc(1,2,1,:)
+  !print*, species_conc(1,1,1,:)
 
   !#ifdef DEBUG
   !print*, "SPECIES CONC", species_conc(:,1,1,100)
@@ -264,7 +268,7 @@ program mock_monarch
 
   ! Output results and scripts
   if (pmc_mpi_rank().eq.0) then
-    call output_results(curr_time)
+    call output_results(curr_time,pmc_interface,species_conc)
     call create_gnuplot_script(pmc_interface, output_file_prefix, &
             plot_start_time, curr_time)
     ! close the output file
@@ -374,14 +378,44 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Output the model results
-  subroutine output_results(curr_time)
+  subroutine output_results(curr_time,pmc_interface,species_conc)
 
     !> Current model time (min since midnight)
     real, intent(in) :: curr_time
+    type(monarch_interface_t), intent(in) :: pmc_interface
+    integer :: z,i,j,k
+    real, intent(inout) :: species_conc(:,:,:,:)
+    !type(string_t), allocatable :: species_names(:)
+    !integer(kind=i_kind), allocatable :: tracer_ids(:)
+    !call pmc_interface%get_MONARCH_species(species_names, tracer_ids)
 
-    write(RESULTS_FILE_UNIT, *) curr_time, &
-            species_conc(2,3,1,START_CAMP_ID:END_CAMP_ID), &
-            water_conc(2,3,1,WATER_VAPOR_ID)
+    write(RESULTS_FILE_UNIT, *) "Time_step:", curr_time
+
+
+    do i=I_W,I_E
+      do j=I_W,I_E
+        do k=I_W,I_E
+          write(RESULTS_FILE_UNIT, *) "i:",i,"j:",j,"k:",k
+          write(RESULTS_FILE_UNIT, *) "Spec_name, Concentrations, Map_monarch_id"
+          do z=1, size(pmc_interface%monarch_species_names)
+            write(RESULTS_FILE_UNIT, *) pmc_interface%monarch_species_names(z)%string&
+            , species_conc(i,j,k,pmc_interface%map_monarch_id(z))&
+            , pmc_interface%map_monarch_id(z)
+            !write(*,*) "species_conc out",species_conc(i,j,k,pmc_interface%map_monarch_id(z))
+          end do
+        end do
+      end do
+    end do
+
+
+
+    !write(RESULTS_FILE_UNIT, *) "Time_step:",curr_time,"Concs:", &
+    !        species_conc(1,1,1,START_CAMP_ID:END_CAMP_ID) &
+    !        ,"water_conc:",water_conc(1,1,1,WATER_VAPOR_ID)
+
+    !write(RESULTS_FILE_UNIT, *) curr_time, &
+    !        species_conc(2,3,1,START_CAMP_ID:END_CAMP_ID), &
+    !        water_conc(2,3,1,WATER_VAPOR_ID)
 
   end subroutine output_results
 

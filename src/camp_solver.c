@@ -1233,6 +1233,7 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
     deriv_data += n_dep_var;
     jac_deriv_data += n_dep_var;
 
+//Not change loops
 #else
 
   // Loop through the grid cells and update the derivative array
@@ -1467,7 +1468,7 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
       SM_DATA_S(J)
       [i_cell * md->n_per_cell_solver_jac_elem + jac_map[i_map].solver_id] +=
           SM_DATA_S(md->J_rxn)[jac_map[i_map].rxn_id] *
-          SM_DATA_S(md->J_params)[jac_map[i_map].param_id];//1;//SM_DATA_S(md->J_params)[jac_map[i_map].param_id];
+          SM_DATA_S(md->J_params)[jac_map[i_map].param_id];
     PMC_DEBUG_JAC(J, "solver Jacobian");
   }
 

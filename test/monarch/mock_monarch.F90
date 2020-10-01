@@ -23,6 +23,7 @@ program mock_monarch
   integer, parameter :: SCRIPTS_FILE_UNIT = 8
   !> File unit for results comparison
   integer, parameter :: COMPARE_FILE_UNIT = 9
+  integer, parameter :: RESULTS_FILE_UNIT_TABLE = 10
 
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   ! Parameters for mock MONARCH model !
@@ -51,11 +52,11 @@ program mock_monarch
   !> Time step (min)
   real, parameter :: TIME_STEP = 2!1.6
   !> Number of time steps to integrate over
-  integer, parameter :: NUM_TIME_STEP = 1!720!30
+  integer, parameter :: NUM_TIME_STEP = 720!720!30
   !> Index for water vapor in water_conc()
   integer, parameter :: WATER_VAPOR_ID = 5
   !> Start time
-  real, parameter :: START_TIME = 0.0 !mby 0.0?
+  real, parameter :: START_TIME = 0.0
   !> Number of cells to compute simultaneously
   integer :: n_cells = 1
   !integer :: n_cells = (I_E - I_W+1)*(I_N - I_S+1)*NUM_VERT_CELLS
@@ -108,6 +109,8 @@ program mock_monarch
   character(len=:), allocatable :: interface_input_file
   !> Results file prefix
   character(len=:), allocatable :: output_file_prefix
+  !> CAMP-chem input file file
+  character(len=:), allocatable :: name_specie_to_print
 
   ! MPI
 #ifdef PMC_USE_MPI
@@ -127,6 +130,8 @@ program mock_monarch
 
   ! initialize mpi (to take the place of a similar MONARCH call)
   call pmc_mpi_init()
+
+  name_specie_to_print="O3"!NO2
 
   !Check if repeat program to compare n_cells=1 with n_cells=N
   if(check_multiple_cells) then
@@ -173,17 +178,14 @@ program mock_monarch
     ! Run the model
     do i_time=1, NUM_TIME_STEP
 
-      !todo plot after 1 hour: ISOP-P1, ISOP-P2,ISOP-P1_aero, ISOP-P2_aero...
+      !plot after 1 hour: ISOP-P1, ISOP-P2,ISOP-P1_aero, ISOP-P2_aero...
       !modify ISOP each time_step
 
-      !todo print photo_rates
-      !todo print conc names and species
+      !todo fix photo_rates
       !todo change cb05 and other files to scenarios 5 files
       !change units to ppm (monarch) instead ppb (scenario 5) (ppm=ppb*1000)
       !emissions cada hora cambiar y seguir instrucciones skype y esto :https://github.com/compdyn/partmc/blob/develop-137-urban-plume-camp/scenarios/5_urban_plume_camp/gas_emit.dat
       !conc set to init_conc if not here set 0 (GMD and GSD don't touch) https://github.com/compdyn/partmc/blob/develop-137-urban-plume-camp/scenarios/5_urban_plume_camp/gas_init.dat
-
-
 
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       ! **** Add to MONARCH during runtime for each time step **** !
@@ -236,7 +238,7 @@ program mock_monarch
   !print*, "SPECIES CONC", species_conc(:,1,1,100)
 #ifdef PMC_USE_MPI
 #else
-  print*, "SPECIES CONC COPY", species_conc_copy(:,1,1,100)
+  !print*, "SPECIES CONC COPY", species_conc_copy(:,1,1,100)
 #endif
   !#endif
 
@@ -261,24 +263,19 @@ program mock_monarch
     end do
   end if
 
-#ifdef PMC_USE_MPI
-  if (pmc_mpi_rank().eq.0) then
-    write(*,*) "MONARCH interface tests - PASS"
-  end if
 
   ! Output results and scripts
   if (pmc_mpi_rank().eq.0) then
+    write(*,*) "MONARCH interface tests - PASS"
     call output_results(curr_time,pmc_interface,species_conc)
     call create_gnuplot_script(pmc_interface, output_file_prefix, &
             plot_start_time, curr_time)
-    ! close the output file
-    close(RESULTS_FILE_UNIT)
+    call create_gnuplot_persist(pmc_interface, output_file_prefix, &
+            plot_start_time, curr_time)
   end if
-#else
- write(*,*) "MONARCH interface tests - PASS"
- close(RESULTS_FILE_UNIT)
-#endif
 
+  close(RESULTS_FILE_UNIT)
+  close(RESULTS_FILE_UNIT_TABLE)
 
   ! Deallocation
   deallocate(camp_input_file)
@@ -316,6 +313,8 @@ contains
     ! Open the output file
     file_name = file_prefix//"_results.txt"
     open(RESULTS_FILE_UNIT, file=file_name, status="replace", action="write")
+    file_name = file_prefix//"_results_table.txt"
+    open(RESULTS_FILE_UNIT_TABLE, file=file_name, status="replace", action="write")
 
     ! TODO refine initial model conditions
     species_conc(:,:,:,:) = 0.0
@@ -389,16 +388,17 @@ contains
     !integer(kind=i_kind), allocatable :: tracer_ids(:)
     !call pmc_interface%get_MONARCH_species(species_names, tracer_ids)
 
-    write(RESULTS_FILE_UNIT, *) "Time_step:", curr_time
+    character(len=:), allocatable :: aux_str
 
+    write(RESULTS_FILE_UNIT_TABLE, *) "Time_step:", curr_time
 
     do i=I_W,I_E
       do j=I_W,I_E
         do k=I_W,I_E
-          write(RESULTS_FILE_UNIT, *) "i:",i,"j:",j,"k:",k
-          write(RESULTS_FILE_UNIT, *) "Spec_name, Concentrations, Map_monarch_id"
+          write(RESULTS_FILE_UNIT_TABLE, *) "i:",i,"j:",j,"k:",k
+          write(RESULTS_FILE_UNIT_TABLE, *) "Spec_name, Concentrations, Map_monarch_id"
           do z=1, size(pmc_interface%monarch_species_names)
-            write(RESULTS_FILE_UNIT, *) pmc_interface%monarch_species_names(z)%string&
+            write(RESULTS_FILE_UNIT_TABLE, *) pmc_interface%monarch_species_names(z)%string&
             , species_conc(i,j,k,pmc_interface%map_monarch_id(z))&
             , pmc_interface%map_monarch_id(z)
             !write(*,*) "species_conc out",species_conc(i,j,k,pmc_interface%map_monarch_id(z))
@@ -407,15 +407,29 @@ contains
       end do
     end do
 
+    !write(RESULTS_FILE_UNIT, *) curr_time,species_conc(1,1,1,START_CAMP_ID:END_CAMP_ID)
+    !write(RESULTS_FILE_UNIT, *) curr_time,species_conc(1,1,1,START_CAMP_ID:3)
 
+    !Specific names
+    do z=1, size(pmc_interface%monarch_species_names)
+      if(pmc_interface%monarch_species_names(z)%string.eq.name_specie_to_print) then
+        aux_str = pmc_interface%monarch_species_names(z)%string!//" "//pmc_interface%monarch_species_names(z+1)%string
+        write(RESULTS_FILE_UNIT, *) "Time ",aux_str
+        write(RESULTS_FILE_UNIT, *) curr_time,species_conc(1,1,1,pmc_interface%map_monarch_id(z):pmc_interface%map_monarch_id(z)+1)
+        write(RESULTS_FILE_UNIT, *) curr_time,species_conc(1,1,1,pmc_interface%map_monarch_id(z))
+      end if
+    end do
 
-    !write(RESULTS_FILE_UNIT, *) "Time_step:",curr_time,"Concs:", &
-    !        species_conc(1,1,1,START_CAMP_ID:END_CAMP_ID) &
-    !        ,"water_conc:",water_conc(1,1,1,WATER_VAPOR_ID)
+    !print all
+    !aux_str = pmc_interface%monarch_species_names(z)%string//" "//pmc_interface%monarch_species_names(z+1)%string
+    !write(RESULTS_FILE_UNIT, *) "Time ",aux_str
+    !write(RESULTS_FILE_UNIT, *) curr_time,(species_conc(1,1,1,pmc_interface%map_monarch_id(z-1+i)), i=1,2)
+    !end do
+
 
     !write(RESULTS_FILE_UNIT, *) curr_time, &
-    !        species_conc(2,3,1,START_CAMP_ID:END_CAMP_ID), &
-    !        water_conc(2,3,1,WATER_VAPOR_ID)
+    !        species_conc(1,1,1,START_CAMP_ID:END_CAMP_ID), &
+    !        water_conc(1,1,1,WATER_VAPOR_ID)
 
   end subroutine output_results
 
@@ -481,5 +495,82 @@ contains
   end subroutine create_gnuplot_script
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Create a gnuplot script for viewing species concentrations
+  subroutine create_gnuplot_persist(pmc_interface, file_prefix, start_time, &
+          end_time)
+
+    !> PartMC-camp <-> MONARCH interface
+    type(monarch_interface_t), intent(in) :: pmc_interface
+    !> File prefix for gnuplot script
+    character(len=:), allocatable :: file_prefix
+    !> Plot start time
+    real :: start_time
+    !> Plot end time
+    real :: end_time
+
+    type(string_t), allocatable :: species_names(:)
+    integer(kind=i_kind), allocatable :: tracer_ids(:)
+    character(len=:), allocatable :: file_name, spec_name
+    integer(kind=i_kind) :: i_char, i_spec, tracer_id
+
+    ! Get the species names and ids
+    call pmc_interface%get_MONARCH_species(species_names, tracer_ids)
+
+    ! Adjust the tracer ids to match the results file
+    tracer_ids(:) = tracer_ids(:) - START_CAMP_ID + 2
+
+    ! Create the gnuplot script
+    !file_name = "partmc/build/test_run/monarch/"//file_prefix//".gnuplot"
+    file_name = file_prefix//".gnuplot"
+    open(unit=SCRIPTS_FILE_UNIT, file=file_name, status="replace", action="write")
+    write(SCRIPTS_FILE_UNIT,*) "# "//file_name
+    write(SCRIPTS_FILE_UNIT,*) "# Run as: gnuplot -persist "//file_name
+    !write(SCRIPTS_FILE_UNIT,*) "set terminal png truecolor"
+    !write(SCRIPTS_FILE_UNIT,*) "set key top left"
+    write(SCRIPTS_FILE_UNIT,*) "set title 'Mock_monarch_cb05_soa'"
+    write(SCRIPTS_FILE_UNIT,*) "set xlabel 'Time'"
+    write(SCRIPTS_FILE_UNIT,*) "set ylabel 'Concentration [ppmv]'"
+    !write(SCRIPTS_FILE_UNIT,*) "set ytics nomirror"
+    !write(SCRIPTS_FILE_UNIT,*) "set y2tics"
+
+    !write(SCRIPTS_FILE_UNIT,*) "set autoscale"
+    write(SCRIPTS_FILE_UNIT,*) "set xrange [", start_time, ":", end_time, "]"
+    do i_spec = 1, 1!size(species_names)
+      spec_name = species_names(i_spec)%string
+      !spec_name = name_specie_to_print
+      forall (i_char = 1:len(spec_name), spec_name(i_char:i_char).eq.'/') &
+              spec_name(i_char:i_char) = '_'
+
+      !todo merge in one write command and make it no column-limited (dont create a new line after a weight is reached in the file!)
+      write(SCRIPTS_FILE_UNIT,*) "set key outside"
+      write(SCRIPTS_FILE_UNIT,*) "plot for [col=2:2]\"
+      write(SCRIPTS_FILE_UNIT,*)" 'partmc/build/test_run/monarch/"//file_prefix//"_results.txt'\"
+      write(SCRIPTS_FILE_UNIT,*)" using 1:col title columnheader"
+      !write(SCRIPTS_FILE_UNIT,*)" using 1:col with lines title columnheader"
+
+      !todo improve path detecting
+      !write(SCRIPTS_FILE_UNIT,*) "plot\"
+      !write(SCRIPTS_FILE_UNIT,*) " 'partmc/build/test_run/monarch/"//file_prefix//"_results.txt'\"
+      !write(SCRIPTS_FILE_UNIT,*) " using 1:"// &
+      !       trim(to_string(tracer_ids(i_spec)))//" title '"// &
+      !        spec_name!//" (MONARCH)'"
+
+    end do
+    !tracer_id = END_CAMP_ID - START_CAMP_ID + 3
+    !write(SCRIPTS_FILE_UNIT,*) "set output '"//file_prefix//"_H2O.png'"
+    !write(SCRIPTS_FILE_UNIT,*) "plot\"
+    !write(SCRIPTS_FILE_UNIT,*) " '"//file_prefix//"_results.txt'\"
+    !write(SCRIPTS_FILE_UNIT,*) " using 1:"// &
+    !        trim(to_string(tracer_id))//" title 'H2O (MONARCH)'"
+
+    close(SCRIPTS_FILE_UNIT)
+
+    deallocate(species_names)
+    deallocate(tracer_ids)
+    deallocate(file_name)
+    deallocate(spec_name)
+
+  end subroutine create_gnuplot_persist
 
 end program mock_monarch

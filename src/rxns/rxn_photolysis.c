@@ -147,7 +147,6 @@ void rxn_photolysis_update_env_state(ModelData *model_data, int *rxn_int_data,
 #ifdef PMC_USE_MPI
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-
   if (rank==0) {
 
     printf("RATE_CONSTANT: %-le\n", RATE_CONSTANT_);
@@ -165,6 +164,21 @@ void rxn_photolysis_update_env_state(ModelData *model_data, int *rxn_int_data,
     //printf("BASE_RATE_: %-le\n", BASE_RATE_);
     //printf("RATE_CONSTANT: %-le\n", RATE_CONSTANT_);
   }
+#else
+/*
+  printf("RATE_CONSTANT: %-le\n", RATE_CONSTANT_);
+  printf("SCALING_: %-le\n", SCALING_);
+  printf("BASE_RATE_: %-le\n", BASE_RATE_);
+  printf("NUM_REACT_: %d\n", NUM_REACT_);
+  for(int i=0; i<NUM_REACT_; i++)
+    printf("%d,",REACT_(i));
+  printf("\n");
+  printf("NUM_PROD_: %d\n", NUM_PROD_);
+  for(int i=0; i<NUM_PROD_; i++) {
+    printf("%d,", PROD_(i));
+    printf("YIELD_: %-le\n", YIELD_(i));
+  }
+*/
 #endif
 
 

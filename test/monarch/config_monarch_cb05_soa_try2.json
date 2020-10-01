@@ -1,10 +1,12 @@
 {
   "pmc-files" : [
-    "cb05_SOA/monarch_mod37_aerosol_representation.json",
+    "cb05_SOA/aerosol_representation.json",
     "cb05_SOA/aerosol_phases.json",
     "cb05_SOA/cb05_abs_tol.json",
     "cb05_SOA/cb05_mechanism.json",
     "cb05_SOA/cb05_species.json",
+    "cb05_SOA/cloud_and_rain_partitioning.json",
+    "cb05_SOA/cloud_and_rain_species.json",
     "cb05_SOA/custom_species.json",
     "cb05_SOA/partitioning_species_params.json",
     "cb05_SOA/tsigaridis_2_product_SOA_scheme/mechanism.json",

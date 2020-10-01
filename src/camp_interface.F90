@@ -34,7 +34,7 @@ contains
           aero_state, gas_data, gas_state, photolysis, del_t)
 
     !> CAMP core
-    type(camp_core_t), intent(in) :: camp_core
+    type(camp_core_t), intent(inout) :: camp_core
     !> CAMP state
     type(camp_state_t), intent(inout) :: camp_state
     !> Working CAMP state

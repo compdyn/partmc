@@ -1,0 +1,13 @@
+{
+  "pmc-files" : [
+    "monarch_mod37_aerosol_representation.json",
+    "../../scenarios_run/5_urban_plume_camp/monarch_mod37/aerosol_phases.json",
+    "../../scenarios_run/5_urban_plume_camp/monarch_mod37/cb05_abs_tol.json",
+    "../../scenarios_run/5_urban_plume_camp/monarch_mod37/cb05_mechanism.json",
+    "../../scenarios_run/5_urban_plume_camp/monarch_mod37/cb05_species.json",
+    "../../scenarios_run/5_urban_plume_camp/monarch_mod37/custom_species.json",
+    "../../scenarios_run/5_urban_plume_camp/monarch_mod37/tsigaridis_2_product_SOA_scheme/mechanism.json",
+    "../../scenarios_run/5_urban_plume_camp/monarch_mod37/tsigaridis_2_product_SOA_scheme/species.json"
+  ]
+}
+

@@ -829,7 +829,7 @@ contains
   !> Initialize the aero_data_t variable with camp chem data
   subroutine aero_data_initialize(this, camp_core)
 
-    !> Aerosol data
+    !> Aerosol datam
     class(aero_data_t), intent(inout) :: this
     !> CAMP core
     type(camp_core_t), intent(in) :: camp_core
@@ -839,6 +839,8 @@ contains
     integer :: num_spec, i_spec, spec_type
     type(chem_spec_data_t), pointer :: chem_spec_data
     type(property_t), pointer :: property_set
+
+    write(*,*) "aero_data_initialize READING JSON"
 
     rep_name = "PartMC single particle"
     if (.not.camp_core%get_aero_rep(rep_name, this%aero_rep_ptr)) then

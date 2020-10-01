@@ -69,7 +69,7 @@
 !! \b weight \b [kg \b mol-1], which specifies the molecular weight of the
 !! species in \f$\mbox{\si{\kilo\gram\per\mole}}\f$. They may optionally
 !! include the parameter \b N \b star, which will be used to calculate th
-!! mass accomodation coefficient. When this parameter is not included, th
+!! mass accomodation coefficient. When this parameter is not included, the
 !! mass accomodation coefficient is assumed to be 1.0.
 !!
 !! The key-value pair \b B is also required and must have a value of an array

@@ -223,6 +223,8 @@ void rxn_SIMPOL_phase_transfer_update_env_state(ModelData *model_data,
     ALPHA_ = ALPHA_ / (1.0 + ALPHA_);
   }
 
+  //printf("SIMPOL CONV_ %-le\n", CONV_);
+
   // replaced by transition-regime rate equation
 #if 0
   // Save c_rms * mass_acc for use in mass transfer rate calc

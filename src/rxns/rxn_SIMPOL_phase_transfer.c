@@ -20,9 +20,6 @@
 #define TEMPERATURE_K_ env_data[0]
 #define PRESSURE_PA_ env_data[1]
 
-// Small number for ignoring low concentrations
-#define VERY_SMALL_NUMBER_ 1.0e-25
-
 // Jacobian set indices
 #define JAC_GAS 0
 #define JAC_AERO 1
@@ -321,9 +318,6 @@ void rxn_SIMPOL_phase_transfer_calc_deriv_contrib(
         &aero_phase_avg_MW,       // avg MW in the aerosol phase (kg/mol)
         NULL);                    // partial derivatives
 
-    // prevent mass going completely to zero
-    aero_phase_mass += VERY_SMALL_NUMBER_;
-
     // If the radius, number concentration, or aerosol-phase mass are zero,
     // no transfer occurs
     if (radius <= ZERO || number_conc <= ZERO || aero_phase_mass <= ZERO)
@@ -449,9 +443,6 @@ void rxn_SIMPOL_phase_transfer_calc_jac_contrib(ModelData *model_data,
         AERO_PHASE_ID_(i_phase),       // aerosol phase index
         &aero_phase_avg_MW,            // avg MW in the aerosol phase (kg/mol)
         &(MW_JAC_ELEM_(i_phase, 0)));  // partial derivatives
-
-    // prevent mass from going completely to zero
-    aero_phase_mass += VERY_SMALL_NUMBER_;
 
     // If the radius, number concentration, or aerosol-phase mass are zero,
     // no transfer occurs

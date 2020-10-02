@@ -370,7 +370,6 @@ void *solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
  * \param rel_tol Relative integration tolerance
  * \param max_steps Maximum number of internal integration steps
  * \param max_conv_fails Maximum number of convergence failures
- * \return Pointer to an initialized SolverData object
  */
 void solver_initialize(void *solver_data, double *abs_tol, double rel_tol,
                        int max_steps, int max_conv_fails) {

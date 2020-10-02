@@ -37,6 +37,8 @@
 !! \f[
 !!   \frac{\alpha}{1-\alpha} = e^{\frac{-\Delta G^{\*}}{RT}}
 !! \f]
+!! If \f$\Delta H\f$ and \f$\Detla S\f$ are not provided, \f$\alpha\f$ is
+!! set to 0.1 \cite Zaveri2008.
 !!
 !! Condensation rate constants are calculated as:
 !! \f[
@@ -109,7 +111,7 @@ module pmc_rxn_HL_phase_transfer
 #define GAS_SPEC_ this%condensed_data_int(2)
 #define NUM_INT_PROP_ 2
 #define NUM_REAL_PROP_ 8
-#define NUM_ENV_PARAM_ 3
+#define NUM_ENV_PARAM_ 4
 #define DERIV_ID_(x) this%condensed_data_int(NUM_INT_PROP_+x)
 #define JAC_ID_(x) this%condensed_data_int(NUM_INT_PROP_+1+NUM_AERO_PHASE_+x)
 #define PHASE_INT_LOC_(x) this%condensed_data_int(NUM_INT_PROP_+2+6*NUM_AERO_PHASE_+x)

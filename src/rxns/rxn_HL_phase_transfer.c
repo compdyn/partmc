@@ -13,13 +13,12 @@
 #include <stdlib.h>
 #include "../aero_rep_solver.h"
 #include "../rxns.h"
+#include "../util.h"
 
 // TODO Lookup environmental indices during initialization
 #define TEMPERATURE_K_ env_data[0]
 #define PRESSURE_PA_ env_data[1]
 
-// Universal gas constant (J/mol/K)
-#define UNIV_GAS_CONST_ 8.314472
 // Factor used to calculate minimum aerosol water concentrations for
 // HL phase transfer
 #define MIN_WATER_ 1.0e-4
@@ -38,12 +37,13 @@
 #define MW_ float_data[7]
 #define NUM_AERO_PHASE_ int_data[0]
 #define GAS_SPEC_ (int_data[1] - 1)
-#define C_AVG_ALPHA_ rxn_env_data[0]
-#define EQUIL_CONST_ rxn_env_data[1]
-#define KGM3_TO_PPM_ rxn_env_data[2]
+#define MFP_M_ rxn_env_data[0]
+#define ALPHA_ rxn_env_data[1]
+#define EQUIL_CONST_ rxn_env_data[2]
+#define KGM3_TO_PPM_ rxn_env_data[3]
 #define NUM_INT_PROP_ 2
 #define NUM_FLOAT_PROP_ 8
-#define NUM_ENV_PARAM_ 3
+#define NUM_ENV_PARAM_ 4
 #define DERIV_ID_(x) int_data[NUM_INT_PROP_ + x]
 #define JAC_ID_(x) int_data[NUM_INT_PROP_ + 1 + NUM_AERO_PHASE_ + x]
 #define PHASE_INT_LOC_(x) \
@@ -204,16 +204,22 @@ void rxn_HL_phase_transfer_update_env_state(ModelData *model_data,
   double *env_data = model_data->grid_cell_env;
 
   // Calculate the mass accomodation coefficient if the N* parameter
-  // was provided, otherwise set it to 1.0
-  double mass_acc = 1.0;
+  // was provided, otherwise set it to 0.1 (per Zaveri 2008)
+  ALPHA_ = 0.1;
   if (DELTA_H_ != 0.0 || DELTA_S_ != 0.0) {
     double del_G = DELTA_H_ - TEMPERATURE_K_ * DELTA_S_;
-    mass_acc = exp(-del_G / (UNIV_GAS_CONST_ * TEMPERATURE_K_));
-    mass_acc = mass_acc / (1.0 + mass_acc);
+    ALPHA_ = exp(-del_G / (UNIV_GAS_CONST_ * TEMPERATURE_K_));
+    ALPHA_ = ALPHA_ / (1.0 + ALPHA_);
   }
 
+  // replaced by transition-regime rate equation
+#if 0
   // Save c_rms * mass_acc for use in mass transfer rate calc
-  C_AVG_ALPHA_ = PRE_C_AVG_ * sqrt(TEMPERATURE_K_) * mass_acc;
+  MFP_M_ = PRE_C_AVG_ * sqrt(TEMPERATURE_K_) * mass_acc;
+#endif
+
+  // save the mean free path [m] for calculating condensation rates
+  MFP_M_ = mean_free_path__m(DIFF_COEFF_, TEMPERATURE_K_, ALPHA_);
 
   // Calculate the Henry's Law equilibrium rate constant in units of
   // (ug_x/ug_H2O/ppm) where x is the aerosol-phase species. (A is in
@@ -284,21 +290,22 @@ void rxn_HL_phase_transfer_calc_deriv_contrib(
     // If the radius or number concentration are zero, no transfer occurs
     if (radius <= ZERO || number_conc <= ZERO) continue;
 
-    // If no aerosol water is present, no transfer occurs
-    if (state[AERO_WATER_(i_phase)] * number_conc <
-        MIN_WATER_ * SMALL_WATER_CONC_(i_phase))
-      continue;
+    // this was replaced with transition-regime rate equation
+#if 0
+    long double cond_rate =
+        ((long double)1.0) / (radius * radius / (3.0 * DIFF_COEFF_) +
+                              4.0 * radius / (3.0 * MFP_M_));
+#endif
 
     // Calculate the rate constant for diffusion limited mass transfer to the
     // aerosol phase (1/s)
     long double cond_rate =
-        ((long double)1.0) / (radius * radius / (3.0 * DIFF_COEFF_) +
-                              4.0 * radius / (3.0 * C_AVG_ALPHA_));
+        gas_aerosol_rxn_rate_constant(DIFF_COEFF_, MFP_M_, radius, ALPHA_);
 
     // Calculate the evaporation rate constant (1/s)
     long double evap_rate = cond_rate / (EQUIL_CONST_);
 
-    // Calculate the evaporation and condensation rates
+    // Calculate the evaporation and condensation rates (ppm/s)
     cond_rate *= state[GAS_SPEC_];
     evap_rate *= state[AERO_SPEC_(i_phase)] / state[AERO_WATER_(i_phase)];
 
@@ -312,13 +319,13 @@ void rxn_HL_phase_transfer_calc_deriv_contrib(
 
     // Change in the aerosol-phase species is condensation - evaporation
     // (kg/m^3/s)
-    if (DERIV_ID_(1 + i_phase) >= 0)
+    if (DERIV_ID_(1 + i_phase) >= 0) {
       time_derivative_add_value(time_deriv, DERIV_ID_(1 + i_phase),
                                 -evap_rate / KGM3_TO_PPM_);
-    time_derivative_add_value(time_deriv, DERIV_ID_(1 + i_phase),
-                              cond_rate / KGM3_TO_PPM_);
+      time_derivative_add_value(time_deriv, DERIV_ID_(1 + i_phase),
+                                cond_rate / KGM3_TO_PPM_);
+    }
   }
-
   return;
 }
 #endif
@@ -380,40 +387,33 @@ void rxn_HL_phase_transfer_calc_jac_contrib(ModelData *model_data, Jacobian jac,
     // If the radius or number concentration are zero, no transfer occurs
     if (radius <= ZERO || number_conc <= ZERO) continue;
 
-    // If no aerosol water is present, no transfer occurs
-    if (state[AERO_WATER_(i_phase)] * number_conc <
-        MIN_WATER_ * SMALL_WATER_CONC_(i_phase))
-      continue;
+    // this was replaced with transition-regime rate equation
+#if 0
+    long double cond_rate = 1.0 / (radius * radius / (3.0 * DIFF_COEFF_) +
+                                   4.0 * radius / (3.0 * MFP_M_));
+#endif
 
     // Calculate the rate constant for diffusion limited mass transfer to the
     // aerosol phase (1/s)
-    long double cond_rate = 1.0 / (radius * radius / (3.0 * DIFF_COEFF_) +
-                                   4.0 * radius / (3.0 * C_AVG_ALPHA_));
+    long double cond_rate =
+        gas_aerosol_rxn_rate_constant(DIFF_COEFF_, MFP_M_, radius, ALPHA_);
 
     // Calculate the evaporation rate constant (1/s)
     long double evap_rate = cond_rate / (EQUIL_CONST_);
 
-    // Get the overall rate for certain Jac elements
-    long double rate =
-        evap_rate * state[AERO_SPEC_(i_phase)] / state[AERO_WATER_(i_phase)] -
-        cond_rate * state[GAS_SPEC_];
-
-    // Update evap rate to be for aerosol species concentrations
-    evap_rate /= (KGM3_TO_PPM_ * state[AERO_WATER_(i_phase)]);
-
     // Change in the gas-phase is evaporation - condensation (ppm/s)
-    if (JAC_ID_(1 + i_phase * 5 + 1) >= 0)
-      jacobian_add_value(jac, (unsigned int)JAC_ID_(1 + i_phase * 5 + 1),
-                         JACOBIAN_PRODUCTION,
-                         number_conc * evap_rate * KGM3_TO_PPM_);
-    if (JAC_ID_(1 + i_phase * 5 + 3) >= 0)
-      jacobian_add_value(
-          jac, (unsigned int)JAC_ID_(1 + i_phase * 5 + 3), JACOBIAN_PRODUCTION,
-          -number_conc * evap_rate * KGM3_TO_PPM_ * state[AERO_SPEC_(i_phase)] /
-              state[AERO_WATER_(i_phase)]);
     if (JAC_ID_(0) >= 0)
       jacobian_add_value(jac, (unsigned int)JAC_ID_(0), JACOBIAN_LOSS,
                          number_conc * cond_rate);
+    if (JAC_ID_(1 + i_phase * 5 + 1) >= 0)
+      jacobian_add_value(jac, (unsigned int)JAC_ID_(1 + i_phase * 5 + 1),
+                         JACOBIAN_PRODUCTION,
+                         number_conc * evap_rate / state[AERO_WATER_(i_phase)]);
+    if (JAC_ID_(1 + i_phase * 5 + 3) >= 0)
+      jacobian_add_value(
+          jac, (unsigned int)JAC_ID_(1 + i_phase * 5 + 3), JACOBIAN_PRODUCTION,
+          -number_conc * evap_rate * state[AERO_SPEC_(i_phase)] /
+              state[AERO_WATER_(i_phase)] / state[AERO_WATER_(i_phase)]);
 
     // Change in the aerosol-phase species is condensation - evaporation
     // (kg/m^3/s)
@@ -421,21 +421,34 @@ void rxn_HL_phase_transfer_calc_jac_contrib(ModelData *model_data, Jacobian jac,
       jacobian_add_value(jac, (unsigned int)JAC_ID_(1 + i_phase * 5),
                          JACOBIAN_PRODUCTION, cond_rate / KGM3_TO_PPM_);
     if (JAC_ID_(1 + i_phase * 5 + 2) >= 0)
-      jacobian_add_value(jac, (unsigned int)JAC_ID_(1 + i_phase * 5 + 2),
-                         JACOBIAN_LOSS, evap_rate);
+      jacobian_add_value(
+          jac, (unsigned int)JAC_ID_(1 + i_phase * 5 + 2), JACOBIAN_LOSS,
+          evap_rate / state[AERO_WATER_(i_phase)] / KGM3_TO_PPM_);
     if (JAC_ID_(1 + i_phase * 5 + 4) >= 0)
-      jacobian_add_value(jac, (unsigned int)JAC_ID_(1 + i_phase * 5 + 4),
-                         JACOBIAN_LOSS,
-                         -evap_rate * state[AERO_SPEC_(i_phase)] /
-                             state[AERO_WATER_(i_phase)]);
+      jacobian_add_value(
+          jac, (unsigned int)JAC_ID_(1 + i_phase * 5 + 4), JACOBIAN_LOSS,
+          -evap_rate * state[AERO_SPEC_(i_phase)] / KGM3_TO_PPM_ /
+              state[AERO_WATER_(i_phase)] / state[AERO_WATER_(i_phase)]);
+
+    // Calculate the condensation and evaporation rates (ppm/s)
+    cond_rate *= state[GAS_SPEC_];
+    evap_rate *= state[AERO_SPEC_(i_phase)] / state[AERO_WATER_(i_phase)];
 
     // Add contributions from species used in aerosol property calculations
 
     // Calculate d_rate/d_effecive_radius and d_rate/d_number_concentration
+    // ( This was replaced with transition-regime rate equation. )
+#if 0
     long double d_rate_d_radius =
         -rate * cond_rate *
-        (2.0 * radius / (3.0 * DIFF_COEFF_) + 4.0 / (3.0 * C_AVG_ALPHA_));
-    long double d_rate_d_number = rate / number_conc;
+        (2.0 * radius / (3.0 * DIFF_COEFF_) + 4.0 / (3.0 * MFP_M_));
+#endif
+    long double d_cond_d_radius = d_gas_aerosol_rxn_rate_constant_d_radius(
+                                      DIFF_COEFF_, MFP_M_, radius, ALPHA_) *
+                                  state[GAS_SPEC_];
+    long double d_evap_d_radius = d_cond_d_radius / state[GAS_SPEC_] /
+                                  (EQUIL_CONST_)*state[AERO_SPEC_(i_phase)] /
+                                  state[AERO_WATER_(i_phase)];
 
     // Loop through Jac elements and update
     for (int i_elem = 0; i_elem < NUM_AERO_PHASE_JAC_ELEM_(i_phase); ++i_elem) {
@@ -444,16 +457,21 @@ void rxn_HL_phase_transfer_calc_jac_contrib(ModelData *model_data, Jacobian jac,
         // species involved in effective radius calculation
         jacobian_add_value(
             jac, (unsigned int)PHASE_JAC_ID_(i_phase, JAC_GAS, i_elem),
+            JACOBIAN_PRODUCTION,
+            number_conc * d_evap_d_radius * EFF_RAD_JAC_ELEM_(i_phase, i_elem));
+        jacobian_add_value(
+            jac, (unsigned int)PHASE_JAC_ID_(i_phase, JAC_GAS, i_elem),
             JACOBIAN_LOSS,
-            -number_conc * d_rate_d_radius *
-                EFF_RAD_JAC_ELEM_(i_phase, i_elem));
+            number_conc * d_cond_d_radius * EFF_RAD_JAC_ELEM_(i_phase, i_elem));
 
         // species involved in number concentration
         jacobian_add_value(
             jac, (unsigned int)PHASE_JAC_ID_(i_phase, JAC_GAS, i_elem),
-            JACOBIAN_LOSS,
-            -number_conc * d_rate_d_number *
-                NUM_CONC_JAC_ELEM_(i_phase, i_elem));
+            JACOBIAN_PRODUCTION,
+            evap_rate * NUM_CONC_JAC_ELEM_(i_phase, i_elem));
+        jacobian_add_value(
+            jac, (unsigned int)PHASE_JAC_ID_(i_phase, JAC_GAS, i_elem),
+            JACOBIAN_LOSS, cond_rate * NUM_CONC_JAC_ELEM_(i_phase, i_elem));
       }
 
       // Aerosol-phase species dependencies
@@ -461,13 +479,17 @@ void rxn_HL_phase_transfer_calc_jac_contrib(ModelData *model_data, Jacobian jac,
         // species involved in effective radius calculation
         jacobian_add_value(
             jac, (unsigned int)PHASE_JAC_ID_(i_phase, JAC_AERO, i_elem),
+            JACOBIAN_LOSS,
+            d_evap_d_radius / KGM3_TO_PPM_ *
+                EFF_RAD_JAC_ELEM_(i_phase, i_elem));
+        jacobian_add_value(
+            jac, (unsigned int)PHASE_JAC_ID_(i_phase, JAC_AERO, i_elem),
             JACOBIAN_PRODUCTION,
-            -d_rate_d_radius / KGM3_TO_PPM_ *
+            d_cond_d_radius / KGM3_TO_PPM_ *
                 EFF_RAD_JAC_ELEM_(i_phase, i_elem));
       }
     }
   }
-
   return;
 }
 #endif

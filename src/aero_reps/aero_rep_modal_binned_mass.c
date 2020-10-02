@@ -65,7 +65,7 @@
 // Real-time number concentration - used for modes and bins - for modes, b=0
 #define NUMBER_CONC_(x, b) (float_data[MODE_FLOAT_PROP_LOC_(x) + b * 3 + 1])
 
-// Real-time effective radius - only used for modes, b=0
+// Real-time effective radius - for modes, b=0
 #define EFFECTIVE_RADIUS_(x, b) \
   (float_data[MODE_FLOAT_PROP_LOC_(x) + b * 3 + 2])
 
@@ -606,19 +606,48 @@ bool aero_rep_modal_binned_mass_update_data(void *update_data,
   // Set the new GMD or GSD for matching aerosol representations
   if (*aero_rep_id == AERO_REP_ID_ && AERO_REP_ID_ != 0) {
     if (*update_type == UPDATE_GMD) {
+      if (SECTION_TYPE_(*section_id) != MODAL) {
+        printf("\n\nERROR Trying to set geometric mean diameter for non-modal"
+               " aerosol section.");
+        exit(1);
+      }
       GMD_(*section_id) = (double)*new_value;  // [m]
       ret_val = true;
     } else if (*update_type == UPDATE_GSD) {
+      if (SECTION_TYPE_(*section_id) != MODAL) {
+        printf("\n\nERROR Trying to set geometric standard deviation for non-modal"
+               " aerosol section.");
+        exit(1);
+      }
       GSD_(*section_id) = (double)*new_value;
       ret_val = true;
     }
   }
 
   if (ret_val == true) {
-    // Recalculate the effective radius [m]
-    double gsd = GSD_(*section_id);
+    /// Recalculate the effective radius [m]
+    ///
+    /// Equation based on \cite Zender2002 eq. (23) and Table 1 median diameter
+    /// (\f$\tilde{D_n}\f$)
+    /// and Table 1 effective radius \f$(D_s, D_eff\f$) equations:
+    /// \f[
+    /// \tilde{\sigma_g} \equiv ln( \sigma_g )
+    /// \f]
+    /// \f[
+    /// \tilde{D_n} = \bar{D_n} e^{-\tilde{\sigma_g}^2 / 2}
+    /// \f]
+    /// \f[
+    /// D_s = D_{eff} = \tilde{D_n} e^{5 \tilde{\sigma_g}^2 / 2}
+    /// \f]
+    /// \f[
+    /// D_{eff} = \bar{D_n} e^{ 2 \tilde{\sigma_g}^2 }
+    /// \f]
+    /// where \f$\bar{D_n}\f$ is the mean diameter [m] and \f$\sigma_g\f$
+    /// is the geometric standard deviation [unitless].
+    ///
+    double ln_gsd = log( GSD_(*section_id) );
     EFFECTIVE_RADIUS_(*section_id, 0) =
-        GMD_(*section_id) / 2.0 * exp(9.0 / 2.0 * gsd * gsd);
+        GMD_(*section_id) / 2.0 * exp(2.0 * ln_gsd * ln_gsd);
   }
 
   return ret_val;

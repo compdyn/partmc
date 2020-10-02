@@ -607,16 +607,18 @@ bool aero_rep_modal_binned_mass_update_data(void *update_data,
   if (*aero_rep_id == AERO_REP_ID_ && AERO_REP_ID_ != 0) {
     if (*update_type == UPDATE_GMD) {
       if (SECTION_TYPE_(*section_id) != MODAL) {
-        printf("\n\nERROR Trying to set geometric mean diameter for non-modal"
-               " aerosol section.");
+        printf(
+            "\n\nERROR Trying to set geometric mean diameter for non-modal"
+            " aerosol section.");
         exit(1);
       }
       GMD_(*section_id) = (double)*new_value;  // [m]
       ret_val = true;
     } else if (*update_type == UPDATE_GSD) {
       if (SECTION_TYPE_(*section_id) != MODAL) {
-        printf("\n\nERROR Trying to set geometric standard deviation for non-modal"
-               " aerosol section.");
+        printf(
+            "\n\nERROR Trying to set geometric standard deviation for non-modal"
+            " aerosol section.");
         exit(1);
       }
       GSD_(*section_id) = (double)*new_value;
@@ -645,7 +647,7 @@ bool aero_rep_modal_binned_mass_update_data(void *update_data,
     /// where \f$\bar{D_n}\f$ is the mean diameter [m] and \f$\sigma_g\f$
     /// is the geometric standard deviation [unitless].
     ///
-    double ln_gsd = log( GSD_(*section_id) );
+    double ln_gsd = log(GSD_(*section_id));
     EFFECTIVE_RADIUS_(*section_id, 0) =
         GMD_(*section_id) / 2.0 * exp(2.0 * ln_gsd * ln_gsd);
   }

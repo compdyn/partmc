@@ -318,13 +318,8 @@ void rxn_SIMPOL_phase_transfer_calc_deriv_contrib(
         &aero_phase_avg_MW,       // avg MW in the aerosol phase (kg/mol)
         NULL);                    // partial derivatives
 
-    // If the radius, number concentration, or aerosol-phase mass are zero,
-    // no transfer occurs
-    if (radius <= ZERO || number_conc <= ZERO || aero_phase_mass <= ZERO)
-      continue;
-
-      // This was replaced with the transition-regime condensation rate
-      // equations
+    // This was replaced with the transition-regime condensation rate
+    // equations
 #if 0
     long double cond_rate =
         ((long double)1.0) / (radius * radius / (3.0 * DIFF_COEFF_) +
@@ -444,13 +439,8 @@ void rxn_SIMPOL_phase_transfer_calc_jac_contrib(ModelData *model_data,
         &aero_phase_avg_MW,            // avg MW in the aerosol phase (kg/mol)
         &(MW_JAC_ELEM_(i_phase, 0)));  // partial derivatives
 
-    // If the radius, number concentration, or aerosol-phase mass are zero,
-    // no transfer occurs
-    if (radius <= ZERO || number_conc <= ZERO || aero_phase_mass <= ZERO)
-      continue;
-
-      // This was replaced with the transition-regime condensation rate
-      // equations
+    // This was replaced with the transition-regime condensation rate
+    // equations
 #if 0
     long double cond_rate =
         ((long double)1.0) / (radius * radius / (3.0 * DIFF_COEFF_) +

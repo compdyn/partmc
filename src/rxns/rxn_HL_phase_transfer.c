@@ -287,10 +287,7 @@ void rxn_HL_phase_transfer_calc_deriv_contrib(
           NULL);                    // partial derivative
     }
 
-    // If the radius or number concentration are zero, no transfer occurs
-    if (radius <= ZERO || number_conc <= ZERO) continue;
-
-      // this was replaced with transition-regime rate equation
+    // this was replaced with transition-regime rate equation
 #if 0
     long double cond_rate =
         ((long double)1.0) / (radius * radius / (3.0 * DIFF_COEFF_) +
@@ -384,10 +381,7 @@ void rxn_HL_phase_transfer_calc_jac_contrib(ModelData *model_data, Jacobian jac,
         NUM_CONC_JAC_ELEM_(i_phase, i_elem) = ZERO;
     }
 
-    // If the radius or number concentration are zero, no transfer occurs
-    if (radius <= ZERO || number_conc <= ZERO) continue;
-
-      // this was replaced with transition-regime rate equation
+    // this was replaced with transition-regime rate equation
 #if 0
     long double cond_rate = 1.0 / (radius * radius / (3.0 * DIFF_COEFF_) +
                                    4.0 * radius / (3.0 * MFP_M_));

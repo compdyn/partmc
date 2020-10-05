@@ -508,9 +508,8 @@ contains
                     air_density(i,k,j) * 1.0d9
 
             if(mod(int(start_time),60).eq.0) then
-
               write(*,*) "i_hour loop", i_hour
-
+            end if
 #ifndef ENABLE_CB05_SOA
               !Add emissions
               this%camp_state%state_var(chem_spec_data%gas_state_id("SO2"))=this%camp_state%state_var(chem_spec_data%gas_state_id("SO2"))+SO2_emi(i_hour)*rate_emi(i_hour)*conv
@@ -529,7 +528,7 @@ contains
               this%camp_state%state_var(chem_spec_data%gas_state_id("ISOP"))=this%camp_state%state_var(chem_spec_data%gas_state_id("ISOP"))+ISOP_emi(i_hour)*rate_emi(i_hour)*conv
               this%camp_state%state_var(chem_spec_data%gas_state_id("MEOH"))=this%camp_state%state_var(chem_spec_data%gas_state_id("MEOH"))+MEOH_emi(i_hour)*rate_emi(i_hour)*conv
 #endif
-            end if
+
 
             !write(*,*) "State_var input",this%camp_state%state_var(this%map_camp_id(:)+(z*state_size_per_cell))
 

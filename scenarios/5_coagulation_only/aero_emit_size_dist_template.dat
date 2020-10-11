@@ -1,0 +1,4 @@
+# first line is diam of bin edges (m)
+# second line is num_conc in each bin (m^{-3})
+diam BIN_EDGES
+num_conc NUMBER

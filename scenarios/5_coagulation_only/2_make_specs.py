@@ -11,6 +11,11 @@ values = np.loadtxt('lhs.txt')
 n_scenarios = (values.shape[0])
 n_modes = int((values.shape[1]) / 3)
 print(n_scenarios,n_modes)
+n_bin = 20
+bin_edges_radius = np.logspace(-9,np.log10(5e-5),n_bin+1)
+np.set_printoptions(precision=3)
+print(bin_edges_radius)
+
 for counter in range(n_scenarios):
     print("counter: %d" % counter)
     filename_in = "aero_init_dist_template.dat"
@@ -34,13 +39,33 @@ for counter in range(n_scenarios):
 
     f_in.close()
     f_out.close()
+    # Make the distribution of emissions
+    filename_in = "aero_emit_size_dist_template.dat"
+    filename_out = "%s/aero_emit_size_dist.dat" % (directory)
+    f_in = open(filename_in, 'r')
+    f_out = open(filename_out, 'w')
+    number_conc = np.zeros(n_bin)
+    # number is the total number in that bin range?
+    n_i = np.sum(values[counter,6:]) * 1e-2
+    print(values[counter,6:], n_i)
+    for i_bin in range(n_bin):
+        number_conc[i_bin] = n_i / n_bin
+    print(number_conc)
+    for line in f_in:
+        line = line.replace('BIN_EDGES', str(bin_edges_radius).replace("\n", "")[1:-1])
+        line = line.replace('NUMBER', str(number_conc).replace("\n", "")[1:-1])
+        f_out.write(line)
+
+    f_in.close()
+    f_out.close()
+
     # Copy files
     input_files = ["gas_back.dat", "temp.dat", "aero_back.dat",
                    "aero_emit.dat", "height.dat", "aero_back_comp.dat",
-                   "aero_emit_comp_diesel.dat", "aero_data.dat",
-                   "aero_emit_comp_pavedrd.dat", "aero_back_dist.dat",
-                   "gas_emit.dat", "aero_emit_comp_gasol.dat", "pres.dat",
-                   "gas_init.dat", "aero_emit_dist.dat", "aero_emit_comp_cooking.dat",
+                   "aero_emit_comp.dat", "aero_data.dat",
+                   "aero_back_dist.dat",
+                   "gas_emit.dat", "pres.dat",
+                   "gas_init.dat", "aero_emit_dist.dat",
                    "aero_init_comp.dat", "gas_data.dat", "coag_brownian.spec", "run.sh"]
     for i_file, filename in enumerate(input_files):
         dest = shutil.copy("%s" %filename, "%s" % directory)

@@ -47,10 +47,8 @@ for counter in range(n_scenarios):
     number_conc = np.zeros(n_bin)
     # number is the total number in that bin range?
     n_i = np.sum(values[counter,6:]) * 1e-2
-    print(values[counter,6:], n_i)
     for i_bin in range(n_bin):
         number_conc[i_bin] = n_i / n_bin
-    print(number_conc)
     for line in f_in:
         line = line.replace('BIN_EDGES', str(bin_edges_radius).replace("\n", "")[1:-1])
         line = line.replace('NUMBER', str(number_conc).replace("\n", "")[1:-1])

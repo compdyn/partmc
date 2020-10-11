@@ -365,7 +365,8 @@ contains
 
     if (aero_state%valid_sort) then
        call aero_sorted_add_particle(aero_state%aero_sorted, aero_state%apa, &
-            aero_particle, aero_data, allow_resort)
+            aero_particle, aero_data, allow_resort, &
+            aero_state%allow_remake_bin_grid)
     else
        call aero_particle_array_add_particle(aero_state%apa, aero_particle)
     end if

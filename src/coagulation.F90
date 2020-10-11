@@ -924,7 +924,6 @@ contains
           bn = aero_sorted_particle_in_bin(aero_state%aero_sorted, ptc, &
                aero_data)
           if (bn > bin_grid_size(aero_state%bin_grid)) then
-             print*, 'warning'
              bn = min(bn, bin_grid_size(aero_state%bin_grid))
           end if
        end if

@@ -395,7 +395,7 @@ contains
   !> Add a new particle to both an aero_sorted and the corresponding
   !> aero_particle_array.
   subroutine aero_sorted_add_particle(aero_sorted, aero_particle_array, &
-       aero_particle, aero_data, allow_resort)
+       aero_particle, aero_data, allow_resort, is_constant_bin_grid)
 
     !> Sorted particle structure.
     type(aero_sorted_t), intent(inout) :: aero_sorted
@@ -407,6 +407,8 @@ contains
     type(aero_data_t), intent(in) :: aero_data
     !> Whether to allow a resort due to the add.
     logical, optional, intent(in) :: allow_resort
+    !> Whether the bin_grid is constant.
+    logical, optional, intent(in) :: is_constant_bin_grid
 
     integer :: i_bin, i_group, i_class, n_bin, n_group, n_class
 
@@ -431,11 +433,13 @@ contains
        ! the bin_grid.
        if (present(allow_resort)) then
           if (.not. allow_resort) then
+          if (is_constant_bin_grid) then
              ! FIXME: this could be avoided if the new bin_grid was an
              ! extension of the old one (only added bins, first bins
              ! are the same)
              call die_msg(134572570, "particle outside of bin_grid: " &
                   // "try reducing the timestep del_t")
+          end if
           end if
        end if
        call aero_sorted_remake_if_needed(aero_sorted, aero_particle_array, &

@@ -923,6 +923,10 @@ contains
        if (create_new) then
           bn = aero_sorted_particle_in_bin(aero_state%aero_sorted, ptc, &
                aero_data)
+          if (bn > bin_grid_size(aero_state%bin_grid)) then
+             print*, 'warning'
+             bn = min(bn, bin_grid_size(aero_state%bin_grid))
+          end if
        end if
        if (remove_1) then
           aero_state%bin1_loss_mass_conc(b1,b2,:) = &

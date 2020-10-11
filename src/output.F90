@@ -445,13 +445,14 @@ contains
                 delta_num_concs(i_count,4) = aero_state%bin3_gain_num_conc( &
                    i_bin, j_bin, k_bin_p1)
              end if
-
-             if (aero_state%bin3_gain_num_conc(i_bin, j_bin, k_bin_p1+1) &
-                  > 0.0d0) then
-                call warn_msg(980232889, "coagulation result is outside " &
-                     // trim(integer_to_string(i_bin)) &
-                     // trim(integer_to_string(j_bin)) &
-                     // trim(integer_to_string(k_bin_p1+1)))
+             if (k_bin_p1 /= bin_grid_size(bin_grid)) then
+                if (aero_state%bin3_gain_num_conc(i_bin, j_bin, k_bin_p1+1) &
+                     > 0.0d0) then
+                   call warn_msg(980232889, "coagulation result is outside " &
+                        // trim(integer_to_string(i_bin)) &
+                        // trim(integer_to_string(j_bin)) &
+                        // trim(integer_to_string(k_bin_p1+1)))
+                end if
              end if
           end if
           end do

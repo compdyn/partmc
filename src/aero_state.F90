@@ -968,6 +968,8 @@ contains
     do i_part = 1,aero_state_n_part(aero_state)
        i_bin = bin_grid_find(bin_grid, &
             aero_particle_radius(aero_state%apa%particle(i_part), aero_data))
+       if (.not. aero_state%allow_remake_bin_grid) i_bin = min(i_bin, &
+            bin_grid_size(bin_grid))
        if ((i_bin < 1) .or. (i_bin > bin_grid_size(bin_grid))) then
           call warn_msg(980232449, "particle ID " &
                // trim(integer_to_string(aero_state%apa%particle(i_part)%id)) &
@@ -1485,6 +1487,8 @@ contains
        i_bin = bin_grid_find(bin_grid, &
             aero_particle_solute_radius(aero_state%apa%particle(i_part), &
             aero_data))
+       if (.not. aero_state%allow_remake_bin_grid) i_bin = min(i_bin, &
+            bin_grid_size(bin_grid))
        if ((i_bin < 1) .or. (i_bin > bin_grid_size(bin_grid))) then
           call warn_msg(503871022, "particle ID " &
                // trim(integer_to_string(aero_state%apa%particle(i_part)%id)) &

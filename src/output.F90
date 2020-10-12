@@ -441,7 +441,7 @@ contains
                   * aero_state%bin2_loss_num_conc(i_bin, j_bin)
              delta_num_concs(i_count,3) = aero_state%bin3_gain_num_conc( &
                   i_bin, j_bin, k_bin)
-             if (k_bin_p1 < bin_grid_size(bin_grid)) then
+             if (k_bin /= bin_grid_size(bin_grid)) then
                 delta_num_concs(i_count,4) = aero_state%bin3_gain_num_conc( &
                    i_bin, j_bin, k_bin_p1)
              end if

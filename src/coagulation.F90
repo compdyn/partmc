@@ -923,9 +923,7 @@ contains
        if (create_new) then
           bn = aero_sorted_particle_in_bin(aero_state%aero_sorted, ptc, &
                aero_data)
-          if (bn > bin_grid_size(aero_state%bin_grid)) then
-             bn = min(bn, bin_grid_size(aero_state%bin_grid))
-          end if
+          bn = min(bn, bin_grid_size(aero_state%bin_grid))
        end if
        if (remove_1) then
           aero_state%bin1_loss_mass_conc(b1,b2,:) = &
@@ -992,8 +990,17 @@ contains
 
     ! add new particle
     if (create_new) then
-       call aero_state_add_particle(aero_state, ptc, aero_data, &
-            allow_resort=.false.)
+       if (allocated(aero_state%bin1_loss_num_conc)) then
+          ! Do not add particles that have outgrown the fixed bin_grid
+          if (aero_sorted_particle_in_bin(aero_state%aero_sorted, ptc, &
+               aero_data) < bin_grid_size(aero_state%bin_grid) + 1) then 
+             call aero_state_add_particle(aero_state, ptc, aero_data, &
+             allow_resort=.false.)
+          end if
+       else
+          call aero_state_add_particle(aero_state, ptc, aero_data, &
+               allow_resort=.false.)
+       end if
     end if
 
   end subroutine coagulate

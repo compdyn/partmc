@@ -68,8 +68,8 @@ module pmc_monarch_interface
     type(property_t), pointer :: init_conc_data
     !> Interface input data
     type(property_t), pointer :: property_set
-    type(rxn_update_data_photolysis_t), allocatable :: rate_update(:)
-    real(kind=dp), allocatable :: photo_rates(:)
+    type(rxn_update_data_photolysis_t), allocatable :: photo_rxns(:)
+    real(kind=dp), allocatable :: base_rates(:)
     integer :: n_photo_rxn
     !> Solve multiple grid cells at once?
     logical :: solve_multiple_cells = .false.
@@ -101,7 +101,9 @@ module pmc_monarch_interface
   integer(kind=i_kind) :: MONARCH_PROCESS ! TODO replace with MONARCH param
   ! TEMPORARY
   real(kind=dp), public, save :: comp_time = 0.0d0
-
+  ! Parameters
+  real(kind=dp), parameter :: mwair = 28.9628 !mean molecular weight for dry air [ g/mol ]
+  real(kind=dp), parameter :: mwwat = 18.0153 ! mean molecular weight for water vapor [ g/mol ]
 contains
 
 
@@ -193,7 +195,7 @@ contains
       ! Load the interface data
       call this%load(interface_config_file)
 
-      ! Initialize the camp-chem core
+      ! Initializeorganic_matter the camp-chem core
       this%camp_core => camp_core_t(camp_config_file, this%n_cells)
       call this%camp_core%initialize()
 
@@ -309,9 +311,11 @@ contains
     this%camp_state => this%camp_core%new_state()
 
 #ifndef ENABLE_CB05_SOA
+    ! Set the photolysis rates
     do i_photo_rxn = 1, this%n_photo_rxn
-      call this%rate_update(i_photo_rxn)%set_rate(real(this%photo_rates(i_photo_rxn), kind=dp))
-      call this%camp_core%update_data(this%rate_update(i_photo_rxn))
+      call this%photo_rxns(i_photo_rxn)%set_rate(real(this%base_rates(i_photo_rxn), kind=dp))
+      !call this%photo_rxns(i_photo_rxn)%set_rate(real(0.0, kind=dp))
+      call this%camp_core%update_data(this%photo_rxns(i_photo_rxn))
     end do
 #endif
 
@@ -480,9 +484,12 @@ contains
     MEOH_emi = (/ 2.368E-10, 6.107E-10, 6.890E-10, 6.890E-10, 6.890E-10, 6.889E-10, 6.886E-10, 6.890E-10, 6.890E-10, 5.414E-10, 3.701E-10, 2.554E-10, 1.423E-10, 6.699E-11, 2.912E-11, 2.877E-11, 2.825E-11, 2.056E-12, 2.056E-12, 2.056E-12, 2.435E-12, 2.435E-12, 4.030E-11, 1.168E-10, 2.368E-10, 6.107E-10, 6.890E-10, 6.890E-10, 6.890E-10, 6.889E-10 /)
     rate_emi = (/0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 /)
 
-#endif
+    if(mod(int(start_time),60).eq.0) then
+      write(*,*) "i_hour loop", i_hour
+      i_hour = i_hour + 1
+    end if
 
-    call cpu_time(comp_start)
+#endif
 
     if(.not.this%solve_multiple_cells) then
       do i=i_start, i_end
@@ -498,18 +505,26 @@ contains
             call this%camp_state%env_states(1)%set_pressure_Pa(   &
               real( pressure(i,k,j), kind=dp ) )
 
-            this%camp_state%state_var(:) = 0.0
-
+            !this%camp_state%state_var(this%map_camp_id(:)) = &
+            !        this%camp_state%state_var(this%map_camp_id(:)) + &
+            !                MONARCH_conc(i,j,k_flip,this%map_monarch_id(:))
             this%camp_state%state_var(this%map_camp_id(:)) = &
-                    this%camp_state%state_var(this%map_camp_id(:)) + &
                             MONARCH_conc(i,j,k_flip,this%map_monarch_id(:))
+
+            !this%camp_state%state_var(this%gas_phase_water_id) = &
+            !        water_conc(i,j,k_flip,water_vapor_index) * &
+            !        air_density(i,k,j) * 1.0d9
             this%camp_state%state_var(this%gas_phase_water_id) = &
                     water_conc(i,j,k_flip,water_vapor_index) * &
-                    air_density(i,k,j) * 1.0d9
-
-            if(mod(int(start_time),60).eq.0) then
-              write(*,*) "i_hour loop", i_hour
-            end if
+                    mwair / mwwat * 1.e6
+            !print*,'monarch_conc: ',this%camp_state%state_var
+            !stop
+            !print*,'O3: ',this%camp_state%state_var(chem_spec_data%gas_state_id("O3"))
+            !print*,'SO2: ',this%camp_state%state_var(chem_spec_data%gas_state_id("SO2"))
+            !print*,'ISOP: ',this%camp_state%state_var(chem_spec_data%gas_state_id("ISOP"))
+            !print*,'water conc: ',this%camp_state%state_var(this%gas_phase_water_id) &
+            !      ,water_conc(i,j,k_flip,water_vapor_index),air_density(i,k,j)
+            !stop
 #ifndef ENABLE_CB05_SOA
               !Add emissions
               this%camp_state%state_var(chem_spec_data%gas_state_id("SO2"))=this%camp_state%state_var(chem_spec_data%gas_state_id("SO2"))+SO2_emi(i_hour)*rate_emi(i_hour)*conv
@@ -529,7 +544,6 @@ contains
               this%camp_state%state_var(chem_spec_data%gas_state_id("MEOH"))=this%camp_state%state_var(chem_spec_data%gas_state_id("MEOH"))+MEOH_emi(i_hour)*rate_emi(i_hour)*conv
 #endif
 
-
             !write(*,*) "State_var input",this%camp_state%state_var(this%map_camp_id(:)+(z*state_size_per_cell))
 
             ! Start the computation timer
@@ -541,8 +555,12 @@ contains
             end if
 
             ! Integrate the PMC mechanism
+            call cpu_time(comp_start)
             call this%camp_core%solve(this%camp_state, &
-                    real(time_step, kind=dp), solver_stats = solver_stats)
+                    real(time_step*60., kind=dp), solver_stats = solver_stats)
+            call cpu_time(comp_end)
+            comp_time = comp_time + (comp_end-comp_start)
+            !time_step*60
 
             call assert_msg(376450931, solver_stats%status_code.eq.0, &
                             "Solver failed with code "// &
@@ -608,26 +626,53 @@ contains
             !write(*,*) "State_var input",this%camp_state%state_var(this%map_camp_id(:)+(z*state_size_per_cell))
 
             !Reset state conc
-            this%camp_state%state_var(this%map_camp_id(:) + &
-                                       (z*state_size_per_cell)) = 0.0
+            !this%camp_state%state_var(this%map_camp_id(:) + &
+            !                           (z*state_size_per_cell)) = 0.0
+            !this%camp_state%state_var(this%map_camp_id(:) + &
+            !                           (z*state_size_per_cell)) = &
+            !        this%camp_state%state_var(this%map_camp_id(:) + &
+            !                                   (z*state_size_per_cell)) + &
+            !        MONARCH_conc(i,j,k_flip,this%map_monarch_id(:))
 
             this%camp_state%state_var(this%map_camp_id(:) + &
-                                       (z*state_size_per_cell)) = &
-                    this%camp_state%state_var(this%map_camp_id(:) + &
-                                               (z*state_size_per_cell)) + &
-                    MONARCH_conc(i,j,k_flip,this%map_monarch_id(:))
+            (z*state_size_per_cell)) = &
+              MONARCH_conc(i,j,k_flip,this%map_monarch_id(:))
+
             this%camp_state%state_var(this%gas_phase_water_id + &
                                        (z*state_size_per_cell)) = &
                     water_conc(i,j,k_flip,water_vapor_index) * &
-                          air_density(i,k,j) * 1.0d9
+                            mwair / mwwat * 1.e6
+
+#ifndef ENABLE_CB05_SOA
+            !Add emissions
+            this%camp_state%state_var(chem_spec_data%gas_state_id("SO2")+z*state_size_per_cell)=this%camp_state%state_var(chem_spec_data%gas_state_id("SO2")+z*state_size_per_cell)+SO2_emi(i_hour)*rate_emi(i_hour)*conv
+            this%camp_state%state_var(chem_spec_data%gas_state_id("NO2")+z*state_size_per_cell)=this%camp_state%state_var(chem_spec_data%gas_state_id("NO2")+z*state_size_per_cell)+NO2_emi(i_hour)*rate_emi(i_hour)*conv
+            this%camp_state%state_var(chem_spec_data%gas_state_id("NO")+z*state_size_per_cell)=this%camp_state%state_var(chem_spec_data%gas_state_id("NO")+z*state_size_per_cell)+NO_emi(i_hour)*rate_emi(i_hour)*conv
+            this%camp_state%state_var(chem_spec_data%gas_state_id("NH3")+z*state_size_per_cell)=this%camp_state%state_var(chem_spec_data%gas_state_id("NH3")+z*state_size_per_cell)+NH3_emi(i_hour)*rate_emi(i_hour)*conv
+            this%camp_state%state_var(chem_spec_data%gas_state_id("CO")+z*state_size_per_cell)=this%camp_state%state_var(chem_spec_data%gas_state_id("CO")+z*state_size_per_cell)+CO_emi(i_hour)*rate_emi(i_hour)*conv
+            this%camp_state%state_var(chem_spec_data%gas_state_id("ALD2")+z*state_size_per_cell)=this%camp_state%state_var(chem_spec_data%gas_state_id("ALD2")+z*state_size_per_cell)+ALD2_emi(i_hour)*rate_emi(i_hour)*conv
+            this%camp_state%state_var(chem_spec_data%gas_state_id("FORM")+z*state_size_per_cell)=this%camp_state%state_var(chem_spec_data%gas_state_id("FORM")+z*state_size_per_cell)+FORM_emi(i_hour)*rate_emi(i_hour)*conv
+            this%camp_state%state_var(chem_spec_data%gas_state_id("ETH")+z*state_size_per_cell)=this%camp_state%state_var(chem_spec_data%gas_state_id("ETH")+z*state_size_per_cell)+ETH_emi(i_hour)*rate_emi(i_hour)*conv
+            this%camp_state%state_var(chem_spec_data%gas_state_id("IOLE")+z*state_size_per_cell)=this%camp_state%state_var(chem_spec_data%gas_state_id("IOLE")+z*state_size_per_cell)+IOLE_emi(i_hour)*rate_emi(i_hour)*conv
+            this%camp_state%state_var(chem_spec_data%gas_state_id("OLE")+z*state_size_per_cell)=this%camp_state%state_var(chem_spec_data%gas_state_id("OLE")+z*state_size_per_cell)+OLE_emi(i_hour)*rate_emi(i_hour)*conv
+            this%camp_state%state_var(chem_spec_data%gas_state_id("TOL")+z*state_size_per_cell)=this%camp_state%state_var(chem_spec_data%gas_state_id("TOL")+z*state_size_per_cell)+TOL_emi(i_hour)*rate_emi(i_hour)*conv
+            this%camp_state%state_var(chem_spec_data%gas_state_id("XYL")+z*state_size_per_cell)=this%camp_state%state_var(chem_spec_data%gas_state_id("XYL")+z*state_size_per_cell)+XYL_emi(i_hour)*rate_emi(i_hour)*conv
+            this%camp_state%state_var(chem_spec_data%gas_state_id("PAR")+z*state_size_per_cell)=this%camp_state%state_var(chem_spec_data%gas_state_id("PAR")+z*state_size_per_cell)+PAR_emi(i_hour)*rate_emi(i_hour)*conv
+            this%camp_state%state_var(chem_spec_data%gas_state_id("ISOP")+z*state_size_per_cell)=this%camp_state%state_var(chem_spec_data%gas_state_id("ISOP")+z*state_size_per_cell)+ISOP_emi(i_hour)*rate_emi(i_hour)*conv
+            this%camp_state%state_var(chem_spec_data%gas_state_id("MEOH")+z*state_size_per_cell)=this%camp_state%state_var(chem_spec_data%gas_state_id("MEOH")+z*state_size_per_cell)+MEOH_emi(i_hour)*rate_emi(i_hour)*conv
+#endif
 
           end do
         end do
       end do
 
       ! Integrate the PMC mechanism
+      call cpu_time(comp_start)
       call this%camp_core%solve(this%camp_state, &
-              real(time_step, kind=dp), solver_stats = solver_stats)
+              real(time_step*60., kind=dp), solver_stats = solver_stats)
+      call cpu_time(comp_end)
+      comp_time = comp_time + (comp_end-comp_start)
+      !time_step*60
 
       do i=i_start, i_end
         do j=j_start, j_end
@@ -645,21 +690,10 @@ contains
 
     end if
 
-#ifndef ENABLE_CB05_SOA
-    if(mod(int(start_time),60).eq.0) then
-      i_hour=i_hour+1
-    end if
-#endif
-
     !W8 until all process to send data and measure correctly times
 #ifdef PMC_USE_MPI
     call pmc_mpi_barrier()
 #endif
-
-    !todo move this comp_time to only the solve part, like the other tests
-    call cpu_time(comp_end)
-    comp_time = comp_time + (comp_end-comp_start)
-
 
 #ifdef PMC_USE_MPI
 
@@ -791,68 +825,65 @@ end if
     character(len=:), allocatable :: key_name, spec_name, rep_name
     integer(kind=i_kind) :: i_spec, num_spec
 
-    integer :: i_rxn, i_photo_rxn, i_base_rate
+    integer :: i_rxn, i_photo_rxn, i_base_rate, i_mech
     type(mechanism_data_t), pointer :: mechanism
     class(rxn_data_t), pointer :: rxn
-    character(len=:), allocatable :: key, str_val
-    real(kind=dp) :: base_rate
-    !real(kind=dp), allocatable :: photo_rates(:)
+    character(len=:), allocatable :: key, str_val, rxn_key, rate_key, rxn_val
+    real(kind=dp) :: rate_val
+    !real(kind=dp), allocatable :: base_rates(:)
 
+#ifndef ENABLE_CB05_SOA
     key = "MONARCH mod37"
 
     !mechanism => this%camp_core%mechanism( 1 ) %val
     call assert(418262750, this%camp_core%get_mechanism(key, mechanism))
 
-    !key = "Fast-J id"
-    key = "base rate"
+    !key="base rate"
+    rxn_key = "type"
+    rxn_val = "PHOTOLYSIS"
+    rate_key = "base rate"
 
     this%n_photo_rxn = 0
-    do i_rxn = 1, mechanism%size( )
-      rxn => mechanism%get_rxn( i_rxn )
-      select type( rxn_photo => rxn )
-      class is( rxn_photolysis_t )
-        !if( rxn%property_set%get_string( key, str_val ) ) then
-        if( rxn%property_set%get_real( key, base_rate ) ) then
-          this%n_photo_rxn = this%n_photo_rxn + 1
-        end if
-      end select
+    do i_mech = 1, size(this%camp_core%mechanism)
+      do i_rxn = 1, this%camp_core%mechanism(i_mech)%val%size()
+        rxn => this%camp_core%mechanism(i_mech)%val%get_rxn(i_rxn)
+        call assert(106297725, rxn%property_set%get_string(rxn_key, str_val))
+        if (trim(str_val).eq.rxn_val) this%n_photo_rxn = this%n_photo_rxn + 1
+      end do
     end do
 
-    allocate(this%rate_update(this%n_photo_rxn))
-    allocate(this%photo_rates(this%n_photo_rxn))
+    allocate(this%photo_rxns(this%n_photo_rxn))
+    allocate(this%base_rates(this%n_photo_rxn))
 
-    ! Set the PMC and Fast-J ids
-    i_photo_rxn = 1
-    do i_rxn = 1, mechanism%size( )
-      rxn => mechanism%get_rxn( i_rxn )
-      select type( rxn_photo => rxn )
-      class is( rxn_photolysis_t ) !type is (rxn_photolysis_t)
-        !if( rxn%property_set%get_string( key, str_val ) ) then
-        if( rxn%property_set%get_real( key, base_rate ) ) then
+    i_photo_rxn = 0
+    do i_mech = 1, size(this%camp_core%mechanism)
+      do i_rxn = 1, this%camp_core%mechanism(i_mech)%val%size()
+        rxn => this%camp_core%mechanism(i_mech)%val%get_rxn(i_rxn)
+        call assert(799145523, rxn%property_set%get_string(rxn_key, str_val))
 
-          ! Initialize the update data object for this reaction
-          call this%camp_core%initialize_update_object( rxn,               &
-                  this%rate_update(i_photo_rxn))
+        ! Is this a photolysis reaction?
+        if (trim(str_val).ne.rxn_val) cycle
+        i_photo_rxn = i_photo_rxn + 1
 
-          !Update photo_rate
-          this%photo_rates(i_photo_rxn)=base_rate
-          !call this%rate_update(i_photo_rxn)%set_rate(base_rate)
-          !call this%camp_core%update_data(this%rate_update(i_photo_rxn))
+        ! Get the base photolysis rate
+        call assert_msg(501329648, &
+                rxn%property_set%get_real(rate_key, rate_val), &
+                "Missing 'base rate' for photolysis reaction "// &
+                        trim(to_string(i_photo_rxn)))
+        this%base_rates(i_photo_rxn) = rate_val
 
-          !write(*,*) "base rate", base_rate
-
-          i_photo_rxn = i_photo_rxn+1
-        end if
-      end select
+        ! Create an update rate object for this photolysis reaction
+        select type (rxn_photo => rxn)
+        class is (rxn_photolysis_t)
+          call this%camp_core%initialize_update_object(rxn_photo, &
+                  this%photo_rxns(i_photo_rxn))
+        class default
+          call die(722633162)
+        end select
+      end do
     end do
 
-    !do i_photo_rxn = 1, this%n_photo_rxn
-    !  call this%rate_update(i_photo_rxn)%set_rate(real(this%photo_rates(i_photo_rxn), kind=dp))
-    !  call this%camp_core%update_data(this%rate_update(i_photo_rxn))
-    !end do
-
-    ! Make sure nothing strange happened
-    call assert( 410333867, this%n_photo_rxn .eq. i_photo_rxn - 1 )
+#endif
 
     ! Get the gas-phase species ids
     key_name = "gas-phase species"
@@ -1084,54 +1115,74 @@ end if
 
   !> Get initial concentrations for the mock MONARCH model (for testing only)
   subroutine get_init_conc(this, MONARCH_conc, MONARCH_water_conc, &
-      WATER_VAPOR_ID, MONARCH_air_density)
+      WATER_VAPOR_ID, MONARCH_air_density,i_W,I_E,I_S,I_N)
 
     !> PartMC-camp <-> MONARCH interface
     class(monarch_interface_t) :: this
     !> MONARCH species concentrations to update
     real, intent(inout) :: MONARCH_conc(:,:,:,:)
     !> Atmospheric water concentrations (kg_H2O/kg_air)
-    real, intent(out) :: MONARCH_water_conc(:,:,:,:)
+    real, intent(inout) :: MONARCH_water_conc(:,:,:,:)
     !> Index in water_conc corresponding to water vapor
     integer, intent(in) :: WATER_VAPOR_ID
     !> Air density (kg_air/m^3)
-    real, intent(out) :: MONARCH_air_density(:,:,:)
+    real, intent(inout) :: MONARCH_air_density(:,:,:)
+    integer, intent(in) :: i_W,I_E,I_S,I_N
 
-    integer(kind=i_kind) :: i_spec, water_id, i,j,k
+    integer(kind=i_kind) :: i_spec, water_id,i,j,k,r,k_end
     real :: factor_ppb_to_ppm
+    real :: conc_deviation_perc
+
+    conc_deviation_perc=0.2!0.2
+    k_end=size(MONARCH_conc,3)
 
 #ifndef ENABLE_CB05_SOA
     factor_ppb_to_ppm=1.0E-3
 #else
     factor_ppb_to_ppm=1.0
 #endif
-
+    print*,'debuggg factor_ppb_to_ppm: ',factor_ppb_to_ppm
     ! Reset the species concentrations in PMC and MONARCH
+    !this%camp_state%state_var(:) = 0.0
     this%camp_state%state_var(:) = 0.0
     MONARCH_conc(:,:,:,:) = 0.0
-    MONARCH_water_conc(:,:,:,WATER_VAPOR_ID) = 0.0
+    !MONARCH_water_conc(:,:,:,WATER_VAPOR_ID) = 0.0
 
     ! Set the air density to a nominal value
-    MONARCH_air_density(:,:,:) = 1.225
+    print*,'MONARCH air denisty: ',MONARCH_air_density(1,1,1) ! = 1.225
 
     ! Set initial concentrations in PMC
     this%init_conc(:) = this%init_conc(:) * factor_ppb_to_ppm
     this%camp_state%state_var(this%init_conc_camp_id(:)) = this%init_conc(:)
 
-    ! Copy species concentrations to MONARCH array
-    forall (i_spec = 1:size(this%map_monarch_id))
-      MONARCH_conc(:,:,:,this%map_monarch_id(i_spec)) = &
-              this%camp_state%state_var(this%map_camp_id(i_spec))
-    end forall
+    do i=i_W, I_E
+      do j=I_S, I_N
+        do k=1, k_end
+          r=(k-1)*(I_E*I_N) + (j-1)*(I_E) + i-1
+          !write(*,*) "r", r
+          forall (i_spec = 1:size(this%map_monarch_id))
+            MONARCH_conc(i,j,j,this%map_monarch_id(i_spec)) = &
+              this%camp_state%state_var(this%map_camp_id(i_spec))&
+            +r*conc_deviation_perc*this%camp_state%state_var(this%map_camp_id(i_spec))
+          end forall
+        end do
+      end do
+    end do
 
     !write(*,*) "Init conc",this%init_conc(this%map_camp_id(:))
     !write(*,*) "State_var init",this%camp_state%state_var(this%map_camp_id(:))
 
     ! Set the relative humidity
-    MONARCH_water_conc(:,:,:,WATER_VAPOR_ID) = &
-            this%camp_state%state_var(this%gas_phase_water_id) * &
-            1.0d-9 / 1.225d0
+    !MONARCH_water_conc(:,:,:,WATER_VAPOR_ID) = &
+    !        this%camp_state%state_var(this%gas_phase_water_id) * &
+    !        1.0d-9 / MONARCH_air_density(:,:,:) !1.225d0
+    this%camp_state%state_var(this%gas_phase_water_id) = &
+             MONARCH_water_conc(1,1,1,WATER_VAPOR_ID) * &
+             mwair / mwwat * 1.e6
+             !MONARCH_air_density(1,1,1) / 1.0d-9
 
+    print*,'GET_INIT_CONC SPECIES:'
+    print*,this%camp_state%state_var(:)
   end subroutine get_init_conc
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

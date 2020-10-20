@@ -684,7 +684,7 @@ contains
       KPP_C(:) = MAX(KPP_C(:), SMALL_NUM/conv)
       camp_state%state_var(:) = max(camp_state%state_var(:), SMALL_NUM)
 
-    !todo IDK why this equals camp to ebi after compute ebi instead of before
+    !todo check why this equals camp to ebi after compute ebi instead of doing it before
     ! well no differences by setting this before
     ! Set KPP and camp-chem concentrations to those of EBI at first time step to match steady-state
     ! EBI species
@@ -734,7 +734,7 @@ contains
       call cpu_time(comp_end)
       comp_camp = comp_camp + (comp_end-comp_start)
 
-    write(*,*) "CAMP-chem calculation time: ", comp_camp," s, tstep",i_time
+    !write(*,*) "CAMP-chem calculation time: ", comp_camp," s, tstep",i_time
 
     ! Output current time step
     if (i_repeat.eq.1) then

@@ -50,9 +50,9 @@ program mock_monarch
   !> Ending index for camp-chem species in tracer array
   integer, parameter :: END_CAMP_ID = 210!350
   !> Time step (min)
-  real, parameter :: TIME_STEP = 2!1.6
+  real, parameter :: TIME_STEP = 2.!1.6
   !> Number of time steps to integrate over
-  integer, parameter :: NUM_TIME_STEP = 180!720!30
+  integer, parameter :: NUM_TIME_STEP = 720!720!30
   !> Index for water vapor in water_conc()
   integer, parameter :: WATER_VAPOR_ID = 5
   !> Start time
@@ -80,9 +80,14 @@ program mock_monarch
   real :: air_density(NUM_WE_CELLS, NUM_VERT_CELLS, NUM_SN_CELLS)
   !> Air pressure (Pa)
   real :: pressure(NUM_WE_CELLS, NUM_VERT_CELLS, NUM_SN_CELLS)
+  !> Cell height (m)
   real :: height
+
+  !> Emissions parameters
+  !> Emission conversion parameter (mol s-1 m-2 to ppmv)
   real :: conv
-  integer :: i_hour = 1
+  !> Emissions hour counter
+  integer :: i_hour = 0
 
   !> Comparison values
   real :: comp_species_conc(0:NUM_TIME_STEP, NUM_MONARCH_SPEC)
@@ -108,7 +113,7 @@ program mock_monarch
   !> PartMC-camp <-> MONARCH interface configuration file
   character(len=:), allocatable :: interface_input_file
   !> Results file prefix
-  character(len=:), allocatable :: output_file_prefix
+  character(len=:), allocatable :: output_file_prefix, output_file_title
   !> CAMP-chem input file file
   type(string_t), allocatable :: name_gas_species_to_print(:), name_aerosol_species_to_print(:)
   integer(kind=i_kind), allocatable :: id_gas_species_to_print(:), id_aerosol_species_to_print(:)
@@ -121,9 +126,10 @@ program mock_monarch
 #endif
 
   character(len=500) :: arg
-  integer :: status_code, i_time, i_spec, i, j, k, z
+  integer :: status_code, i_time, i_spec, i_case, i, j, k, z, n_cells_to_print_aux
   !> Partmc nº of cases to test
   integer :: pmc_cases = 1
+  integer :: plot_case
 
   ! Check the command line arguments
   call assert_msg(129432506, command_argument_count().eq.3, "Usage: "// &
@@ -132,18 +138,6 @@ program mock_monarch
 
   ! initialize mpi (to take the place of a similar MONARCH call)
   call pmc_mpi_init()
-
-  size_gas_species_to_print=2
-  size_aerosol_species_to_print=1
-
-  allocate(name_gas_species_to_print(size_gas_species_to_print))
-  allocate(name_aerosol_species_to_print(size_aerosol_species_to_print))
-  allocate(id_gas_species_to_print(size_gas_species_to_print))
-  allocate(id_aerosol_species_to_print(size_aerosol_species_to_print))
-
-  name_gas_species_to_print(1)%string=("ISOP")
-  name_gas_species_to_print(2)%string=("ISOP-P1")
-  name_aerosol_species_to_print(1)%string=("organic_matter.organic_matter.ISOP-P1_aero")
 
   !Check if repeat program to compare n_cells=1 with n_cells=N
   if(check_multiple_cells) then
@@ -167,12 +161,85 @@ program mock_monarch
   ! Initialize the mock model
   call get_command_argument(3, arg, status=status_code)
   call assert_msg(234156729, status_code.eq.0, "Error getting output file prefix")
-  output_file_prefix = trim(arg)
+  output_file_title = "Mock_"//trim(arg)
+  output_file_prefix = "out/"//trim(arg)
+
+  n_cells_to_print_aux = 1
+
+  if(interface_input_file.eq."interface_simple.json") then
+
+    write(*,*) "Config simple (test 1)"
+
+    size_gas_species_to_print=2
+    size_aerosol_species_to_print=0
+
+    allocate(name_gas_species_to_print(size_gas_species_to_print))
+    allocate(name_aerosol_species_to_print(size_aerosol_species_to_print))
+    allocate(id_gas_species_to_print(size_gas_species_to_print))
+    allocate(id_aerosol_species_to_print(size_aerosol_species_to_print))
+
+    name_gas_species_to_print(1)%string=("A")
+    name_gas_species_to_print(2)%string=("C")
+    !name_gas_species_to_print(1)%string=("A")
+    !name_gas_species_to_print(2)%string=("B")
+    !name_gas_species_to_print(3)%string=("C")
+
+  else
+
+    write(*,*) "Config complex (test 2)"
+
+    plot_case=2
+    if(plot_case == 0)then
+      size_gas_species_to_print=4
+      size_aerosol_species_to_print=1
+    elseif(plot_case == 1)then
+      size_gas_species_to_print=1
+      size_aerosol_species_to_print=1
+    elseif(plot_case == 2 .or. plot_case == 3)then
+      size_gas_species_to_print=3
+      size_aerosol_species_to_print=2
+    endif
+
+    allocate(name_gas_species_to_print(size_gas_species_to_print))
+    allocate(name_aerosol_species_to_print(size_aerosol_species_to_print))
+    allocate(id_gas_species_to_print(size_gas_species_to_print))
+    allocate(id_aerosol_species_to_print(size_aerosol_species_to_print))
+
+    if(plot_case == 0)then
+      name_gas_species_to_print(1)%string=("O3")
+      name_gas_species_to_print(2)%string=("NO2")
+      name_gas_species_to_print(3)%string=("NO")
+      name_gas_species_to_print(4)%string=("ISOP")
+      name_aerosol_species_to_print(1)%string=("organic_matter.organic_matter.PM_phob")
+    elseif(plot_case == 1)then
+      name_gas_species_to_print(1)%string=("OH")
+      name_aerosol_species_to_print(1)%string=("organic_matter.organic_matter.PM_phob")
+    elseif(plot_case == 2)then
+      name_gas_species_to_print(1)%string=("ISOP")
+      name_gas_species_to_print(2)%string=("ISOP-P1")
+      name_gas_species_to_print(3)%string=("ISOP-P2")
+      name_aerosol_species_to_print(1)%string=("organic_matter.organic_matter.ISOP-P1_aero")
+      name_aerosol_species_to_print(2)%string=("organic_matter.organic_matter.ISOP-P2_aero")
+    else
+      name_gas_species_to_print(1)%string=("TERP")
+      name_gas_species_to_print(2)%string=("TERP-P1")
+      name_gas_species_to_print(3)%string=("TERP-P2")
+      name_aerosol_species_to_print(1)%string=("organic_matter.organic_matter.TERP-P1_aero")
+      name_aerosol_species_to_print(2)%string=("organic_matter.organic_matter.TERP-P2_aero")
+    endif
+
+    !name_aerosol_species_to_print(1)%string=("organic_matter.organic_matter.ISOP-P1_aero")
+  end if
+
+  !Check if repeat program to compare n_cells=1 with n_cells=N
+  if(check_multiple_cells) then
+    pmc_cases=2
+  end if
 
   call model_initialize(output_file_prefix)
 
   !Repeat in case we want create a checksum
-  do i=1, pmc_cases
+  do i_case=1, pmc_cases
 
     pmc_interface => monarch_interface_t(camp_input_file, interface_input_file, &
             START_CAMP_ID, END_CAMP_ID, n_cells)!, n_cells
@@ -180,7 +247,7 @@ program mock_monarch
     do j=1, size(name_gas_species_to_print)
       do z=1, size(pmc_interface%monarch_species_names)
         if(pmc_interface%monarch_species_names(z)%string.eq.name_gas_species_to_print(j)%string) then
-          id_gas_species_to_print(j)=pmc_interface%map_monarch_id(z)
+          id_gas_species_to_print(j)=pmc_interface%map_camp_id(z)
         end if
       end do
     end do
@@ -188,7 +255,7 @@ program mock_monarch
     do j=1, size(name_aerosol_species_to_print)
       do z=1, size(pmc_interface%monarch_species_names)
         if(pmc_interface%monarch_species_names(z)%string.eq.name_aerosol_species_to_print(j)%string) then
-          id_aerosol_species_to_print(j)=pmc_interface%map_monarch_id(z)
+          id_aerosol_species_to_print(j)=pmc_interface%map_camp_id(z)
         end if
       end do
     end do
@@ -203,27 +270,24 @@ program mock_monarch
 
     ! Set conc from mock_model
     call pmc_interface%get_init_conc(species_conc, water_conc, WATER_VAPOR_ID, &
-            air_density)
+            air_density,i_W,I_E,I_S,I_N)
 
     ! call pmc_interface%print( )
 
     ! Run the model
     do i_time=1, NUM_TIME_STEP
 
-      !plot after 1 hour: ISOP-P1, ISOP-P2,ISOP-P1_aero, ISOP-P2_aero...
-      !modify ISOP each time_step
-
-      !todo fix photo_rates
-      !todo change cb05 and other files to scenarios 5 files
-      !change units to ppm (monarch) instead ppb (scenario 5) (ppm=ppb*1000)
-      !emissions cada hora cambiar y seguir instrucciones skype y esto :https://github.com/compdyn/partmc/blob/develop-137-urban-plume-camp/scenarios/5_urban_plume_camp/gas_emit.dat
-      !conc set to init_conc if not here set 0 (GMD and GSD don't touch) https://github.com/compdyn/partmc/blob/develop-137-urban-plume-camp/scenarios/5_urban_plume_camp/gas_init.dat
-
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       ! **** Add to MONARCH during runtime for each time step **** !
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-      call output_results(curr_time,pmc_interface,species_conc)
+      !call print_state_gnuplot(curr_time,pmc_interface,species_conc)
+      call print_state_gnuplot(curr_time,pmc_interface, name_gas_species_to_print,id_gas_species_to_print&
+              ,name_aerosol_species_to_print,id_aerosol_species_to_print,RESULTS_FILE_UNIT,n_cells_to_print_aux)
+      call pmc_interface%camp_core%print_state_gnuplot(&
+      pmc_interface%camp_state,curr_time,name_gas_species_to_print,id_gas_species_to_print&
+      ,name_aerosol_species_to_print,id_aerosol_species_to_print,RESULTS_FILE_UNIT,n_cells_to_print_aux)
+
       call pmc_interface%integrate(curr_time,         & ! Starting time (min)
                                    TIME_STEP,         & ! Time step (min)
                                    I_W,               & ! Starting W->E grid cell
@@ -255,7 +319,7 @@ program mock_monarch
 #endif
 
     !Save results
-    if(i.eq.1) then
+    if(i_case.eq.1) then
       species_conc_copy(:,:,:,:) = species_conc(:,:,:,:)
     end if
 
@@ -295,15 +359,21 @@ program mock_monarch
     end do
   end if
 
+  !write(*,*) "file_prefix", output_file_prefix
 
   ! Output results and scripts
   if (pmc_mpi_rank().eq.0) then
     write(*,*) "MONARCH interface tests - PASS"
-    call output_results(curr_time,pmc_interface,species_conc)
+    !call print_state_gnuplot(curr_time,pmc_interface,species_conc)
+    call print_state_gnuplot(curr_time,pmc_interface, name_gas_species_to_print,id_gas_species_to_print&
+            ,name_aerosol_species_to_print,id_aerosol_species_to_print,RESULTS_FILE_UNIT,n_cells_to_print_aux)
+    call pmc_interface%camp_core%print_state_gnuplot(&
+            pmc_interface%camp_state,curr_time,name_gas_species_to_print,id_gas_species_to_print&
+            ,name_aerosol_species_to_print,id_aerosol_species_to_print,RESULTS_FILE_UNIT,n_cells_to_print_aux)
     call create_gnuplot_script(pmc_interface, output_file_prefix, &
             plot_start_time, curr_time)
     call create_gnuplot_persist(pmc_interface, output_file_prefix, &
-            plot_start_time, curr_time)
+            output_file_title, plot_start_time, curr_time, n_cells_to_print_aux)
   end if
 
   close(RESULTS_FILE_UNIT)
@@ -313,6 +383,7 @@ program mock_monarch
   deallocate(camp_input_file)
   deallocate(interface_input_file)
   deallocate(output_file_prefix)
+  deallocate(output_file_title)
 
   ! finalize mpi
   call pmc_mpi_finalize()
@@ -350,35 +421,37 @@ contains
 
     ! TODO refine initial model conditions
     species_conc(:,:,:,:) = 0.0
-    water_conc(:,:,:,:) = 0.0
-    water_conc(:,:,:,WATER_VAPOR_ID) = 0.01
-    height=1
+    water_conc(:,:,:,WATER_VAPOR_ID) = 0. !0.01165447 !this is equal to 95% RH !1e-14 !0.01 !kg_h2o/kg-1_air
+    height=1. !(m)
 #ifndef ENABLE_CB05_SOA
     temperature(:,:,:) = 290.016!300.614166259766
-    pressure(:,:,:) = 100000!94165.7187500000
-    air_density(:,:,:) = pressure(:,:,:)/(287.04*temperature(:,:,:))!1.225
-    conv=0.02897/air_density(1,1,1)*TIME_STEP*1e6/height
+    pressure(:,:,:) = 100000.!94165.7187500000
+!    air_density(:,:,:) = pressure(:,:,:)/(287.04*temperature(:,:,:))!1.225
+    air_density(:,:,:) = pressure(:,:,:)/(287.04*temperature(:,:,:)* &
+         (1.+0.60813824*water_conc(:,:,:,WATER_VAPOR_ID))) !kg m-3
+    conv=0.02897/air_density(1,1,1)*(TIME_STEP*60.)*1e6/height !units of time_step to seconds
+!    conv=0.02897/air_density(1,1,1)*(TIME_STEP)*1e6/height !units of time_step to seconds
 #else
     temperature(:,:,:) = 300.614166259766
     pressure(:,:,:) = 94165.7187500000
     air_density(:,:,:) = 1.225
-    conv=0.02897/air_density(1,1,1)*TIME_STEP*1e6/height
+    conv=0.02897/air_density(1,1,1)*(TIME_STEP*60.)*1e6/height !units of time_step to seconds
 
     !Initialize different axis values
     !Species_conc is modified in monarch_interface%get_init_conc
     do i=I_W, I_E
-      temperature(i,:,:) = temperature(i,:,:) + 0.1*i
-      pressure(i,:,:) = pressure(i,:,:) - 1*i
+      temperature(i,:,:) = temperature(i,:,:)! + 0.1*i
+      pressure(i,:,:) = pressure(i,:,:)! - 1*i
     end do
 
     do j=I_S, I_N
-      temperature(:,j,:) = temperature(:,j,:) + 0.3*j
-      pressure(:,:,j) = pressure(:,:,j) - 3*j
+      temperature(:,j,:) = temperature(:,j,:)! + 0.3*j
+      pressure(:,:,j) = pressure(:,:,j)! - 3*j
     end do
 
     do k=1, NUM_VERT_CELLS
-      temperature(:,:,k) = temperature(:,:,k) + 0.6*k
-      pressure(:,k,:) = pressure(:,k,:) - 6*k
+      temperature(:,:,k) = temperature(:,:,k)! + 0.6*k
+      pressure(:,k,:) = pressure(:,k,:)! - 6*k
     end do
 
 #endif
@@ -409,25 +482,39 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Output the model results
-  subroutine output_results(curr_time,pmc_interface,species_conc)
+  !subroutine print_state_gnuplot(curr_time,pmc_interface,species_conc)
+  subroutine print_state_gnuplot(curr_time_in, pmc_interface, name_gas_species_to_print,id_gas_species_to_print&
+          ,name_aerosol_species_to_print,id_aerosol_species_to_print, file_unit, n_cells_to_print)
 
     !> Current model time (min since midnight)
-    real, intent(in) :: curr_time
+    real, intent(in) :: curr_time_in
     type(monarch_interface_t), intent(in) :: pmc_interface
-    integer :: z,i,j,k
-    real, intent(inout) :: species_conc(:,:,:,:)
-    !type(string_t), allocatable :: species_names(:)
-    !integer(kind=i_kind), allocatable :: tracer_ids(:)
-    !call pmc_interface%get_MONARCH_species(species_names, tracer_ids)
+    type(string_t), allocatable, intent(inout) :: name_gas_species_to_print(:), name_aerosol_species_to_print(:)
+    integer(kind=i_kind), allocatable, intent(inout) :: id_gas_species_to_print(:), id_aerosol_species_to_print(:)
+    integer, intent(inout), optional :: n_cells_to_print
+    integer, intent(in) :: file_unit
 
+    integer :: z,i,j,k,r
+    !real, intent(inout) :: species_conc(:,:,:,:)
     character(len=:), allocatable :: aux_str
-    real, allocatable :: aux_real
+    character(len=100) :: r_str, i_str
+    integer :: n_cells
+    real :: curr_time
+
+    if(present(n_cells_to_print)) then
+      n_cells=n_cells_to_print
+    else
+      n_cells=n_cells
+    end if
+
+    !curr_time_min=curr_time_in/60.0
+    curr_time=curr_time_in
 
     write(RESULTS_FILE_UNIT_TABLE, *) "Time_step:", curr_time
 
     do i=I_W,I_E
-      do j=I_W,I_E
-        do k=I_W,I_E
+      do j=I_S,I_N
+        do k=1,NUM_VERT_CELLS
           write(RESULTS_FILE_UNIT_TABLE, *) "i:",i,"j:",j,"k:",k
           write(RESULTS_FILE_UNIT_TABLE, *) "Spec_name, Concentrations, Map_monarch_id"
           do z=1, size(pmc_interface%monarch_species_names)
@@ -440,68 +527,24 @@ contains
       end do
     end do
 
-    !write(RESULTS_FILE_UNIT, *) curr_time,species_conc(1,1,1,START_CAMP_ID:END_CAMP_ID)
-    !write(RESULTS_FILE_UNIT, *) curr_time,species_conc(1,1,1,START_CAMP_ID:3)
-
-    !Specific names
-    !do z=1, size(pmc_interface%monarch_species_names)
-    !  if(pmc_interface%monarch_species_names(z)%string.eq.name_specie_to_print) then
-    !    aux_str = pmc_interface%monarch_species_names(z)%string//" "//pmc_interface%monarch_species_names(z+1)%string
-    !    write(RESULTS_FILE_UNIT, *) "Time ",aux_str
-    !    write(RESULTS_FILE_UNIT, *) curr_time,species_conc(1,1,1,pmc_interface%map_monarch_id(z):pmc_interface%map_monarch_id(z)+1)
-        !write(RESULTS_FILE_UNIT, *) curr_time,species_conc(1,1,1,pmc_interface%map_monarch_id(z))
-    !  end if
-    !end do
-
-    !print Titles
-    aux_str = "Time"
-    do z=1, size(name_gas_species_to_print)
-      aux_str = aux_str//" "//name_gas_species_to_print(z)%string
-      !aux_str = aux_str//' "'//name_gas_species_to_print(z)%string//'"'
-    end do
-    aux_str = aux_str//" "//"Time"
-
-    do z=1, size(name_aerosol_species_to_print)
-      !if (name_aerosol_species_to_print(z)%string)
-
-      !end if
-      aux_str = aux_str//" "//name_aerosol_species_to_print(z)%string
-      !aux_str = aux_str//' "'//name_aerosol_species_to_print(z)%string//'"'
-    end do
-
-    write(RESULTS_FILE_UNIT, "(A)", advance="no") aux_str
-    write(RESULTS_FILE_UNIT, *) ""
-
-    write(RESULTS_FILE_UNIT, "(F12.4)", advance="no") curr_time
-    do z=1, size(name_gas_species_to_print)
-      write(RESULTS_FILE_UNIT, "(ES13.6)", advance="no") &
-              species_conc(1,1,1,id_gas_species_to_print(z))
-    end do
-    write(RESULTS_FILE_UNIT, "(F12.4)", advance="no") curr_time
-    do z=1, size(name_aerosol_species_to_print)
-      write(RESULTS_FILE_UNIT, "(ES13.6)", advance="no") &
-      species_conc(1,1,1,id_aerosol_species_to_print(z))
-    end do
-
-    write(RESULTS_FILE_UNIT, *) ""
-
     !todo include water_conc with species_conc
     !write(RESULTS_FILE_UNIT, *) curr_time, &
     !        species_conc(1,1,1,START_CAMP_ID:END_CAMP_ID), &
     !        water_conc(1,1,1,WATER_VAPOR_ID)
 
-  end subroutine output_results
+
+  end subroutine print_state_gnuplot
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Create a gnuplot script for viewing species concentrations
-  subroutine create_gnuplot_script(pmc_interface, file_prefix, start_time, &
+  subroutine create_gnuplot_script(pmc_interface, file_path, start_time, &
             end_time)
 
     !> PartMC-camp <-> MONARCH interface
     type(monarch_interface_t), intent(in) :: pmc_interface
     !> File prefix for gnuplot script
-    character(len=:), allocatable :: file_prefix
+    character(len=:), allocatable :: file_path
     !> Plot start time
     real :: start_time
     !> Plot end time
@@ -519,7 +562,7 @@ contains
     tracer_ids(:) = tracer_ids(:) - START_CAMP_ID + 2
 
     ! Create the gnuplot script
-    file_name = file_prefix//".conf"
+    file_name = file_path//".conf"
     open(unit=SCRIPTS_FILE_UNIT, file=file_name, status="replace", action="write")
     write(SCRIPTS_FILE_UNIT,*) "# "//file_name
     write(SCRIPTS_FILE_UNIT,*) "# Run as: gnuplot "//file_name
@@ -530,18 +573,18 @@ contains
       spec_name = species_names(i_spec)%string
       forall (i_char = 1:len(spec_name), spec_name(i_char:i_char).eq.'/') &
                 spec_name(i_char:i_char) = '_'
-      write(SCRIPTS_FILE_UNIT,*) "set output '"//file_prefix//"_"// &
+      write(SCRIPTS_FILE_UNIT,*) "set output '"//file_path//"_"// &
               spec_name//".png'"
       write(SCRIPTS_FILE_UNIT,*) "plot\"
-      write(SCRIPTS_FILE_UNIT,*) " '"//file_prefix//"_results.txt'\"
+      write(SCRIPTS_FILE_UNIT,*) " '"//file_path//"_results.txt'\"
       write(SCRIPTS_FILE_UNIT,*) " using 1:"// &
               trim(to_string(tracer_ids(i_spec)))//" title '"// &
               species_names(i_spec)%string//" (MONARCH)'"
     end do
     tracer_id = END_CAMP_ID - START_CAMP_ID + 3
-    write(SCRIPTS_FILE_UNIT,*) "set output '"//file_prefix//"_H2O.png'"
+    write(SCRIPTS_FILE_UNIT,*) "set output '"//file_path//"_H2O.png'"
     write(SCRIPTS_FILE_UNIT,*) "plot\"
-    write(SCRIPTS_FILE_UNIT,*) " '"//file_prefix//"_results.txt'\"
+    write(SCRIPTS_FILE_UNIT,*) " '"//file_path//"_results.txt'\"
     write(SCRIPTS_FILE_UNIT,*) " using 1:"// &
             trim(to_string(tracer_id))//" title 'H2O (MONARCH)'"
     close(SCRIPTS_FILE_UNIT)
@@ -556,29 +599,38 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Create a gnuplot script for viewing species concentrations
-  subroutine create_gnuplot_persist(pmc_interface, file_prefix, start_time, &
-          end_time)
+  subroutine create_gnuplot_persist(pmc_interface, file_path, plot_title, &
+          start_time, end_time, n_cells_plot)
 
     !> PartMC-camp <-> MONARCH interface
     type(monarch_interface_t), intent(in) :: pmc_interface
     !> File prefix for gnuplot script
-    character(len=:), allocatable :: file_prefix
+    character(len=:), allocatable :: plot_title, file_path
     !> Plot start time
     real :: start_time
     !> Plot end time
     real :: end_time
+    integer, intent(in) :: n_cells_plot
 
     type(string_t), allocatable :: species_names(:)
     integer(kind=i_kind), allocatable :: tracer_ids(:)
-    character(len=:), allocatable :: file_name, spec_name
+    character(len=:), allocatable :: gnuplot_path, spec_name
     integer(kind=i_kind) :: i_char, i_spec, tracer_id
-    integer(kind=i_kind) :: n_gas_species_plot, n_aerosol_species_plot, n_aerosol_species_start_plot&
-    ,n_aerosol_species_time_plot
+    integer(kind=i_kind) :: gas_species_start_plot,n_gas_species_plot, n_aerosol_species_plot, aerosol_species_start_plot&
+    ,aerosol_species_time_plot
     character(len=100) :: n_gas_species_plot_str
+    character(len=100) :: gas_species_start_plot_str
     character(len=100) :: n_aerosol_species_plot_str
-    character(len=100) :: n_aerosol_species_start_plot_str
-    character(len=100) :: n_aerosol_species_time_plot_str
+    character(len=100) :: aerosol_species_start_plot_str
+    character(len=100) :: aerosol_species_time_plot_str
+    integer :: n_cells, i_cell
 
+    n_cells=(I_E-I_W+1)*(I_N-I_S+1)*NUM_VERT_CELLS
+    !select cell
+    i_cell=1
+
+    call assert_msg(207035921, n_cells_plot.le.n_cells, &
+            "Selected more cells to plot than cells available")
 
     ! Get the species names and ids
     call pmc_interface%get_MONARCH_species(species_names, tracer_ids)
@@ -586,74 +638,97 @@ contains
     ! Adjust the tracer ids to match the results file
     tracer_ids(:) = tracer_ids(:) - START_CAMP_ID + 2
 
-    n_gas_species_plot = size(name_gas_species_to_print)
-    n_gas_species_plot = n_gas_species_plot+1
+    if(pmc_interface%n_cells.eq.1) then
+      plot_title=plot_title//" - One_cell"
+    else
+      plot_title=plot_title//" - Multi_cells"
+    end if
+
+    !if n_cells_plot<n_cells
+    gas_species_start_plot=size(name_gas_species_to_print)*(i_cell-1)+2
+    write(gas_species_start_plot_str,*) gas_species_start_plot
+    gas_species_start_plot_str=adjustl(gas_species_start_plot_str)
+
+    n_gas_species_plot = size(name_gas_species_to_print)*n_cells_plot+gas_species_start_plot-1
     write(n_gas_species_plot_str,*) n_gas_species_plot
     n_gas_species_plot_str=adjustl(n_gas_species_plot_str)
 
-    n_aerosol_species_plot = size(name_aerosol_species_to_print)
-    n_aerosol_species_plot = n_aerosol_species_plot+n_gas_species_plot+1
+    aerosol_species_time_plot=size(name_gas_species_to_print)*n_cells+2
+    write(aerosol_species_time_plot_str,*) aerosol_species_time_plot
+    aerosol_species_time_plot_str=adjustl(aerosol_species_time_plot_str)
+
+    aerosol_species_start_plot=aerosol_species_time_plot+size(name_aerosol_species_to_print)*(i_cell-1)+1
+    write(aerosol_species_start_plot_str,*) aerosol_species_start_plot
+    aerosol_species_start_plot_str=adjustl(aerosol_species_start_plot_str)
+
+    n_aerosol_species_plot = size(name_aerosol_species_to_print)*n_cells_plot+aerosol_species_start_plot-1
     write(n_aerosol_species_plot_str,*) n_aerosol_species_plot
     n_aerosol_species_plot_str=adjustl(n_aerosol_species_plot_str)
 
-    n_aerosol_species_start_plot=n_gas_species_plot+2
-    write(n_aerosol_species_start_plot_str,*) n_aerosol_species_start_plot
-    n_aerosol_species_start_plot_str=adjustl(n_aerosol_species_start_plot_str)
-
-    n_aerosol_species_time_plot=n_gas_species_plot+1
-    write(n_aerosol_species_time_plot_str,*) n_aerosol_species_time_plot
-    n_aerosol_species_time_plot_str=adjustl(n_aerosol_species_time_plot_str)
-
     ! Create the gnuplot script
-    !file_name = "partmc/build/test_run/monarch/"//file_prefix//".gnuplot"
-    file_name = file_prefix//".gnuplot"
-    open(unit=SCRIPTS_FILE_UNIT, file=file_name, status="replace", action="write")
-    write(SCRIPTS_FILE_UNIT,*) "# "//file_name
-    write(SCRIPTS_FILE_UNIT,*) "# Run as: gnuplot -persist "//file_name
-    !write(SCRIPTS_FILE_UNIT,*) "set terminal png truecolor"
+    gnuplot_path = file_path//".gnuplot"
+    open(unit=SCRIPTS_FILE_UNIT, file=gnuplot_path, status="replace", action="write")
+    write(SCRIPTS_FILE_UNIT,*) "# Run as: gnuplot -persist "//gnuplot_path
     !write(SCRIPTS_FILE_UNIT,*) "set key top left"
-    write(SCRIPTS_FILE_UNIT,*) "set title 'Mock_monarch_cb05_soa'"
-    write(SCRIPTS_FILE_UNIT,*) "set xlabel 'Time'"
+    !write(SCRIPTS_FILE_UNIT,*) "set title"// 'Mock_monarch_cb05_soa'"
+    write(SCRIPTS_FILE_UNIT,*) "set title '"//plot_title//"'"
+    !write(SCRIPTS_FILE_UNIT,*) "set xlabel 'Time'"
+    write(SCRIPTS_FILE_UNIT,*) "set xlabel 'Time (min)'"
     write(SCRIPTS_FILE_UNIT,*) "set ylabel 'Gas concentration [ppmv]'"
     write(SCRIPTS_FILE_UNIT,*) "set y2label 'Aerosol concentration [kg/m^3]'"
     write(SCRIPTS_FILE_UNIT,*) "set ytics nomirror"
-    write(SCRIPTS_FILE_UNIT,*) "set y2tics"
+    write(SCRIPTS_FILE_UNIT,*) "set y2tics nomirror"
 
     !write(SCRIPTS_FILE_UNIT,*) "set autoscale"
+    write(SCRIPTS_FILE_UNIT,*) "set logscale y"
+    write(SCRIPTS_FILE_UNIT,*) "set logscale y2"
     write(SCRIPTS_FILE_UNIT,*) "set xrange [", start_time, ":", end_time, "]"
+    !write(SCRIPTS_FILE_UNIT,*) "set xrange [", start_time/60.0, ":", end_time/60.0, "]"
 
     i_spec=1
     spec_name = species_names(i_spec)%string
     forall (i_char = 1:len(spec_name), spec_name(i_char:i_char).eq.'/') &
           spec_name(i_char:i_char) = '_'
 
-    !todo improve path detecting
     !write(SCRIPTS_FILE_UNIT,*) "set key outside"
     write(SCRIPTS_FILE_UNIT,*) "set key top left"
 
-    write(SCRIPTS_FILE_UNIT,"(A)",advance="no") "plot for [col=2:"&
-    //trim(n_gas_species_plot_str)//"] &
-    'partmc/build/test_run/monarch/"//file_prefix//"_results.txt' &
-    using 1:col axis x1y1 title columnheader, for [col2=" &
-    //trim(n_aerosol_species_start_plot_str)//":" &
-    //trim(n_aerosol_species_plot_str)//"] &
-    'partmc/build/test_run/monarch/"//file_prefix//"_results.txt' &
-    using " &
-    //trim(n_aerosol_species_time_plot_str)// &
-    ":col2 axis x1y2 title columnheader"
+    if(size(name_aerosol_species_to_print).gt.0) then
+
+      write(SCRIPTS_FILE_UNIT,"(A)",advance="no") "plot for [col="&
+      //trim(gas_species_start_plot_str)//":" &
+      //trim(n_gas_species_plot_str)//"] &
+      '"//file_path//"_results.txt' &
+      using 1:col axis x1y1 title columnheader, for [col2=" &
+      //trim(aerosol_species_start_plot_str)//":" &
+      //trim(n_aerosol_species_plot_str)//"] &
+      '"//file_path//"_results.txt' &
+      using " &
+      //trim(aerosol_species_time_plot_str)// &
+      ":col2 axis x1y2 title columnheader"
+
+    else
+
+      write(SCRIPTS_FILE_UNIT,"(A)",advance="no") "plot for [col="&
+      //trim(gas_species_start_plot_str)//":" &
+      //trim(n_gas_species_plot_str)//"] &
+      '"//file_path//"_results.txt' &
+      using 1:col axis x1y1 title columnheader"
+
+    end if
 
     !tracer_id = END_CAMP_ID - START_CAMP_ID + 3
-    !write(SCRIPTS_FILE_UNIT,*) "set output '"//file_prefix//"_H2O.png'"
+    !write(SCRIPTS_FILE_UNIT,*) "set output '"//file_name//"_H2O.png'"
     !write(SCRIPTS_FILE_UNIT,*) "plot\"
-    !write(SCRIPTS_FILE_UNIT,*) " '"//file_prefix//"_results.txt'\"
+    !write(SCRIPTS_FILE_UNIT,*) " '"//file_name//"_results.txt'\"
     !write(SCRIPTS_FILE_UNIT,*) " using 1:"// &
     !        trim(to_string(tracer_id))//" title 'H2O (MONARCH)'"
+
 
     close(SCRIPTS_FILE_UNIT)
 
     deallocate(species_names)
     deallocate(tracer_ids)
-    deallocate(file_name)
     deallocate(spec_name)
 
   end subroutine create_gnuplot_persist

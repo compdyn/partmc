@@ -179,6 +179,10 @@ void rxn_photolysis_update_env_state(ModelData *model_data, int *rxn_int_data,
     printf("YIELD_: %-le\n", YIELD_(i));
   }
 */
+  //printf("SCALING_: %-le\n", SCALING_);
+  //printf("BASE_RATE_: %-le\n", BASE_RATE_);
+  //printf("RATE_CONSTANT: %-le\n", RATE_CONSTANT_);
+
 #endif
 
 

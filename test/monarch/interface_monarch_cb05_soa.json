@@ -149,7 +149,7 @@
         "HOCL"    : { "init conc" : 0.0 },
         "HONO"    : { "init conc" : 0.0 },
         "IOLE"    : { "init conc" : 3.1E-04 },
-        "ISOP"    : { "init conc" : 0.5E+00 },
+        "ISOP"    : { "init conc" : 5.0E+00 },
         "ISOPRXN" : { "init conc" : 0.0 },
         "ISPD"    : { "init conc" : 0.0 },
         "MEO2"    : { "init conc" : 0.0 },

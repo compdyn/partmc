@@ -232,6 +232,8 @@ module pmc_camp_core
     procedure :: bin_unpack
     !> Print the core data
     procedure :: print => do_print
+    !todo class heritage print_plot from camp_core concepts
+    procedure :: print_state_gnuplot
     !> Finalize the core
     final :: finalize
 
@@ -1786,6 +1788,78 @@ contains
     flush(f_unit)
 
   end subroutine do_print
+
+  subroutine print_state_gnuplot(this,camp_state,curr_time_in,name_gas_species_to_print,id_gas_species_to_print&
+          ,name_aerosol_species_to_print,id_aerosol_species_to_print,file_unit,n_cells_to_print)
+
+    class(camp_core_t), intent(in) :: this
+    type(camp_state_t), intent(inout), target :: camp_state
+    real, intent(in) :: curr_time_in
+    type(string_t), allocatable, intent(inout) :: name_gas_species_to_print(:), name_aerosol_species_to_print(:)
+    integer(kind=i_kind), allocatable, intent(inout) :: id_gas_species_to_print(:), id_aerosol_species_to_print(:)
+    integer, intent(inout), optional :: n_cells_to_print
+    integer, intent(in) :: file_unit
+
+    integer :: z,i,j,k,r
+    character(len=:), allocatable :: aux_str
+    character(len=100) :: i_str
+    integer :: n_cells
+    real :: curr_time
+
+    if(present(n_cells_to_print)) then
+      n_cells=n_cells_to_print
+    else
+      n_cells=n_cells
+    end if
+
+    !curr_time_min=curr_time/60.0
+    curr_time=curr_time_in
+
+    !print Titles
+    aux_str = "Time"
+    do i=1,n_cells
+      do j=1, size(name_gas_species_to_print)
+        write(i_str,*) i
+        i_str=adjustl(i_str)
+        aux_str = aux_str//" "//name_gas_species_to_print(j)%string//"_"//trim(i_str)
+      end do
+    end do
+
+    aux_str = aux_str//" "//"Time"
+    do i=1,n_cells
+      do j=1, size(name_aerosol_species_to_print)
+        write(i_str,*) i
+        i_str=adjustl(i_str)
+        aux_str = aux_str//" "//name_aerosol_species_to_print(j)%string//"_"//trim(i_str)
+      end do
+    end do
+
+    write(file_unit, "(A)", advance="no") aux_str
+    write(file_unit, *) ""
+
+    write(file_unit, "(F12.4)", advance="no") curr_time
+
+    do i=0,n_cells-1
+      do j=1, size(name_gas_species_to_print)
+        !write(file_unit, "(ES13.6)", advance="no") &
+        !        species_conc(i,j,k,id_gas_species_to_print(z))
+        write(file_unit, "(ES13.6)", advance="no") &
+        camp_state%state_var(id_gas_species_to_print(j)+i*size(name_gas_species_to_print))
+      end do
+    end do
+
+    write(file_unit, "(F12.4)", advance="no") curr_time
+
+    do i=0,n_cells-1
+      do j=1, size(name_aerosol_species_to_print)
+        write(file_unit, "(ES13.6)", advance="no") &
+        camp_state%state_var(id_aerosol_species_to_print(j)+i*size(name_aerosol_species_to_print))
+      end do
+    end do
+
+    write(file_unit, *) ""
+
+  end subroutine
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

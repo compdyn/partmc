@@ -416,11 +416,13 @@ contains
           allocate(coordinates(max_elements,4))
           allocate(delta_mass_concs(max_elements,4,aero_data_n_spec(aero_data)))
           allocate(delta_num_concs(max_elements,4))
+          delta_mass_concs = 0.0d0
+          delta_num_concs = 0.0d0
           i_count = 0
           do i_bin = 1,bin_grid_size(bin_grid)
           do j_bin = i_bin,bin_grid_size(bin_grid)
           if (aero_state%bin1_loss_num_conc(i_bin, j_bin) > 0.0d0 .or. &
-               aero_state%bin1_loss_num_conc(i_bin, j_bin) > 0.0d0) then
+               aero_state%bin2_loss_num_conc(i_bin, j_bin) > 0.0d0) then
              i_count = i_count + 1
              k_bin = j_bin
              k_bin_p1 = min(k_bin+1, bin_grid_size(bin_grid))
@@ -431,7 +433,7 @@ contains
                   * aero_state%bin2_loss_mass_conc(i_bin, j_bin, :)
              delta_mass_concs(i_count,3,:) = aero_state%bin3_gain_mass_conc( &
                   i_bin, j_bin, k_bin, :)
-             if (k_bin_p1 < bin_grid_size(bin_grid)) then
+             if (k_bin /= bin_grid_size(bin_grid)) then
                 delta_mass_concs(i_count,4,:) = &
                      aero_state%bin3_gain_mass_conc(i_bin, j_bin, k_bin_p1, :)
              end if

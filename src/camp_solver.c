@@ -722,6 +722,22 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
 
 #endif
 
+    //printf("env [temp, press]\n");
+    //  for (int i=0; i<2;i++)//n_cells
+    //    printf("%-le, %-le\n", env[0+2*i], env[1+2*i]);
+
+
+    int n_cell=2;
+    printf("camp solver_run start [(id),conc], n_state_var %d, n_cells %d\n", md->n_per_cell_state_var, n_cells);
+
+    for (int i = 0; i < n_cell; i++) {
+      printf("cell %d \n", i);
+      for (int j = 0; j < md->n_per_cell_state_var; j++) {
+          printf("(%d) %-le ",j+1, state[j+i*md->n_per_cell_state_var]);
+        }
+      printf("\n");
+    }
+
 
 #ifndef PMC_DEBUG_GPU
 #ifdef PMC_USE_MPI
@@ -764,6 +780,9 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   // Update model data pointers
   sd->model_data.total_state = state;
   sd->model_data.total_env = env;
+
+  printf("After set y (deriv), iter %d ...\n", sd->counterDerivGPU);
+  print_derivative(sd->y);
 
 #ifdef PMC_DEBUG_GPU
 #ifdef PMC_USE_MPI
@@ -836,6 +855,9 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   flag = CVodeSetInitStep(sd->cvode_mem, sd->init_time_step);
   check_flag_fail(&flag, "CVodeSetInitStep", 1);
 
+  //printf("Entering CVodeRun iter %d...\n", sd->counterDerivGPU);
+  //print_derivative(sd->y);
+
 #ifndef PMC_DEBUG_GPU
   clock_t start2 = clock();
 #ifdef PMC_USE_MPI
@@ -905,6 +927,9 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   sd->timeCVode = (clock() - start2);
 #endif
 
+    //printf("Deriv after cvode, iter %d...\n", sd->counterDerivGPU);
+    //print_derivative(sd->y);
+
 /*
 #ifdef PMC_DEBUG_GPU
 #ifdef PMC_USE_MPI
@@ -936,6 +961,19 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
     }
   }
 
+  /*
+    int n_cell=2;
+    printf("camp solver_run end [(id),conc], n_state_var %d, n_cells %d\n", md->n_per_cell_state_var, n_cells);
+
+    for (int i = 0; i < n_cell; i++) {
+      printf("cell %d \n", i);
+      for (int j = 0; j < md->n_per_cell_state_var; j++) {
+          printf("(%d) %-le ",j+1, state[j+i*md->n_per_cell_state_var]);
+        }
+      printf("\n");
+    }
+    */
+
 #ifdef PMC_USE_MPI
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   if (rank>=0)
@@ -963,6 +1001,10 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
 
   }
 #endif
+
+    sd->counterDerivGPU=0;
+    sd->counterJacGPU=0;
+    sd->counterSolve++;
 
   // Re-run the pre-derivative calculations to update equilibrium species
   // and apply adjustments to final state
@@ -1295,6 +1337,9 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
 #endif
 
 
+  //print_derivative(deriv);
+  sd->counterDerivGPU++;
+
 #ifndef PMC_DEBUG_GPU
   sd->timeF += (clock() - start10);
 #ifdef PMC_USE_MPI
@@ -1486,6 +1531,10 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
     }
   }
 #endif
+
+  //printf("Deriv iter %d jac iter %d counterSolve %d",sd->counterDerivGPU, sd->counterJacGPU, sd->counterSolve);
+  //print_derivative(deriv);
+  sd->counterJacGPU++;
 
 #ifndef PMC_DEBUG_GPU
 #ifdef PMC_USE_MPI

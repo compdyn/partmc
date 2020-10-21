@@ -1809,7 +1809,7 @@ contains
     if(present(n_cells_to_print)) then
       n_cells=n_cells_to_print
     else
-      n_cells=n_cells
+      n_cells=this%n_cells
     end if
 
     !curr_time_min=curr_time/60.0
@@ -1841,10 +1841,8 @@ contains
 
     do i=0,n_cells-1
       do j=1, size(name_gas_species_to_print)
-        !write(file_unit, "(ES13.6)", advance="no") &
-        !        species_conc(i,j,k,id_gas_species_to_print(z))
         write(file_unit, "(ES13.6)", advance="no") &
-        camp_state%state_var(id_gas_species_to_print(j)+i*size(name_gas_species_to_print))
+          camp_state%state_var(id_gas_species_to_print(j)+i*this%size_state_per_cell)
       end do
     end do
 
@@ -1853,7 +1851,7 @@ contains
     do i=0,n_cells-1
       do j=1, size(name_aerosol_species_to_print)
         write(file_unit, "(ES13.6)", advance="no") &
-        camp_state%state_var(id_aerosol_species_to_print(j)+i*size(name_aerosol_species_to_print))
+          camp_state%state_var(id_aerosol_species_to_print(j)+i*this%size_state_per_cell)
       end do
     end do
 

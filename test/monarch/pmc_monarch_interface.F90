@@ -362,14 +362,16 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Integrate the PartMC mechanism for a particular set of cells and timestep
-  subroutine integrate(this, start_time, time_step, i_start, i_end, j_start, &
+  subroutine integrate(this, curr_time, time_step, i_start, i_end, j_start, &
                   j_end, temperature, MONARCH_conc, water_conc, &
-                  water_vapor_index, air_density, pressure, conv, i_hour)
+                  water_vapor_index, air_density, pressure, conv, i_hour,&
+           name_gas_species_to_print,id_gas_species_to_print&
+          ,name_aerosol_species_to_print,id_aerosol_species_to_print,RESULTS_FILE_UNIT)
 
     !> PartMC-camp <-> MONARCH interface
     class(monarch_interface_t) :: this
     !> Integration start time (min since midnight)
-    real, intent(in) :: start_time
+    real, intent(in) :: curr_time
     !> Integration time step
     real, intent(in) :: time_step
     !> Grid-cell W->E starting index
@@ -398,6 +400,10 @@ contains
     real, intent(in) :: pressure(:,:,:)
     real, intent(in) :: conv
     integer, intent(inout) :: i_hour
+
+    type(string_t), allocatable, intent(inout) :: name_gas_species_to_print(:), name_aerosol_species_to_print(:)
+    integer(kind=i_kind), allocatable, intent(inout) :: id_gas_species_to_print(:), id_aerosol_species_to_print(:)
+    integer, intent(in) :: RESULTS_FILE_UNIT
 
 #ifndef ENABLE_CB05_SOA
 
@@ -484,7 +490,7 @@ contains
     MEOH_emi = (/ 2.368E-10, 6.107E-10, 6.890E-10, 6.890E-10, 6.890E-10, 6.889E-10, 6.886E-10, 6.890E-10, 6.890E-10, 5.414E-10, 3.701E-10, 2.554E-10, 1.423E-10, 6.699E-11, 2.912E-11, 2.877E-11, 2.825E-11, 2.056E-12, 2.056E-12, 2.056E-12, 2.435E-12, 2.435E-12, 4.030E-11, 1.168E-10, 2.368E-10, 6.107E-10, 6.890E-10, 6.890E-10, 6.890E-10, 6.889E-10 /)
     rate_emi = (/0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 /)
 
-    if(mod(int(start_time),60).eq.0) then
+    if(mod(int(curr_time),60).eq.0) then
       write(*,*) "i_hour loop", i_hour
       i_hour = i_hour + 1
     end if
@@ -494,6 +500,7 @@ contains
     if(.not.this%solve_multiple_cells) then
       do i=i_start, i_end
         do j=j_start, j_end
+        !do j=j_end, j_end, -1
           do k=1, k_end
 
             ! Calculate the vertical index for NMMB-style arrays
@@ -503,7 +510,7 @@ contains
             call this%camp_state%env_states(1)%set_temperature_K( &
               real( temperature(i,j,k_flip), kind=dp ) )
             call this%camp_state%env_states(1)%set_pressure_Pa(   &
-              real( pressure(i,k,j), kind=dp ) )
+              real( pressure(i,j,k), kind=dp ) )
 
             !this%camp_state%state_var(this%map_camp_id(:)) = &
             !        this%camp_state%state_var(this%map_camp_id(:)) + &
@@ -511,19 +518,24 @@ contains
             this%camp_state%state_var(this%map_camp_id(:)) = &
                             MONARCH_conc(i,j,k_flip,this%map_monarch_id(:))
 
+            !print*,"camp_state", this%camp_state%state_var(this%map_camp_id(:))
+
             !this%camp_state%state_var(this%gas_phase_water_id) = &
             !        water_conc(i,j,k_flip,water_vapor_index) * &
-            !        air_density(i,k,j) * 1.0d9
+            !        air_density(i,j,k) * 1.0d9
             this%camp_state%state_var(this%gas_phase_water_id) = &
                     water_conc(i,j,k_flip,water_vapor_index) * &
                     mwair / mwwat * 1.e6
+
+            ! todo a vale el RESET DEL CAMP STATE ESO FALLA ay que resetear a 0 o algo cada vez del loop o se va a dividir todo el rato
+
             !print*,'monarch_conc: ',this%camp_state%state_var
             !stop
             !print*,'O3: ',this%camp_state%state_var(chem_spec_data%gas_state_id("O3"))
             !print*,'SO2: ',this%camp_state%state_var(chem_spec_data%gas_state_id("SO2"))
             !print*,'ISOP: ',this%camp_state%state_var(chem_spec_data%gas_state_id("ISOP"))
             !print*,'water conc: ',this%camp_state%state_var(this%gas_phase_water_id) &
-            !      ,water_conc(i,j,k_flip,water_vapor_index),air_density(i,k,j)
+            !      ,water_conc(i,j,k_flip,water_vapor_index),air_density(i,j,k)
             !stop
 #ifndef ENABLE_CB05_SOA
               !Add emissions
@@ -556,8 +568,7 @@ contains
 
             ! Integrate the PMC mechanism
             call cpu_time(comp_start)
-            call this%camp_core%solve(this%camp_state, &
-                    real(time_step*60., kind=dp), solver_stats = solver_stats)
+            call this%camp_core%solve(this%camp_state, real(time_step*60., kind=dp),solver_stats=solver_stats)
             call cpu_time(comp_end)
             comp_time = comp_time + (comp_end-comp_start)
             !time_step*60
@@ -571,7 +582,7 @@ contains
             call assert_msg(611569150, solver_stats%Jac_eval_fails.eq.0,&
                           trim( to_string( solver_stats%Jac_eval_fails ) )// &
                           " Jacobian evaluation failures at time "// &
-                          trim( to_string( start_time ) ) )
+                          trim( to_string( curr_time ) ) )
 
             ! Only evaluate the Jacobian for the first cell because it is
             ! time consuming
@@ -581,6 +592,10 @@ contains
             ! Update the MONARCH tracer array with new species concentrations
             MONARCH_conc(i,j,k_flip,this%map_monarch_id(:)) = &
                     this%camp_state%state_var(this%map_camp_id(:))
+
+            !call this%camp_core%print_state_gnuplot(&
+            !        this%camp_state,curr_time,name_gas_species_to_print,id_gas_species_to_print&
+            !        ,name_aerosol_species_to_print,id_aerosol_species_to_print,RESULTS_FILE_UNIT)
 
           end do
         end do
@@ -612,16 +627,13 @@ contains
 
             ! Update the environmental state
             !call this%camp_state%env_states(1)%set_temperature_K(real(temperature(i,j,k_flip),kind=dp))
-            !call this%camp_state%env_states(1)%set_pressure_Pa(real(pressure(i,k,j),kind=dp))
+            !call this%camp_state%env_states(1)%set_pressure_Pa(real(pressure(i,j,k),kind=dp))
             call this%camp_state%env_states(z+1)%set_temperature_K(real(temperature(i,j,k_flip),kind=dp))
-            call this%camp_state%env_states(z+1)%set_pressure_Pa(real(pressure(i,k,j),kind=dp))
+            call this%camp_state%env_states(z+1)%set_pressure_Pa(real(pressure(i,j,k),kind=dp))
 
             !write(*,*) "State_var input",this%camp_state%state_var(this%map_camp_id(:)+(z*state_size_per_cell))
             !write(*,*) "Monarch_conc input", MONARCH_conc(i,j,k_flip,this%map_monarch_id(:))
-            !todo fix better Nan values
-            this%camp_state%state_var(this%map_camp_id(:)+(z*state_size_per_cell))=&
-                    this%camp_state%state_var(this%map_camp_id(:))
-            MONARCH_conc(i,j,k_flip,this%map_monarch_id(:))=MONARCH_conc(1,1,1,this%map_monarch_id(:))
+
             !write(*,*) "Monarch_conc input", MONARCH_conc(i,j,k_flip,this%map_monarch_id(:))
             !write(*,*) "State_var input",this%camp_state%state_var(this%map_camp_id(:)+(z*state_size_per_cell))
 
@@ -634,14 +646,19 @@ contains
             !                                   (z*state_size_per_cell)) + &
             !        MONARCH_conc(i,j,k_flip,this%map_monarch_id(:))
 
-            this%camp_state%state_var(this%map_camp_id(:) + &
-            (z*state_size_per_cell)) = &
-              MONARCH_conc(i,j,k_flip,this%map_monarch_id(:))
 
-            this%camp_state%state_var(this%gas_phase_water_id + &
-                                       (z*state_size_per_cell)) = &
-                    water_conc(i,j,k_flip,water_vapor_index) * &
-                            mwair / mwwat * 1.e6
+            !todo fix monarch_conc 2 cells no init
+            !print*, "camp_state", this%camp_state%state_var(this%map_camp_id(:)+(z*state_size_per_cell))
+            this%camp_state%state_var(this%map_camp_id(:) + &
+            (z*state_size_per_cell)) = MONARCH_conc(i,j,k_flip,this%map_monarch_id(:))
+            !this%camp_state%state_var(this%map_camp_id(:) + &
+            !(z*state_size_per_cell)) = MONARCH_conc(1,1,1,this%map_monarch_id(:))
+            !print*, "camp_state", this%camp_state%state_var(this%map_camp_id(:)+(z*state_size_per_cell))
+
+            !this%camp_state%state_var(this%gas_phase_water_id +(z*state_size_per_cell)) = &
+            !water_conc(i,j,k_flip,water_vapor_index) * mwair / mwwat * 1.e6
+            this%camp_state%state_var(this%gas_phase_water_id +(z*state_size_per_cell)) = &
+            water_conc(1,1,1,water_vapor_index) * mwair / mwwat * 1.e6
 
 #ifndef ENABLE_CB05_SOA
             !Add emissions
@@ -684,6 +701,7 @@ contains
             MONARCH_conc(i,j,k_flip,this%map_monarch_id(:)) = &
                     this%camp_state%state_var(this%map_camp_id(:) + &
                                                (z*state_size_per_cell))
+            !print*, "camp_state", this%camp_state%state_var(this%map_camp_id(:)+(z*state_size_per_cell))
           end do
         end do
       end do
@@ -1129,11 +1147,11 @@ end if
     real, intent(inout) :: MONARCH_air_density(:,:,:)
     integer, intent(in) :: i_W,I_E,I_S,I_N
 
-    integer(kind=i_kind) :: i_spec, water_id,i,j,k,r,k_end
+    integer(kind=i_kind) :: i_spec, water_id,i,j,k,r,k_end,state_size_per_cell
     real :: factor_ppb_to_ppm
     real :: conc_deviation_perc
 
-    conc_deviation_perc=0.2!0.2
+    conc_deviation_perc=0.!0.2
     k_end=size(MONARCH_conc,3)
 
 #ifndef ENABLE_CB05_SOA
@@ -1148,23 +1166,37 @@ end if
     MONARCH_conc(:,:,:,:) = 0.0
     !MONARCH_water_conc(:,:,:,WATER_VAPOR_ID) = 0.0
 
-    ! Set the air density to a nominal value
-    print*,'MONARCH air denisty: ',MONARCH_air_density(1,1,1) ! = 1.225
+    print*,'MONARCH air denisty: ',MONARCH_air_density(1,1,1)
 
     ! Set initial concentrations in PMC
     this%init_conc(:) = this%init_conc(:) * factor_ppb_to_ppm
-    this%camp_state%state_var(this%init_conc_camp_id(:)) = this%init_conc(:)
+
+
+    !this%camp_state%state_var(this%init_conc_camp_id(:)) = this%init_conc(:)
+
+    state_size_per_cell = this%camp_core%state_size_per_cell()
 
     do i=i_W, I_E
       do j=I_S, I_N
         do k=1, k_end
           r=(k-1)*(I_E*I_N) + (j-1)*(I_E) + i-1
           !write(*,*) "r", r
+
           forall (i_spec = 1:size(this%map_monarch_id))
-            MONARCH_conc(i,j,j,this%map_monarch_id(i_spec)) = &
-              this%camp_state%state_var(this%map_camp_id(i_spec))&
-            +r*conc_deviation_perc*this%camp_state%state_var(this%map_camp_id(i_spec))
+            this%camp_state%state_var(this%init_conc_camp_id(i_spec)&
+            +r*state_size_per_cell) = this%init_conc(i_spec)
           end forall
+
+          forall (i_spec = 1:size(this%map_monarch_id))
+            MONARCH_conc(i,j,k,this%map_monarch_id(i_spec)) = &
+              this%camp_state%state_var(this%map_camp_id(i_spec&
+              +r*state_size_per_cell))&
+              +r*conc_deviation_perc*this%camp_state%state_var(this%map_camp_id(i_spec))
+          end forall
+          MONARCH_conc(i,j,k,:) = MONARCH_conc(1,1,1,:)
+          this%camp_state%state_var(this%gas_phase_water_id) = &
+                  MONARCH_water_conc(i,j,k,WATER_VAPOR_ID) * &
+                          mwair / mwwat * 1.e6
         end do
       end do
     end do
@@ -1181,8 +1213,9 @@ end if
              mwair / mwwat * 1.e6
              !MONARCH_air_density(1,1,1) / 1.0d-9
 
-    print*,'GET_INIT_CONC SPECIES:'
-    print*,this%camp_state%state_var(:)
+    !print*,'GET_INIT_CONC SPECIES:'
+    !print*,this%camp_state%state_var(:)
+    !print*,MONARCH_conc(:,:,:,this%map_monarch_id(:))
   end subroutine get_init_conc
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

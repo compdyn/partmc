@@ -243,15 +243,22 @@ static void print_jacobian(SUNMatrix M) {
 static void print_derivative(N_Vector deriv) {
    printf("[(id) deriv], deriv length: %d\n", NV_LENGTH_S(deriv));
    int n_cells=2;
+
    if (NV_LENGTH_S(deriv)<72*n_cells){
      for (int i = 0; i < NV_LENGTH_S(deriv); i++) {  // NV_LENGTH_S(deriv)
        printf("(%d) %-le \n", i+1, NV_DATA_S(deriv)[i]);
      }
-   }else{
-     for (int i = 0; i < 144; i++) {  // NV_LENGTH_S(deriv)
-       printf("(%d) %-le \n", i+1, NV_DATA_S(deriv)[i]);
-     }
-   }
+    }else{
+      for (int i = 0; i < n_cells; i++) {
+        printf("cell %d \n", i);
+        int size_j = NV_LENGTH_S(deriv) / n_cells;
+        for (int j = 0; j < size_j; j++) {  // NV_LENGTH_S(deriv)
+          printf("(%d) %-le \n", j + 1, NV_DATA_S(deriv)[j+i*size_j]);
+        }
+        printf("\n");
+      }
+
+    }
   printf("\n");
 }
 

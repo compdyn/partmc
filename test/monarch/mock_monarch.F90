@@ -30,7 +30,7 @@ program mock_monarch
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Number of total species in mock MONARCH
-  integer, parameter :: NUM_MONARCH_SPEC = 800
+  integer, parameter :: NUM_MONARCH_SPEC = 300 !800
   !> Number of vertical cells in mock MONARCH
   integer, parameter :: NUM_VERT_CELLS = 1
   !> Starting W-E cell for camp-chem call
@@ -40,7 +40,7 @@ program mock_monarch
   !> Starting S-N cell for camp-chem call
   integer, parameter :: I_S = 1
   !> Ending S-N cell for camp-chem call
-  integer, parameter :: I_N = 1
+  integer, parameter :: I_N = 2
   !> Number of W-E cells in mock MONARCH
   integer, parameter :: NUM_WE_CELLS = I_E-I_W+1
   !> Number of S-N cells in mock MONARCH
@@ -52,14 +52,14 @@ program mock_monarch
   !> Time step (min)
   real, parameter :: TIME_STEP = 2.!1.6
   !> Number of time steps to integrate over
-  integer, parameter :: NUM_TIME_STEP = 720!720!30
+  integer, parameter :: NUM_TIME_STEP = 1!720!30
   !> Index for water vapor in water_conc()
   integer, parameter :: WATER_VAPOR_ID = 5
   !> Start time
   real, parameter :: START_TIME = 0.0
   !> Number of cells to compute simultaneously
-  integer :: n_cells = 1
-  !integer :: n_cells = (I_E - I_W+1)*(I_N - I_S+1)*NUM_VERT_CELLS
+  !integer :: n_cells = 1
+  integer :: n_cells = (I_E - I_W+1)*(I_N - I_S+1)*NUM_VERT_CELLS
   !> Check multiple cells results are correct?
   logical :: check_multiple_cells = .false.
 
@@ -74,12 +74,14 @@ program mock_monarch
   real :: species_conc(NUM_WE_CELLS, NUM_SN_CELLS, NUM_VERT_CELLS, NUM_MONARCH_SPEC)
   !> Water concentrations (kg_H2O/kg_air)
   real :: water_conc(NUM_WE_CELLS, NUM_SN_CELLS, NUM_VERT_CELLS, WATER_VAPOR_ID)
+  real :: air_density(NUM_WE_CELLS, NUM_SN_CELLS, NUM_VERT_CELLS)
+  real :: pressure(NUM_WE_CELLS, NUM_SN_CELLS, NUM_VERT_CELLS)
 
   !> WRF-style arrays (W->E, bottom->top, N->S)
   !> Air density (kg_air/m^3)
-  real :: air_density(NUM_WE_CELLS, NUM_VERT_CELLS, NUM_SN_CELLS)
+  !real :: air_density(NUM_WE_CELLS, NUM_VERT_CELLS, NUM_SN_CELLS)
   !> Air pressure (Pa)
-  real :: pressure(NUM_WE_CELLS, NUM_VERT_CELLS, NUM_SN_CELLS)
+  !real :: pressure(NUM_WE_CELLS, NUM_VERT_CELLS, NUM_SN_CELLS)
   !> Cell height (m)
   real :: height
 
@@ -164,7 +166,8 @@ program mock_monarch
   output_file_title = "Mock_"//trim(arg)
   output_file_prefix = "out/"//trim(arg)
 
-  n_cells_to_print_aux = 1
+  !n_cells_to_print_aux = 1
+  n_cells_to_print_aux = (I_E - I_W+1)*(I_N - I_S+1)*NUM_VERT_CELLS
 
   if(interface_input_file.eq."interface_simple.json") then
 
@@ -188,7 +191,7 @@ program mock_monarch
 
     write(*,*) "Config complex (test 2)"
 
-    plot_case=2
+    plot_case=1
     if(plot_case == 0)then
       size_gas_species_to_print=4
       size_aerosol_species_to_print=1
@@ -247,7 +250,8 @@ program mock_monarch
     do j=1, size(name_gas_species_to_print)
       do z=1, size(pmc_interface%monarch_species_names)
         if(pmc_interface%monarch_species_names(z)%string.eq.name_gas_species_to_print(j)%string) then
-          id_gas_species_to_print(j)=pmc_interface%map_camp_id(z)
+          id_gas_species_to_print(j)=pmc_interface%map_monarch_id(z)
+          !id_gas_species_to_print(j)=pmc_interface%map_camp_id(z)
         end if
       end do
     end do
@@ -255,7 +259,8 @@ program mock_monarch
     do j=1, size(name_aerosol_species_to_print)
       do z=1, size(pmc_interface%monarch_species_names)
         if(pmc_interface%monarch_species_names(z)%string.eq.name_aerosol_species_to_print(j)%string) then
-          id_aerosol_species_to_print(j)=pmc_interface%map_camp_id(z)
+          id_aerosol_species_to_print(j)=pmc_interface%map_monarch_id(z)
+          !id_aerosol_species_to_print(j)=pmc_interface%map_camp_id(z)
         end if
       end do
     end do
@@ -273,6 +278,15 @@ program mock_monarch
             air_density,i_W,I_E,I_S,I_N)
 
     ! call pmc_interface%print( )
+    !do i = I_W, I_E
+    !  do j = I_S, I_N
+    !    do k = 1, NUM_VERT_CELLS
+    !      call pmc_interface%camp_core%print_state_gnuplot(&
+    !          pmc_interface%camp_state,curr_time,name_gas_species_to_print,id_gas_species_to_print&
+    !          ,name_aerosol_species_to_print,id_aerosol_species_to_print,RESULTS_FILE_UNIT)
+    !    end do
+    !  end do
+    !end do
 
     ! Run the model
     do i_time=1, NUM_TIME_STEP
@@ -284,9 +298,9 @@ program mock_monarch
       !call print_state_gnuplot(curr_time,pmc_interface,species_conc)
       call print_state_gnuplot(curr_time,pmc_interface, name_gas_species_to_print,id_gas_species_to_print&
               ,name_aerosol_species_to_print,id_aerosol_species_to_print,RESULTS_FILE_UNIT,n_cells_to_print_aux)
-      call pmc_interface%camp_core%print_state_gnuplot(&
-      pmc_interface%camp_state,curr_time,name_gas_species_to_print,id_gas_species_to_print&
-      ,name_aerosol_species_to_print,id_aerosol_species_to_print,RESULTS_FILE_UNIT,n_cells_to_print_aux)
+      !call pmc_interface%camp_core%print_state_gnuplot(&
+      !pmc_interface%camp_state,curr_time,name_gas_species_to_print,id_gas_species_to_print&
+      !,name_aerosol_species_to_print,id_aerosol_species_to_print,RESULTS_FILE_UNIT,n_cells_to_print_aux)
 
       call pmc_interface%integrate(curr_time,         & ! Starting time (min)
                                    TIME_STEP,         & ! Time step (min)
@@ -301,7 +315,9 @@ program mock_monarch
                                    air_density,       & ! Air density (kg_air/m^3)
                                    pressure,          & ! Air pressure (Pa)
                                    conv,              &
-                                   i_hour)
+                                   i_hour,&
+               name_gas_species_to_print,id_gas_species_to_print&
+              ,name_aerosol_species_to_print,id_aerosol_species_to_print,RESULTS_FILE_UNIT)
       curr_time = curr_time + TIME_STEP
 
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -367,9 +383,9 @@ program mock_monarch
     !call print_state_gnuplot(curr_time,pmc_interface,species_conc)
     call print_state_gnuplot(curr_time,pmc_interface, name_gas_species_to_print,id_gas_species_to_print&
             ,name_aerosol_species_to_print,id_aerosol_species_to_print,RESULTS_FILE_UNIT,n_cells_to_print_aux)
-    call pmc_interface%camp_core%print_state_gnuplot(&
-            pmc_interface%camp_state,curr_time,name_gas_species_to_print,id_gas_species_to_print&
-            ,name_aerosol_species_to_print,id_aerosol_species_to_print,RESULTS_FILE_UNIT,n_cells_to_print_aux)
+    !call pmc_interface%camp_core%print_state_gnuplot(&
+    !        pmc_interface%camp_state,curr_time,name_gas_species_to_print,id_gas_species_to_print&
+    !        ,name_aerosol_species_to_print,id_aerosol_species_to_print,RESULTS_FILE_UNIT,n_cells_to_print_aux)
     call create_gnuplot_script(pmc_interface, output_file_prefix, &
             plot_start_time, curr_time)
     call create_gnuplot_persist(pmc_interface, output_file_prefix, &
@@ -526,6 +542,56 @@ contains
         end do
       end do
     end do
+
+    !print Titles
+    aux_str = "Time"
+    do i=1,n_cells
+      do j=1, size(name_gas_species_to_print)
+        write(i_str,*) i
+        i_str=adjustl(i_str)
+        aux_str = aux_str//" "//name_gas_species_to_print(j)%string//"_"//trim(i_str)
+      end do
+    end do
+
+    aux_str = aux_str//" "//"Time"
+    do i=1,n_cells
+      do j=1, size(name_aerosol_species_to_print)
+        write(i_str,*) i
+        i_str=adjustl(i_str)
+        aux_str = aux_str//" "//name_aerosol_species_to_print(j)%string//"_"//trim(i_str)
+      end do
+    end do
+
+    write(file_unit, "(A)", advance="no") aux_str
+    write(file_unit, *) ""
+
+    write(file_unit, "(F12.4)", advance="no") curr_time
+
+    do i=I_W,I_E
+      do j=I_S,I_N
+        do k=1,NUM_VERT_CELLS
+          do z=1, size(name_gas_species_to_print)
+            write(file_unit, "(ES13.6)", advance="no") &
+                    species_conc(i,j,k,id_gas_species_to_print(z))
+          end do
+        end do
+      end do
+    end do
+
+    write(file_unit, "(F12.4)", advance="no") curr_time
+
+    do i=I_W,I_E
+      do j=I_S,I_N
+        do k=1,NUM_VERT_CELLS
+          do z=1, size(name_aerosol_species_to_print)
+            write(file_unit, "(ES13.6)", advance="no") &
+                    species_conc(i,j,k,id_aerosol_species_to_print(z))
+          end do
+        end do
+      end do
+    end do
+
+    write(file_unit, *) ""
 
     !todo include water_conc with species_conc
     !write(RESULTS_FILE_UNIT, *) curr_time, &

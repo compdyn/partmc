@@ -527,8 +527,6 @@ contains
                     water_conc(i,j,k_flip,water_vapor_index) * &
                     mwair / mwwat * 1.e6
 
-            ! todo a vale el RESET DEL CAMP STATE ESO FALLA ay que resetear a 0 o algo cada vez del loop o se va a dividir todo el rato
-
             !print*,'monarch_conc: ',this%camp_state%state_var
             !stop
             !print*,'O3: ',this%camp_state%state_var(chem_spec_data%gas_state_id("O3"))
@@ -593,10 +591,6 @@ contains
             MONARCH_conc(i,j,k_flip,this%map_monarch_id(:)) = &
                     this%camp_state%state_var(this%map_camp_id(:))
 
-            !call this%camp_core%print_state_gnuplot(&
-            !        this%camp_state,curr_time,name_gas_species_to_print,id_gas_species_to_print&
-            !        ,name_aerosol_species_to_print,id_aerosol_species_to_print,RESULTS_FILE_UNIT)
-
           end do
         end do
       end do
@@ -646,9 +640,6 @@ contains
             !                                   (z*state_size_per_cell)) + &
             !        MONARCH_conc(i,j,k_flip,this%map_monarch_id(:))
 
-
-            !todo fix monarch_conc 2 cells no init
-            !print*, "camp_state", this%camp_state%state_var(this%map_camp_id(:)+(z*state_size_per_cell))
             this%camp_state%state_var(this%map_camp_id(:) + &
             (z*state_size_per_cell)) = MONARCH_conc(i,j,k_flip,this%map_monarch_id(:))
             !this%camp_state%state_var(this%map_camp_id(:) + &
@@ -1147,11 +1138,11 @@ end if
     real, intent(inout) :: MONARCH_air_density(:,:,:)
     integer, intent(in) :: i_W,I_E,I_S,I_N
 
-    integer(kind=i_kind) :: i_spec, water_id,i,j,k,r,k_end,state_size_per_cell
+    integer(kind=i_kind) :: i_spec, water_id,i,j,k,r,k_end,state_size_per_cell, aux
     real :: factor_ppb_to_ppm
     real :: conc_deviation_perc
 
-    conc_deviation_perc=0.!0.2
+    conc_deviation_perc=0.01!0.2
     k_end=size(MONARCH_conc,3)
 
 #ifndef ENABLE_CB05_SOA
@@ -1170,9 +1161,9 @@ end if
 
     ! Set initial concentrations in PMC
     this%init_conc(:) = this%init_conc(:) * factor_ppb_to_ppm
+    this%camp_state%state_var(this%init_conc_camp_id(:)) = this%init_conc(:)
 
-
-    !this%camp_state%state_var(this%init_conc_camp_id(:)) = this%init_conc(:)
+    !print*,"init_conc", this%init_conc(:)
 
     state_size_per_cell = this%camp_core%state_size_per_cell()
 
@@ -1180,26 +1171,48 @@ end if
       do j=I_S, I_N
         do k=1, k_end
           r=(k-1)*(I_E*I_N) + (j-1)*(I_E) + i-1
-          !write(*,*) "r", r
+          aux=((I_E - I_W+1)*(I_N - I_S+1)*k_end)-1
 
           forall (i_spec = 1:size(this%map_monarch_id))
             this%camp_state%state_var(this%init_conc_camp_id(i_spec)&
             +r*state_size_per_cell) = this%init_conc(i_spec)
           end forall
 
-          forall (i_spec = 1:size(this%map_monarch_id))
+          if(r.ne.aux) then
+            do i_spec=1, size(this%map_monarch_id)
+              MONARCH_conc(i,j,k,this%map_monarch_id(i_spec)) = &
+                this%camp_state%state_var(this%map_camp_id(i_spec))&
+                +r*conc_deviation_perc*this%camp_state%state_var(this%map_camp_id(i_spec))
+                !+r*conc_deviation_perc*this%camp_state%state_var(this%map_camp_id(i_spec))
+            end do
+          else
+            !print*,"last_cell",r
+            do i_spec=1, size(this%map_monarch_id)
             MONARCH_conc(i,j,k,this%map_monarch_id(i_spec)) = &
-              this%camp_state%state_var(this%map_camp_id(i_spec&
-              +r*state_size_per_cell))&
-              +r*conc_deviation_perc*this%camp_state%state_var(this%map_camp_id(i_spec))
-          end forall
-          MONARCH_conc(i,j,k,:) = MONARCH_conc(1,1,1,:)
+                    this%camp_state%state_var(this%map_camp_id(i_spec))
+            end do
+          end if
+
+          !last cell=init_cell
+          !if(r.eq.((I_E - I_W+1)*(I_N - I_S+1)*k_end-1)) then
+          !  print*,"last_cell",r
+          !  MONARCH_conc(i,j,k,this%map_monarch_id(i_spec)) = &
+          !          this%camp_state%state_var(this%map_camp_id(i_spec))
+          !end if
+
+          !MONARCH_conc(i,j,k,:) = MONARCH_conc(1,1,1,:)
           this%camp_state%state_var(this%gas_phase_water_id) = &
                   MONARCH_water_conc(i,j,k,WATER_VAPOR_ID) * &
                           mwair / mwwat * 1.e6
+          !print*,"MONARCH_conc", MONARCH_conc(i,j,k,this%map_monarch_id(:))
+
+
         end do
       end do
     end do
+
+    !print*,"camp_state", this%camp_state%state_var(this%map_camp_id(:))
+    !print*,"camp_state 1", this%camp_state%state_var(this%map_camp_id(:)+1*state_size_per_cell)
 
     !write(*,*) "Init conc",this%init_conc(this%map_camp_id(:))
     !write(*,*) "State_var init",this%camp_state%state_var(this%map_camp_id(:))

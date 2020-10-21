@@ -726,7 +726,7 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
     //  for (int i=0; i<2;i++)//n_cells
     //    printf("%-le, %-le\n", env[0+2*i], env[1+2*i]);
 
-
+/*
     int n_cell=2;
     printf("camp solver_run start [(id),conc], n_state_var %d, n_cells %d\n", md->n_per_cell_state_var, n_cells);
 
@@ -737,7 +737,7 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
         }
       printf("\n");
     }
-
+*/
 
 #ifndef PMC_DEBUG_GPU
 #ifdef PMC_USE_MPI
@@ -781,8 +781,8 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   sd->model_data.total_state = state;
   sd->model_data.total_env = env;
 
-  printf("After set y (deriv), iter %d ...\n", sd->counterDerivGPU);
-  print_derivative(sd->y);
+  //printf("After set y (deriv), iter %d ...\n", sd->counterDerivGPU);
+  //print_derivative(sd->y);
 
 #ifdef PMC_DEBUG_GPU
 #ifdef PMC_USE_MPI

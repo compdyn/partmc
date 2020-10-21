@@ -40,7 +40,7 @@ program mock_monarch
   !> Starting S-N cell for camp-chem call
   integer, parameter :: I_S = 1
   !> Ending S-N cell for camp-chem call
-  integer, parameter :: I_N = 2
+  integer, parameter :: I_N = 3
   !> Number of W-E cells in mock MONARCH
   integer, parameter :: NUM_WE_CELLS = I_E-I_W+1
   !> Number of S-N cells in mock MONARCH
@@ -52,7 +52,7 @@ program mock_monarch
   !> Time step (min)
   real, parameter :: TIME_STEP = 2.!1.6
   !> Number of time steps to integrate over
-  integer, parameter :: NUM_TIME_STEP = 1!720!30
+  integer, parameter :: NUM_TIME_STEP = 60!720!30
   !> Index for water vapor in water_conc()
   integer, parameter :: WATER_VAPOR_ID = 5
   !> Start time
@@ -191,7 +191,7 @@ program mock_monarch
 
     write(*,*) "Config complex (test 2)"
 
-    plot_case=1
+    plot_case=2
     if(plot_case == 0)then
       size_gas_species_to_print=4
       size_aerosol_species_to_print=1
@@ -277,17 +277,6 @@ program mock_monarch
     call pmc_interface%get_init_conc(species_conc, water_conc, WATER_VAPOR_ID, &
             air_density,i_W,I_E,I_S,I_N)
 
-    ! call pmc_interface%print( )
-    !do i = I_W, I_E
-    !  do j = I_S, I_N
-    !    do k = 1, NUM_VERT_CELLS
-    !      call pmc_interface%camp_core%print_state_gnuplot(&
-    !          pmc_interface%camp_state,curr_time,name_gas_species_to_print,id_gas_species_to_print&
-    !          ,name_aerosol_species_to_print,id_aerosol_species_to_print,RESULTS_FILE_UNIT)
-    !    end do
-    !  end do
-    !end do
-
     ! Run the model
     do i_time=1, NUM_TIME_STEP
 
@@ -298,9 +287,6 @@ program mock_monarch
       !call print_state_gnuplot(curr_time,pmc_interface,species_conc)
       call print_state_gnuplot(curr_time,pmc_interface, name_gas_species_to_print,id_gas_species_to_print&
               ,name_aerosol_species_to_print,id_aerosol_species_to_print,RESULTS_FILE_UNIT,n_cells_to_print_aux)
-      !call pmc_interface%camp_core%print_state_gnuplot(&
-      !pmc_interface%camp_state,curr_time,name_gas_species_to_print,id_gas_species_to_print&
-      !,name_aerosol_species_to_print,id_aerosol_species_to_print,RESULTS_FILE_UNIT,n_cells_to_print_aux)
 
       call pmc_interface%integrate(curr_time,         & ! Starting time (min)
                                    TIME_STEP,         & ! Time step (min)
@@ -383,13 +369,10 @@ program mock_monarch
     !call print_state_gnuplot(curr_time,pmc_interface,species_conc)
     call print_state_gnuplot(curr_time,pmc_interface, name_gas_species_to_print,id_gas_species_to_print&
             ,name_aerosol_species_to_print,id_aerosol_species_to_print,RESULTS_FILE_UNIT,n_cells_to_print_aux)
-    !call pmc_interface%camp_core%print_state_gnuplot(&
-    !        pmc_interface%camp_state,curr_time,name_gas_species_to_print,id_gas_species_to_print&
-    !        ,name_aerosol_species_to_print,id_aerosol_species_to_print,RESULTS_FILE_UNIT,n_cells_to_print_aux)
     call create_gnuplot_script(pmc_interface, output_file_prefix, &
             plot_start_time, curr_time)
     call create_gnuplot_persist(pmc_interface, output_file_prefix, &
-            output_file_title, plot_start_time, curr_time, n_cells_to_print_aux)
+            output_file_title, plot_start_time, curr_time, 1)!n_cells_to_print_aux
   end if
 
   close(RESULTS_FILE_UNIT)
@@ -693,7 +676,7 @@ contains
 
     n_cells=(I_E-I_W+1)*(I_N-I_S+1)*NUM_VERT_CELLS
     !select cell
-    i_cell=1
+    i_cell=3!1
 
     call assert_msg(207035921, n_cells_plot.le.n_cells, &
             "Selected more cells to plot than cells available")

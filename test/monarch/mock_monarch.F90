@@ -24,6 +24,7 @@ program mock_monarch
   !> File unit for results comparison
   integer, parameter :: COMPARE_FILE_UNIT = 9
   integer, parameter :: RESULTS_FILE_UNIT_TABLE = 10
+  integer, parameter :: RESULTS_FILE_UNIT_PY = 11
 
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   ! Parameters for mock MONARCH model !
@@ -128,7 +129,7 @@ program mock_monarch
 #endif
 
   character(len=500) :: arg
-  integer :: status_code, i_time, i_spec, i_case, i, j, k, z, n_cells_to_print_aux
+  integer :: status_code, i_time, i_spec, i_case, i, j, k, z,n_cells_plot,cell_to_print
   !> Partmc nº of cases to test
   integer :: pmc_cases = 1
   integer :: plot_case
@@ -166,8 +167,8 @@ program mock_monarch
   output_file_title = "Mock_"//trim(arg)
   output_file_prefix = "out/"//trim(arg)
 
-  !n_cells_to_print_aux = 1
-  n_cells_to_print_aux = (I_E - I_W+1)*(I_N - I_S+1)*NUM_VERT_CELLS
+  n_cells_plot = 1
+  cell_to_print = 3
 
   if(interface_input_file.eq."interface_simple.json") then
 
@@ -286,7 +287,7 @@ program mock_monarch
 
       !call print_state_gnuplot(curr_time,pmc_interface,species_conc)
       call print_state_gnuplot(curr_time,pmc_interface, name_gas_species_to_print,id_gas_species_to_print&
-              ,name_aerosol_species_to_print,id_aerosol_species_to_print,RESULTS_FILE_UNIT,n_cells_to_print_aux)
+              ,name_aerosol_species_to_print,id_aerosol_species_to_print,RESULTS_FILE_UNIT)
 
       call pmc_interface%integrate(curr_time,         & ! Starting time (min)
                                    TIME_STEP,         & ! Time step (min)
@@ -368,15 +369,16 @@ program mock_monarch
     write(*,*) "MONARCH interface tests - PASS"
     !call print_state_gnuplot(curr_time,pmc_interface,species_conc)
     call print_state_gnuplot(curr_time,pmc_interface, name_gas_species_to_print,id_gas_species_to_print&
-            ,name_aerosol_species_to_print,id_aerosol_species_to_print,RESULTS_FILE_UNIT,n_cells_to_print_aux)
+            ,name_aerosol_species_to_print,id_aerosol_species_to_print,RESULTS_FILE_UNIT)
     call create_gnuplot_script(pmc_interface, output_file_prefix, &
             plot_start_time, curr_time)
     call create_gnuplot_persist(pmc_interface, output_file_prefix, &
-            output_file_title, plot_start_time, curr_time, 1)!n_cells_to_print_aux
+            output_file_title, plot_start_time, curr_time, n_cells_plot, cell_to_print)
   end if
 
   close(RESULTS_FILE_UNIT)
   close(RESULTS_FILE_UNIT_TABLE)
+  close(RESULTS_FILE_UNIT_PY)
 
   ! Deallocation
   deallocate(camp_input_file)
@@ -417,6 +419,8 @@ contains
     open(RESULTS_FILE_UNIT, file=file_name, status="replace", action="write")
     file_name = file_prefix//"_results_table.txt"
     open(RESULTS_FILE_UNIT_TABLE, file=file_name, status="replace", action="write")
+    file_name = file_prefix//"_urban_plume_0001_gas.txt"
+    open(RESULTS_FILE_UNIT_PY, file=file_name, status="replace", action="write")
 
     ! TODO refine initial model conditions
     species_conc(:,:,:,:) = 0.0
@@ -495,16 +499,18 @@ contains
 
     integer :: z,i,j,k,r
     !real, intent(inout) :: species_conc(:,:,:,:)
-    character(len=:), allocatable :: aux_str
+    character(len=:), allocatable :: aux_str, aux_str_py
     character(len=100) :: r_str, i_str
     integer :: n_cells
     real :: curr_time
 
-    if(present(n_cells_to_print)) then
-      n_cells=n_cells_to_print
-    else
-      n_cells=n_cells
-    end if
+    !if(present(n_cells_to_print)) then
+    !  n_cells=n_cells_to_print
+    !else
+    !  n_cells=(I_E - I_W+1)*(I_N - I_S+1)*NUM_VERT_CELLS
+    !end if
+
+    n_cells=(I_E - I_W+1)*(I_N - I_S+1)*NUM_VERT_CELLS
 
     !curr_time_min=curr_time_in/60.0
     curr_time=curr_time_in
@@ -536,25 +542,32 @@ contains
       end do
     end do
 
+    aux_str_py = aux_str//" "
     aux_str = aux_str//" "//"Time"
     do i=1,n_cells
       do j=1, size(name_aerosol_species_to_print)
         write(i_str,*) i
         i_str=adjustl(i_str)
         aux_str = aux_str//" "//name_aerosol_species_to_print(j)%string//"_"//trim(i_str)
+        aux_str_py = aux_str_py//" "//name_aerosol_species_to_print(j)%string//"_"//trim(i_str)
       end do
     end do
 
     write(file_unit, "(A)", advance="no") aux_str
     write(file_unit, *) ""
+    write(RESULTS_FILE_UNIT_PY, "(A)", advance="no") aux_str_py
+    write(RESULTS_FILE_UNIT_PY, *) ""
 
     write(file_unit, "(F12.4)", advance="no") curr_time
+    write(RESULTS_FILE_UNIT_PY, "(F12.4)", advance="no") curr_time
 
     do i=I_W,I_E
       do j=I_S,I_N
         do k=1,NUM_VERT_CELLS
           do z=1, size(name_gas_species_to_print)
             write(file_unit, "(ES13.6)", advance="no") &
+                    species_conc(i,j,k,id_gas_species_to_print(z))
+            write(RESULTS_FILE_UNIT_PY, "(ES13.6)", advance="no") &
                     species_conc(i,j,k,id_gas_species_to_print(z))
           end do
         end do
@@ -569,12 +582,15 @@ contains
           do z=1, size(name_aerosol_species_to_print)
             write(file_unit, "(ES13.6)", advance="no") &
                     species_conc(i,j,k,id_aerosol_species_to_print(z))
+            write(RESULTS_FILE_UNIT_PY, "(ES13.6)", advance="no") &
+                    species_conc(i,j,k,id_aerosol_species_to_print(z))
           end do
         end do
       end do
     end do
 
     write(file_unit, *) ""
+    write(RESULTS_FILE_UNIT_PY, *) ""
 
     !todo include water_conc with species_conc
     !write(RESULTS_FILE_UNIT, *) curr_time, &
@@ -649,7 +665,7 @@ contains
 
   !> Create a gnuplot script for viewing species concentrations
   subroutine create_gnuplot_persist(pmc_interface, file_path, plot_title, &
-          start_time, end_time, n_cells_plot)
+          start_time, end_time, n_cells_plot, i_cell)
 
     !> PartMC-camp <-> MONARCH interface
     type(monarch_interface_t), intent(in) :: pmc_interface
@@ -659,7 +675,7 @@ contains
     real :: start_time
     !> Plot end time
     real :: end_time
-    integer, intent(in) :: n_cells_plot
+    integer, intent(in) :: n_cells_plot, i_cell
 
     type(string_t), allocatable :: species_names(:)
     integer(kind=i_kind), allocatable :: tracer_ids(:)
@@ -672,11 +688,9 @@ contains
     character(len=100) :: n_aerosol_species_plot_str
     character(len=100) :: aerosol_species_start_plot_str
     character(len=100) :: aerosol_species_time_plot_str
-    integer :: n_cells, i_cell
+    integer :: n_cells
 
     n_cells=(I_E-I_W+1)*(I_N-I_S+1)*NUM_VERT_CELLS
-    !select cell
-    i_cell=3!1
 
     call assert_msg(207035921, n_cells_plot.le.n_cells, &
             "Selected more cells to plot than cells available")

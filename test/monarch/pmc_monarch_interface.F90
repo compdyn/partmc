@@ -1142,7 +1142,7 @@ end if
     real :: factor_ppb_to_ppm
     real :: conc_deviation_perc
 
-    conc_deviation_perc=0.01!0.2
+    conc_deviation_perc=0.!0.2
     k_end=size(MONARCH_conc,3)
 
 #ifndef ENABLE_CB05_SOA
@@ -1178,6 +1178,7 @@ end if
             +r*state_size_per_cell) = this%init_conc(i_spec)
           end forall
 
+          !Last cell = First cell
           if(r.ne.aux) then
             do i_spec=1, size(this%map_monarch_id)
               MONARCH_conc(i,j,k,this%map_monarch_id(i_spec)) = &
@@ -1188,17 +1189,14 @@ end if
           else
             !print*,"last_cell",r
             do i_spec=1, size(this%map_monarch_id)
-            MONARCH_conc(i,j,k,this%map_monarch_id(i_spec)) = &
-                    this%camp_state%state_var(this%map_camp_id(i_spec))
+            !MONARCH_conc(i,j,k,this%map_monarch_id(i_spec)) = &
+            !        this%camp_state%state_var(this%map_camp_id(i_spec))
+              MONARCH_conc(i,j,k,this%map_monarch_id(i_spec)) = &
+                this%camp_state%state_var(this%map_camp_id(i_spec))&
+                +r*conc_deviation_perc*this%camp_state%state_var(this%map_camp_id(i_spec))
             end do
           end if
 
-          !last cell=init_cell
-          !if(r.eq.((I_E - I_W+1)*(I_N - I_S+1)*k_end-1)) then
-          !  print*,"last_cell",r
-          !  MONARCH_conc(i,j,k,this%map_monarch_id(i_spec)) = &
-          !          this%camp_state%state_var(this%map_camp_id(i_spec))
-          !end if
 
           !MONARCH_conc(i,j,k,:) = MONARCH_conc(1,1,1,:)
           this%camp_state%state_var(this%gas_phase_water_id) = &

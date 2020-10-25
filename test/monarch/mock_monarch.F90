@@ -53,7 +53,7 @@ program mock_monarch
   !> Time step (min)
   real, parameter :: TIME_STEP = 2.!1.6
   !> Number of time steps to integrate over
-  integer, parameter :: NUM_TIME_STEP = 60!720!30
+  integer, parameter :: NUM_TIME_STEP = 720!720!30
   !> Index for water vapor in water_conc()
   integer, parameter :: WATER_VAPOR_ID = 5
   !> Start time
@@ -168,7 +168,7 @@ program mock_monarch
   output_file_prefix = "out/"//trim(arg)
 
   n_cells_plot = 1
-  cell_to_print = 3
+  cell_to_print = 2
 
   if(interface_input_file.eq."interface_simple.json") then
 
@@ -242,7 +242,7 @@ program mock_monarch
 
   call model_initialize(output_file_prefix)
 
-  !Repeat in case we want create a checksum
+  !Repeat in case we want a checking
   do i_case=1, pmc_cases
 
     pmc_interface => monarch_interface_t(camp_input_file, interface_input_file, &
@@ -266,10 +266,6 @@ program mock_monarch
       end do
     end do
 
-    !do z=1, size(pmc_interface%monarch_species_names)
-    !  write(*,*) pmc_interface%monarch_species_names(z)%string
-    !end do
-
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ! **** end initialization modification **** !
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -285,7 +281,6 @@ program mock_monarch
       ! **** Add to MONARCH during runtime for each time step **** !
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-      !call print_state_gnuplot(curr_time,pmc_interface,species_conc)
       call print_state_gnuplot(curr_time,pmc_interface, name_gas_species_to_print,id_gas_species_to_print&
               ,name_aerosol_species_to_print,id_aerosol_species_to_print,RESULTS_FILE_UNIT)
 
@@ -411,16 +406,57 @@ contains
     !> File prefix for model results
     character(len=:), allocatable, intent(in) :: file_prefix
 
-    integer :: i_spec
     character(len=:), allocatable :: file_name
+    character(len=:), allocatable :: aux_str, aux_str_py
+    character(len=128) :: i_str !if len !=128 crashes (e.g len=100)
+    integer :: z,i,j,k,r,i_cell,i_spec
+    integer :: n_cells_print
 
     ! Open the output file
     file_name = file_prefix//"_results.txt"
     open(RESULTS_FILE_UNIT, file=file_name, status="replace", action="write")
     file_name = file_prefix//"_results_table.txt"
     open(RESULTS_FILE_UNIT_TABLE, file=file_name, status="replace", action="write")
-    file_name = file_prefix//"_urban_plume_0001_gas.txt"
+    file_name = file_prefix//"_urban_plume_0001.txt"
     open(RESULTS_FILE_UNIT_PY, file=file_name, status="replace", action="write")
+
+    n_cells_print=(I_E - I_W+1)*(I_N - I_S+1)*NUM_VERT_CELLS
+
+    !print Titles
+    aux_str = "Time"
+    aux_str_py = "Time Cell"
+
+    do i_cell=1,n_cells_print
+      write(i_str,*) i_cell
+      i_str=adjustl(i_str)
+      do i_spec=1, size(name_gas_species_to_print)
+        aux_str = aux_str//" "//name_gas_species_to_print(i_spec)%string//"_"//trim(i_str)
+      end do
+    end do
+
+    aux_str = aux_str//" "//"Time"
+
+    do i_cell=1,n_cells_print
+      write(i_str,*) i_cell
+      i_str=adjustl(i_str)
+      do i_spec=1, size(name_aerosol_species_to_print)
+        aux_str = aux_str//" "//name_aerosol_species_to_print(i_spec)%string//"_"//trim(i_str)
+      end do
+    end do
+
+    do i_spec=1, size(name_gas_species_to_print)
+      aux_str_py = aux_str_py//" "//name_gas_species_to_print(i_spec)%string
+    end do
+
+    do i_spec=1, size(name_aerosol_species_to_print)
+      aux_str_py = aux_str_py//" "//name_aerosol_species_to_print(i_spec)%string//"_"//trim(i_str)
+    end do
+
+    write(RESULTS_FILE_UNIT, "(A)", advance="no") aux_str
+    write(RESULTS_FILE_UNIT, *) ""
+
+    write(RESULTS_FILE_UNIT_PY, "(A)", advance="no") aux_str_py
+    write(RESULTS_FILE_UNIT_PY, '(a)') ''
 
     ! TODO refine initial model conditions
     species_conc(:,:,:,:) = 0.0
@@ -460,6 +496,8 @@ contains
 #endif
 
     deallocate(file_name)
+    deallocate(aux_str)
+    deallocate(aux_str_py)
 
     ! Read the compare file
     ! TODO Implement once results are stable
@@ -497,18 +535,11 @@ contains
     integer, intent(inout), optional :: n_cells_to_print
     integer, intent(in) :: file_unit
 
-    integer :: z,i,j,k,r
-    !real, intent(inout) :: species_conc(:,:,:,:)
+    integer :: z,i,j,k,r,i_cell
     character(len=:), allocatable :: aux_str, aux_str_py
-    character(len=100) :: r_str, i_str
+    character(len=128) :: i_cell_str, time_str
     integer :: n_cells
     real :: curr_time
-
-    !if(present(n_cells_to_print)) then
-    !  n_cells=n_cells_to_print
-    !else
-    !  n_cells=(I_E - I_W+1)*(I_N - I_S+1)*NUM_VERT_CELLS
-    !end if
 
     n_cells=(I_E - I_W+1)*(I_N - I_S+1)*NUM_VERT_CELLS
 
@@ -532,44 +563,37 @@ contains
       end do
     end do
 
-    !print Titles
-    aux_str = "Time"
-    do i=1,n_cells
-      do j=1, size(name_gas_species_to_print)
-        write(i_str,*) i
-        i_str=adjustl(i_str)
-        aux_str = aux_str//" "//name_gas_species_to_print(j)%string//"_"//trim(i_str)
-      end do
-    end do
-
-    aux_str_py = aux_str//" "
-    aux_str = aux_str//" "//"Time"
-    do i=1,n_cells
-      do j=1, size(name_aerosol_species_to_print)
-        write(i_str,*) i
-        i_str=adjustl(i_str)
-        aux_str = aux_str//" "//name_aerosol_species_to_print(j)%string//"_"//trim(i_str)
-        aux_str_py = aux_str_py//" "//name_aerosol_species_to_print(j)%string//"_"//trim(i_str)
-      end do
-    end do
-
-    write(file_unit, "(A)", advance="no") aux_str
-    write(file_unit, *) ""
-    write(RESULTS_FILE_UNIT_PY, "(A)", advance="no") aux_str_py
-    write(RESULTS_FILE_UNIT_PY, *) ""
-
     write(file_unit, "(F12.4)", advance="no") curr_time
-    write(RESULTS_FILE_UNIT_PY, "(F12.4)", advance="no") curr_time
 
     do i=I_W,I_E
       do j=I_S,I_N
         do k=1,NUM_VERT_CELLS
+
+          write(time_str,*) curr_time
+          time_str=adjustl(time_str)
+          write(RESULTS_FILE_UNIT_PY, "(A)", advance="no") trim(time_str)
+
+          !write(RESULTS_FILE_UNIT_PY, "(F12.4)", advance="no") curr_time
+          write(RESULTS_FILE_UNIT_PY, "(A)", advance="no") " "
+
+          i_cell = (k-1)*(I_E*I_N) + (j-1)*(I_E) + i
+          write(i_cell_str,*) i_cell
+          i_cell_str=adjustl(i_cell_str)
+          write(RESULTS_FILE_UNIT_PY, "(A)", advance="no") trim(i_cell_str)
+
           do z=1, size(name_gas_species_to_print)
             write(file_unit, "(ES13.6)", advance="no") &
                     species_conc(i,j,k,id_gas_species_to_print(z))
             write(RESULTS_FILE_UNIT_PY, "(ES13.6)", advance="no") &
                     species_conc(i,j,k,id_gas_species_to_print(z))
           end do
+
+          do z=1, size(name_aerosol_species_to_print)
+            write(RESULTS_FILE_UNIT_PY, "(ES13.6)", advance="no") &
+                    species_conc(i,j,k,id_aerosol_species_to_print(z))
+          end do
+
+          write(RESULTS_FILE_UNIT_PY, '(a)') ''
         end do
       end do
     end do
@@ -582,15 +606,12 @@ contains
           do z=1, size(name_aerosol_species_to_print)
             write(file_unit, "(ES13.6)", advance="no") &
                     species_conc(i,j,k,id_aerosol_species_to_print(z))
-            write(RESULTS_FILE_UNIT_PY, "(ES13.6)", advance="no") &
-                    species_conc(i,j,k,id_aerosol_species_to_print(z))
           end do
         end do
       end do
     end do
 
     write(file_unit, *) ""
-    write(RESULTS_FILE_UNIT_PY, *) ""
 
     !todo include water_conc with species_conc
     !write(RESULTS_FILE_UNIT, *) curr_time, &
@@ -693,7 +714,9 @@ contains
     n_cells=(I_E-I_W+1)*(I_N-I_S+1)*NUM_VERT_CELLS
 
     call assert_msg(207035921, n_cells_plot.le.n_cells, &
-            "Selected more cells to plot than cells available")
+            "More cells to plot than cells available")
+    call assert_msg(207035921, i_cell.le.n_cells, &
+            "Cell to plot more than cells available")
 
     ! Get the species names and ids
     call pmc_interface%get_MONARCH_species(species_names, tracer_ids)

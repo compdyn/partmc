@@ -5,7 +5,7 @@
 
 set key top left
 
-set title "Gas mixing ratios (w hydr.)"
+set title "Gas mixing ratios"
 
 set xrange [0:24]
 set xtics 3
@@ -99,12 +99,12 @@ set ylabel "gas mixing ratio / ppb"
 #     "out/urban_plume_wh_0001_gas.txt" using ($1/3600):9 axes x1y1 with lines title "N2O5"
 
 plot "out/urban_plume_nh_0001_gas.txt" using ($1/3600):9 axes x1y1 with lines title "nh N2O5", \
-     "out/urban_plume_none_0001_gas.txt" using ($1/3600):9 axes x1y1 with lines title "none N2O5", \
-     "out/urban_plume_comp_0001_gas.txt" using ($1/3600):9 axes x1y1 with lines title "comp N2O5"
+     "out/urban_plume_wh_0001_gas.txt" using ($1/3600):9 axes x1y1 with lines title "wh N2O5", \
+     "out/urban_plume_ch_0001_gas.txt" using ($1/3600):9 axes x1y1 with lines title "ch N2O5"
 
 plot "out/urban_plume_nh_0001_gas.txt" using ($1/3600):7 axes x1y1 with lines title "nh NO2", \
-     "out/urban_plume_none_0001_gas.txt" using ($1/3600):7 axes x1y1 with lines title "none NO2", \
-     "out/urban_plume_comp_0001_gas.txt" using ($1/3600):7 axes x1y1 with lines title "comp NO2"
+     "out/urban_plume_wh_0001_gas.txt" using ($1/3600):7 axes x1y1 with lines title "wh NO2", \
+     "out/urban_plume_ch_0001_gas.txt" using ($1/3600):7 axes x1y1 with lines title "ch NO2"
 
 #plot "out/urban_plume_wh_0001_gas.txt" using ($1/3600):3 axes x1y1 with lines title "HNO3", \
 #     "out/urban_plume_wh_0001_gas.txt" using ($1/3600):24 axes x1y1 with lines title "HCHO", \

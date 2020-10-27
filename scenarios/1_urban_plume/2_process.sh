@@ -9,15 +9,15 @@ set -v
 
 ../../build/urban_plume_process
 
-../../build/extract_env out/urban_plume_none_0001
-../../build/extract_gas out/urban_plume_none_0001
-../../build/extract_aero_time out/urban_plume_none_0001
-../../build/extract_aero_size --num --dmin 1e-9 --dmax 1e-5 --nbin 100 out/urban_plume_none_0001
-../../build/extract_aero_size --mass --dmin 1e-9 --dmax 1e-5 --nbin 100 out/urban_plume_none_0001
+../../build/extract_env out/urban_plume_ch_0001
+../../build/extract_gas out/urban_plume_ch_0001
+../../build/extract_aero_time out/urban_plume_ch_0001
+../../build/extract_aero_size --num --dmin 1e-9 --dmax 1e-5 --nbin 100 out/urban_plume_ch_0001
+../../build/extract_aero_size --mass --dmin 1e-9 --dmax 1e-5 --nbin 100 out/urban_plume_ch_0001
 
-../../build/extract_aero_particles out/urban_plume_none_0001_00000001.nc
-../../build/extract_aero_particles out/urban_plume_none_0001_00000006.nc
-../../build/extract_aero_particles out/urban_plume_none_0001_00000008.nc
-../../build/extract_aero_particles out/urban_plume_none_0001_00000025.nc
+../../build/extract_aero_particles out/urban_plume_ch_0001_00000001.nc
+../../build/extract_aero_particles out/urban_plume_ch_0001_00000006.nc
+../../build/extract_aero_particles out/urban_plume_ch_0001_00000008.nc
+../../build/extract_aero_particles out/urban_plume_ch_0001_00000025.nc
 
 # Now run ./3_plot.sh to plot the data

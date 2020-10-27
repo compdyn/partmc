@@ -1,5 +1,5 @@
 run_type particle               # particle-resolved run
-output_prefix out/urban_plume_test   # prefix of output files
+output_prefix out/urban_plume_ch   # prefix of output files
 n_repeat 1                      # number of Monte Carlo repeats
 n_part 1000                     # total number of particles
 restart no                      # whether to restart from saved state (yes/no)
@@ -19,7 +19,7 @@ aerosol_init aero_init_dist.dat # aerosol initial condition file
 temp_profile temp.dat           # temperature profile file
 pressure_profile pres.dat       # pressure profile file
 height_profile height.dat       # height profile file
-gas_emissions gas_emit.dat      # gas emissions file
+gas_emissions gas_emit_lownox.dat      # gas emissions file
 gas_background gas_back.dat     # background gas concentrations file
 aero_emissions aero_emit.dat    # aerosol emissions file
 aero_background aero_back.dat   # aerosol background file
@@ -36,8 +36,8 @@ do_coagulation yes              # whether to do coagulation (yes/no)
 coag_kernel brown               # coagulation kernel
 do_condensation no              # whether to do condensation (yes/no)
 do_mosaic yes                   # whether to do MOSAIC (yes/no)
-do_n2o5_hydrolysis no          # whether to do n2o5 hydrolysis (yes/no)
-#n2o5_hydrolysis none            # which n2o5 hydrolysis treatment
+do_n2o5_hydrolysis yes          # whether to do n2o5 hydrolysis (yes/no)
+n2o5_hydrolysis comp            # which n2o5 hydrolysis treatment
 do_optical yes                  # whether to compute optical props (yes/no)
 do_nucleation no                # whether to do nucleation (yes/no)
 

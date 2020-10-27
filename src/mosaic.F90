@@ -266,12 +266,9 @@ contains
     end do
 
     rk_het = 0.0d0
-    write(6,*)'before hydrolysis check ', do_n2o5_hydrolysis, n2o5_type
     if ((do_n2o5_hydrolysis) .and. (n2o5_type /= N2O5_HYDR_NONE)) then
-       write(6,*)'if hydrolysis check ', do_n2o5_hydrolysis, n2o5_type
        k_n2o5 = aero_state_n2o5_uptake(aero_state, aero_data, env_state, n2o5_type)
        rk_het(in2o5) = k_n2o5
-       write(6,*)'N2O5 k ', in2o5, rk_het(in2o5), k_n2o5
     end if
 
     ! gas chemistry: map PartMC -> MOSAIC

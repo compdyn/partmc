@@ -264,7 +264,6 @@ contains
        progress_n_dil_out = progress_n_dil_out + n_dil_out
 
        if (run_part_opt%do_mosaic) then
-          write(6,*)'before mosaic timestep ', run_part_opt%do_n2o5_hydrolysis, run_part_opt%n2o5_type
           call mosaic_timestep(env_state, aero_data, aero_state, gas_data, &
                gas_state, run_part_opt%do_n2o5_hydrolysis, run_part_opt%n2o5_type, &
                run_part_opt%do_optical)

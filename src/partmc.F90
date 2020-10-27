@@ -502,7 +502,6 @@ contains
        else
           run_part_opt%do_n2o5_hydrolysis = .false.
        end if
-       write(6,*)'in partmc after reading in  ', run_part_opt%do_n2o5_hydrolysis, run_part_opt%n2o5_type
        
        if (run_part_opt%do_mosaic) then
           call spec_file_read_logical(file, 'do_optical', &

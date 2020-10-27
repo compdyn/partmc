@@ -2967,14 +2967,9 @@ contains
 
     aero_state_n2o5_uptake = 0d0
 
-    write(6,*)'n2o5 in aero_state ', n2o5_type
-    write(6,*)'type PR ',  N2O5_HYDR_PR
-    write(6,*)'type COMP ', N2O5_HYDR_COMP
     if (n2o5_type == N2O5_HYDR_PR) then
-       write(6,*) 'type is PR '
        aero_state_hyd = aero_state
     else if (n2o5_type == N2O5_HYDR_COMP) then
-       write(6,*) 'type is COMP '
        call bin_grid_make(avg_bin_grid, BIN_GRID_TYPE_LOG, 1, 1d-30, 1d10)    
        aero_state_averaged = aero_state
        call aero_state_bin_average_comp(aero_state_averaged, avg_bin_grid, &
@@ -2984,7 +2979,6 @@ contains
        call die_msg(981734220, "unknown n2o5 type: " // trim(integer_to_string(n2o5_type)))
     endif
 
-    write(6,*)'now calculate gamma '
     surf_area_concs = aero_state_surf_area_concs(aero_state_hyd, aero_data)
     volumes = aero_state_volumes(aero_state_hyd, aero_data)
     volumes_core = aero_state_volumes(aero_state_hyd, aero_data, include=(/"SO4", &
@@ -3012,7 +3006,6 @@ contains
     end do
 
     aero_state_n2o5_uptake = 0.25d0 * c_n2o5 * gamma_n2o5
-    write(6,*) 'uptake coefficient ', aero_state_n2o5_uptake
 
   end function aero_state_n2o5_uptake
 
@@ -3028,7 +3021,6 @@ contains
     character(len=SPEC_LINE_MAX_VAR_LEN) :: n2o5_type_name
 
     call spec_file_read_string(file, 'n2o5_hydrolysis', n2o5_type_name)
-    write(6,*)'read n2o5 option ', n2o5_type_name
     
     if (n2o5_type_name == 'none') then
        n2o5_type = N2O5_HYDR_NONE
@@ -3040,7 +3032,6 @@ contains
        call spec_file_die_msg(485748351, file, "unknown n2o5 type: " &
             // trim(n2o5_type_name))
     end if
-    write(6,*)'n2o5 option ', n2o5_type
 
   end subroutine spec_file_read_n2o5_type
 

@@ -3,7 +3,7 @@ import numpy as np
 
 n_scenarios = 1000
 
-diam_range = [2e-8,1e-6]
+diam_range = [2e-9,1e-6]
 sigma_range = [1.4,2.4]
 conc_range = [1e5,1e11]
 n_modes = 3

@@ -370,6 +370,7 @@ void *solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
   if (sd->debug_out) print_data_sizes(&(sd->model_data));
 #endif
 
+  sd->model_data.counterMD=0;
 #ifndef PMC_DEBUG_GPU
   sd->counterDerivTotal=0;
   sd->counterDerivGPU=0;
@@ -600,68 +601,6 @@ int solver_set_eval_jac(void *solver_data, bool eval_Jac) {
 }
 #endif
 
-void swap_pointers_deriv_Jac(SolverData *sd){
-
-
-/*
-  N_Vector ytmp = N_VClone(sd->y);
-  N_Vector derivtmp= N_VClone(sd->deriv);
-
-  N_VDestroy(sd->y);
-  N_VDestroy(sd->deriv);
-
-  sd->y = N_VClone(sd->y2);
-  derivtmp= N_VClone(sd->deriv2);
-
-  N_VDestroy(sd->y2);
-  N_VDestroy(sd->deriv2);
-
-  sd->y2 = N_VClone(ytmp);
-  sd->deriv2= N_VClone(derivtmp);
-
-  N_VDestroy(ytmp);
-  N_VDestroy(derivtmp);
-
-
-  N_Vector ytmp;
-  double* xdata;
-  double* xdata2;
-
-  xdata = N_VGetArrayPointer(sd->y);
-  xdata2 = N_VGetArrayPointer(sd->y2);
-
-  for (int i=0; i<sd->model_data.n_per_cell_dep_var;i++)
-    xdata2[i]=xdata[i];
-
-  N_VSetArrayPointer(xdata, sd->y2);
-  N_VSetArrayPointer(xdata2, sd->y);
-
-  //todo: not working well, try to destroy
-  //printf("hola\n");
-
-*/
-  N_Vector ytmp=sd->y;
-  N_Vector derivtmp=sd->deriv;
-
-  sd->y=sd->y2;
-  sd->deriv=sd->deriv2;
-
-  sd->y2=ytmp;
-  sd->deriv2=derivtmp;
-  //todo: not working well, try to destroy
-
-  SUNMatrix Jtmp=sd->J;//todo deriv is 8 bytes size like pointer but sunmatrix?
-  SUNMatrix J_guesstmp=sd->J_guess;
-  SUNMatrix J_inittmp=sd->model_data.J_init;
-  sd->J=sd->J2;
-  sd->J_guess=sd->J_guess2;
-  sd->model_data.J_init=sd->model_data.J_init2;
-  sd->J2=Jtmp;
-  sd->J_guess2=J_guesstmp;
-  sd->model_data.J_init2=J_inittmp;
-
-}
-
 /** \brief Solve for a given timestep
  *
  * \param solver_data A pointer to the initialized solver data
@@ -781,8 +720,13 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   sd->model_data.total_state = state;
   sd->model_data.total_env = env;
 
-  //printf("After set y (deriv), iter %d ...\n", sd->counterDerivGPU);
-  //print_derivative(sd->y);
+#ifndef EXPORT_CAMP_INPUT
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  //todo: add rank number to export or something like that
+  if (sd->counterSolve==0){
+    if (rank==0) export_camp_input(sd, "../../../test/monarch/exports/camp_input.txt");
+  }
+#endif
 
 #ifdef PMC_DEBUG_GPU
 #ifdef PMC_USE_MPI
@@ -917,7 +861,10 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
       if (rank>=0)
       {
         printf("CAMP_SOLVER_FAIL %d counterSolve:%d counterDerivGPU:%d\n",flag,sd->counterSolve,sd->counterDerivGPU);
+
       }
+        //todo export SAVED input camp_state, not last from cvode
+      if (rank==0) export_camp_input(sd, "exports/camp_input.txt");
 #endif
       return CAMP_SOLVER_FAIL;
     }
@@ -2300,6 +2247,49 @@ void solver_reset_timers(void *solver_data) {
 #endif
 }
 #endif
+
+void export_camp_input(void *solver_data, char *path){
+  SolverData *sd = (SolverData *)solver_data;
+  ModelData *md = &(sd->model_data);
+  int n_cells = sd->model_data.n_cells;
+
+  //reverse csv,first column is names and next columns are the values
+  FILE *f = fopen(path, "w");
+
+  //fprintf(f, "%s", "state_var");
+  for(int i=0;i<md->n_per_cell_state_var*n_cells;i++){
+    //printf("hola %-le \n", sd->model_data.total_state[i]);
+    fprintf(f, " %-le",sd->model_data.total_state[i]);
+  }
+  fprintf(f, "\n");
+
+  int size_env=2;
+  //fprintf(f, "%s", "temperature");
+  for(int i=0;i<n_cells;i++){
+    fprintf(f, " %-le",sd->model_data.total_env[size_env*i]);
+  }
+  fprintf(f, "\n");
+
+  //fprintf(f, "%s", "pressure");
+  for(int i=0;i<n_cells;i++){
+    fprintf(f, " %-le",sd->model_data.total_env[1+size_env*i]);
+  }
+  fprintf(f, "\n");
+
+/*
+ * todo photolysis
+  fprintf(f, "%s", "photo_rates");
+  for(int i=0;i<size_photo_rates;i++){
+    fprintf(f, " %-le",photo_rates[i]);
+  }
+  fprintf(f, "\n");
+
+*/
+
+  rxn_export_input(sd, f);
+
+  fclose(f);
+}
 
 /** \brief Print solver statistics
  *

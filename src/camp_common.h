@@ -14,6 +14,8 @@
 #include <time.h>
 #include "Jacobian.h"
 #include "time_derivative.h"
+#include <stdio.h>
+#include <stdlib.h>
 
 /* SUNDIALS Header files with a description of contents used */
 #ifdef PMC_USE_SUNDIALS
@@ -179,6 +181,7 @@ typedef struct {
                                  // for the current grid cell
   int n_sub_model_env_data;      // Number of sub model environmental parameters
                                  // from all sub models
+  int counterMD;
 } ModelData;
 
 /* Solver data structure */

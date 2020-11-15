@@ -34,7 +34,8 @@ program pmc_test_cb05cl_ae5
 #endif
   use pmc_netcdf
 
-#define PMC_MONARCH_INPUT
+!todo hide PMC_MONARCH_INPUT until N2 and other init concs can be obtained... (otherwise the results will be always different)
+!#define PMC_MONARCH_INPUT
 
   ! EBI Solver
   use module_bsc_chem_data
@@ -498,10 +499,9 @@ contains
 
     ! Set the photolysis rates (dummy values for solver comparison)
     is_sunny = .true.
-    allocate(photo_rates(NUM_EBI_PHOTO_RXN))
+    allocate(photo_rates(n_photo_rxn))
 #ifdef PMC_MONARCH_INPUT
-    allocate(new_rates(NUM_EBI_PHOTO_RXN))
-#endif
+    allocate(new_rates(n_photo_rxn))
 
     !v48
     !new_rates = (/0.550871,3.0273698E-2,2.5476560E-3,12.23329,1.575956,0.120056,&
@@ -509,26 +509,24 @@ contains
     !        3.3178381E-4,1.8682621E-3,2.8112135E-3,3.3792580E-4,5.1333202E-5,&
     !        1.6838829E-5,29445188E-3,5.0825302E-2,10457919E-4,0.0,0.0,0.0/)
 
-    !v9 wrong
+    !v9 wrong (from ebi)
     !new_rates = (/0.8685482,3.6514506E-02,4.0941574E-03,13.91660,1.792809,&
     !0.1908291,6.7898177E-04,5.7340757E-04,5.6609770E-05,2.2438637E-03,&
     !1.6916823E-04,6.2022154E-04,3.8634937E-03,5.5694710E-03,7.1730785E-04,&
     !4.1930823E-05,3.3923301E-05,5.8016707E-03,6.8607539E-02,1.7641661E-04,&
     !0.0000000E+00,0.0000000E+00,0.0000000E+00/)
 
-    !v9 good
-    !new_rates = (/0.8685482,3.6514506E-02,4.0941574E-03,13.91660,1.792809,&
-    !        0.1908291,6.7898177E-04,5.7340757E-04,5.6609770E-05,2.2438637E-03,&
-    !        1.6916823E-04,6.2022154E-04,6.2022154E-04,3.8634937E-03,5.5694710E-03,&
-    !        7.1730785E-04,4.1930823E-05,3.3923301E-05,5.8016707E-03,4.1930823E-05,&
-    !        3.8634937E-03,6.8607539E-02,1.7641661E-04/)
+    !v9 good (from camp)
+    new_rates = (/0.8685482,3.6514506E-02,4.0941574E-03,13.91660,1.792809,&
+            0.1908291,6.7898177E-04,5.7340757E-04,5.6609770E-05,2.2438637E-03,&
+            1.6916823E-04,6.2022154E-04,6.2022154E-04,3.8634937E-03,5.5694710E-03,&
+            7.1730785E-04,4.1930823E-05,3.3923301E-05,5.8016707E-03,4.1930823E-05,&
+            3.8634937E-03,6.8607539E-02,1.7641661E-04/)
 
-#ifdef PMC_MONARCH_INPUT
     photo_rates(:) = 0.0
     !photo_rates(:) = new_rates(:)
     KPP_PHOTO_RATES(:) = photo_rates(:)/60
 #else
-    !todo: set photo_rates to 0 for night and X for day
     photo_rates(:) = 0.0001 * 60.0 ! EBI solver wants rates in min^-1
     KPP_PHOTO_RATES(:) = 0.0001
     !KPP_PHOTO_RATES(:) = 0.0
@@ -560,7 +558,8 @@ contains
 #ifdef PMC_MONARCH_INPUT
         call rate_update(i_photo_rxn)%set_rate(real(photo_rates(i_photo_rxn)/60, kind=dp))
 #else
-        call rate_update(i_photo_rxn)%set_rate(real(0.1, kind=dp))
+        !print*,i_photo_rxn, photo_rates(i_photo_rxn)/60
+        call rate_update(i_photo_rxn)%set_rate(real(photo_rates(i_photo_rxn)/60, kind=dp))
 #endif
         call camp_core%update_data(rate_update(i_photo_rxn))
       end do
@@ -597,7 +596,7 @@ contains
 #ifdef PMC_MONARCH_INPUT
     write(*,*) "size(camp_state%state_var)",size(camp_state%state_var), "state_size_cell", state_size_cell
 
-    rank_monarch=411
+    rank_monarch=0!411
     aux_str1="../../../../test/chemistry/cb05cl_ae5/files/ebi_input"
     write(aux_str2,*) rank_monarch
     aux_str2=adjustl(aux_str2)
@@ -794,7 +793,7 @@ contains
       model_conc(i_cell*state_size_cell+i_O2)=camp_state%state_var(i_O2)
       model_conc(i_cell*state_size_cell+i_N2)=camp_state%state_var(i_N2)
       !model_conc(i_cell*state_size_cell+i_H2O)=camp_state%state_var(i_H2O)
-      model_conc(i_cell*state_size_cell+i_CH4)=camp_state%state_var(i_CH4) !interesting, when setting wrong conc like i_h20 it takes soo long
+      model_conc(i_cell*state_size_cell+i_CH4)=camp_state%state_var(i_CH4)
       model_conc(i_cell*state_size_cell+i_H2)=camp_state%state_var(i_H2)
     end do
 #endif

@@ -283,6 +283,9 @@ void rxn_photolysis_update_env_state(ModelData *model_data, int *rxn_int_data,
                                      double *rxn_env_data);
 bool rxn_photolysis_update_data(void *update_data, int *rxn_int_data,
                                 double *rxn_float_data, double *rxn_env_data);
+void rxn_photolysis_export_input(ModelData *model_data, int *rxn_int_data,
+                                     double *rxn_float_data,
+                                     double *rxn_env_data, FILE *f);
 void rxn_photolysis_print(int *rxn_int_data, double *rxn_float_data);
 #ifdef PMC_USE_SUNDIALS
 

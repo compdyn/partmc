@@ -536,6 +536,7 @@ contains
             !      ,water_conc(i,j,k_flip,water_vapor_index),air_density(i,j,k)
             !stop
 #ifndef ENABLE_CB05_SOA
+              !todo take into account emissions for import_camp_input
               !Add emissions
               this%camp_state%state_var(chem_spec_data%gas_state_id("SO2"))=this%camp_state%state_var(chem_spec_data%gas_state_id("SO2"))+SO2_emi(i_hour)*rate_emi(i_hour)*conv
               this%camp_state%state_var(chem_spec_data%gas_state_id("NO2"))=this%camp_state%state_var(chem_spec_data%gas_state_id("NO2"))+NO2_emi(i_hour)*rate_emi(i_hour)*conv
@@ -688,10 +689,10 @@ contains
             o = (j-1)*(i_end) + (i-1) !Index to 3D
             z = (k-1)*(i_end*j_end) + o !Index for 2D
 
+            !todo remove k_flip to reduce possible bugs
             k_flip = size(MONARCH_conc,3) - k + 1
             MONARCH_conc(i,j,k_flip,this%map_monarch_id(:)) = &
-                    this%camp_state%state_var(this%map_camp_id(:) + &
-                                               (z*state_size_per_cell))
+                    this%camp_state%state_var(this%map_camp_id(:)+(z*state_size_per_cell))
             !print*, "camp_state", this%camp_state%state_var(this%map_camp_id(:)+(z*state_size_per_cell))
           end do
         end do
@@ -1157,7 +1158,7 @@ end if
     MONARCH_conc(:,:,:,:) = 0.0
     !MONARCH_water_conc(:,:,:,WATER_VAPOR_ID) = 0.0
 
-    print*,'MONARCH air denisty: ',MONARCH_air_density(1,1,1)
+    print*,'MONARCH air density: ',MONARCH_air_density(1,1,1)
 
     ! Set initial concentrations in PMC
     this%init_conc(:) = this%init_conc(:) * factor_ppb_to_ppm

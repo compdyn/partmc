@@ -25,6 +25,7 @@ program mock_monarch
   integer, parameter :: COMPARE_FILE_UNIT = 9
   integer, parameter :: RESULTS_FILE_UNIT_TABLE = 10
   integer, parameter :: RESULTS_FILE_UNIT_PY = 11
+  integer, parameter :: IMPORT_FILE_UNIT = 12
 
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   ! Parameters for mock MONARCH model !
@@ -41,7 +42,7 @@ program mock_monarch
   !> Starting S-N cell for camp-chem call
   integer, parameter :: I_S = 1
   !> Ending S-N cell for camp-chem call
-  integer, parameter :: I_N = 3
+  integer, parameter :: I_N = 1
   !> Number of W-E cells in mock MONARCH
   integer, parameter :: NUM_WE_CELLS = I_E-I_W+1
   !> Number of S-N cells in mock MONARCH
@@ -168,7 +169,7 @@ program mock_monarch
   output_file_prefix = "out/"//trim(arg)
 
   n_cells_plot = 1
-  cell_to_print = 2
+  cell_to_print = 1
 
   if(interface_input_file.eq."interface_simple.json") then
 
@@ -273,6 +274,10 @@ program mock_monarch
     ! Set conc from mock_model
     call pmc_interface%get_init_conc(species_conc, water_conc, WATER_VAPOR_ID, &
             air_density,i_W,I_E,I_S,I_N)
+
+#ifndef IMPORT_CAMP_INPUT
+    call import_camp_input(pmc_interface)
+#endif
 
     ! Run the model
     do i_time=1, NUM_TIME_STEP
@@ -471,6 +476,7 @@ contains
     conv=0.02897/air_density(1,1,1)*(TIME_STEP*60.)*1e6/height !units of time_step to seconds
 !    conv=0.02897/air_density(1,1,1)*(TIME_STEP)*1e6/height !units of time_step to seconds
 #else
+
     temperature(:,:,:) = 300.614166259766
     pressure(:,:,:) = 94165.7187500000
     air_density(:,:,:) = 1.225
@@ -521,6 +527,58 @@ contains
   end subroutine read_comp_file
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine import_camp_input(pmc_interface)
+
+    type(monarch_interface_t), intent(inout) :: pmc_interface
+    integer :: z,i,j,k,r,o,i_cell,i_spec,i_photo_rxn
+    integer :: state_size_per_cell
+
+    state_size_per_cell = pmc_interface%camp_core%state_size_per_cell()
+
+    open(IMPORT_FILE_UNIT, file="exports/camp_input.txt", status="old")!action="read"
+
+    !print*,species_conc(:,:,:,:)
+
+    write(*,*) "Importing concentrations"
+
+    read(IMPORT_FILE_UNIT,*) (pmc_interface%camp_state%state_var(&
+            i),i=1,size(pmc_interface%camp_state%state_var))
+
+    do i=I_W,I_E
+      do j=I_S,I_N
+        do k=1,NUM_VERT_CELLS
+          o = (j-1)*(I_E) + (i-1) !Index to 3D
+          z = (k-1)*(I_E*I_N) + o !Index for 2D
+
+          species_conc(i,j,k,pmc_interface%map_monarch_id(:)) = &
+                  pmc_interface%camp_state%state_var(pmc_interface%map_camp_id(:)+(z*state_size_per_cell))
+        end do
+      end do
+    end do
+
+    !print*,species_conc(:,:,:,:)
+
+    write(*,*) "Importing temperatures and pressures"
+
+    read(IMPORT_FILE_UNIT,*) ( ( (temperature(i,j,k), k=1,NUM_VERT_CELLS ), j=1,NUM_SN_CELLS),&
+            i=1,NUM_WE_CELLS )
+    read(IMPORT_FILE_UNIT,*) ( ( (pressure(i,j,k), k=1,NUM_VERT_CELLS ), j=1,NUM_SN_CELLS),&
+            i=1,NUM_WE_CELLS )
+
+    write(*,*) "Importing photolysis rates"
+
+    read(IMPORT_FILE_UNIT,*) (pmc_interface%base_rates(&
+            i),i=1,pmc_interface%n_photo_rxn)
+
+    do i_photo_rxn = 1, pmc_interface%n_photo_rxn
+      call pmc_interface%photo_rxns(i_photo_rxn)%set_rate(real(pmc_interface%base_rates(i_photo_rxn), kind=dp))
+      call pmc_interface%camp_core%update_data(pmc_interface%photo_rxns(i_photo_rxn))
+    end do
+
+    close(IMPORT_FILE_UNIT)
+
+  end subroutine import_camp_input
 
   !> Output the model results
   !subroutine print_state_gnuplot(curr_time,pmc_interface,species_conc)

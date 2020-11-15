@@ -186,16 +186,6 @@ void rxn_update_ids(ModelData *model_data, int *deriv_ids, int **jac_ids) {
 void rxn_update_env_state(ModelData *model_data) {
   // Get the number of reactions
   int n_rxn = model_data->n_rxn;
-/*
-#ifdef PMC_USE_MPI
-  int rank;
-  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  if (rank==10) {
-    //printf("RXN id,type,\n");
-    //printf("Rates Arrhenius:\n");
-  }
-#endif
-*/
 
   // Loop through the reactions advancing the rxn_data pointer each time
   for (int i_rxn = 0; i_rxn < n_rxn; i_rxn++) {
@@ -209,17 +199,6 @@ void rxn_update_env_state(ModelData *model_data) {
 
     // Get the reaction type
     int rxn_type = *(rxn_int_data++);
-
-/*
-#ifdef PMC_USE_MPI
-
-  int rank;
-  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  if (rank==10) {
-   // printf("%d,%d", i_rxn, rxn_type);
-    }
-#endif
-*/
 
     // Call the appropriate function
     switch (rxn_type) {
@@ -779,6 +758,40 @@ void rxn_update_data(int cell_id, int *rxn_id, int update_rxn_type,
       if (found) return;
     }
   }
+}
+
+void rxn_export_input(void *solver_data, FILE *f){
+  SolverData *sd = (SolverData *)solver_data;
+  ModelData *model_data = &(sd->model_data);
+  int n_rxn = model_data->n_rxn;
+
+  // Loop through the reactions advancing the rxn_data pointer each time
+  for (int i_rxn = 0; i_rxn < n_rxn; i_rxn++) {
+    // Get pointers to the reaction data
+    int *rxn_int_data =
+            &(model_data->rxn_int_data[model_data->rxn_int_indices[i_rxn]]);
+    double *rxn_float_data =
+            &(model_data->rxn_float_data[model_data->rxn_float_indices[i_rxn]]);
+    double *rxn_env_data =
+            &(model_data->grid_cell_rxn_env_data[model_data->rxn_env_idx[i_rxn]]);
+
+    // Get the reaction type
+    int rxn_type = *(rxn_int_data++);
+
+    for (int i_cell = 0; i_cell < model_data->n_cells; i_cell++) {
+
+      // Call the appropriate function
+      switch (rxn_type) {
+        case RXN_PHOTOLYSIS:
+          rxn_photolysis_export_input(model_data, rxn_int_data,
+                                            rxn_float_data, rxn_env_data, f);
+          break;
+      }
+    }
+  }
+
+  fprintf(f, "\n");
+
 }
 
 /** \brief Print the reaction data

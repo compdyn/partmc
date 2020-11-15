@@ -153,20 +153,31 @@ contains
     !> Photolysis calculator
     class(photolysis_t), intent(in) :: this
     !> MPI communicator
-    integer, intent(in) :: comm
+    integer, intent(in), optional :: comm
 
-    integer(kind=i_kind) :: i_rxn
+    integer(kind=i_kind) :: i_rxn, l_comm
+
+#ifdef PMC_USE_MPI
+    if (present(comm)) then
+      l_comm = comm
+    else
+      l_comm = MPI_COMM_WORLD
+    endif
 
     call assert(127027009, allocated(this%base_rates))
     call assert(634138948, allocated(this%photo_rxns))
 
     pack_size = &
-      pmc_mpi_pack_size_real_array(this%base_rates, comm) + &
-      pmc_mpi_pack_size_integer(size(this%photo_rxns), comm)
+      pmc_mpi_pack_size_real_array(this%base_rates, l_comm) + &
+      pmc_mpi_pack_size_integer(size(this%photo_rxns), l_comm)
 
+    !todo mpi
     do i_rxn = 1, size(this%photo_rxns)
       pack_size = pack_size + this%photo_rxns(i_rxn)%pack_size(comm)
     end do
+
+#endif
+
 
   end function pack_size
 
@@ -184,21 +195,29 @@ contains
     !> Current buffer position
     integer, intent(inout) :: pos
     !> MPI communicator
-    integer, intent(in) :: comm
+    integer, intent(in), optional :: comm
+
+    integer(kind=i_kind) :: i_rxn, l_comm
 
 #ifdef PMC_USE_MPI
     integer :: prev_position
 
-    call assert(971093983, allocated(this%base_rates, comm))
-    call assert(913255424, allocated(this%photo_rxns, comm))
+    if (present(comm)) then
+      l_comm = comm
+    else
+      l_comm = MPI_COMM_WORLD
+    endif
+
+    call assert(971093983, allocated(this%base_rates))
+    call assert(913255424, allocated(this%photo_rxns))
 
     prev_position = pos
-    call pmc_mpi_pack_real_array(buffer, pos, this%base_rates, comm)
-    call pmc_mpi_pack_integer(buffer, pos, size(this%photo_rxns), comm)
-    do i_rxn, size(this%photo_rxns)
-      call this%photo_rxns(i_rxn)%bin_pack(comm)
+    call pmc_mpi_pack_real_array(buffer, pos, this%base_rates, l_comm)
+    call pmc_mpi_pack_integer(buffer, pos, size(this%photo_rxns), l_comm)
+    do i_rxn = 1, size(this%photo_rxns)
+      !call this%photo_rxns(i_rxn)%bin_pack(l_comm) !todo fix
     end do
-    call assert(234533342, pos - prev_position <= this%pack_size(comm))
+    call assert(234533342, pos - prev_position <= this%pack_size(l_comm))
 #endif
 
   end subroutine bin_pack
@@ -217,19 +236,26 @@ contains
     !> Current buffer position
     integer, intent(inout) :: pos
     !> MPI communicator
-    integer, intent(in) :: comm
+    integer, intent(in), optional :: comm
+
+    integer(kind=i_kind) :: i_rxn, l_comm
 
 #ifdef PMC_USE_MPI
     integer :: prev_position, n_rxns
+    if (present(comm)) then
+      l_comm = comm
+    else
+      l_comm = MPI_COMM_WORLD
+    endif
 
     prev_position = pos
-    call pmc_mpi_unpack_real_array(buffer, pos, this%base_rates, comm)
-    call pmc_mpi_unpack_integer(buffer, pos, n_rxns, comm)
+    call pmc_mpi_unpack_real_array(buffer, pos, this%base_rates, l_comm)
+    call pmc_mpi_unpack_integer(buffer, pos, n_rxns, l_comm)
     allocate(this%photo_rxns(n_rxns))
-    do i_rxn, size(this%photo_rxns)
-      call this%photo_rxns(i_rxn)%bin_unpack(comm)
+    do i_rxn = 1, size(this%photo_rxns)
+      !call this%photo_rxns(i_rxn)%bin_unpack(l_comm) !todo fix
     end do
-    call assert(391255154, pos - prev_position <= this%unpack_size(comm))
+    !call assert(391255154, pos - prev_position <= this%unpack_size(l_comm))
 #endif
 
   end subroutine bin_unpack

@@ -20,9 +20,25 @@ n_bin = 20
 bin_edges_diam = np.logspace(-9,np.log10(5e-5),n_bin+1)
 np.set_printoptions(precision=3)
 print(bin_edges_diam)
+
+filename_out = "aero_init_dist_template_%02i.dat" % n_modes
+f_out = open(filename_out, 'w')
+# We can just automate the template for now
+for i_mode in range(1,n_modes+1):
+    f_out.write('mode_name mode_%i\n' %(i_mode))
+    f_out.write('mass_frac aero_init_comp.dat\n')
+    f_out.write('diam_type geometric\n')
+    f_out.write('mode_type log_normal\n')
+    f_out.write('num_conc NUM_CONC_%i\n' %(i_mode))
+    f_out.write('geom_mean_diam GEOM_MEAN_DIAM_%i\n' %(i_mode))
+    f_out.write('log10_geom_std_dev LOG10_GEO_STD_DEV_%i\n' %(i_mode))
+    f_out.write('\n')
+f_out.close()
+
 for counter in range(n_scenarios):
     print("counter: %d" % counter)
-    filename_in = "aero_init_dist_template.dat"
+    # Specify a template or use the default generated one
+    filename_in = "aero_init_dist_template_%02i.dat" % n_modes
     directory = "./inputs/scenario_%04i" % counter
     if not os.path.exists(directory):
         os.makedirs(directory)
@@ -30,8 +46,8 @@ for counter in range(n_scenarios):
     print("filename_out: %s" % filename_out)
     f_in = open(filename_in, 'r')
     f_out = open(filename_out, 'w')
-    d_min = np.zeros(3)
-    d_max = np.zeros(3)
+    d_min = np.zeros(n_modes)
+    d_max = np.zeros(n_modes)
     for line in f_in:
         for i_mode in range(n_modes):
             line = line.replace('NUM_CONC_%1i' % (i_mode+1), 
@@ -49,24 +65,30 @@ for counter in range(n_scenarios):
 
     f_in.close()
     f_out.close()
+
     # Make the distribution of emissions
     filename_in = "aero_emit_size_dist_template.dat"
     filename_out = "%s/aero_emit_size_dist.dat" % (directory)
     f_in = open(filename_in, 'r')
     f_out = open(filename_out, 'w')
     number_conc = np.zeros(n_bin)
-    # These simulations have uniform emissions
-    if (np.random.random() < 2.0/3.0):
-       n_i = np.sum(values[counter,6:]) * 1e-2
+    # These simulations have uniform emissions for entire size range
+    if (np.random.random() < .5):
+       n_i = np.sum(values[counter,2*n_modes:]) * 1e-2
        for i_bin in range(n_bin):
            number_conc[i_bin] = n_i / n_bin
-    # These simulations have emissions for modes present
+    # These simulations have emissions for initial modes present
     else:
+        # Optional parameter to also include all bins smaller than present
+       include_smaller = True
        all_bins = np.zeros(20)
        for i_mode in range(n_modes):
           all_bins[np.where(((bin_edges_diam > d_min[i_mode]) &  \
                             (bin_edges_diam < d_max[i_mode])))] += 1
-       n_i = np.sum(values[counter,6:]) * 1e-2
+       n_i = np.sum(values[counter,2*n_modes:]) * 1e-2
+       if (include_smaller):
+           first_ind = (all_bins!=0).argmax(axis=0)
+           all_bins[0:first_ind] += 1
        for i_bin in range(n_bin):
            if (all_bins[i_bin] > 0):
                number_conc[i_bin] = n_i / len(np.where(all_bins > 0))

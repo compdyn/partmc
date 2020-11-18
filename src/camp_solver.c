@@ -16,6 +16,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
 #include "aero_rep_solver.h"
 #include "rxn_solver.h"
@@ -375,6 +376,8 @@ void *solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
   sd->counterDerivTotal=0;
   sd->counterDerivGPU=0;
   sd->counterJacGPU=0;
+  sd->counterSolve=0;
+  sd->counterFail=0;
   sd->timeCVode=0.0;
   sd->timeCVodeTotal=0.0;
   sd->timeF=0.0;
@@ -665,23 +668,10 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
     //  for (int i=0; i<2;i++)//n_cells
     //    printf("%-le, %-le\n", env[0+2*i], env[1+2*i]);
 
-/*
-    int n_cell=2;
-    printf("camp solver_run start [(id),conc], n_state_var %d, n_cells %d\n", md->n_per_cell_state_var, n_cells);
-
-    for (int i = 0; i < n_cell; i++) {
-      printf("cell %d \n", i);
-      for (int j = 0; j < md->n_per_cell_state_var; j++) {
-          printf("(%d) %-le ",j+1, state[j+i*md->n_per_cell_state_var]);
-        }
-      printf("\n");
-    }
-*/
-
 #ifndef PMC_DEBUG_GPU
 #ifdef PMC_USE_MPI
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  if (rank==411 || rank==999)
+  if (rank==18 || rank==999)
   {
     if (sd->counterSolve==0)
     {
@@ -721,17 +711,18 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   sd->model_data.total_env = env;
 
 #ifndef EXPORT_CAMP_INPUT
-  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  //todo: add rank number to export or something like that
-  if (sd->counterSolve==0){
-    if (rank==0) export_camp_input(sd, "../../../test/monarch/exports/camp_input.txt");
+  //Save initial state
+  double init_state[md->n_per_cell_state_var*n_cells];
+  if (sd->counterSolve==0)
+  for(int i=0;i<md->n_per_cell_state_var*n_cells;i++){
+    init_state[i]=state[i];
   }
 #endif
 
-#ifdef PMC_DEBUG_GPU
+#ifndef PMC_DEBUG_GPU
 #ifdef PMC_USE_MPI
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  if (rank==411 || rank==999)
+  if (rank==18 || rank==999)
   {
     if (sd->counterSolve==0)
       {
@@ -836,8 +827,8 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
       MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #endif
       if (flag != 0)
-        printf("\nCall to f() at failed state failed with flag %d, rank %d \n", flag, rank);
-      /*for (int i_cell = 0; i_cell < md->n_cells; ++i_cell) {
+        /*printf("\nCall to f() at failed state failed with flag %d, rank %d \n", flag, rank);
+      for (int i_cell = 0; i_cell < md->n_cells; ++i_cell) {
         printf("\n Cell: %d ", i_cell);
         printf("temp = %le pressure = %le\n", env[i_cell * PMC_NUM_ENV_PARAM_],
                env[i_cell * PMC_NUM_ENV_PARAM_ + 1]);
@@ -853,18 +844,22 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
             printf("spec %d = %le\n", i_spec,
                    state[i_cell * md->n_per_cell_state_var + i_spec]);
           }
-      }*/
-      solver_print_stats(sd->cvode_mem);
+      }
+      //solver_print_stats(sd->cvode_mem);*/
 #endif
 #ifdef PMC_USE_MPI
       MPI_Comm_rank(MPI_COMM_WORLD, &rank);
       if (rank>=0)
       {
-        printf("CAMP_SOLVER_FAIL %d counterSolve:%d counterDerivGPU:%d\n",flag,sd->counterSolve,sd->counterDerivGPU);
-
+        //printf("CAMP_SOLVER_FAIL %d counterSolve:%d counterDerivGPU:%d rank:%d\n",flag,sd->counterSolve,sd->counterDerivGPU,rank);
       }
+#ifndef EXPORT_CAMP_INPUT
         //todo export SAVED input camp_state, not last from cvode
-      if (rank==0) export_camp_input(sd, "exports/camp_input.txt");
+      if (sd->counterFail==0) //if(rank==154)
+       //export_camp_input(sd, init_state, "");
+#endif
+
+      sd->counterFail++;
 #endif
       return CAMP_SOLVER_FAIL;
     }
@@ -873,26 +868,6 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
 #ifndef PMC_DEBUG_GPU
   sd->timeCVode = (clock() - start2);
 #endif
-
-    //printf("Deriv after cvode, iter %d...\n", sd->counterDerivGPU);
-    //print_derivative(sd->y);
-
-/*
-#ifdef PMC_DEBUG_GPU
-#ifdef PMC_USE_MPI
-  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  if (rank>=0)
-  {
-    if (sd->counterSolve>=0)
-      {
-        //printf("Deriv after cvode, iter %d...\n", sd->counterDerivGPU);
-        //print_derivative(sd->y);
-      }
-    //printf("counterDerivGPU:%d\n", sd->counterDerivGPU);
-  }
-#endif
-#endif
-*/
 
   // Update the species concentrations on the state array
   i_dep_var = 0;
@@ -934,12 +909,12 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
       }
       printf("\n");
       printf("env [temp, press]\n%-le, %-le\n", env[0], env[1]);
-*/
+
       printf("Rank %d counterSolve %d counterDeriv %d counterDerivTotal %d timeCVode %lf timeCVodeTotal %lf"
              " %%timeF/CVodeTotal %lf \n",rank,sd->counterSolve
              ,sd->counterDerivGPU, sd->counterDerivTotal,sd->timeCVode/CLOCKS_PER_SEC,sd->timeCVodeTotal/CLOCKS_PER_SEC
              ,(sd->timeF/CLOCKS_PER_SEC)/(sd->timeCVodeTotal/CLOCKS_PER_SEC)*100);
-
+*/
     }
 
     sd->counterDerivGPU=0;
@@ -949,9 +924,6 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   }
 #endif
 
-    sd->counterDerivGPU=0;
-    sd->counterJacGPU=0;
-    sd->counterSolve++;
 
   // Re-run the pre-derivative calculations to update equilibrium species
   // and apply adjustments to final state
@@ -2193,15 +2165,18 @@ SUNMatrix get_jac_init(SolverData *solver_data) {
  */
 int check_flag(void *flag_value, char *func_name, int opt) {
   int *err_flag;
-  int rank=0;
+  int rank=999;
 #ifdef PMC_USE_MPI
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #endif
 
   /* Check for a NULL pointer */
   if (opt == 0 && flag_value == NULL) {
-    fprintf(stderr, "\nSUNDIALS_ERROR: %s() failed - returned NULL pointer\n\n",
-            func_name);
+
+    if (rank==0){
+      fprintf(stderr, "\nSUNDIALS_ERROR: %s() failed - returned NULL pointer\n\n",
+              func_name);
+    }
     return CAMP_SOLVER_FAIL;
   }
 
@@ -2209,8 +2184,10 @@ int check_flag(void *flag_value, char *func_name, int opt) {
   else if (opt == 1) {
     err_flag = (int *)flag_value;
     if (*err_flag < 0) {
-      fprintf(stderr, "\nSUNDIALS_ERROR: %s() failed with flag = %d, rank %d\n\n",
-              func_name, *err_flag, rank);
+      if (rank==0){
+        fprintf(stderr, "\nSUNDIALS_ERROR: %s() failed with flag = %d, rank %d\n\n",
+               func_name, *err_flag, rank);
+      }
       return CAMP_SOLVER_FAIL;
     }
   }
@@ -2248,18 +2225,49 @@ void solver_reset_timers(void *solver_data) {
 }
 #endif
 
-void export_camp_input(void *solver_data, char *path){
+void export_camp_input(void *solver_data, double *init_state, char *in_path){
   SolverData *sd = (SolverData *)solver_data;
   ModelData *md = &(sd->model_data);
   int n_cells = sd->model_data.n_cells;
 
-  //reverse csv,first column is names and next columns are the values
+#ifdef PMC_USE_MPI
+
+  //char rel_path[] = "../../../test/monarch/exports/camp_input"; //path for mock_monarch test
+  char rel_path[] = "/gpfs/scratch/bsc32/bsc32815/a2s8/nmmb-monarch/MODEL/SRC_LIBS/partmc/test/monarch/exports/camp_input"; //monarch
+
+  int rank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  int size;
+  MPI_Comm_size(MPI_COMM_WORLD, &size);
+  char mpi_path[1024];
+  char rank_str[64];
+
+  printf("Exporting camp input rank %d counterFail %d counterSolve %d\n", rank, sd->counterFail, sd->counterSolve);
+
+  sprintf(rank_str, "%d", rank);
+
+  //earch rank->different file name
+  strcpy(mpi_path, rel_path);
+  strcat(mpi_path, "_");
+  strcat(mpi_path, rank_str);
+  strcat(mpi_path, ".txt");
+
+  FILE *f = fopen(mpi_path, "w");
+  //printf("\nrank %d\n", rank);
+
+#else
+
   FILE *f = fopen(path, "w");
+ // char path[] = "../../../test/monarch/exports/camp_input.txt";
+  char path[] = "exports/camp_input.txt";
+
+#endif
+
+  //reverse csv,first column is names and next columns are the values
 
   //fprintf(f, "%s", "state_var");
   for(int i=0;i<md->n_per_cell_state_var*n_cells;i++){
-    //printf("hola %-le \n", sd->model_data.total_state[i]);
-    fprintf(f, " %-le",sd->model_data.total_state[i]);
+    fprintf(f, " %-le", init_state[i]);
   }
   fprintf(f, "\n");
 
@@ -2276,19 +2284,15 @@ void export_camp_input(void *solver_data, char *path){
   }
   fprintf(f, "\n");
 
-/*
- * todo photolysis
-  fprintf(f, "%s", "photo_rates");
-  for(int i=0;i<size_photo_rates;i++){
-    fprintf(f, " %-le",photo_rates[i]);
-  }
-  fprintf(f, "\n");
-
-*/
-
+  //photolysis
   rxn_export_input(sd, f);
 
+  //printf("\nrank %d\n", rank);
+
   fclose(f);
+
+  //optional: add extra info on a separate txt (counterfail, rank, test...)
+
 }
 
 /** \brief Print solver statistics

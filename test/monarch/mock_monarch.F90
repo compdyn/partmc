@@ -52,9 +52,9 @@ program mock_monarch
   !> Ending index for camp-chem species in tracer array
   integer, parameter :: END_CAMP_ID = 210!350
   !> Time step (min)
-  real, parameter :: TIME_STEP = 2.!1.6
+  real, parameter :: TIME_STEP = 3.!2. !3. = monarch dt
   !> Number of time steps to integrate over
-  integer, parameter :: NUM_TIME_STEP = 720!720!30
+  integer, parameter :: NUM_TIME_STEP = 1!720!30
   !> Index for water vapor in water_conc()
   integer, parameter :: WATER_VAPOR_ID = 5
   !> Start time
@@ -124,7 +124,7 @@ program mock_monarch
   integer(kind=i_kind) :: size_gas_species_to_print, size_aerosol_species_to_print
 
   ! MPI
-#ifdef PMC_USE_MPI
+#ifndef PMC_USE_MPI
   character, allocatable :: buffer(:)
   integer(kind=i_kind) :: pos, pack_size
 #endif
@@ -467,7 +467,7 @@ contains
     species_conc(:,:,:,:) = 0.0
     water_conc(:,:,:,WATER_VAPOR_ID) = 0. !0.01165447 !this is equal to 95% RH !1e-14 !0.01 !kg_h2o/kg-1_air
     height=1. !(m)
-#ifndef ENABLE_CB05_SOA
+#ifdef ENABLE_CB05_SOA
     temperature(:,:,:) = 290.016!300.614166259766
     pressure(:,:,:) = 100000.!94165.7187500000
 !    air_density(:,:,:) = pressure(:,:,:)/(287.04*temperature(:,:,:))!1.225
@@ -536,7 +536,8 @@ contains
 
     state_size_per_cell = pmc_interface%camp_core%state_size_per_cell()
 
-    open(IMPORT_FILE_UNIT, file="exports/camp_input.txt", status="old")!action="read"
+    !open(IMPORT_FILE_UNIT, file="exports/camp_input.txt", status="old")!default test monarch input
+    open(IMPORT_FILE_UNIT, file="exports/camp_input_18.txt", status="old") !monarch
 
     !print*,species_conc(:,:,:,:)
 
@@ -574,6 +575,7 @@ contains
     do i_photo_rxn = 1, pmc_interface%n_photo_rxn
       call pmc_interface%photo_rxns(i_photo_rxn)%set_rate(real(pmc_interface%base_rates(i_photo_rxn), kind=dp))
       call pmc_interface%camp_core%update_data(pmc_interface%photo_rxns(i_photo_rxn))
+      !print*,"id photo_rate", pmc_interface%base_rates(i_photo_rxn)
     end do
 
     close(IMPORT_FILE_UNIT)

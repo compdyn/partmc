@@ -149,7 +149,7 @@ void rxn_photolysis_update_env_state(ModelData *model_data, int *rxn_int_data,
   int n_photo_rates_cell=25;
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  if (rank==411) {
+  if (rank==0) {
     if(model_data->counterMD<n_photo_rates_cell*2) {
 
       printf("RATE_CONSTANT: %-le\n", RATE_CONSTANT_);
@@ -165,7 +165,7 @@ void rxn_photolysis_update_env_state(ModelData *model_data, int *rxn_int_data,
         printf("YIELD_: %-le\n", YIELD_(i));
       }
 
-      //printf("Counter: %d BASE_RATE_: %-le\n",model_data->counterMD+1,BASE_RATE_);
+      printf("Counter: %d BASE_RATE_: %-le\n",model_data->counterMD+1,BASE_RATE_);
       //printf("RATE_CONSTANT: %-le\n", RATE_CONSTANT_);
       model_data->counterMD++;
 

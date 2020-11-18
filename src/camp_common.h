@@ -226,6 +226,7 @@ typedef struct {
   int counterDerivGPU; //todo set as counterDeriv and fix old counterDeriv
   int counterJacGPU;
   int counterSolve;
+  int counterFail;
   double timeCVode;
   double timeCVodeTotal;
   double timeF;

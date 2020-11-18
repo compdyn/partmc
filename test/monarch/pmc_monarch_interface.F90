@@ -310,11 +310,12 @@ contains
     ! Create a state variable on each node
     this%camp_state => this%camp_core%new_state()
 
-#ifndef ENABLE_CB05_SOA
+#ifdef ENABLE_CB05_SOA
     ! Set the photolysis rates
+    !todo set photo_rates for MPI ranks > 0
     do i_photo_rxn = 1, this%n_photo_rxn
-      call this%photo_rxns(i_photo_rxn)%set_rate(real(this%base_rates(i_photo_rxn), kind=dp))
-      !call this%photo_rxns(i_photo_rxn)%set_rate(real(0.0, kind=dp))
+      !call this%photo_rxns(i_photo_rxn)%set_rate(real(this%base_rates(i_photo_rxn), kind=dp))
+      call this%photo_rxns(i_photo_rxn)%set_rate(real(0.01, kind=dp))
       call this%camp_core%update_data(this%photo_rxns(i_photo_rxn))
     end do
 #endif
@@ -405,7 +406,7 @@ contains
     integer(kind=i_kind), allocatable, intent(inout) :: id_gas_species_to_print(:), id_aerosol_species_to_print(:)
     integer, intent(in) :: RESULTS_FILE_UNIT
 
-#ifndef ENABLE_CB05_SOA
+#ifdef ENABLE_CB05_SOA
 
     type(chem_spec_data_t), pointer :: chem_spec_data
 
@@ -468,7 +469,7 @@ contains
 
     k_end = size(MONARCH_conc,3)
 
-#ifndef ENABLE_CB05_SOA
+#ifdef ENABLE_CB05_SOA
     call assert_msg(731700229, &
             this%camp_core%get_chem_spec_data(chem_spec_data), &
             "No chemical species data in camp_core.")
@@ -523,10 +524,14 @@ contains
             !this%camp_state%state_var(this%gas_phase_water_id) = &
             !        water_conc(i,j,k_flip,water_vapor_index) * &
             !        air_density(i,j,k) * 1.0d9
+
+            !todo check gas_phase_water_id
+#ifndef IMPORT_CAMP_INPUT
+#else
             this%camp_state%state_var(this%gas_phase_water_id) = &
                     water_conc(i,j,k_flip,water_vapor_index) * &
                     mwair / mwwat * 1.e6
-
+#endif
             !print*,'monarch_conc: ',this%camp_state%state_var
             !stop
             !print*,'O3: ',this%camp_state%state_var(chem_spec_data%gas_state_id("O3"))
@@ -535,7 +540,7 @@ contains
             !print*,'water conc: ',this%camp_state%state_var(this%gas_phase_water_id) &
             !      ,water_conc(i,j,k_flip,water_vapor_index),air_density(i,j,k)
             !stop
-#ifndef ENABLE_CB05_SOA
+#ifdef ENABLE_CB05_SOA
               !todo take into account emissions for import_camp_input
               !Add emissions
               this%camp_state%state_var(chem_spec_data%gas_state_id("SO2"))=this%camp_state%state_var(chem_spec_data%gas_state_id("SO2"))+SO2_emi(i_hour)*rate_emi(i_hour)*conv
@@ -572,9 +577,9 @@ contains
             comp_time = comp_time + (comp_end-comp_start)
             !time_step*60
 
+            !assert_msg when cvode fails ocurrs, stop the execution
             call assert_msg(376450931, solver_stats%status_code.eq.0, &
-                            "Solver failed with code "// &
-                            to_string(solver_stats%solver_flag))
+            "Solver failed with code "// to_string(solver_stats%solver_flag))
 
 #ifdef PMC_DEBUG
             ! Check the Jacobian evaluations
@@ -649,10 +654,13 @@ contains
 
             !this%camp_state%state_var(this%gas_phase_water_id +(z*state_size_per_cell)) = &
             !water_conc(i,j,k_flip,water_vapor_index) * mwair / mwwat * 1.e6
+#ifndef IMPORT_CAMP_INPUT
+#else
             this%camp_state%state_var(this%gas_phase_water_id +(z*state_size_per_cell)) = &
             water_conc(1,1,1,water_vapor_index) * mwair / mwwat * 1.e6
+#endif
 
-#ifndef ENABLE_CB05_SOA
+#ifdef ENABLE_CB05_SOA
             !Add emissions
             this%camp_state%state_var(chem_spec_data%gas_state_id("SO2")+z*state_size_per_cell)=this%camp_state%state_var(chem_spec_data%gas_state_id("SO2")+z*state_size_per_cell)+SO2_emi(i_hour)*rate_emi(i_hour)*conv
             this%camp_state%state_var(chem_spec_data%gas_state_id("NO2")+z*state_size_per_cell)=this%camp_state%state_var(chem_spec_data%gas_state_id("NO2")+z*state_size_per_cell)+NO2_emi(i_hour)*rate_emi(i_hour)*conv
@@ -835,65 +843,75 @@ end if
     character(len=:), allocatable :: key_name, spec_name, rep_name
     integer(kind=i_kind) :: i_spec, num_spec
 
-    integer :: i_rxn, i_photo_rxn, i_base_rate, i_mech
+    integer :: i_rxn, i_photo_rxn, i_base_rate, i_mech, i
     type(mechanism_data_t), pointer :: mechanism
     class(rxn_data_t), pointer :: rxn
     character(len=:), allocatable :: key, str_val, rxn_key, rate_key, rxn_val
     real(kind=dp) :: rate_val
-    !real(kind=dp), allocatable :: base_rates(:)
+    type(string_t), allocatable :: spec_names(:)
 
-#ifndef ENABLE_CB05_SOA
-    key = "MONARCH mod37"
+!#ifdef ENABLE_CB05_SOA
 
-    !mechanism => this%camp_core%mechanism( 1 ) %val
-    call assert(418262750, this%camp_core%get_mechanism(key, mechanism))
-
-    !key="base rate"
-    rxn_key = "type"
-    rxn_val = "PHOTOLYSIS"
-    rate_key = "base rate"
-
-    this%n_photo_rxn = 0
-    do i_mech = 1, size(this%camp_core%mechanism)
-      do i_rxn = 1, this%camp_core%mechanism(i_mech)%val%size()
-        rxn => this%camp_core%mechanism(i_mech)%val%get_rxn(i_rxn)
-        call assert(106297725, rxn%property_set%get_string(rxn_key, str_val))
-        if (trim(str_val).eq.rxn_val) this%n_photo_rxn = this%n_photo_rxn + 1
-      end do
-    end do
-
-    allocate(this%photo_rxns(this%n_photo_rxn))
-    allocate(this%base_rates(this%n_photo_rxn))
-
-    i_photo_rxn = 0
-    do i_mech = 1, size(this%camp_core%mechanism)
-      do i_rxn = 1, this%camp_core%mechanism(i_mech)%val%size()
-        rxn => this%camp_core%mechanism(i_mech)%val%get_rxn(i_rxn)
-        call assert(799145523, rxn%property_set%get_string(rxn_key, str_val))
-
-        ! Is this a photolysis reaction?
-        if (trim(str_val).ne.rxn_val) cycle
-        i_photo_rxn = i_photo_rxn + 1
-
-        ! Get the base photolysis rate
-        call assert_msg(501329648, &
-                rxn%property_set%get_real(rate_key, rate_val), &
-                "Missing 'base rate' for photolysis reaction "// &
-                        trim(to_string(i_photo_rxn)))
-        this%base_rates(i_photo_rxn) = rate_val
-
-        ! Create an update rate object for this photolysis reaction
-        select type (rxn_photo => rxn)
-        class is (rxn_photolysis_t)
-          call this%camp_core%initialize_update_object(rxn_photo, &
-                  this%photo_rxns(i_photo_rxn))
-        class default
-          call die(722633162)
-        end select
-      end do
-    end do
-
+#ifdef PMC_USE_MPI
+    !if (pmc_mpi_rank().eq.0) then
 #endif
+
+      !todo check this code doesnt give problems without enable_cb05_soa case (default case and mock monarch 1)
+      key = "MONARCH mod37"
+
+      !mechanism => this%camp_core%mechanism( 1 ) %val
+      call assert(418262750, this%camp_core%get_mechanism(key, mechanism))
+
+      !key="base rate"
+      rxn_key = "type"
+      rxn_val = "PHOTOLYSIS"
+      rate_key = "base rate"
+
+      this%n_photo_rxn = 0
+      do i_mech = 1, size(this%camp_core%mechanism)
+        do i_rxn = 1, this%camp_core%mechanism(i_mech)%val%size()
+          rxn => this%camp_core%mechanism(i_mech)%val%get_rxn(i_rxn)
+          call assert(106297725, rxn%property_set%get_string(rxn_key, str_val))
+          if (trim(str_val).eq.rxn_val) this%n_photo_rxn = this%n_photo_rxn + 1
+        end do
+      end do
+
+      allocate(this%photo_rxns(this%n_photo_rxn))
+      allocate(this%base_rates(this%n_photo_rxn))
+
+      i_photo_rxn = 0
+      do i_mech = 1, size(this%camp_core%mechanism)
+        do i_rxn = 1, this%camp_core%mechanism(i_mech)%val%size()
+          rxn => this%camp_core%mechanism(i_mech)%val%get_rxn(i_rxn)
+          call assert(799145523, rxn%property_set%get_string(rxn_key, str_val))
+
+          ! Is this a photolysis reaction?
+          if (trim(str_val).ne.rxn_val) cycle
+          i_photo_rxn = i_photo_rxn + 1
+
+          ! Get the base photolysis rate
+          call assert_msg(501329648, &
+                  rxn%property_set%get_real(rate_key, rate_val), &
+                  "Missing 'base rate' for photolysis reaction "// &
+                          trim(to_string(i_photo_rxn)))
+          this%base_rates(i_photo_rxn) = rate_val
+
+          ! Create an update rate object for this photolysis reaction
+          select type (rxn_photo => rxn)
+          class is (rxn_photolysis_t)
+            call this%camp_core%initialize_update_object(rxn_photo, &
+                    this%photo_rxns(i_photo_rxn))
+          class default
+            call die(722633162)
+          end select
+        end do
+      end do
+
+#ifdef PMC_USE_MPI
+    !end if
+#endif
+
+!#endif
 
     ! Get the gas-phase species ids
     key_name = "gas-phase species"
@@ -928,6 +946,8 @@ end if
     call assert_msg(910692272, this%gas_phase_water_id.gt.0, &
             "Could not find gas-phase water species '"//spec_name//"'.")
 
+    print*, "this%gas_phase_water_id", this%gas_phase_water_id
+
     ! Loop through the gas-phase species and set up the map
     call gas_species_list%iter_reset()
     i_spec = 1
@@ -955,6 +975,8 @@ end if
       this%map_camp_id(i_spec) = chem_spec_data%gas_state_id(spec_name)
       call assert_msg(916977002, this%map_camp_id(i_spec).gt.0, &
                 "Could not find species '"//spec_name//"' in PartMC-camp.")
+
+      !print*, "spec_name, state id ", spec_name, this%map_camp_id(i_spec)
 
       call gas_species_list%iter_next()
       i_spec = i_spec + 1
@@ -1023,7 +1045,8 @@ end if
     class(aero_rep_data_t), pointer :: aero_rep_ptr
     type(property_t), pointer :: gas_species_list, aero_species_list, species_data
     character(len=:), allocatable :: key_name, spec_name, rep_name
-    integer(kind=i_kind) :: i_spec, num_spec
+    integer(kind=i_kind) :: i_spec, num_spec, i
+    type(string_t), allocatable :: spec_names(:)
 
     num_spec = 0
 
@@ -1072,6 +1095,8 @@ end if
         call assert_msg(940200584, this%init_conc_camp_id(i_spec).gt.0, &
                 "Could not find species '"//spec_name//"' in PartMC-camp.")
 
+        !print*, "spec_name, state id ", spec_name, this%init_conc_camp_id(i_spec)
+
         call gas_species_list%iter_next()
         i_spec = i_spec + 1
       end do
@@ -1117,6 +1142,11 @@ end if
       end do
     end if
 
+    spec_names = this%camp_core%unique_names();
+    do i=1, 79!i_spec-1 (72)
+      !print*, "id spec_names ", i, spec_names(i)%string
+    end do
+
     !write(*,*) "Init conc",this%init_conc(:)
 
   end subroutine load_init_conc
@@ -1146,7 +1176,7 @@ end if
     conc_deviation_perc=0.!0.2
     k_end=size(MONARCH_conc,3)
 
-#ifndef ENABLE_CB05_SOA
+#ifdef ENABLE_CB05_SOA
     factor_ppb_to_ppm=1.0E-3
 #else
     factor_ppb_to_ppm=1.0
@@ -1225,9 +1255,6 @@ end if
              mwair / mwwat * 1.e6
              !MONARCH_air_density(1,1,1) / 1.0d-9
 
-    !print*,'GET_INIT_CONC SPECIES:'
-    !print*,this%camp_state%state_var(:)
-    !print*,MONARCH_conc(:,:,:,this%map_monarch_id(:))
   end subroutine get_init_conc
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

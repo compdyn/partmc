@@ -44,6 +44,7 @@ PMC_MODULES =                           \
   nucleate.o                    \
   output.o                      \
   rand.o                        \
+  rand_gsl.o                    \
   scenario.o                    \
   spec_file.o                   \
   spec_line.o                   \
@@ -177,7 +178,9 @@ nucleate.o: env_state.o aero_state.o aero_data.o gas_data.o gas_state.o
 output.o: bin_grid.o aero_data.o aero_state.o aero_binned.o \
      netcdf.o env_state.o util.o gas_data.o mpi.o
 
-rand.o: util.o constants.o mpi.o
+rand.o: util.o constants.o mpi.o rand_gsl.o
+
+rand_gsl.o:
 
 scenario.o: gas_state.o aero_dist.o util.o env_state.o \
      aero_state.o spec_file.o aero_data.o gas_data.o mpi.o chamber.o
@@ -186,7 +189,7 @@ spec_file.o: spec_line.o util.o
 
 spec_line.o: util.o
 
-sort.o: sort.o
+sort.o:
 
 stats.o:   util.o netcdf.o
 

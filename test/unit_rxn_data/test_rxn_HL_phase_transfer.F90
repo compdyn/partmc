@@ -203,7 +203,7 @@ contains
 
       ! Get species indices
       if (scenario.eq.1) then
-        idx_prefix = ""
+        idx_prefix = "P1."
       else if (scenario.eq.2) then
         idx_prefix = "the mode."
       end if
@@ -385,7 +385,7 @@ contains
 
       ! Update the aerosol representation (single-particle only)
       if (scenario.eq.1) then
-        call number_update%set_number__n_m3(number_conc)
+        call number_update%set_number__n_m3(1, number_conc)
         call camp_core%update_data(number_update)
       end if
 

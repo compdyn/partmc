@@ -253,13 +253,13 @@ contains
       call assert(217936937, camp_core%get_aero_rep(key, aero_rep_ptr))
 
       ! Get species indices
-      key = "n-butanol/water mixture.n-butanol"
+      key = "P1.n-butanol/water mixture.n-butanol"
       idx_butanol = aero_rep_ptr%spec_state_id(key);
-      key = "n-butanol/water mixture.water"
+      key = "P1.n-butanol/water mixture.water"
       idx_water = aero_rep_ptr%spec_state_id(key);
-      key = "n-butanol/water mixture.gamma n-butanol"
+      key = "P1.n-butanol/water mixture.gamma n-butanol"
       idx_butanol_act = aero_rep_ptr%spec_state_id(key);
-      key = "n-butanol/water mixture.gamma water"
+      key = "P1.n-butanol/water mixture.gamma water"
       idx_water_act = aero_rep_ptr%spec_state_id(key);
 
       ! Make sure the expected species are in the model

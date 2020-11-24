@@ -67,11 +67,18 @@ module pmc_aero_data
      class(aero_rep_data_t), pointer :: aero_rep_ptr
      !> CAMP update number conc cookie
      type(aero_rep_update_data_single_particle_number_t) :: update_number
-     !> Aerosol species ids on the camp chem state array
-     integer, allocatable :: camp_spec_id(:)
+     !> Aerosol species ids on the camp chem state array for the first
+     !! computational particle
+     integer, allocatable :: camp_particle_spec_id(:)
+     !> Number of elements on the camp chem state array per computational
+     !! particle
+     integer :: camp_particle_state_size = -1
   contains
      !> Initialize the aero_data_t variable with camp chem data
      procedure :: initialize => aero_data_initialize
+     !> Get the index on the CAMP state array for a specified species and
+     !! computation particle
+     procedure :: camp_spec_id
   end type aero_data_t
 
 contains
@@ -875,7 +882,7 @@ contains
     allocate(this%num_ions(num_spec))
     allocate(this%molec_weight(num_spec))
     allocate(this%kappa(num_spec))
-    allocate(this%camp_spec_id(num_spec))
+    allocate(this%camp_particle_spec_id(num_spec))
 
     ! Assume no aerosol water
     this%i_water = 0
@@ -922,9 +929,12 @@ contains
           this%i_water = i_spec
         end if
       end if
-      this%camp_spec_id(i_spec) = &
+      this%camp_particle_spec_id(i_spec) = &
           this%aero_rep_ptr%spec_state_id(spec_names(i_spec)%string)
     end do
+
+    ! Get the number of elements per-particle on the CAMP state array
+    this%camp_particle_state_size = this%aero_rep_ptr%size( )
 
     ! Set up the update data objects for number
     select type( aero_rep => this%aero_rep_ptr )
@@ -936,6 +946,26 @@ contains
     end select
 
   end subroutine aero_data_initialize
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Get the index on the CAMP state array for a specified species and
+  !! computational particle
+  integer(kind=i_kind) function camp_spec_id( this, i_part, i_spec )
+
+    !> Aerosol data
+    class(aero_data_t), intent(in) :: this
+    !> Computational particle index (1...aero_state_t%n_part)
+    integer(kind=i_kind), intent(in) :: i_part
+    !> Aerosol species index in aero_particle_t%vol(:) array
+    integer(kind=i_kind), intent(in) :: i_spec
+
+    call assert(106669451, allocated(this%camp_particle_spec_id))
+    call assert(278731889, this%camp_particle_state_size .ge. 0)
+    camp_spec_id = (i_part - 1) * this%camp_particle_state_size + &
+                   this%camp_particle_spec_id(i_spec)
+
+  end function camp_spec_id
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

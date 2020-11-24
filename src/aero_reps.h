@@ -112,6 +112,7 @@ void aero_rep_single_particle_print(int *aero_rep_int_data,
 void *aero_rep_single_particle_create_number_update_data();
 void aero_rep_single_particle_set_number_update_data__n_m3(void *update_data,
                                                            int aero_rep_id,
+                                                           int particle_id,
                                                            double number_conc);
 
 #endif

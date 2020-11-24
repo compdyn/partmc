@@ -40,11 +40,13 @@
   },
   {
     "type" : "AERO_REP_SINGLE_PARTICLE",
-    "name" : "my first particle"
+    "name" : "my first particle",
+    "maximum computational particles" : 1
   },
   {
     "type" : "AERO_REP_SINGLE_PARTICLE",
-    "name" : "my second particle"
+    "name" : "my second particle",
+    "maximum computational particles" : 1
   },
   {
     "name" : "wet deposition",

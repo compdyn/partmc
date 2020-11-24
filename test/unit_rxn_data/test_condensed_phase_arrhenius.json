@@ -56,15 +56,18 @@
   },
   {
     "type" : "AERO_REP_SINGLE_PARTICLE",
-    "name" : "my aero rep 1"
+    "name" : "my aero rep 1",
+    "maximum computational particles" : 3
   },
   {
     "type" : "AERO_REP_SINGLE_PARTICLE",
-    "name" : "my aero rep 2"
+    "name" : "my aero rep 2",
+    "maximum computational particles" : 4
   },
   {
     "type" : "AERO_REP_SINGLE_PARTICLE",
-    "name" : "my aero rep 3"
+    "name" : "my aero rep 3",
+    "maximum computational particles" : 2
   },
   {
     "name" : "condensed phase Arrhenius",

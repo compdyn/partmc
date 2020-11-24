@@ -55,14 +55,14 @@ module pmc_aero_rep_single_particle
 
 #define NUM_PHASE_ this%condensed_data_int(1)
 #define AERO_REP_ID_ this%condensed_data_int(2)
-#define NUM_INT_PROP_ 2
+#define MAX_PARTICLES_ this%condensed_data_int(3)
+#define PARTICLE_STATE_SIZE_ this%condensed_data_int(4)
+#define NUM_INT_PROP_ 4
 #define NUM_REAL_PROP_ 0
-#define NUM_ENV_PARAM_ 2
+#define NUM_ENV_PARAM_ MAX_PARTICLES_
 #define PHASE_STATE_ID_(x) this%condensed_data_int(NUM_INT_PROP_+x)
 #define PHASE_MODEL_DATA_ID_(x) this%condensed_data_int(NUM_INT_PROP_+NUM_PHASE_+x)
 #define PHASE_NUM_JAC_ELEM_(x) this%condensed_data_int(NUM_INT_PROP_+2*NUM_PHASE_+x)
-#define PHASE_MASS_(x) this%condensed_data_real(NUM_REAL_PROP_+x)
-#define PHASE_AVG_MW_(x) this%condensed_data_real(NUM_REAL_PROP_+NUM_PHASE_+x)
 
   ! Update types (These must match values in aero_rep_single_particle.c)
   integer(kind=i_kind), parameter, public :: UPDATE_NUMBER_CONC = 0
@@ -74,8 +74,8 @@ module pmc_aero_rep_single_particle
   !!
   !! Time-invariant data related to a single particle aerosol representation.
   type, extends(aero_rep_data_t) :: aero_rep_single_particle_t
-    !> Phase state id (only used during initialization
-    integer(kind=i_kind), allocatable :: phase_state_id(:)
+    !> First state id for the representation (only used during initialization)
+    integer(kind=i_kind) :: state_id_start = -99999
   contains
     !> Initialize the aerosol representation data, validating component data and
     !! loading any required information from the \c
@@ -84,6 +84,8 @@ module pmc_aero_rep_single_particle
     !! the input files have been read in. It ensures all data required during
     !! the model run are included in the condensed data arrays.
     procedure :: initialize
+    !> Returns the maximum number of computational particles
+    procedure :: maximum_computational_particles
     !> Initialize an update data number object
     procedure :: update_data_initialize_number => update_data_init_number
     !> Get the size of the section of the
@@ -141,6 +143,8 @@ module pmc_aero_rep_single_particle
     logical :: is_malloced = .false.
     !> Unique id for finding aerosol representations during initialization
     integer(kind=i_kind) :: aero_rep_unique_id = 0
+    !> Maximum number of computational particles
+    integer(kind=i_kind) :: maximum_computational_particles = 0
   contains
     !> Update the number
     procedure :: set_number__n_m3 => update_data_set_number__n_m3
@@ -167,12 +171,15 @@ module pmc_aero_rep_single_particle
 
     !> Set a new particle number concentration
     subroutine aero_rep_single_particle_set_number_update_data__n_m3( &
-              update_data, aero_rep_unique_id, number_conc) bind (c)
+              update_data, aero_rep_unique_id, particle_id, number_conc) &
+              bind (c)
       use iso_c_binding
       !> Update data
       type(c_ptr), value :: update_data
       !> Aerosol representation unique id
       integer(kind=c_int), value :: aero_rep_unique_id
+      !> Computational particle index
+      integer(kind=c_int), value :: particle_id
       !> New number (m)
       real(kind=c_double), value :: number_conc
     end subroutine aero_rep_single_particle_set_number_update_data__n_m3
@@ -218,12 +225,13 @@ contains
     !! state array
     integer(kind=i_kind), intent(in) :: spec_state_id
 
+    character(len=:), allocatable :: key_name
     integer(kind=i_kind) :: i_phase, curr_id
     integer(kind=i_kind) :: num_int_param, num_float_param
 
     ! Start off the counters
     num_int_param = NUM_INT_PROP_ + 3*size(aero_phase_set)
-    num_float_param = NUM_REAL_PROP_ + 2*size(aero_phase_set)
+    num_float_param = NUM_REAL_PROP_
 
     ! Assume all phases will be applied once to each particle
     allocate(this%aero_phase(size(aero_phase_set)))
@@ -237,24 +245,42 @@ contains
     this%condensed_data_int(:) = int(0, kind=i_kind)
     this%condensed_data_real(:) = real(0.0, kind=dp)
 
+    ! Get the maximum number of computational particles
+    key_name = "maximum computational particles"
+    call assert_msg(857908074, &
+                    this%property_set%get_int(key_name, MAX_PARTICLES_), &
+                    "Missing maximum number of computational particles")
+
     ! Save space for the environment-dependent parameters
     this%num_env_params = NUM_ENV_PARAM_
 
     ! Set phase state and model data ids
     NUM_PHASE_ = size(this%aero_phase)
-    allocate(this%phase_state_id(NUM_PHASE_))
+    this%state_id_start = spec_state_id
     curr_id = spec_state_id
     do i_phase = 1, NUM_PHASE_
-      this%phase_state_id(i_phase) = curr_id
-      curr_id = curr_id + aero_phase_set(i_phase)%val%size()
-      PHASE_STATE_ID_(i_phase) = this%phase_state_id(i_phase)
+      PHASE_STATE_ID_(i_phase) = curr_id
       PHASE_MODEL_DATA_ID_(i_phase) = i_phase
+      curr_id = curr_id + aero_phase_set(i_phase)%val%size()
     end do
+    PARTICLE_STATE_SIZE_ = curr_id - spec_state_id
 
     ! Initialize the aerosol representation id
     AERO_REP_ID_ = -1
 
   end subroutine initialize
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Returns the maximum nunmber of computational particles
+  integer(kind=i_kind) function maximum_computational_particles(this)
+
+    !> Aerosol representation data
+    class(aero_rep_single_particle_t), intent(in) :: this
+
+    maximum_computational_particles = MAX_PARTICLES_
+
+  end function maximum_computational_particles
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -272,13 +298,7 @@ contains
     !> Aerosol representation data
     class(aero_rep_single_particle_t), intent(in) :: this
 
-    integer(kind=i_kind) :: i_phase
-
-    ! Get the total number of species across all phases
-    state_size = 0
-    do i_phase = 1, size(this%aero_phase)
-      state_size = state_size + this%aero_phase(i_phase)%val%size()
-    end do
+    state_size = MAX_PARTICLES_ * PARTICLE_STATE_SIZE_
 
   end function get_size
 
@@ -289,9 +309,12 @@ contains
   !! representation. The list may be restricted to a particular phase and/or
   !! aerosol species by including the phase_name and spec_name arguments.
   !!
-  !! For a single particle representation, the unique names will be the
-  !! phase name with the species name separated by a '.'
+  !! For a single particle representation, the unique names will be a 'P'
+  !! followed by the computational particle number, a '.', the phase name,
+  !! another '.', and the species name.
   function unique_names(this, phase_name, tracer_type, spec_name)
+
+    use pmc_util,                      only : integer_to_string
 
     !> List of unique names
     type(string_t), allocatable :: unique_names(:)
@@ -304,7 +327,7 @@ contains
     !> Aerosol-phase species name
     character(len=*), optional, intent(in) :: spec_name
 
-    integer(kind=i_kind) :: num_spec, i_spec, j_spec, i_phase
+    integer(kind=i_kind) :: num_spec, i_part, i_spec, j_spec, i_phase
     integer(kind=i_kind) :: curr_tracer_type
     character(len=:), allocatable :: curr_phase_name
     type(string_t), allocatable :: spec_names(:)
@@ -337,28 +360,30 @@ contains
     end do
 
     ! Allocate space for the unique names and assign them
-    allocate(unique_names(num_spec))
+    allocate(unique_names(num_spec*MAX_PARTICLES_))
     i_spec = 1
-    do i_phase = 1, size(this%aero_phase)
-      curr_phase_name = this%aero_phase(i_phase)%val%name()
-      if (present(phase_name)) then
-        if (phase_name.ne.curr_phase_name) cycle
-      end if
-      spec_names = this%aero_phase(i_phase)%val%get_species_names()
-      num_spec = this%aero_phase(i_phase)%val%size()
-      do j_spec = 1, num_spec
-        curr_tracer_type = &
-                this%aero_phase(i_phase)%val%get_species_type( &
-                spec_names(j_spec)%string)
-        if (present(spec_name)) then
-          if (spec_name.ne.spec_names(j_spec)%string) cycle
+    do i_part = 1, MAX_PARTICLES_
+      do i_phase = 1, size(this%aero_phase)
+        curr_phase_name = this%aero_phase(i_phase)%val%name()
+        if (present(phase_name)) then
+          if (phase_name.ne.curr_phase_name) cycle
         end if
-        if (present(tracer_type)) then
-          if (tracer_type.ne.curr_tracer_type) cycle
-        end if
-        unique_names(i_spec)%string = &
-                curr_phase_name//'.'//spec_names(j_spec)%string
-        i_spec = i_spec + 1
+        spec_names = this%aero_phase(i_phase)%val%get_species_names()
+        num_spec = this%aero_phase(i_phase)%val%size()
+        do j_spec = 1, num_spec
+          curr_tracer_type = &
+                  this%aero_phase(i_phase)%val%get_species_type( &
+                  spec_names(j_spec)%string)
+          if (present(spec_name)) then
+            if (spec_name.ne.spec_names(j_spec)%string) cycle
+          end if
+          if (present(tracer_type)) then
+            if (tracer_type.ne.curr_tracer_type) cycle
+          end if
+          unique_names(i_spec)%string = 'P'//trim(integer_to_string(i_part))//&
+                  "."//curr_phase_name//'.'//spec_names(j_spec)%string
+          i_spec = i_spec + 1
+        end do
       end do
       deallocate(spec_names)
     end do
@@ -392,14 +417,15 @@ contains
     type(string_t), allocatable :: unique_names(:)
     integer(kind=i_kind) :: i_spec
 
-    spec_id = 0
+    spec_id = this%state_id_start
     unique_names = this%unique_names()
     do i_spec = 1, size(unique_names)
       if (unique_names(i_spec)%string .eq. unique_name) then
-        spec_id = this%phase_state_id(1) + i_spec - 1
         return
       end if
+      spec_id = spec_id + 1
     end do
+    spec_id = -9999
 
   end function spec_state_id
 
@@ -417,7 +443,7 @@ contains
     character(len=*), intent(in) :: unique_name
 
     ! Indices for iterators
-    integer(kind=i_kind) :: i_spec, j_spec, i_phase
+    integer(kind=i_kind) :: i_part, i_spec, j_spec, i_phase
 
     ! Species in aerosol phase
     type(string_t), allocatable :: spec_names(:)
@@ -428,26 +454,27 @@ contains
     unique_names = this%unique_names()
 
     i_spec = 1
-    do i_phase = 1, size(this%aero_phase)
-      spec_names = this%aero_phase(i_phase)%val%get_species_names()
-      do j_spec = 1, size(spec_names)
-        if (unique_name.eq.unique_names(i_spec)%string) then
-          spec_name = spec_names(j_spec)%string
-        end if
-        i_spec = i_spec + 1
+    do i_part = 1, MAX_PARTICLES_
+      do i_phase = 1, size(this%aero_phase)
+        spec_names = this%aero_phase(i_phase)%val%get_species_names()
+        do j_spec = 1, size(spec_names)
+          if (unique_name.eq.unique_names(i_spec)%string) then
+            spec_name = spec_names(j_spec)%string
+            return
+          end if
+          i_spec = i_spec + 1
+        end do
       end do
-      deallocate(spec_names)
     end do
-
-    deallocate(unique_names)
+    call die_msg(101731871, "Could not find unique name '"//unique_name//"'")
 
   end function spec_name
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Get the number of instances of a specified aerosol phase. In the single
-  !! particle representation, if an aerosol phase is present, it has only
-  !! one instance.
+  !! particle representation, if an aerosol phase is present, is exists once
+  !! in each computational particle.
   function num_phase_instances(this, phase_name)
 
     !> Number of instances of the aerosol phase
@@ -462,7 +489,7 @@ contains
     num_phase_instances = 0
     do i_phase = 1, size(this%aero_phase)
       if (this%aero_phase(i_phase)%val%name().eq.phase_name) then
-        num_phase_instances = 1
+        num_phase_instances = MAX_PARTICLES_
         return
       end if
     end do
@@ -484,11 +511,10 @@ contains
 
     integer(kind=i_kind) :: i_phase
 
-    num_jac_elem = 0
-    do i_phase = 1, size(this%aero_phase)
-      num_jac_elem = num_jac_elem +                                          &
-                     this%aero_phase(i_phase)%val%num_jac_elem()
-    end do
+    i_phase = mod( phase_id - 1, NUM_PHASE_ ) + 1
+    call assert( 401502046, i_phase .ge. 1 .and.                              &
+                            i_phase .le. NUM_PHASE_ * MAX_PARTICLES_ )
+    num_jac_elem = this%aero_phase(i_phase)%val%num_jac_elem()
 
   end function num_jac_elem
 
@@ -533,6 +559,8 @@ contains
     end if
 
     update_data%aero_rep_unique_id = AERO_REP_ID_
+    update_data%maximum_computational_particles = &
+        this%maximum_computational_particles( )
     update_data%aero_rep_type = int(aero_rep_type, kind=c_int)
     update_data%update_data = &
       aero_rep_single_particle_create_number_update_data()
@@ -542,19 +570,27 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Set packed update data for particle number (#/m3)
-  subroutine update_data_set_number__n_m3(this, number_conc)
+  !> Set packed update data for particle number (#/m3) for a particular
+  !! computational particle.
+  subroutine update_data_set_number__n_m3(this, particle_id, number_conc)
 
     !> Update data
     class(aero_rep_update_data_single_particle_number_t), intent(inout) :: &
             this
+    !> Computational particle index
+    integer(kind=i_kind), intent(in) :: particle_id
     !> Updated number
     real(kind=dp), intent(in) :: number_conc
 
     call assert_msg(897092373, this%is_malloced, &
             "Trying to set number of uninitialized update object.")
+    call assert_msg(357138177, particle_id .ge. 1 .and. &
+                    particle_id .le. this%maximum_computational_particles, &
+                    "Invalid computational particle index: "// &
+                    trim(integer_to_string(particle_id)))
     call aero_rep_single_particle_set_number_update_data__n_m3( &
-            this%get_data(), this%aero_rep_unique_id, number_conc)
+            this%get_data(), this%aero_rep_unique_id, particle_id-1, &
+            number_conc)
 
   end subroutine update_data_set_number__n_m3
 
@@ -571,6 +607,7 @@ contains
 
     pack_size = &
       pmc_mpi_pack_size_logical(this%is_malloced, comm) + &
+      pmc_mpi_pack_size_integer(this%maximum_computational_particles, comm) + &
       pmc_mpi_pack_size_integer(this%aero_rep_unique_id, comm)
 
   end function internal_pack_size_number
@@ -594,6 +631,8 @@ contains
 
     prev_position = pos
     call pmc_mpi_pack_logical(buffer, pos, this%is_malloced, comm)
+    call pmc_mpi_pack_integer(buffer, pos, &
+                              this%maximum_computational_particles, comm)
     call pmc_mpi_pack_integer(buffer, pos, this%aero_rep_unique_id, comm)
     call assert(964639022, &
          pos - prev_position <= this%pack_size(comm))
@@ -620,6 +659,8 @@ contains
 
     prev_position = pos
     call pmc_mpi_unpack_logical(buffer, pos, this%is_malloced, comm)
+    call pmc_mpi_unpack_integer(buffer, pos, &
+                                this%maximum_computational_particles, comm)
     call pmc_mpi_unpack_integer(buffer, pos, this%aero_rep_unique_id, comm)
     call assert(459432617, &
          pos - prev_position <= this%pack_size(comm))

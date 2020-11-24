@@ -27,6 +27,12 @@ program pmc_test_aero_rep_data
   use iso_c_binding
   implicit none
 
+  ! Test computational particle
+  integer(kind=i_kind), parameter :: TEST_PARTICLE = 2
+
+  ! Total computational particles
+  integer(kind=i_kind), parameter :: NUM_COMP_PARTICLES = 3
+
   ! Externally set properties
   real(kind=dp), parameter :: PART_NUM_CONC = 1.23e3
   real(kind=dp), parameter :: PART_RADIUS   = 2.43e-7
@@ -141,7 +147,8 @@ contains
       ! Check the unique name functions
       unique_names = aero_rep%unique_names()
       call assert_msg(885541843, allocated(unique_names), rep_name)
-      call assert_msg(206819761, size(unique_names).eq.8, rep_name)
+      call assert_msg(206819761, size(unique_names).eq.NUM_COMP_PARTICLES*8, &
+                      rep_name)
       do i_spec = 1, size(unique_names)
         call assert_msg(142263656, aero_rep%spec_state_id(&
                 unique_names(i_spec)%string).gt.0, rep_name)
@@ -303,11 +310,11 @@ contains
     call camp_state%env_states(1)%set_pressure_Pa( 101325.0d0 )
 
     ! Update external properties
-    call update_number%set_number__n_m3( 12.3d0 )
+    call update_number%set_number__n_m3( TEST_PARTICLE, 12.3d0 )
     call camp_core%update_data( update_number )
 
     ! Test re-setting number concentration
-    call update_number%set_number__n_m3( PART_NUM_CONC )
+    call update_number%set_number__n_m3( TEST_PARTICLE, PART_NUM_CONC )
     call camp_core%update_data( update_number )
 
     passed = run_aero_rep_single_particle_c_tests(                           &

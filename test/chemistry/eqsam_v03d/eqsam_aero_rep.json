@@ -2,7 +2,8 @@
 	"pmc-data" : [
 		{
 			"name" : "single particle",
-			"type" : "AERO_REP_SINGLE_PARTICLE"
+			"type" : "AERO_REP_SINGLE_PARTICLE",
+      "maximum computational particles" : 1
 		},
 		{
 			"name" : "aqueous aerosol",

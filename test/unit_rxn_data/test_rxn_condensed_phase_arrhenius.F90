@@ -122,7 +122,7 @@ contains
 
     ! Allocate space for the results
     if (scenario.eq.1) then
-      num_state_var = 27
+      num_state_var = 9 * 9 ! particles * species
     else if (scenario.eq.2) then
       num_state_var = 14
     end if
@@ -202,7 +202,7 @@ contains
 
       ! Get species indices
       if (scenario.eq.1) then
-        idx_prefix = ""
+        idx_prefix = "P2."
       else if (scenario.eq.2) then
         idx_prefix = "the mode."
       end if

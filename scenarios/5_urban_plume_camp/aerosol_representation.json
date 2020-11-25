@@ -3,7 +3,7 @@
     {
       "name" : "PartMC single particle",
       "type" : "AERO_REP_SINGLE_PARTICLE",
-      "maximum computational particles" : 1000
+      "maximum computational particles" : 2000
     }
   ]
 }

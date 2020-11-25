@@ -59,7 +59,7 @@ module pmc_aero_rep_single_particle
 #define PARTICLE_STATE_SIZE_ this%condensed_data_int(4)
 #define NUM_INT_PROP_ 4
 #define NUM_REAL_PROP_ 0
-#define NUM_ENV_PARAM_ MAX_PARTICLES_
+#define NUM_ENV_PARAM_PER_PARTICLE_ 1
 #define PHASE_STATE_ID_(x) this%condensed_data_int(NUM_INT_PROP_+x)
 #define PHASE_MODEL_DATA_ID_(x) this%condensed_data_int(NUM_INT_PROP_+NUM_PHASE_+x)
 #define PHASE_NUM_JAC_ELEM_(x) this%condensed_data_int(NUM_INT_PROP_+2*NUM_PHASE_+x)
@@ -74,6 +74,9 @@ module pmc_aero_rep_single_particle
   !!
   !! Time-invariant data related to a single particle aerosol representation.
   type, extends(aero_rep_data_t) :: aero_rep_single_particle_t
+    !> Unique names for each instance of every chemical species in the
+    !! aerosol representaiton
+    type(string_t), allocatable, private :: unique_names_(:)
     !> First state id for the representation (only used during initialization)
     integer(kind=i_kind) :: state_id_start = -99999
   contains
@@ -96,6 +99,12 @@ module pmc_aero_rep_single_particle
     !! the sum of the sizes of a single instance of each aerosol phase
     !! provided to \c aero_rep_single_particle::initialize()
     procedure :: size => get_size
+    !> Get the number of state variables per-particle
+    !!
+    !! Calling functions can assume each particle has the same size on the
+    !! state array, and that individual particle states are contiguous and
+    !! arranged sequentially
+    procedure :: per_particle_size
     !> Get a list of unique names for each element on the
     !! \c pmc_camp_state::camp_state_t::state_var array for this aerosol
     !! representation. The list may be restricted to a particular phase and/or
@@ -226,17 +235,26 @@ contains
     integer(kind=i_kind), intent(in) :: spec_state_id
 
     character(len=:), allocatable :: key_name
-    integer(kind=i_kind) :: i_phase, curr_id
-    integer(kind=i_kind) :: num_int_param, num_float_param
+    integer(kind=i_kind) :: i_particle, i_phase, curr_id
+    integer(kind=i_kind) :: num_int_param, num_float_param, num_particles
 
     ! Start off the counters
     num_int_param = NUM_INT_PROP_ + 3*size(aero_phase_set)
     num_float_param = NUM_REAL_PROP_
 
+    ! Get the maximum number of computational particles
+    key_name = "maximum computational particles"
+    call assert_msg(857908074, &
+                    this%property_set%get_int(key_name, num_particles), &
+                    "Missing maximum number of computational particles")
+
     ! Assume all phases will be applied once to each particle
-    allocate(this%aero_phase(size(aero_phase_set)))
-    do i_phase = 1, size(aero_phase_set)
-      this%aero_phase(i_phase) = aero_phase_set(i_phase)
+    allocate(this%aero_phase(size(aero_phase_set)*num_particles))
+    do i_particle = 1, num_particles
+      do i_phase = 1, size(aero_phase_set)
+        this%aero_phase((i_particle-1)*size(aero_phase_set)+i_phase) = &
+            aero_phase_set(i_phase)
+      end do
     end do
 
     ! Allocate condensed data arrays
@@ -245,17 +263,14 @@ contains
     this%condensed_data_int(:) = int(0, kind=i_kind)
     this%condensed_data_real(:) = real(0.0, kind=dp)
 
-    ! Get the maximum number of computational particles
-    key_name = "maximum computational particles"
-    call assert_msg(857908074, &
-                    this%property_set%get_int(key_name, MAX_PARTICLES_), &
-                    "Missing maximum number of computational particles")
+    ! Save the number of computational particles
+    MAX_PARTICLES_ = num_particles
 
     ! Save space for the environment-dependent parameters
-    this%num_env_params = NUM_ENV_PARAM_
+    this%num_env_params = NUM_ENV_PARAM_PER_PARTICLE_ * num_particles
 
     ! Set phase state and model data ids
-    NUM_PHASE_ = size(this%aero_phase)
+    NUM_PHASE_ = size(aero_phase_set)
     this%state_id_start = spec_state_id
     curr_id = spec_state_id
     do i_phase = 1, NUM_PHASE_
@@ -267,6 +282,9 @@ contains
 
     ! Initialize the aerosol representation id
     AERO_REP_ID_ = -1
+
+    ! Set the unique names for the chemical species
+    this%unique_names_ = this%unique_names( )
 
   end subroutine initialize
 
@@ -304,6 +322,24 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Get the number of state variables per-particle
+  !!
+  !! Calling functions can assume each particle has the same size on the
+  !! state array, and that individual particle states are contiguous and
+  !! arranged sequentially
+  function per_particle_size(this) result(state_size)
+
+    !> Size on the state array per particle
+    integer(kind=i_kind) :: state_size
+    !> Aerosol representation data
+    class(aero_rep_single_particle_t), intent(in) :: this
+
+    state_size = PARTICLE_STATE_SIZE_
+
+  end function per_particle_size
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Get a list of unique names for each element on the
   !! \c pmc_camp_state::camp_state_t::state_var array for this aerosol
   !! representation. The list may be restricted to a particular phase and/or
@@ -332,9 +368,18 @@ contains
     character(len=:), allocatable :: curr_phase_name
     type(string_t), allocatable :: spec_names(:)
 
+    ! Copy saved unique names when no filters are included
+    if (.not. present(phase_name) .and. &
+        .not. present(tracer_type) .and. &
+        .not. present(spec_name) .and. &
+        allocated(this%unique_names_)) then
+      unique_names = this%unique_names_
+      return
+    end if
+
     ! Count the number of unique names
     num_spec = 0
-    do i_phase = 1, size(this%aero_phase)
+    do i_phase = 1, NUM_PHASE_
       curr_phase_name = this%aero_phase(i_phase)%val%name()
       if (present(phase_name)) then
         if (phase_name.ne.curr_phase_name) cycle
@@ -363,7 +408,7 @@ contains
     allocate(unique_names(num_spec*MAX_PARTICLES_))
     i_spec = 1
     do i_part = 1, MAX_PARTICLES_
-      do i_phase = 1, size(this%aero_phase)
+      do i_phase = 1, NUM_PHASE_
         curr_phase_name = this%aero_phase(i_phase)%val%name()
         if (present(phase_name)) then
           if (phase_name.ne.curr_phase_name) cycle
@@ -414,18 +459,16 @@ contains
     !> Unique name
     character(len=*), intent(in) :: unique_name
 
-    type(string_t), allocatable :: unique_names(:)
     integer(kind=i_kind) :: i_spec
 
     spec_id = this%state_id_start
-    unique_names = this%unique_names()
-    do i_spec = 1, size(unique_names)
-      if (unique_names(i_spec)%string .eq. unique_name) then
+    do i_spec = 1, size(this%unique_names_)
+      if (this%unique_names_(i_spec)%string .eq. unique_name) then
         return
       end if
       spec_id = spec_id + 1
     end do
-    spec_id = -9999
+    call die_msg( 449087541, "Cannot find species '"//unique_name//"'" )
 
   end function spec_state_id
 
@@ -448,22 +491,16 @@ contains
     ! Species in aerosol phase
     type(string_t), allocatable :: spec_names(:)
 
-    ! Unique name list
-    type(string_t), allocatable :: unique_names(:)
-
-    unique_names = this%unique_names()
-
+    call assert( 124916561, allocated( this%unique_names_ ) )
     i_spec = 1
-    do i_part = 1, MAX_PARTICLES_
-      do i_phase = 1, size(this%aero_phase)
-        spec_names = this%aero_phase(i_phase)%val%get_species_names()
-        do j_spec = 1, size(spec_names)
-          if (unique_name.eq.unique_names(i_spec)%string) then
-            spec_name = spec_names(j_spec)%string
-            return
-          end if
-          i_spec = i_spec + 1
-        end do
+    do i_phase = 1, size(this%aero_phase) ! each phase in each partice
+      spec_names = this%aero_phase(i_phase)%val%get_species_names()
+      do j_spec = 1, size(spec_names)
+        if (unique_name .eq. this%unique_names_(i_spec)%string) then
+          spec_name = spec_names(j_spec)%string
+          return
+        end if
+        i_spec = i_spec + 1
       end do
     end do
     call die_msg(101731871, "Could not find unique name '"//unique_name//"'")
@@ -487,7 +524,7 @@ contains
     integer(kind=i_kind) :: i_phase
 
     num_phase_instances = 0
-    do i_phase = 1, size(this%aero_phase)
+    do i_phase = 1, NUM_PHASE_
       if (this%aero_phase(i_phase)%val%name().eq.phase_name) then
         num_phase_instances = MAX_PARTICLES_
         return
@@ -511,10 +548,16 @@ contains
 
     integer(kind=i_kind) :: i_phase
 
-    i_phase = mod( phase_id - 1, NUM_PHASE_ ) + 1
-    call assert( 401502046, i_phase .ge. 1 .and.                              &
-                            i_phase .le. NUM_PHASE_ * MAX_PARTICLES_ )
-    num_jac_elem = this%aero_phase(i_phase)%val%num_jac_elem()
+    call assert_msg( 401502046, phase_id .ge. 1 .and. &
+                                phase_id .le. size( this%aero_phase ), &
+                     "Aerosol phase index out of range. Got "// &
+                     trim( integer_to_string( phase_id ) )//", expected 1:"// &
+                     trim( integer_to_string( size( this%aero_phase ) ) ) )
+    num_jac_elem = 0
+    do i_phase = 1, NUM_PHASE_
+      num_jac_elem = num_jac_elem + &
+                     this%aero_phase(i_phase)%val%num_jac_elem()
+    end do
 
   end function num_jac_elem
 

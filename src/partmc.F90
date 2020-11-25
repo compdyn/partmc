@@ -476,9 +476,6 @@ contains
          camp_core => camp_core_t(camp_config_filename)
          call camp_core%initialize()
          photolysis => photolysis_t(camp_core)
-         ! FIXME: Temporary print state of the data
-         call camp_core%print()
-         call photolysis%print()
        end if
 
        if (do_restart) then

@@ -74,7 +74,7 @@ contains
     aero_state%valid_sort = .false.
 
     ! Solve the multi-phase chemical system
-    call camp_core%solve(camp_state, del_t)
+    call camp_core%solve(camp_state, del_t, solver_stats = solver_stats)
 
     call assert_msg(592148911, solver_stats%status_code.eq.0, &
                     "Solver failed for aerosol-phase with code "// &
@@ -112,7 +112,12 @@ contains
       type is (aero_rep_single_particle_t)
         call assert_msg(858496327, aero_state%n_part( ) .le. &
                                    aero_rep%maximum_computational_particles( ), &
-                        "Exceeded CAMP maximum number of particles" )
+                        "Exceeded CAMP maximum number of particles. Number "// &
+                        "of computational particles: "// &
+                        trim(integer_to_string(aero_state%n_part( )))// &
+                        ". CAMP maximum: "// &
+                        trim(integer_to_string( &
+                            aero_rep%maximum_computational_particles( ))))
         do i_part = 1, aero_state%n_part( )
           associate (part => aero_state%apa%particle(i_part))
           num_conc = aero_weight_array_num_conc(aero_state%awa, part, aero_data)

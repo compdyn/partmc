@@ -111,6 +111,13 @@ void rxn_SIMPOL_phase_transfer_get_used_jac_elem(ModelData *model_data,
     int n_jac_elem =
         aero_rep_get_used_jac_elem(model_data, AERO_REP_ID_(i_aero_phase),
                                    AERO_PHASE_ID_(i_aero_phase), aero_jac_elem);
+    if (n_jac_elem > NUM_AERO_PHASE_JAC_ELEM_(i_aero_phase)) {
+      printf(
+          "\n\nERROR Received more Jacobian elements than expected for SIMPOL "
+          "partitioning reaction. Got %d, expected <= %d",
+          n_jac_elem, NUM_AERO_PHASE_JAC_ELEM_(i_aero_phase));
+      exit(1);
+    }
     int i_used_elem = 0;
     for (int i_elem = 0; i_elem < model_data->n_per_cell_state_var; ++i_elem) {
       if (aero_jac_elem[i_elem] == true) {

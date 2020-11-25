@@ -33,6 +33,15 @@ program pmc_test_aero_rep_data
   ! Total computational particles
   integer(kind=i_kind), parameter :: NUM_COMP_PARTICLES = 3
 
+  ! Number of aerosol phases per particle
+  integer(kind=i_kind), parameter :: NUM_AERO_PHASE = 3
+
+  ! Index for the test phase (test-particle phase 2)
+  integer(kind=i_kind), parameter :: AERO_PHASE_IDX = ((TEST_PARTICLE-1)*NUM_AERO_PHASE+2)
+
+  ! Number of expected Jacobian elements for the test phase
+  integer(kind=i_kind), parameter :: NUM_JAC_ELEM = 8
+
   ! Externally set properties
   real(kind=dp), parameter :: PART_NUM_CONC = 1.23e3
   real(kind=dp), parameter :: PART_RADIUS   = 2.43e-7
@@ -308,6 +317,11 @@ contains
     camp_state%state_var(:) = 0.0
     call camp_state%env_states(1)%set_temperature_K(  298.0d0 )
     call camp_state%env_states(1)%set_pressure_Pa( 101325.0d0 )
+
+    ! Check the number of Jacobian elements for the test phase
+    call assert_msg(153137613, &
+                    aero_rep%num_jac_elem(AERO_PHASE_IDX) .eq. NUM_JAC_ELEM, &
+                    rep_name)
 
     ! Update external properties
     call update_number%set_number__n_m3( TEST_PARTICLE, 12.3d0 )

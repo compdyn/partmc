@@ -891,6 +891,7 @@ contains
         return
       end if
     end do
+    call die_msg( 105414960, "Cannot find species '"//unique_name//"'" )
 
   end function spec_state_id
 

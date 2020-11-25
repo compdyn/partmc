@@ -868,12 +868,13 @@ contains
       if( spec_type.ne.CHEM_SPEC_VARIABLE .and. &
           spec_type.ne.CHEM_SPEC_CONSTANT .and. &
           spec_type.ne.CHEM_SPEC_PSSA ) cycle
+      if( spec_names(i_spec)%string(1:3) .ne. "P1." ) exit
       num_spec = num_spec + 1
-      tmp_spec_names(num_spec)%string = spec_names(i_spec)%string
+      tmp_spec_names(num_spec)%string = spec_names(i_spec)%string(4:) ! remove 'P1.'
     end do
     deallocate(spec_names)
     allocate(spec_names(num_spec))
-    spec_names(1:num_spec) = tmp_spec_names(1:num_spec)
+    spec_names(:) = tmp_spec_names(1:num_spec)
     deallocate(tmp_spec_names)
 
     allocate(this%name(num_spec))
@@ -888,15 +889,9 @@ contains
     this%i_water = 0
 
     do i_spec = 1, num_spec
-      call assert(496388827, chem_spec_data%get_type( &
-                  this%aero_rep_ptr%spec_name(spec_names(i_spec)%string), &
-                  spec_type))
-      if( spec_type.ne.CHEM_SPEC_VARIABLE .and. &
-          spec_type.ne.CHEM_SPEC_CONSTANT .and. &
-          spec_type.ne.CHEM_SPEC_PSSA ) num_spec = num_spec - 1
       this%name(i_spec) = spec_names(i_spec)%string
       if (.not.chem_spec_data%get_property_set( &
-        this%aero_rep_ptr%spec_name(spec_names(i_spec)%string), &
+        this%aero_rep_ptr%spec_name("P1."//spec_names(i_spec)%string), &
         property_set)) then
         call die_msg(934844845, "Missing property set for aerosol species "//&
              spec_names(i_spec)%string)
@@ -925,20 +920,21 @@ contains
       if (property_set%get_string(prop_name, str_val)) then
         if (str_val.eq."H2O") then
           call assert_msg(227489086, this%i_water.eq.0, &
-                          "Two aerosol water species")
+                          "Multiple aerosol water species")
           this%i_water = i_spec
         end if
       end if
       this%camp_particle_spec_id(i_spec) = &
-          this%aero_rep_ptr%spec_state_id(spec_names(i_spec)%string)
+          this%aero_rep_ptr%spec_state_id("P1."//spec_names(i_spec)%string)
     end do
 
-    ! Get the number of elements per-particle on the CAMP state array
-    this%camp_particle_state_size = this%aero_rep_ptr%size( )
-
-    ! Set up the update data objects for number
     select type( aero_rep => this%aero_rep_ptr )
       type is(aero_rep_single_particle_t)
+
+        ! Get the number of elements per-particle on the CAMP state array
+        this%camp_particle_state_size = aero_rep%per_particle_size( )
+
+        ! Set up the update data objects for number
         call camp_core%initialize_update_object( aero_rep, &
                                                  this%update_number )
       class default

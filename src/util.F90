@@ -39,6 +39,12 @@ module pmc_util
     !> String value
     character(len=:), allocatable :: string
   contains
+    !> @name Splits a string on a sub-string
+    !! @{
+    procedure, private :: split_char
+    procedure, private :: split_string
+    generic :: split => split_char, split_string
+    !> @}
     !> Finalize the string
     final :: string_t_finalize
   end type string_t
@@ -1016,6 +1022,150 @@ contains
     time_to_string_max_len = adjustl(ret_val)
 
   end function time_to_string_max_len
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Splits a string on a substring
+  !!
+  !! Example:
+  !! \code{f90}
+  !!   type(string_t) :: my_string
+  !!   type(string_t), allocatable :: sub_strings(:)
+  !!   integer :: i
+  !!   my_string = "my original    string"
+  !!   sub_strings = my_string%split( ' ' )
+  !!   do i = 1, size( sub_strings )
+  !!     write(*,*) i, sub_strings( i )
+  !!   end do
+  !!   sub_strings = my_string%split( ' ', .true. )
+  !!   do i = 1, size( sub_strings )
+  !!     write(*,*) i, sub_strings( i )
+  !!   end do
+  !! \endcode
+  !!
+  !! Output:
+  !! \code{bash}
+  !!            1  my
+  !!            2  original
+  !!            3
+  !!            4
+  !!            5
+  !!            6  string
+  !!            1  my
+  !!            2  original
+  !!            3  string
+  !! \endcode
+  !!
+  function split_char( this, splitter, compress ) result( sub_strings )
+
+    !> Split string
+    type(string_t), allocatable :: sub_strings(:)
+    !> Full string
+    class(string_t), intent(in) :: this
+    !> String to split on
+    character(len=*), intent(in) :: splitter
+    !> Compress (default = false)
+    !!
+    !! No 0-length substrings will be returned (adjacent tokens will be
+    !! merged; tokens at the beginning and end of the original string will be
+    !! ignored)
+    logical, intent(in), optional :: compress
+
+    integer :: i, start_str, i_substr, sl, count
+    logical :: l_comp, is_string
+
+    if( .not. allocated( this%string ) ) return
+    if( present( compress ) ) then
+      l_comp = compress
+    else
+      l_comp = .false.
+    end if
+
+    sl        = len( splitter )
+    if( sl .eq. 0 ) then
+      allocate( sub_strings( 1 ) )
+      sub_strings(1)%string = this%string
+      return
+    end if
+
+    count     = 0
+    i         = 1
+    start_str = 1
+    is_string = .not. l_comp
+    do while( i .le. len( this%string ) - sl + 1 )
+      if( this%string(i:i+sl-1) .eq. splitter ) then
+        if( is_string ) then
+          count = count + 1
+        end if
+        i = i + sl
+        is_string = .not. l_comp
+      else
+        i = i + 1
+        is_string = .true.
+      end if
+    end do
+    if( is_string ) count = count + 1
+
+    allocate( sub_strings( count ) )
+
+    i         = 1
+    start_str = 1
+    i_substr  = 1
+    is_string = .not. l_comp
+    do while( i .le. len( this%string ) - sl + 1 )
+      if( this%string(i:i+sl-1) .eq. splitter ) then
+        if( is_string ) then
+          if( i .eq. start_str ) then
+            sub_strings( i_substr )%string = ""
+          else
+            sub_strings( i_substr )%string = this%string(start_str:i-1)
+          end if
+          i_substr = i_substr + 1
+        end if
+        i = i + sl
+        start_str = i
+        is_string = .not. l_comp
+      else
+        i = i + 1
+        is_string = .true.
+      end if
+    end do
+
+    if( is_string ) then
+      if( i .eq. start_str ) then
+        sub_strings( i_substr )%string = ""
+      else
+        sub_strings( i_substr )%string = &
+            this%string( start_str:len( this%string ) )
+      end if
+    end if
+
+  end function split_char
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Splits a string on a substring
+  !!
+  !! See \c string_split_char for description and example
+  !!
+  function split_string( this, splitter, compress ) result( sub_strings )
+
+    !> Split string
+    type(string_t), allocatable :: sub_strings(:)
+    !> Full string
+    class(string_t), intent(in) :: this
+    !> String to split on
+    type(string_t), intent(in) :: splitter
+    !> Compress (default = false)
+    !!
+    !! No 0-length substrings will be returned (adjacent tokens will be
+    !! merged; tokens at the beginning and end of the original string will be
+    !! ignored)
+    logical, intent(in), optional :: compress
+
+    sub_strings = this%split_char( splitter%string, compress )
+
+  end function split_string
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

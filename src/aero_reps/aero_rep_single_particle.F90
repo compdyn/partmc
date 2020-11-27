@@ -485,25 +485,13 @@ contains
     !> Unique name of the species in this aerosol representation
     character(len=*), intent(in) :: unique_name
 
-    ! Indices for iterators
-    integer(kind=i_kind) :: i_part, i_spec, j_spec, i_phase
+    type(string_t) :: l_unique_name
+    type(string_t), allocatable :: substrs(:)
 
-    ! Species in aerosol phase
-    type(string_t), allocatable :: spec_names(:)
-
-    call assert( 124916561, allocated( this%unique_names_ ) )
-    i_spec = 1
-    do i_phase = 1, size(this%aero_phase) ! each phase in each partice
-      spec_names = this%aero_phase(i_phase)%val%get_species_names()
-      do j_spec = 1, size(spec_names)
-        if (unique_name .eq. this%unique_names_(i_spec)%string) then
-          spec_name = spec_names(j_spec)%string
-          return
-        end if
-        i_spec = i_spec + 1
-      end do
-    end do
-    call die_msg(101731871, "Could not find unique name '"//unique_name//"'")
+    l_unique_name%string = unique_name
+    substrs = l_unique_name%split(".")
+    call assert( 893354574, size( substrs ) .eq. 3 )
+    spec_name = substrs(3)%string
 
   end function spec_name
 

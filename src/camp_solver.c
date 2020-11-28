@@ -34,7 +34,7 @@
 #endif
 #include "camp_debug.h"
 
-#ifdef PMC_DEBUG_GPU
+#ifndef PMC_DEBUG_GPU
 //int counterDeriv2=0;
 int counterJac2=0;
 double timeCVode=0;
@@ -630,7 +630,7 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
     sub_model_update_env_state(md);
     rxn_update_env_state(md);
   }
-#ifdef PMC_DEBUG_GPU
+#ifndef PMC_DEBUG_GPU
   timeRates += (clock() - start1);
 #endif
 
@@ -712,7 +712,7 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
       return CAMP_SOLVER_FAIL;
     }
   }
-#ifdef PMC_DEBUG_GPU
+#ifndef PMC_DEBUG_GPU
   timeCVode += (clock() - start2);
 #endif
 
@@ -971,7 +971,7 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
     clock_t start2 = clock();
 #endif
 
-#ifdef PMC_DEBUG_GPU
+#ifndef PMC_DEBUG_GPU
     // Measure calc_deriv time execution
     clock_t start4 = clock();
 #endif
@@ -1004,7 +1004,7 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
     sd->timeDeriv += (end2 - start2);
 #endif
 
-#ifdef PMC_DEBUG_GPU
+#ifndef PMC_DEBUG_GPU
   timeDeriv2 += (clock() - start4);
 #endif
 
@@ -1015,10 +1015,11 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
 #ifdef PMC_USE_GPU
 //#ifdef COMMENTING
   //Add contributions from cpu deriv and gpu deriv
-    rxn_fusion_deriv_gpu(md, deriv);
+  //todo put fusion_deriv under an optional compile flag
+    //rxn_fusion_deriv_gpu(md, deriv);
 #endif
 
-#ifdef PMC_DEBUG_GPU
+#ifndef PMC_DEBUG_GPU
 
   //if(md->counterDeriv2==0) print_derivative(deriv);
 
@@ -1185,7 +1186,7 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
   //if(counterJac2==0) print_jacobian_file(J, "");
   //if(counterJac2==0) print_jacobian(J);
 
-#ifdef PMC_DEBUG_GPU
+#ifndef PMC_DEBUG_GPU
   timeJac2 += (clock() - start4);
   counterJac2++;
 #endif
@@ -1965,7 +1966,7 @@ void solver_free(void *solver_data) {
   SUNLinSolFree(sd->ls);
 #endif
 
-#ifdef PMC_DEBUG_GPU
+#ifndef PMC_DEBUG_GPU
 #ifdef PMC_USE_GPU
 //#ifdef PMC_USE_ODE_GPU
   //printSolverCounters(sd);

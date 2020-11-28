@@ -46,7 +46,7 @@ extern "C" {
 //int model_data->max_n_gpu_blocks;
 
 //Debug info
-#ifdef PMC_DEBUG_GPU
+#ifndef PMC_DEBUG_GPU
   int counterDeriv = 0;       // Total calls to f()
   int counterJac = 0;         // Total calls to Jac()
   clock_t timeDeriv = 0;      // Compute time for calls to f()
@@ -493,6 +493,8 @@ __global__ void solveDerivative(double *state_init, double *deriv_init,
     double *rxn_env_data = &(rxn_env_data_init
     [rxn_env_data_size_cell*i_cell+rxn_env_data_idx[i_rxn]]);
 
+    //todo reduce model_data to allocate less memory per thread
+    // (and trying to preserve matt cpu deriv code, maybe set different init parameters under COMPILE flag)
     ModelData model_data;
     model_data.grid_cell_state = &( state_init[state_size_cell*i_cell]);
     model_data.grid_cell_env = &( env_init[PMC_NUM_ENV_PARAM_*i_cell]);
@@ -572,7 +574,7 @@ void rxn_calc_deriv_gpu(ModelData *model_data, N_Vector deriv, realtype time_ste
   double *rxn_env_data = model_data->rxn_env_data;
   double *env = model_data->total_env;
 
-#ifdef PMC_DEBUG_GPU
+#ifndef PMC_DEBUG_GPU
   t1 = clock();
 #endif
 
@@ -599,7 +601,7 @@ void rxn_calc_deriv_gpu(ModelData *model_data, N_Vector deriv, realtype time_ste
   //Reset deriv gpu
   HANDLE_ERROR(cudaMemset(model_data->deriv_gpu_data, 0.0, model_data->deriv_size));
 
-#ifdef PMC_DEBUG_GPU
+#ifndef PMC_DEBUG_GPU
   timeDerivSend += (clock() - t1);
   clock_t t2 = clock();
 #endif
@@ -618,7 +620,7 @@ void rxn_calc_deriv_gpu(ModelData *model_data, N_Vector deriv, realtype time_ste
 
   cudaDeviceSynchronize();
 
-#ifdef PMC_DEBUG_GPU
+#ifndef PMC_DEBUG_GPU
   timeDerivKernel += (clock() - t2);
   t3 = clock();
 #endif
@@ -654,7 +656,7 @@ void rxn_calc_deriv_gpu(ModelData *model_data, N_Vector deriv, realtype time_ste
   }
  */
 
-#ifdef PMC_DEBUG_GPU
+#ifndef PMC_DEBUG_GPU
   timeDerivReceive += (clock() - t3);
   timeDeriv += (clock() - t1);
   t3 = clock();
@@ -670,7 +672,7 @@ void rxn_calc_deriv_gpu(ModelData *model_data, N_Vector deriv, realtype time_ste
  */
 void rxn_fusion_deriv_gpu(ModelData *model_data, N_Vector deriv) {
 
-#ifdef PMC_DEBUG_GPU
+#ifndef PMC_DEBUG_GPU
  timeDerivCPU += (clock() - t3);
 #endif
   // Get a pointer to the derivative data
@@ -942,7 +944,7 @@ void rxn_calc_jac_gpu(SolverData *sd, SUNMatrix jac, realtype time_step) {
  */
 void free_gpu_cu(ModelData *model_data) {
 
-#ifdef PMC_DEBUG_GPU
+#ifndef PMC_DEBUG_GPU
   printf("timeDeriv %lf\n", (((double)timeDeriv) ) / CLOCKS_PER_SEC); //*1000
   printf("timeDerivSend %lf\n", (((double)timeDerivSend) ) / CLOCKS_PER_SEC);
   printf("timeDerivKernel %lf\n", (((double)timeDerivKernel) ) / CLOCKS_PER_SEC);

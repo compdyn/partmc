@@ -782,15 +782,15 @@ contains
     !Set spec names
     !Okay maybe is not working because there are gas and aerosol species
     ! so im trying to print more than caught
-    do i=1,int(size(var_type_c), kind=c_int) ! Size of the state variable
-      spec_name = spec_names(i)%string
-      call solver_set_spec_name( &
-      this%solver_c_ptr, & ! Solver data
-      spec_name, & ! Spec name
-      len(spec_name), & ! Size spec name
-      i-1 & ! Index spec_name for C array
-      )
-    end do
+    !do i=1,int(size(var_type_c), kind=c_int) ! Size of the state variable
+    !  spec_name = spec_names(i)%string
+    !  call solver_set_spec_name( &
+    !  this%solver_c_ptr, & ! Solver data
+    !  spec_name, & ! Spec name
+    !  len(spec_name), & ! Size spec name
+    !  i-1 & ! Index spec_name for C array
+    !  )
+    !end do
 
     ! Initialize the solver
     call solver_initialize( &
@@ -818,7 +818,7 @@ contains
     !> Solver data
     class(camp_solver_data_t), intent(inout) :: this
     !> Update data
-    class(sub_model_update_data_t), intent(in) :: update_data
+    class(sub_model_update_data_t), intent(inout) :: update_data
 
     call sub_model_update_data( &
             update_data%get_cell_id()-1,     & ! Grid cell to update
@@ -830,7 +830,7 @@ contains
 
   end subroutine update_sub_model_data
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Update reaction data
   subroutine update_rxn_data(this, update_data, n_cells)
@@ -863,7 +863,7 @@ contains
 
   end subroutine update_rxn_data
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Update aerosol representation data based on data passed from the host
   !! model related to aerosol properties
@@ -872,7 +872,7 @@ contains
     !> Solver data
     class(camp_solver_data_t), intent(inout) :: this
     !> Update data
-    class(aero_rep_update_data_t), intent(in) :: update_data
+    class(aero_rep_update_data_t), intent(inout) :: update_data
 
     call aero_rep_update_data( &
             update_data%get_cell_id()-1,     & ! Grid cell to update

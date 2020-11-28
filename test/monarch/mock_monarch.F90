@@ -31,15 +31,15 @@ program mock_monarch
   !> Number of total species in mock MONARCH
   integer, parameter :: NUM_MONARCH_SPEC = 800
   !> Number of vertical cells in mock MONARCH
-  integer, parameter :: NUM_VERT_CELLS = 48 !4096 !48 !100
+  integer, parameter :: NUM_VERT_CELLS = 1 !4096 !48 !100
   !> Starting W-E cell for camp-chem call
   integer, parameter :: I_W = 1
   !> Ending W-E cell for camp-chem call
-  integer, parameter :: I_E = 15 !4 !15
+  integer, parameter :: I_E = 2 !4 !15
   !> Starting S-N cell for camp-chem call
   integer, parameter :: I_S = 1
   !> Ending S-N cell for camp-chem call
-  integer, parameter :: I_N = 15 !8 !15
+  integer, parameter :: I_N = 1 !8 !15
   !> Number of W-E cells in mock MONARCH
   integer, parameter :: NUM_WE_CELLS = I_E-I_W+1
   !> Number of S-N cells in mock MONARCH
@@ -47,7 +47,7 @@ program mock_monarch
   !> Starting index for camp-chem species in tracer array
   integer, parameter :: START_CAMP_ID = 100
   !> Ending index for camp-chem species in tracer array
-  integer, parameter :: END_CAMP_ID = 650
+  integer, parameter :: END_CAMP_ID = 250
   !> Time step (min)
   real, parameter :: TIME_STEP = 1.6
   !> Number of time steps to integrate over
@@ -223,8 +223,13 @@ program mock_monarch
   !#ifdef DEBUG
   !print*, "SPECIES CONC", species_conc(:,1,1,100)
 #ifdef PMC_USE_MPI
+  if (pmc_mpi_rank().eq.1) then
+    !print*, "SPECIES CONC COPY", species_conc_copy(:,1,1,100)
+    print*, "SPECIES CONC COPY", species_conc_copy(1:2,1,1,100:103)
+  end if
 #else
-  print*, "SPECIES CONC COPY", species_conc_copy(:,1,1,100)
+  !print*, "SPECIES CONC COPY", species_conc_copy(:,1,1,100)
+  print*, "SPECIES CONC COPY", species_conc_copy(1:2,1,1,100:103)
 #endif
   !#endif
 

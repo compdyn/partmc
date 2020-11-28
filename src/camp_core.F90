@@ -1159,7 +1159,7 @@ contains
     !call assert_msg( 731700229,                                              &
     !        this%get_chem_spec_data(chem_spec_data),                  &
     !        "No chemical species data in camp_core." )
-    spec_names = this%chem_spec_data%get_spec_names()
+    !spec_names = this%chem_spec_data%get_spec_names()
 
     ! Set up either two solvers (gas and aerosol) or one solver (combined)
     if (this%split_gas_aero) then
@@ -1222,7 +1222,7 @@ contains
 
     end if
 
-    deallocate(spec_names)
+    !deallocate(spec_names)
 
     this%solver_is_initialized = .true.
 
@@ -1308,19 +1308,28 @@ contains
 
   end subroutine initialize_sub_model_update_object
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Update data associated with an aerosol representation. This function
   !! should be called by an external aerosol microphysics model whenever
   !! the aerosol condensed data needs updated based on changes in, e.g.,
   !! particle size or number concentration. The update types are aerosol-
   !! representation specific.
-  subroutine aero_rep_update_data(this, update_data)
+  subroutine aero_rep_update_data(this, update_data, cell_id)
 
     !> Chemical model
     class(camp_core_t), intent(in) :: this
     !> Update data
-    class(aero_rep_update_data_t), intent(in) :: update_data
+    class(aero_rep_update_data_t), intent(inout) :: update_data
+    !> Cell id
+    integer(kind=i_kind), optional :: cell_id
+
+    if (present(cell_id)) then
+      update_data%cell_id=cell_id;
+    else
+      call assert_msg(593328368, this%n_cells.eq.1,                   &
+              "Missing cell_id on aero_rep_update_data when using multicells" )
+    end if
 
     if (associated(this%solver_data_gas)) &
             call this%solver_data_gas%update_aero_rep_data(update_data)
@@ -1331,18 +1340,27 @@ contains
 
   end subroutine aero_rep_update_data
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Update data associated with a reaction. This function should be called
   !! when reaction parameters need updated from the host model. For example,
   !! this function can be called to update photolysis rates from a host
   !! model's photolysis module.
-  subroutine rxn_update_data(this, update_data)
+  subroutine rxn_update_data(this, update_data, cell_id)
 
     !> Chemical model
     class(camp_core_t), intent(in) :: this
     !> Update data
-    class(rxn_update_data_t), intent(in) :: update_data
+    class(rxn_update_data_t), intent(inout) :: update_data
+    !> Cell id
+    integer(kind=i_kind), optional :: cell_id
+
+    if (present(cell_id)) then
+      update_data%cell_id=cell_id;
+    else
+      call assert_msg(593328368, this%n_cells.eq.1,                   &
+              "Missing cell_id on rxn_update_data when using multicells" )
+    end if
 
     if (associated(this%solver_data_gas)) &
             call this%solver_data_gas%update_rxn_data(update_data, this%n_cells)
@@ -1353,16 +1371,25 @@ contains
 
   end subroutine rxn_update_data
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Update data associated with a sub-model. This function should be called
   !! when sub-model parameters need updated from the host model.
-  subroutine sub_model_update_data(this, update_data)
+  subroutine sub_model_update_data(this, update_data, cell_id)
 
     !> Chemical model
     class(camp_core_t), intent(in) :: this
     !> Update data
-    class(sub_model_update_data_t), intent(in) :: update_data
+    class(sub_model_update_data_t), intent(inout) :: update_data
+    !> Cell id
+    integer(kind=i_kind), optional :: cell_id
+
+    if (present(cell_id)) then
+      update_data%cell_id=cell_id;
+    else
+      call assert_msg(593328368, this%n_cells.eq.1,                   &
+              "Missing cell_id on sub_model_update_data when using multicells" )
+    end if
 
     if (associated(this%solver_data_gas)) &
             call this%solver_data_gas%update_sub_model_data(update_data)

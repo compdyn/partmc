@@ -123,6 +123,7 @@ void * rxn_gpu_arrhenius_pre_calc(ModelData *model_data, void *rxn_data)
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
+
 #ifdef __CUDA_ARCH__//maybe is better if we activate gpu? because if we dont activate but cuda_Arch then PUM (well if not work a replace to pmc_use_gpu is easy)
 __host__ __device__
 #endif
@@ -151,6 +152,7 @@ void rxn_gpu_arrhenius_calc_deriv_contrib(ModelData *model_data, realtype *deriv
       if (DERIV_ID_(i_dep_var) < 0) continue;
 #ifdef __CUDA_ARCH__
         atomicAdd(&(deriv[DERIV_ID_(i_dep_var)]),-rate);
+        //atomicAdd(&(deriv[DERIV_ID_(i_dep_var)]),0.5); //debug
 #else
         deriv[DERIV_ID_(i_dep_var)] -= rate;
 #endif
@@ -163,6 +165,7 @@ void rxn_gpu_arrhenius_calc_deriv_contrib(ModelData *model_data, realtype *deriv
       if (-rate*YIELD_(i_spec)*time_step <= state[PROD_(i_spec)]) {
 #ifdef __CUDA_ARCH__
         atomicAdd(&(deriv[DERIV_ID_(i_dep_var)]),rate*YIELD_(i_spec));
+        //atomicAdd(&(deriv[DERIV_ID_(i_dep_var)]),0.1); //debug
 #else
         deriv[DERIV_ID_(i_dep_var)] += rate * YIELD_(i_spec);
 #endif
@@ -171,6 +174,9 @@ void rxn_gpu_arrhenius_calc_deriv_contrib(ModelData *model_data, realtype *deriv
   }
 
 }
+
+
+
 #endif
 
 /** \brief Calculate contributions to the Jacobian from this reaction

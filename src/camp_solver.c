@@ -35,7 +35,7 @@
 #include "camp_debug.h"
 
 #ifdef PMC_DEBUG_GPU
-int counterDeriv2=0;
+//int counterDeriv2=0;
 int counterJac2=0;
 double timeCVode=0;
 double timeRates=0;
@@ -357,7 +357,6 @@ void *solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
   sd->model_data.sub_model_env_idx[0] = 0;
 
 #ifdef PMC_USE_GPU
-
   solver_new_gpu_cu(&(sd->model_data), n_dep_var, n_state_var, n_rxn,
                     n_rxn_int_param, n_rxn_float_param, n_rxn_env_param,
                     n_cells);
@@ -366,6 +365,8 @@ void *solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
 #ifdef PMC_DEBUG
   if (sd->debug_out) print_data_sizes(&(sd->model_data));
 #endif
+
+  sd->model_data.counterDeriv2=0;
 
   sd->spec_names = (char**) malloc(sizeof(char*)*n_state_var);
 
@@ -587,6 +588,15 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   sd->model_data.total_state = state;
   sd->model_data.total_env = env;
 
+  /*
+  if(md->counterDeriv2==0){
+    printf("camp solver_run start [(id),conc], n_state_var %d, n_cells %d\n", md->n_per_cell_state_var, n_cells);
+    for (int i = 0; i < md->n_per_cell_state_var*n_cells; i++) {  // NV_LENGTH_S(deriv)
+      printf("(%d) %-le ",i+1, state[i]);
+    }
+  }
+*/
+
 #ifdef PMC_DEBUG
   // Update the debug output flag in CVODES and the linear solver
   flag = CVodeSetDebugOut(sd->cvode_mem, sd->debug_out);
@@ -662,8 +672,8 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   if (!sd->no_solve) {
     #ifdef PMC_USE_GPU
       #ifdef PMC_USE_ODE_GPU
-        flag = CVode_gpu2(sd->cvode_mem, (realtype)t_final, sd->y, &t_rt, CV_NORMAL, sd);
-      //flag = CVode(sd->cvode_mem, (realtype)t_final, sd->y, &t_rt, CV_NORMAL);
+      //flag = CVode_gpu2(sd->cvode_mem, (realtype)t_final, sd->y, &t_rt, CV_NORMAL, sd);
+      flag = CVode(sd->cvode_mem, (realtype)t_final, sd->y, &t_rt, CV_NORMAL);
       #else
         //flag = CVode_gpu2(sd->cvode_mem, (realtype)t_final, sd->y, &t_rt, CV_NORMAL, sd);
         flag = CVode(sd->cvode_mem, (realtype)t_final, sd->y, &t_rt, CV_NORMAL);
@@ -674,7 +684,8 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
 #ifndef FAILURE_DETAIL
     if (flag < 0) {
 #else
-    if (check_flag(&flag, "CVode", 1) == CAMP_SOLVER_FAIL) {
+    //if (check_flag(&flag, "CVode", 1) == CAMP_SOLVER_FAIL) {
+    if (1) {
       N_Vector deriv = N_VClone(sd->y);
       flag = f(t_initial, sd->y, deriv, sd);
       if (flag != 0)
@@ -857,6 +868,7 @@ int camp_solver_update_model_state(N_Vector solver_state, ModelData *model_data,
             NV_DATA_S(solver_state)[i_dep_var] > threshhold
                 ? NV_DATA_S(solver_state)[i_dep_var]
                 : replacement_value;
+        //printf("(%d) %-le \n", i_spec+1, model_data->total_state[i_spec]);
         i_dep_var++;
       }
     }
@@ -912,7 +924,17 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
   clock_t start = clock();
 #endif
 
+ /*
+  if(md->counterDeriv2==0){
+    printf("camp solver_run start [(id),conc], n_state_var %d, n_cells %d\n", md->n_per_cell_state_var, n_cells);
+    for (int i = 0; i < md->n_per_cell_state_var*n_cells; i++) {  // NV_LENGTH_S(deriv)
+      printf("(%d) %-le \n",i+1, md->total_state[i]);
+    }
+  }
+*/
+
 #ifdef PMC_USE_GPU
+//#ifdef COMMENTING
   // Calculate the time derivative f(t,y)
   // (this is for all grid cells at once)
   //if(!md->small_data)
@@ -949,8 +971,13 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
     clock_t start2 = clock();
 #endif
 
-//#ifndef PMC_USE_GPU
-#ifndef PMC_USE_GPU
+#ifdef PMC_DEBUG_GPU
+    // Measure calc_deriv time execution
+    clock_t start4 = clock();
+#endif
+
+#ifndef PMC_USE_GPU //CPU always better atm cause delay double loop
+//#ifndef COMMENTING
     // Calculate the time derivative f(t,y)
 
     rxn_calc_deriv(md, deriv_data, (double)time_step);
@@ -977,24 +1004,27 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
     sd->timeDeriv += (end2 - start2);
 #endif
 
+#ifdef PMC_DEBUG_GPU
+  timeDeriv2 += (clock() - start4);
+#endif
+
     // Advance the derivative for the next cell
     deriv_data += n_dep_var;
   }
 
 #ifdef PMC_USE_GPU
+//#ifdef COMMENTING
   //Add contributions from cpu deriv and gpu deriv
-  //if(!md->small_data)
-  if(1)
     rxn_fusion_deriv_gpu(md, deriv);
 #endif
 
-  //if (counterDeriv2==0)print_derivative(deriv);
-
 #ifdef PMC_DEBUG_GPU
 
-  timeDeriv2 += (clock() - start3);
-  //timeDeriv2 += sd->timeDeriv;
-  counterDeriv2++;
+  //if(md->counterDeriv2==0) print_derivative(deriv);
+
+  //timeDeriv2 += (clock() - start3);
+  md->counterDeriv2++;
+  //printf("%d",md->counterDeriv2);
 #endif
 
   // Return 0 if success
@@ -1912,6 +1942,7 @@ static void solver_print_stats(void *cvode_mem) {
  */
 void solver_free(void *solver_data) {
   SolverData *sd = (SolverData *)solver_data;
+  ModelData *md = &(sd->model_data);
 
 #ifdef PMC_USE_SUNDIALS
   // free the SUNDIALS solver
@@ -1935,13 +1966,15 @@ void solver_free(void *solver_data) {
 #endif
 
 #ifdef PMC_DEBUG_GPU
-  printSolverCounters(sd);
-  printf("timeDeriv2 %lf, counterDeriv2 %d\n",timeDeriv2/CLOCKS_PER_SEC,counterDeriv2);
+#ifdef PMC_USE_GPU
+//#ifdef PMC_USE_ODE_GPU
+  //printSolverCounters(sd);
+//#endif
+#endif
+  printf("timeDeriv2 %lf, counterDeriv2 %d\n",timeDeriv2/CLOCKS_PER_SEC,md->counterDeriv2);
   printf("timeJac2 %lf, counterJac2 %d\n",timeJac2/CLOCKS_PER_SEC,counterJac2);
   printf("timeCVode %lf\n",timeCVode/CLOCKS_PER_SEC);
   printf("timeRates %lf\n",timeRates/CLOCKS_PER_SEC);
-  //printf("counterDeriv2 %d\n", counterDeriv2);
-  //printf("counterJac2 %d\n", counterJac2);
 
   //todo print this in profile_stats file
   //write_profile_stats();

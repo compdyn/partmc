@@ -2,7 +2,7 @@
 #SBATCH --job-name=test_monarch_1
 #SBATCH --output=out.txt
 #SBATCH --error=err.txt
-#SBATCH --ntasks=1
+#SBATCH --ntasks=2
 #   #SBATCH --cpus-per-task=4
 #   #SBATCH --tasks-per-node=1
 ##mpi_%j.out ##mpi_%j.err
@@ -24,8 +24,8 @@ do
   echo Attempt $counter
 
 if [[ $1 == "MPI" ]]; then
-  #exec_str="mpirun -v -np 2 ../../mock_monarch config_simple.json interface_simple.json out/simple"
-  exec_str="srun ../../mock_monarch config_simple.json interface_simple.json out/simple"
+  exec_str="mpirun -v -np 2 ../../mock_monarch config_simple.json interface_simple.json out/simple" #local
+  #exec_str="srun ../../mock_monarch config_simple.json interface_simple.json out/simple" #cluster
 else
 
   exec_str="../../mock_monarch config_simple.json interface_simple.json out/simple"

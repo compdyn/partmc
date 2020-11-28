@@ -353,7 +353,6 @@ int CVode_gpu2(void *cvode_mem, realtype tout, N_Vector yout,
           realtype *tret, int itask, SolverData *sd)
 {
   CVodeMem cv_mem;
-  itsolver *bicg = &(sd->bicg);
   long int nstloc;
   int retval, hflag, kflag, istate, ir, ier, irfndp;
   int ewtsetOK;
@@ -361,8 +360,7 @@ int CVode_gpu2(void *cvode_mem, realtype tout, N_Vector yout,
   booleantype inactive_roots;
 
 #ifdef PMC_DEBUG_GPU
-  clock_t start;
-  start=clock();
+  itsolver *bicg = &(sd->bicg);
 #endif
 
   /*
@@ -3125,7 +3123,11 @@ int cvNlsNewton_gpu2(SolverData *sd, CVodeMem cv_mem, int nflag)
     //bicg->timeDerivNewton+= clock() - start;
     bicg->counterDerivNewton++;
 #endif
+
     //cudaMemcpyDToGpu(ftemp, bicg->dftemp, bicg->nrows);
+    //todo copy cv_ftemp into dcv_y?
+    //cudaMemcpy(bicg->dftemp,cv_mem->cv_ftemp,bicg->nrows*sizeof(double),cudaMemcpyHostToDevice);
+
     if (retval < 0) return(CV_RHSFUNC_FAIL);
     if (retval > 0) return(RHSFUNC_RECVR);
 
@@ -3212,6 +3214,7 @@ int linsolsetup_gpu2(SolverData *sd, CVodeMem cv_mem,int convfail,N_Vector vtemp
   jok = !jbad;
 
   // If jok = SUNTRUE, use saved copy of J
+  //todo check jok
   if (jok) {
   //  if (0) {
     cv_mem->cv_jcur = SUNFALSE;
@@ -3317,9 +3320,6 @@ int linsolsolve_gpu2(SolverData *sd, CVodeMem cv_mem)
   itsolver *bicg = &(sd->bicg);
   int m, retval;
   realtype del, delp, dcon;
-#ifdef PMC_DEBUG_GPU
-  clock_t start;
-#endif
 
   cv_mem->cv_mnewt = m = 0;
 
@@ -3336,6 +3336,7 @@ int linsolsolve_gpu2(SolverData *sd, CVodeMem cv_mem)
   for(;;) {
 
     // Evaluate the residual of the nonlinear system
+    // a*x + b*y = z
     gpu_zaxpby(cv_mem->cv_rl1, (bicg->dzn+1*bicg->nrows), 1.0, bicg->dacor, bicg->dtempv, bicg->nrows, bicg->blocks, bicg->threads);
     gpu_zaxpby(cv_mem->cv_gamma, bicg->dftemp, -1.0, bicg->dtempv, bicg->dtempv, bicg->nrows, bicg->blocks, bicg->threads);
     //N_VLinearSum(cv_mem->cv_rl1, cv_mem->cv_zn[1], ONE,
@@ -3344,9 +3345,7 @@ int linsolsolve_gpu2(SolverData *sd, CVodeMem cv_mem)
     //             cv_mem->cv_tempv, cv_mem->cv_tempv);
 
 #ifdef PMC_DEBUG_GPU
-
     cudaEventRecord(bicg->startBiConjGrad);
-    //start=clock();
 #endif
     //todo change CSC for CSR to avoid atomicadds
 
@@ -3455,7 +3454,7 @@ int linsolsolve_gpu2(SolverData *sd, CVodeMem cv_mem)
     del = gpu_VWRMS_Norm(bicg->nrows, bicg->dx, bicg->dewt, bicg->aux, bicg->daux, (bicg->blocks + 1) / 2, bicg->threads);
 
     //add correction to acor and y
-    // z= a*x + b*y
+    // a*x + b*y = z
     gpu_zaxpby(1.0, bicg->dacor, 1.0, bicg->dx, bicg->dacor, bicg->nrows, bicg->blocks, bicg->threads);
     gpu_zaxpby(1.0, bicg->dzn, 1.0, bicg->dacor, bicg->dcv_y, bicg->nrows, bicg->blocks, bicg->threads);
 
@@ -3532,10 +3531,13 @@ int linsolsolve_gpu2(SolverData *sd, CVodeMem cv_mem)
     //bicg->timeDerivSolve+= clock() - start;
     bicg->counterDerivSolve++;
 #endif
+
     //cudaMemcpyDToGpu(ftemp, bicg->dftemp, bicg->nrows);
+    //todo copy ftemp?
+    cudaMemcpy(bicg->dftemp,cv_mem->cv_ftemp,bicg->nrows*sizeof(double),cudaMemcpyHostToDevice);
 
     //N_VLinearSum(ONE, cv_mem->cv_y, -ONE, cv_mem->cv_zn[0], cv_mem->cv_acor);
-    // z= a*x + b*y
+    // a*x + b*y = z
     gpu_zaxpby(1.0, bicg->dcv_y, -1.0, bicg->dzn, bicg->dacor, bicg->nrows, bicg->blocks, bicg->threads);
 
     if (retval < 0){
@@ -3718,9 +3720,11 @@ void free_ode(SolverData *sd)
 
 void printSolverCounters(SolverData *sd)
 {
-  itsolver *bicg = &(sd->bicg);
 
 #ifdef PMC_DEBUG_GPU
+
+  itsolver *bicg = &(sd->bicg);
+
   //printf("timeNewtonSendInit %lf, counterSendInit %d\n",bicg->timeNewtonSendInit/CLOCKS_PER_SEC,bicg->counterSendInit);
   //printf("timeMatScaleAddI %lf, counterMatScaleAddI %d\n",bicg->timeMatScaleAddI/CLOCKS_PER_SEC,bicg->counterMatScaleAddI);
   //printf("timeMatScaleAddISendA %lf, counterMatScaleAddISendA %d\n",bicg->timeMatScaleAddISendA/CLOCKS_PER_SEC,bicg->counterMatScaleAddISendA);

@@ -69,16 +69,6 @@ static void HandleError(cudaError_t err,
   }
 }
 
-static void HandleError2(const char *file,
-                         int line) {
-  cudaError_t err;
-  err=cudaGetLastError();
-  if (err != cudaSuccess) {
-    printf("%s in %s at line %d\n", cudaGetErrorString(err),
-           file, line);    exit(EXIT_FAILURE);
-  }
-}
-
 /** \brief Allocate GPU solver variables
  *
  * \param n_dep_var number of solver variables per grid cell
@@ -130,7 +120,7 @@ void solver_new_gpu_cu(ModelData *model_data, int n_dep_var,
 
   //Detect if we are working with few data values
   if (n_dep_var*n_cells < DATA_SIZE_LIMIT_OPT){
-    model_data->small_data = 1;
+    //model_data->small_data = 1;//todo enable
   }
 
   //Set working GPU: we have 4 gpu available on power9. as default, it should be assign to gpu 0
@@ -206,7 +196,7 @@ void solver_set_rxn_data_gpu(SolverData *sd) {
   unsigned int double_lengths[n_rxn];
 
   //Number of extra values added to square matrix(zeros and -1's)
-  unsigned int n_zeros[n_rxn];
+  //unsigned int n_zeros[n_rxn];
 
   //Position on the matrix for each row
   unsigned int rxn_position[n_rxn];
@@ -295,9 +285,9 @@ void solver_set_rxn_data_gpu(SolverData *sd) {
   cudaMalloc((void **) &model_data->double_pointer_gpu, rxn_double_length * sizeof(double));
 
   //Update number of zeros added on each reaction
-  for (int i_rxn = 0; i_rxn < n_rxn; i_rxn++)
+  /*for (int i_rxn = 0; i_rxn < n_rxn; i_rxn++)
     n_zeros[i_rxn] = (int_max_length - int_lengths[i_rxn]) +
-                     (double_max_length - double_lengths[i_rxn]);
+                     (double_max_length - double_lengths[i_rxn]);*/
 
   //NOTE: no improvement on doing the sorting or not for gpu seems.
   //Sort by lengths
@@ -395,6 +385,8 @@ void camp_solver_update_model_state_cuda(double *total_state, double *y,
   }
 }
 
+/*
+
 //todo not working after first execution (I guess missiong free memory)
 // and innefficient (increase the number of cudamemcpys)...
 int camp_solver_update_model_state_gpu(N_Vector solver_state, ModelData *model_data,
@@ -446,6 +438,8 @@ int camp_solver_update_model_state_gpu(N_Vector solver_state, ModelData *model_d
   return status;
 }
 
+*/
+
 /** \brief GPU function: Solve derivative
  *
  * \param state_init Pointer to first value of state array
@@ -473,7 +467,7 @@ __global__ void solveDerivative(double *state_init, double *deriv_init,
   int offset2 = (n_rxn*n_cells/n_kernels)*(i_kernel+1);
 
   //Maximum number of threads to compute all reactions
-  if( (offset1 < index) && (index < (offset2)) ){
+  if( (offset1 <= index) && (index < (offset2)) ){
 
     //Thread index for deriv and state,
     // till we don't finish all reactions of a cell, we stay on same index
@@ -582,6 +576,16 @@ void rxn_calc_deriv_gpu(ModelData *model_data, N_Vector deriv, realtype time_ste
   t1 = clock();
 #endif
 
+/* //debug
+  if(model_data->counterDeriv2==0){
+    printf("camp solver_run start [(id),conc], n_state_var %d, n_cells %d\n", model_data->n_per_cell_state_var, n_cells);
+    //printf("deriv_size %d\n", model_data->deriv_size);
+    for (int i = 0; i < model_data->n_per_cell_state_var*n_cells; i++) {  // NV_LENGTH_S(deriv)
+      printf("(%d) %-le \n",i+1, model_data->total_state[i]);
+    }
+  }
+*/
+
   //Faster, use for few values
   if (model_data->small_data){
     //This method of passing them as a function parameter has a theoric maximum of 4kb of data
@@ -630,10 +634,25 @@ void rxn_calc_deriv_gpu(ModelData *model_data, N_Vector deriv, realtype time_ste
     //model_data->deriv_size, cudaMemcpyDeviceToHost, model_data->stream_gpu[STREAM_DERIV_GPU]));
 
     //Sync
-    HANDLE_ERROR(cudaMemcpy(model_data->deriv_aux, model_data->deriv_gpu_data, model_data->deriv_size, cudaMemcpyDeviceToHost));
+    //HANDLE_ERROR(cudaMemcpy(model_data->deriv_aux, model_data->deriv_gpu_data, model_data->deriv_size, cudaMemcpyDeviceToHost));
+    HANDLE_ERROR(cudaMemcpy(deriv_data, model_data->deriv_gpu_data, model_data->deriv_size, cudaMemcpyDeviceToHost));
   }
 
   cudaDeviceSynchronize();
+
+/* //debug
+  if(model_data->counterDeriv2==0){
+    n_cells=2;
+    for (int i = 0; i < n_cells; i++) {
+      printf("cell %d \n", i);
+      int size_j = NV_LENGTH_S(deriv) / n_cells;
+      for (int j = 0; j < size_j; j++) {  // NV_LENGTH_S(deriv)
+        printf("(%d) %-le \n", j + 1, NV_DATA_S(deriv)[j+i*size_j]);
+      }
+      printf("\n");
+    }
+  }
+ */
 
 #ifdef PMC_DEBUG_GPU
   timeDerivReceive += (clock() - t3);
@@ -875,6 +894,8 @@ void rxn_calc_jac_gpu(SolverData *sd, SUNMatrix jac, realtype time_step) {
 
   //TODO: Fix jacobian with jac_ids...
 
+  /*
+
   // Get a pointer to the jacobian data
   ModelData *model_data = &(sd->model_data);
   double *jac_data = SM_DATA_S(jac);
@@ -884,7 +905,7 @@ void rxn_calc_jac_gpu(SolverData *sd, SUNMatrix jac, realtype time_step) {
   int n_blocks = ((n_threads + model_data->max_n_gpu_thread - 1) / model_data->max_n_gpu_thread);
   double *state = model_data->total_state;
   double *rxn_env_data = model_data->rxn_env_data;
-/*
+
   //Faster, use for few values
   if (model_data->small_data){
     //This method of passing them as a function parameter has a theoric maximum of 4kb of data
@@ -922,11 +943,11 @@ void rxn_calc_jac_gpu(SolverData *sd, SUNMatrix jac, realtype time_step) {
 void free_gpu_cu(ModelData *model_data) {
 
 #ifdef PMC_DEBUG_GPU
-  printf("timeDeriv %lf\n", (((double)timeDeriv) * 1000) / CLOCKS_PER_SEC);
-  printf("timeDerivSend %lf\n", (((double)timeDerivSend) * 1000) / CLOCKS_PER_SEC);
-  printf("timeDerivKernel %lf\n", (((double)timeDerivKernel) * 1000) / CLOCKS_PER_SEC);
-  printf("timeDerivReceive %lf\n", (((double)timeDerivReceive) * 1000) / CLOCKS_PER_SEC);
-  printf("timeDerivCPU %lf\n", (((double)timeDerivCPU) * 1000) / CLOCKS_PER_SEC);
+  printf("timeDeriv %lf\n", (((double)timeDeriv) ) / CLOCKS_PER_SEC); //*1000
+  printf("timeDerivSend %lf\n", (((double)timeDerivSend) ) / CLOCKS_PER_SEC);
+  printf("timeDerivKernel %lf\n", (((double)timeDerivKernel) ) / CLOCKS_PER_SEC);
+  printf("timeDerivReceive %lf\n", (((double)timeDerivReceive) ) / CLOCKS_PER_SEC);
+  printf("timeDerivCPU %lf\n", (((double)timeDerivCPU) ) / CLOCKS_PER_SEC);
 #endif
 
   //for (int i = 0; i < n_streams; ++i)

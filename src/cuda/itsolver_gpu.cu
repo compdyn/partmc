@@ -62,8 +62,6 @@ void cudaSolveGPU(
         //double *rho1, double *temp1, double *temp2 //Auxiliary parameters
 )
 {
-  int tid = threadIdx.x;
-  int id = blockIdx.x * blockDim.x + threadIdx.x;
   double alpha,rho0,omega0,beta,rho1,temp1,temp2;
 
   //gpu_spmv(dr0,dx,nrows,dA,djA,diA,mattype,blocks,threads);  // r0= A*x
@@ -210,11 +208,8 @@ void solveGPU_block(itsolver *bicg, double *dA, int *djA, int *diA, double *dx, 
   double *dAx2 = bicg->dAx2;
   double *dy = bicg->dy;
   double *dz = bicg->dz;
-  double *aux = bicg->aux;
   double *daux = bicg->daux;
 
-  //Function private variables
-  double alpha,rho0,omega0,beta,rho1,temp1,temp2;
 //todo eliminate atomicadd in spmv through using CSR or something like that
   gpu_spmv(dr0,dx,nrows,dA,djA,diA,mattype,blocks,threads);  // r0= A*x
 /*
@@ -300,7 +295,6 @@ void solveGPU(itsolver *bicg, double *dA, int *djA, int *diA, double *dx, double
   int threads = bicg->threads;
   int maxIt = bicg->maxIt;
   int mattype = bicg->mattype;
-  int n_cells = bicg->n_cells;
   double tolmax = bicg->tolmax;
   double *ddiag = bicg->ddiag;
 
@@ -404,10 +398,6 @@ void solveGPU(itsolver *bicg, double *dA, int *djA, int *diA, double *dx, double
 
 void free_itsolver(itsolver *bicg)
 {
-  //Init variables ("public")
-  int nrows = bicg->nrows;
-  int blocks = bicg->blocks;
-
   //Auxiliary vectors ("private")
   double ** dr0 = &bicg->dr0;
   double ** dr0h = &bicg->dr0h;

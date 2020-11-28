@@ -227,6 +227,7 @@ typedef struct {
   double *rxn_env_data_gpu;
   int *rxn_env_data_idx_gpu;
   int model_data_id; //Id of the modelData object
+  int counterDeriv2;
   //cudaStream_t *stream_gpu;
 #endif
 

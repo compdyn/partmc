@@ -187,6 +187,8 @@ if (CUDA_FOUND)
     if (ENABLE_GPU)
         #Define global variable of use gpu no matter what test to include user main test
         add_definitions(-DPMC_USE_GPU)
+        #debug gpu add a considerable overhead in time
+        add_definitions(-DPMC_DEBUG_GPU)
 
         if (ENABLE_ODE_GPU)
             add_definitions(-DPMC_USE_ODE_GPU)
@@ -701,11 +703,11 @@ set_source_files_properties(${CB5_EBI_SOLVER} PROPERTIES COMPILE_FLAGS
 ######################################################################
 # test_chemistry_cb05cl_ae5_big
 
-add_executable(test_chemistry_cb05cl_ae5
-        test/chemistry/cb05cl_ae5/test_cb05cl_ae5.F90
+add_executable(test_chemistry_cb05cl_ae5_big
+        test/chemistry/cb05cl_ae5/test_cb05cl_ae5_big.F90
         ${CB5_EBI_SOLVER} ${CB5_KPP_SOLVER}
         test/chemistry/cb05cl_ae5/module_BSC_CHEM_DATA.F90)
-target_link_libraries(test_chemistry_cb05cl_ae5 partmclib)
+target_link_libraries(test_chemistry_cb05cl_ae5_big partmclib)
 
 #if (CUDA_FOUND AND NOT ENABLE_GPU AND ENABLE_TESTS)
 #    add_executable(test_chemistry_cb05cl_ae5_gpu
@@ -745,16 +747,14 @@ target_link_libraries(unit_test_rxn_arrhenius partmclib)
 #endif()
 
 
-if (ENABLE_TESTS)
-
 ######################################################################
 # test_chemistry_cb05cl_ae5
 
-add_executable(test_chemistry_cb05cl_ae5_big
-        test/chemistry/cb05cl_ae5/test_cb05cl_ae5_big.F90
+add_executable(test_chemistry_cb05cl_ae5
+        test/chemistry/cb05cl_ae5/test_cb05cl_ae5.F90
         ${CB5_EBI_SOLVER} ${CB5_KPP_SOLVER}
         test/chemistry/cb05cl_ae5/module_BSC_CHEM_DATA.F90)
-target_link_libraries(test_chemistry_cb05cl_ae5_big partmclib)
+target_link_libraries(test_chemistry_cb05cl_ae5 partmclib)
 
 #if (CUDA_FOUND AND NOT ENABLE_GPU AND ENABLE_TESTS)
 #    add_executable(test_chemistry_cb05cl_ae5_big_gpu
@@ -764,6 +764,7 @@ target_link_libraries(test_chemistry_cb05cl_ae5_big partmclib)
 #    target_link_libraries(test_chemistry_cb05cl_ae5_big_gpu partmclib_gpu)
 #endif()
 
+if (ENABLE_TESTS)
 
 ######################################################################
 # test_chemistry_eqsam_v03d

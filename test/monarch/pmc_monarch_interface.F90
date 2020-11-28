@@ -231,7 +231,7 @@ contains
 #ifdef PMC_USE_MPI
 
       ! Change a bit init_conc to denote different initial values
-      new_obj%init_conc(:) = &
+      new_obj%init_conc(:) = & !this not change anything because state_var reset to zero each iter
               new_obj%init_conc(:) + 0.1*MONARCH_PROCESS
 
       pack_size = new_obj%camp_core%pack_size() + &
@@ -275,7 +275,7 @@ contains
 
     if (MONARCH_PROCESS.ne.0) then
       ! unpack the data
-      new_obj%camp_core => camp_core_t()
+      new_obj%camp_core => camp_core_t(n_cells=new_obj%n_cells)
       pos = 0
       call new_obj%camp_core%bin_unpack(buffer, pos)
       call update_data_GMD%bin_unpack(buffer, pos)
@@ -483,7 +483,7 @@ contains
 
             !Reset state conc
             this%camp_state%state_var(this%map_camp_id(:) + &
-                                       (z*state_size_per_cell)) = 0.0
+                                       (z*state_size_per_cell)) = 0.0 !+ 0.001*pmc_mpi_rank()
 
             this%camp_state%state_var(this%map_camp_id(:) + &
                                        (z*state_size_per_cell)) = &
@@ -532,7 +532,7 @@ contains
 #ifdef PMC_USE_MPI
 
 if (pmc_mpi_rank().eq.0) then
-  call solver_stats%print( )
+  !call solver_stats%print( )
 end if
 
 #endif

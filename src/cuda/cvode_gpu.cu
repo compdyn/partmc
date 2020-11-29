@@ -3237,6 +3237,10 @@ int linsolsetup_gpu2(SolverData *sd, CVodeMem cv_mem,int convfail,N_Vector vtemp
     cudaEventRecord(bicg->startJac);
 #endif
 
+    //Not needed because deriv is called just before, loading cv_y already
+    //double *cv_y = NV_DATA_S(cv_mem->cv_y);
+    //cudaMemcpy(cv_y,bicg->dcv_y,bicg->nrows*sizeof(double),cudaMemcpyDeviceToHost);
+
     retval = Jac(cv_mem->cv_tn, cv_mem->cv_y,cv_mem->cv_ftemp, cvdls_mem->A,cvdls_mem->J_data, vtemp1, vtemp2, vtemp3);
 
 #ifdef PMC_DEBUG_GPU
@@ -3316,7 +3320,7 @@ int linsolsetup_gpu2(SolverData *sd, CVodeMem cv_mem,int convfail,N_Vector vtemp
 int linsolsolve_gpu2(SolverData *sd, CVodeMem cv_mem)
 {
   itsolver *bicg = &(sd->bicg);
-  ModelData *md = &(sd->model_data);
+  //ModelData *md = &(sd->model_data);
   int m, retval;
   realtype del, delp, dcon;
 

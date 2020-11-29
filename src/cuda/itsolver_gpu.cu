@@ -54,7 +54,7 @@ void cudaSolveGPU(
         ,double *dr0, double *dr0h, double *dn0, double *dp0
         ,double *dt, double *ds, double *dAx2, double *dy, double *dz
         ,double *daux // Auxiliary vectors
-#ifndef PMC_DEBUG_GPU
+#ifdef PMC_DEBUG_GPU
         ,int *it_pointer //debug
 #endif
         //,double *aux_params
@@ -83,7 +83,7 @@ void cudaSolveGPU(
   rho0   = 1.0;
   omega0 = 1.0;
 
-#ifndef PMC_DEBUG_GPU
+#ifdef PMC_DEBUG_GPU
   int it=*it_pointer;
 #else
   int it=0;
@@ -165,7 +165,7 @@ void cudaSolveGPU(
     it++;
   } while(it<maxIt && temp1>tolmax);//while(it<maxIt && temp1>tolmax);//while(0);
 
-#ifndef PMC_DEBUG_GPU
+#ifdef PMC_DEBUG_GPU
   *it_pointer = it;
 #endif
 
@@ -248,7 +248,7 @@ void solveGPU_block(itsolver *bicg, double *dA, int *djA, int *diA, double *dx, 
   aux_params[6] = temp2;
   cudaMemcpy(daux_params, aux_params, n_aux_params * sizeof(double), cudaMemcpyHostToDevice);*/
 
-#ifndef PMC_DEBUG_GPU
+#ifdef PMC_DEBUG_GPU
   int it = 0;
   int *dit_ptr;
   cudaMalloc((void**)&dit_ptr,sizeof(int));
@@ -258,13 +258,13 @@ void solveGPU_block(itsolver *bicg, double *dA, int *djA, int *diA, double *dx, 
   cudaSolveGPU << < blocks, active_threads, bicg->threads * sizeof(double) >> >//threads
           (dA, djA, diA, dx, dtempv, nrows, blocks, n_shr_empty, maxIt, mattype, n_cells
           ,tolmax, ddiag, dr0, dr0h, dn0, dp0, dt, ds, dAx2, dy, dz, daux
-#ifndef PMC_DEBUG_GPU
+#ifdef PMC_DEBUG_GPU
           ,dit_ptr
 #endif
           //,daux_params
           );
 
-#ifndef PMC_DEBUG_GPU
+#ifdef PMC_DEBUG_GPU
   cudaMemcpy(&it,dit_ptr,sizeof(int),cudaMemcpyDeviceToHost);
   bicg->counterBiConjGradInternal += it;
 #endif
@@ -390,7 +390,7 @@ void solveGPU(itsolver *bicg, double *dA, int *djA, int *diA, double *dx, double
     it++;
   }while(it<maxIt && temp1>tolmax);
 
-#ifndef PMC_DEBUG_GPU
+#ifdef PMC_DEBUG_GPU
   bicg->counterBiConjGradInternal += it;
 #endif
 

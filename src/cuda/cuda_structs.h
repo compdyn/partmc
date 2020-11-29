@@ -50,7 +50,7 @@ typedef struct
   double* dzn;
   double* dcv_y;
 
-#ifndef PMC_DEBUG_GPU
+#ifdef PMC_DEBUG_GPU
   int counterSendInit;
   int counterMatScaleAddI;
   int counterMatScaleAddISendA;

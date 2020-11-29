@@ -46,7 +46,7 @@ extern "C" {
 //int model_data->max_n_gpu_blocks;
 
 //Debug info
-#ifndef PMC_DEBUG_GPU
+#ifdef PMC_DEBUG_GPU
   int counterDeriv = 0;       // Total calls to f()
   int counterJac = 0;         // Total calls to Jac()
   clock_t timeDeriv = 0;      // Compute time for calls to f()
@@ -574,7 +574,7 @@ void rxn_calc_deriv_gpu(ModelData *model_data, N_Vector deriv, realtype time_ste
   double *rxn_env_data = model_data->rxn_env_data;
   double *env = model_data->total_env;
 
-#ifndef PMC_DEBUG_GPU
+#ifdef PMC_DEBUG_GPU
   t1 = clock();
 #endif
 
@@ -601,7 +601,7 @@ void rxn_calc_deriv_gpu(ModelData *model_data, N_Vector deriv, realtype time_ste
   //Reset deriv gpu
   HANDLE_ERROR(cudaMemset(model_data->deriv_gpu_data, 0.0, model_data->deriv_size));
 
-#ifndef PMC_DEBUG_GPU
+#ifdef PMC_DEBUG_GPU
   timeDerivSend += (clock() - t1);
   clock_t t2 = clock();
 #endif
@@ -620,7 +620,7 @@ void rxn_calc_deriv_gpu(ModelData *model_data, N_Vector deriv, realtype time_ste
 
   cudaDeviceSynchronize();
 
-#ifndef PMC_DEBUG_GPU
+#ifdef PMC_DEBUG_GPU
   timeDerivKernel += (clock() - t2);
   t3 = clock();
 #endif
@@ -656,7 +656,7 @@ void rxn_calc_deriv_gpu(ModelData *model_data, N_Vector deriv, realtype time_ste
   }
  */
 
-#ifndef PMC_DEBUG_GPU
+#ifdef PMC_DEBUG_GPU
   timeDerivReceive += (clock() - t3);
   timeDeriv += (clock() - t1);
   t3 = clock();
@@ -672,7 +672,7 @@ void rxn_calc_deriv_gpu(ModelData *model_data, N_Vector deriv, realtype time_ste
  */
 void rxn_fusion_deriv_gpu(ModelData *model_data, N_Vector deriv) {
 
-#ifndef PMC_DEBUG_GPU
+#ifdef PMC_DEBUG_GPU
  timeDerivCPU += (clock() - t3);
 #endif
   // Get a pointer to the derivative data
@@ -944,7 +944,7 @@ void rxn_calc_jac_gpu(SolverData *sd, SUNMatrix jac, realtype time_step) {
  */
 void free_gpu_cu(ModelData *model_data) {
 
-#ifndef PMC_DEBUG_GPU
+#ifdef PMC_DEBUG_GPU
   printf("timeDeriv %lf\n", (((double)timeDeriv) ) / CLOCKS_PER_SEC); //*1000
   printf("timeDerivSend %lf\n", (((double)timeDerivSend) ) / CLOCKS_PER_SEC);
   printf("timeDerivKernel %lf\n", (((double)timeDerivKernel) ) / CLOCKS_PER_SEC);

@@ -25,10 +25,13 @@ program process
   character(len=PMC_UUID_LEN) :: uuid
   real(kind=dp), allocatable :: times(:), dry_diameters(:), num_concs(:), &
        dry_masses(:), masses(:), bc_masses(:), bc_fracs(:), &
+       so4_masses(:), no3_masses(:), nh4_masses(:), &
        crit_rhs(:), scs(:), num_dist(:), &
+       mass_bc_dist(:), mass_so4_dist(:), mass_no3_dist(:), mass_nh4_dist(:), &
        diam_bc_dist(:,:), diam_sc_dist(:,:)
   type(stats_1d_t) :: stats_num_dist, stats_d_alpha, stats_tot_num_conc, &
-       stats_tot_mass_conc, stats_d_gamma, stats_chi
+       stats_tot_mass_conc, stats_d_gamma, stats_chi, &
+       stats_mass_bc_dist, stats_mass_so4_dist, stats_mass_no3_dist, stats_mass_nh4_dist
   type(stats_2d_t) :: stats_diam_bc_dist, stats_diam_sc_dist
 
   call pmc_mpi_init()
@@ -68,10 +71,29 @@ program process
         tot_mass_conc = sum(masses * num_concs)
         call stats_1d_add_entry(stats_tot_mass_conc, tot_mass_conc, i_index)
 
-        dry_masses = aero_state_masses(aero_state, aero_data, &
-             exclude=(/"H2O"/))
+        ! Calcluate masses of different species
         bc_masses = aero_state_masses(aero_state, aero_data, &
              include=(/"BC"/))
+        so4_masses = aero_state_masses(aero_state, aero_data, &
+             include=(/"SO4"/))
+        no3_masses = aero_state_masses(aero_state, aero_data, &
+             include=(/"NO3"/))
+        nh4_masses = aero_state_masses(aero_state, aero_data, &
+             include=(/"NH4"/))
+
+        ! Make distribution for different species
+        mass_bc_dist  = bin_grid_histogram_1d(diam_grid, dry_diameters, bc_masses)
+        mass_so4_dist = bin_grid_histogram_1d(diam_grid, dry_diameters, so4_masses)
+        mass_no3_dist = bin_grid_histogram_1d(diam_grid, dry_diameters, no3_masses)
+        mass_nh4_dist = bin_grid_histogram_1d(diam_grid, dry_diameters, nh4_masses)
+        
+        call stats_1d_add(stats_mass_bc_dist,  mass_bc_dist)
+        call stats_1d_add(stats_mass_so4_dist, mass_so4_dist)
+        call stats_1d_add(stats_mass_no3_dist, mass_no3_dist)
+        call stats_1d_add(stats_mass_nh4_dist, mass_nh4_dist)
+        
+        dry_masses = aero_state_masses(aero_state, aero_data, &
+             exclude=(/"H2O"/))
         bc_fracs = bc_masses / dry_masses
         diam_bc_dist = bin_grid_histogram_2d(diam_grid, dry_diameters, &
              bc_grid, bc_fracs, num_concs)
@@ -104,6 +126,19 @@ program process
      call stats_1d_output_netcdf(stats_num_dist, ncid, "num_dist", &
           dim_name="diam", unit="m^{-3}")
      call stats_1d_clear(stats_num_dist)
+
+     call stats_1d_output_netcdf(stats_mass_bc_dist, ncid, "mass_bc_dist", &
+          dim_name="diam", unit="m^{-3}")
+     call stats_1d_clear(stats_mass_bc_dist)
+     call stats_1d_output_netcdf(stats_mass_so4_dist, ncid, "mass_so4_dist", &
+          dim_name="diam", unit="m^{-3}")
+     call stats_1d_clear(stats_mass_so4_dist)
+     call stats_1d_output_netcdf(stats_mass_no3_dist, ncid, "mass_no3_dist", &
+          dim_name="diam", unit="m^{-3}")
+     call stats_1d_clear(stats_mass_no3_dist)
+     call stats_1d_output_netcdf(stats_mass_nh4_dist, ncid, "mass_nh4_dist", &
+          dim_name="diam", unit="m^{-3}")
+     call stats_1d_clear(stats_mass_nh4_dist)
 
      call stats_2d_output_netcdf(stats_diam_bc_dist, ncid, "diam_bc_dist", &
           dim_name_1="diam", dim_name_2="bc_frac", unit="m^{-3}")

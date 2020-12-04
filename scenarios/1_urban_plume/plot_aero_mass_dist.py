@@ -27,7 +27,7 @@ for (filename, index) in mpl_helper.get_filename_list('out/', r'urban_plume_ch_(
 
     axes.set_yscale("log")
     axes.set_ylabel(r"dm/dlogDp / $\rm \mu$g/$\rm m^{-3}$")
-    axes.set_ylim(1e-10, 1e-4)
+    #axes.set_ylim(1e-10, 1e-4)
 
     axes.grid(True)
     axes.legend()

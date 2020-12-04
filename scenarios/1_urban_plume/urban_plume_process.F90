@@ -82,10 +82,10 @@ program process
              include=(/"NH4"/))
 
         ! Make distribution for different species
-        mass_bc_dist  = bin_grid_histogram_1d(diam_grid, dry_diameters, bc_masses)
-        mass_so4_dist = bin_grid_histogram_1d(diam_grid, dry_diameters, so4_masses)
-        mass_no3_dist = bin_grid_histogram_1d(diam_grid, dry_diameters, no3_masses)
-        mass_nh4_dist = bin_grid_histogram_1d(diam_grid, dry_diameters, nh4_masses)
+        mass_bc_dist  = bin_grid_histogram_1d(diam_grid, dry_diameters, bc_masses * num_concs)
+        mass_so4_dist = bin_grid_histogram_1d(diam_grid, dry_diameters, so4_masses * num_concs)
+        mass_no3_dist = bin_grid_histogram_1d(diam_grid, dry_diameters, no3_masses * num_concs)
+        mass_nh4_dist = bin_grid_histogram_1d(diam_grid, dry_diameters, nh4_masses * num_concs)
         
         call stats_1d_add(stats_mass_bc_dist,  mass_bc_dist)
         call stats_1d_add(stats_mass_so4_dist, mass_so4_dist)

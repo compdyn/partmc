@@ -63,19 +63,19 @@ void allocate_index_arrays(ModelElement *model_element, int num_elements) {
       (int *)malloc(sizeof(int) * (num_elements + 1));
   if (model_element->indices.int_data == NULL) {
     printf("\n\nERROR allocating space for diff checker");
-    EXIT_FAILURE;
+    exit(EXIT_FAILURE);
   }
   model_element->indices.float_data =
       (int *)malloc(sizeof(int) * (num_elements + 1));
   if (model_element->indices.float_data == NULL) {
     printf("\n\nERROR allocating space for diff checker");
-    EXIT_FAILURE;
+    exit(EXIT_FAILURE);
   }
   model_element->indices.env_data =
       (int *)malloc(sizeof(int) * (num_elements + 1));
   if (model_element->indices.env_data == NULL) {
     printf("\n\nERROR allocating space for diff checker");
-    EXIT_FAILURE;
+    exit(EXIT_FAILURE);
   }
 }
 
@@ -123,20 +123,20 @@ void copy_data(ModelElement from, ModelElement *to) {
       (int *)malloc(sizeof(int) * to->indices.int_data[to->indices.n_elements]);
   if (to->ptrs.int_data == NULL) {
     printf("\n\nERROR allocating space for diff checker");
-    EXIT_FAILURE;
+    exit(EXIT_FAILURE);
   }
   to->ptrs.float_data = (double *)malloc(
       sizeof(double) * to->indices.float_data[to->indices.n_elements]);
   if (to->ptrs.float_data == NULL) {
     printf("\n\nERROR allocating space for diff checker");
-    EXIT_FAILURE;
+    exit(EXIT_FAILURE);
   }
   to->ptrs.env_data = (double *)malloc(
       sizeof(double) * to->indices.env_data[to->indices.n_elements] *
       to->n_cells);
   if (to->ptrs.env_data == NULL) {
     printf("\n\nERROR allocating space for diff checker");
-    EXIT_FAILURE;
+    exit(EXIT_FAILURE);
   }
 
   // copy the data

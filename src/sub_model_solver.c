@@ -88,7 +88,7 @@ void sub_model_set_jac_map(ModelData *model_data, int **jac_ids) {
       malloc(sizeof(JacMap) * model_data->n_mapped_params);
   if (model_data->jac_map_params == NULL) {
     printf("\n\nError allocating sub model Jacobian map\n\n");
-    EXIT_FAILURE;
+    exit(EXIT_FAILURE);
   }
 
   // Set up a local structure array for individual sub-model Jacobian elements
@@ -96,7 +96,7 @@ void sub_model_set_jac_map(ModelData *model_data, int **jac_ids) {
       malloc(sizeof(bool *) * model_data->n_per_cell_state_var);
   if (jac_struct_local == NULL) {
     printf("\n\nError allocating space for sub model Jac structure array\n\n");
-    EXIT_FAILURE;
+    exit(EXIT_FAILURE);
   }
   for (int i_var = 0; i_var < model_data->n_per_cell_state_var; ++i_var) {
     jac_struct_local[i_var] =
@@ -104,7 +104,7 @@ void sub_model_set_jac_map(ModelData *model_data, int **jac_ids) {
     if (jac_struct_local[i_var] == NULL) {
       printf(
           "\n\nError allocating space for sub model Jac structure array\n\n");
-      EXIT_FAILURE;
+      exit(EXIT_FAILURE);
     }
   }
 
@@ -169,7 +169,7 @@ void sub_model_set_jac_map(ModelData *model_data, int **jac_ids) {
   if (i_map != model_data->n_mapped_params) {
     printf("\n\nError mapping sub-model Jacobian elements %d %d\n\n", i_map,
            model_data->n_mapped_params);
-    EXIT_FAILURE;
+    exit(EXIT_FAILURE);
   }
 
   // free allocated memory

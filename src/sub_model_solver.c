@@ -59,7 +59,7 @@ void sub_model_get_used_jac_elem(ModelData *model_data, bool **jac_struct) {
   int n_map_elem = 0;
   for (int i_dep = 0; i_dep < model_data->n_per_cell_state_var; ++i_dep)
     for (int i_ind = 0; i_ind < model_data->n_per_cell_state_var; ++i_ind)
-      if (jac_struct[i_dep][i_ind] == true &&
+      if (jac_struct[i_dep][i_ind] == true && i_dep != i_ind &&
           model_data->var_type[i_ind] != CHEM_SPEC_VARIABLE)
         for (int j_ind = 0; j_ind < model_data->n_per_cell_state_var; ++j_ind)
           if (jac_struct[i_ind][j_ind] == true) {
@@ -150,7 +150,7 @@ void sub_model_set_jac_map(ModelData *model_data, int **jac_ids) {
     // if necessary
     for (int i_dep = 0; i_dep < model_data->n_per_cell_state_var; ++i_dep)
       for (int i_ind = 0; i_ind < model_data->n_per_cell_state_var; ++i_ind)
-        if (jac_struct_local[i_dep][i_ind] == true &&
+        if (jac_struct_local[i_dep][i_ind] == true && i_dep != i_ind &&
             model_data->var_type[i_ind] != CHEM_SPEC_VARIABLE) {
           for (int j_ind = 0; j_ind < model_data->n_per_cell_state_var;
                ++j_ind) {

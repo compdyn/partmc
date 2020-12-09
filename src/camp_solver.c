@@ -46,21 +46,23 @@ double timeDeriv2=0;
 // Default solver initial time step relative to total integration time
 #define DEFAULT_TIME_STEP 1.0
 // State advancement factor for Jacobian element evaluation
-#define JAC_CHECK_ADV 1.0E-8
-// Tolerance for Jacobian element evaluation
-#define JAC_CHECK_TOL 1.0E-6
-// Tolerance for Jacobian element evaluation against GSL absolute errors
-#define JAC_CHECK_GSL_TOL 2.0
+#define JAC_CHECK_ADV_MAX 1.0E-00
+#define JAC_CHECK_ADV_MIN 1.0E-12
+// Relative tolerance for Jacobian element evaluation against GSL absolute
+// errors
+#define JAC_CHECK_GSL_REL_TOL 1.0e-4
+// Absolute Jacobian error tolerance
+#define JAC_CHECK_GSL_ABS_TOL 1.0e-9
 // Set MAX_TIMESTEP_WARNINGS to a negative number to prevent output
 #define MAX_TIMESTEP_WARNINGS -1
 // Maximum number of steps in discreet addition guess helper
-#define GUESS_MAX_ITER 50
-// Guess advance scaling factor
-#define GUESS_ADV_SCALE 0.618
+#define GUESS_MAX_ITER 5
 
 // Status codes for calls to camp_solver functions
 #define CAMP_SOLVER_SUCCESS 0
 #define CAMP_SOLVER_FAIL 1
+
+#define MPI_RANK0 0
 
 /** \brief Get a new solver object
  *
@@ -118,6 +120,12 @@ void *solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
 #endif
 #endif
 
+  // Do not output precision loss by default
+  sd->output_precision = 0;
+
+  // Use the Jacobian estimated derivative in f() by default
+  sd->use_deriv_est = 1;
+
   // Save the number of state variables per grid cell
   sd->model_data.n_per_cell_state_var = n_state_var;
 
@@ -138,20 +146,26 @@ void *solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
   for (int i = 0; i < n_state_var; i++)
     if (var_type[i] == CHEM_SPEC_VARIABLE) n_dep_var++;
 
+#ifdef PMC_DEBUG2_GPU
+  printf("(id) var_type\n");
+  for (int i = 0; i < n_state_var; i++)
+    printf("(%d) %d ",i+1,var_type[i]);
+  printf("\n");
+#endif
+
   // Save the number of solver variables per grid cell
   sd->model_data.n_per_cell_dep_var = n_dep_var;
 
 #ifdef PMC_USE_SUNDIALS
+  // Set up a TimeDerivative object to use during solving
+  if (time_derivative_initialize(&(sd->time_deriv), n_dep_var) != 1) {
+    printf("\n\nERROR initializing the TimeDerivative\n\n");
+    EXIT_FAILURE;
+  }
+
   // Set up the solver variable array and helper derivative array
-
-  //#ifdef PMC_USE_GPU
-  //  sd->y = N_VNew_Serial(n_dep_var * n_cells);N_VNew_Cuda(data->NEQ);
-  //  sd->deriv = N_VNew_Serial(n_dep_var * n_cells);
-  //#else
-    sd->y = N_VNew_Serial(n_dep_var * n_cells);
-    sd->deriv = N_VNew_Serial(n_dep_var * n_cells);
-  //#endif
-
+  sd->y = N_VNew_Serial(n_dep_var * n_cells);
+  sd->deriv = N_VNew_Serial(n_dep_var * n_cells);
 #endif
 
   // Allocate space for the reaction data and set the number
@@ -366,8 +380,28 @@ void *solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
   if (sd->debug_out) print_data_sizes(&(sd->model_data));
 #endif
 
-  sd->model_data.counterDeriv2=0;
+  sd->model_data.counterMD=0;
 
+#ifdef PMC_DEBUG_GPU
+  sd->counterDerivTotal=0;
+  sd->counterDerivGPU=0;
+  sd->counterJacGPU=0;
+  sd->counterSolve=0;
+  sd->counterFail=0;
+  sd->timeCVode=0.0;
+  sd->timeCVodeTotal=0.0;
+  sd->timeF=0.0;
+#ifdef PMC_USE_MPI
+  int rank=0;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  if (rank==411 || rank==999)
+  {
+    printf("Rank %d, n_dep_var %d, n_state_var %d, n_rxn %d, n_cells %d\n",rank, n_dep_var, n_state_var, n_rxn, n_cells);
+  }
+#endif
+#endif
+
+  //todo optimize, use for only rank 0 or debug flag
   sd->spec_names = (char**) malloc(sizeof(char*)*n_state_var);
 
   // Return a pointer to the new SolverData object
@@ -376,20 +410,31 @@ void *solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
 
 void solver_set_spec_name(void *solver_data, char *spec_name, int size_spec_name, int i) {
 
+
 //todo check if exists a name (ranks without a spec name crashes)
-#ifndef PMC_USE_MPI
+#ifdef PMC_USE_MPI
+  int rank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank); //ok its not comm_world :/
+  //I have to send de comm to camp_core and only call this funct in that case
+  //and i guess it will work then?
+    if (rank==MPI_RANK0)
+  {
+    //printf("%d aaa", size_spec_name);
+    SolverData *sd;
+    sd = (SolverData *)solver_data;
+    sd->spec_names[i] = malloc(sizeof(char)*(size_spec_name+1));
 
-  SolverData *sd;
-  sd = (SolverData *)solver_data;
-  sd->spec_names[i] = malloc(sizeof(char)*(size_spec_name+1));
+    //printf("%d bbb", size_spec_name);
 
-  //strncpy(sd->spec_names[i], spec_name, size_spec_name); //Copy size bytes
-  for (int j=0; j<size_spec_name; j++)
-    sd->spec_names[i][j] = spec_name[j];
+    //strncpy(sd->spec_names[i], spec_name, size_spec_name); //Copy size bytes
+    for (int j=0; j<size_spec_name; j++)
+      sd->spec_names[i][j] = spec_name[j];
 
-  sd->spec_names[i][size_spec_name] = '\0'; //Add null terminator
-
+    sd->spec_names[i][size_spec_name] = '\0'; //Add null terminator
+    //printf("%d ccc", size_spec_name);
+  }
 #endif
+
 
 }
 
@@ -415,6 +460,9 @@ void solver_initialize(void *solver_data, double *abs_tol, double rel_tol,
                     // grid cell
   int n_cells;      // number of cells to solve simultaneously
   int *var_type;    // state variable types
+
+  // Seed the random number generator
+  srand((unsigned int)100);
 
   // Get a pointer to the SolverData
   sd = (SolverData *)solver_data;
@@ -560,13 +608,87 @@ int solver_set_eval_jac(void *solver_data, bool eval_Jac) {
  * \return Flag indicating CAMP_SOLVER_SUCCESS or CAMP_SOLVER_FAIL
  */
 int solver_run(void *solver_data, double *state, double *env, double t_initial,
-               double t_final) {
+               double t_final, int n_cells) {
 #ifdef PMC_USE_SUNDIALS
   SolverData *sd = (SolverData *)solver_data;
   ModelData *md = &(sd->model_data);
   int n_state_var = sd->model_data.n_per_cell_state_var;
-  int n_cells = sd->model_data.n_cells;
   int flag;
+  int rank=0;
+
+#ifdef PMC_MULTICELLS2
+  if(sd->model_data.n_cells!=n_cells){
+    //Only considering two cases: Multicell with all cells and one-cell
+
+    //MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    //printf("Rank %d sd->model_data.n_cells %d n_cells %d", rank, sd->model_data.n_cells, n_cells);
+
+#ifdef PMC_MULTICELLS2_ZEROS
+    //works but very slow
+    for (int j = n_cells; j < sd->model_data.n_cells; j++){
+      for (int i = 0; i < md->n_per_cell_state_var; i++) {
+        state[i+j*md->n_per_cell_state_var] = 0.0;//state[i];
+      }
+    }
+    for (int i=2*n_cells; i<sd->model_data.n_cells*2;i+=2){
+        env[i]=env[0];
+        env[i+1]=env[1]; //todo this is working fine?
+    }
+    n_cells=sd->model_data.n_cells;
+
+#else
+    //n_cell should be == 1
+    for (int j = n_cells; j < sd->model_data.n_cells; j++){
+      for (int i = 0; i < md->n_per_cell_state_var; i++) {
+        state[i+j*md->n_per_cell_state_var] = state[i];
+        //sd->y[i] = sd->y[i+j*NV_LENGTH_S(sd->y)];
+        //sd->deriv[i] = sd->deriv[i+j*NV_LENGTH_S(sd->y)];
+      }
+    }
+    for (int i=2*n_cells; i<sd->model_data.n_cells*2;i+=2){
+        env[i]=env[0]; //todo how his works if n_cell!=1
+        env[i+1]=env[1];
+    }
+    n_cells=sd->model_data.n_cells;
+#endif
+
+    //todo consider multicells different sizes (Reallocate y, deriv and Jacs with new n_cells, or create new ones and deallocate later)
+  }
+
+#endif
+
+/*
+if (sd->counterSolve==0){
+    printf("env [temp, press]\n");
+      for (int i=0; i<2;i++)//n_cells
+        printf("%-le, %-le\n", env[0+2*i], env[1+2*i]);
+}
+*/
+
+
+/*
+#ifdef PMC_DEBUG_GPU
+#ifdef PMC_USE_MPI
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  if (rank==18 || rank==999)
+  {
+    if (sd->counterSolve==0)
+    {
+      int n_cell=2;
+      printf("Rank %d t_initial %-le t_final %-le\n",rank,t_initial,t_final);
+      printf("camp solver_run start [(id),conc], n_state_var %d, n_cells %d\n", md->n_per_cell_state_var, n_cells);
+      for (int i = 0; i < md->n_per_cell_state_var*n_cell; i++) {  // NV_LENGTH_S(deriv)
+        printf("(%d) %-le ",i+1, state[i]);
+      }
+      printf("\n");
+      printf("env [temp, press]\n");
+      for (int i=0; i<1;i++)//n_cells
+        printf("%-le, %-le\n", env[0+2*i], env[1+2*i]);
+    }
+  }
+#endif
+#endif
+*/
 
   // Update the dependent variables
   int i_dep_var = 0;
@@ -588,14 +710,28 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   sd->model_data.total_state = state;
   sd->model_data.total_env = env;
 
-  /*
-  if(md->counterDeriv2==0){
-    printf("camp solver_run start [(id),conc], n_state_var %d, n_cells %d\n", md->n_per_cell_state_var, n_cells);
-    for (int i = 0; i < md->n_per_cell_state_var*n_cells; i++) {  // NV_LENGTH_S(deriv)
-      printf("(%d) %-le ",i+1, state[i]);
-    }
+#ifndef EXPORT_CAMP_INPUT
+  //Save initial state
+  double init_state[md->n_per_cell_state_var*n_cells];
+  if (sd->counterSolve==0)
+  for(int i=0;i<md->n_per_cell_state_var*n_cells;i++){
+    init_state[i]=state[i];
   }
-*/
+#endif
+
+#ifdef PMC_DEBUG_GPU
+#ifdef PMC_USE_MPI
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  if (rank==18 || rank==999)
+  {
+    if (sd->counterSolve==0)
+      {
+        printf("After set y (deriv), iter %d rank %d...\n", sd->counterDerivGPU, rank);
+        print_derivative(sd->y);
+      }
+  }
+#endif
+#endif
 
 #ifdef PMC_DEBUG
   // Update the debug output flag in CVODES and the linear solver
@@ -681,17 +817,25 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
     #else
       flag = CVode(sd->cvode_mem, (realtype)t_final, sd->y, &t_rt, CV_NORMAL);
     #endif
+      sd->solver_flag = flag;
 #ifndef FAILURE_DETAIL
     if (flag < 0) {
 #else
-    //if (check_flag(&flag, "CVode", 1) == CAMP_SOLVER_FAIL) {
-    if (1) {
+    if (check_flag(&flag, "CVode", 1) == CAMP_SOLVER_FAIL) {
+      if (flag == -6) {
+        long int lsflag;
+        int lastflag = CVDlsGetLastFlag(sd->cvode_mem, &lsflag);
+        printf("\nLinear Solver Setup Fail: %d %ld", lastflag, lsflag);
+      }
       N_Vector deriv = N_VClone(sd->y);
       flag = f(t_initial, sd->y, deriv, sd);
+#ifdef PMC_USE_MPI
+      MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
       if (flag != 0)
-        printf("\nCall to f() at failed state failed with flag %d\n", flag);
+        /*printf("\nCall to f() at failed state failed with flag %d, rank %d \n", flag, rank);
       for (int i_cell = 0; i_cell < md->n_cells; ++i_cell) {
-        printf("\n Cell: %d ");
+        printf("\n Cell: %d ", i_cell);
         printf("temp = %le pressure = %le\n", env[i_cell * PMC_NUM_ENV_PARAM_],
                env[i_cell * PMC_NUM_ENV_PARAM_ + 1]);
         for (int i_spec = 0, i_dep_var = 0; i_spec < md->n_per_cell_state_var;
@@ -706,14 +850,29 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
             printf("spec %d = %le\n", i_spec,
                    state[i_cell * md->n_per_cell_state_var + i_spec]);
           }
-        }
-      solver_print_stats(sd->cvode_mem);
+      }
+      //solver_print_stats(sd->cvode_mem);*/
+#endif
+#ifdef PMC_USE_MPI
+      MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+      if (rank>=0)
+      {
+        //printf("CAMP_SOLVER_FAIL %d counterSolve:%d counterDerivGPU:%d rank:%d\n",flag,sd->counterSolve,sd->counterDerivGPU,rank);
+      }
+#ifndef EXPORT_CAMP_INPUT
+        //todo export SAVED input camp_state, not last from cvode
+      if (sd->counterFail==0) //if(rank==154)
+       //export_camp_input(sd, init_state, "");
+#endif
+
+      sd->counterFail++;
 #endif
       return CAMP_SOLVER_FAIL;
     }
   }
+
 #ifdef PMC_DEBUG_GPU
-  timeCVode += (clock() - start2);
+  sd->timeCVode = (clock() - start2);
 #endif
 
   // Update the species concentrations on the state array
@@ -730,6 +889,35 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
     }
   }
 
+#ifdef PMC_USE_MPI
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  if (rank>=0)
+  {
+    sd->counterDerivTotal+=sd->counterDerivGPU;
+    sd->timeCVodeTotal+=sd->timeCVode;
+    if (sd->counterSolve==0){
+            /*printf("state after cvode [(id),conc], length %d\n", md->n_per_cell_state_var);
+      for (int i = 0; i < md->n_per_cell_state_var; i++) {  // NV_LENGTH_S(deriv)
+        printf("(%d) %-le ", i, state[i]);
+      }
+      printf("\n");
+      printf("env [temp, press]\n%-le, %-le\n", env[0], env[1]);
+
+      printf("Rank %d counterSolve %d counterDeriv %d counterDerivTotal %d timeCVode %lf timeCVodeTotal %lf"
+             " %%timeF/CVodeTotal %lf \n",rank,sd->counterSolve
+             ,sd->counterDerivGPU, sd->counterDerivTotal,sd->timeCVode/CLOCKS_PER_SEC,sd->timeCVodeTotal/CLOCKS_PER_SEC
+             ,(sd->timeF/CLOCKS_PER_SEC)/(sd->timeCVodeTotal/CLOCKS_PER_SEC)*100);
+*/
+    }
+
+    sd->counterDerivGPU=0;
+    sd->counterJacGPU=0;
+    sd->counterSolve++;
+
+  }
+#endif
+
+
   // Re-run the pre-derivative calculations to update equilibrium species
   // and apply adjustments to final state
   sub_model_calculate(md);
@@ -743,6 +931,7 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
 /** \brief Get solver statistics after an integration attempt
  *
  * \param solver_data           Pointer to the solver data
+ * \param solver_flag           Last flag returned by the solver
  * \param num_steps             Pointer to set to the number of integration
  *                              steps
  * \param RHS_evals             Pointer to set to the number of right-hand side
@@ -766,21 +955,26 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
  * \param Jac_evals_total       Total calls to `Jac()`
  * \param RHS_time__s           Compute time for calls to f() [s]
  * \param Jac_time__s           Compute time for calls to Jac() [s]
+ * \param max_loss_precision    Indicators of loss of precision in derivative
+ *                              calculation for each species
  */
-void solver_get_statistics(void *solver_data, int *num_steps, int *RHS_evals,
-                           int *LS_setups, int *error_test_fails,
-                           int *NLS_iters, int *NLS_convergence_fails,
-                           int *DLS_Jac_evals, int *DLS_RHS_evals,
-                           double *last_time_step__s, double *next_time_step__s,
-                           int *Jac_eval_fails, int *RHS_evals_total,
-                           int *Jac_evals_total, double *RHS_time__s,
-                           double *Jac_time__s) {
+void solver_get_statistics(void *solver_data, int *solver_flag, int *num_steps,
+                           int *RHS_evals, int *LS_setups,
+                           int *error_test_fails, int *NLS_iters,
+                           int *NLS_convergence_fails, int *DLS_Jac_evals,
+                           int *DLS_RHS_evals, double *last_time_step__s,
+                           double *next_time_step__s, int *Jac_eval_fails,
+                           int *RHS_evals_total, int *Jac_evals_total,
+                           double *RHS_time__s, double *Jac_time__s,
+                           double *timeCVode, double *timeCVodeTotal,
+                           double *max_loss_precision) {
 #ifdef PMC_USE_SUNDIALS
   SolverData *sd = (SolverData *)solver_data;
   long int nst, nfe, nsetups, nje, nfeLS, nni, ncfn, netf, nge;
   realtype last_h, curr_h;
   int flag;
 
+  *solver_flag = sd->solver_flag;
   flag = CVodeGetNumSteps(sd->cvode_mem, &nst);
   if (check_flag(&flag, "CVodeGetNumSteps", 1) == CAMP_SOLVER_FAIL) return;
   *num_steps = (int)nst;
@@ -822,14 +1016,20 @@ void solver_get_statistics(void *solver_data, int *num_steps, int *RHS_evals,
   *Jac_evals_total = sd->counterJac;
   *RHS_time__s = ((double)sd->timeDeriv) / CLOCKS_PER_SEC;
   *Jac_time__s = ((double)sd->timeJac) / CLOCKS_PER_SEC;
+  *max_loss_precision = sd->max_loss_precision;
 #else
-    *RHS_evals_total = -1;
-    *Jac_evals_total = -1;
-
-    *RHS_time__s = 0.0;
-    //*RHS_time__s = ((double)timeDeriv2) / CLOCKS_PER_SEC;
-    *Jac_time__s = 0.0;
+  *RHS_evals_total = -1;
+  *Jac_evals_total = -1;
+  *RHS_time__s = 0.0;
+  //*RHS_time__s = ((double)timeDeriv2) / CLOCKS_PER_SEC;
+  *Jac_time__s = 0.0;
+  *max_loss_precision = 0.0;
 #endif
+#ifdef PMC_DEBUG_GPU
+  *timeCVode =((double)sd->timeCVode) / CLOCKS_PER_SEC;
+  *timeCVodeTotal =((double)sd->timeCVodeTotal) / CLOCKS_PER_SEC;
+#endif
+
 #endif
 }
 
@@ -858,8 +1058,9 @@ int camp_solver_update_model_state(N_Vector solver_state, ModelData *model_data,
       if (model_data->var_type[i_spec] == CHEM_SPEC_VARIABLE) {
         if (NV_DATA_S(solver_state)[i_dep_var] < -SMALL) {//uncomment this triggers failure
 #ifdef FAILURE_DETAIL
-          printf("\nFailed model state update: [spec %d] = %le", i_spec,
-                 NV_DATA_S(solver_state)[i_dep_var]);
+          //todo: print only 1 time or put only debug flag (too much prints)
+          //printf("\nFailed model state update: [spec %d] = %le", i_spec,
+          //       NV_DATA_S(solver_state)[i_dep_var]);
 #endif
           return CAMP_SOLVER_FAIL;
         }
@@ -891,12 +1092,14 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
 
 #ifdef PMC_DEBUG
   sd->counterDeriv++;
-#endif
-
   clock_t start3 = clock();
+#endif
 
   // Get a pointer to the derivative data
   double *deriv_data = N_VGetArrayPointer(deriv);
+
+  // Get a pointer to the Jacobian estimated derivative data
+  double *jac_deriv_data = N_VGetArrayPointer(md->J_tmp);
 
   // Get the grid cell dimensions
   int n_cells = md->n_cells;
@@ -917,26 +1120,30 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
     return 1;
 
   // Reset the derivative vector
-  N_VConst(ZERO, deriv);
+  //todo: old gpu case:
+  //N_VConst(ZERO, deriv);
+  //todo: new case after matt changes:
+  // Get the Jacobian-estimated derivative
+  N_VLinearSum(1.0, y, -1.0, md->J_state, md->J_tmp);
+  SUNMatMatvec(md->J_solver, md->J_tmp, md->J_tmp2);
+  N_VLinearSum(1.0, md->J_deriv, 1.0, md->J_tmp2, md->J_tmp);
 
 #ifdef PMC_DEBUG
   // Measure calc_deriv time execution
   clock_t start = clock();
 #endif
 
-  if(md->counterDeriv2==6) print_derivative(y);
+#ifdef PMC_DEBUG_GPU
+  clock_t start10 = clock();
+#endif
 
- /*
-  if(md->counterDeriv2==0){
-    printf("camp solver_run start [(id),conc], n_state_var %d, n_cells %d\n", md->n_per_cell_state_var, n_cells);
-    for (int i = 0; i < md->n_per_cell_state_var*n_cells; i++) {  // NV_LENGTH_S(deriv)
-      printf("(%d) %-le \n",i+1, md->total_state[i]);
-    }
-  }
-*/
+  //if(md->counterDeriv2==6) print_derivative(y);
 
 #ifdef PMC_USE_GPU
 //#ifdef COMMENTING
+  // Reset the derivative vector
+  N_VConst(ZERO, deriv);
+
   // Calculate the time derivative f(t,y)
   // (this is for all grid cells at once)
   //if(!md->small_data)
@@ -948,6 +1155,53 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
   clock_t end = clock();
   sd->timeDeriv += (end - start);
 #endif
+
+#ifdef CHANGE_LOOPS
+
+#ifdef PMC_DEBUG
+    // Measure calc_deriv time execution
+    clock_t start2 = clock();
+#endif
+
+#ifndef PMC_USE_GPU
+
+    // Calculate the time derivative f(t,y)
+    rxn_calc_deriv(md, deriv_data, (double)time_step);
+
+    //todo: after calc all derivs, treat them again with the time_deriv approximation
+
+    /*
+    // Reset the TimeDerivative
+    time_derivative_reset(sd->time_deriv);
+
+
+    // Update the deriv array
+    if (sd->use_deriv_est == 1) {
+      time_derivative_output(sd->time_deriv, deriv_data, jac_deriv_data,
+                             sd->output_precision);
+    } else {
+      time_derivative_output(sd->time_deriv, deriv_data, NULL,
+                             sd->output_precision);
+    }
+     */
+#else
+    // Add contributions from reactions not implemented on GPU
+    // FIXME need to fix this to use TimeDerivative
+    rxn_calc_deriv_specific_types(md, sd->time_deriv, (double)time_step);
+#endif
+
+#ifdef PMC_DEBUG
+    clock_t end2 = clock();
+    sd->timeDeriv += (end2 - start2);
+    sd->max_loss_precision = time_derivative_max_loss_precision(sd->time_deriv);
+#endif
+
+    // Advance the derivative for the next cell
+    deriv_data += n_dep_var;
+    jac_deriv_data += n_dep_var;
+
+//Not change loops
+#else
 
   // Loop through the grid cells and update the derivative array
   for (int i_cell = 0; i_cell < n_cells; ++i_cell) {
@@ -980,11 +1234,21 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
 
 #ifndef PMC_USE_GPU //CPU always better atm cause delay double loop
 //#ifndef COMMENTING
+    // Reset the TimeDerivative
+    time_derivative_reset(sd->time_deriv);
+
     // Calculate the time derivative f(t,y)
+    rxn_calc_deriv(md, sd->time_deriv, (double)time_step);
+    //rxn_calc_deriv(md, deriv_data, (double)time_step);
 
-    rxn_calc_deriv(md, deriv_data, (double)time_step);
-    //rxn_calc_deriv_aux(md, deriv_data, (double)time_step);
-
+    // Update the deriv array
+    if (sd->use_deriv_est == 1) {
+      time_derivative_output(sd->time_deriv, deriv_data, jac_deriv_data,
+                             sd->output_precision);
+    } else {
+      time_derivative_output(sd->time_deriv, deriv_data, NULL,
+                             sd->output_precision);
+    }
 #else
       //If we have small_data, it's faster to compute them in cpu
       //if(md->small_data){
@@ -992,8 +1256,10 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
         rxn_calc_deriv(md, deriv_data, (double)time_step);
       }else{
         // Add contributions from reactions not implemented on GPU
-        //TODO: compute hl & simpol on gpu to avoid this waste of time
-        rxn_calc_deriv_specific_types(md, deriv_data, (double)time_step);
+        //TODO: compute hl & simpol on gpu
+        //rxn_calc_deriv_specific_types(md, deriv_data, (double)time_step);
+        // FIXME need to fix this to use TimeDerivative
+        rxn_calc_deriv_specific_types(md, sd->time_deriv, (double)time_step);
         //rxn_calc_deriv(md, deriv_data, (double)time_step);
       }
       //rxn_calc_deriv_aux(md, deriv_data, (double)time_step);
@@ -1004,6 +1270,7 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
 #ifdef PMC_DEBUG
     clock_t end2 = clock();
     sd->timeDeriv += (end2 - start2);
+    sd->max_loss_precision = time_derivative_max_loss_precision(sd->time_deriv);
 #endif
 
 #ifdef PMC_DEBUG_GPU
@@ -1012,7 +1279,10 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
 
     // Advance the derivative for the next cell
     deriv_data += n_dep_var;
+    jac_deriv_data += n_dep_var;
   }
+
+#endif
 
 #ifdef PMC_USE_GPU
 //#ifdef COMMENTING
@@ -1021,13 +1291,33 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
     //rxn_fusion_deriv_gpu(md, deriv);
 #endif
 
+  //print_derivative(deriv);
+
+
 #ifdef PMC_DEBUG_GPU
 
-  if(md->counterDeriv2==6) print_derivative(deriv);
+  //if(md->counterDeriv2==6) print_derivative(deriv);
 
   //timeDeriv2 += (clock() - start3);
+  sd->timeF += (clock() - start10);
   md->counterDeriv2++;
   //printf("%d",md->counterDeriv2);
+
+#ifdef PMC_USE_MPI
+  int rank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  //if (rank>=0)
+  if (rank==411 || rank==999)
+  {
+    if (sd->counterDerivGPU>100 && sd->counterDerivGPU<103)
+    {
+      //printf("Rank %d deriv iter %d jac iter %d counterSolve %d", rank, sd->counterDerivGPU, sd->counterJacGPU, sd->counterSolve);
+      //print_derivative(deriv);
+    }
+
+  }
+  sd->counterDerivGPU++;
+#endif
 #endif
 
   // Return 0 if success
@@ -1080,10 +1370,19 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
   // !!!! Do not use tmp2 - it is the same as y !!!! //
   // FIXME Find out why cvode is sending tmp2 as y
 
+  // Calculate the the derivative for the current state y without
+  // the estimated derivative from the last Jacobian calculation
+  sd->use_deriv_est = 0;
+  if (f(t, y, deriv, solver_data) != 0) {
+    printf("\n Derivative calculation failed.\n");
+    sd->use_deriv_est = 1;
+    return 1;
+  }
+  sd->use_deriv_est = 1;
+
   // Update the state array with the current dependent variable values
   // Signal a recoverable error (positive return value) for negative
   // concentrations.
-
   if (camp_solver_update_model_state(y, md, ZERO, ZERO) != CAMP_SOLVER_SUCCESS)
     return 1;
 
@@ -1091,13 +1390,15 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
   CVodeGetCurrentStep(sd->cvode_mem, &time_step);
 
   // Reset the primary Jacobian
+  /// \todo #83 Figure out how to stop CVODE from resizing the Jacobian
+  ///       during solving
   SM_NNZ_S(J) = SM_NNZ_S(md->J_init);
-  for (int i = 0; i < SM_NNZ_S(J); i++) {
-    (SM_DATA_S(J))[i] = (realtype)0.0;
-    (SM_INDEXVALS_S(J))[i] = (SM_INDEXVALS_S(md->J_init))[i];
-  }
   for (int i = 0; i <= SM_NP_S(J); i++) {
     (SM_INDEXPTRS_S(J))[i] = (SM_INDEXPTRS_S(md->J_init))[i];
+  }
+  for (int i = 0; i < SM_NNZ_S(J); i++) {
+    (SM_INDEXVALS_S(J))[i] = (SM_INDEXVALS_S(md->J_init))[i];
+    (SM_DATA_S(J))[i] = (realtype)0.0;
   }
 
 #ifdef PMC_DEBUG
@@ -1131,7 +1432,7 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
     // Reset the sub-model and reaction Jacobians
     for (int i = 0; i < SM_NNZ_S(md->J_params); ++i)
       SM_DATA_S(md->J_params)[i] = 0.0;
-    for (int i = 0; i < SM_NNZ_S(md->J_rxn); ++i) SM_DATA_S(md->J_rxn)[i] = 0.0;
+    jacobian_reset(sd->jac);
 
     // Update the aerosol representations
     aero_rep_update_state(md);
@@ -1148,12 +1449,11 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
 //#ifndef PMC_USE_GPU
 
     // Calculate the reaction Jacobian
-    rxn_calc_jac(md, J_rxn_data, time_step);
-    PMC_DEBUG_JAC(md->J_rxn, "reaction Jacobian");
+    rxn_calc_jac(md, sd->jac, time_step);
 
 /*#else
       // Add contributions from reactions not implemented on GPU
-      rxn_calc_jac_specific_types(md, J_rxn_data, time_step);
+      rxn_calc_jac_specific_types(md, sd->jac, time_step);
 #endif*/
 
 // rxn_calc_jac_specific_types(md, J_rxn_data, time_step);
@@ -1162,15 +1462,26 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
     sd->timeJac += (end - start);
 #endif
 
+    // Output the Jacobian to the SUNDIALS J_rxn
+    jacobian_output(sd->jac, SM_DATA_S(md->J_rxn));
+    PMC_DEBUG_JAC(md->J_rxn, "reaction Jacobian");
+
     // Set the solver Jacobian using the reaction and sub-model Jacobians
     JacMap *jac_map = md->jac_map;
     SM_DATA_S(md->J_params)[0] = 1.0;  // dummy value for non-sub model calcs
     for (int i_map = 0; i_map < md->n_mapped_values; ++i_map)
-      SM_DATA_S(J)[i_cell * md->n_per_cell_solver_jac_elem + jac_map[i_map].solver_id] +=
+      SM_DATA_S(J)
+      [i_cell * md->n_per_cell_solver_jac_elem + jac_map[i_map].solver_id] +=
           SM_DATA_S(md->J_rxn)[jac_map[i_map].rxn_id] *
           SM_DATA_S(md->J_params)[jac_map[i_map].param_id];
     PMC_DEBUG_JAC(J, "solver Jacobian");
   }
+
+  // Save the Jacobian for use with derivative calculations
+  for (int i_elem = 0; i_elem < SM_NNZ_S(J); ++i_elem)
+    SM_DATA_S(md->J_solver)[i_elem] = SM_DATA_S(J)[i_elem];
+  N_VScale(1.0, y, md->J_state);
+  N_VScale(1.0, deriv, md->J_deriv);
 
 #ifdef PMC_DEBUG
   // Evaluate the Jacobian if flagged to do so
@@ -1191,6 +1502,27 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
 #ifdef PMC_DEBUG_GPU
   timeJac2 += (clock() - start4);
   counterJac2++;
+#ifdef PMC_USE_MPI
+  int rank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  //if (rank>=0)
+  if (rank==411 || rank==999)
+  {
+    if (sd->counterJacGPU<0)
+    {
+        printf("Rank %d deriv iter %d jac iter %d counterSolve %d", rank, sd->counterDerivGPU, sd->counterJacGPU, sd->counterSolve);
+        print_jacobian(J);
+        //printf("Rank %d deriv iter %d jac iter %d counterSolve %d", rank, sd->counterDerivGPU, sd->counterJacGPU, sd->counterSolve);
+        //pmc_debug_print_jac_struct2(sd, J, "RXN struct");
+    }
+    if (sd->counterDerivGPU>100 && sd->counterDerivGPU<103)
+    {
+      //print_derivative(deriv);
+    }
+
+  }
+  sd->counterJacGPU++;
+#endif
 #endif
 
   return (0);
@@ -1252,14 +1584,12 @@ bool check_Jac(realtype t, N_Vector y, SUNMatrix J, N_Vector deriv,
     // Reset tmp to the initial state
     N_VScale(ONE, y, tmp);
 
-    // Guess the initial step size
+    // Save the independent species concentration and index
     double x = d_state[i_ind];
-    double h = x * JAC_CHECK_ADV;
+    gsl_param.ind_var = i_ind;
 
     // Skip small concentrations
-    if (h < TINY) continue;
-
-    gsl_param.ind_var = i_ind;
+    if (x < SMALL) continue;
 
     // Do the numerical differentiation for each potentially non-zero
     // Jacobian element
@@ -1272,27 +1602,47 @@ bool check_Jac(realtype t, N_Vector y, SUNMatrix J, N_Vector deriv,
 
       gsl_param.dep_var = i_dep;
 
-      // Get the partial derivative d_fy/dx
-      if (gsl_deriv_forward(&gsl_func, x, h, &partial_deriv, &abs_err) == 1) {
-        printf("\nERROR in numerical differentiation for J[%d][%d]", i_ind,
-               i_dep);
+      bool test_pass = false;
+      double h, abs_tol, rel_diff, scaling;
+
+      // Evaluate the Jacobian element over a range of initial step sizes
+      for (scaling = JAC_CHECK_ADV_MIN;
+           scaling <= JAC_CHECK_ADV_MAX && test_pass == false;
+           scaling *= 10.0) {
+        // Get the current initial step size
+        h = x * scaling;
+
+        // Get the partial derivative d_fy/dx
+        if (gsl_deriv_forward(&gsl_func, x, h, &partial_deriv, &abs_err) == 1) {
+          printf("\nERROR in numerical differentiation for J[%d][%d]", i_ind,
+                 i_dep);
+        }
+
+        // Evaluate the results
+        abs_tol = 1.2 * fabs(abs_err);
+        abs_tol =
+            abs_tol > JAC_CHECK_GSL_ABS_TOL ? abs_tol : JAC_CHECK_GSL_ABS_TOL;
+        rel_diff = 1.0;
+        if (partial_deriv != 0.0)
+          rel_diff =
+              fabs((SM_DATA_S(J)[i_elem] - partial_deriv) / partial_deriv);
+        if (fabs(SM_DATA_S(J)[i_elem] - partial_deriv) < abs_tol ||
+            rel_diff < JAC_CHECK_GSL_REL_TOL)
+          test_pass = true;
       }
 
-      double abs_tol =
-          fabs(abs_err) > SMALL ? fabs(abs_err) * JAC_CHECK_GSL_TOL : SMALL;
-
-      // Evaluate the results
-      double rel_diff = 1.0;
-      if (partial_deriv != 0.0)
-        rel_diff = fabs((SM_DATA_S(J)[i_elem] - partial_deriv) / partial_deriv);
-      if (fabs(SM_DATA_S(J)[i_elem] - partial_deriv) > abs_tol &&
-          rel_diff > 1.0e-4) {
+      // If the test does not pass with any initial step size, print out the
+      // failure, output the local derivative state and return false
+      if (test_pass == false) {
         printf(
             "\nError in Jacobian[%d][%d]: Got %le; expected %le"
             "\n  difference %le is greater than error %le",
             i_ind, i_dep, SM_DATA_S(J)[i_elem], partial_deriv,
             fabs(SM_DATA_S(J)[i_elem] - partial_deriv), abs_tol);
-        printf("\n  relative error %le intial time step %le", rel_diff, h);
+        printf("\n  relative error %le intial step size %le", rel_diff, h);
+        printf("\n  initial rate %le initial state %le", d_deriv[i_dep],
+               d_state[i_ind]);
+        printf(" scaling %le", scaling);
         ModelData *md = &(((SolverData *)solver_data)->model_data);
         for (int i_cell = 0; i_cell < md->n_cells; ++i_cell)
           for (int i_spec = 0; i_spec < md->n_per_cell_state_var; ++i_spec)
@@ -1300,6 +1650,8 @@ bool check_Jac(realtype t, N_Vector y, SUNMatrix J, N_Vector deriv,
                    i_spec, i_cell * md->n_per_cell_state_var + i_spec,
                    md->total_state[i_cell * md->n_per_cell_state_var + i_spec]);
         retval = false;
+        output_deriv_local_state(t, y, deriv, solver_data, &f, i_dep, i_ind,
+                                 SM_DATA_S(J)[i_elem], h / 10.0);
       }
     }
 #endif
@@ -1412,28 +1764,20 @@ int guess_helper(const realtype t_n, const realtype h_n, N_Vector y_n,
       }
     }
 
-
-    // Scale h_j unless t_n can be reached
-    //todo this part change in last chem_mod commit
-    if (i_fast >= 0 && h_n > ZERO) h_j *= GUESS_ADV_SCALE;
+    // Scale incomplete jumps
+    //todo this part change in last chem_mod commit, check with gpu cvode case
+    if (i_fast >= 0 && h_n > ZERO)
+      h_j *= 0.95 + 0.1 * rand() / (double)RAND_MAX;
+    h_j = t_n < t_0 + t_j + h_j ? t_n - (t_0 + t_j) : h_j;
 
     // Only make small changes to adjustment vectors used in Newton iteration
-    if (h_n == ZERO && ONE - h_j > ((CVodeMem)sd->cvode_mem)->cv_reltol)
-      return 0;
-
-    // Avoid advancing state past zero
-    if (h_n > ZERO) h_j = nextafter(h_j, ZERO);
+    if (h_n == ZERO &&
+        t_n - (h_j + t_j + t_0) > ((CVodeMem)sd->cvode_mem)->cv_reltol)
+      return -1;
 
     // Advance the state
     N_VLinearSum(ONE, tmp1, h_j, corr, tmp1);
-
     PMC_DEBUG_PRINT_FULL("Advanced state");
-
-    // If just scaling an adjustment vector, exit the loop
-    if (h_n == ZERO) break;
-
-    h_j = nextafter(h_j, HUGE_VAL);
-    h_j = t_0 + t_j + h_j > t_n ? t_n - (t_0 + t_j) : h_j;
 
     // Advance t_j
     t_j += h_j;
@@ -1446,11 +1790,10 @@ int guess_helper(const realtype t_n, const realtype h_n, N_Vector y_n,
     }
     ((CVodeMem)sd->cvode_mem)->cv_nfe++;
 
-#ifdef PMC_DEBUG
     if (iter == GUESS_MAX_ITER - 1 && t_0 + t_j < t_n) {
       PMC_DEBUG_PRINT("Max guess iterations reached!");
+      if (h_n == ZERO) return -1;
     }
-#endif
   }
 
   PMC_DEBUG_PRINT_INT("Guessed y_h in steps:", iter);
@@ -1458,8 +1801,8 @@ int guess_helper(const realtype t_n, const realtype h_n, N_Vector y_n,
   // Set the correction vector
   N_VLinearSum(ONE, tmp1, -ONE, y_n, corr);
 
-  // Scale the correction so we don't overshoot
-  N_VScale(0.999, corr, corr);
+  // Scale the initial corrections
+  if (h_n > ZERO) N_VScale(0.999, corr, corr);
 
   // Update the hf vector
   N_VLinearSum(ONE, tmp1, -ONE, y_n1, hf);
@@ -1541,6 +1884,15 @@ SUNMatrix get_jac_init(SolverData *solver_data) {
   // Initialize the sparse matrix (sized for one grid cell)
   solver_data->model_data.J_rxn =
       SUNSparseMatrix(n_state_var, n_state_var, n_jac_elem_rxn, CSC_MAT);
+
+  // Initialize the Jacobian for reactions
+  // TODO: Adapt the Jacobian structure for general use to avoid using
+  // SUNSparseMatrix outside of the solver interface
+  if (jacobian_initialize(&(solver_data->jac), (unsigned int)n_state_var,
+                          jac_struct_rxn) != 1) {
+    printf("\n\nERROR allocating Jacobian structure\n\n");
+    EXIT_FAILURE;
+  }
 
   // Set the column and row indices
   int i_col = 0, i_elem = 0;
@@ -1722,6 +2074,8 @@ SUNMatrix get_jac_init(SolverData *solver_data) {
   // Initialize the sparse matrix (for full state array)
   SUNMatrix M = SUNSparseMatrix(n_dep_var_total, n_dep_var_total,
                                 n_jac_elem_solver * n_cells, CSC_MAT);
+  solver_data->model_data.J_solver = SUNSparseMatrix(
+      n_dep_var_total, n_dep_var_total, n_jac_elem_solver * n_cells, CSC_MAT);
 
   // Set the column and row indices
   i_col = 0, i_elem = 0;
@@ -1729,11 +2083,15 @@ SUNMatrix get_jac_init(SolverData *solver_data) {
     for (int i = 0; i < n_state_var; i++) {
       if (solver_data->model_data.var_type[i] != CHEM_SPEC_VARIABLE) continue;
       (SM_INDEXPTRS_S(M))[i_col] = i_elem;
+      (SM_INDEXPTRS_S(solver_data->model_data.J_solver))[i_col] = i_elem;
       for (int j = 0, i_row = 0; j < n_state_var; j++) {
         if (solver_data->model_data.var_type[j] != CHEM_SPEC_VARIABLE) continue;
         if (jac_struct_solver[j][i] == true) {
           (SM_DATA_S(M))[i_elem] = (realtype)0.0;
-          (SM_INDEXVALS_S(M))[i_elem++] = i_row + n_dep_var * i_cell;
+          (SM_DATA_S(solver_data->model_data.J_solver))[i_elem] = (realtype)0.0;
+          (SM_INDEXVALS_S(M))[i_elem] = i_row + n_dep_var * i_cell;
+          (SM_INDEXVALS_S(solver_data->model_data.J_solver))[i_elem++] =
+              i_row + n_dep_var * i_cell;
         }
         i_row++;
       }
@@ -1741,6 +2099,7 @@ SUNMatrix get_jac_init(SolverData *solver_data) {
     }
   }
   (SM_INDEXPTRS_S(M))[i_col] = i_elem;
+  (SM_INDEXPTRS_S(solver_data->model_data.J_solver))[i_col] = i_elem;
 
   // Build the set of Jacobian ids
   int **jac_ids_solver = (int **)jac_struct_solver;
@@ -1797,18 +2156,39 @@ SUNMatrix get_jac_init(SolverData *solver_data) {
 
   SolverData *sd = solver_data;
   PMC_DEBUG_JAC_STRUCT(sd->model_data.J_params, "Param struct");
-  PMC_DEBUG_JAC_STRUCT(sd->model_data.J_rxn, " struct");
-  PMC_DEBUG_JAC_STRUCT(M, "M struct");
+  PMC_DEBUG_JAC_STRUCT(sd->model_data.J_rxn, "Reaction struct");
+  PMC_DEBUG_JAC_STRUCT(M, "Solver struct");
 
   //pmc_debug_print_jac_struct2(sd, sd->model_data.J_rxn, "RXN struct"); //Fine
   //pmc_debug_print_jac_rel(sd, sd->model_data.J_rxn, "RXN relations"); //Fine but strange reactants affecting reactants
   //pmc_debug_print_jac_rel(sd, M, "M relations"); //todo miss jac_map indices to print correct names
 
+#ifdef PMC_DEBUG2_GPU
+#ifdef PMC_USE_MPI
+  int rank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  if (rank==MPI_RANK0)
+  {
+    pmc_debug_print_jac_rel(sd, sd->model_data.J_rxn, "RXN relations");
+  }
+#endif
+#endif
 
   if (i_mapped_value != n_mapped_values) {
     printf("[ERROR-340355266] Internal error");
     EXIT_FAILURE;
   }
+
+  // Create vectors to store Jacobian state and derivative data
+  solver_data->model_data.J_state = N_VClone(solver_data->y);
+  solver_data->model_data.J_deriv = N_VClone(solver_data->y);
+  solver_data->model_data.J_tmp = N_VClone(solver_data->y);
+  solver_data->model_data.J_tmp2 = N_VClone(solver_data->y);
+
+  // Initialize the Jacobian state and derivative arrays to zero
+  // for use before the first call to Jac()
+  N_VConst(0.0, solver_data->model_data.J_state);
+  N_VConst(0.0, solver_data->model_data.J_deriv);
 
   // Free the memory used
   for (int i_spec = 0; i_spec < n_state_var; i_spec++)
@@ -1836,11 +2216,18 @@ SUNMatrix get_jac_init(SolverData *solver_data) {
  */
 int check_flag(void *flag_value, char *func_name, int opt) {
   int *err_flag;
+  int rank=999;
+#ifdef PMC_USE_MPI
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
 
   /* Check for a NULL pointer */
   if (opt == 0 && flag_value == NULL) {
-    fprintf(stderr, "\nSUNDIALS_ERROR: %s() failed - returned NULL pointer\n\n",
-            func_name);
+
+    if (rank==0){
+      fprintf(stderr, "\nSUNDIALS_ERROR: %s() failed - returned NULL pointer\n\n",
+              func_name);
+    }
     return CAMP_SOLVER_FAIL;
   }
 
@@ -1848,8 +2235,10 @@ int check_flag(void *flag_value, char *func_name, int opt) {
   else if (opt == 1) {
     err_flag = (int *)flag_value;
     if (*err_flag < 0) {
-      fprintf(stderr, "\nSUNDIALS_ERROR: %s() failed with flag = %d\n\n",
-              func_name, *err_flag);
+      if (rank==0){
+        fprintf(stderr, "\nSUNDIALS_ERROR: %s() failed with flag = %d, rank %d\n\n",
+               func_name, *err_flag, rank);
+      }
       return CAMP_SOLVER_FAIL;
     }
   }
@@ -1886,6 +2275,76 @@ void solver_reset_timers(void *solver_data) {
 #endif
 }
 #endif
+
+void export_camp_input(void *solver_data, double *init_state, char *in_path){
+  SolverData *sd = (SolverData *)solver_data;
+  ModelData *md = &(sd->model_data);
+  int n_cells = sd->model_data.n_cells;
+
+#ifdef PMC_USE_MPI
+
+  //char rel_path[] = "../../../test/monarch/exports/camp_input"; //path for mock_monarch test
+  char rel_path[] = "/gpfs/scratch/bsc32/bsc32815/a2s8/nmmb-monarch/MODEL/SRC_LIBS/partmc/test/monarch/exports/camp_input"; //monarch
+
+  int rank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  int size;
+  MPI_Comm_size(MPI_COMM_WORLD, &size);
+  char mpi_path[1024];
+  char rank_str[64];
+
+  printf("Exporting camp input rank %d counterFail %d counterSolve %d\n", rank, sd->counterFail, sd->counterSolve);
+
+  sprintf(rank_str, "%d", rank);
+
+  //earch rank->different file name
+  strcpy(mpi_path, rel_path);
+  strcat(mpi_path, "_");
+  strcat(mpi_path, rank_str);
+  strcat(mpi_path, ".txt");
+
+  FILE *f = fopen(mpi_path, "w");
+  //printf("\nrank %d\n", rank);
+
+#else
+
+  FILE *f = fopen(in_path, "w");
+ // char path[] = "../../../test/monarch/exports/camp_input.txt";
+  char path[] = "exports/camp_input.txt";
+
+#endif
+
+  //reverse csv,first column is names and next columns are the values
+
+  //fprintf(f, "%s", "state_var");
+  for(int i=0;i<md->n_per_cell_state_var*n_cells;i++){
+    fprintf(f, " %-le", init_state[i]);
+  }
+  fprintf(f, "\n");
+
+  int size_env=2;
+  //fprintf(f, "%s", "temperature");
+  for(int i=0;i<n_cells;i++){
+    fprintf(f, " %-le",sd->model_data.total_env[size_env*i]);
+  }
+  fprintf(f, "\n");
+
+  //fprintf(f, "%s", "pressure");
+  for(int i=0;i<n_cells;i++){
+    fprintf(f, " %-le",sd->model_data.total_env[1+size_env*i]);
+  }
+  fprintf(f, "\n");
+
+  //photolysis
+  rxn_export_input(sd, f);
+
+  //printf("\nrank %d\n", rank);
+
+  fclose(f);
+
+  //optional: add extra info on a separate txt (counterfail, rank, test...)
+
+}
 
 /** \brief Print solver statistics
  *
@@ -1953,6 +2412,12 @@ void solver_free(void *solver_data) {
 
   // free the absolute tolerance vector
   N_VDestroy(sd->abs_tol_nv);
+
+  // free the TimeDerivative
+  time_derivative_free(sd->time_deriv);
+
+  // free the Jacobian
+  jacobian_free(sd->jac);
 
   // free the derivative vectors
   N_VDestroy(sd->y);
@@ -2041,6 +2506,8 @@ void error_handler(int error_code, const char *module, const char *function,
 }
 
 void write_profile_stats(){
+
+  //todo specify common out format with auto-profiling tool from oriolTinto&stella work
 
   FILE *fptr;
   FILE *fptr1;
@@ -2133,7 +2600,6 @@ void write_profile_stats(){
  * \param model_data Pointer to the ModelData object to free
  */
 void model_free(ModelData model_data) {
-
 #ifdef PMC_USE_GPU
   free_gpu_cu(&model_data);
 #endif
@@ -2143,6 +2609,11 @@ void model_free(ModelData model_data) {
   SUNMatDestroy(model_data.J_init);
   SUNMatDestroy(model_data.J_rxn);
   SUNMatDestroy(model_data.J_params);
+  SUNMatDestroy(model_data.J_solver);
+  N_VDestroy(model_data.J_state);
+  N_VDestroy(model_data.J_deriv);
+  N_VDestroy(model_data.J_tmp);
+  N_VDestroy(model_data.J_tmp2);
 #endif
   free(model_data.jac_map);
   free(model_data.jac_map_params);

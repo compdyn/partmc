@@ -236,6 +236,7 @@ contains
 
     ! Save the indices of each species undergoing wet deposition
     i_spec = 0
+    !write(*,*) "wet_deposition species, unique_name, REACT_ID"
     do i_rep = 1, size(aero_rep)
       unique_names = aero_rep(i_rep)%val%unique_names( phase_name = &
                                                        phase_name )
@@ -243,6 +244,11 @@ contains
         i_spec = i_spec + 1
         REACT_(i_spec) = aero_rep(i_rep)%val%spec_state_id( &
                                          unique_names( i_rep_spec )%string )
+
+        !write(*,*) unique_names( i_rep_spec )%string, &
+        !        REACT_(i_spec)
+
+
         call assert( 702159475, REACT_(i_spec) .gt. 0 )
       end do
     end do
@@ -316,6 +322,7 @@ contains
     ! If a reaction id has not yet been generated, do it now
     if (RXN_ID_.eq.-1) then
       RXN_ID_ = generate_int_id()
+      !write(*,*)"wet deposition rxn_type,RXN_ID_",rxn_type,RXN_ID_
     endif
 
     update_data%rxn_unique_id = RXN_ID_

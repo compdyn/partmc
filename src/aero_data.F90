@@ -65,6 +65,8 @@ module pmc_aero_data
      type(fractal_t) :: fractal
      !> CAMP aerosol representation pointer
      class(aero_rep_data_t), pointer :: aero_rep_ptr
+     !> CAMP update number conc cookie
+     type(aero_rep_update_data_single_particle_number_t) :: update_number
      !> Aerosol species ids on the camp chem state array
      integer, allocatable :: camp_spec_id(:)
   contains
@@ -484,7 +486,8 @@ contains
          + pmc_mpi_pack_size_real_array(val%molec_weight) &
          + pmc_mpi_pack_size_real_array(val%kappa) &
          + pmc_mpi_pack_size_string_array(val%source_name) &
-         + pmc_mpi_pack_size_fractal(val%fractal)
+         + pmc_mpi_pack_size_fractal(val%fractal) &
+         + val%update_number%pack_size()
 
   end function pmc_mpi_pack_size_aero_data
 
@@ -513,6 +516,7 @@ contains
     call pmc_mpi_pack_real_array(buffer, position, val%kappa)
     call pmc_mpi_pack_string_array(buffer, position, val%source_name)
     call pmc_mpi_pack_fractal(buffer, position, val%fractal)
+    call val%update_number%bin_pack(buffer, position)
     call assert(183834856, &
          position - prev_position <= pmc_mpi_pack_size_aero_data(val))
 #endif
@@ -544,6 +548,7 @@ contains
     call pmc_mpi_unpack_real_array(buffer, position, val%kappa)
     call pmc_mpi_unpack_string_array(buffer, position, val%source_name)
     call pmc_mpi_unpack_fractal(buffer, position, val%fractal)
+    call val%update_number%bin_unpack(buffer, position)
     call assert(188522823, &
          position - prev_position <= pmc_mpi_pack_size_aero_data(val))
 #endif
@@ -733,12 +738,14 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read full state.
-  subroutine aero_data_input_netcdf(aero_data, ncid)
+  subroutine aero_data_input_netcdf(aero_data, ncid, camp_core)
 
     !> Aero_data to read.
     type(aero_data_t), intent(inout) :: aero_data
     !> NetCDF file ID, in data mode.
     integer, intent(in) :: ncid
+    !> CAMP core
+    type(camp_core_t), pointer, optional, intent(in) :: camp_core
 
     integer, parameter :: MAX_SPECIES = 1000
     integer, parameter :: MAX_SOURCES = 1000
@@ -749,6 +756,7 @@ contains
     character(len=((AERO_NAME_LEN + 2) * MAX_SPECIES)) :: aero_species_names
     character(len=((AERO_SOURCE_NAME_LEN + 2) * MAX_SPECIES)) &
          :: aero_source_names
+    type(aero_data_t) :: camp_aero_data
 
     call pmc_nc_check(nf90_inq_dimid(ncid, "aero_species", &
          dimid_aero_species))
@@ -805,7 +813,12 @@ contains
     end do
     call assert(377166446, aero_source_names == "")
 
-    call aero_data_set_water_index(aero_data)
+    if (present(camp_core)) then
+      call camp_aero_data%initialize(camp_core)
+      aero_data%i_water = camp_aero_data%i_water
+    else
+      call aero_data_set_water_index(aero_data)
+    end if
 
     call fractal_input_netcdf(aero_data%fractal, ncid)
 
@@ -821,11 +834,13 @@ contains
     !> CAMP core
     type(camp_core_t), intent(in) :: camp_core
 
-    character(len=:), allocatable :: rep_name, prop_name
-    type(string_t), allocatable :: spec_names(:)
-    integer :: num_spec, i_spec
+    character(len=:), allocatable :: rep_name, prop_name, str_val
+    type(string_t), allocatable :: spec_names(:), tmp_spec_names(:)
+    integer :: num_spec, i_spec, spec_type
     type(chem_spec_data_t), pointer :: chem_spec_data
     type(property_t), pointer :: property_set
+
+    write(*,*) "aero_data_initialize READING JSON"
 
     rep_name = "PartMC single particle"
     if (.not.camp_core%get_aero_rep(rep_name, this%aero_rep_ptr)) then
@@ -837,8 +852,25 @@ contains
             camp_core%get_chem_spec_data(chem_spec_data), &
             "No chemical species data in camp_core.")
 
+    ! Only include real aerosol species (no activity coefficients)
     spec_names = this%aero_rep_ptr%unique_names()
-    num_spec = size(spec_names)
+    allocate(tmp_spec_names(size(spec_names)))
+    num_spec = 0
+    do i_spec = 1, size(spec_names)
+      call assert(496388827, chem_spec_data%get_type( &
+                  this%aero_rep_ptr%spec_name(spec_names(i_spec)%string), &
+                  spec_type))
+      if( spec_type.ne.CHEM_SPEC_VARIABLE .and. &
+          spec_type.ne.CHEM_SPEC_CONSTANT .and. &
+          spec_type.ne.CHEM_SPEC_PSSA ) cycle
+      num_spec = num_spec + 1
+      tmp_spec_names(num_spec)%string = spec_names(i_spec)%string
+    end do
+    deallocate(spec_names)
+    allocate(spec_names(num_spec))
+    spec_names(1:num_spec) = tmp_spec_names(1:num_spec)
+    deallocate(tmp_spec_names)
+
     allocate(this%name(num_spec))
     allocate(this%mosaic_index(num_spec))
     allocate(this%density(num_spec))
@@ -847,7 +879,16 @@ contains
     allocate(this%kappa(num_spec))
     allocate(this%camp_spec_id(num_spec))
 
+    ! Assume no aerosol water
+    this%i_water = 0
+
     do i_spec = 1, num_spec
+      call assert(496388827, chem_spec_data%get_type( &
+                  this%aero_rep_ptr%spec_name(spec_names(i_spec)%string), &
+                  spec_type))
+      if( spec_type.ne.CHEM_SPEC_VARIABLE .and. &
+          spec_type.ne.CHEM_SPEC_CONSTANT .and. &
+          spec_type.ne.CHEM_SPEC_PSSA ) num_spec = num_spec - 1
       this%name(i_spec) = spec_names(i_spec)%string
       if (.not.chem_spec_data%get_property_set( &
         this%aero_rep_ptr%spec_name(spec_names(i_spec)%string), &
@@ -875,9 +916,26 @@ contains
         call die_msg(944207343, "Missing kappa for aerosol species "//&
              spec_names(i_spec)%string)
       end if
+      prop_name = "PartMC name"
+      if (property_set%get_string(prop_name, str_val)) then
+        if (str_val.eq."H2O") then
+          call assert_msg(227489086, this%i_water.eq.0, &
+                          "Two aerosol water species")
+          this%i_water = i_spec
+        end if
+      end if
       this%camp_spec_id(i_spec) = &
           this%aero_rep_ptr%spec_state_id(spec_names(i_spec)%string)
     end do
+
+    ! Set up the update data objects for number
+    select type( aero_rep => this%aero_rep_ptr )
+      type is(aero_rep_single_particle_t)
+        call camp_core%initialize_update_object( aero_rep, &
+                                                 this%update_number )
+      class default
+        call die_msg(281737350, "Wrong aerosol representation type")
+    end select
 
   end subroutine aero_data_initialize
 

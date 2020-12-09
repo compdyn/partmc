@@ -78,7 +78,7 @@ contains
   !!
   !! where k1 and k2 are condensed-phase Arrhenius reaction rate constants,
   !! and D is a constant species. One set of reactions is done with units
-  !! of 'M' and one is with 'ug/m3'.
+  !! of 'M' and one is with 'kg/m3'.
   !!
   !! One of two scenarios is tested, depending on the passed integer:
   !! (1) single-particle aerosol representation and fixed water concentration

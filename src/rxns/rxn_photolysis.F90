@@ -249,12 +249,16 @@ contains
     end if
 
     ! Get the indices and chemical properties for the reactants
+    !write(*,*) "photolysis species, unique_name, REACT_ID"
     call reactants%iter_reset()
     i_spec = 1
     do while (reactants%get_key(spec_name))
 
       ! Save the index of this species in the state variable array
       REACT_(i_spec) = chem_spec_data%gas_state_id(spec_name)
+
+      !write(*,*) chem_spec_data%gas_state_name(chem_spec_data%gas_state_id(spec_name)), &
+      !        REACT_(i_spec)
 
       ! Make sure the species exists
       call assert_msg(747277322, REACT_(i_spec).gt.0, &
@@ -285,6 +289,9 @@ contains
 
       ! Save the index of this species in the state variable array
       PROD_(i_spec) = chem_spec_data%gas_state_id(spec_name)
+
+      !write(*,*) chem_spec_data%gas_state_name(chem_spec_data%gas_state_id(spec_name)), &
+      !        PROD_(i_spec)
 
       ! Make sure the species exists
       call assert_msg(360988742, PROD_(i_spec).gt.0, &
@@ -371,6 +378,7 @@ contains
     ! If a reaction id has not yet been generated, do it now
     if (RXN_ID_.eq.-1) then
       RXN_ID_ = generate_int_id()
+      !write(*,*)"photolysis rxn_type,RXN_ID_",rxn_type,RXN_ID_
     endif
 
     update_data%rxn_unique_id = RXN_ID_

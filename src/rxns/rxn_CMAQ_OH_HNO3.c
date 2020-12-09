@@ -130,6 +130,17 @@ void rxn_CMAQ_OH_HNO3_update_env_state(ModelData *model_data, int *rxn_int_data,
        k3 / (((double)1.0) + k3 / k2)) *
       pow(conv, NUM_REACT_ - 1) * SCALING_;
 
+#ifdef PMC_DEBUG_RATE_CONSTANTS
+#ifdef PMC_USE_MPI
+  int rank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  if (rank==411 || rank==0)
+  {
+    printf("RATE_CONSTANT CMAQ_OH_HNO3: %-le, rank %d \n", RATE_CONSTANT_,rank);
+  }
+#endif
+#endif
+
   return;
 }
 
@@ -137,25 +148,26 @@ void rxn_CMAQ_OH_HNO3_update_env_state(ModelData *model_data, int *rxn_int_data,
  * this reaction.
  *
  * \param model_data Pointer to the model data
- * \param deriv Pointer to the time derivative to add contributions to
+ * \param time_deriv TimeDerivative object
  * \param rxn_int_data Pointer to the reaction integer data
  * \param rxn_float_data Pointer to the reaction floating-point data
  * \param rxn_env_data Pointer to the environment-dependent parameters
  * \param time_step Current time step being computed (s)
  */
 #ifdef PMC_USE_SUNDIALS
-void rxn_CMAQ_OH_HNO3_calc_deriv_contrib(ModelData *model_data, realtype *deriv,
-                                         int *rxn_int_data,
-                                         double *rxn_float_data,
-                                         double *rxn_env_data,
-                                         double time_step) {
+
+#ifdef CHANGE_LOOPS_RXN
+
+void rxn_CMAQ_OH_HNO3_calc_deriv_contrib(
+    ModelData *model_data, double *deriv, int *rxn_int_data,
+    double *rxn_float_data, double *rxn_env_data, double time_step) {
   int *int_data = rxn_int_data;
   double *float_data = rxn_float_data;
   double *state = model_data->grid_cell_state;
   double *env_data = model_data->grid_cell_env;
 
   // Calculate the reaction rate
-  realtype rate = RATE_CONSTANT_;
+  double rate = RATE_CONSTANT_;
   for (int i_spec = 0; i_spec < NUM_REACT_; i_spec++)
     rate *= state[REACT_(i_spec)];
 
@@ -178,19 +190,58 @@ void rxn_CMAQ_OH_HNO3_calc_deriv_contrib(ModelData *model_data, realtype *deriv,
 
   return;
 }
+
+#else
+
+void rxn_CMAQ_OH_HNO3_calc_deriv_contrib(
+    ModelData *model_data, TimeDerivative time_deriv, int *rxn_int_data,
+    double *rxn_float_data, double *rxn_env_data, double time_step) {
+  int *int_data = rxn_int_data;
+  double *float_data = rxn_float_data;
+  double *state = model_data->grid_cell_state;
+  double *env_data = model_data->grid_cell_env;
+
+  // Calculate the reaction rate
+  long double rate = RATE_CONSTANT_;
+  for (int i_spec = 0; i_spec < NUM_REACT_; i_spec++)
+    rate *= state[REACT_(i_spec)];
+
+  // Add contributions to the time derivative
+  if (rate != ZERO) {
+    int i_dep_var = 0;
+    for (int i_spec = 0; i_spec < NUM_REACT_; i_spec++, i_dep_var++) {
+      if (DERIV_ID_(i_dep_var) < 0) continue;
+      time_derivative_add_value(time_deriv, DERIV_ID_(i_dep_var), -rate);
+    }
+    for (int i_spec = 0; i_spec < NUM_PROD_; i_spec++, i_dep_var++) {
+      if (DERIV_ID_(i_dep_var) < 0) continue;
+      // Negative yields are allowed, but prevented from causing negative
+      // concentrations that lead to solver failures
+      if (-rate * YIELD_(i_spec) * time_step <= state[PROD_(i_spec)]) {
+        time_derivative_add_value(time_deriv, DERIV_ID_(i_dep_var),
+                                  rate * YIELD_(i_spec));
+      }
+    }
+  }
+
+  return;
+}
+
+#endif
+
 #endif
 
 /** \brief Calculate contributions to the Jacobian from this reaction
  *
  * \param model_data Pointer to the model data
- * \param J Pointer to the sparse Jacobian matrix to add contributions to
+ * \param jac Reaction Jacobian
  * \param rxn_int_data Pointer to the reaction integer data
  * \param rxn_float_data Pointer to the reaction floating-point data
  * \param rxn_env_data Pointer to the environment-dependent parameters
  * \param time_step Current time step being calculated (s)
  */
 #ifdef PMC_USE_SUNDIALS
-void rxn_CMAQ_OH_HNO3_calc_jac_contrib(ModelData *model_data, realtype *J,
+void rxn_CMAQ_OH_HNO3_calc_jac_contrib(ModelData *model_data, Jacobian jac,
                                        int *rxn_int_data,
                                        double *rxn_float_data,
                                        double *rxn_env_data, double time_step) {
@@ -209,7 +260,8 @@ void rxn_CMAQ_OH_HNO3_calc_jac_contrib(ModelData *model_data, realtype *J,
 
     for (int i_dep = 0; i_dep < NUM_REACT_; i_dep++, i_elem++) {
       if (JAC_ID_(i_elem) < 0) continue;
-      J[JAC_ID_(i_elem)] -= rate;
+      jacobian_add_value(jac, (unsigned int)JAC_ID_(i_elem), JACOBIAN_LOSS,
+                         rate);
     }
     for (int i_dep = 0; i_dep < NUM_PROD_; i_dep++, i_elem++) {
       if (JAC_ID_(i_elem) < 0) continue;
@@ -217,7 +269,8 @@ void rxn_CMAQ_OH_HNO3_calc_jac_contrib(ModelData *model_data, realtype *J,
       // concentrations that lead to solver failures
       if (-rate * state[REACT_(i_ind)] * YIELD_(i_dep) * time_step <=
           state[PROD_(i_dep)]) {
-        J[JAC_ID_(i_elem)] += YIELD_(i_dep) * rate;
+        jacobian_add_value(jac, (unsigned int)JAC_ID_(i_elem),
+                           JACOBIAN_PRODUCTION, YIELD_(i_dep) * rate);
       }
     }
   }

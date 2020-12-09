@@ -280,7 +280,6 @@ contains
     integer(kind=i_kind), allocatable :: phase_ids(:)
     character(len=:), allocatable :: rep_name, phase_name
     type(aero_rep_factory_t) :: aero_rep_factory
-    type(aero_rep_update_data_single_particle_radius_t) :: update_radius
     type(aero_rep_update_data_single_particle_number_t) :: update_number
 
     rep_name = "AERO_REP_SINGLE_PARTICLE"
@@ -290,7 +289,6 @@ contains
 
     select type( aero_rep )
       type is(aero_rep_single_particle_t)
-        call camp_core%initialize_update_object( aero_rep, update_radius )
         call camp_core%initialize_update_object( aero_rep, update_number )
       class default
         call die_msg(766425873, "Wrong aero rep type")
@@ -305,13 +303,11 @@ contains
     call camp_state%env_states(1)%set_pressure_Pa( 101325.0d0 )
 
     ! Update external properties
-    call update_radius%set_radius( PART_RADIUS )
-    call update_number%set_number( 12.3d0 )
-    call camp_core%update_data( update_radius )
+    call update_number%set_number__n_m3( 12.3d0 )
     call camp_core%update_data( update_number )
 
     ! Test re-setting number concentration
-    call update_number%set_number( PART_NUM_CONC )
+    call update_number%set_number__n_m3( PART_NUM_CONC )
     call camp_core%update_data( update_number )
 
     passed = run_aero_rep_single_particle_c_tests(                           &

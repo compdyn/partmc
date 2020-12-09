@@ -25,10 +25,12 @@
 !! \f[
 !!   \frac{\alpha}{1-\alpha} = e^{\frac{-\Delta G^{*}}{RT}}
 !! \f]
+!! If \f$\Delta H\f$ and \f$\Delta S\f$ are not provided, the mass accomodation
+!! coefficient is assumed to be 0.1 (\cite Zaveri2008).
 !!
 !! Condensation rate constants are calculated as:
 !! \f[
-!!   k_{f} = (\frac{r^2}{3D_g} + \frac{4r}{3 \langle c \rangle \alpha})
+!!   k_{f} = (\frac{r^2}{3D_g} + \frac{4r}{3 \langle c \rangle \alpha})^{-1}
 !! \f]
 !! where \f$r\f$ is the particle radius (\f$\mbox{m}\f$) and
 !! \f$\langle c \rangle \f$ is the mean speed of the gas-phase molecules:
@@ -67,7 +69,7 @@
 !! \b weight \b [kg \b mol-1], which specifies the molecular weight of the
 !! species in \f$\mbox{\si{\kilo\gram\per\mole}}\f$. They may optionally
 !! include the parameter \b N \b star, which will be used to calculate th
-!! mass accomodation coefficient. When this parameter is not included, th
+!! mass accomodation coefficient. When this parameter is not included, the
 !! mass accomodation coefficient is assumed to be 1.0.
 !!
 !! The key-value pair \b B is also required and must have a value of an array
@@ -111,12 +113,11 @@ module pmc_rxn_SIMPOL_phase_transfer
 #define B4_ this%condensed_data_real(8)
 #define CONV_ this%condensed_data_real(9)
 #define MW_ this%condensed_data_real(10)
-#define SMALL_NUMBER_ this%condensed_data_real(11)
 #define NUM_AERO_PHASE_ this%condensed_data_int(1)
 #define GAS_SPEC_ this%condensed_data_int(2)
 #define NUM_INT_PROP_ 2
-#define NUM_REAL_PROP_ 11
-#define NUM_ENV_PARAM_ 3
+#define NUM_REAL_PROP_ 10
+#define NUM_ENV_PARAM_ 4
 #define AERO_SPEC_(x) this%condensed_data_int(NUM_INT_PROP_+x)
 #define AERO_ACT_ID_(x) this%condensed_data_int(NUM_INT_PROP_+NUM_AERO_PHASE_+x)
 #define AERO_PHASE_ID_(x) this%condensed_data_int(NUM_INT_PROP_+2*NUM_AERO_PHASE_+x)
@@ -182,8 +183,8 @@ contains
     integer(kind=i_kind), intent(in) :: n_cells
 
     type(property_t), pointer :: spec_props, b_params
-    character(len=:), allocatable :: key_name, spec_name, phase_name
-    character(len=:), allocatable :: act_name
+    character(len=:), allocatable :: key_name, gas_spec_name, aero_spec_name
+    character(len=:), allocatable :: phase_name, act_name, error_msg
     integer(kind=i_kind) :: i_spec, i_aero_rep, n_aero_ids, i_aero_id
     integer(kind=i_kind) :: i_phase, n_aero_jac_elem, tmp_size
     type(string_t), allocatable :: unique_spec_names(:), unique_act_names(:)
@@ -195,17 +196,29 @@ contains
     if (.not. associated(this%property_set)) call die_msg(382913491, &
             "Missing property set needed to initialize reaction")
 
+    ! Get the gas-phase species name
+    key_name = "gas-phase species"
+    call assert_msg(740333884, &
+            this%property_set%get_string(key_name, gas_spec_name), &
+            "Missing gas-phase species in SIMPOL.1 phase transfer reaction")
+
     ! Get the aerosol phase name
     key_name = "aerosol phase"
     call assert_msg(325074932, &
             this%property_set%get_string(key_name, phase_name), &
-            "Missing aerosol phase in phase-transfer reaction")
+            "Missing aerosol phase in SIMPOL.1 phase-transfer reaction")
 
     ! Get the aerosol-phase species name
     key_name = "aerosol-phase species"
     call assert_msg(988456388, &
-            this%property_set%get_string(key_name, spec_name), &
-            "Missing aerosol-phase species in phase-transfer reaction")
+            this%property_set%get_string(key_name, aero_spec_name), &
+            "Missing aerosol-phase species in SIMPOL.1 phase-transfer "// &
+            "reaction")
+
+    ! Set up a general error message
+    error_msg = " for SIMPOL.1 phase transfer of gas species '"// &
+                gas_spec_name//"' to aerosol-phase species '"// &
+                aero_spec_name//"' in phase '"//phase_name//"'"
 
     ! Get the aerosol-phase activity coeffcient name
     key_name = "aerosol-phase activity coefficient"
@@ -213,9 +226,9 @@ contains
 
     ! Check for aerosol representations
     call assert_msg(260518827, associated(aero_rep), &
-            "Missing aerosol representation for phase transfer reaction")
+            "Missing aerosol representation"//error_msg)
     call assert_msg(590304021, size(aero_rep).gt.0, &
-            "Missing aerosol representation for phase transfer reaction")
+            "Missing aerosol representation"//error_msg)
 
     ! Count the instances of this phase/species pair
     n_aero_ids = 0
@@ -225,7 +238,7 @@ contains
       ! Get the unique names in this aerosol representation for the
       ! partitioning species
       unique_spec_names = aero_rep(i_aero_rep)%val%unique_names( &
-              phase_name = phase_name, spec_name = spec_name)
+              phase_name = phase_name, spec_name = aero_spec_name)
 
       ! Skip aerosol representations that do not contain this phase
       if (.not.allocated(unique_spec_names)) cycle
@@ -245,6 +258,9 @@ contains
 
     end do
 
+    call assert_msg(314000134, n_aero_ids.gt.0, &
+                    "Aerosol species not found"//error_msg)
+
     ! Allocate space in the condensed data arrays
     allocate(this%condensed_data_int(NUM_INT_PROP_ + 2 + n_aero_ids * 13 + &
                                      n_aero_jac_elem * 2))
@@ -260,21 +276,19 @@ contains
 
     ! Get the properties required of the aerosol species
     call assert_msg(162662115, &
-            chem_spec_data%get_property_set(spec_name, spec_props), &
-            "Missing properties required for phase-transfer of "// &
-            "aerosol-phase species "//trim(spec_name))
+            chem_spec_data%get_property_set(aero_spec_name, spec_props), &
+            "Missing properties"//error_msg)
 
     ! Get the aerosol species molecular weight
     key_name = "molecular weight [kg mol-1]"
     call assert_msg(839930958, spec_props%get_real(key_name, MW_), &
-            "Missing property 'MW' for aerosol species "//trim(spec_name)// &
-            " required for phase-transfer reaction")
+            "Missing property 'MW'"//error_msg)
 
-    ! Set the ug/m3 -> ppm conversion prefactor (multiply by T/P to get
+    ! Set the kg/m3 -> ppm conversion prefactor (multiply by T/P to get
     ! conversion)
-    ! (ppm_x*Pa_air*m^3/K/ug_x) = Pa_air*m^3/mol_air/K * mol_x/kg_x *
-    !                   1.0e-9kg_x/ug_x * 1.0e6ppm_x*mol_air/mol_x
-    CONV_ = const%univ_gas_const / MW_ / 1.0e3
+    ! (ppm_x*Pa_air*m^3/K/kg_x) = Pa_air*m^3/mol_air/K * mol_x/kg_x *
+    !                   1.0e6ppm_x*mol_air/mol_x
+    CONV_ = const%univ_gas_const / MW_ * 1.0e6
 
     ! Set the ids of each aerosol-phase species instance
     i_aero_id = 1
@@ -285,7 +299,7 @@ contains
       ! Get the unique names in this aerosol representation for the
       ! partitioning species
       unique_spec_names = aero_rep(i_aero_rep)%val%unique_names( &
-              phase_name = phase_name, spec_name = spec_name)
+              phase_name = phase_name, spec_name = aero_spec_name)
 
       ! Find the corresponding activity coefficients, if specified
       if (has_act_coeff) then
@@ -293,7 +307,8 @@ contains
               phase_name = phase_name, spec_name = act_name)
         call assert_msg(236251734, size(unique_act_names).eq. &
                         size(unique_spec_names), &
-                        "Mismatch of SIMPOL species and activity coeffs")
+                        "Mismatch of SIMPOL species and activity coeffs"// &
+                        error_msg)
       end if
 
       ! Get the phase ids for this aerosol phase
@@ -334,48 +349,33 @@ contains
     key_name = "B"
     call assert_msg(882881186, &
             this%property_set%get_property_t(key_name, b_params), &
-            "Missing 'B' parameters for SIMPOL.1 vapor pressure "// &
-            "calculation in phase transfer reaction of "//spec_name)
+            "Missing 'B' parameters"//error_msg)
     call assert_msg(654885723, b_params%size().eq.4, &
-            "Incorrect number of 'B' parameters for SIMPOL.1 vapor "// &
-            "pressure calculation in phase transfer reactions of "// &
-            spec_name)
+            "Incorrect number of 'B' parameters"//error_msg)
     call b_params%iter_reset()
     call assert_msg(694024883, b_params%get_real(val = B1_), &
-            "Got non-real 'B' parameter in phase transfer reaction of "// &
-            spec_name)
+            "Got non-real 'B1' parameter"//error_msg)
     call b_params%iter_next()
     call assert_msg(231316411, b_params%get_real(val = B2_), &
-            "Got non-real 'B' parameter in phase transfer reaction of "// &
-            spec_name)
+            "Got non-real 'B2' parameter"//error_msg)
     call b_params%iter_next()
     call assert_msg(126167907, b_params%get_real(val = B3_), &
-            "Got non-real 'B' parameter in phase transfer reaction of "// &
-            spec_name)
+            "Got non-real 'B3' parameter"//error_msg)
     call b_params%iter_next()
     call assert_msg(573535753, b_params%get_real(val = B4_), &
-            "Got non-real 'B' parameter in phase transfer reaction of "// &
-            spec_name)
+            "Got non-real 'B4' parameter"//error_msg)
 
-    ! Get the gas-phase species and find the required species properties and
-    ! index
-    key_name = "gas-phase species"
-    call assert_msg(740333884, &
-            this%property_set%get_string(key_name, spec_name), &
-            "Missing gas-phase species in phase-transfer reaction")
-
-    ! Save the index of this species in the state variable array
-    GAS_SPEC_ = chem_spec_data%gas_state_id(spec_name)
+    ! Save the index of the gas-phase species in the state variable array
+    GAS_SPEC_ = chem_spec_data%gas_state_id(gas_spec_name)
 
     ! Make sure the species exists
     call assert_msg(551477581, GAS_SPEC_.gt.0, &
-            "Missing phase-transfer gas-phase species: "//spec_name)
+            "Missing gas-phase species"//error_msg)
 
     ! Get the required properties for the gas-phase species
     call assert_msg(611221674, &
-            chem_spec_data%get_property_set(spec_name, spec_props), &
-            "Missing properties required for phase-transfer of "// &
-            "gas-phase species "//trim(spec_name))
+            chem_spec_data%get_property_set(gas_spec_name, spec_props), &
+            "Missing properties for gas-phase species"//error_msg)
 
     ! Get N* to calculate the mass accomodation coefficient. If it is not
     ! present, set DELTA_H_ and DELTA_S_ to zero to indicate a mass
@@ -403,23 +403,23 @@ contains
     ! Get the diffusion coefficient (m^2/s)
     key_name = "diffusion coeff [m2 s-1]"
     call assert_msg(948176709, spec_props%get_real(key_name, DIFF_COEFF_), &
-            "Missing diffusion coefficient for species "//spec_name)
+            "Missing diffusion coefficient"//error_msg)
 
-    ! Calculate the constant portion of c_rms [m/(K^2*s)]
+    ! Calculate the constant portion of c_rms [m /( K^(1/2) * s )]
     key_name = "molecular weight [kg mol-1]"
     call assert_msg(272813400, spec_props%get_real(key_name, temp_real), &
-            "Missing molecular weight for species "//spec_name)
-    PRE_C_AVG_ = sqrt(8.0*const%univ_gas_const/(const%pi*temp_real*1.0e3))
+            "Missing molecular weight"//error_msg)
+    PRE_C_AVG_ = sqrt(8.0*const%univ_gas_const/(const%pi*temp_real))
 
     ! Check the sizes of the data arrays
     tmp_size = PHASE_INT_LOC_(i_aero_id - 1) + 1 + &
                2*NUM_AERO_PHASE_JAC_ELEM_(i_aero_id - 1) - 1
     call assert_msg(625802519, size(this%condensed_data_int) .eq. tmp_size, &
-                    "int array size mismatch")
+                    "int array size mismatch"//error_msg)
     tmp_size = PHASE_REAL_LOC_(i_aero_id - 1) + &
                4*NUM_AERO_PHASE_JAC_ELEM_(i_aero_id - 1) - 1
     call assert_msg(391089510, size(this%condensed_data_real) .eq. tmp_size, &
-                    "real array size mismatch")
+                    "real array size mismatch"//error_msg)
 
   end subroutine initialize
 

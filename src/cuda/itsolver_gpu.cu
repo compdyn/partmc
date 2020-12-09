@@ -232,12 +232,12 @@ void solveGPU_block(itsolver *bicg, double *dA, int *djA, int *diA, double *dx, 
   //cudaMemcpy(bicg->djA,bicg->jA,7*sizeof(double),cudaMemcpyHostToDevice);
 
   int max_threads = bicg->threads;
-  int size_cell = nrows/n_cells;
+  int size_cell = nrows/n_cells; //e.g size_cell = 3 for mock_monarch 1 (3 species)
   int n_shr_empty = max_threads%size_cell; //+ size_cell*11 to simulate more shr_empty
   int active_threads = max_threads - n_shr_empty; //last multiple of size_cell before max_threads
 
   threads = bicg->threads;//active_threads;//bicg->threads;
-  blocks = (nrows+active_threads-1)/active_threads; //blocks counting some threads are not working
+  blocks = (nrows+active_threads-1)/active_threads; //blocks counting active_threads working in each block
 
   /*aux_params[0] = alpha;
   aux_params[1] = rho0;

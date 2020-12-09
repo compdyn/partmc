@@ -315,6 +315,7 @@ contains
     type(env_state_t) :: env_state_init
     type(run_part_opt_t) :: run_part_opt
     type(camp_core_t), pointer :: camp_core
+    type(photolysis_t), pointer :: photolysis
     integer :: i_repeat, i_group
     integer :: rand_init
     character, allocatable :: buffer(:)
@@ -474,8 +475,10 @@ contains
                  camp_config_filename)
          camp_core => camp_core_t(camp_config_filename)
          call camp_core%initialize()
+         !photolysis => photolysis_t(camp_core)
          ! FIXME: Temporary print state of the data
          call camp_core%print()
+         !call photolysis%print()
        end if
 
        if (do_restart) then
@@ -663,7 +666,8 @@ contains
             + pmc_mpi_pack_size_aero_state(aero_state_init)
        if (run_part_opt%do_camp_chem) then
          max_buffer_size = max_buffer_size &
-              + camp_core%pack_size()
+              + camp_core%pack_size() !&
+              !+ photolysis%pack_size()
        end if
 
        allocate(buffer(max_buffer_size))
@@ -683,6 +687,7 @@ contains
        call pmc_mpi_pack_aero_state(buffer, position, aero_state_init)
        if (run_part_opt%do_camp_chem) then
          call camp_core%bin_pack(buffer, position)
+         !call photolysis%bin_pack(buffer, position)
        end if
        call assert(181905491, position <= max_buffer_size)
        buffer_size = position ! might be less than we allocated
@@ -719,6 +724,9 @@ contains
          camp_core => camp_core_t()
          ! upack the camp chem core
          call camp_core%bin_unpack(buffer, position)
+         ! upack the photolysis calculator
+         !photolysis => photolysis_t()
+         !call photolysis%bin_unpack(buffer, position)
        end if
        call assert(143770146, position == buffer_size)
     end if
@@ -776,8 +784,9 @@ contains
        end if
 #endif
        if (run_part_opt%do_camp_chem) then
-          call run_part(scenario, env_state, aero_data, aero_state, gas_data, &
-               gas_state, run_part_opt, camp_core=camp_core)
+          !call run_part(scenario, env_state, aero_data, aero_state, gas_data, &
+          !     gas_state, run_part_opt, camp_core=camp_core, &
+          !     photolysis=photolysis)
        else
           call run_part(scenario, env_state, aero_data, aero_state, gas_data, &
                gas_state, run_part_opt)

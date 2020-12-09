@@ -65,8 +65,8 @@ int aero_phase_get_used_jac_elem(ModelData *model_data, int aero_phase_idx,
  * \param aero_phase_idx Index of the aerosol phase to use in the calculation
  * \param state_var Pointer the aerosol phase on the state variable array
  * \param mass Pointer to hold total aerosol phase mass
- *             (\f$\mbox{\si{\micro\gram\per\cubic\metre}}\f$ or
- *              \f$\mbox{\si{\micro\gram\per particle}}\f$)
+ *             (\f$\mbox{\si{\kilogram\per\cubic\metre}}\f$ or
+ *              \f$\mbox{\si{\kilogram\per particle}}\f$)
  * \param MW Pointer to hold average MW of the aerosol phase
  *           (\f$\mbox{\si{\kilogram\per\mol}}\f$)
  * \param jac_elem_mass When not NULL, a pointer to an array whose length is the
@@ -83,9 +83,9 @@ int aero_phase_get_used_jac_elem(ModelData *model_data, int aero_phase_idx,
  *                 concentration \f$\frac{dMW}{dy_i}\f$ of each component
  *                 species \f$y_i\f$.
  */
-void aero_phase_get_mass(ModelData *model_data, int aero_phase_idx,
-                         double *state_var, double *mass, double *MW,
-                         double *jac_elem_mass, double *jac_elem_MW) {
+void aero_phase_get_mass__kg_m3(ModelData *model_data, int aero_phase_idx,
+                                double *state_var, double *mass, double *MW,
+                                double *jac_elem_mass, double *jac_elem_MW) {
   // Get the requested aerosol phase data
   int *int_data = &(model_data->aero_phase_int_data
                         [model_data->aero_phase_int_indices[aero_phase_idx]]);
@@ -134,9 +134,9 @@ void aero_phase_get_mass(ModelData *model_data, int aero_phase_idx,
  *                 concentration \f$\frac{dv}{dy_i}\f$ of each component
  *                 species \f$y_i\f$.
  */
-void aero_phase_get_volume(ModelData *model_data, int aero_phase_idx,
-                           double *state_var, double *volume,
-                           double *jac_elem) {
+void aero_phase_get_volume__m3_m3(ModelData *model_data, int aero_phase_idx,
+                                  double *state_var, double *volume,
+                                  double *jac_elem) {
   // Get the requested aerosol phase data
   int *int_data = &(model_data->aero_phase_int_data
                         [model_data->aero_phase_int_indices[aero_phase_idx]]);
@@ -151,8 +151,8 @@ void aero_phase_get_volume(ModelData *model_data, int aero_phase_idx,
     if (SPEC_TYPE_(i_spec) == CHEM_SPEC_VARIABLE ||
         SPEC_TYPE_(i_spec) == CHEM_SPEC_CONSTANT ||
         SPEC_TYPE_(i_spec) == CHEM_SPEC_PSSA) {
-      *volume += state_var[i_spec] * 1.0e-9 / DENSITY_(i_spec);
-      if (jac_elem) jac_elem[i_jac++] = 1.0e-9 / DENSITY_(i_spec);
+      *volume += state_var[i_spec] / DENSITY_(i_spec);
+      if (jac_elem) jac_elem[i_jac++] = 1.0 / DENSITY_(i_spec);
     }
   }
 }

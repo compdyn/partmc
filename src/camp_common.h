@@ -12,13 +12,16 @@
 #define CAMP_COMMON_H
 
 #include <time.h>
+#include "Jacobian.h"
+#include "time_derivative.h"
+#include <stdio.h>
+#include <stdlib.h>
 
 /* SUNDIALS Header files with a description of contents used */
 #ifdef PMC_USE_SUNDIALS
 #include <cvode/cvode.h>             /* Protoypes for CVODE fcts., consts.  */
 #include <cvode/cvode_direct.h>      /* CVDls interface                     */
 #include <cvode/cvode_impl.h>        /* CVodeMem structure                  */
-//#include <cvode/cvode_direct_impl.h> //todo need?
 
 //todo ifndef GPU
 //#ifdef PMC_USE_GPU
@@ -40,6 +43,10 @@
 #include <sundials/sundials_linearsolver.h>
 #include <cvode/cvode_direct_impl.h>
 
+#endif
+
+#ifdef PMC_USE_MPI
+#include <mpi.h>
 #endif
 
 #ifdef PMC_USE_GPU
@@ -106,9 +113,15 @@ typedef struct {
 #ifdef PMC_USE_SUNDIALS
   SUNMatrix J_init;    // sparse solver Jacobian matrix with used elements
                        // initialized to 1.0
+  SUNMatrix J_init2;    // sparse solver Jacobian matrix with used elements
   SUNMatrix J_rxn;     // Matrix for Jacobian contributions from reactions
   SUNMatrix J_params;  // Matrix for Jacobian contributions from sub model
                        // parameter calculations
+  SUNMatrix J_solver;  // Solver Jacobian
+  N_Vector J_state;    // Last state used to calculate the Jacobian
+  N_Vector J_deriv;    // Last derivative used to calculate the Jacobian
+  N_Vector J_tmp;      // Working vector (size of J_state and J_deriv)
+  N_Vector J_tmp2;     // Working vector (size of J_state and J_deriv)
 #endif
   JacMap *jac_map;         // Array of Jacobian mapping elements
   JacMap *jac_map_params;  // Array of Jacobian mapping elements to account for
@@ -196,9 +209,10 @@ typedef struct {
                                  // for the current grid cell
   int n_sub_model_env_data;      // Number of sub model environmental parameters
                                  // from all sub models
-                                 //#ifdef CUDA_FOUND
-                                 // GPU data
+   int counterMD;
 
+  //#ifdef CUDA_FOUND
+  // GPU data
 //Gpu definitions
 #ifdef PMC_USE_GPU
   int max_n_gpu_thread;
@@ -238,16 +252,28 @@ typedef struct {
 #ifdef PMC_USE_SUNDIALS
   N_Vector abs_tol_nv;  // abosolute tolerance vector
   N_Vector y;           // vector of solver variables
+  N_Vector y2;
   SUNLinearSolver ls;   // linear solver
+  TimeDerivative time_deriv;  // CAMP derivative structure for use in
+                              // calculating deriv
+  Jacobian jac;               // CAMP Jacobian structure for use in
+                              // calculating the Jacobian
   N_Vector deriv;       // used to calculate the derivative outside the solver
+  N_Vector deriv2;
   SUNMatrix J;          // Jacobian matrix
+  SUNMatrix J2;
   SUNMatrix J_guess;    // Jacobian matrix for improving guesses sent to linear
                         // solver
+  SUNMatrix J_guess2;
   bool curr_J_guess;    // Flag indicating the Jacobian used by the guess helper
                         // is current
   realtype J_guess_t;   // Last time (t) for which J_guess was calculated
   int Jac_eval_fails;   // Number of Jacobian evaluation failures
-  realtype gamma;           // Scale factor jacobian (M=I-gJ)
+  //realtype gamma;           // Scale factor jacobian (M=I-gJ)
+  int solver_flag;     // Last flag returned by a call to CVode()
+  int output_precision;  // Flag indicating whether to output precision loss
+  int use_deriv_est;     // Flag indicating whether to use an estimated
+                         // derivative in the f() calculations
 #ifdef PMC_DEBUG
   booleantype debug_out;  // Output debugging information during solving
   booleantype eval_Jac;   // Evalute Jacobian data during solving
@@ -255,7 +281,19 @@ typedef struct {
   int counterJac;         // Total calls to Jac()
   clock_t timeDeriv;      // Compute time for calls to f()
   clock_t timeJac;        // Compute time for calls to Jac()
+  double
+    max_loss_precision;  // Maximum loss of precision during last call to f()
 #endif
+
+  int counterDerivTotal;  // Total calls to f()
+  int counterDerivGPU; //todo set as counterDeriv and fix old counterDeriv
+  int counterJacGPU;
+  int counterSolve;
+  int counterFail;
+  double timeCVode;
+  double timeCVodeTotal;
+  double timeF;
+
 #endif
 #ifdef PMC_USE_GPU
     itsolver bicg;

@@ -1,4 +1,5 @@
-#       mass fractions
-OC             1
+#                      mass fractions
+organic_matter.PM_phob  0.75
+organic_matter.PM_phil  0.25
 
 

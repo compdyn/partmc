@@ -16,15 +16,20 @@ while [ true ]
 do
   echo Attempt $counter
 
+#todo if ENABLE_CB05_SOA check monarch_1 works
+
 if [[ $1 == "MPI" ]]; then
-  exec_str="mpirun -v -np 2 ../../mock_monarch config_monarch_mod37.json interface_monarch_mod37.json out/monarch_mod37"
+  #exec_str="mpirun -v -np 2 ../../mock_monarch config_monarch_mod37.json interface_monarch_mod37.json monarch_mod37"
+  exec_str="mpirun -v -np 2 ../../mock_monarch config_monarch_cb05_soa.json interface_monarch_cb05_soa.json monarch_cb05_soa"
 else
-  exec_str="../../mock_monarch config_monarch_mod37.json interface_monarch_mod37.json out/monarch_mod37"
+  #exec_str="../../mock_monarch config_monarch_mod37.json interface_monarch_mod37.json monarch_mod37"
+  #exec_str="../../mock_monarch config_monarch_cb05_soa.json interface_monarch_cb05_soa.json monarch_cb05_soa"
+  exec_str="../../mock_monarch config_monarch_cb05.json interface_monarch_cb05.json monarch_cb05"
 fi
 
   if ! $exec_str; then
 	  echo Failure "$counter"
-	  if [ "$counter" -gt 10 ]
+	  if [ "$counter" -gt 0 ]
 	  then
 		  echo FAIL
 		  exit 1

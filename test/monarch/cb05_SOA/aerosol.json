@@ -1,0 +1,50 @@
+{
+  "pmc-data" : [
+    {
+      "name" : "PartMC single particle",
+      "type" : "AERO_REP_SINGLE_PARTICLE"
+    },
+    {
+      "name" : "D",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "molecular weight [kg mol-1]" : 0.1572,
+      "density [kg m-3]" : 1.0,
+      "num_ions" : 1,
+      "kappa" : .65
+    },
+    {
+      "name" : "aqueous aerosol",
+      "type" : "AERO_PHASE",
+      "species" : ["D"]
+    },
+    {
+      "name" : "consecutive",
+      "type" : "MECHANISM",
+      "reactions" : [
+	{
+	  "type" : "ARRHENIUS",
+	  "reactants" : {
+	    "A" : {}
+	  },
+	  "products" : {
+	    "B" : {}
+	  },
+	  "A" : 12.0,
+	  "Ea" : 1.0e-20
+	},
+	{
+	  "type" : "ARRHENIUS",
+	  "reactants" : {
+	    "B" : {}
+	  },
+	  "products" : {
+	    "C" : {}
+	  },
+	  "A" : 13.0,
+	  "Ea" : 2.0e-20
+	}
+      ]
+    }
+  ]
+}

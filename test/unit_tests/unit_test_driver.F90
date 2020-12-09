@@ -50,9 +50,6 @@ program unit_test_driver
   integer(kind=i_kind) :: env_start_idx, env_end_idx
   real(kind=dp) :: multicell_val, one_cell_val
 
-  ! Computation time variables
-  real(kind=dp) :: comp_start, comp_end, time_multi, time_cell
-
   ! Solver evaluation object
   type(solver_stats_t) :: solver_stats
   real(kind=dp) :: rel_tol, abs_tol
@@ -73,10 +70,6 @@ program unit_test_driver
 
   ! Seed the random number generator
   call pmc_srand(0,0)
-
-  !Init timers
-  time_multi = 0
-  time_cell = 0
 
 #ifdef PMC_USE_MPI
   ! Load the model data and initialize the cores on the primary process, then
@@ -169,7 +162,7 @@ program unit_test_driver
     do i_cell=1, N_CELLS
       grid_cell_state( i_cell )%val => one_cell_core%new_state( )
       grid_cell_state_id( i_cell ) = &
-        mod(i_cell,unit_test%num_unique_states( ))+1
+        pmc_rand_int( unit_test%num_unique_states( ) )
 
       ! Set the initial state for this grid cell to grid_cell_state_id
       call unit_test%initialize_state( i_cell, one_cell_core, &
@@ -225,13 +218,10 @@ program unit_test_driver
 
     do i_time = 1, unit_test%num_time_steps( )
 
-      call cpu_time(comp_start);
       ! Solve the multicell system first
       call multicell_core%solve( multicell_state, &
                                  unit_test%time_step_size( ), &
                                  solver_stats = solver_stats )
-      call cpu_time(comp_end);
-      time_multi = time_multi + comp_end - comp_start
 
 #ifdef PMC_DEBUG
       ! Check the Jacobian evaluations
@@ -244,7 +234,6 @@ program unit_test_driver
       ! Loop over the grid cells to do the single-cell solving and to compare
       ! and analyze the results from multicell and single-cell solving for
       ! each cell
-
       do i_cell = 1, N_CELLS
 
         ! Put the multi-cell results in the temporary single-cell state object
@@ -257,14 +246,11 @@ program unit_test_driver
         multicell_cell_state%env_var( 1:N_ENV_STATE_VAR_ONE_CELL ) = &
           multicell_state%env_var( env_start_idx:env_end_idx )
 
-        call cpu_time(comp_start);
         ! Solve the single-cell system
         call one_cell_core%solve( grid_cell_state( i_cell )%val, &
                                   unit_test%time_step_size( ), &
                                   solver_stats = solver_stats )
-        call cpu_time(comp_end);
-        time_cell = time_cell + comp_end - comp_start
-        !print*, "one" ,time_cell
+
 #ifdef PMC_DEBUG
         ! Check the Jacobian evaluations
         call assert_msg( 781326658, solver_stats%Jac_eval_fails.eq.0, &
@@ -316,9 +302,6 @@ program unit_test_driver
 
       if( .not.passed ) exit
     end do
-
-    print*, "multi", time_multi
-    print*, "one" ,time_cell
 
     ! Close the output file
     close( OUTPUT_FILE_UNIT )

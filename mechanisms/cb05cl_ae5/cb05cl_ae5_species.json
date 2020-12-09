@@ -1,5 +1,5 @@
-{ 
-"notes" :"Descriptions are from CB5 Final Report RT-04-00675 (www.camx.com/files/cb05_final_report_120805.aspx) and from notes in the cb05cl_ae5_aq_CMAQ.def mechanism file",	
+{
+"notes" :"Descriptions are from CB5 Final Report RT-04-00675 (www.camx.com/files/cb05_final_report_120805.aspx) and from notes in the cb05cl_ae5_aq_CMAQ.def mechanism file",
 "pmc-data" : [
   {
     "name" : "AACD",
@@ -44,7 +44,8 @@
   {
     "name" : "CH4",
     "type" : "CHEM_SPEC",
-    "description" : "methane"
+    "description" : "methane",
+    "tracer type" : "CONSTANT"
   },
   {
     "name" : "CL",
@@ -367,11 +368,6 @@
     "description" : "first generation product from XYL"
   },
   {
-    "name" : "N2O",
-    "type" : "CHEM_SPEC",
-    "description" : "nitrous oxide - does not participate in CB05 reactions"
-  },
-  {
     "name" : "DUMMY",
     "type" : "CHEM_SPEC",
     "description" : "not sure what this is"
@@ -379,21 +375,31 @@
   {
     "name" : "O2",
     "type" : "CHEM_SPEC",
-    "description" : "molecular oxygen"
+    "description" : "molecular oxygen",
+    "tracer type" : "CONSTANT"
+  },
+  {
+    "name" : "N2",
+    "type" : "CHEM_SPEC",
+    "description" : "molecular hydrogen",
+    "tracer type" : "CONSTANT"
   },
   {
     "name" : "H2O",
     "type" : "CHEM_SPEC",
-    "description" : "water vapor"
+    "description" : "water vapor",
+    "tracer type" : "CONSTANT"
   },
   {
     "name" : "H2",
     "type" : "CHEM_SPEC",
-    "description" : "molecular hydrogen"
+    "description" : "molecular hydrogen",
+    "tracer type" : "CONSTANT"
   },
   {
     "name" : "M",
     "type" : "CHEM_SPEC",
-    "description" : "third body"
+    "description" : "third body",
+    "tracer type" : "CONSTANT"
   }
 ]}

@@ -147,7 +147,7 @@ module pmc_camp_solver_data
 
     !> Run the solver
     integer(kind=c_int) function solver_run(solver_data, state, env, &
-                    t_initial, t_final) bind (c)
+                    t_initial, t_final, n_cells) bind (c)
       use iso_c_binding
       !> Pointer to the initialized solver data
       type(c_ptr), value :: solver_data
@@ -159,6 +159,7 @@ module pmc_camp_solver_data
       real(kind=c_double), value :: t_initial
       !> Final time (s)
       real(kind=c_double), value :: t_final
+      integer, value :: n_cells
     end function solver_run
 
     !> Reset the solver function timers
@@ -169,16 +170,19 @@ module pmc_camp_solver_data
     end subroutine solver_reset_timers
 
     !> Get the solver statistics
-    subroutine solver_get_statistics( solver_data, num_steps, RHS_evals, &
-                    LS_setups, error_test_fails, NLS_iters, &
+    subroutine solver_get_statistics( solver_data, solver_flag, num_steps, &
+                    RHS_evals, LS_setups, error_test_fails, NLS_iters, &
                     NLS_convergence_fails, DLS_Jac_evals, DLS_RHS_evals, &
                     last_time_step__s, next_time_step__s, Jac_eval_fails, &
                     RHS_evals_total, Jac_evals_total, RHS_time__s, &
-                    Jac_time__s) bind (c)
+                    Jac_time__s, timeCVode, &
+                    timeCVodeTotal, max_loss_precision ) bind (c)
       use iso_c_binding
       !> Pointer to the solver data
       type(c_ptr), value :: solver_data
-      !> Number of stesp
+      !> Last flag returned by the solver
+      type(c_ptr), value :: solver_flag
+      !> Number of steps
       type(c_ptr), value :: num_steps
       !> Right-hand side evaluations
       type(c_ptr), value :: RHS_evals
@@ -208,6 +212,10 @@ module pmc_camp_solver_data
       type(c_ptr), value :: RHS_time__s
       !> Compute time for calls to `Jac()`
       type(c_ptr), value :: Jac_time__s
+      type(c_ptr), value :: timeCVode
+      type(c_ptr), value :: timeCVodeTotal
+      !> Maximum loss of precision on last call the f()
+      type(c_ptr), value :: max_loss_precision
     end subroutine solver_get_statistics
 
     !> Add condensed reaction data to the solver data block
@@ -524,9 +532,13 @@ contains
     integer(kind=c_int) :: n_sub_model_float_param
     ! Number of environment-dependent sub model parameters
     integer(kind=c_int) :: n_sub_model_env_param
+    ! Number of cells to compute
+    integer(kind=c_int) :: l_n_cells
 
-    if (.not.present(n_cells)) then
-      n_cells = 1
+    if (present(n_cells)) then
+      l_n_cells = n_cells
+    else
+      l_n_cells = 1
     end if
 
     ! Make sure the variable type and absolute tolerance arrays are of
@@ -621,7 +633,7 @@ contains
     ! Get a new solver object
     this%solver_c_ptr = solver_new( &
             int(size(var_type_c), kind=c_int), & ! Size of the state variable
-            n_cells,                           & ! # of cells computed at once
+            l_n_cells,                         & ! # of cells computed at once
             c_loc(var_type_c),                 & ! Variable types
             n_rxn,                             & ! # of reactions
             n_rxn_int_param,                   & ! # of rxn data int params
@@ -778,19 +790,24 @@ contains
     end do
     sub_model => null()
 
-
     !Set spec names
-    !Okay maybe is not working because there are gas and aerosol species
-    ! so im trying to print more than caught
+    !todo include gas and aero names to send all the state variable
     !do i=1,int(size(var_type_c), kind=c_int) ! Size of the state variable
-    !  spec_name = spec_names(i)%string
-    !  call solver_set_spec_name( &
-    !  this%solver_c_ptr, & ! Solver data
-    !  spec_name, & ! Spec name
-    !  len(spec_name), & ! Size spec name
-    !  i-1 & ! Index spec_name for C array
-    !  )
-    !end do
+    !write (*,*) "size(spec_names)",size(spec_names)
+
+#ifdef PMC_DEBUG2_GPU
+    !todo fix mpi==0 case
+    do i=1,size(spec_names)
+    !do i=1,40 !approximate gas size (without crashes)
+      spec_name = spec_names(i)%string
+      call solver_set_spec_name( &
+              this%solver_c_ptr, & ! Solver data
+              spec_name, & ! Spec name
+              len(spec_name), & ! Size spec name
+              i-1 & ! Index spec_name for C array
+              )
+    end do
+#endif
 
     ! Initialize the solver
     call solver_initialize( &
@@ -813,20 +830,33 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Update sub-model data
-  subroutine update_sub_model_data(this, update_data)
+  subroutine update_sub_model_data(this, update_data, n_cells)
 
     !> Solver data
     class(camp_solver_data_t), intent(inout) :: this
     !> Update data
     class(sub_model_update_data_t), intent(inout) :: update_data
+    integer, intent(in) :: n_cells
+    integer :: i
 
-    call sub_model_update_data( &
-            update_data%get_cell_id()-1,     & ! Grid cell to update
-            update_data%sub_model_solver_id, & ! Solver's sub model id
-            update_data%get_type(),          & ! Sub-model type to update
-            update_data%get_data(),          & ! Data needed to perform update
-            this%solver_c_ptr                & ! Pointer to solver data
-            )
+    !todo check loop all cells
+
+    !call sub_model_update_data( &
+    !        update_data%get_cell_id()-1,     & ! Grid cell to update
+    !        update_data%sub_model_solver_id, & ! Solver's sub model id
+    !        update_data%get_type(),          & ! Sub-model type to update
+    !        update_data%get_data(),          & ! Data needed to perform update
+    !        this%solver_c_ptr                & ! Pointer to solver data
+    !        )
+    do i=1, n_cells
+      call sub_model_update_data( &
+              i-1,     & ! Grid cell to update
+              update_data%sub_model_solver_id, & ! Solver's sub model id
+              update_data%get_type(),          & ! Sub-model type to update
+              update_data%get_data(),          & ! Data needed to perform update
+              this%solver_c_ptr                & ! Pointer to solver data
+              )
+    end do
 
   end subroutine update_sub_model_data
 
@@ -838,7 +868,7 @@ contains
     !> Solver data
     class(camp_solver_data_t), intent(inout) :: this
     !> Update data
-    class(rxn_update_data_t), intent(in) :: update_data
+    class(rxn_update_data_t), intent(inout) :: update_data
     integer, intent(in) :: n_cells
     integer :: i
 
@@ -867,27 +897,38 @@ contains
 
   !> Update aerosol representation data based on data passed from the host
   !! model related to aerosol properties
-  subroutine update_aero_rep_data(this, update_data)
+  subroutine update_aero_rep_data(this, update_data, n_cells)
 
     !> Solver data
     class(camp_solver_data_t), intent(inout) :: this
     !> Update data
     class(aero_rep_update_data_t), intent(inout) :: update_data
+    integer, intent(in) :: n_cells
+    integer :: i
 
-    call aero_rep_update_data( &
-            update_data%get_cell_id()-1,     & ! Grid cell to update
-            update_data%aero_rep_solver_id,  & ! Solver's aero rep id
-            update_data%get_type(),          & ! Aerosol representation type
-            update_data%get_data(),          & ! Data needed to perform update
-            this%solver_c_ptr                & ! Pointer to solver data
-            )
+    !call aero_rep_update_data( &
+    !        update_data%get_cell_id()-1,     & ! Grid cell to update
+    !        update_data%aero_rep_solver_id,  & ! Solver's aero rep id
+    !        update_data%get_type(),          & ! Aerosol representation type
+    !        update_data%get_data(),          & ! Data needed to perform update
+    !        this%solver_c_ptr                & ! Pointer to solver data
+    !        )
+    do i=1, n_cells
+      call aero_rep_update_data( &
+              i-1,     & ! Grid cell to update
+              update_data%aero_rep_solver_id,  & ! Solver's aero rep id
+              update_data%get_type(),          & ! Aerosol representation type
+              update_data%get_data(),          & ! Data needed to perform update
+              this%solver_c_ptr                & ! Pointer to solver data
+              )
+    end do
 
   end subroutine update_aero_rep_data
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Solve the mechanism(s) for a specified timestep
-  subroutine solve(this, camp_state, t_initial, t_final, solver_stats)
+  subroutine solve(this, camp_state, t_initial, t_final, n_cells, solver_stats)
 
     !> Solver data
     class(camp_solver_data_t), intent(inout) :: this
@@ -899,6 +940,7 @@ contains
     real(kind=dp), intent(in) :: t_final
     !> Solver statistics
     type(solver_stats_t), intent(inout), optional, target :: solver_stats
+    integer, intent(in), optional:: n_cells
 
     integer(kind=c_int) :: solver_status
 
@@ -940,7 +982,8 @@ contains
             c_loc(camp_state%state_var),   & ! Pointer to state array
             c_loc(camp_state%env_var),     & ! Pointer to environmental vars
             real(t_initial, kind=c_double), & ! Start time (s)
-            real(t_final, kind=c_double)    & ! Final time (s)
+            real(t_final, kind=c_double),    & ! Final time (s)
+            n_cells&
             )
 
     ! Get the solver statistics
@@ -979,6 +1022,7 @@ contains
 
     call solver_get_statistics( &
             this%solver_c_ptr,                             & ! Solver data
+            c_loc( solver_stats%solver_flag           ),   & ! Last flag returned CVode
             c_loc( solver_stats%num_steps             ),   & ! Number of steps
             c_loc( solver_stats%RHS_evals             ),   & ! Right-hand side evals
             c_loc( solver_stats%LS_setups             ),   & ! Linear solver setups
@@ -993,7 +1037,10 @@ contains
             c_loc( solver_stats%RHS_evals_total       ),   & ! total f() calls
             c_loc( solver_stats%Jac_evals_total       ),   & ! total Jac() calls
             c_loc( solver_stats%RHS_time__s           ),   & ! Compute time f() [s]
-            c_loc( solver_stats%Jac_time__s           ) )    ! Compute time Jac() [s]
+            c_loc( solver_stats%Jac_time__s           ),   & ! Compute time Jac() [s]
+            c_loc( solver_stats%timeCVode           ),   &
+            c_loc( solver_stats%timeCVodeTotal           ),   &
+            c_loc( solver_stats%max_loss_precision    ) )    ! Maximum loss of precision
 
   end subroutine get_solver_stats
 

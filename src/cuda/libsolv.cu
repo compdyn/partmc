@@ -631,6 +631,48 @@ __device__ void cudaDevicedotxy(double *g_idata1, double *g_idata2, double *g_od
   //unsigned int i = blockIdx.x*(blockDim.x*2) + threadIdx.x;
   unsigned int i = blockIdx.x*blockDim.x + threadIdx.x;
 
+  //Used to ensure last block has 0 values for non-zero cases (Last block can have less cells than previous blocks)
+  double mySum = (i < n) ? g_idata1[i]*g_idata2[i] : 0;
+
+  //Init shr_memory to 0
+  if(tid<blockDim.x/2)
+    for (int j=0; j<2; j++)
+      sdata[j*blockDim.x/2 + tid] = 0;
+
+  //Set shr_memory to local values
+  sdata[tid] = mySum;
+  __syncthreads();
+
+  //todo ensure that n_shr_empty is less than half of the max_threads to have enough threads
+  //n_shr_empty its a different implementation from cuda reduce extended samples ( https://docs.nvidia.com/cuda/cuda-samples/index.html)
+  // since n_threads_blocks isnotpowerof2
+  // while these samples only takes into account n=notpowerof2, also we need active_threads able to be < max_threads
+  // because other operations must work only with this number of threads to ensure work only with complete cells
+  for (unsigned int s=(blockDim.x+n_shr_empty)/2; s>0; s>>=1)
+  {
+    if (tid < s)
+      sdata[tid] = mySum = mySum + sdata[tid + s];
+
+    __syncthreads();
+  }
+
+  //dont need to access global memory now
+  //if (tid == 0) g_odata[blockIdx.x] = sdata[0];
+  *g_odata = sdata[0];
+}
+
+/*
+
+//todo use mix of shared cuda and normal
+__device__ void cudaDevicedotxy(double *g_idata1, double *g_idata2, double *g_odata, unsigned int n, int n_shr_empty)
+{
+  extern __shared__ double sdata[];
+  unsigned int tid = threadIdx.x;
+  //unsigned int i = blockIdx.x*(blockDim.x*2) + threadIdx.x;
+  unsigned int i = blockIdx.x*blockDim.x + threadIdx.x;
+
+  //todo i<max_tid
+
   double mySum = (i < n) ? g_idata1[i]*g_idata2[i] : 0;
 
   //if (i + blockDim.x < n)
@@ -658,6 +700,8 @@ __device__ void cudaDevicedotxy(double *g_idata1, double *g_idata2, double *g_od
   //if (tid == 0) g_odata[blockIdx.x] = sdata[0];
   *g_odata = sdata[0];
 }
+
+ */
 
 // z= a*z + x + b*y
 __device__ void cudaDevicezaxpbypc(double* dz, double* dx,double* dy, double a, double b, int nrows)

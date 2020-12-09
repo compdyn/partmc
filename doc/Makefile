@@ -56,4 +56,4 @@ $(GRAPHVIZ_FILE): $(PARTMC_FSRC) f90_mod_deps.py
 	epstopdf $<
 
 clean:
-	rm -rf html README.html ChangeLog.html $(GRAPHVIZ_FILE) $(GRAPHVIZ_PDF)
+	rm -rf html latex README.html ChangeLog.html $(GRAPHVIZ_FILE) $(GRAPHVIZ_PDF)

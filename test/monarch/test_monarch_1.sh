@@ -25,16 +25,9 @@ do
 
 if [[ $1 == "MPI" ]]; then
   exec_str="mpirun -v -np 2 ../../mock_monarch config_simple.json interface_simple.json out/simple" #local
-  #exec_str="srun ../../mock_monarch config_simple.json interface_simple.json out/simple" #cluster
+  #exec_str="srun ../../mock_monarch config_simple.json interface_simple.json out/simple" #clusterelse
 else
-
   exec_str="../../mock_monarch config_simple.json interface_simple.json out/simple"
-
-  #--print-gpu-summary
-  #--analysis-metrics -f -o ../../../../mock_monarch_10800.nvprof
-  #exec_str="nvprof --print-gpu-summary \
-  #../../mock_monarch config_simple.json interface_simple.json out/simple"
-
 fi
 
   if ! $exec_str; then 

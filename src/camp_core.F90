@@ -143,6 +143,7 @@ module pmc_camp_core
     !> Number of cells to compute
     integer(kind=i_kind) :: n_cells = 1
     !> Initial state values
+    real(kind=dp), allocatable :: init_state_cell(:)
     real(kind=dp), allocatable :: init_state(:)
     !> Flag to split gas- and aerosol-phase reactions
     !! (for large aerosol representations, like single-particle)
@@ -231,6 +232,8 @@ module pmc_camp_core
     procedure :: bin_unpack
     !> Print the core data
     procedure :: print => do_print
+    !todo class heritage print_plot from camp_core concepts
+    procedure :: print_state_gnuplot
     !> Finalize the core
     final :: finalize
 
@@ -771,31 +774,38 @@ contains
     this%core_is_initialized = .true.
 
     ! Set the initial state values
+    !todo init_state depends on n_cells, but we dont have same n_cells for all ranks...
+    allocate(this%init_state_cell(this%size_state_per_cell))
     allocate(this%init_state(this%size_state_per_cell * this%n_cells))
 
     ! Set species concentrations to zero
-    this%init_state(:) = 0.0
+    this%init_state_cell(:) = 0.0
 
     ! Set activity coefficients to 1.0
-      do i_cell = 0, this%n_cells - 1
-        do i_aero_rep = 1, size(this%aero_rep)
+    do i_aero_rep = 1, size(this%aero_rep)
 
-          rep => this%aero_rep(i_aero_rep)%val
+      rep => this%aero_rep(i_aero_rep)%val
 
-          ! Get the ion pairs for which activity coefficients can be calculated
-          unique_names = rep%unique_names(tracer_type = CHEM_SPEC_ACTIVITY_COEFF)
+      ! Get the ion pairs for which activity coefficients can be calculated
+      unique_names = rep%unique_names(tracer_type = CHEM_SPEC_ACTIVITY_COEFF)
 
-          ! Set the activity coefficients to 1.0 as default
-          do i_name = 1, size(unique_names)
-            i_state_elem = rep%spec_state_id(unique_names(i_name)%string)
-            this%init_state(i_state_elem + i_cell * this%size_state_per_cell) = &
-                    real(1.0d0, kind=dp)
-          end do
-
-          deallocate(unique_names)
-
-        end do
+      ! Set the activity coefficients to 1.0 as default
+      do i_name = 1, size(unique_names)
+        i_state_elem = rep%spec_state_id(unique_names(i_name)%string)
+        this%init_state_cell(i_state_elem + i_cell * this%size_state_per_cell) = &
+                real(1.0d0, kind=dp)
       end do
+
+      deallocate(unique_names)
+
+    end do
+
+    do i_cell = 0, this%n_cells - 1
+      do i_state_elem = 1, this%size_state_per_cell
+        this%init_state(i_state_elem + i_cell * this%size_state_per_cell)=&
+                this%init_state_cell(i_state_elem)
+      end do
+    end do
 
   end subroutine initialize
 
@@ -1145,9 +1155,13 @@ contains
     type(string_t), allocatable :: spec_names(:)
     integer :: i_spec, n_gas_spec
 
-
     call assert_msg(662920365, .not.this%solver_is_initialized, &
             "Attempting to initialize the solver twice.")
+
+#ifdef PMC_DEBUG2_GPU
+    spec_names = this%unique_names()
+#endif
+
 
     !Get spec names
     !n_gas_spec = this%chem_spec_data%size(spec_phase=CHEM_SPEC_GAS_PHASE)
@@ -1324,19 +1338,21 @@ contains
     !> Cell id
     integer(kind=i_kind), optional :: cell_id
 
+    !write(*,*) "rxn_update_data"
     if (present(cell_id)) then
       update_data%cell_id=cell_id;
     else
-      call assert_msg(593328368, this%n_cells.eq.1,                   &
-              "Missing cell_id on aero_rep_update_data when using multicells" )
+      !write(*,*) "B", this%n_cells
+      !call assert_msg(593328368, this%n_cells.eq.1,                   &
+      !        "Missing cell_id on aero_rep_update_data when using multicells" )
     end if
 
     if (associated(this%solver_data_gas)) &
-            call this%solver_data_gas%update_aero_rep_data(update_data)
+            call this%solver_data_gas%update_aero_rep_data(update_data, this%n_cells)
     if (associated(this%solver_data_aero)) &
-            call this%solver_data_aero%update_aero_rep_data(update_data)
+            call this%solver_data_aero%update_aero_rep_data(update_data, this%n_cells)
     if (associated(this%solver_data_gas_aero)) &
-            call this%solver_data_gas_aero%update_aero_rep_data(update_data)
+            call this%solver_data_gas_aero%update_aero_rep_data(update_data, this%n_cells)
 
   end subroutine aero_rep_update_data
 
@@ -1358,8 +1374,9 @@ contains
     if (present(cell_id)) then
       update_data%cell_id=cell_id;
     else
-      call assert_msg(593328368, this%n_cells.eq.1,                   &
-              "Missing cell_id on rxn_update_data when using multicells" )
+      !write(*,*) "B"
+        !call assert_msg(593328368, this%n_cells.eq.1,                   &
+        !        "Missing cell_id on rxn_update_data when using multicells" )
     end if
 
     if (associated(this%solver_data_gas)) &
@@ -1387,30 +1404,30 @@ contains
     if (present(cell_id)) then
       update_data%cell_id=cell_id;
     else
-      call assert_msg(593328368, this%n_cells.eq.1,                   &
-              "Missing cell_id on sub_model_update_data when using multicells" )
+      !call assert_msg(593328368, this%n_cells.eq.1,                   &
+      !        "Missing cell_id on sub_model_update_data when using multicells" )
     end if
 
     if (associated(this%solver_data_gas)) &
-            call this%solver_data_gas%update_sub_model_data(update_data)
+            call this%solver_data_gas%update_sub_model_data(update_data, this%n_cells)
     if (associated(this%solver_data_aero)) &
-            call this%solver_data_aero%update_sub_model_data(update_data)
+            call this%solver_data_aero%update_sub_model_data(update_data, this%n_cells)
     if (associated(this%solver_data_gas_aero)) &
-            call this%solver_data_gas_aero%update_sub_model_data(update_data)
+            call this%solver_data_gas_aero%update_sub_model_data(update_data, this%n_cells)
 
   end subroutine sub_model_update_data
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Integrate the chemical mechanism
-  subroutine solve(this, camp_state, time_step, rxn_phase, solver_stats)
+  subroutine solve(this, camp_state, time_step, rxn_phase, solver_stats, n_cells)
 
     use pmc_rxn_data
     use pmc_solver_stats
     use iso_c_binding
 
     !> Chemical model
-    class(camp_core_t), intent(in) :: this
+    class(camp_core_t), intent(inout) :: this
     !> Current model state
     type(camp_state_t), intent(inout), target :: camp_state
     !> Time step over which to integrate (s)
@@ -1421,6 +1438,8 @@ contains
     integer(kind=i_kind), intent(in), optional :: rxn_phase
     !> Return solver statistics to the host model
     type(solver_stats_t), intent(inout), optional, target :: solver_stats
+    integer, intent(in), optional :: n_cells
+    integer :: n_cells_aux
 
     ! Phase to solve
     integer(kind=i_kind) :: phase
@@ -1435,6 +1454,16 @@ contains
       phase = rxn_phase
     else
       phase = GAS_AERO_RXN
+    end if
+
+    if (present(n_cells)) then
+      !write(*,*) "n_cells", n_cells, "this%n_cells", this%n_cells
+      call assert_msg(593328368, n_cells.le.this%n_cells,                   &
+              "Trying to solve more cells than allocated cells" )
+      !this%n_cells=n_cells !todo re-check consequences of this
+      n_cells_aux=n_cells
+    else
+      n_cells_aux=this%n_cells
     end if
 
     ! Update the solver array of environmental states
@@ -1458,9 +1487,9 @@ contains
     ! Run the integration
     if (present(solver_stats)) then
       call solver%solve(camp_state, real(0.0, kind=dp), time_step,          &
-                        solver_stats)
+              n_cells_aux, solver_stats)!this%n_cells
     else
-      call solver%solve(camp_state, real(0.0, kind=dp), time_step)
+      call solver%solve(camp_state, real(0.0, kind=dp), time_step, n_cells_aux)
     end if
 
   end subroutine solve
@@ -1513,12 +1542,11 @@ contains
     end do
     pack_size = pack_size + &
                 pmc_mpi_pack_size_integer(this%size_state_per_cell, l_comm) + &
-                pmc_mpi_pack_size_integer(this%n_cells, l_comm) + &
                 pmc_mpi_pack_size_logical(this%split_gas_aero, l_comm) + &
                 pmc_mpi_pack_size_real(this%rel_tol, l_comm) + &
                 pmc_mpi_pack_size_real_array(this%abs_tol, l_comm) + &
                 pmc_mpi_pack_size_integer_array(this%var_type, l_comm) + &
-                pmc_mpi_pack_size_real_array(this%init_state, l_comm)
+                pmc_mpi_pack_size_real_array(this%init_state_cell, l_comm)
 #else
     pack_size = 0
 #endif
@@ -1577,12 +1605,11 @@ contains
       sub_model => null()
     end do
     call pmc_mpi_pack_integer(buffer, pos, this%size_state_per_cell, l_comm)
-    call pmc_mpi_pack_integer(buffer, pos, this%n_cells, l_comm)
     call pmc_mpi_pack_logical(buffer, pos, this%split_gas_aero, l_comm)
     call pmc_mpi_pack_real(buffer, pos, this%rel_tol, l_comm)
     call pmc_mpi_pack_real_array(buffer, pos, this%abs_tol, l_comm)
     call pmc_mpi_pack_integer_array(buffer, pos, this%var_type, l_comm)
-    call pmc_mpi_pack_real_array(buffer, pos, this%init_state, l_comm)
+    call pmc_mpi_pack_real_array(buffer, pos, this%init_state_cell, l_comm)
     call assert(184050835, &
          pos - prev_position <= this%pack_size(l_comm))
 #endif
@@ -1602,6 +1629,7 @@ contains
     integer, intent(inout) :: pos
     !> MPI communicator
     integer, intent(in), optional :: comm
+    integer :: i_cell, i_state_elem
 
 #ifdef PMC_USE_MPI
     type(aero_rep_factory_t) :: aero_rep_factory
@@ -1644,15 +1672,23 @@ contains
               sub_model_factory%bin_unpack(buffer, pos, l_comm)
     end do
     call pmc_mpi_unpack_integer(buffer, pos, this%size_state_per_cell, l_comm)
-    call pmc_mpi_unpack_integer(buffer, pos, this%n_cells, l_comm)
     call pmc_mpi_unpack_logical(buffer, pos, this%split_gas_aero, l_comm)
     call pmc_mpi_unpack_real(buffer, pos, this%rel_tol, l_comm)
     call pmc_mpi_unpack_real_array(buffer, pos, this%abs_tol, l_comm)
     call pmc_mpi_unpack_integer_array(buffer, pos, this%var_type, l_comm)
-    call pmc_mpi_unpack_real_array(buffer, pos, this%init_state, l_comm)
+    call pmc_mpi_unpack_real_array(buffer, pos, this%init_state_cell, l_comm)
     this%core_is_initialized = .true.
     call assert(291557168, &
          pos - prev_position <= this%pack_size(l_comm))
+
+    allocate(this%init_state(this%size_state_per_cell * this%n_cells))
+    do i_cell = 0, this%n_cells - 1
+      do i_state_elem = 1, this%size_state_per_cell
+        this%init_state(i_state_elem + i_cell * this%size_state_per_cell)=&
+                this%init_state_cell(i_state_elem)
+      end do
+    end do
+
 #endif
 
   end subroutine bin_unpack
@@ -1738,11 +1774,14 @@ contains
       end do
 
       write(f_unit,*) "*** Solver Data ***"
-      write(f_unit,*) "Solver variables:"
+      write(f_unit,*) "Relative tolerance:", this%rel_tol
+      write(f_unit,*) " Solver id  |    Absolute Tolerance     "// &
+                      "| Species Name"
       i_solver_spec = 0
       do i_spec = 1, size(state_names)
         if (this%var_type(i_spec).eq.CHEM_SPEC_VARIABLE) then
-          write(f_unit,*) "solver spec", i_solver_spec, state_names(i_spec)%string
+          write(f_unit,*) i_solver_spec, "|", this%abs_tol(i_spec), "| ", &
+                          state_names(i_spec)%string
           i_solver_spec = i_solver_spec + 1
         end if
       end do
@@ -1760,6 +1799,76 @@ contains
     flush(f_unit)
 
   end subroutine do_print
+
+  subroutine print_state_gnuplot(this,camp_state,curr_time_in,name_gas_species_to_print,id_gas_species_to_print&
+          ,name_aerosol_species_to_print,id_aerosol_species_to_print,file_unit,n_cells_to_print)
+
+    class(camp_core_t), intent(in) :: this
+    type(camp_state_t), intent(inout), target :: camp_state
+    real, intent(in) :: curr_time_in
+    type(string_t), allocatable, intent(inout) :: name_gas_species_to_print(:), name_aerosol_species_to_print(:)
+    integer(kind=i_kind), allocatable, intent(inout) :: id_gas_species_to_print(:), id_aerosol_species_to_print(:)
+    integer, intent(inout), optional :: n_cells_to_print
+    integer, intent(in) :: file_unit
+
+    integer :: z,i,j,k,r
+    character(len=:), allocatable :: aux_str
+    character(len=100) :: i_str
+    integer :: n_cells
+    real :: curr_time
+
+    if(present(n_cells_to_print)) then
+      n_cells=n_cells_to_print
+    else
+      n_cells=this%n_cells
+    end if
+
+    !curr_time_min=curr_time/60.0
+    curr_time=curr_time_in
+
+    !print Titles
+    aux_str = "Time"
+    do i=1,n_cells
+      do j=1, size(name_gas_species_to_print)
+        write(i_str,*) i
+        i_str=adjustl(i_str)
+        aux_str = aux_str//" "//name_gas_species_to_print(j)%string//"_"//trim(i_str)
+      end do
+    end do
+
+    aux_str = aux_str//" "//"Time"
+    do i=1,n_cells
+      do j=1, size(name_aerosol_species_to_print)
+        write(i_str,*) i
+        i_str=adjustl(i_str)
+        aux_str = aux_str//" "//name_aerosol_species_to_print(j)%string//"_"//trim(i_str)
+      end do
+    end do
+
+    write(file_unit, "(A)", advance="no") aux_str
+    write(file_unit, *) ""
+
+    write(file_unit, "(F12.4)", advance="no") curr_time
+
+    do i=0,n_cells-1
+      do j=1, size(name_gas_species_to_print)
+        write(file_unit, "(ES13.6)", advance="no") &
+          camp_state%state_var(id_gas_species_to_print(j)+i*this%size_state_per_cell)
+      end do
+    end do
+
+    write(file_unit, "(F12.4)", advance="no") curr_time
+
+    do i=0,n_cells-1
+      do j=1, size(name_aerosol_species_to_print)
+        write(file_unit, "(ES13.6)", advance="no") &
+          camp_state%state_var(id_aerosol_species_to_print(j)+i*this%size_state_per_cell)
+      end do
+    end do
+
+    write(file_unit, *) ""
+
+  end subroutine
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

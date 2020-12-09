@@ -210,10 +210,10 @@ endif()
 # debugging options
 
 if (ENABLE_DEBUG)
-    add_definitions(-DPMC_DEBUG)
+  add_definitions(-DPMC_DEBUG)
 endif()
 if (FAILURE_DETAIL)
-    add_definitions(-DFAILURE_DETAIL)
+  add_definitions(-DFAILURE_DETAIL)
 endif()
 
 ######################################################################
@@ -528,7 +528,8 @@ set(SUB_MODELS_SRC ${SUB_MODELS_F_SRC} ${SUB_MODELS_C_SRC})
 set(CAMP_C_SRC
         src/camp_solver.c src/rxn_solver.c src/aero_phase_solver.c
         src/aero_rep_solver.c src/sub_model_solver.c
-        src/debug_and_stats/camp_debug_2.c)
+        src/debug_and_stats/camp_debug_2.c src/time_derivative.c
+        src/Jacobian.c src/debug_diff_check.c)
 
 set_source_files_properties(${CAMP_C_SRC} PROPERTIES COMPILE_FLAGS
         ${STD_C_FLAGS})
@@ -613,7 +614,8 @@ set(CAMP_F_SRC
         src/camp_core.F90 src/camp_solver_data.F90 src/aero_rep_data.F90
         src/aero_phase_data.F90 src/aero_rep_factory.F90 src/camp_interface.F90
         src/rxn_factory.F90 src/sub_model_data.F90 src/sub_model_factory.F90
-        src/solver_stats.F90 src/camp_box_model_data.F90
+        src/solver_stats.F90 src/camp_box_model_data.F90 src/photolysis.F90
+        src/debug_diff_check.F90
         )
 
 add_library(partmclib ${CAMP_F_SRC}
@@ -832,7 +834,26 @@ target_link_libraries(test_sub_model_ZSR_aerosol_water partmclib)
 ######################################################################
 # New unit tests (UNDER DEVELOPMENT)
 
+set(UNIT_TEST_SRC
+    test/unit_tests/unit_test_data.F90
+    test/unit_tests/unit_test_driver.F90)
 
+set(UNIT_TEST_RXN_ARRHENIUS_SRC
+        test/unit_tests/rxns/unit_test_rxn_arrhenius.F90 ${UNIT_TEST_SRC})
+set_source_files_properties(${UNIT_TEST_RXN_ARRHENIUS_SRC} PROPERTIES COMPILE_FLAGS ${STD_F_FLAGS})
+add_executable(unit_test_rxn_arrhenius ${UNIT_TEST_RXN_ARRHENIUS_SRC})
+target_compile_definitions(unit_test_rxn_arrhenius PRIVATE
+        "UNIT_TEST_MODULE_=pmc_unit_test_rxn_arrhenius \
+    ;UNIT_TEST_TYPE_=unit_test_rxn_arrhenius_t()")
+target_link_libraries(unit_test_rxn_arrhenius partmclib)
+
+#if (CUDA_FOUND AND NOT ENABLE_GPU AND ENABLE_TESTS)
+#    add_executable(unit_test_rxn_arrhenius_gpu ${UNIT_TEST_RXN_ARRHENIUS_SRC})
+#    target_compile_definitions(unit_test_rxn_arrhenius_gpu PRIVATE
+#            "UNIT_TEST_MODULE_=pmc_unit_test_rxn_arrhenius \
+#    ;UNIT_TEST_TYPE_=unit_test_rxn_arrhenius_t()")
+#    target_link_libraries(unit_test_rxn_arrhenius_gpu partmclib_gpu)
+#endif()
 
 ######################################################################
 # test_camp_core
@@ -994,7 +1015,7 @@ target_link_libraries(numeric_diff partmclib)
 add_executable(numeric_average src/numeric_average.F90)
 
 ######################################################################
-# scenarios/1_urban_plume/urban_plum_process
+# scenarios/1_urban_plume/urban_plume_process
 
 add_executable(urban_plume_process
   scenarios/1_urban_plume/urban_plume_process.F90)
@@ -1006,6 +1027,13 @@ target_link_libraries(urban_plume_process partmclib)
 add_executable(chamber_process
   scenarios/4_chamber/chamber_process.F90)
 target_link_libraries(chamber_process partmclib)
+
+######################################################################
+# scenarios/5_urban_plume_camp/urban_plume_camp_process
+
+add_executable(urban_plume_camp_process
+  scenarios/5_urban_plume_camp/urban_plume_camp_process.F90)
+target_link_libraries(urban_plume_camp_process partmclib)
 
 ######################################################################
 endif()

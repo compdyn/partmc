@@ -120,7 +120,7 @@ void solver_new_gpu_cu(ModelData *model_data, int n_dep_var,
 
   //Detect if we are working with few data values
   if (n_dep_var*n_cells < DATA_SIZE_LIMIT_OPT){
-    //model_data->small_data = 1;//todo enable
+    model_data->small_data = 1;
   }
 
   //Set working GPU: we have 4 gpu available on power9. as default, it should be assign to gpu 0

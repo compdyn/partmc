@@ -7,34 +7,13 @@
 
 !> \page camp_chem Chemistry Across Multiple Phases (CAMP)
 !!
-!! Chemistry Across Multiple Phases (CAMP) is a
-!! module within PartMC designed to provide a flexible framework for
-!! incorporating chemical mechanisms into PartMC or another host model. In
-!! general, \ref camp_chem "CAMP" solves one or more
-!! \ref camp_mechanism "mechanisms" composed of a set of \ref camp_rxn
-!! "reactions" over a time-step specified by the host model. \ref camp_rxn
-!! "Reactions" can take place in the gas phase, in one of several \ref
-!! camp_aero_phase "aerosol phases", or across an interface between phases
-!! (gas or aerosol). \ref camp_chem "CAMP" is designed to
-!! work with any \ref camp_aero_rep "aerosol representation" used by the
-!! host model (e.g., binned, modal, single particle) by abstracting the
-!! chemistry from the \ref camp_aero_rep "aerosol representation" through the
-!! use of custom extending types of the abstract
-!! \c pmc_aero_rep_data::aero_rep_data_t type that implement a set of
-!! \ref camp_aero_phase "aerosol phases" based on the configuration of the
-!! host model. A set of \ref camp_sub_model "sub-models" may also be included
-!! to calculate parameters needed by \ref camp_rxn "reactions" during solving.
+!! \ref camp_chem is a framework for
+!! solving multi-phase chemistry in atmospheric models. For a overview of what
+!! \ref camp_chem "CAMP" can do, check out
+!! \ref camp_tutorial_part_0 "part 0 of the CAMP tutorial".
+!! A description of the CAMP model elements and how to use them follows.
 !!
-!! \ref camp_chem "CAMP" uses \ref ss_json
-!! "json input files" to load \ref input_format_species "chemical species",
-!! \ref input_format_mechanism "mechanisms", \ref input_format_aero_phase
-!! "aerosol phases", \ref input_format_aero_rep "aerosol representations",
-!! and \ref input_format_sub_model "sub-models" at runtime. This allows a user
-!! to modify any of these data without recompiling the model, permits host
-!! models to choose which mechanisms to solve based on model conditions, and
-!! allows multiple mechanisms to be solved simultaneously.
-!!
-!! # CAMP Input Classes #
+!! ## CAMP model elements ##
 !!
 !!  - \subpage camp_aero_phase "Aerosol Phases"
 !!  - \subpage camp_aero_rep "Aerosol Representations"
@@ -43,15 +22,35 @@
 !!  - \subpage camp_rxn "Reactions"
 !!  - \subpage camp_sub_model "Sub-Models"
 !!
-!! # Usage #
+!! ## Usage ##
+!!
+!! \ref camp_chem "CAMP" uses \ref ss_json
+!! "json input files" to load \ref input_format_species "chemical species",
+!! \ref input_format_mechanism "mechanisms", \ref input_format_aero_phase
+!! "aerosol phases", \ref input_format_aero_rep "aerosol representations",
+!! and \ref input_format_sub_model "sub-models" at runtime. How to use
+!! \ref camp_chem "CAMP" in a new or existing model is described in the
+!! \ref camp_tutorial "Boot CAMP" tutorial.
 !!
 !! ## Compiling ##
 !!
 !! To include \ref camp_chem "CAMP" in a PartMC library installation,
-!! set the ccmake flags \c ENABLE_JSON and \c ENABLE_SUNDIALS to \c ON.
-!! (<a href="http://www.llnl.gov/casc/sundials/">SUNDIALS</a> and
-!! <a href="https://github.com/jacobwilliams/json-fortran">json-fortran</a>
-!! must be installed).
+!! set the CMake flag \c ENABLE_CAMP to \c ON. PartMC-CAMP has the following
+!! dependencies:
+!!
+!! | Library      | Version | Source                                        |
+!! |--------------|---------|-----------------------------------------------|
+!! | NetCDF       |         | https://www.unidata.ucar.edu/software/netcdf/ |
+!! | SUNDIALS     | custom  | partmc/cvode-3.4-alpha.tar.gz                 |
+!! | SuiteSparse  | 5.1.0   | http://faculty.cse.tamu.edu/davis/SuiteSparse/SuiteSparse-5.1.0.tar.gz |
+!! | GSL          |         | https://www.gnu.org/software/gsl/             |
+!! | json-fortran | 6.1.0   | https://github.com/jacobwilliams/json-fortran/archive/6.1.0.tar.gz |
+!!
+!! The SUNDIALS library must be built with the `ENABLE_KLU` flag set to `ON`
+!! and the KLU library and include paths set according to the SuiteSparse
+!! installation. To get a general idea of the installation steps, check out
+!! \ref ./partmc/Dockerfile
+!! (or \ref ./partmc/Dockerfile.mpi for MPI applications).
 !!
 !! ## Input files ##
 !!
@@ -64,14 +63,15 @@
 !!             \c json files containing all the \ref camp_chem "CAMP"
 !!             configuration data.
 !!
-!! To initialize \ref camp_chem "CAMP" , the path to the
+!! To initialize \ref camp_chem "CAMP", the path to the
 !! \ref input_format_camp_file_list "file list" must be passed to the
-!! \ref pmc_camp_core::camp_core_t constructor. The method by which this is
-!! done depends on the host model configuration.
+!! \ref pmc_camp_core::camp_core_t "camp_core_t" constructor.
+!! The method by which this is done depends on the host model configuration.
 !!
 !! ## PartMC scenarios ##
 !!
-!! Using \ref camp_chem "CAMP" in a PartMC scenario requires modifying
+!! Using \ref camp_chem "CAMP" in a PartMC scenario requires setting the
+!! `do_camp_chem` flag to `yes` in
 !! the \ref input_format "spec file" and providing a \ref
 !! input_format_camp_file_list "CAMP file list" file and one or more
 !! \ref input_format_camp_config "CAMP configuration" files that
@@ -81,12 +81,19 @@
 !! "sub-model(s)". A description of the input files required for a PartMC run
 !! can be found \ref input_format "here".
 !!
-!! ## CAMP-chem in another host model ##
+!! ## CAMP tutorial ##
 !!
-!! Incorporating \ref camp_chem "CAMP" into another host
-!! model can be done in the following steps:
+!! Follow the \ref camp_tutorial "Boot CAMP" tutorial to see how to
+!! integrate CAMP into your favorite model!
 !!
-!! TODO: Finish
+!! Are you interested in contributing to CAMP? Follow the \ref camp_dev_tutorial
+!! "Dev CAMP" tutorial for developing CAMP!
+!!
+!!
+!! ## Known bugs ##
+!!
+!! Some bugs can appear under some special conditions. \ref known_bugs "Here" you can found the
+!! list of \ref known_bugs "known bugs" to understand their extend.
 !!
 
 !> The camp_core_t structure and associated subroutines.

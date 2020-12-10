@@ -525,6 +525,7 @@ contains
 
     photo_rates(:) = 0.0
     !photo_rates(:) = new_rates(:)
+    KPP_PHOTO_RATES(:) = 0.0 !Init to zero since KPP_PHOTO_RATES size is bigger than photo_rates
     KPP_PHOTO_RATES(:) = photo_rates(:)/60
 #else
     photo_rates(:) = 0.0001 * 60.0 ! EBI solver wants rates in min^-1

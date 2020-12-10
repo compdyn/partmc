@@ -577,15 +577,6 @@ if (CUDA_FOUND AND ENABLE_GPU)
         ${STD_CUDA_FLAGS})
 
   set_source_files_properties(${CAMP_CUDA_SRC} PROPERTIES LANGUAGE CUDA)
-
-
-  #set(CAMP_CUDA_SRC_2
-  #        src/cuda/camp_gpu_cusolver.cu
-  #        )
-
-  #set_source_files_properties(${CAMP_CUDA_SRC_2} PROPERTIES COMPILE_FLAGS
-  #        ${STD_CUDA_FLAGS_2})
-
   set_source_files_properties(${CAMP_CUDA_SRC_2} PROPERTIES LANGUAGE CUDA)
 
 else()

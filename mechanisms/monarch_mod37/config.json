@@ -1,0 +1,24 @@
+{
+  "pmc-files" : [
+    "camp/mod37/aerosol_phases.json",
+    "camp/mod37/aerosol_representation.json",
+    "camp/mod37/cb05_abs_tol.json",
+    "camp/mod37/cb05_mechanism.json",
+    "camp/mod37/cb05_species.json",
+    "camp/mod37/cloud_and_rain_partitioning.json",
+    "camp/mod37/cloud_and_rain_species.json",
+    "camp/mod37/custom_species.json",
+    "camp/mod37/dry_deposition.json",
+    "camp/mod37/HERMES_emissions_rxns.json",
+    "camp/mod37/inorganic_activity.json",
+    "camp/mod37/inorganic_partitioning.json",
+    "camp/mod37/inorganic_reactions.json",
+    "camp/mod37/inorganic_species.json",
+    "camp/mod37/inorganic_ZSR_water.json",
+    "camp/mod37/MEGAN_emissions_rxns.json",
+    "camp/mod37/tsigaridis_2_product_SOA_scheme/mechanism.json",
+    "camp/mod37/tsigaridis_2_product_SOA_scheme/species.json",
+    "camp/mod37/wet_deposition.json"
+  ]
+}
+

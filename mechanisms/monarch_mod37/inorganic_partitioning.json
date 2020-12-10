@@ -1,0 +1,39 @@
+{
+  "description" : [
+    "Partitioning of inorganic species. Reactions are based on original MONARCH implementation",
+    "of EQSAM where only the SO4-NO3-NH4 system is included and is only calculated for the sulfate",
+    "aerosol mode.",
+    "Partitioning reaction parameters are from CAPRAM2.4 (Ervens et al. 2003)"
+  ],
+  "pmc-data" : [
+    {
+      "name" : "MONARCH mod37",
+      "type" : "MECHANISM",
+      "reactions" : [
+        {
+          "type" : "HL_PHASE_TRANSFER",
+          "gas-phase species" : "SULF",
+          "aerosol phase" : "aqueous sulfate",
+          "aerosol-phase species" : "H2SO4_aq",
+          "aerosol-phase water" : "H2O_aq"
+        },
+        {
+          "type" : "HL_PHASE_TRANSFER",
+          "gas-phase species" : "HNO3",
+          "aerosol phase" : "aqueous sulfate",
+          "aerosol-phase species" : "HNO3_aq",
+          "aerosol-phase water" : "H2O_aq"
+        },
+        {
+          "type" : "HL_PHASE_TRANSFER",
+          "gas-phase species" : "NH3",
+          "aerosol phase" : "aqueous sulfate",
+          "aerosol-phase species" : "NH3_aq",
+          "aerosol-phase water" : "H2O_aq"
+        }
+      ]
+    }
+  ]
+}
+
+

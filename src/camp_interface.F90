@@ -55,148 +55,134 @@ contains
     real(kind=dp), intent(in) :: del_t
 
     integer(kind=i_kind) :: i_part
-    real(kind=dp) :: num_conc, total_num_conc
+    real(kind=dp) :: num_conc
     integer :: camp_state_size
     type(solver_stats_t), target :: solver_stats
     type(camp_state_t) :: camp_state_pre_aero
 
-    ! Set the camp chem  gas-phase species
+    ! Set the CAMP gas-phase species concentrations
     call gas_state%set_camp_conc(camp_state, gas_data)
 
     ! Recalculate the photolysis rate constants
     call photolysis%update_rate_constants()
 
-    ! Solve gas-phase chemistry
-    call camp_core%solve(camp_state, del_t, GAS_RXN, &
-                         solver_stats = solver_stats)
-
-    call warn_assert_msg(828767454, solver_stats%status_code.eq.0, &
-                         "Solver failed for gas-phase with code "// &
-                         to_string(solver_stats%solver_flag))
-
-    ! Save the camp state before solving aerosols
-    camp_pre_aero_state%state_var(:)  = camp_state%state_var(:)
-    camp_post_aero_state%state_var(:) = camp_state%state_var(:)
-
-    ! Get the total number of particles for scaling results
-    total_num_conc = 0
-    do i_part = 1, aero_state%n_part()
-      associate (part => aero_state%apa%particle(i_part))
-      total_num_conc = total_num_conc + &
-          aero_weight_array_num_conc(aero_state%awa, part, aero_data)
-      end associate
-    end do
+    ! Update the number concentrations and composition for all particles
+    call pmc_camp_interface_set_camp_aerosol(aero_data, aero_state, &
+                                             camp_core, camp_state)
 
     ! We're modifying particle diameters, so the bin sort is now invalid
     aero_state%valid_sort = .false.
 
-    ! Do phase-transfer and aerosol-phase chemistry for each particle
-    ! in the particle array
-    do i_part = 1,aero_state%n_part()
-      associate (part => aero_state%apa%particle(i_part))
+    ! Solve the multi-phase chemical system
+    call camp_core%solve(camp_state, del_t, solver_stats = solver_stats)
 
-      ! Reset the gas-phase concentrations to the pre-aerosol values
-      camp_state%state_var(:) = camp_pre_aero_state%state_var(:)
+    call assert_msg(592148911, solver_stats%status_code.eq.0, &
+                    "Solver failed for aerosol-phase with code "// &
+                    to_string(solver_stats%solver_flag))
 
-      ! Set the CAMP chem aerosol state
-      num_conc = aero_weight_array_num_conc(aero_state%awa, part, aero_data)
-      call pmc_camp_interface_set_camp_conc(aero_data, part, camp_state)
-
-      ! Update the number for this particle in CAMP
-      call aero_data%update_number%set_number__n_m3( total_num_conc )
-      call camp_core%update_data( aero_data%update_number )
-
-      ! Solve the phase-transfer and aerosol-phase chemistry for this particle
-      call camp_core%solve(camp_state, del_t, AERO_RXN)
-
-      call assert_msg(592148911, solver_stats%status_code.eq.0, &
-                     "Solver failed for aerosol-phase with code "// &
-                     to_string(solver_stats%solver_flag))
-
-      ! Scale the gas-phase changes to the fraction of total particles this
-      ! aerosol particle represents
-      camp_post_aero_state%state_var(:) = camp_post_aero_state%state_var(:) + &
-        (camp_state%state_var(:) - camp_pre_aero_state%state_var(:)) * &
-        num_conc / total_num_conc
-
-      ! Update the PartMC aerosol state
-      call pmc_camp_interface_get_camp_conc(aero_data, part, camp_state)
-
-      end associate
-    end do
+    ! Update the PartMC aerosol state
+    call pmc_camp_interface_set_partmc_aerosol(aero_data, aero_state, &
+                                               camp_state)
 
     ! Update the PartMC gas-phase state
-    call gas_state%get_camp_conc(camp_post_aero_state)
+    call gas_state%get_camp_conc(camp_state)
 
   end subroutine pmc_camp_interface_solve
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Set the CAMP aerosol-phase species concentrations
-  subroutine pmc_camp_interface_set_camp_conc(aero_data, aero_particle, &
-            camp_state)
+  !> Set the CAMP aerosol-phase species and number concentrations
+  subroutine pmc_camp_interface_set_camp_aerosol(aero_data, aero_state, &
+      camp_core, camp_state)
 
-    !> Aerosol particle
-    type(aero_data_t), intent (in) :: aero_data
     !> Aerosol data
-    type(aero_particle_t), intent(in) :: aero_particle
+    type(aero_data_t), intent(inout) :: aero_data
+    !> Aerosol state
+    type(aero_state_t), intent(in) :: aero_state
+    !> CAMP core
+    type(camp_core_t), intent(inout) :: camp_core
     !> CAMP state
     type(camp_state_t), intent(inout) :: camp_state
 
-    integer(kind=i_kind) :: i_spec
+    real(kind=dp) :: num_conc
+    integer(kind=i_kind) :: i_part, i_spec
 
-    ! Set the aerosol representation state in camp chem
     associate (aero_rep => aero_data%aero_rep_ptr)
-
     select type (aero_rep)
       type is (aero_rep_single_particle_t)
-        do i_spec = 1, size(aero_data%camp_spec_id)
-          camp_state%state_var(aero_data%camp_spec_id(i_spec)) = &
-                  aero_particle%vol(i_spec) * &
-                  aero_data%density(i_spec) ! kg m-3
+        call assert_msg(858496327, aero_state%n_part( ) .le. &
+                                   aero_rep%maximum_computational_particles( ), &
+                        "Exceeded CAMP maximum number of particles. Number "// &
+                        "of computational particles: "// &
+                        trim(integer_to_string(aero_state%n_part( )))// &
+                        ". CAMP maximum: "// &
+                        trim(integer_to_string( &
+                            aero_rep%maximum_computational_particles( ))))
+        do i_part = 1, aero_state%n_part( )
+          associate (part => aero_state%apa%particle(i_part))
+          num_conc = aero_weight_array_num_conc(aero_state%awa, part, aero_data)
+          call aero_data%update_number%set_number__n_m3(i_part, num_conc)
+          call camp_core%update_data(aero_data%update_number)
+          do i_spec = 1, size(aero_data%camp_particle_spec_id)
+            camp_state%state_var(aero_data%camp_spec_id(i_part, i_spec)) = &
+                    part%vol(i_spec) * aero_data%density(i_spec) ! kg m-3
+          end do
+          end associate
+        end do
+        do i_part = aero_state%n_part( ) + 1, &
+                    aero_rep%maximum_computational_particles( )
+          call aero_data%update_number%set_number__n_m3(i_part, 0.0_dp)
+          call camp_core%update_data(aero_data%update_number)
+          do i_spec = 1, size(aero_data%camp_particle_spec_id)
+            camp_state%state_var(aero_data%camp_spec_id(i_part, i_spec)) = &
+                0.0_dp
+          end do
         end do
       class default
         call die_msg(780366884, &
                 "Wrong type for PartMC aerosol representation.")
     end select
-
     end associate
 
-  end subroutine pmc_camp_interface_set_camp_conc
+  end subroutine pmc_camp_interface_set_camp_aerosol
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Get the CAMP aerosol-phase species concentrations
-  subroutine pmc_camp_interface_get_camp_conc(aero_data, aero_particle, &
-            camp_state)
+  !> Set PartMC aerosol-phase species concentrations
+  subroutine pmc_camp_interface_set_partmc_aerosol(aero_data, aero_state, &
+      camp_state)
 
     !> Aerosol particle
     type(aero_data_t), intent (in) :: aero_data
-    !> Aerosol data
-    type(aero_particle_t), intent(inout) :: aero_particle
+    !> Aerosol state
+    type(aero_state_t), intent(inout) :: aero_state
     !> CAMP state
     type(camp_state_t), intent(inout) :: camp_state
 
-    integer(kind=i_kind) :: i_spec
+    integer(kind=i_kind) :: i_part, i_spec
 
-    ! Disassociate the aerosol representation state in camp chem
     associate (aero_rep => aero_data%aero_rep_ptr)
-
     select type (aero_rep)
       type is (aero_rep_single_particle_t)
-        do i_spec = 1, size(aero_data%camp_spec_id)
-          aero_particle%vol(i_spec) = &
-              camp_state%state_var(aero_data%camp_spec_id(i_spec)) / &
-              aero_data%density(i_spec) ! m3
+        call assert_msg(464490945, aero_state%n_part( ) .le. &
+                                   aero_rep%maximum_computational_particles( ), &
+                        "Exceeded CAMP maximum number of particles" )
+        do i_part = 1, aero_state%n_part( )
+          associate (part => aero_state%apa%particle(i_part))
+          do i_spec = 1, size(aero_data%camp_particle_spec_id)
+            part%vol(i_spec) = &
+                camp_state%state_var(aero_data%camp_spec_id(i_part, i_spec)) / &
+                aero_data%density(i_spec) ! m3
+          end do
+          end associate
         end do
       class default
         call die_msg(773649338, &
                 "Wrong type for PartMC aerosol representation.")
     end select
-
     end associate
 
-  end subroutine pmc_camp_interface_get_camp_conc
+  end subroutine pmc_camp_interface_set_partmc_aerosol
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

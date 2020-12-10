@@ -1,0 +1,14 @@
+{
+  "emissions-data" : [
+    {
+      "NETCDF" : {
+        "file label" : "anthro",
+        "file name" : "hermesv3_nmmb_regional.nc",
+        "update frequency" : "hourly"
+      },
+      "MEGAN" : {
+        "version" : "2.04"
+      }
+    }
+  ]
+}

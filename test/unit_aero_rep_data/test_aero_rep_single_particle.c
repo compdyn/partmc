@@ -16,8 +16,17 @@
 // index for the test aerosol representation
 #define AERO_REP_IDX 0
 
-// index for the test phase
-#define AERO_PHASE_IDX 1 // (phase 2)
+// test computational particle
+#define TEST_PARTICLE 2
+
+// number of computational particles in the test
+#define N_COMP_PARTICLES 3
+
+// number of aerosol phases per particle
+#define NUM_AERO_PHASE 3
+
+// index for the test phase (test-particle phase 2)
+#define AERO_PHASE_IDX ((TEST_PARTICLE-1)*NUM_AERO_PHASE+1)
 
 // number of Jacobian elements used for the test phase
 #define N_JAC_ELEM 8
@@ -262,15 +271,15 @@ int run_aero_rep_single_particle_c_tests(void *solver_data, double *state, doubl
 
   ret_val += ASSERT_MSG(n_jac_elem==N_JAC_ELEM, "Bad number of Jac elements");
 
-  // tests are for bin 2
-  NV_DATA_S(solver_state)[0] = state[0] = CONC_1A; // phase one, species a
-  NV_DATA_S(solver_state)[1] = state[1] = CONC_1B; // phase one, species a
-  NV_DATA_S(solver_state)[2] = state[2] = CONC_1C; // phase one, species a
-  NV_DATA_S(solver_state)[3] = state[3] = CONC_2C; // phase one, species a
-  NV_DATA_S(solver_state)[4] = state[4] = CONC_2D; // phase one, species a
-  NV_DATA_S(solver_state)[5] = state[5] = CONC_2E; // phase one, species a
-  NV_DATA_S(solver_state)[6] = state[6] = CONC_3B; // phase one, species a
-  NV_DATA_S(solver_state)[7] = state[7] = CONC_3E; // phase one, species a
+  // set concentrations of test particle species
+  NV_DATA_S(solver_state)[(TEST_PARTICLE-1)*8+0] = state[(TEST_PARTICLE-1)*8+0] = CONC_1A; // phase one, species a
+  NV_DATA_S(solver_state)[(TEST_PARTICLE-1)*8+1] = state[(TEST_PARTICLE-1)*8+1] = CONC_1B; // phase one, species b
+  NV_DATA_S(solver_state)[(TEST_PARTICLE-1)*8+2] = state[(TEST_PARTICLE-1)*8+2] = CONC_1C; // phase one, species c
+  NV_DATA_S(solver_state)[(TEST_PARTICLE-1)*8+3] = state[(TEST_PARTICLE-1)*8+3] = CONC_2C; // phase two, species c
+  NV_DATA_S(solver_state)[(TEST_PARTICLE-1)*8+4] = state[(TEST_PARTICLE-1)*8+4] = CONC_2D; // phase two, species d
+  NV_DATA_S(solver_state)[(TEST_PARTICLE-1)*8+5] = state[(TEST_PARTICLE-1)*8+5] = CONC_2E; // phase two, species e
+  NV_DATA_S(solver_state)[(TEST_PARTICLE-1)*8+6] = state[(TEST_PARTICLE-1)*8+6] = CONC_3B; // phase three, species b
+  NV_DATA_S(solver_state)[(TEST_PARTICLE-1)*8+7] = state[(TEST_PARTICLE-1)*8+7] = CONC_3E; // phase three, species e
 
   // Set the environment-dependent parameter pointer to the first grid cell
   model_data->grid_cell_aero_rep_env_data = model_data->aero_rep_env_data;

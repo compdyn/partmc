@@ -17,7 +17,8 @@
 #define TEMPERATURE_K_ env_data[0]
 #define PRESSURE_PA_ env_data[1]
 
-#define SMALL_NUMBER_ 1.0e-30
+// Minimum aerosol water mass [kg m-3]
+#define MINIMUM_WATER_MASS_ 1.0e-30L
 
 // Smoothing factor for max function
 #define ALPHA_ (-100.0)
@@ -222,7 +223,7 @@ void sub_model_ZSR_aerosol_water_calculate(int *sub_model_int_data,
   // Calculate the total aerosol water for each instance of the aerosol phase
   for (int i_phase = 0; i_phase < NUM_PHASE_; i_phase++) {
     double *water = &(state[PHASE_ID_(i_phase)]);
-    *water = 0.0;
+    *water = MINIMUM_WATER_MASS_;
 
     // Get the contribution from each ion pair
     for (int i_ion_pair = 0; i_ion_pair < NUM_ION_PAIR_; i_ion_pair++) {

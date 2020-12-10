@@ -1,0 +1,256 @@
+ {
+   "description" : [
+     "CB05 -- MEGAN emission reactions"
+   ],
+   "pmc-data" : [
+     {
+       "name" : "MONARCH mod37",
+       "type" : "MECHANISM",
+       "reactions" : [
+         {
+           "type" : "EMISSION",
+           "species" : "NO",
+           "MEGAN species" : {
+             "nitric_oxd" : { "scaling factor" : 1.00000000 }
+           }
+         },
+         {
+           "type" : "EMISSION",
+           "species" : "FORM",
+           "MEGAN species" : {
+             "formaldehyde" : { "scaling factor" : 1.00000000 },
+             "mbo_3m3e1ol" : { "scaling factor" : 1.00000000 }
+           }
+         },
+         {
+           "type" : "EMISSION",
+           "species" : "ALD2",
+           "MEGAN species" : {
+             "acetaldehyde" : { "scaling factor" : 1.00000000 }
+           }
+         },
+         {
+           "type" : "EMISSION",
+           "species" : "ALDX",
+           "MEGAN species" : {
+             "mbo_3m2e1ol" : { "scaling factor" : 1.00000000 },
+             "decanal" : { "scaling factor" : 1.00000000 },
+             "heptanal" : { "scaling factor" : 1.00000000 },
+             "nonanal" : { "scaling factor" : 1.00000000 },
+             "nonenal" : { "scaling factor" : 1.00000000 },
+             "octanal" : { "scaling factor" : 1.00000000 },
+             "oxopentanal" : { "scaling factor" : 1.00000000 },
+             "phenyl_cco" : { "scaling factor" : 1.00000000 },
+             "hexanal" : { "scaling factor" : 1.00000000 },
+             "hexenal_c3" : { "scaling factor" : 1.00000000 },
+             "hexenal_t2" : { "scaling factor" : 1.00000000 }
+           }
+         },
+         {
+           "type" : "EMISSION",
+           "species" : "PAR",
+           "MEGAN species" : {
+             "mbo_2m3e2ol" : { "scaling factor" : 3.00000000 },
+             "acetone" : { "scaling factor" : 3.00000000 },
+             "acetic_acid" : { "scaling factor" : 1.00000000 },
+             "mbo_3m2e1ol" : { "scaling factor" : 3.00000000 },
+             "mbo_3m3e1ol" : { "scaling factor" : 4.00000000 },
+             "butanone_2" : { "scaling factor" : 4.00000000 },
+             "decanal" : { "scaling factor" : 8.00000000 },
+             "dodecene_1" : { "scaling factor" : 10.0000000 },
+             "heptanal" : { "scaling factor" : 5.00000000 },
+             "heptane" : { "scaling factor" : 7.00000000 },
+             "hexane" : { "scaling factor" : 6.00000000 },
+             "met_heptenone" : { "scaling factor" : 5.00000000 },
+             "neryl_acetone" : { "scaling factor" : 10.0000000 },
+             "nonanal" : { "scaling factor" : 7.00000000 },
+             "nonenal" : { "scaling factor" : 6.00000000 },
+             "octanal" : { "scaling factor" : 6.00000000 },
+             "octanol" : { "scaling factor" : 8.00000000 },
+             "octenol_1e3ol" : { "scaling factor" : 6.00000000 },
+             "oxopentanal" : { "scaling factor" : 3.00000000 },
+             "pentane" : { "scaling factor" : 5.00000000 },
+             "tetradecene_1" : { "scaling factor" : 12.0000000 },
+             "butene" : { "scaling factor" : 2.00000000 },
+             "propane" : { "scaling factor" : 1.50000000 },
+             "propene" : { "scaling factor" : 1.00000000 },
+             "diallyl_2s" : { "scaling factor" : 4.00000000 },
+             "2met_2s" : { "scaling factor" : 2.00000000 },
+             "2met_s" : { "scaling factor" : 2.00000000 },
+             "met_mercaptan" : { "scaling factor" : 1.00000000 },
+             "met_propenyl_2s" : { "scaling factor" : 2.00000000 },
+             "pppp_2s" : { "scaling factor" : 4.00000000 },
+             "hexanal" : { "scaling factor" : 4.00000000 },
+             "hexanol_1" : { "scaling factor" : 6.00000000 },
+             "hexenal_c3" : { "scaling factor" : 3.00000000 },
+             "hexenal_t2" : { "scaling factor" : 6.00000000 },
+             "hexenol_c3" : { "scaling factor" : 5.00000000 },
+             "hexenyl_act_c3" : { "scaling factor" : 5.00000000 }
+           }
+         },
+         {
+           "type" : "EMISSION",
+           "species" : "CO",
+           "MEGAN species" : {
+             "carbon_monoxide" : { "scaling factor" : 1.00000000 }
+           }
+         },
+         {
+           "type" : "EMISSION",
+           "species" : "MEOH",
+           "MEGAN species" : {
+             "methanol" : { "scaling factor" : 1.00000000 }
+           }
+         },
+         {
+           "type" : "EMISSION",
+           "species" : "OLE",
+           "MEGAN species" : {
+             "mbo_2m3e2ol" : { "scaling factor" : 1.00000000 },
+             "dodecene_1" : { "scaling factor" : 1.00000000 },
+             "met_heptenone" : { "scaling factor" : 1.00000000 },
+             "octenol_1e3ol" : { "scaling factor" : 1.00000000 },
+             "tetradecene_1" : { "scaling factor" : 1.00000000 },
+             "butene" : { "scaling factor" : 1.00000000 },
+             "propene" : { "scaling factor" : 1.00000000 },
+             "diallyl_2s" : { "scaling factor" : 2.00000000 }
+           }
+         },
+         {
+           "type" : "EMISSION",
+           "species" : "ETH",
+           "MEGAN species" : {
+             "ethene" : { "scaling factor" : 1.00000000 }
+           }
+         },
+         {
+           "type" : "EMISSION",
+           "species" : "IOLE",
+           "MEGAN species" : {
+             "neryl_acetone" : { "scaling factor" : 2.00000000 },
+             "nonenal" : { "scaling factor" : 1.00000000 },
+             "met_propenyl_2s" : { "scaling factor" : 1.00000000 },
+             "pppp_2s" : { "scaling factor" : 1.00000000 },
+             "hexenal_c3" : { "scaling factor" : 1.00000000 },
+             "hexenal_t2" : { "scaling factor" : 1.00000000 },
+             "hexenol_c3" : { "scaling factor" : 1.00000000 },
+             "hexenyl_act_c3" : { "scaling factor" : 1.00000000 }
+           }
+         },
+         {
+           "type" : "EMISSION",
+           "species" : "TOL",
+           "MEGAN species" : {
+             "met_benzoate" : { "scaling factor" : 1.00000000 },
+             "phenyl_cco" : { "scaling factor" : 1.00000000 },
+             "toluene" : { "scaling factor" : 1.00000000 },
+             "met_salicylate" : { "scaling factor" : 1.00000000 },
+             "indole" : { "scaling factor" : 1.00000000 }
+           }
+         },
+         {
+           "type" : "EMISSION",
+           "species" : "ISOP",
+           "MEGAN species" : {
+             "isoprene" : { "scaling factor" : 1.00000000 },
+             "ionone_b" : { "scaling factor" : 3.00000000 },
+             "farnescene_a" : { "scaling factor" : 3.00000000 },
+             "caryophyllene_b" : { "scaling factor" : 3.00000000 },
+             "acoradiene" : { "scaling factor" : 3.00000000 },
+             "aromadendrene" : { "scaling factor" : 3.00000000 },
+             "bergamotene_a" : { "scaling factor" : 3.00000000 },
+             "bergamotene_b" : { "scaling factor" : 3.00000000 },
+             "bisabolene_a" : { "scaling factor" : 3.00000000 },
+             "bisabolene_b" : { "scaling factor" : 3.00000000 },
+             "bourbonene_b" : { "scaling factor" : 3.00000000 },
+             "cadinene_d" : { "scaling factor" : 3.00000000 },
+             "cadinene_g" : { "scaling factor" : 3.00000000 },
+             "cedrene_a" : { "scaling factor" : 3.00000000 },
+             "copaene_a" : { "scaling factor" : 3.00000000 },
+             "cubebene_a" : { "scaling factor" : 3.00000000 },
+             "cubebene_b" : { "scaling factor" : 3.00000000 },
+             "elemene_b" : { "scaling factor" : 3.00000000 },
+             "farnescene_b" : { "scaling factor" : 3.00000000 },
+             "germacrene_b" : { "scaling factor" : 3.00000000 },
+             "germacrene_d" : { "scaling factor" : 3.00000000 },
+             "gurjunene_b" : { "scaling factor" : 3.00000000 },
+             "humulene_a" : { "scaling factor" : 3.00000000 },
+             "humulene_g" : { "scaling factor" : 3.00000000 },
+             "isolongifolene" : { "scaling factor" : 3.00000000 },
+             "longifolene" : { "scaling factor" : 3.00000000 },
+             "longipinene" : { "scaling factor" : 3.00000000 },
+             "muurolene_a" : { "scaling factor" : 3.00000000 },
+             "muurolene_g" : { "scaling factor" : 3.00000000 },
+             "selinene_b" : { "scaling factor" : 3.00000000 },
+             "selinene_d" : { "scaling factor" : 3.00000000 },
+             "nerolidol_c" : { "scaling factor" : 3.00000000 },
+             "nerolidol_t" : { "scaling factor" : 3.00000000 },
+             "cedrol" : { "scaling factor" : 3.00000000 },
+             "geranyl_acetone" : { "scaling factor" : 3.00000000 },
+             "terpinyl_act_a" : { "scaling factor" : 2.00000000 },
+             "jasmone" : { "scaling factor" : 2.00000000 },
+             "met_jasmonate" : { "scaling factor" : 3.00000000 },
+             "3met_3dctt" : { "scaling factor" : 3.00000000 }
+           }
+         },
+         {
+           "type" : "EMISSION",
+           "species" : "TERP",
+           "MEGAN species" : {
+             "myrcene" : { "scaling factor" : 1.00000000 },
+             "sabinene" : { "scaling factor" : 1.00000000 },
+             "limonene" : { "scaling factor" : 1.00000000 },
+             "carene_3" : { "scaling factor" : 1.00000000 },
+             "ocimene_t_b" : { "scaling factor" : 1.00000000 },
+             "pinene_b" : { "scaling factor" : 1.00000000 },
+             "pinene_a" : { "scaling factor" : 1.00000000 },
+             "2met_styrene" : { "scaling factor" : 1.00000000 },
+             "cymene_p" : { "scaling factor" : 1.00000000 },
+             "cymene_o" : { "scaling factor" : 1.00000000 },
+             "phellandrene_a" : { "scaling factor" : 1.00000000 },
+             "thujene_a" : { "scaling factor" : 1.00000000 },
+             "terpinene_a" : { "scaling factor" : 1.00000000 },
+             "terpinene_g" : { "scaling factor" : 1.00000000 },
+             "terpinolene" : { "scaling factor" : 1.00000000 },
+             "phellandrene_b" : { "scaling factor" : 1.00000000 },
+             "camphene" : { "scaling factor" : 1.00000000 },
+             "bornene" : { "scaling factor" : 1.00000000 },
+             "fenchene_a" : { "scaling factor" : 1.00000000 },
+             "ocimene_al" : { "scaling factor" : 1.00000000 },
+             "ocimene_c_b" : { "scaling factor" : 1.00000000 },
+             "tricyclene" : { "scaling factor" : 1.00000000 },
+             "estragole" : { "scaling factor" : 1.00000000 },
+             "camphor" : { "scaling factor" : 1.00000000 },
+             "fenchone" : { "scaling factor" : 1.00000000 },
+             "piperitone" : { "scaling factor" : 1.00000000 },
+             "thujone_a" : { "scaling factor" : 1.00000000 },
+             "thujone_b" : { "scaling factor" : 1.00000000 },
+             "cineole_1_8" : { "scaling factor" : 1.00000000 },
+             "borneol" : { "scaling factor" : 1.00000000 },
+             "linalool" : { "scaling factor" : 1.00000000 },
+             "terpineol_4" : { "scaling factor" : 1.00000000 },
+             "terpineol_a" : { "scaling factor" : 1.00000000 },
+             "linalool_oxd_c" : { "scaling factor" : 1.00000000 },
+             "linalool_oxd_t" : { "scaling factor" : 1.00000000 },
+             "bornyl_act" : { "scaling factor" : 1.00000000 },
+             "2met_nonatriene" : { "scaling factor" : 1.00000000 }
+           }
+         },
+         {
+           "type" : "EMISSION",
+           "species" : "ETOH",
+           "MEGAN species" : {
+             "ethanol" : { "scaling factor" : 1.00000000 }
+           }
+         },
+         {
+           "type" : "EMISSION",
+           "species" : "ETHA",
+           "MEGAN species" : {
+             "ethane" : { "scaling factor" : 1.00000000 }
+           }
+         }
+       ]
+     }
+   ]
+ }

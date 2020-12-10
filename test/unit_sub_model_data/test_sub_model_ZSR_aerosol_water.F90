@@ -152,13 +152,13 @@ contains
       ! Get species indices
       key = "H2O"
       idx_H2O = chem_spec_data%gas_state_id(key);
-      key = "aqueous aerosol.H2O_aq"
+      key = "P1.aqueous aerosol.H2O_aq"
       idx_H2O_aq = aero_rep_ptr%spec_state_id(key);
-      key = "aqueous aerosol.Na_p"
+      key = "P1.aqueous aerosol.Na_p"
       idx_Na_p = aero_rep_ptr%spec_state_id(key);
-      key = "aqueous aerosol.Cl_m"
+      key = "P1.aqueous aerosol.Cl_m"
       idx_Cl_m = aero_rep_ptr%spec_state_id(key);
-      key = "aqueous aerosol.Ca_pp"
+      key = "P1.aqueous aerosol.Ca_pp"
       idx_Ca_pp = aero_rep_ptr%spec_state_id(key);
 
       ! Make sure the expected species are in the model

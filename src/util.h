@@ -22,7 +22,7 @@
  * \f$v\f$ is the mean speed of the gas-phase molecules [m s-1]:
  * \f[
  *   v = \sqrt{\frac{8RT}{\pi MW}}
- * \f]8.0
+ * \f]
  * where R is the ideal gas constant [J K-1 mol-1], T is temperature [K],
  * and MW is the molecular weight of the gas-phase species [kg mol-1]
  *
@@ -47,7 +47,7 @@ static inline double mean_free_path__m(double diffusion_coeff__m2_s,
  * \cite Zaveri2008.
  *
  *  @param mean_free_path__m mean free path of the gas-phase species [m]
- *  @param radius Particle effective radius [m]
+ *  @param radius__m Particle effective radius [m]
  *  @param alpha Mass accomodation coefficient [unitless]
  */
 static inline double transition_regime_correction_factor(
@@ -69,7 +69,7 @@ static inline double transition_regime_correction_factor(
  * coefficient, which is typically assumed to equal 0.1 \cite Zaveri2008.
  *
  *  @param mean_free_path__m mean free path of the gas-phase species [m]
- *  @param radius Particle effective radius [m]
+ *  @param radius__m Particle effective radius [m]
  *  @param alpha Mass accomodation coefficient [unitless]
  */
 static inline double d_transition_regime_correction_factor_d_radius(

@@ -54,7 +54,7 @@ program mock_monarch
   !> Time step (min)
   real, parameter :: TIME_STEP = 3.!2. !3. = monarch dt
   !> Number of time steps to integrate over
-  integer, parameter :: NUM_TIME_STEP = 180!720!30
+  integer, parameter :: NUM_TIME_STEP = 5!720!30
   !> Index for water vapor in water_conc()
   integer, parameter :: WATER_VAPOR_ID = 5
   !> Start time
@@ -175,7 +175,7 @@ program mock_monarch
 
     write(*,*) "Config simple (test 1)"
 
-    size_gas_species_to_print=2
+    size_gas_species_to_print=3
     size_aerosol_species_to_print=0
 
     allocate(name_gas_species_to_print(size_gas_species_to_print))
@@ -183,11 +183,11 @@ program mock_monarch
     allocate(id_gas_species_to_print(size_gas_species_to_print))
     allocate(id_aerosol_species_to_print(size_aerosol_species_to_print))
 
-    name_gas_species_to_print(1)%string=("A")
-    name_gas_species_to_print(2)%string=("C")
     !name_gas_species_to_print(1)%string=("A")
-    !name_gas_species_to_print(2)%string=("B")
-    !name_gas_species_to_print(3)%string=("C")
+    !name_gas_species_to_print(2)%string=("C")
+    name_gas_species_to_print(1)%string=("A")
+    name_gas_species_to_print(2)%string=("B")
+    name_gas_species_to_print(3)%string=("C")
 
   else
 
@@ -234,7 +234,6 @@ program mock_monarch
       name_aerosol_species_to_print(2)%string=("organic_matter.organic_matter.TERP-P2_aero")
     endif
 
-    !name_aerosol_species_to_print(1)%string=("organic_matter.organic_matter.ISOP-P1_aero")
   end if
 
   !Check if repeat program to compare n_cells=1 with n_cells=N
@@ -468,41 +467,44 @@ contains
 
     ! TODO refine initial model conditions
     species_conc(:,:,:,:) = 0.0
-    water_conc(:,:,:,WATER_VAPOR_ID) = 0. !0.01165447 !this is equal to 95% RH !1e-14 !0.01 !kg_h2o/kg-1_air
     height=1. !(m)
-#ifdef ENABLE_CB05_SOA
-    temperature(:,:,:) = 290.016!300.614166259766
-    pressure(:,:,:) = 100000.!94165.7187500000
-!    air_density(:,:,:) = pressure(:,:,:)/(287.04*temperature(:,:,:))!1.225
-    air_density(:,:,:) = pressure(:,:,:)/(287.04*temperature(:,:,:)* &
-         (1.+0.60813824*water_conc(:,:,:,WATER_VAPOR_ID))) !kg m-3
-    conv=0.02897/air_density(1,1,1)*(TIME_STEP*60.)*1e6/height !units of time_step to seconds
-!    conv=0.02897/air_density(1,1,1)*(TIME_STEP)*1e6/height !units of time_step to seconds
-#else
 
-    temperature(:,:,:) = 300.614166259766
-    pressure(:,:,:) = 94165.7187500000
-    air_density(:,:,:) = 1.225
-    conv=0.02897/air_density(1,1,1)*(TIME_STEP*60.)*1e6/height !units of time_step to seconds
+    if(interface_input_file.eq."interface_monarch_cb05_soa.json") then
 
-    !Initialize different axis values
-    !Species_conc is modified in monarch_interface%get_init_conc
-    do i=I_W, I_E
-      temperature(i,:,:) = temperature(i,:,:)! + 0.1*i
-      pressure(i,:,:) = pressure(i,:,:)! - 1*i
-    end do
+      water_conc(:,:,:,WATER_VAPOR_ID) = 0. !0.01165447 !this is equal to 95% RH !1e-14 !0.01 !kg_h2o/kg-1_air
+      temperature(:,:,:) = 290.016!300.614166259766
+      pressure(:,:,:) = 100000.!94165.7187500000
+  !    air_density(:,:,:) = pressure(:,:,:)/(287.04*temperature(:,:,:))!1.225
+      air_density(:,:,:) = pressure(:,:,:)/(287.04*temperature(:,:,:)* &
+           (1.+0.60813824*water_conc(:,:,:,WATER_VAPOR_ID))) !kg m-3
+      conv=0.02897/air_density(1,1,1)*(TIME_STEP*60.)*1e6/height !units of time_step to seconds
+  !    conv=0.02897/air_density(1,1,1)*(TIME_STEP)*1e6/height !units of time_step to seconds
+    else
 
-    do j=I_S, I_N
-      temperature(:,j,:) = temperature(:,j,:)! + 0.3*j
-      pressure(:,:,j) = pressure(:,:,j)! - 3*j
-    end do
+      temperature(:,:,:) = 300.614166259766
+      pressure(:,:,:) = 94165.7187500000
+      air_density(:,:,:) = 1.225
+      conv=0.02897/air_density(1,1,1)*(TIME_STEP*60.)*1e6/height !units of time_step to seconds
+      water_conc(:,:,:,WATER_VAPOR_ID) = 0.01
 
-    do k=1, NUM_VERT_CELLS
-      temperature(:,:,k) = temperature(:,:,k)! + 0.6*k
-      pressure(:,k,:) = pressure(:,k,:)! - 6*k
-    end do
+      !Initialize different axis values
+      !Species_conc is modified in monarch_interface%get_init_conc
+      do i=I_W, I_E
+        temperature(i,:,:) = temperature(i,:,:)! + 0.1*i
+        pressure(i,:,:) = pressure(i,:,:)! - 1*i
+      end do
 
-#endif
+      do j=I_S, I_N
+        temperature(:,j,:) = temperature(:,j,:)! + 0.3*j
+        pressure(:,:,j) = pressure(:,:,j)! - 3*j
+      end do
+
+      do k=1, NUM_VERT_CELLS
+        temperature(:,:,k) = temperature(:,:,k)! + 0.6*k
+        pressure(:,k,:) = pressure(:,k,:)! - 6*k
+      end do
+
+    end if
 
     deallocate(file_name)
     deallocate(aux_str)

@@ -171,13 +171,12 @@ contains
       pmc_mpi_pack_size_real_array(this%base_rates, l_comm) + &
       pmc_mpi_pack_size_integer(size(this%photo_rxns), l_comm)
 
-    !todo mpi
     do i_rxn = 1, size(this%photo_rxns)
-      pack_size = pack_size + this%photo_rxns(i_rxn)%pack_size(comm)
+      pack_size = pack_size + this%photo_rxns(i_rxn)%pack_size(l_comm)
     end do
-
+#else
+  pack_size = 0
 #endif
-
 
   end function pack_size
 
@@ -200,7 +199,7 @@ contains
     integer(kind=i_kind) :: i_rxn, l_comm
 
 #ifdef PMC_USE_MPI
-    integer :: prev_position
+    integer :: l_comm, i_rxn, prev_position
 
     if (present(comm)) then
       l_comm = comm
@@ -215,7 +214,7 @@ contains
     call pmc_mpi_pack_real_array(buffer, pos, this%base_rates, l_comm)
     call pmc_mpi_pack_integer(buffer, pos, size(this%photo_rxns), l_comm)
     do i_rxn = 1, size(this%photo_rxns)
-      !call this%photo_rxns(i_rxn)%bin_pack(l_comm) !todo fix
+      call this%photo_rxns(i_rxn)%bin_pack(buffer, pos, l_comm)
     end do
     call assert(234533342, pos - prev_position <= this%pack_size(l_comm))
 #endif
@@ -241,7 +240,8 @@ contains
     integer(kind=i_kind) :: i_rxn, l_comm
 
 #ifdef PMC_USE_MPI
-    integer :: prev_position, n_rxns
+    integer :: l_comm, i_rxn, n_rxns, prev_position
+
     if (present(comm)) then
       l_comm = comm
     else
@@ -253,9 +253,9 @@ contains
     call pmc_mpi_unpack_integer(buffer, pos, n_rxns, l_comm)
     allocate(this%photo_rxns(n_rxns))
     do i_rxn = 1, size(this%photo_rxns)
-      !call this%photo_rxns(i_rxn)%bin_unpack(l_comm) !todo fix
+      call this%photo_rxns(i_rxn)%bin_unpack(buffer, pos, l_comm)
     end do
-    !call assert(391255154, pos - prev_position <= this%unpack_size(l_comm))
+    call assert(391255154, pos - prev_position <= this%pack_size(l_comm))
 #endif
 
   end subroutine bin_unpack

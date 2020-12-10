@@ -1,0 +1,344 @@
+{
+"pmc-data" : [
+  {
+    "name" : "H2SO4",
+    "type" : "CHEM_SPEC",
+    "description" : "sulfuric acid"
+  },
+  {
+    "name" : "HNO3",
+    "type" : "CHEM_SPEC",
+    "description" : "nitric acid"
+  },
+  {
+    "name" : "HCl",
+    "type" : "CHEM_SPEC",
+    "description" : "hydrochloric acid"
+  },
+  {
+    "name" : "NH3",
+    "type" : "CHEM_SPEC",
+    "description" : "ammonia"
+  },
+  {
+    "name" : "NO",
+    "type" : "CHEM_SPEC",
+    "description" : "nitric oxide"
+  },
+  {
+    "name" : "NO2",
+    "type" : "CHEM_SPEC",
+    "description" : "nitrogen dioxide"
+  },
+  {
+    "name" : "NO3",
+    "type" : "CHEM_SPEC",
+    "description" : "nitrate radical"
+  },
+  {
+    "name" : "N2O5",
+    "type" : "CHEM_SPEC",
+    "description" : "nitrogen pentoxide"
+  },
+  {
+    "name" : "HONO",
+    "type" : "CHEM_SPEC",
+    "description" : "nitrous acid"
+  },
+  {
+    "name" : "HNO4",
+    "type" : "CHEM_SPEC",
+    "description" : "pernitric acid"
+  },
+  {
+    "name" : "O3",
+    "type" : "CHEM_SPEC",
+    "description" : "ozone"
+  },
+  {
+    "name" : "O1D",
+    "type" : "CHEM_SPEC",
+    "description" : "oxygen atom singlet D"
+  },
+  {
+    "name" : "O3P",
+    "type" : "CHEM_SPEC",
+    "description" : "oxygen atom triplet P"
+  },
+  {
+    "name" : "OH",
+    "type" : "CHEM_SPEC",
+    "description" : "hydroxyl radical"
+  },
+  {
+    "name" : "HO2",
+    "type" : "CHEM_SPEC",
+    "description" : "hydroperoxyl radical"
+  },
+  {
+    "name" : "H2O2",
+    "type" : "CHEM_SPEC",
+    "description" : "hydrogen peroxide"
+  },
+  {
+    "name" : "CH4",
+    "type" : "CHEM_SPEC",
+    "description" : "          =IGNORE "
+  },
+  {
+    "name" : "CO",
+    "type" : "CHEM_SPEC",
+    "description" : "carbon monoxide"
+  },
+  {
+    "name" : "SO2",
+    "type" : "CHEM_SPEC",
+    "description" : "sulfur dioxide"
+  },
+  {
+    "name" : "C2H6",
+    "type" : "CHEM_SPEC",
+    "description" : "ethane"
+  },
+  {
+    "name" : "CH3O2",
+    "type" : "CHEM_SPEC",
+    "description" : "methylperoxy radical"
+  },
+  {
+    "name" : "ETHP",
+    "type" : "CHEM_SPEC",
+    "description" : "ethylperoxy radical"
+  },
+  {
+    "name" : "HCHO",
+    "type" : "CHEM_SPEC",
+    "description" : "formaldehyde"
+  },
+  {
+    "name" : "CH3OH",
+    "type" : "CHEM_SPEC",
+    "description" : "methanol"
+  },
+  {
+    "name" : "ANOL",
+    "type" : "CHEM_SPEC",
+    "description" : "ethanol -CH2-CH2OH"
+  },
+  {
+    "name" : "CH3OOH",
+    "type" : "CHEM_SPEC",
+    "description" : "methyl hydrogen peroxide"
+  },
+  {
+    "name" : "ETHOOH",
+    "type" : "CHEM_SPEC",
+    "description" : "ethyl hydrogen peroxide"
+  },
+  {
+    "name" : "ALD2",
+    "type" : "CHEM_SPEC",
+    "description" : "acetaldehyde"
+  },
+  {
+    "name" : "HCOOH",
+    "type" : "CHEM_SPEC",
+    "description" : "formic acid"
+  },
+  {
+    "name" : "RCOOH",
+    "type" : "CHEM_SPEC",
+    "description" : "higher organic acids"
+  },
+  {
+    "name" : "C2O3",
+    "type" : "CHEM_SPEC",
+    "description" : "peroxyacyl radical"
+  },
+  {
+    "name" : "PAN",
+    "type" : "CHEM_SPEC",
+    "description" : "peroxyacyl nitrate"
+  },
+  {
+    "name" : "PAR",
+    "type" : "CHEM_SPEC",
+    "description" : "paraffin carbon -C-"
+  },
+  {
+    "name" : "AONE",
+    "type" : "CHEM_SPEC",
+    "description" : "acetone"
+  },
+  {
+    "name" : "MGLY",
+    "type" : "CHEM_SPEC",
+    "description" : "methylglyoxal"
+  },
+  {
+    "name" : "C2H4",
+    "type" : "CHEM_SPEC",
+    "description" : "ethene - is called ETH in the CBMZ docs"
+  },
+  {
+    "name" : "OLET",
+    "type" : "CHEM_SPEC",
+    "description" : "terminal OLEfin carbons C=C"
+  },
+  {
+    "name" : "OLEI",
+    "type" : "CHEM_SPEC",
+    "description" : "internal OLEfin carbons C=C"
+  },
+  {
+    "name" : "TOL",
+    "type" : "CHEM_SPEC",
+    "description" : "toluene"
+  },
+  {
+    "name" : "XYL",
+    "type" : "CHEM_SPEC",
+    "description" : "xylene"
+  },
+  {
+    "name" : "CRES",
+    "type" : "CHEM_SPEC",
+    "description" : "cresol and higher M.W. phenols"
+  },
+  {
+    "name" : "TO2",
+    "type" : "CHEM_SPEC",
+    "description" : "toluene-OH adduct"
+  },
+  {
+    "name" : "CRO",
+    "type" : "CHEM_SPEC",
+    "description" : "methylphenoxy radical"
+  },
+  {
+    "name" : "OPEN",
+    "type" : "CHEM_SPEC",
+    "description" : "high M.W. AROmatic ox. frag"
+  },
+  {
+    "name" : "ONIT",
+    "type" : "CHEM_SPEC",
+    "description" : "organic nitrate"
+  },
+  {
+    "name" : "ROOH",
+    "type" : "CHEM_SPEC",
+    "description" : "higher organic peroxide"
+  },
+  {
+    "name" : "RO2",
+    "type" : "CHEM_SPEC",
+    "description" : "ALKylperoxy radical"
+  },
+  {
+    "name" : "ANO2",
+    "type" : "CHEM_SPEC",
+    "description" : "acetylmethylperoxy radical"
+  },
+  {
+    "name" : "NAP",
+    "type" : "CHEM_SPEC",
+    "description" : "nitratoALKyl peroxy radicals"
+  },
+  {
+    "name" : "XO2",
+    "type" : "CHEM_SPEC",
+    "description" : "NO to NO2 operator"
+  },
+  {
+    "name" : "XPAR",
+    "type" : "CHEM_SPEC",
+    "description" : "PAR removal operator"
+  },
+  {
+    "name" : "ISOP",
+    "type" : "CHEM_SPEC",
+    "description" : "isoprene"
+  },
+  {
+    "name" : "ISOPRD",
+    "type" : "CHEM_SPEC",
+    "description" : "lumped intermediate species"
+  },
+  {
+    "name" : "ISOPP",
+    "type" : "CHEM_SPEC",
+    "description" : "lumped peroxyradical of isoprene"
+  },
+  {
+    "name" : "ISOPN",
+    "type" : "CHEM_SPEC",
+    "description" : "no3-isoprene adduct"
+  },
+  {
+    "name" : "ISOPO2",
+    "type" : "CHEM_SPEC",
+    "description" : "lumped peroxyradical of isoprene"
+  },
+  {
+    "name" : "ARO1",
+    "type" : "CHEM_SPEC",
+    "description" : "SORGAM species"
+  },
+  {
+    "name" : "ARO2",
+    "type" : "CHEM_SPEC",
+    "description" : "SORGAM species"
+  },
+  {
+    "name" : "ALK1",
+    "type" : "CHEM_SPEC",
+    "description" : "SORGAM species"
+  },
+  {
+    "name" : "OLE1",
+    "type" : "CHEM_SPEC",
+    "description" : "SORGAM species"
+  },
+  {
+    "name" : "API1",
+    "type" : "CHEM_SPEC",
+    "description" : "SORGAM species"
+  },
+  {
+    "name" : "API2",
+    "type" : "CHEM_SPEC",
+    "description" : "SORGAM species"
+  },
+  {
+    "name" : "LIM1",
+    "type" : "CHEM_SPEC",
+    "description" : "SORGAM species"
+  },
+  {
+    "name" : "LIM2",
+    "type" : "CHEM_SPEC",
+    "description" : "SORGAM species"
+  },
+  {
+    "name" : "API",
+    "type" : "CHEM_SPEC",
+    "description" : "alpha-pinene"
+  },
+  {
+    "name" : "LIM",
+    "type" : "CHEM_SPEC",
+    "description" : "LIMonene"
+  },
+  {
+    "name" : "H2O",
+    "type" : "CHEM_SPEC",
+    "is gas-phase water" : true,
+    "description" : "water vapor"
+  },
+  {
+    "name" : "M",
+    "type" : "CHEM_SPEC",
+    "description" : "third body"
+  }
+]}

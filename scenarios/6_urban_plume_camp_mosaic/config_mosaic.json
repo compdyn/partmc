@@ -1,0 +1,11 @@
+{
+  "pmc-files" : [
+    "aerosol_representation.json",
+    "cbmz_mosaic/cbmz_abs_tol.json",
+    "cbmz_mosaic/cbmz_species.json",
+    "cbmz_mosaic/cbmz_mechanism.json",
+    "cbmz_mosaic/aerosol_phases.json",
+    "cbmz_mosaic/custom_species.json"
+  ]
+}
+

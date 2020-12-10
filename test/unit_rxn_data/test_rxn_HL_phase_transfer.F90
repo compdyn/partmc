@@ -203,7 +203,7 @@ contains
 
       ! Get species indices
       if (scenario.eq.1) then
-        idx_prefix = ""
+        idx_prefix = "P1."
       else if (scenario.eq.2) then
         idx_prefix = "the mode."
       end if
@@ -376,16 +376,16 @@ contains
         number_conc = 1.3e6         ! particle number concentration (#/cc)
       else if (scenario.eq.2) then
         ! radius (m)
-        radius = 9.37e-7 / 2.0 * exp(9.0/2.0 * 0.9 * 0.9)
+        radius = 9.37e-7 / 2.0 * exp(2.0 * log(2.1d0) * log(2.1d0) )
         ! number conc
         number_conc = 1.0 / (const%pi/6.0 * (9.37e-7)**3.0 * &
-                             exp(9.0/2.0 * 0.9 * 0.9))
+                             exp(2.0 * log(2.1d0) * log(2.1d0) ))
         number_conc = number_conc * 1.0e-9 * (1.0e-3 + 1.4e-2)
       end if
 
       ! Update the aerosol representation (single-particle only)
       if (scenario.eq.1) then
-        call number_update%set_number__n_m3(number_conc)
+        call number_update%set_number__n_m3(1, number_conc)
         call camp_core%update_data(number_update)
       end if
 
@@ -398,7 +398,7 @@ contains
         call camp_core%update_data(update_data_GSD)
         ! the mode
         call update_data_GMD%set_GMD(i_sect_the_mode, 9.3d-7)
-        call update_data_GSD%set_GSD(i_sect_the_mode, 0.9d0)
+        call update_data_GSD%set_GSD(i_sect_the_mode, 2.1d0)
         call camp_core%update_data(update_data_GMD)
         call camp_core%update_data(update_data_GSD)
       end if

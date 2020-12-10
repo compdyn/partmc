@@ -118,8 +118,8 @@ contains
 
     ! Allocate space for the results
     if (scenario.eq.1) then
-      allocate(model_conc(0:NUM_TIME_STEP, 30))
-      allocate(true_conc(0:NUM_TIME_STEP, 30))
+      allocate(model_conc(0:NUM_TIME_STEP, 90))
+      allocate(true_conc(0:NUM_TIME_STEP, 90))
     else if (scenario.eq.2) then
       allocate(model_conc(0:NUM_TIME_STEP, 15))
       allocate(true_conc(0:NUM_TIME_STEP, 15))
@@ -180,7 +180,7 @@ contains
 
       ! Get species indices
       if (scenario.eq.1) then
-        idx_prefix = ""
+        idx_prefix = "P2."
       else if (scenario.eq.2) then
         idx_prefix = "the mode."
       end if

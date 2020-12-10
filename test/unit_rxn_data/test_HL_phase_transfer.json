@@ -57,15 +57,18 @@
   },
   {
     "type" : "AERO_REP_SINGLE_PARTICLE",
-    "name" : "my aero rep 1"
+    "name" : "my aero rep 1",
+    "maximum computational particles" : 1
   },
   {
     "type" : "AERO_REP_SINGLE_PARTICLE",
-    "name" : "my aero rep 2"
+    "name" : "my aero rep 2",
+    "maximum computational particles" : 1
   },
   {
     "type" : "AERO_REP_SINGLE_PARTICLE",
-    "name" : "my aero rep 3"
+    "name" : "my aero rep 3",
+    "maximum computational particles" : 1
   },
   {
     "name" : "Henry's Law phase transfer",

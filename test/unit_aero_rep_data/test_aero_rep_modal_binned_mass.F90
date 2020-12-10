@@ -27,6 +27,14 @@ program pmc_test_aero_rep_data
   use iso_c_binding
   implicit none
 
+  ! Test Aerosol phases
+  integer(kind=i_kind), parameter :: AERO_PHASE_IDX   = 10
+  integer(kind=i_kind), parameter :: AERO_PHASE_IDX_2 =  2
+
+  !> Expected Jacobian elements for test phases
+  integer(kind=i_kind), parameter :: N_JAC_ELEM   = 5
+  integer(kind=i_kind), parameter :: N_JAC_ELEM_2 = 6
+
   !> Interface to c ODE solver and test functions
   interface
     !> Run the c function tests
@@ -329,11 +337,19 @@ contains
     phase_name = "my test phase one"
     phase_ids = aero_rep%phase_ids(phase_name)
 
+    ! Check the number of Jacobian elements for the test phases
+    call assert_msg(344638868, &
+                    aero_rep%num_jac_elem(AERO_PHASE_IDX) .eq. N_JAC_ELEM, &
+                    "Test phase 1 number of Jacobian element mismatch")
+    call assert_msg(225602977, &
+                    aero_rep%num_jac_elem(AERO_PHASE_IDX_2) &
+                        .eq. N_JAC_ELEM_2, &
+                    "Test phase 2 number of Jacobian element mismatch")
     camp_state%state_var(:) = 0.0;
     call camp_state%env_states(1)%set_temperature_K(  298.0d0 )
     call camp_state%env_states(1)%set_pressure_Pa( 101325.0d0 )
 
-    passed = run_aero_rep_modal_c_tests(                               &
+    passed = run_aero_rep_modal_c_tests(                              &
                          camp_core%solver_data_gas_aero%solver_c_ptr, &
                          c_loc(camp_state%state_var),                 &
                          c_loc(camp_state%env_var)                    &

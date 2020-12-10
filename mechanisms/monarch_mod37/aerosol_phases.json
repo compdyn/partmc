@@ -1,0 +1,64 @@
+{
+  "description" : "These aerosol phases correspond to the MONARCH 'mod37' configuration",
+  "pmc-data" : [
+    {
+      "name" : "dust",
+      "type": "AERO_PHASE",
+      "species" : [ "lumped high-density dust species", "lumped low-density dust species" ],
+      "notes" : {
+        "MLD 02/05/2018" : "consider replacing this with a set of inorganic species"
+      }
+    },
+    {
+      "name" : "sea salt",
+      "type" : "AERO_PHASE",
+      "species" : [ "lumped sea salt species" ],
+      "notes" : {
+        "MLD 02/05/2018" : "consider replacing with H2O, Na+, Cl-"
+      }
+    },
+    {
+      "name" : "organic matter",
+      "type" : "AERO_PHASE",
+      "species" : [ "PM_phob", "PM_phil", "ISOP-P1_aero", "ISOP-P2_aero", "TERP-P1_aero", "TERP-P2_aero" ]
+    },
+    {
+      "name" : "black carbon",
+      "type" : "AERO_PHASE",
+      "species" : [ "BC_phob", "BC_phil" ]
+    },
+    {
+      "name" : "other PM",
+      "type" : "AERO_PHASE",
+      "species" : [ "other PM", "other other PM" ],
+      "description" : "unspecified particulate matter"
+    },
+    {
+      "name" : "cloud and rain water",
+      "type" : "AERO_PHASE",
+      "species" : [ "H2O_aq", "H_p", "OH_m", "H2SO4_aq", "SO4_mm", "HSO4_m",
+                    "HNO3_aq", "NO3_m", "NH3_aq", "NH4_p", "HCL_aq", "CL_m",
+                    "(NH4)2-SO4", "NH4-NO3", "H-NO3", "H2-SO4", "H-HSO4",
+                    "NH4/H",
+                    "NO2_aq", "NO_aq", "O3_aq", "NO3_aq", "N2O5_aq",
+                    "HONO_aq", "HNO4_aq", "H2O2_aq", "NTR_aq", "ROOH_aq", "FORM_aq",
+                    "ALD2_aq", "ALDX_aq", "CO_aq", "MEPX_aq", "MEOH_aq", "FACD_aq",
+                    "PAN_aq", "PACD_aq", "AACD_aq", "PANX_aq", "SO2_aq", "CL2_aq",
+                    "HOCL_aq", "FMCL_aq", "ISOP-P1_aero", "ISOP-P2_aero",
+                    "TERP-P1_aero", "TERP-P2_aero", "DMS_aq", "ETOH_aq"
+                  ],
+      "description" : "aqueous species in cloud and rain water"
+    },
+    {
+      "name" : "aqueous sulfate",
+      "type" : "AERO_PHASE",
+      "species" : [ "H2O_aq", "H_p", "OH_m",
+                    "H2SO4_aq", "SO4_mm", "HSO4_m",
+                    "HNO3_aq", "NO3_m",
+                    "NH3_aq", "NH4_p",
+                    "(NH4)2-SO4", "NH4-NO3", "H-NO3", "H2-SO4", "H-HSO4", "NH4/H"
+                  ],
+      "description" : "Aqueous sulfate aerosol phase for SO4--NO3--NH3 aerosol"
+    }
+  ]
+}

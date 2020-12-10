@@ -48,6 +48,7 @@ module pmc_monarch_interface
     type(camp_state_t), pointer :: camp_state
     !> MONARCH species names
     type(string_t), allocatable :: monarch_species_names(:)
+    character(len=:), allocatable :: interface_input_file
     !> MONARCH <-> PartMC species map
     integer(kind=i_kind), allocatable :: map_monarch_id(:), map_camp_id(:)
     !> PartMC-camp ids for initial concentrations
@@ -124,7 +125,7 @@ contains
     !> Path to the PartMC-camp configuration file list
     character(len=:), allocatable, optional :: camp_config_file
     !> Path to the PartMC-camp <-> MONARCH interface input file
-    character(len=:), allocatable, optional :: interface_config_file
+    character(len=:), allocatable:: interface_config_file
     !> Starting index for chemical species in the MONARCH tracer array
     integer, optional :: starting_id
     !> Ending index for chemical species in the MONARCH tracer array
@@ -171,6 +172,8 @@ contains
       this%n_cells=n_cells
     end if
 
+    this%interface_input_file=interface_config_file
+
     ! Check for an available solver
     camp_solver_data => camp_solver_data_t()
     call assert_msg(332298164, camp_solver_data%is_solver_available(), &
@@ -185,8 +188,6 @@ contains
 
       call assert_msg(304676624, present(camp_config_file), &
               "Missing PartMC-camp configuration file list")
-      call assert_msg(194027509, present(interface_config_file), &
-              "Missing MartMC-camp <-> MONARCH interface configuration file")
       call assert_msg(937567597, present(starting_id), &
               "Missing starting tracer index for chemical species")
       call assert_msg(593895016, present(ending_id), &
@@ -310,15 +311,16 @@ contains
     ! Create a state variable on each node
     this%camp_state => this%camp_core%new_state()
 
-#ifdef ENABLE_CB05_SOA
-    ! Set the photolysis rates
-    !todo set photo_rates for MPI ranks > 0
-    do i_photo_rxn = 1, this%n_photo_rxn
-      !call this%photo_rxns(i_photo_rxn)%set_rate(real(this%base_rates(i_photo_rxn), kind=dp))
-      call this%photo_rxns(i_photo_rxn)%set_rate(real(0.01, kind=dp))
-      call this%camp_core%update_data(this%photo_rxns(i_photo_rxn))
-    end do
-#endif
+    if(this%interface_input_file.eq."interface_monarch_cb05_soa.json") then
+      ! Set the photolysis rates
+      !todo set photo_rates for MPI ranks > 0
+      do i_photo_rxn = 1, this%n_photo_rxn
+        !call this%photo_rxns(i_photo_rxn)%set_rate(real(this%base_rates(i_photo_rxn), kind=dp))
+        call this%photo_rxns(i_photo_rxn)%set_rate(real(0.01, kind=dp))
+        call this%camp_core%update_data(this%photo_rxns(i_photo_rxn))
+      end do
+
+    end if
 
     ! Set the aerosol mode dimensions
 
@@ -406,8 +408,6 @@ contains
     integer(kind=i_kind), allocatable, intent(inout) :: id_gas_species_to_print(:), id_aerosol_species_to_print(:)
     integer, intent(in) :: RESULTS_FILE_UNIT
 
-#ifdef ENABLE_CB05_SOA
-
     type(chem_spec_data_t), pointer :: chem_spec_data
 
     real, dimension(30) :: SO2_emi
@@ -444,8 +444,6 @@ contains
     integer :: ISOP_id_camp
     integer :: MEOH_id_camp
 
-#endif
-
     ! MPI
     character, allocatable :: buffer(:)
     integer(kind=i_kind) :: pos, pack_size
@@ -469,34 +467,62 @@ contains
 
     k_end = size(MONARCH_conc,3)
 
-#ifdef ENABLE_CB05_SOA
-    call assert_msg(731700229, &
-            this%camp_core%get_chem_spec_data(chem_spec_data), &
-            "No chemical species data in camp_core.")
+    if(this%interface_input_file.eq."interface_monarch_cb05_soa.json") then
 
-    SO2_emi = (/ 4.234E-09, 5.481E-09, 5.089E-09, 5.199E-09, 5.221E-09, 5.284E-09, 5.244E-09, 5.280E-09, 5.560E-09, 5.343E-09, 4.480E-09, 3.858E-09, 3.823E-09, 3.607E-09, 3.533E-09, 3.438E-09, 2.866E-09, 2.667E-09, 2.636E-09, 2.573E-09, 2.558E-09, 2.573E-09, 2.715E-09, 3.170E-09, 4.234E-09, 5.481E-09, 5.089E-09, 5.199E-09, 5.221E-09, 5.284E-09 /)
-    NO2_emi = (/ 3.024E-09, 3.334E-09, 3.063E-09, 3.281E-09, 3.372E-09, 3.523E-09, 3.402E-09, 3.551E-09, 3.413E-09, 3.985E-09, 3.308E-09, 2.933E-09, 2.380E-09, 1.935E-09, 1.798E-09, 1.537E-09, 9.633E-10, 8.873E-10, 7.968E-10, 6.156E-10, 5.920E-10, 6.320E-10, 9.871E-10, 1.901E-09, .024E-09, 3.334E-09, 3.063E-09, 3.281E-09, 3.372E-09, 3.523E-09 /)
-    NO_emi = (/ 5.749E-08, 6.338E-08, 5.825E-08, 6.237E-08, 6.411E-08, 6.699E-08, 6.468E-08, 6.753E-08, 6.488E-08, 7.575E-08, 6.291E-08, 5.576E-08, 4.524E-08, 3.679E-08, 3.419E-08, 2.924E-08, 1.832E-08, 1.687E-08, 1.515E-08, 1.171E-08, 1.125E-08, 1.202E-08, 1.877E-08, 3.615E-08, 5.749E-08, 6.338E-08, 5.825E-08, 6.237E-08, 6.411E-08, 6.699E-08 /)
-    NH3_emi = (/ 8.93E-09, 8.705E-09, 1.639E-08, 1.466E-08, 1.6405E-08, 1.8805E-08, 1.65E-08, 1.8045E-08, 1.347E-08, 6.745E-09, 5.415E-09, 2.553E-09, 2.087E-09, 2.2885E-09, 2.7265E-09, 2.738E-09, 9.96E-10, 2.707E-09, 9.84E-10, 9.675E-10, 9.905E-10, 1.0345E-09, 1.0825E-09, 2.7465E-09, 8.93E-09, 8.705E-09, 1.639E-08, 1.466E-08, 1.6405E-08, 1.8805E-08 /)
-    CO_emi = (/ 7.839E-07, 5.837E-07, 4.154E-07, 4.458E-07, 4.657E-07, 4.912E-07, 4.651E-07, 4.907E-07, 6.938E-07, 8.850E-07, 8.135E-07, 4.573E-07, 3.349E-07, 2.437E-07, 2.148E-07, 1.662E-07, 8.037E-08, 7.841E-08, 6.411E-08, 2.551E-08, 2.056E-08, 3.058E-08, 1.083E-07, 3.938E-07, 7.839E-07, 5.837E-07, 4.154E-07, 4.458E-07, 4.657E-07, 4.912E-07 /)
-    ALD2_emi = (/ 1.702E-09, 1.283E-09, 9.397E-10, 1.024E-09, 1.076E-09, 1.132E-09, 1.068E-09, 1.130E-09, 1.651E-09, 2.132E-09, 1.985E-09, 1.081E-09, 7.847E-10, 5.676E-10, 5.003E-10, 3.838E-10, 1.784E-10, 1.766E-10, 1.430E-10, 5.173E-11, 4.028E-11, 6.349E-11, 2.428E-10, 8.716E-10, 1.702E-09, 1.283E-09, 9.397E-10, 1.024E-09, 1.076E-09, 1.132E-09 /)
-    FORM_emi = (/ 4.061E-09, 3.225E-09, 2.440E-09, 2.639E-09, 2.754E-09, 2.888E-09, 2.741E-09, 2.885E-09, 4.088E-09, 5.186E-09, 4.702E-09, 2.601E-09, 1.923E-09, 1.412E-09, 1.252E-09, 9.776E-10, 4.687E-10, 4.657E-10, 3.836E-10, 1.717E-10, 1.448E-10, 1.976E-10, 6.193E-10, 2.090E-09, 4.061E-09, 3.225E-09, 2.440E-09, 2.639E-09, 2.754E-09, 2.888E-09 /)
-    ETH_emi = (/ 1.849E-08, 1.391E-08, 1.010E-08, 1.095E-08, 1.148E-08, 1.209E-08, 1.142E-08, 1.205E-08, 1.806E-08, 2.320E-08, 2.149E-08, 1.146E-08, 8.384E-09, 6.124E-09, 5.414E-09, 4.119E-09, 1.953E-09, 1.927E-09, 1.575E-09, 6.164E-10, 4.973E-10, 7.420E-10, 2.653E-09, 9.477E-09, 1.849E-08, 1.391E-08, 1.010E-08, 1.095E-08, 1.148E-08, 1.209E-08 /)
-    IOLE_emi = (/ 5.948E-09, 4.573E-09, 3.374E-09, 3.668E-09, 3.851E-09, 4.050E-09, 3.841E-09, 4.052E-09, 6.094E-09, 7.795E-09, 7.215E-09, 3.738E-09, 2.718E-09, 1.973E-09, 1.729E-09, 1.338E-09, 6.333E-10, 6.394E-10, 5.126E-10, 2.089E-10, 1.708E-10, 2.480E-10, 8.947E-10, 3.057E-09, 5.948E-09, 4.573E-09, 3.374E-09, 3.668E-09, 3.851E-09, 4.050E-09 /)
-    OLE_emi = (/ 5.948E-09, 4.573E-09, 3.374E-09, 3.668E-09, 3.851E-09, 4.050E-09, 3.841E-09, 4.052E-09, 6.094E-09, 7.795E-09, 7.215E-09, 3.738E-09, 2.718E-09, 1.973E-09, 1.729E-09, 1.338E-09, 6.333E-10, 6.394E-10, 5.126E-10, 2.089E-10, 1.708E-10, 2.480E-10, 8.947E-10, 3.057E-09, 5.948E-09, 4.573E-09, 3.374E-09, 3.668E-09, 3.851E-09, 4.050E-09 /)
-    TOL_emi = (/ 6.101E-09, 8.706E-09, 7.755E-09, 8.024E-09, 8.202E-09, 8.410E-09, 8.218E-09, 8.407E-09, 1.020E-08, 1.139E-08, 7.338E-09, 4.184E-09, 3.078E-09, 2.283E-09, 2.010E-09, 1.575E-09, 8.966E-10, 6.705E-10, 5.395E-10, 2.462E-10, 2.106E-10, 2.852E-10, 9.300E-10, 3.144E-09, 6.101E-09, 8.706E-09, 7.755E-09, 8.024E-09, 8.202E-09, 8.410E-09 /)
-    XYL_emi = (/ 5.599E-09, 4.774E-09, 3.660E-09, 3.909E-09, 4.060E-09, 4.239E-09, 4.060E-09, 4.257E-09, 6.036E-09, 7.448E-09, 6.452E-09, 3.435E-09, 2.525E-09, 1.859E-09, 1.650E-09, 1.302E-09, 6.852E-10, 6.773E-10, 5.437E-10, 2.697E-10, 2.358E-10, 3.059E-10, 8.552E-10, 2.861E-10, 5.599E-09, 4.774E-09, 3.660E-09, 3.909E-09, 4.060E-09, 4.239E-09 /)
-    PAR_emi = (/ 1.709E-07, 1.953E-07, 1.698E-07, 1.761E-07, 1.808E-07, 1.865E-07, 1.822E-07, 1.859E-07, 2.412E-07, 2.728E-07, 2.174E-07, 1.243E-07, 9.741E-08, 7.744E-08, 6.931E-08, 5.805E-08, 3.900E-08, 3.317E-08, 2.956E-08, 2.306E-08, 2.231E-08, 2.395E-08, 4.284E-08, 9.655E-08, 1.709E-07, 1.953E-07, 1.698E-07, 1.761E-07, 1.808E-07, 1.865E-07 /)
-    ISOP_emi = (/ 2.412E-10, 2.814E-10, 3.147E-10, 4.358E-10, 5.907E-10, 6.766E-10, 6.594E-10, 5.879E-10, 5.435E-10, 6.402E-10, 5.097E-10, 9.990E-11, 7.691E-11, 5.939E-11, 5.198E-11, 4.498E-11, 3.358E-11, 2.946E-11, 2.728E-11, 2.183E-11, 1.953E-11, 1.890E-11, 2.948E-11, 1.635E-10, 2.412E-10, 2.814E-10, 3.147E-10, 4.358E-10, 5.907E-10, 6.766E-10 /)
-    MEOH_emi = (/ 2.368E-10, 6.107E-10, 6.890E-10, 6.890E-10, 6.890E-10, 6.889E-10, 6.886E-10, 6.890E-10, 6.890E-10, 5.414E-10, 3.701E-10, 2.554E-10, 1.423E-10, 6.699E-11, 2.912E-11, 2.877E-11, 2.825E-11, 2.056E-12, 2.056E-12, 2.056E-12, 2.435E-12, 2.435E-12, 4.030E-11, 1.168E-10, 2.368E-10, 6.107E-10, 6.890E-10, 6.890E-10, 6.890E-10, 6.889E-10 /)
-    rate_emi = (/0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 /)
+      SO2_emi = (/ 4.234E-09,5.481E-09,5.089E-09,5.199E-09,5.221E-09,5.284E-09,5.244E-09,5.280E-09,5.560E-09,&
+              5.343E-09,4.480E-09,3.858E-09,3.823E-09,3.607E-09,3.533E-09,3.438E-09,2.866E-09,2.667E-09,2.636E-09,&
+              2.573E-09,2.558E-09,2.573E-09,2.715E-09,3.170E-09,4.234E-09,5.481E-09,5.089E-09,5.199E-09,5.221E-09,5.284E-09 /)
+      NO2_emi = (/ 3.024E-09,3.334E-09,3.063E-09,3.281E-09,3.372E-09,3.523E-09,3.402E-09,3.551E-09,3.413E-09,&
+              3.985E-09,3.308E-09,2.933E-09,2.380E-09,1.935E-09,1.798E-09,1.537E-09,9.633E-10,8.873E-10,7.968E-10,&
+              6.156E-10,5.920E-10,6.320E-10,9.871E-10,1.901E-09,.024E-09,3.334E-09,3.063E-09,3.281E-09,3.372E-09,3.523E-09 /)
+      NO_emi = (/ 5.749E-08,6.338E-08,5.825E-08,6.237E-08,6.411E-08,6.699E-08,6.468E-08,6.753E-08,6.488E-08,&
+              7.575E-08,6.291E-08,5.576E-08,4.524E-08,3.679E-08,3.419E-08,2.924E-08,1.832E-08,1.687E-08,1.515E-08,&
+              1.171E-08,1.125E-08,1.202E-08,1.877E-08,3.615E-08,5.749E-08,6.338E-08,5.825E-08,6.237E-08,6.411E-08,6.699E-08 /)
+      NH3_emi = (/ 8.93E-09,8.705E-09,1.639E-08,1.466E-08,1.6405E-08,1.8805E-08,1.65E-08,1.8045E-08,1.347E-08,&
+              6.745E-09,5.415E-09,2.553E-09,2.087E-09,2.2885E-09,2.7265E-09,2.738E-09,9.96E-10,2.707E-09,9.84E-10,&
+              9.675E-10,9.905E-10,1.0345E-09,1.0825E-09,2.7465E-09,8.93E-09,8.705E-09,1.639E-08,1.466E-08,1.6405E-08,1.8805E-08 /)
+      CO_emi = (/ 7.839E-07,5.837E-07,4.154E-07,4.458E-07,4.657E-07,4.912E-07,4.651E-07,4.907E-07,6.938E-07,&
+              8.850E-07,8.135E-07,4.573E-07,3.349E-07,2.437E-07,2.148E-07,1.662E-07,8.037E-08,7.841E-08,6.411E-08,&
+              2.551E-08,2.056E-08,3.058E-08,1.083E-07,3.938E-07,7.839E-07,5.837E-07,4.154E-07,4.458E-07,4.657E-07,4.912E-07 /)
+      ALD2_emi = (/ 1.702E-09,1.283E-09,9.397E-10,1.024E-09,1.076E-09,1.132E-09,1.068E-09,1.130E-09,1.651E-09,&
+              2.132E-09,1.985E-09,1.081E-09,7.847E-10,5.676E-10,5.003E-10,3.838E-10,1.784E-10,1.766E-10,1.430E-10,&
+              5.173E-11,4.028E-11,6.349E-11,2.428E-10,8.716E-10,1.702E-09,1.283E-09,9.397E-10,1.024E-09,1.076E-09,1.132E-09 /)
+      FORM_emi = (/ 4.061E-09,3.225E-09,2.440E-09,2.639E-09,2.754E-09,2.888E-09,2.741E-09,2.885E-09,4.088E-09,&
+              5.186E-09,4.702E-09,2.601E-09,1.923E-09,1.412E-09,1.252E-09,9.776E-10,4.687E-10,4.657E-10,3.836E-10,&
+              1.717E-10,1.448E-10,1.976E-10,6.193E-10,2.090E-09,4.061E-09,3.225E-09,2.440E-09,2.639E-09,2.754E-09,2.888E-09 /)
+      ETH_emi = (/ 1.849E-08,1.391E-08,1.010E-08,1.095E-08,1.148E-08,1.209E-08,1.142E-08,1.205E-08,1.806E-08,&
+              2.320E-08,2.149E-08,1.146E-08,8.384E-09,6.124E-09,5.414E-09,4.119E-09,1.953E-09,1.927E-09,1.575E-09,&
+              6.164E-10,4.973E-10,7.420E-10,2.653E-09,9.477E-09,1.849E-08,1.391E-08,1.010E-08,1.095E-08,1.148E-08,1.209E-08 /)
+      IOLE_emi = (/ 5.948E-09,4.573E-09,3.374E-09,3.668E-09,3.851E-09,4.050E-09,3.841E-09,4.052E-09,6.094E-09,&
+              7.795E-09,7.215E-09,3.738E-09,2.718E-09,1.973E-09,1.729E-09,1.338E-09,6.333E-10,6.394E-10,5.126E-10,&
+              2.089E-10,1.708E-10,2.480E-10,8.947E-10,3.057E-09,5.948E-09,4.573E-09,3.374E-09,3.668E-09,3.851E-09,4.050E-09 /)
+      OLE_emi = (/ 5.948E-09,4.573E-09,3.374E-09,3.668E-09,3.851E-09,4.050E-09,3.841E-09,4.052E-09,6.094E-09,&
+              7.795E-09,7.215E-09,3.738E-09,2.718E-09,1.973E-09,1.729E-09,1.338E-09,6.333E-10,6.394E-10,5.126E-10,&
+              2.089E-10,1.708E-10,2.480E-10,8.947E-10,3.057E-09,5.948E-09,4.573E-09,3.374E-09,3.668E-09,3.851E-09,4.050E-09 /)
+      TOL_emi = (/ 6.101E-09,8.706E-09,7.755E-09,8.024E-09,8.202E-09,8.410E-09,8.218E-09,8.407E-09,1.020E-08,&
+              1.139E-08,7.338E-09,4.184E-09,3.078E-09,2.283E-09,2.010E-09,1.575E-09,8.966E-10,6.705E-10,5.395E-10,&
+              2.462E-10,2.106E-10,2.852E-10,9.300E-10,3.144E-09,6.101E-09,8.706E-09,7.755E-09,8.024E-09,8.202E-09,8.410E-09 /)
+      XYL_emi = (/ 5.599E-09,4.774E-09,3.660E-09,3.909E-09,4.060E-09,4.239E-09,4.060E-09,4.257E-09,6.036E-09,&
+              7.448E-09,6.452E-09,3.435E-09,2.525E-09,1.859E-09,1.650E-09,1.302E-09,6.852E-10,6.773E-10,5.437E-10,&
+              2.697E-10,2.358E-10,3.059E-10,8.552E-10,2.861E-10,5.599E-09,4.774E-09,3.660E-09,3.909E-09,4.060E-09,4.239E-09 /)
+      PAR_emi = (/ 1.709E-07,1.953E-07,1.698E-07,1.761E-07,1.808E-07,1.865E-07,1.822E-07,1.859E-07,2.412E-07,&
+              2.728E-07,2.174E-07,1.243E-07,9.741E-08,7.744E-08,6.931E-08,5.805E-08,3.900E-08,3.317E-08,2.956E-08,&
+              2.306E-08,2.231E-08,2.395E-08,4.284E-08,9.655E-08,1.709E-07,1.953E-07,1.698E-07,1.761E-07,1.808E-07,1.865E-07 /)
+      ISOP_emi = (/ 2.412E-10,2.814E-10,3.147E-10,4.358E-10,5.907E-10,6.766E-10,6.594E-10,5.879E-10,5.435E-10,&
+              6.402E-10,5.097E-10,9.990E-11,7.691E-11,5.939E-11,5.198E-11,4.498E-11,3.358E-11,2.946E-11,2.728E-11,&
+              2.183E-11,1.953E-11,1.890E-11,2.948E-11,1.635E-10,2.412E-10,2.814E-10,3.147E-10,4.358E-10,5.907E-10,6.766E-10 /)
+      MEOH_emi = (/ 2.368E-10,6.107E-10,6.890E-10,6.890E-10,6.890E-10,6.889E-10,6.886E-10,6.890E-10,6.890E-10,&
+              5.414E-10,3.701E-10,2.554E-10,1.423E-10,6.699E-11,2.912E-11,2.877E-11,2.825E-11,2.056E-12,2.056E-12,&
+              2.056E-12,2.435E-12,2.435E-12,4.030E-11,1.168E-10,2.368E-10,6.107E-10,6.890E-10,6.890E-10,6.890E-10,6.889E-10 /)
+      rate_emi = (/0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,&
+              0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0 /)
 
-    if(mod(int(curr_time),60).eq.0) then
-      write(*,*) "i_hour loop", i_hour
-      i_hour = i_hour + 1
+      if(mod(int(curr_time),60).eq.0) then
+        write(*,*) "i_hour loop", i_hour
+        i_hour = i_hour + 1
+      end if
+
     end if
-
-#endif
 
     if(.not.this%solve_multiple_cells) then
       do i=i_start, i_end
@@ -521,44 +547,70 @@ contains
 
             !print*,"camp_state", this%camp_state%state_var(this%map_camp_id(:))
 
-            !this%camp_state%state_var(this%gas_phase_water_id) = &
-            !        water_conc(i,j,k_flip,water_vapor_index) * &
-            !        air_density(i,j,k) * 1.0d9
-
-            !todo check gas_phase_water_id
 #ifdef IMPORT_CAMP_INPUT
 #else
+          if(this%interface_input_file.eq."interface_simple.json") then
+            this%camp_state%state_var(this%gas_phase_water_id) = &
+            water_conc(i,j,k_flip,water_vapor_index)! * &
+            !        air_density(i,j,k) * 1.0d9
+          else
             this%camp_state%state_var(this%gas_phase_water_id) = &
                     water_conc(i,j,k_flip,water_vapor_index) * &
-                    mwair / mwwat * 1.e6
+                            mwair / mwwat * 1.e6
+          end if
 #endif
-            !print*,'monarch_conc: ',this%camp_state%state_var
-            !stop
-            !print*,'O3: ',this%camp_state%state_var(chem_spec_data%gas_state_id("O3"))
-            !print*,'SO2: ',this%camp_state%state_var(chem_spec_data%gas_state_id("SO2"))
-            !print*,'ISOP: ',this%camp_state%state_var(chem_spec_data%gas_state_id("ISOP"))
-            !print*,'water conc: ',this%camp_state%state_var(this%gas_phase_water_id) &
-            !      ,water_conc(i,j,k_flip,water_vapor_index),air_density(i,j,k)
-            !stop
-#ifdef ENABLE_CB05_SOA
+
+            !print*, "state", this%camp_state%state_var(:)
+
+            if(this%interface_input_file.eq."interface_monarch_cb05_soa.json") then
               !todo take into account emissions for import_camp_input
               !Add emissions
-              this%camp_state%state_var(chem_spec_data%gas_state_id("SO2"))=this%camp_state%state_var(chem_spec_data%gas_state_id("SO2"))+SO2_emi(i_hour)*rate_emi(i_hour)*conv
-              this%camp_state%state_var(chem_spec_data%gas_state_id("NO2"))=this%camp_state%state_var(chem_spec_data%gas_state_id("NO2"))+NO2_emi(i_hour)*rate_emi(i_hour)*conv
-              this%camp_state%state_var(chem_spec_data%gas_state_id("NO"))=this%camp_state%state_var(chem_spec_data%gas_state_id("NO"))+NO_emi(i_hour)*rate_emi(i_hour)*conv
-              this%camp_state%state_var(chem_spec_data%gas_state_id("NH3"))=this%camp_state%state_var(chem_spec_data%gas_state_id("NH3"))+NH3_emi(i_hour)*rate_emi(i_hour)*conv
-              this%camp_state%state_var(chem_spec_data%gas_state_id("CO"))=this%camp_state%state_var(chem_spec_data%gas_state_id("CO"))+CO_emi(i_hour)*rate_emi(i_hour)*conv
-              this%camp_state%state_var(chem_spec_data%gas_state_id("ALD2"))=this%camp_state%state_var(chem_spec_data%gas_state_id("ALD2"))+ALD2_emi(i_hour)*rate_emi(i_hour)*conv
-              this%camp_state%state_var(chem_spec_data%gas_state_id("FORM"))=this%camp_state%state_var(chem_spec_data%gas_state_id("FORM"))+FORM_emi(i_hour)*rate_emi(i_hour)*conv
-              this%camp_state%state_var(chem_spec_data%gas_state_id("ETH"))=this%camp_state%state_var(chem_spec_data%gas_state_id("ETH"))+ETH_emi(i_hour)*rate_emi(i_hour)*conv
-              this%camp_state%state_var(chem_spec_data%gas_state_id("IOLE"))=this%camp_state%state_var(chem_spec_data%gas_state_id("IOLE"))+IOLE_emi(i_hour)*rate_emi(i_hour)*conv
-              this%camp_state%state_var(chem_spec_data%gas_state_id("OLE"))=this%camp_state%state_var(chem_spec_data%gas_state_id("OLE"))+OLE_emi(i_hour)*rate_emi(i_hour)*conv
-              this%camp_state%state_var(chem_spec_data%gas_state_id("TOL"))=this%camp_state%state_var(chem_spec_data%gas_state_id("TOL"))+TOL_emi(i_hour)*rate_emi(i_hour)*conv
-              this%camp_state%state_var(chem_spec_data%gas_state_id("XYL"))=this%camp_state%state_var(chem_spec_data%gas_state_id("XYL"))+XYL_emi(i_hour)*rate_emi(i_hour)*conv
-              this%camp_state%state_var(chem_spec_data%gas_state_id("PAR"))=this%camp_state%state_var(chem_spec_data%gas_state_id("PAR"))+PAR_emi(i_hour)*rate_emi(i_hour)*conv
-              this%camp_state%state_var(chem_spec_data%gas_state_id("ISOP"))=this%camp_state%state_var(chem_spec_data%gas_state_id("ISOP"))+ISOP_emi(i_hour)*rate_emi(i_hour)*conv
-              this%camp_state%state_var(chem_spec_data%gas_state_id("MEOH"))=this%camp_state%state_var(chem_spec_data%gas_state_id("MEOH"))+MEOH_emi(i_hour)*rate_emi(i_hour)*conv
-#endif
+              this%camp_state%state_var(chem_spec_data%gas_state_id("SO2"))=&
+                      this%camp_state%state_var(chem_spec_data%gas_state_id("SO2"))&
+                              +SO2_emi(i_hour)*rate_emi(i_hour)*conv
+              this%camp_state%state_var(chem_spec_data%gas_state_id("NO2"))=&
+                      this%camp_state%state_var(chem_spec_data%gas_state_id("NO2"))&
+                              +NO2_emi(i_hour)*rate_emi(i_hour)*conv
+              this%camp_state%state_var(chem_spec_data%gas_state_id("NO"))=&
+                      this%camp_state%state_var(chem_spec_data%gas_state_id("NO"))&
+                              +NO_emi(i_hour)*rate_emi(i_hour)*conv
+              this%camp_state%state_var(chem_spec_data%gas_state_id("NH3"))=&
+                      this%camp_state%state_var(chem_spec_data%gas_state_id("NH3"))&
+                              +NH3_emi(i_hour)*rate_emi(i_hour)*conv
+              this%camp_state%state_var(chem_spec_data%gas_state_id("CO"))=&
+                      this%camp_state%state_var(chem_spec_data%gas_state_id("CO"))&
+                              +CO_emi(i_hour)*rate_emi(i_hour)*conv
+              this%camp_state%state_var(chem_spec_data%gas_state_id("ALD2"))=&
+                      this%camp_state%state_var(chem_spec_data%gas_state_id("ALD2"))&
+                              +ALD2_emi(i_hour)*rate_emi(i_hour)*conv
+              this%camp_state%state_var(chem_spec_data%gas_state_id("FORM"))=&
+                      this%camp_state%state_var(chem_spec_data%gas_state_id("FORM"))&
+                              +FORM_emi(i_hour)*rate_emi(i_hour)*conv
+              this%camp_state%state_var(chem_spec_data%gas_state_id("ETH"))=&
+                      this%camp_state%state_var(chem_spec_data%gas_state_id("ETH"))&
+                              +ETH_emi(i_hour)*rate_emi(i_hour)*conv
+              this%camp_state%state_var(chem_spec_data%gas_state_id("IOLE"))=&
+                      this%camp_state%state_var(chem_spec_data%gas_state_id("IOLE"))&
+                              +IOLE_emi(i_hour)*rate_emi(i_hour)*conv
+              this%camp_state%state_var(chem_spec_data%gas_state_id("OLE"))=&
+                      this%camp_state%state_var(chem_spec_data%gas_state_id("OLE"))&
+                              +OLE_emi(i_hour)*rate_emi(i_hour)*conv
+              this%camp_state%state_var(chem_spec_data%gas_state_id("TOL"))=&
+                      this%camp_state%state_var(chem_spec_data%gas_state_id("TOL"))&
+                              +TOL_emi(i_hour)*rate_emi(i_hour)*conv
+              this%camp_state%state_var(chem_spec_data%gas_state_id("XYL"))=&
+                      this%camp_state%state_var(chem_spec_data%gas_state_id("XYL"))&
+                              +XYL_emi(i_hour)*rate_emi(i_hour)*conv
+              this%camp_state%state_var(chem_spec_data%gas_state_id("PAR"))=&
+                      this%camp_state%state_var(chem_spec_data%gas_state_id("PAR"))&
+                              +PAR_emi(i_hour)*rate_emi(i_hour)*conv
+              this%camp_state%state_var(chem_spec_data%gas_state_id("ISOP"))=&
+                      this%camp_state%state_var(chem_spec_data%gas_state_id("ISOP"))&
+                              +ISOP_emi(i_hour)*rate_emi(i_hour)*conv
+              this%camp_state%state_var(chem_spec_data%gas_state_id("MEOH"))=&
+                      this%camp_state%state_var(chem_spec_data%gas_state_id("MEOH"))&
+                              +MEOH_emi(i_hour)*rate_emi(i_hour)*conv
+            end if
 
             !write(*,*) "State_var input",this%camp_state%state_var(this%map_camp_id(:)+(z*state_size_per_cell))
 
@@ -652,33 +704,65 @@ contains
             !(z*state_size_per_cell)) = MONARCH_conc(1,1,1,this%map_monarch_id(:))
             !print*, "camp_state", this%camp_state%state_var(this%map_camp_id(:)+(z*state_size_per_cell))
 
-            !this%camp_state%state_var(this%gas_phase_water_id +(z*state_size_per_cell)) = &
-            !water_conc(i,j,k_flip,water_vapor_index) * mwair / mwwat * 1.e6
 #ifdef IMPORT_CAMP_INPUT
 #else
-            this%camp_state%state_var(this%gas_phase_water_id +(z*state_size_per_cell)) = &
-            water_conc(1,1,1,water_vapor_index) * mwair / mwwat * 1.e6
+            if(this%interface_input_file.eq."interface_simple.json") then
+              this%camp_state%state_var(this%gas_phase_water_id+(z*state_size_per_cell)) = &
+                      water_conc(i,j,k_flip,water_vapor_index) *air_density(i,j,k) * 1.0d9
+            else
+              this%camp_state%state_var(this%gas_phase_water_id+(z*state_size_per_cell)) = &
+                      water_conc(1,1,1,water_vapor_index) * mwair / mwwat * 1.e6
+            end if
 #endif
 
-#ifdef ENABLE_CB05_SOA
-            !Add emissions
-            this%camp_state%state_var(chem_spec_data%gas_state_id("SO2")+z*state_size_per_cell)=this%camp_state%state_var(chem_spec_data%gas_state_id("SO2")+z*state_size_per_cell)+SO2_emi(i_hour)*rate_emi(i_hour)*conv
-            this%camp_state%state_var(chem_spec_data%gas_state_id("NO2")+z*state_size_per_cell)=this%camp_state%state_var(chem_spec_data%gas_state_id("NO2")+z*state_size_per_cell)+NO2_emi(i_hour)*rate_emi(i_hour)*conv
-            this%camp_state%state_var(chem_spec_data%gas_state_id("NO")+z*state_size_per_cell)=this%camp_state%state_var(chem_spec_data%gas_state_id("NO")+z*state_size_per_cell)+NO_emi(i_hour)*rate_emi(i_hour)*conv
-            this%camp_state%state_var(chem_spec_data%gas_state_id("NH3")+z*state_size_per_cell)=this%camp_state%state_var(chem_spec_data%gas_state_id("NH3")+z*state_size_per_cell)+NH3_emi(i_hour)*rate_emi(i_hour)*conv
-            this%camp_state%state_var(chem_spec_data%gas_state_id("CO")+z*state_size_per_cell)=this%camp_state%state_var(chem_spec_data%gas_state_id("CO")+z*state_size_per_cell)+CO_emi(i_hour)*rate_emi(i_hour)*conv
-            this%camp_state%state_var(chem_spec_data%gas_state_id("ALD2")+z*state_size_per_cell)=this%camp_state%state_var(chem_spec_data%gas_state_id("ALD2")+z*state_size_per_cell)+ALD2_emi(i_hour)*rate_emi(i_hour)*conv
-            this%camp_state%state_var(chem_spec_data%gas_state_id("FORM")+z*state_size_per_cell)=this%camp_state%state_var(chem_spec_data%gas_state_id("FORM")+z*state_size_per_cell)+FORM_emi(i_hour)*rate_emi(i_hour)*conv
-            this%camp_state%state_var(chem_spec_data%gas_state_id("ETH")+z*state_size_per_cell)=this%camp_state%state_var(chem_spec_data%gas_state_id("ETH")+z*state_size_per_cell)+ETH_emi(i_hour)*rate_emi(i_hour)*conv
-            this%camp_state%state_var(chem_spec_data%gas_state_id("IOLE")+z*state_size_per_cell)=this%camp_state%state_var(chem_spec_data%gas_state_id("IOLE")+z*state_size_per_cell)+IOLE_emi(i_hour)*rate_emi(i_hour)*conv
-            this%camp_state%state_var(chem_spec_data%gas_state_id("OLE")+z*state_size_per_cell)=this%camp_state%state_var(chem_spec_data%gas_state_id("OLE")+z*state_size_per_cell)+OLE_emi(i_hour)*rate_emi(i_hour)*conv
-            this%camp_state%state_var(chem_spec_data%gas_state_id("TOL")+z*state_size_per_cell)=this%camp_state%state_var(chem_spec_data%gas_state_id("TOL")+z*state_size_per_cell)+TOL_emi(i_hour)*rate_emi(i_hour)*conv
-            this%camp_state%state_var(chem_spec_data%gas_state_id("XYL")+z*state_size_per_cell)=this%camp_state%state_var(chem_spec_data%gas_state_id("XYL")+z*state_size_per_cell)+XYL_emi(i_hour)*rate_emi(i_hour)*conv
-            this%camp_state%state_var(chem_spec_data%gas_state_id("PAR")+z*state_size_per_cell)=this%camp_state%state_var(chem_spec_data%gas_state_id("PAR")+z*state_size_per_cell)+PAR_emi(i_hour)*rate_emi(i_hour)*conv
-            this%camp_state%state_var(chem_spec_data%gas_state_id("ISOP")+z*state_size_per_cell)=this%camp_state%state_var(chem_spec_data%gas_state_id("ISOP")+z*state_size_per_cell)+ISOP_emi(i_hour)*rate_emi(i_hour)*conv
-            this%camp_state%state_var(chem_spec_data%gas_state_id("MEOH")+z*state_size_per_cell)=this%camp_state%state_var(chem_spec_data%gas_state_id("MEOH")+z*state_size_per_cell)+MEOH_emi(i_hour)*rate_emi(i_hour)*conv
-#endif
-
+            if(this%interface_input_file.eq."interface_monarch_cb05_soa.json") then
+              !Add emissions
+              this%camp_state%state_var(chem_spec_data%gas_state_id("SO2")+z*state_size_per_cell)=&
+                      this%camp_state%state_var(chem_spec_data%gas_state_id("SO2")+z*state_size_per_cell)&
+                              +SO2_emi(i_hour)*rate_emi(i_hour)*conv
+              this%camp_state%state_var(chem_spec_data%gas_state_id("NO2")+z*state_size_per_cell)=&
+                      this%camp_state%state_var(chem_spec_data%gas_state_id("NO2")+z*state_size_per_cell)&
+                              +NO2_emi(i_hour)*rate_emi(i_hour)*conv
+              this%camp_state%state_var(chem_spec_data%gas_state_id("NO")+z*state_size_per_cell)=&
+                      this%camp_state%state_var(chem_spec_data%gas_state_id("NO")+z*state_size_per_cell)&
+                              +NO_emi(i_hour)*rate_emi(i_hour)*conv
+              this%camp_state%state_var(chem_spec_data%gas_state_id("NH3")+z*state_size_per_cell)=&
+                      this%camp_state%state_var(chem_spec_data%gas_state_id("NH3")+z*state_size_per_cell)&
+                              +NH3_emi(i_hour)*rate_emi(i_hour)*conv
+              this%camp_state%state_var(chem_spec_data%gas_state_id("CO")+z*state_size_per_cell)=&
+                      this%camp_state%state_var(chem_spec_data%gas_state_id("CO")+z*state_size_per_cell)&
+                              +CO_emi(i_hour)*rate_emi(i_hour)*conv
+              this%camp_state%state_var(chem_spec_data%gas_state_id("ALD2")+z*state_size_per_cell)=&
+                      this%camp_state%state_var(chem_spec_data%gas_state_id("ALD2")+z*state_size_per_cell)&
+                              +ALD2_emi(i_hour)*rate_emi(i_hour)*conv
+              this%camp_state%state_var(chem_spec_data%gas_state_id("FORM")+z*state_size_per_cell)=&
+                      this%camp_state%state_var(chem_spec_data%gas_state_id("FORM")+z*state_size_per_cell)&
+                              +FORM_emi(i_hour)*rate_emi(i_hour)*conv
+              this%camp_state%state_var(chem_spec_data%gas_state_id("ETH")+z*state_size_per_cell)=&
+                      this%camp_state%state_var(chem_spec_data%gas_state_id("ETH")+z*state_size_per_cell)&
+                              +ETH_emi(i_hour)*rate_emi(i_hour)*conv
+              this%camp_state%state_var(chem_spec_data%gas_state_id("IOLE")+z*state_size_per_cell)=&
+                      this%camp_state%state_var(chem_spec_data%gas_state_id("IOLE")+z*state_size_per_cell)&
+                              +IOLE_emi(i_hour)*rate_emi(i_hour)*conv
+              this%camp_state%state_var(chem_spec_data%gas_state_id("OLE")+z*state_size_per_cell)=&
+                      this%camp_state%state_var(chem_spec_data%gas_state_id("OLE")+z*state_size_per_cell)&
+                              +OLE_emi(i_hour)*rate_emi(i_hour)*conv
+              this%camp_state%state_var(chem_spec_data%gas_state_id("TOL")+z*state_size_per_cell)=&
+                      this%camp_state%state_var(chem_spec_data%gas_state_id("TOL")+z*state_size_per_cell)&
+                              +TOL_emi(i_hour)*rate_emi(i_hour)*conv
+              this%camp_state%state_var(chem_spec_data%gas_state_id("XYL")+z*state_size_per_cell)=&
+                      this%camp_state%state_var(chem_spec_data%gas_state_id("XYL")+z*state_size_per_cell)&
+                              +XYL_emi(i_hour)*rate_emi(i_hour)*conv
+              this%camp_state%state_var(chem_spec_data%gas_state_id("PAR")+z*state_size_per_cell)=&
+                      this%camp_state%state_var(chem_spec_data%gas_state_id("PAR")+z*state_size_per_cell)&
+                              +PAR_emi(i_hour)*rate_emi(i_hour)*conv
+              this%camp_state%state_var(chem_spec_data%gas_state_id("ISOP")+z*state_size_per_cell)=&
+                      this%camp_state%state_var(chem_spec_data%gas_state_id("ISOP")+z*state_size_per_cell)&
+                              +ISOP_emi(i_hour)*rate_emi(i_hour)*conv
+              this%camp_state%state_var(chem_spec_data%gas_state_id("MEOH")+z*state_size_per_cell)=&
+                      this%camp_state%state_var(chem_spec_data%gas_state_id("MEOH")+z*state_size_per_cell)&
+                              +MEOH_emi(i_hour)*rate_emi(i_hour)*conv
+            endif
           end do
         end do
       end do
@@ -850,13 +934,11 @@ end if
     real(kind=dp) :: rate_val
     type(string_t), allocatable :: spec_names(:)
 
-!#ifdef ENABLE_CB05_SOA
+    if(this%interface_input_file.eq."interface_monarch_cb05_soa.json") then
 
 #ifdef PMC_USE_MPI
     !if (pmc_mpi_rank().eq.0) then
 #endif
-
-      !todo check this code doesnt give problems without enable_cb05_soa case (default case and mock monarch 1)
       key = "MONARCH mod37"
 
       !mechanism => this%camp_core%mechanism( 1 ) %val
@@ -911,7 +993,7 @@ end if
     !end if
 #endif
 
-!#endif
+    end if
 
     ! Get the gas-phase species ids
     key_name = "gas-phase species"
@@ -946,7 +1028,7 @@ end if
     call assert_msg(910692272, this%gas_phase_water_id.gt.0, &
             "Could not find gas-phase water species '"//spec_name//"'.")
 
-    print*, "this%gas_phase_water_id", this%gas_phase_water_id
+    !print*, "this%gas_phase_water_id", this%gas_phase_water_id
 
     ! Loop through the gas-phase species and set up the map
     call gas_species_list%iter_reset()
@@ -1169,24 +1251,24 @@ end if
     real, intent(inout) :: MONARCH_air_density(:,:,:)
     integer, intent(in) :: i_W,I_E,I_S,I_N
 
-    integer(kind=i_kind) :: i_spec, water_id,i,j,k,r,k_end,state_size_per_cell, aux
+    integer(kind=i_kind) :: i_spec, water_id,i,j,k,r,k_end,state_size_per_cell, last_cell
     real :: factor_ppb_to_ppm
     real :: conc_deviation_perc
 
     conc_deviation_perc=0.!0.2
     k_end=size(MONARCH_conc,3)
 
-#ifdef ENABLE_CB05_SOA
-    factor_ppb_to_ppm=1.0E-3
-#else
-    factor_ppb_to_ppm=1.0
-#endif
+    if(this%interface_input_file.eq."interface_monarch_cb05_soa.json") then
+      factor_ppb_to_ppm=1.0E-3
+    else
+      factor_ppb_to_ppm=1.0
+    end if
+
     print*,'debuggg factor_ppb_to_ppm: ',factor_ppb_to_ppm
     ! Reset the species concentrations in PMC and MONARCH
     !this%camp_state%state_var(:) = 0.0
     this%camp_state%state_var(:) = 0.0
     MONARCH_conc(:,:,:,:) = 0.0
-    !MONARCH_water_conc(:,:,:,WATER_VAPOR_ID) = 0.0
 
     print*,'MONARCH air density: ',MONARCH_air_density(1,1,1)
 
@@ -1194,15 +1276,16 @@ end if
     this%init_conc(:) = this%init_conc(:) * factor_ppb_to_ppm
     this%camp_state%state_var(this%init_conc_camp_id(:)) = this%init_conc(:)
 
-    !print*,"init_conc", this%init_conc(:)
+    print*,"init_conc", this%init_conc(:)
 
     state_size_per_cell = this%camp_core%state_size_per_cell()
+
 
     do i=i_W, I_E
       do j=I_S, I_N
         do k=1, k_end
           r=(k-1)*(I_E*I_N) + (j-1)*(I_E) + i-1
-          aux=((I_E - I_W+1)*(I_N - I_S+1)*k_end)-1
+          last_cell=((I_E - I_W+1)*(I_N - I_S+1)*k_end)-1
 
           forall (i_spec = 1:size(this%map_monarch_id))
             this%camp_state%state_var(this%init_conc_camp_id(i_spec)&
@@ -1210,7 +1293,7 @@ end if
           end forall
 
           !Last cell = First cell
-          if(r.ne.aux) then
+          if(r.ne.last_cell) then
             do i_spec=1, size(this%map_monarch_id)
               MONARCH_conc(i,j,k,this%map_monarch_id(i_spec)) = &
                 this%camp_state%state_var(this%map_camp_id(i_spec))&
@@ -1230,9 +1313,18 @@ end if
           end if
 
           !MONARCH_conc(i,j,k,:) = MONARCH_conc(1,1,1,:)
-          this%camp_state%state_var(this%gas_phase_water_id) = &
-                  MONARCH_water_conc(i,j,k,WATER_VAPOR_ID) * &
-                          mwair / mwwat * 1.e6
+
+          if(this%interface_input_file.eq."interface_simple.json") then
+            !Not much good water_conc implementation, tries to don't use monarch_1 case
+            MONARCH_water_conc(:,:,:,WATER_VAPOR_ID +(r*state_size_per_cell)) = &
+                    this%camp_state%state_var(this%gas_phase_water_id) !* &
+            !                1.0d-9 / 1.225d0
+          else
+            this%camp_state%state_var(this%gas_phase_water_id +(r*state_size_per_cell)) = &
+                    MONARCH_water_conc(i,j,k,WATER_VAPOR_ID) * &
+                            mwair / mwwat * 1.e6
+          end if
+
           !print*,"MONARCH_conc", MONARCH_conc(i,j,k,this%map_monarch_id(:))
 
         end do
@@ -1242,16 +1334,13 @@ end if
     !print*,"camp_state", this%camp_state%state_var(this%map_camp_id(:))
     !print*,"camp_state 1", this%camp_state%state_var(this%map_camp_id(:)+1*state_size_per_cell)
 
-    !write(*,*) "Init conc",this%init_conc(this%map_camp_id(:))
-    !write(*,*) "State_var init",this%camp_state%state_var(this%map_camp_id(:))
-
     ! Set the relative humidity
     !MONARCH_water_conc(:,:,:,WATER_VAPOR_ID) = &
     !        this%camp_state%state_var(this%gas_phase_water_id) * &
     !        1.0d-9 / MONARCH_air_density(:,:,:) !1.225d0
-    this%camp_state%state_var(this%gas_phase_water_id) = &
-             MONARCH_water_conc(1,1,1,WATER_VAPOR_ID) * &
-             mwair / mwwat * 1.e6
+    !this%camp_state%state_var(this%gas_phase_water_id) = &
+    !         MONARCH_water_conc(1,1,1,WATER_VAPOR_ID) * &
+    !         mwair / mwwat * 1.e6
              !MONARCH_air_density(1,1,1) / 1.0d-9
 
   end subroutine get_init_conc

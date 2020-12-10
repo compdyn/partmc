@@ -107,7 +107,7 @@ void *solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
   SolverData *sd = (SolverData *)malloc(sizeof(SolverData));
   if (sd == NULL) {
     printf("\n\nERROR allocating space for SolverData\n\n");
-    EXIT_FAILURE;
+    exit(EXIT_FAILURE);
   }
 
 #ifdef PMC_USE_SUNDIALS
@@ -136,7 +136,7 @@ void *solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
   sd->model_data.var_type = (int *)malloc(n_state_var * sizeof(int));
   if (sd->model_data.var_type == NULL) {
     printf("\n\nERROR allocating space for variable types\n\n");
-    EXIT_FAILURE;
+    exit(EXIT_FAILURE);
   }
   for (int i = 0; i < n_state_var; i++)
     sd->model_data.var_type[i] = var_type[i];
@@ -160,7 +160,7 @@ void *solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
   // Set up a TimeDerivative object to use during solving
   if (time_derivative_initialize(&(sd->time_deriv), n_dep_var) != 1) {
     printf("\n\nERROR initializing the TimeDerivative\n\n");
-    EXIT_FAILURE;
+    exit(EXIT_FAILURE);
   }
 
   // Set up the solver variable array and helper derivative array
@@ -175,13 +175,13 @@ void *solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
       (int *)malloc((n_rxn_int_param + n_rxn) * sizeof(int));
   if (sd->model_data.rxn_int_data == NULL) {
     printf("\n\nERROR allocating space for reaction integer data\n\n");
-    EXIT_FAILURE;
+    exit(EXIT_FAILURE);
   }
   sd->model_data.rxn_float_data =
       (double *)malloc(n_rxn_float_param * sizeof(double));
   if (sd->model_data.rxn_float_data == NULL) {
     printf("\n\nERROR allocating space for reaction float data\n\n");
-    EXIT_FAILURE;
+    exit(EXIT_FAILURE);
   }
   sd->model_data.rxn_env_data =
       (double *)calloc(n_cells * n_rxn_env_param, sizeof(double));
@@ -189,26 +189,26 @@ void *solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
     printf(
         "\n\nERROR allocating space for environment-dependent "
         "data\n\n");
-    EXIT_FAILURE;
+    exit(EXIT_FAILURE);
   }
 
   // Allocate space for the reaction data pointers
   sd->model_data.rxn_int_indices = (int *)malloc((n_rxn + 1) * sizeof(int *));
   if (sd->model_data.rxn_int_indices == NULL) {
     printf("\n\nERROR allocating space for reaction integer indices\n\n");
-    EXIT_FAILURE;
+    exit(EXIT_FAILURE);
   }
   sd->model_data.rxn_float_indices = (int *)malloc((n_rxn + 1) * sizeof(int *));
   if (sd->model_data.rxn_float_indices == NULL) {
     printf("\n\nERROR allocating space for reaction float indices\n\n");
-    EXIT_FAILURE;
+    exit(EXIT_FAILURE);
   }
   sd->model_data.rxn_env_idx = (int *)malloc((n_rxn + 1) * sizeof(int));
   if (sd->model_data.rxn_env_idx == NULL) {
     printf(
         "\n\nERROR allocating space for reaction environment-dependent "
         "data pointers\n\n");
-    EXIT_FAILURE;
+    exit(EXIT_FAILURE);
   }
 
   sd->model_data.n_rxn = n_rxn;
@@ -228,7 +228,7 @@ void *solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
       (int *)malloc(n_aero_phase_int_param * sizeof(int));
   if (sd->model_data.aero_phase_int_data == NULL) {
     printf("\n\nERROR allocating space for aerosol phase integer data\n\n");
-    EXIT_FAILURE;
+    exit(EXIT_FAILURE);
   }
   sd->model_data.aero_phase_float_data =
       (double *)malloc(n_aero_phase_float_param * sizeof(double));
@@ -236,7 +236,7 @@ void *solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
     printf(
         "\n\nERROR allocating space for aerosol phase floating-point "
         "data\n\n");
-    EXIT_FAILURE;
+    exit(EXIT_FAILURE);
   }
 
   // Allocate space for the aerosol phase data pointers
@@ -244,13 +244,13 @@ void *solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
       (int *)malloc((n_aero_phase + 1) * sizeof(int *));
   if (sd->model_data.aero_phase_int_indices == NULL) {
     printf("\n\nERROR allocating space for reaction integer indices\n\n");
-    EXIT_FAILURE;
+    exit(EXIT_FAILURE);
   }
   sd->model_data.aero_phase_float_indices =
       (int *)malloc((n_aero_phase + 1) * sizeof(int *));
   if (sd->model_data.aero_phase_float_indices == NULL) {
     printf("\n\nERROR allocating space for reaction float indices\n\n");
-    EXIT_FAILURE;
+    exit(EXIT_FAILURE);
   }
 
   sd->model_data.n_aero_phase = n_aero_phase;
@@ -269,7 +269,7 @@ void *solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
     printf(
         "\n\nERROR allocating space for aerosol representation integer "
         "data\n\n");
-    EXIT_FAILURE;
+    exit(EXIT_FAILURE);
   }
   sd->model_data.aero_rep_float_data =
       (double *)malloc(n_aero_rep_float_param * sizeof(double));
@@ -277,7 +277,7 @@ void *solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
     printf(
         "\n\nERROR allocating space for aerosol representation "
         "floating-point data\n\n");
-    EXIT_FAILURE;
+    exit(EXIT_FAILURE);
   }
   sd->model_data.aero_rep_env_data =
       (double *)calloc(n_cells * n_aero_rep_env_param, sizeof(double));
@@ -285,7 +285,7 @@ void *solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
     printf(
         "\n\nERROR allocating space for aerosol representation "
         "environmental parameters\n\n");
-    EXIT_FAILURE;
+    exit(EXIT_FAILURE);
   }
 
   // Allocate space for the aerosol representation data pointers
@@ -293,13 +293,13 @@ void *solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
       (int *)malloc((n_aero_rep + 1) * sizeof(int *));
   if (sd->model_data.aero_rep_int_indices == NULL) {
     printf("\n\nERROR allocating space for reaction integer indices\n\n");
-    EXIT_FAILURE;
+    exit(EXIT_FAILURE);
   }
   sd->model_data.aero_rep_float_indices =
       (int *)malloc((n_aero_rep + 1) * sizeof(int *));
   if (sd->model_data.aero_rep_float_indices == NULL) {
     printf("\n\nERROR allocating space for reaction float indices\n\n");
-    EXIT_FAILURE;
+    exit(EXIT_FAILURE);
   }
   sd->model_data.aero_rep_env_idx =
       (int *)malloc((n_aero_rep + 1) * sizeof(int));
@@ -307,7 +307,7 @@ void *solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
     printf(
         "\n\nERROR allocating space for aerosol representation "
         "environment-dependent data pointers\n\n");
-    EXIT_FAILURE;
+    exit(EXIT_FAILURE);
   }
 
   sd->model_data.n_aero_rep = n_aero_rep;
@@ -324,13 +324,13 @@ void *solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
       (int *)malloc((n_sub_model_int_param + n_sub_model) * sizeof(int));
   if (sd->model_data.sub_model_int_data == NULL) {
     printf("\n\nERROR allocating space for sub model integer data\n\n");
-    EXIT_FAILURE;
+    exit(EXIT_FAILURE);
   }
   sd->model_data.sub_model_float_data =
       (double *)malloc(n_sub_model_float_param * sizeof(double));
   if (sd->model_data.sub_model_float_data == NULL) {
     printf("\n\nERROR allocating space for sub model floating-point data\n\n");
-    EXIT_FAILURE;
+    exit(EXIT_FAILURE);
   }
   sd->model_data.sub_model_env_data =
       (double *)calloc(n_cells * n_sub_model_env_param, sizeof(double));
@@ -338,7 +338,7 @@ void *solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
     printf(
         "\n\nERROR allocating space for sub model environment-dependent "
         "data\n\n");
-    EXIT_FAILURE;
+    exit(EXIT_FAILURE);
   }
 
   // Allocate space for the sub-model data pointers
@@ -346,13 +346,13 @@ void *solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
       (int *)malloc((n_sub_model + 1) * sizeof(int *));
   if (sd->model_data.sub_model_int_indices == NULL) {
     printf("\n\nERROR allocating space for reaction integer indices\n\n");
-    EXIT_FAILURE;
+    exit(EXIT_FAILURE);
   }
   sd->model_data.sub_model_float_indices =
       (int *)malloc((n_sub_model + 1) * sizeof(int *));
   if (sd->model_data.sub_model_float_indices == NULL) {
     printf("\n\nERROR allocating space for reaction float indices\n\n");
-    EXIT_FAILURE;
+    exit(EXIT_FAILURE);
   }
   sd->model_data.sub_model_env_idx =
       (int *)malloc((n_sub_model + 1) * sizeof(int));
@@ -360,7 +360,7 @@ void *solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
     printf(
         "\n\nERROR allocating space for sub model environment-dependent "
         "data pointers\n\n");
-    EXIT_FAILURE;
+    exit(EXIT_FAILURE);
   }
 
   sd->model_data.n_sub_model = n_sub_model;
@@ -1147,7 +1147,6 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
   // Calculate the time derivative f(t,y)
   // (this is for all grid cells at once)
   //if(!md->small_data)
-  if(1)
     rxn_calc_deriv_gpu(md, deriv, (double)time_step);
 #endif
 
@@ -1416,6 +1415,7 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
 #endif
 
   // Solving on CPU only
+
   // Loop over the grid cells to calculate sub-model and rxn Jacobians
   for (int i_cell = 0; i_cell < n_cells; ++i_cell) {
     // Set the grid cell state pointers
@@ -1852,7 +1852,7 @@ SUNMatrix get_jac_init(SolverData *solver_data) {
   jac_struct_rxn = (bool **)malloc(sizeof(int *) * n_state_var);
   if (jac_struct_rxn == NULL) {
     printf("\n\nERROR allocating space for jacobian structure array\n\n");
-    EXIT_FAILURE;
+    exit(EXIT_FAILURE);
   }
   for (int i_spec = 0; i_spec < n_state_var; i_spec++) {
     jac_struct_rxn[i_spec] = (bool *)malloc(sizeof(int) * n_state_var);
@@ -1861,7 +1861,7 @@ SUNMatrix get_jac_init(SolverData *solver_data) {
           "\n\nERROR allocating space for jacobian structure array "
           "row %d\n\n",
           i_spec);
-      EXIT_FAILURE;
+      exit(EXIT_FAILURE);
     }
     // Add diagnonal elements by default
     for (int j_spec = 0; j_spec < n_state_var; j_spec++)
@@ -1891,7 +1891,7 @@ SUNMatrix get_jac_init(SolverData *solver_data) {
   if (jacobian_initialize(&(solver_data->jac), (unsigned int)n_state_var,
                           jac_struct_rxn) != 1) {
     printf("\n\nERROR allocating Jacobian structure\n\n");
-    EXIT_FAILURE;
+    exit(EXIT_FAILURE);
   }
 
   // Set the column and row indices
@@ -1914,7 +1914,7 @@ SUNMatrix get_jac_init(SolverData *solver_data) {
 
   if (deriv_ids == NULL) {
     printf("\n\nERROR allocating space for derivative ids\n\n");
-    EXIT_FAILURE;
+    exit(EXIT_FAILURE);
   }
   int i_dep_var = 0;
   for (int i_spec = 0; i_spec < n_state_var; i_spec++)
@@ -1945,7 +1945,7 @@ SUNMatrix get_jac_init(SolverData *solver_data) {
   jac_struct_param = (bool **)malloc(sizeof(int *) * n_state_var);
   if (jac_struct_param == NULL) {
     printf("\n\nERROR allocating space for jacobian structure array\n\n");
-    EXIT_FAILURE;
+    exit(EXIT_FAILURE);
   }
   for (int i_spec = 0; i_spec < n_state_var; i_spec++) {
     jac_struct_param[i_spec] = (bool *)malloc(sizeof(int) * n_state_var);
@@ -1954,7 +1954,7 @@ SUNMatrix get_jac_init(SolverData *solver_data) {
           "\n\nERROR allocating space for jacobian structure array "
           "row %d\n\n",
           i_spec);
-      EXIT_FAILURE;
+      exit(EXIT_FAILURE);
     }
     for (int j_spec = 0; j_spec < n_state_var; j_spec++)
       jac_struct_param[i_spec][j_spec] = false;
@@ -2018,7 +2018,7 @@ SUNMatrix get_jac_init(SolverData *solver_data) {
   jac_struct_solver = (bool **)malloc(sizeof(int *) * n_state_var);
   if (jac_struct_solver == NULL) {
     printf("\n\nERROR allocating space for jacobian structure array\n\n");
-    EXIT_FAILURE;
+    exit(EXIT_FAILURE);
   }
   for (int i_spec = 0; i_spec < n_state_var; i_spec++) {
     jac_struct_solver[i_spec] = (bool *)malloc(sizeof(int) * n_state_var);
@@ -2027,7 +2027,7 @@ SUNMatrix get_jac_init(SolverData *solver_data) {
           "\n\nERROR allocating space for jacobian structure array "
           "row %d\n\n",
           i_spec);
-      EXIT_FAILURE;
+      exit(EXIT_FAILURE);
     }
     for (int j_spec = 0; j_spec < n_state_var; j_spec++)
       jac_struct_solver[i_spec][j_spec] = false;
@@ -2117,7 +2117,7 @@ SUNMatrix get_jac_init(SolverData *solver_data) {
       (JacMap *)malloc(sizeof(JacMap) * n_mapped_values);
   if (solver_data->model_data.jac_map == NULL) {
     printf("\n\nERROR allocating space for jacobian map\n\n");
-    EXIT_FAILURE;
+    exit(EXIT_FAILURE);
   }
   JacMap *map = solver_data->model_data.jac_map;
 
@@ -2176,7 +2176,7 @@ SUNMatrix get_jac_init(SolverData *solver_data) {
 
   if (i_mapped_value != n_mapped_values) {
     printf("[ERROR-340355266] Internal error");
-    EXIT_FAILURE;
+    exit(EXIT_FAILURE);
   }
 
   // Create vectors to store Jacobian state and derivative data

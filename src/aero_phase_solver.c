@@ -12,6 +12,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+/// Minimum aerosol-phase mass concentration [kg m-3]
+#define MINIMUM_MASS_ 1.0e-25L
+/// Minimum mass assumed molecular weight [kg mol-1]
+#define MINIMUM_MW_ 0.1L
+/// Minimum mass assumed density [kg m-3]
+#define MINIMUM_DENSITY_ 1800.0L
+
 // TODO move all shared constants to a common header file
 #define CHEM_SPEC_UNKNOWN_TYPE 0
 #define CHEM_SPEC_VARIABLE 1
@@ -94,8 +101,8 @@ void aero_phase_get_mass__kg_m3(ModelData *model_data, int aero_phase_idx,
             [model_data->aero_phase_float_indices[aero_phase_idx]]);
 
   // Sum the mass and MW
-  long double l_mass = 0.0;
-  long double moles = 0.0;
+  long double l_mass = MINIMUM_MASS_;
+  long double moles = MINIMUM_MASS_ / MINIMUM_MW_;
   int i_jac = 0;
   for (int i_spec = 0; i_spec < NUM_STATE_VAR_; i_spec++) {
     if (SPEC_TYPE_(i_spec) == CHEM_SPEC_VARIABLE ||
@@ -145,7 +152,7 @@ void aero_phase_get_volume__m3_m3(ModelData *model_data, int aero_phase_idx,
             [model_data->aero_phase_float_indices[aero_phase_idx]]);
 
   // Sum the mass and MW
-  *volume = 0.0;
+  *volume = MINIMUM_MASS_ / MINIMUM_DENSITY_;
   int i_jac = 0;
   for (int i_spec = 0; i_spec < NUM_STATE_VAR_; i_spec++) {
     if (SPEC_TYPE_(i_spec) == CHEM_SPEC_VARIABLE ||

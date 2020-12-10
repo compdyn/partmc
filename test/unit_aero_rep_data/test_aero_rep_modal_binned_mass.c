@@ -79,7 +79,7 @@ int test_effective_radius(ModelData * model_data, N_Vector state) {
   ret_val += ASSERT_MSG(fabs(eff_rad-real_rad)<1.0e-10*real_rad,
                         "Bad effective radius");
 
-  double real_rad_2 = 1.2e-6 / 2.0 * exp(9.0/2.0 * 1.2 * 1.2);
+  double real_rad_2 = 1.2e-6 / 2.0 * exp(2.0 * log(1.2) * log(1.2));
   aero_rep_get_effective_radius__m(model_data, AERO_REP_IDX,
                                 AERO_PHASE_IDX_2, &eff_rad, &(partial_deriv_2[1]));
   ret_val += ASSERT_MSG(fabs(eff_rad-real_rad_2)<1.0e-10*real_rad_2,

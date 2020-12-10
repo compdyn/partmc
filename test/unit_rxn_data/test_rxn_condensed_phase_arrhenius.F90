@@ -122,7 +122,7 @@ contains
 
     ! Allocate space for the results
     if (scenario.eq.1) then
-      num_state_var = 27
+      num_state_var = 9 * 9 ! particles * species
     else if (scenario.eq.2) then
       num_state_var = 14
     end if
@@ -145,7 +145,7 @@ contains
             (temp/300.0d0)**(150.0d0) * (1.0d0 + 0.15d0 * pressure) / 60.0d0
     k2_aq = 21.0d0 * exp( -4000.0d0/temp ) * (temp/315d0)**(11.0d0) * &
             (1.0d0 + 0.05d0 * pressure)
-    k1_org = conc_D / (MW_D*1.0e9) + 1476.0d0 * &
+    k1_org = conc_D / MW_D + 1476.0d0 * &
              exp( -5.5d-21 / (const%boltzmann * temp) ) * &
              (temp/300.0d0)**(150.0d0) * (1.0d0 + 0.15d0 * pressure) / 60.0d0
     k2_org = 21.0d0 * exp( -4000.0d0/temp ) * (temp/315d0)**(11.0d0) * &
@@ -202,7 +202,7 @@ contains
 
       ! Get species indices
       if (scenario.eq.1) then
-        idx_prefix = ""
+        idx_prefix = "P2."
       else if (scenario.eq.2) then
         idx_prefix = "the mode."
       end if

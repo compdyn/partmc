@@ -66,7 +66,7 @@ unsigned int jacobian_get_element_id(Jacobian jac, unsigned int col_id,
         "\nError: Bad Jacobian column id: %u. Expected value between 0 and "
         "%u\n",
         col_id, jac.num_spec);
-    EXIT_FAILURE;
+    exit(EXIT_FAILURE);
   }
 
   for (unsigned int i_elem = jac.col_ptrs[col_id];
@@ -76,7 +76,7 @@ unsigned int jacobian_get_element_id(Jacobian jac, unsigned int col_id,
 
   printf("\nError: Invalid Jacobian element specified: %u %u\n", col_id,
          row_id);
-  EXIT_FAILURE;
+  exit(EXIT_FAILURE);
   return 0;
 }
 

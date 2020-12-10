@@ -282,7 +282,7 @@ typedef struct {
   clock_t timeDeriv;      // Compute time for calls to f()
   clock_t timeJac;        // Compute time for calls to Jac()
   double
-    max_loss_precision;  // Maximum loss of precision during last call to f()
+      max_loss_precision;  // Maximum loss of precision during last call to f()
 #endif
 
   int counterDerivTotal;  // Total calls to f()

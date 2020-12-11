@@ -20,8 +20,7 @@ extern "C" {
 #define TEMPERATURE_K_ env_data[0]
 #define PRESSURE_PA_ env_data[1]
 
-#define UPDATE_RADIUS 0
-#define UPDATE_NUMBER 1
+#define UPDATE_NUMBER 0
 
 #define NUM_PHASE_ int_data[0]
 #define AERO_REP_ID_ int_data[1]

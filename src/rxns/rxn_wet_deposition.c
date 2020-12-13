@@ -53,12 +53,12 @@ void rxn_wet_deposition_get_used_jac_elem(int *rxn_int_data,
  *
  * \param model_data Pointer to the model data
  * \param deriv_ids Id of each state variable in the derivative array
- * \param jac_ids Id of each state variable combo in the Jacobian array
+ * \param jac Jacobian
  * \param rxn_int_data Pointer to the reaction integer data
  * \param rxn_float_data Pointer to the reaction floating-point data
  */
 void rxn_wet_deposition_update_ids(ModelData *model_data, int *deriv_ids,
-                                   int **jac_ids, int *rxn_int_data,
+                                   Jacobian jac, int *rxn_int_data,
                                    double *rxn_float_data) {
   int *int_data = rxn_int_data;
   double *float_data = rxn_float_data;
@@ -68,7 +68,7 @@ void rxn_wet_deposition_update_ids(ModelData *model_data, int *deriv_ids,
     DERIV_ID_(i_spec) = deriv_ids[REACT_(i_spec)];
 
     // Update the Jacobian id
-    JAC_ID_(i_spec) = jac_ids[REACT_(i_spec)][REACT_(i_spec)];
+    JAC_ID_(i_spec) = jacobian_get_element_id(jac, REACT_(i_spec), REACT_(i_spec));
   }
 
   return;

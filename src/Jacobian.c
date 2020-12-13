@@ -197,8 +197,8 @@ unsigned int jacobian_row_index(Jacobian jac, unsigned int elem_id) {
   return jac.row_ids[elem_id];
 }
 
-unsigned int jacobian_get_element_id(Jacobian jac, unsigned int col_id,
-                                     unsigned int row_id) {
+unsigned int jacobian_get_element_id(Jacobian jac, unsigned int row_id,
+                                     unsigned int col_id) {
   if (col_id >= jac.num_spec || col_id < 0) {
     printf(
         "\nError: Bad Jacobian column id: %u. Expected value between 0 and "

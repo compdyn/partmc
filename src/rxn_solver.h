@@ -10,13 +10,14 @@
  */
 #ifndef RXN_SOLVER_H
 #define RXN_SOLVER_H
+#include "Jacobian.h"
 #include "camp_common.h"
 
 /** Public reaction functions **/
 
 /* Solver functions */
 void rxn_get_used_jac_elem(ModelData *model_data, bool **jac_struct);
-void rxn_update_ids(ModelData *model_data, int *deriv_ids, int **jac_ids);
+void rxn_update_ids(ModelData *model_data, int *deriv_ids, Jacobian jac);
 void rxn_update_env_state(ModelData *model_data);
 void rxn_reset_state_adjustments(ModelData *model_data);
 void rxn_adjust_state(ModelData *model_data);

@@ -49,10 +49,10 @@ int main(int argc, char * argv[]) {
   errors+=ASSERT_MSG(jacobian_row_index(jac,2)==3, "647961461");
   errors+=ASSERT_MSG(jacobian_row_index(jac,3)==2, "260337708");
 
-  errors+=ASSERT_MSG(jacobian_get_element_id(jac, 2, 3)==2, "271491762");
+  errors+=ASSERT_MSG(jacobian_get_element_id(jac, 3, 2)==2, "271491762");
   errors+=ASSERT_MSG(jacobian_get_element_id(jac, 0, 0)==0, "718859608");
-  errors+=ASSERT_MSG(jacobian_get_element_id(jac, 4, 2)==3, "266227455");
-  errors+=ASSERT_MSG(jacobian_get_element_id(jac, 2, 1)==1, "431120052");
+  errors+=ASSERT_MSG(jacobian_get_element_id(jac, 2, 4)==3, "266227455");
+  errors+=ASSERT_MSG(jacobian_get_element_id(jac, 1, 2)==1, "431120052");
 
   jacobian_reset(jac);
   double out_vals[NUM_ELEM+1];
@@ -98,7 +98,7 @@ int main(int argc, char * argv[]) {
     errors+=ASSERT_MSG(jacobian_row_index(jac, i)==i, "374760329");
   }
   for (int i=0; i<20; ++i) {
-    errors+=ASSERT_MSG(jacobian_get_element_id(jac, 3, i)==i, "317374065");
+    errors+=ASSERT_MSG(jacobian_get_element_id(jac, i, 3)==i, "317374065");
   }
   for (int i=0; i<20; ++i) {
     jacobian_add_value(jac, i, 0, 10.0+1.0*i);

@@ -104,12 +104,12 @@ unsigned int jacobian_row_index(Jacobian jac, unsigned int elem_id);
 /** \brief Get an element id in the Jacobian data arrays
  *
  * \param jac Jacobian object
- * \param col_id Column index
  * \param row_id Row index
+ * \param col_id Column index
  * \return Index of Jacobian element in the data array
  */
-unsigned int jacobian_get_element_id(Jacobian jac, unsigned int col_id,
-                                     unsigned int row_id);
+unsigned int jacobian_get_element_id(Jacobian jac, unsigned int row_id,
+                                     unsigned int col_id);
 
 /** \brief Reset the Jacobian
  *

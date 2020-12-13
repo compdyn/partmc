@@ -224,6 +224,7 @@ enable_testing()
 do_unit_test(property "PASS")
 do_unit_test(chem_spec_data "PASS")
 do_unit_test(aero_phase_data "PASS")
+do_unit_test(jacobian "PASS")
 if(ENABLE_JSON)
   do_unit_test(aero_rep_single_particle "PASS")
   do_unit_test(aero_rep_modal_binned_mass "PASS")
@@ -661,6 +662,13 @@ target_link_libraries(test_chemistry_eqsam_v03d partmclib)
 add_executable(unit_test_property test/unit_property/test_property.F90)
 
 target_link_libraries(unit_test_property partmclib)
+
+######################################################################
+# test_jacobian
+
+add_executable(unit_test_jacobian test/unit_jacobian/test_jacobian.c)
+
+target_link_libraries(unit_test_jacobian partmclib)
 
 ######################################################################
 # test_chem_spec_data

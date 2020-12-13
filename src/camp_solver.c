@@ -1910,7 +1910,7 @@ void solver_free(void *solver_data) {
   time_derivative_free(sd->time_deriv);
 
   // free the Jacobian
-  jacobian_free(sd->jac);
+  jacobian_free(&(sd->jac));
 
   // free the derivative vectors
   N_VDestroy(sd->y);

@@ -75,13 +75,12 @@
  * \param model_data Pointer to the model data
  * \param rxn_int_data Pointer to the reaction integer data
  * \param rxn_float_data Pointer to the reaction floating-point data
- * \param jac_struct 2D array of flags indicating potentially non-zero
- *                   Jacobian elements
+ * \param jac Jacobian
  */
 void rxn_SIMPOL_phase_transfer_get_used_jac_elem(ModelData *model_data,
                                                  int *rxn_int_data,
                                                  double *rxn_float_data,
-                                                 bool **jac_struct) {
+                                                 Jacobian *jac) {
   int *int_data = rxn_int_data;
   double *float_data = rxn_float_data;
 
@@ -94,15 +93,15 @@ void rxn_SIMPOL_phase_transfer_get_used_jac_elem(ModelData *model_data,
     exit(1);
   }
 
-  jac_struct[GAS_SPEC_][GAS_SPEC_] = true;
+  jacobian_register_element(jac, GAS_SPEC_, GAS_SPEC_);
   for (int i_aero_phase = 0; i_aero_phase < NUM_AERO_PHASE_; i_aero_phase++) {
-    jac_struct[AERO_SPEC_(i_aero_phase)][GAS_SPEC_] = true;
-    jac_struct[GAS_SPEC_][AERO_SPEC_(i_aero_phase)] = true;
-    jac_struct[AERO_SPEC_(i_aero_phase)][AERO_SPEC_(i_aero_phase)] = true;
+    jacobian_register_element(jac, AERO_SPEC_(i_aero_phase), GAS_SPEC_);
+    jacobian_register_element(jac, GAS_SPEC_, AERO_SPEC_(i_aero_phase));
+    jacobian_register_element(jac, AERO_SPEC_(i_aero_phase), AERO_SPEC_(i_aero_phase));
 
     if (AERO_ACT_ID_(i_aero_phase) > 0) {
-      jac_struct[GAS_SPEC_][AERO_ACT_ID_(i_aero_phase)] = true;
-      jac_struct[AERO_SPEC_(i_aero_phase)][AERO_ACT_ID_(i_aero_phase)] = true;
+      jacobian_register_element(jac, GAS_SPEC_, AERO_ACT_ID_(i_aero_phase));
+      jacobian_register_element(jac, AERO_SPEC_(i_aero_phase), AERO_ACT_ID_(i_aero_phase));
     }
 
     for (int i_elem = 0; i_elem < model_data->n_per_cell_state_var; ++i_elem)
@@ -121,8 +120,8 @@ void rxn_SIMPOL_phase_transfer_get_used_jac_elem(ModelData *model_data,
     int i_used_elem = 0;
     for (int i_elem = 0; i_elem < model_data->n_per_cell_state_var; ++i_elem) {
       if (aero_jac_elem[i_elem] == true) {
-        jac_struct[GAS_SPEC_][i_elem] = true;
-        jac_struct[AERO_SPEC_(i_aero_phase)][i_elem] = true;
+        jacobian_register_element(jac, GAS_SPEC_, i_elem);
+        jacobian_register_element(jac, AERO_SPEC_(i_aero_phase), i_elem);
         PHASE_JAC_ID_(i_aero_phase, JAC_GAS, i_used_elem) = i_elem;
         PHASE_JAC_ID_(i_aero_phase, JAC_AERO, i_used_elem) = i_elem;
         ++i_used_elem;

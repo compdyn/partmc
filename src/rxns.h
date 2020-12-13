@@ -19,7 +19,7 @@
 // aqueous_equilibrium
 void rxn_aqueous_equilibrium_get_used_jac_elem(int *rxn_int_data,
                                                double *rxn_float_data,
-                                               bool **jac_struct);
+                                               Jacobian *jac);
 void rxn_aqueous_equilibrium_update_ids(ModelData *model_data, int *deriv_ids,
                                         Jacobian jac, int *rxn_int_data,
                                         double *rxn_float_data);
@@ -41,7 +41,7 @@ void rxn_aqueous_equilibrium_calc_jac_contrib(ModelData *model_data,
 
 // arrhenius
 void rxn_arrhenius_get_used_jac_elem(int *rxn_int_data, double *rxn_float_data,
-                                     bool **jac_struct);
+                                     Jacobian *jac);
 void rxn_arrhenius_update_ids(ModelData *model_data, int *deriv_ids,
                               Jacobian jac, int *rxn_int_data,
                               double *rxn_float_data);
@@ -61,7 +61,7 @@ void rxn_arrhenius_calc_jac_contrib(ModelData *model_data, Jacobian jac,
 
 // CMAQ_H2O2
 void rxn_CMAQ_H2O2_get_used_jac_elem(int *rxn_int_data, double *rxn_float_data,
-                                     bool **jac_struct);
+                                     Jacobian *jac);
 void rxn_CMAQ_H2O2_update_ids(ModelData *model_data, int *deriv_ids,
                               Jacobian jac, int *rxn_int_data,
                               double *rxn_float_data);
@@ -82,7 +82,7 @@ void rxn_CMAQ_H2O2_calc_jac_contrib(ModelData *model_data, Jacobian jac,
 // CMAQ_OH_HNO3
 void rxn_CMAQ_OH_HNO3_get_used_jac_elem(int *rxn_int_data,
                                         double *rxn_float_data,
-                                        bool **jac_struct);
+                                        Jacobian *jac);
 void rxn_CMAQ_OH_HNO3_update_ids(ModelData *model_data, int *deriv_ids,
                                  Jacobian jac, int *rxn_int_data,
                                  double *rxn_float_data);
@@ -104,7 +104,7 @@ void rxn_CMAQ_OH_HNO3_calc_jac_contrib(ModelData *model_data, Jacobian jac,
 // condensed_phase_arrhenius
 void rxn_condensed_phase_arrhenius_get_used_jac_elem(int *rxn_int_data,
                                                      double *rxn_float_data,
-                                                     bool **jac_struct);
+                                                     Jacobian *jac);
 void rxn_condensed_phase_arrhenius_update_ids(ModelData *model_data,
                                               int *deriv_ids, Jacobian jac,
                                               int *rxn_int_data,
@@ -126,7 +126,7 @@ void rxn_condensed_phase_arrhenius_calc_jac_contrib(
 
 // emission
 void rxn_emission_get_used_jac_elem(int *rxn_int_data, double *rxn_float_data,
-                                    bool **jac_struct);
+                                    Jacobian *jac);
 void rxn_emission_update_ids(ModelData *model_data, int *deriv_ids,
                              Jacobian jac, int *rxn_int_data,
                              double *rxn_float_data);
@@ -152,7 +152,7 @@ void rxn_emission_set_rate_update_data(void *update_data, int rxn_id,
 // first_order_loss
 void rxn_first_order_loss_get_used_jac_elem(int *rxn_int_data,
                                             double *rxn_float_data,
-                                            bool **jac_struct);
+                                            Jacobian *jac);
 void rxn_first_order_loss_update_ids(ModelData *model_data, int *deriv_ids,
                                      Jacobian jac, int *rxn_int_data,
                                      double *rxn_float_data);
@@ -182,7 +182,7 @@ void rxn_first_order_loss_set_rate_update_data(void *update_data, int rxn_id,
 void rxn_HL_phase_transfer_get_used_jac_elem(ModelData *model_data,
                                              int *rxn_int_data,
                                              double *rxn_float_data,
-                                             bool **jac_struct);
+                                             Jacobian *jac);
 void rxn_HL_phase_transfer_update_ids(ModelData *model_data, int *deriv_ids,
                                       Jacobian jac, int *rxn_int_data,
                                       double *rxn_float_data);
@@ -204,7 +204,7 @@ void rxn_HL_phase_transfer_calc_jac_contrib(ModelData *model_data, Jacobian jac,
 
 // photolysis
 void rxn_photolysis_get_used_jac_elem(int *rxn_int_data, double *rxn_float_data,
-                                      bool **jac_struct);
+                                      Jacobian *jac);
 void rxn_photolysis_update_ids(ModelData *model_data, int *deriv_ids,
                                Jacobian jac, int *rxn_int_data,
                                double *rxn_float_data);
@@ -230,7 +230,7 @@ void rxn_photolysis_set_rate_update_data(void *update_data, int photo_id,
 void rxn_SIMPOL_phase_transfer_get_used_jac_elem(ModelData *model_data,
                                                  int *rxn_int_data,
                                                  double *rxn_float_data,
-                                                 bool **jac_struct);
+                                                 Jacobian *jac);
 void rxn_SIMPOL_phase_transfer_update_ids(ModelData *model_data, int *deriv_ids,
                                           Jacobian jac, int *rxn_int_data,
                                           double *rxn_float_data);
@@ -252,7 +252,7 @@ void rxn_SIMPOL_phase_transfer_calc_jac_contrib(ModelData *model_data,
 
 // troe
 void rxn_troe_get_used_jac_elem(int *rxn_int_data, double *rxn_float_data,
-                                bool **jac_struct);
+                                Jacobian *jac);
 void rxn_troe_update_ids(ModelData *model_data, int *deriv_ids, Jacobian jac,
                          int *rxn_int_data, double *rxn_float_data);
 void rxn_troe_update_env_state(ModelData *model_data, int *rxn_int_data,
@@ -271,7 +271,7 @@ void rxn_troe_calc_jac_contrib(ModelData *model_data, Jacobian jac,
 // wet_deposition
 void rxn_wet_deposition_get_used_jac_elem(int *rxn_int_data,
                                           double *rxn_float_data,
-                                          bool **jac_struct);
+                                          Jacobian *jac);
 void rxn_wet_deposition_update_ids(ModelData *model_data, int *deriv_ids,
                                    Jacobian jac, int *rxn_int_data,
                                    double *rxn_float_data);

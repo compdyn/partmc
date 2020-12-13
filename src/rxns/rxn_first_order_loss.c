@@ -32,16 +32,15 @@
  *
  * \param rxn_int_data Pointer to the reaction integer data
  * \param rxn_float_data Pointer to the reaction floating-point data
- * \param jac_struct 2D array of flags indicating potentially non-zero
- *                   Jacobian elements
+ * \param jac Jacobian
  */
 void rxn_first_order_loss_get_used_jac_elem(int *rxn_int_data,
                                             double *rxn_float_data,
-                                            bool **jac_struct) {
+                                            Jacobian *jac) {
   int *int_data = rxn_int_data;
   double *float_data = rxn_float_data;
 
-  jac_struct[REACT_][REACT_] = true;
+  jacobian_register_element(jac, REACT_, REACT_);
 
   return;
 }

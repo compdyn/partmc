@@ -33,17 +33,16 @@
  *
  * \param rxn_int_data Pointer to the reaction integer data
  * \param rxn_float_data Pointer to the reaction floating-point data
- * \param jac_struct 2D array of flags indicating potentially non-zero
- *                   Jacobian elements
+ * \param jac Jacobian
  */
 void rxn_wet_deposition_get_used_jac_elem(int *rxn_int_data,
                                           double *rxn_float_data,
-                                          bool **jac_struct) {
+                                          Jacobian *jac) {
   int *int_data = rxn_int_data;
   double *float_data = rxn_float_data;
 
   for (int i_spec = 0; i_spec < NUM_SPEC_; i_spec++) {
-    jac_struct[REACT_(i_spec)][REACT_(i_spec)] = true;
+    jacobian_register_element(jac, REACT_(i_spec), REACT_(i_spec));
   }
 
   return;

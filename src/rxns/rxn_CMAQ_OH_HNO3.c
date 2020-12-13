@@ -44,21 +44,20 @@
  *
  * \param rxn_int_data Pointer to the reaction integer data
  * \param rxn_float_data Pointer to the reaction floating-point data
- * \param jac_struct 2D array of flags indicating potentially non-zero
- *                   Jacobian elements
+ * \param jac Jacobian
  */
 void rxn_CMAQ_OH_HNO3_get_used_jac_elem(int *rxn_int_data,
                                         double *rxn_float_data,
-                                        bool **jac_struct) {
+                                        Jacobian *jac) {
   int *int_data = rxn_int_data;
   double *float_data = rxn_float_data;
 
   for (int i_ind = 0; i_ind < NUM_REACT_; i_ind++) {
     for (int i_dep = 0; i_dep < NUM_REACT_; i_dep++) {
-      jac_struct[REACT_(i_dep)][REACT_(i_ind)] = true;
+      jacobian_register_element(jac, REACT_(i_dep), REACT_(i_ind));
     }
     for (int i_dep = 0; i_dep < NUM_PROD_; i_dep++) {
-      jac_struct[PROD_(i_dep)][REACT_(i_ind)] = true;
+      jacobian_register_element(jac, PROD_(i_dep), REACT_(i_ind));
     }
   }
 

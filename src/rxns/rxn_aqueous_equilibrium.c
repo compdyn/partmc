@@ -65,12 +65,11 @@
  *
  * \param rxn_int_data Pointer to the reaction integer data
  * \param rxn_float_data Pointer to the reaction floating-point data
- * \param jac_struct 2D array of flags indicating potentially non-zero
- *                   Jacobian elements
+ * \param jac Jacobian
  */
 void rxn_aqueous_equilibrium_get_used_jac_elem(int *rxn_int_data,
                                                double *rxn_float_data,
-                                               bool **jac_struct) {
+                                               Jacobian *jac) {
   int *int_data = rxn_int_data;
   double *float_data = rxn_float_data;
 
@@ -81,10 +80,10 @@ void rxn_aqueous_equilibrium_get_used_jac_elem(int *rxn_int_data,
          i_react_ind < (i_phase + 1) * NUM_REACT_; i_react_ind++) {
       for (int i_react_dep = i_phase * NUM_REACT_;
            i_react_dep < (i_phase + 1) * NUM_REACT_; i_react_dep++)
-        jac_struct[REACT_(i_react_dep)][REACT_(i_react_ind)] = true;
+        jacobian_register_element(jac, REACT_(i_react_dep), REACT_(i_react_ind));
       for (int i_prod_dep = i_phase * NUM_PROD_;
            i_prod_dep < (i_phase + 1) * NUM_PROD_; i_prod_dep++)
-        jac_struct[PROD_(i_prod_dep)][REACT_(i_react_ind)] = true;
+        jacobian_register_element(jac, PROD_(i_prod_dep), REACT_(i_react_ind));
     }
 
     // Add dependence on products for reactants and products (reverse reaction)
@@ -92,28 +91,28 @@ void rxn_aqueous_equilibrium_get_used_jac_elem(int *rxn_int_data,
          i_prod_ind < (i_phase + 1) * NUM_PROD_; i_prod_ind++) {
       for (int i_react_dep = i_phase * NUM_REACT_;
            i_react_dep < (i_phase + 1) * NUM_REACT_; i_react_dep++)
-        jac_struct[REACT_(i_react_dep)][PROD_(i_prod_ind)] = true;
+        jacobian_register_element(jac, REACT_(i_react_dep), PROD_(i_prod_ind));
       for (int i_prod_dep = i_phase * NUM_PROD_;
            i_prod_dep < (i_phase + 1) * NUM_PROD_; i_prod_dep++)
-        jac_struct[PROD_(i_prod_dep)][PROD_(i_prod_ind)] = true;
+        jacobian_register_element(jac, PROD_(i_prod_dep), PROD_(i_prod_ind));
     }
 
     // Add dependence on aerosol-phase water for reactants and products
     for (int i_react_dep = i_phase * NUM_REACT_;
          i_react_dep < (i_phase + 1) * NUM_REACT_; i_react_dep++)
-      jac_struct[REACT_(i_react_dep)][WATER_(i_phase)] = true;
+      jacobian_register_element(jac, REACT_(i_react_dep), WATER_(i_phase));
     for (int i_prod_dep = i_phase * NUM_PROD_;
          i_prod_dep < (i_phase + 1) * NUM_PROD_; i_prod_dep++)
-      jac_struct[PROD_(i_prod_dep)][WATER_(i_phase)] = true;
+      jacobian_register_element(jac, PROD_(i_prod_dep), WATER_(i_phase));
 
     // Add dependence on activity coefficients for reactants and products
     if (ACTIVITY_COEFF_(i_phase) < 0) continue;
     for (int i_react_dep = i_phase * NUM_REACT_;
          i_react_dep < (i_phase + 1) * NUM_REACT_; ++i_react_dep)
-      jac_struct[REACT_(i_react_dep)][ACTIVITY_COEFF_(i_phase)] = true;
+      jacobian_register_element(jac, REACT_(i_react_dep), ACTIVITY_COEFF_(i_phase));
     for (int i_prod_dep = i_phase * NUM_PROD_;
          i_prod_dep < (i_phase + 1) * NUM_PROD_; ++i_prod_dep)
-      jac_struct[PROD_(i_prod_dep)][ACTIVITY_COEFF_(i_phase)] = true;
+      jacobian_register_element(jac, PROD_(i_prod_dep), ACTIVITY_COEFF_(i_phase));
   }
 
   return;

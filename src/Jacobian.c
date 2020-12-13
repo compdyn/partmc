@@ -206,16 +206,11 @@ unsigned int jacobian_get_element_id(Jacobian jac, unsigned int row_id,
         col_id, jac.num_spec);
     exit(EXIT_FAILURE);
   }
-
   for (unsigned int i_elem = jac.col_ptrs[col_id];
        i_elem < jac.col_ptrs[col_id + 1]; ++i_elem) {
     if (jac.row_ids[i_elem] == row_id) return i_elem;
   }
-
-  printf("\nError: Invalid Jacobian element specified: %u %u\n", col_id,
-         row_id);
-  exit(EXIT_FAILURE);
-  return 0;
+  return -1;
 }
 
 void jacobian_reset(Jacobian jac) {

@@ -103,6 +103,8 @@ unsigned int jacobian_row_index(Jacobian jac, unsigned int elem_id);
 
 /** \brief Get an element id in the Jacobian data arrays
  *
+ * If the element is not included in the sparse matrix, -1 is returned.
+ *
  * \param jac Jacobian object
  * \param row_id Row index
  * \param col_id Column index

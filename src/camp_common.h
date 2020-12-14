@@ -17,6 +17,8 @@
 #include "Jacobian.h"
 #include "time_derivative.h"
 
+// todo cant found cvode_impl in docker, put under #gpu flags or something
+
 /* SUNDIALS Header files with a description of contents used */
 #ifdef PMC_USE_SUNDIALS
 #include <cvode/cvode.h>        /* Protoypes for CVODE fcts., consts.  */
@@ -38,10 +40,12 @@
 #include <sundials/sundials_math.h>  /* SUNDIALS math function macros       */
 #include <sundials/sundials_types.h> /* definition of types                 */
 
+#ifdef PMC_USE_GPU
 #include <cvode/cvode_direct_impl.h>
 #include <sundials/sundials_direct.h>
 #include <sundials/sundials_linearsolver.h>
 #include <sundials/sundials_matrix.h>
+#endif
 
 #endif
 

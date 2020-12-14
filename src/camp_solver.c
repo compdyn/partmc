@@ -1159,6 +1159,7 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
   clock_t start2 = clock();
 #endif
 
+// todo avoid ifndef an use only ifdef and else
 #ifndef PMC_USE_GPU
 
   // Calculate the time derivative f(t,y)

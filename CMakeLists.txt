@@ -26,6 +26,7 @@ option(FAILURE_DETAIL "Output conditions before and after solver failures" OFF)
 option(ENABLE_CXX "Enable C++" OFF)
 option(ENABLE_GPU "Enable use of GPUs in chemistry solving" OFF)
 option(ENABLE_ODE_GPU "Enable ODE solving in GPUs" OFF)
+option(ENABLE_DEBUG_GPU "Compile debugging GPU functions" OFF)
 
 mark_as_advanced(FORCE ENABLE_DEBUG FAILURE_DETAIL)
 
@@ -192,16 +193,12 @@ if (CUDA_FOUND)
         #Define global variable of use gpu no matter what test to include user main test
         add_definitions(-DPMC_USE_GPU)
         #debug gpu add a considerable overhead in time
-        add_definitions(-DPMC_DEBUG_GPU)
-
         if (ENABLE_ODE_GPU)
             add_definitions(-DPMC_USE_ODE_GPU)
         endif()
-        # Add debugging functions
-        #if (NOT ENABLE_DEBUG)
-        if (ENABLE_DEBUG)
-            #add_definitions(-DCHECK_GPU_LINSOLVE)
-            add_definitions(-DPMC_DEBUG_GPU)
+        if (ENABLE_DEBUG_GPU OR ENABLE_DEBUG)
+          add_definitions(-DPMC_DEBUG_GPU)
+          #add_definitions(-DCHECK_GPU_LINSOLVE)
         endif()
     endif()
 endif()

@@ -183,7 +183,8 @@ contains
     real(kind=dp) :: conv_fac(aero_data_n_spec(aero_data)), dum_var
     integer :: i_part, i_spec, i_spec_mosaic
     real(kind=dp) :: num_conc
-    real(kind=dp), save :: k_n2o5
+    real(kind=dp), save :: k_n2o5, aero_state_n2o5_uptake
+    real(kind=dp), allocatable :: gamma_part(:)
 
     ! MOSAIC function interfaces
     interface
@@ -267,8 +268,9 @@ contains
 
     rk_het = 0.0d0
     if ((do_n2o5_hydrolysis) .and. (n2o5_type /= N2O5_HYDR_NONE)) then
-       k_n2o5 = aero_state_n2o5_uptake(aero_state, aero_data, env_state, n2o5_type)
-       rk_het(in2o5) = k_n2o5
+       call aero_n2o5_uptake(aero_state, aero_data, &
+       env_state, n2o5_type, gamma_part, aero_state_n2o5_uptake)
+       rk_het(in2o5) = aero_state_n2o5_uptake
     end if
 
     ! gas chemistry: map PartMC -> MOSAIC

@@ -2938,8 +2938,8 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !>
-  real(kind=dp) function aero_state_n2o5_uptake(aero_state, aero_data, &
-       env_state, n2o5_type)
+  subroutine aero_n2o5_uptake(aero_state, aero_data, &
+       env_state, n2o5_type, gamma_part, aero_state_n2o5_uptake)
 
     !> Aerosol state.
     type(aero_state_t), intent(in) :: aero_state
@@ -2958,12 +2958,16 @@ contains
     real(kind=dp), allocatable :: volumes(:), volumes_core(:), so4_masses(:), &
          no3_masses(:), surf_area_concs(:), h2o_masses(:)
     real(kind=dp) :: rad_core, rad_part
-    real(kind=dp) :: c_n2o5, gamma_n2o5, gamma_coat, gamma_core, gamma_part
+    real(kind=dp) :: c_n2o5, gamma_n2o5, gamma_coat, gamma_core
     real(kind=dp), parameter :: gamma_1 = 0.02d0
     real(kind=dp), parameter :: gamma_2 = 0.002d0
     real(kind=dp), parameter :: f = 0.03d0
     real(kind=dp), parameter :: H_aq = 49.36d0
     real(kind=dp), parameter :: D_aq = 1d-9
+    ! per particle gamma
+    !real(kind=dp), intent(inout) :: gamma_part(aero_state_n_part(aero_state))
+    real(kind=dp), allocatable, intent(out) :: gamma_part(:)
+    real(kind=dp), intent(out) :: aero_state_n2o5_uptake
 
     aero_state_n2o5_uptake = 0d0
 
@@ -2990,6 +2994,9 @@ contains
          / (const%pi * 108.0 * 1d-3))
 
     gamma_n2o5 = 0d0
+    if(allocated(gamma_part)) deallocate(gamma_part)
+    allocate(gamma_part(aero_state_n_part(aero_state)))
+    gamma_part = 0d0
     do i_part = 1,aero_state_n_part(aero_state_hyd)
        if ((so4_masses(i_part) + no3_masses(i_part)) > 0.0d0 &
             .and. h2o_masses(i_part) > 0.0d0) then
@@ -3000,14 +3007,14 @@ contains
           gamma_coat = (4d0 * const%univ_gas_const * env_state%temp * H_aq &
                * D_aq * f  * rad_core) / (c_n2o5 * (rad_part - rad_core) &
                * rad_part)
-          gamma_part = ((1d0 / gamma_core) + (1d0 / gamma_coat))**(-1d0)
-          gamma_n2o5 = gamma_n2o5 + surf_area_concs(i_part) * gamma_part
+          gamma_part(i_part) = ((1d0 / gamma_core) + (1d0 / gamma_coat))**(-1d0)
+          gamma_n2o5 = gamma_n2o5 + surf_area_concs(i_part) * gamma_part(i_part)
        end if
     end do
 
     aero_state_n2o5_uptake = 0.25d0 * c_n2o5 * gamma_n2o5
 
-  end function aero_state_n2o5_uptake
+  end subroutine aero_n2o5_uptake
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   

@@ -10,29 +10,35 @@ program process
 
   use pmc_output
   use pmc_stats
+  use pmc_aero_state
 
   character(len=PMC_MAX_FILENAME_LEN), parameter :: prefix &
        = "out/urban_plume_ch"
 
   character(len=PMC_MAX_FILENAME_LEN) :: in_filename, out_filename
-  type(bin_grid_t) :: diam_grid, bc_grid, sc_grid
+  type(bin_grid_t) :: diam_grid, bc_grid, sc_grid, gamma_grid
   type(aero_data_t) :: aero_data
   type(aero_state_t) :: aero_state
   type(env_state_t) :: env_state
   integer :: ncid, index, repeat, i_index, i_repeat, n_index, n_repeat
   real(kind=dp) :: time, del_t, tot_num_conc, tot_mass_conc
   real(kind=dp) :: d_alpha, d_gamma, chi
+  real(kind=dp) :: aero_state_n2o5_uptake
+  real(kind=dp), allocatable :: gamma_part(:) 
+  integer       :: n2o5_type 
   character(len=PMC_UUID_LEN) :: uuid
   real(kind=dp), allocatable :: times(:), dry_diameters(:), num_concs(:), &
        dry_masses(:), masses(:), bc_masses(:), bc_fracs(:), &
        so4_masses(:), no3_masses(:), nh4_masses(:), &
        crit_rhs(:), scs(:), num_dist(:), &
        mass_bc_dist(:), mass_so4_dist(:), mass_no3_dist(:), mass_nh4_dist(:), &
-       diam_bc_dist(:,:), diam_sc_dist(:,:)
+       diam_bc_dist(:,:), diam_sc_dist(:,:), diam_gamma_dist_pr(:,:), &
+       diam_gamma_dist_avg(:,:)
   type(stats_1d_t) :: stats_num_dist, stats_d_alpha, stats_tot_num_conc, &
        stats_tot_mass_conc, stats_d_gamma, stats_chi, &
        stats_mass_bc_dist, stats_mass_so4_dist, stats_mass_no3_dist, stats_mass_nh4_dist
-  type(stats_2d_t) :: stats_diam_bc_dist, stats_diam_sc_dist
+  type(stats_2d_t) :: stats_diam_bc_dist, stats_diam_sc_dist, &
+       stats_diam_gamma_dist_pr, stats_diam_gamma_dist_avg
 
   call pmc_mpi_init()
 
@@ -41,6 +47,7 @@ program process
   call bin_grid_make(diam_grid, BIN_GRID_TYPE_LOG, 180, 1d-9, 1d-3)
   call bin_grid_make(bc_grid, BIN_GRID_TYPE_LINEAR, 50, 0d0, 1d0)
   call bin_grid_make(sc_grid, BIN_GRID_TYPE_LOG, 50, 1d-4, 1d0)
+  call bin_grid_make(gamma_grid, BIN_GRID_TYPE_LOG, 50, 1d-3, 1d-1)
 
   allocate(times(n_index))
 
@@ -112,6 +119,21 @@ program process
         call stats_1d_add_entry(stats_d_alpha, d_alpha, i_index)
         call stats_1d_add_entry(stats_d_gamma, d_gamma, i_index)
         call stats_1d_add_entry(stats_chi, chi, i_index)
+    
+        !n2o5_type = N2O5_HYDR_COMP
+        n2o5_type = N2O5_HYDR_PR 
+        call aero_n2o5_uptake(aero_state, aero_data, &
+        env_state, n2o5_type, gamma_part, aero_state_n2o5_uptake)
+        diam_gamma_dist_pr = bin_grid_histogram_2d(diam_grid, dry_diameters, &
+             gamma_grid, gamma_part, num_concs)
+        call stats_2d_add(stats_diam_gamma_dist_pr, diam_gamma_dist_pr)
+
+        n2o5_type = N2O5_HYDR_COMP
+        call aero_n2o5_uptake(aero_state, aero_data, &
+        env_state, n2o5_type, gamma_part, aero_state_n2o5_uptake)
+        diam_gamma_dist_avg = bin_grid_histogram_2d(diam_grid, dry_diameters, &
+             gamma_grid, gamma_part, num_concs)
+        call stats_2d_add(stats_diam_gamma_dist_avg, diam_gamma_dist_avg)
 
      end do
 
@@ -122,6 +144,7 @@ program process
      call bin_grid_output_netcdf(diam_grid, ncid, "diam", unit="m")
      call bin_grid_output_netcdf(bc_grid, ncid, "bc_frac", unit="1")
      call bin_grid_output_netcdf(sc_grid, ncid, "sc", unit="1")
+     call bin_grid_output_netcdf(gamma_grid, ncid, "gamma", unit="1")
 
      call stats_1d_output_netcdf(stats_num_dist, ncid, "num_dist", &
           dim_name="diam", unit="m^{-3}")
@@ -147,6 +170,14 @@ program process
      call stats_2d_output_netcdf(stats_diam_sc_dist, ncid, "diam_sc_dist", &
           dim_name_1="diam", dim_name_2="sc", unit="m^{-3}")
      call stats_2d_clear(stats_diam_sc_dist)
+
+     call stats_2d_output_netcdf(stats_diam_gamma_dist_pr, ncid, "diam_gamma_dist_pr", &
+          dim_name_1="diam", dim_name_2="gamma", unit="m^{-3}")
+     call stats_2d_clear(stats_diam_gamma_dist_pr)
+
+     call stats_2d_output_netcdf(stats_diam_gamma_dist_avg, ncid, &
+          "diam_gamma_dist_avg", dim_name_1="diam", dim_name_2="gamma", unit="m^{-3}")
+     call stats_2d_clear(stats_diam_gamma_dist_avg)
 
      call pmc_nc_close(ncid)
   end do

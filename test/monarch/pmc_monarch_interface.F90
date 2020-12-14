@@ -1264,22 +1264,16 @@ end if
       factor_ppb_to_ppm=1.0
     end if
 
-    print*,'debuggg factor_ppb_to_ppm: ',factor_ppb_to_ppm
+    print*,'factor_ppb_to_ppm: ',factor_ppb_to_ppm
     ! Reset the species concentrations in PMC and MONARCH
-    !this%camp_state%state_var(:) = 0.0
     this%camp_state%state_var(:) = 0.0
     MONARCH_conc(:,:,:,:) = 0.0
-
-    print*,'MONARCH air density: ',MONARCH_air_density(1,1,1)
 
     ! Set initial concentrations in PMC
     this%init_conc(:) = this%init_conc(:) * factor_ppb_to_ppm
     this%camp_state%state_var(this%init_conc_camp_id(:)) = this%init_conc(:)
 
-    print*,"init_conc", this%init_conc(:)
-
     state_size_per_cell = this%camp_core%state_size_per_cell()
-
 
     do i=i_W, I_E
       do j=I_S, I_N

@@ -44,6 +44,7 @@ include(CPack)
 find_path(NETCDF_INCLUDE_DIR netcdf.mod NETCDF.mod
   DOC "NetCDF include directory (must contain netcdf.mod)"
   PATHS
+  $ENV{NETCDF_FORTRAN_HOME}/include
   $ENV{NETCDF_HOME}/include
   /usr/lib/gfortran/modules
   /usr/lib64/gfortran/modules
@@ -53,7 +54,10 @@ find_library(NETCDF_C_LIB netcdf
   PATHS $ENV{NETCDF_HOME}/lib $ENV{NETCDF_HOME}/lib64 /opt/local/lib)
 find_library(NETCDF_FORTRAN_LIB netcdff
   DOC "NetCDF Fortran library"
-  PATHS $ENV{NETCDF_HOME}/lib $ENV{NETCDF_HOME}/lib64 /opt/local/lib)
+  PATHS
+  $ENV{NETCDF_HOME}/lib $ENV{NETCDF_HOME}/lib64
+  $ENV{NETCDF_FORTRAN_HOME}/lib $ENV{NETCDF_FORTRAN_HOME}/lib64
+  /opt/local/lib)
 set(NETCDF_LIBS ${NETCDF_C_LIB})
 if(NETCDF_FORTRAN_LIB)
   set(NETCDF_LIBS ${NETCDF_LIBS} ${NETCDF_FORTRAN_LIB})
@@ -282,7 +286,8 @@ if (ENABLE_TESTS)
       add_test(test_MONARCH_1 ${CMAKE_BINARY_DIR}/test_run/monarch/test_monarch_1.sh ${MPI_TEST_FLAG})
       add_test(test_MONARCH_2 ${CMAKE_BINARY_DIR}/test_run/monarch/test_monarch_2.sh ${MPI_TEST_FLAG})
 
-      if (CUDA_FOUND AND NOT ENABLE_GPU)
+      #[[
+      if (CUDA_FOUND AND ENABLE_GPU)
         #todo: new unit_tests with gpu
           add_test(test_rxn_arrhenius_mech_gpu ${CMAKE_BINARY_DIR}/test_run/unit_tests/input_files/run_rxn_arrhenius_gpu.sh ${MPI_TEST_FLAG})
 
@@ -290,6 +295,7 @@ if (ENABLE_TESTS)
           add_test(test_chemistry_cb05cl_ae5_gpu ${CMAKE_BINARY_DIR}/test_run/chemistry/cb05cl_ae5/test_chemistry_cb05cl_ae5_gpu.sh ${MPI_TEST_FLAG})
 
       endif()
+      ]]
 
     endif()
 
@@ -434,20 +440,23 @@ if (ENABLE_TESTS)
     add_test(test_sedi_1 ${CMAKE_BINARY_DIR}/test_run/sedi/test_sedi_1.sh)
     add_test(test_sedi_2 ${CMAKE_BINARY_DIR}/test_run/sedi/test_sedi_2.sh)
     set_tests_properties(test_sedi_2 PROPERTIES DEPENDS test_sedi_1)
+
+else()
+
+  add_test(test_chemistry_cb05cl_ae5 ${CMAKE_BINARY_DIR}/test_run/chemistry/cb05cl_ae5/test_chemistry_cb05cl_ae5.sh ${MPI_TEST_FLAG})
+  add_test(test_MONARCH_1 ${CMAKE_BINARY_DIR}/test_run/monarch/test_monarch_1.sh ${MPI_TEST_FLAG})
+  add_test(test_MONARCH_2 ${CMAKE_BINARY_DIR}/test_run/monarch/test_monarch_2.sh ${MPI_TEST_FLAG})
+
 endif()
 
 ######################################################################
 # partmc library
 
-#maybe link library lcusolver with cmake like the other libraries? i miss the -L?
-# -lcusolver -lcudart -lcublas -lcusparse_static -lculibos -lpthread -ldl
-set(STD_C_FLAGS "-std=c99") # -L/lib64 -lcudart -lcublas -lcublasLt
+set(STD_C_FLAGS "-std=c99")
 set(STD_CXX_FLAGS "-fpermissive")
 
 #-lcusolver -lcusparse_static -lculibos -lpthread -ldl #--compiler-options '-fPIC'
 set(STD_CUDA_FLAGS "-dc -arch=compute_70 -code=sm_70 --compiler-options '-fPIC' -lcusolver -lcudart -lcublas -lcusparse_static -lculibos -lpthread -ldl")
-#set(STD_CUDA_FLAGS_2 "-dc -lcusolver -lcudart -lcublas -lcusparse_static -lculibos -lpthread -ldl")
-#set(STD_CUDA_FLAGS "-dc -arch=compute_70 -code=sm_70 ") #-lcusolver -lcudart -lcusparse_static -lculibos
 
 if(${CMAKE_Fortran_COMPILER_ID} MATCHES "Intel")
   set(STD_F_FLAGS "-extend_source -warn truncated_source")
@@ -536,9 +545,6 @@ set_source_files_properties(${CAMP_C_SRC} PROPERTIES COMPILE_FLAGS
 
 if(ENABLE_CXX)
 
-    #set(CAMP_CXX_SRC
-    #        src/cuda/camp_gpu_cusolver.cpp )
-
     set_source_files_properties(${CAMP_CXX_SRC} PROPERTIES COMPILE_FLAGS
             ${STD_CXX_FLAGS})
 
@@ -569,7 +575,6 @@ if (CUDA_FOUND AND ENABLE_GPU)
           src/cuda/cvode_gpu.cu
           src/cuda/libsolv.cu
           src/cuda/itsolver_gpu.cu
-          #src/rxns/rxn2_arrhenius.cu
           #src/cuda/camp_gpu_cusolver.cu
           )
 
@@ -618,7 +623,8 @@ target_link_libraries(partmclib ${NETCDF_LIBS} ${SUNDIALS_LIBS}
 
 set_target_properties(partmclib PROPERTIES OUTPUT_NAME partmc)
 
-if (CUDA_FOUND AND NOT ENABLE_GPU AND ENABLE_TESTS)
+#[[
+if (CUDA_FOUND AND ENABLE_GPU AND ENABLE_TESTS)
     add_library(partmclib_gpu ${CAMP_F_SRC}
             ${CAMP_C_SRC} ${AEROSOL_REPS_SRC} ${SUB_MODELS_SRC} ${REACTIONS_SRC}
             ${SUNDIALS_SRC} ${GSL_SRC} ${C_SORT_SRC} ${CAMP_CUDA_SRC} ${CAMP_CUDA_SRC_2} ${CAMP_CXX_SRC} )
@@ -635,6 +641,7 @@ if (CUDA_FOUND AND NOT ENABLE_GPU AND ENABLE_TESTS)
 
     target_link_libraries(partmc_gpu partmclib_gpu)
 endif()
+]]
 
 ######################################################################
 # partmc executable
@@ -718,28 +725,6 @@ add_executable(mock_monarch test/monarch/mock_monarch.F90
 
 target_link_libraries(mock_monarch partmclib)
 
-set(UNIT_TEST_SRC
-        test/unit_tests/unit_test_data.F90
-        test/unit_tests/unit_test_driver.F90)
-
-set(UNIT_TEST_RXN_ARRHENIUS_SRC
-        test/unit_tests/rxns/unit_test_rxn_arrhenius.F90 ${UNIT_TEST_SRC})
-set_source_files_properties(${UNIT_TEST_RXN_ARRHENIUS_SRC} PROPERTIES COMPILE_FLAGS ${STD_F_FLAGS})
-add_executable(unit_test_rxn_arrhenius ${UNIT_TEST_RXN_ARRHENIUS_SRC})
-target_compile_definitions(unit_test_rxn_arrhenius PRIVATE
-        "UNIT_TEST_MODULE_=pmc_unit_test_rxn_arrhenius \
-    ;UNIT_TEST_TYPE_=unit_test_rxn_arrhenius_t()")
-target_link_libraries(unit_test_rxn_arrhenius partmclib)
-
-#if (CUDA_FOUND AND NOT ENABLE_GPU AND ENABLE_TESTS)
-#    add_executable(unit_test_rxn_arrhenius_gpu ${UNIT_TEST_RXN_ARRHENIUS_SRC})
-#    target_compile_definitions(unit_test_rxn_arrhenius_gpu PRIVATE
-#            "UNIT_TEST_MODULE_=pmc_unit_test_rxn_arrhenius \
-#    ;UNIT_TEST_TYPE_=unit_test_rxn_arrhenius_t()")
-#    target_link_libraries(unit_test_rxn_arrhenius_gpu partmclib_gpu)
-#endif()
-
-
 ######################################################################
 # test_chemistry_cb05cl_ae5
 
@@ -749,7 +734,7 @@ add_executable(test_chemistry_cb05cl_ae5
         test/chemistry/cb05cl_ae5/module_BSC_CHEM_DATA.F90)
 target_link_libraries(test_chemistry_cb05cl_ae5 partmclib)
 
-#if (CUDA_FOUND AND NOT ENABLE_GPU AND ENABLE_TESTS)
+#if (CUDA_FOUND AND ENABLE_GPU AND ENABLE_TESTS)
 #    add_executable(test_chemistry_cb05cl_ae5_big_gpu
 #            test/chemistry/cb05cl_ae5/test_cb05cl_ae5_big.F90
 #            ${CB5_EBI_SOLVER} ${CB5_KPP_SOLVER}
@@ -838,7 +823,7 @@ target_compile_definitions(unit_test_rxn_arrhenius PRIVATE
     ;UNIT_TEST_TYPE_=unit_test_rxn_arrhenius_t()")
 target_link_libraries(unit_test_rxn_arrhenius partmclib)
 
-#if (CUDA_FOUND AND NOT ENABLE_GPU AND ENABLE_TESTS)
+#if (CUDA_FOUND AND ENABLE_GPU AND ENABLE_TESTS)
 #    add_executable(unit_test_rxn_arrhenius_gpu ${UNIT_TEST_RXN_ARRHENIUS_SRC})
 #    target_compile_definitions(unit_test_rxn_arrhenius_gpu PRIVATE
 #            "UNIT_TEST_MODULE_=pmc_unit_test_rxn_arrhenius \

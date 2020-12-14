@@ -54,7 +54,7 @@ program mock_monarch
   !> Time step (min)
   real, parameter :: TIME_STEP = 3.!2. !3. = monarch dt
   !> Number of time steps to integrate over
-  integer, parameter :: NUM_TIME_STEP = 5!720!30
+  integer, parameter :: NUM_TIME_STEP = 180!720!30
   !> Index for water vapor in water_conc()
   integer, parameter :: WATER_VAPOR_ID = 5
   !> Start time
@@ -235,6 +235,8 @@ program mock_monarch
     endif
 
   end if
+
+  write(*,*) "Num time-steps:", NUM_TIME_STEP
 
   !Check if repeat program to compare n_cells=1 with n_cells=N
   if(check_multiple_cells) then

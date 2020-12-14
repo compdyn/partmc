@@ -723,6 +723,8 @@ contains
     end do
     end do
 
+
+
     ! Output the computational time
     write(*,*) "EBI calculation time: ", comp_ebi," s"
     write(*,*) "KPP calculation time: ", comp_kpp," s"
@@ -738,7 +740,6 @@ contains
     write(CAMP_KPP_FILE_UNIT,*) "spec_name, concentrations rel. error [(camp_state-kpp)/(camp_state+kpp)], camp_state, kpp"
     write(EBI_KPP_FILE_UNIT,*) "Repeat", i_repeat, "timestep ", NUM_TIME_STEPS
     write(EBI_KPP_FILE_UNIT,*) "spec_name, concentrations rel. error [(èbi-kpp)/(ebi+kpp)], ebi, kpp"
-
 
     ! Compare the results
     ! EBI <-> CAMP-chem
@@ -762,6 +763,7 @@ contains
           trim(to_string(camp_init(chem_spec_data%gas_state_id( &
                   ebi_spec_names(i_spec)%string)))))
 
+#ifndef PMC_USE_MPI
       associate (camp_var=>camp_state%state_var( &
               chem_spec_data%gas_state_id( &
                       ebi_monarch_spec_names(i_spec)%string)))
@@ -772,6 +774,7 @@ contains
                 camp_var, &
                 YC(map_ebi_monarch(i_spec))
       end associate
+#endif
     end do
 
     ! KPP <-> CAMP-chem
@@ -796,7 +799,7 @@ contains
           "; camp init: "//trim(to_string(camp_init( &
                   chem_spec_data%gas_state_id( &
                   str_temp%string)))))
-
+#ifndef PMC_USE_MPI
       associate (camp_var=>camp_state%state_var( &
               chem_spec_data%gas_state_id( &
                       str_temp%string)))
@@ -807,6 +810,7 @@ contains
                 camp_var, &
                 real(KPP_C(i_spec)*conv, kind=dp)
       end associate
+#endif
     end do
 
     ! Close the output files

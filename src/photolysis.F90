@@ -196,8 +196,6 @@ contains
     !> MPI communicator
     integer, intent(in), optional :: comm
 
-    integer(kind=i_kind) :: i_rxn, l_comm
-
 #ifdef PMC_USE_MPI
     integer :: l_comm, i_rxn, prev_position
 
@@ -236,8 +234,6 @@ contains
     integer, intent(inout) :: pos
     !> MPI communicator
     integer, intent(in), optional :: comm
-
-    integer(kind=i_kind) :: i_rxn, l_comm
 
 #ifdef PMC_USE_MPI
     integer :: l_comm, i_rxn, n_rxns, prev_position

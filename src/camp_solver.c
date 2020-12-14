@@ -1252,7 +1252,7 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
       //If we have small_data, it's faster to compute them in cpu
       //if(md->small_data){
       if(0){
-        rxn_calc_deriv(md, deriv_data, (double)time_step);
+        rxn_calc_deriv(md, sd->time_deriv, (double)time_step);
       }else{
         // Add contributions from reactions not implemented on GPU
         //TODO: compute hl & simpol on gpu

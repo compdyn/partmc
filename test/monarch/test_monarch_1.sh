@@ -26,8 +26,8 @@ do
 #Try to don't use monarch_1 case: water_conc, photo_rates and other things are improved in test_2
 
 if [[ $1 == "MPI" ]]; then
-  exec_str="mpirun -v -np 2 ../../mock_monarch config_simple.json interface_simple.json out/simple" #local
-  #exec_str="srun ../../mock_monarch config_simple.json interface_simple.json out/simple" #clusterelse
+  exec_str="mpirun -v -np 2 ../../mock_monarch config_simple.json interface_simple.json simple" #local
+  #exec_str="srun ../../mock_monarch config_simple.json interface_simple.json simple" #clusterelse
 else
   #exec_str="../../mock_monarch config_simple.json interface_simple.json out/simple"
   exec_str="../../mock_monarch config_simple.json interface_simple.json simple"

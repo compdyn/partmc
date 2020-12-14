@@ -6,11 +6,13 @@
  *
  */
 // todo fix this...move all to this folder and compile correctly...
-// todo: i think is not necessary include all time stdio.h.. reorder includes to left only camp_common with the common includes
+// todo: i think is not necessary include all time stdio.h.. reorder includes to
+// left only camp_common with the common includes
 
-// todo gprof to csv: https://stackoverflow.com/questions/28872400/convert-simple-ascii-table-to-csv
-//Nvidia remote profiling: http://docs.nvidia.com/cuda/nsight-eclipse-edition-getting-started-guide/index.html#remote-development
-
+// todo gprof to csv:
+// https://stackoverflow.com/questions/28872400/convert-simple-ascii-table-to-csv
+// Nvidia remote profiling:
+// http://docs.nvidia.com/cuda/nsight-eclipse-edition-getting-started-guide/index.html#remote-development
 
 #include "camp_debug_2.h"
 #include <stdio.h>

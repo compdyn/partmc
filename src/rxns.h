@@ -16,55 +16,60 @@
 #include "Jacobian.h"
 #include "camp_common.h"
 
-
 #ifdef CHANGE_LOOPS_RXN
 
 void rxn_aqueous_equilibrium_calc_deriv_contrib(
-        ModelData *model_data, double *deriv, int *rxn_int_data,
-        double *rxn_float_data, double *rxn_env_data, realtype time_step);
-void rxn_arrhenius_calc_deriv_contrib(ModelData *model_data,
-                                      double *deriv,
+    ModelData *model_data, double *deriv, int *rxn_int_data,
+    double *rxn_float_data, double *rxn_env_data, realtype time_step);
+void rxn_arrhenius_calc_deriv_contrib(ModelData *model_data, double *deriv,
                                       int *rxn_int_data, double *rxn_float_data,
                                       double *rxn_env_data, realtype time_step);
-void rxn_CMAQ_H2O2_calc_deriv_contrib(ModelData *model_data,
-                                      double *deriv,
+void rxn_CMAQ_H2O2_calc_deriv_contrib(ModelData *model_data, double *deriv,
                                       int *rxn_int_data, double *rxn_float_data,
                                       double *rxn_env_data, realtype time_step);
-void rxn_CMAQ_OH_HNO3_calc_deriv_contrib(
-        ModelData *model_data, double *deriv, int *rxn_int_data,
-        double *rxn_float_data, double *rxn_env_data, realtype time_step);
+void rxn_CMAQ_OH_HNO3_calc_deriv_contrib(ModelData *model_data, double *deriv,
+                                         int *rxn_int_data,
+                                         double *rxn_float_data,
+                                         double *rxn_env_data,
+                                         realtype time_step);
 void rxn_condensed_phase_arrhenius_calc_deriv_contrib(
-        ModelData *model_data, double *deriv, int *rxn_int_data,
-        double *rxn_float_data, double *rxn_env_data, realtype time_step);
-void rxn_emission_calc_deriv_contrib(ModelData *model_data,
-                                     double *deriv,
+    ModelData *model_data, double *deriv, int *rxn_int_data,
+    double *rxn_float_data, double *rxn_env_data, realtype time_step);
+void rxn_emission_calc_deriv_contrib(ModelData *model_data, double *deriv,
                                      int *rxn_int_data, double *rxn_float_data,
                                      double *rxn_env_data, realtype time_step);
-void rxn_first_order_loss_calc_deriv_contrib(
-        ModelData *model_data, double *deriv, int *rxn_int_data,
-        double *rxn_float_data, double *rxn_env_data, realtype time_step);
-void rxn_HL_phase_transfer_calc_deriv_contrib(
-        ModelData *model_data, double *deriv, int *rxn_int_data,
-        double *rxn_float_data, double *rxn_env_data, realtype time_step);
-void rxn_photolysis_calc_deriv_contrib(
-        ModelData *model_data, double *deriv, int *rxn_int_data,
-        double *rxn_float_data, double *rxn_env_data, realtype time_step);
+void rxn_first_order_loss_calc_deriv_contrib(ModelData *model_data,
+                                             double *deriv, int *rxn_int_data,
+                                             double *rxn_float_data,
+                                             double *rxn_env_data,
+                                             realtype time_step);
+void rxn_HL_phase_transfer_calc_deriv_contrib(ModelData *model_data,
+                                              double *deriv, int *rxn_int_data,
+                                              double *rxn_float_data,
+                                              double *rxn_env_data,
+                                              realtype time_step);
+void rxn_photolysis_calc_deriv_contrib(ModelData *model_data, double *deriv,
+                                       int *rxn_int_data,
+                                       double *rxn_float_data,
+                                       double *rxn_env_data,
+                                       realtype time_step);
 void rxn_SIMPOL_phase_transfer_calc_deriv_contrib(
-        ModelData *model_data, double *deriv, int *rxn_int_data,
-        double *rxn_float_data, double *rxn_env_data, realtype time_step);
-void rxn_troe_calc_deriv_contrib(ModelData *model_data,
-                                 double *deriv, int *rxn_int_data,
-                                 double *rxn_float_data, double *rxn_env_data,
-                                 realtype time_step);
-void rxn_wet_deposition_calc_deriv_contrib(
-        ModelData *model_data, double *deriv, int *rxn_int_data,
-        double *rxn_float_data, double *rxn_env_data, realtype time_step);
+    ModelData *model_data, double *deriv, int *rxn_int_data,
+    double *rxn_float_data, double *rxn_env_data, realtype time_step);
+void rxn_troe_calc_deriv_contrib(ModelData *model_data, double *deriv,
+                                 int *rxn_int_data, double *rxn_float_data,
+                                 double *rxn_env_data, realtype time_step);
+void rxn_wet_deposition_calc_deriv_contrib(ModelData *model_data, double *deriv,
+                                           int *rxn_int_data,
+                                           double *rxn_float_data,
+                                           double *rxn_env_data,
+                                           realtype time_step);
 
 #else
 
 void rxn_aqueous_equilibrium_calc_deriv_contrib(
-        ModelData *model_data, TimeDerivative time_deriv, int *rxn_int_data,
-        double *rxn_float_data, double *rxn_env_data, realtype time_step);
+    ModelData *model_data, TimeDerivative time_deriv, int *rxn_int_data,
+    double *rxn_float_data, double *rxn_env_data, realtype time_step);
 void rxn_arrhenius_calc_deriv_contrib(ModelData *model_data,
                                       TimeDerivative time_deriv,
                                       int *rxn_int_data, double *rxn_float_data,
@@ -74,34 +79,34 @@ void rxn_CMAQ_H2O2_calc_deriv_contrib(ModelData *model_data,
                                       int *rxn_int_data, double *rxn_float_data,
                                       double *rxn_env_data, realtype time_step);
 void rxn_CMAQ_OH_HNO3_calc_deriv_contrib(
-        ModelData *model_data, TimeDerivative time_deriv, int *rxn_int_data,
-        double *rxn_float_data, double *rxn_env_data, realtype time_step);
+    ModelData *model_data, TimeDerivative time_deriv, int *rxn_int_data,
+    double *rxn_float_data, double *rxn_env_data, realtype time_step);
 void rxn_condensed_phase_arrhenius_calc_deriv_contrib(
-        ModelData *model_data, TimeDerivative time_deriv, int *rxn_int_data,
-        double *rxn_float_data, double *rxn_env_data, realtype time_step);
+    ModelData *model_data, TimeDerivative time_deriv, int *rxn_int_data,
+    double *rxn_float_data, double *rxn_env_data, realtype time_step);
 void rxn_emission_calc_deriv_contrib(ModelData *model_data,
                                      TimeDerivative time_deriv,
                                      int *rxn_int_data, double *rxn_float_data,
                                      double *rxn_env_data, realtype time_step);
 void rxn_first_order_loss_calc_deriv_contrib(
-        ModelData *model_data, TimeDerivative time_deriv, int *rxn_int_data,
-        double *rxn_float_data, double *rxn_env_data, realtype time_step);
+    ModelData *model_data, TimeDerivative time_deriv, int *rxn_int_data,
+    double *rxn_float_data, double *rxn_env_data, realtype time_step);
 void rxn_HL_phase_transfer_calc_deriv_contrib(
-        ModelData *model_data, TimeDerivative time_deriv, int *rxn_int_data,
-        double *rxn_float_data, double *rxn_env_data, realtype time_step);
+    ModelData *model_data, TimeDerivative time_deriv, int *rxn_int_data,
+    double *rxn_float_data, double *rxn_env_data, realtype time_step);
 void rxn_photolysis_calc_deriv_contrib(
-        ModelData *model_data, TimeDerivative time_deriv, int *rxn_int_data,
-        double *rxn_float_data, double *rxn_env_data, realtype time_step);
+    ModelData *model_data, TimeDerivative time_deriv, int *rxn_int_data,
+    double *rxn_float_data, double *rxn_env_data, realtype time_step);
 void rxn_SIMPOL_phase_transfer_calc_deriv_contrib(
-        ModelData *model_data, TimeDerivative time_deriv, int *rxn_int_data,
-        double *rxn_float_data, double *rxn_env_data, realtype time_step);
+    ModelData *model_data, TimeDerivative time_deriv, int *rxn_int_data,
+    double *rxn_float_data, double *rxn_env_data, realtype time_step);
 void rxn_troe_calc_deriv_contrib(ModelData *model_data,
                                  TimeDerivative time_deriv, int *rxn_int_data,
                                  double *rxn_float_data, double *rxn_env_data,
                                  realtype time_step);
 void rxn_wet_deposition_calc_deriv_contrib(
-        ModelData *model_data, TimeDerivative time_deriv, int *rxn_int_data,
-        double *rxn_float_data, double *rxn_env_data, realtype time_step);
+    ModelData *model_data, TimeDerivative time_deriv, int *rxn_int_data,
+    double *rxn_float_data, double *rxn_env_data, realtype time_step);
 
 #endif
 
@@ -284,8 +289,8 @@ void rxn_photolysis_update_env_state(ModelData *model_data, int *rxn_int_data,
 bool rxn_photolysis_update_data(void *update_data, int *rxn_int_data,
                                 double *rxn_float_data, double *rxn_env_data);
 void rxn_photolysis_export_input(ModelData *model_data, int *rxn_int_data,
-                                     double *rxn_float_data,
-                                     double *rxn_env_data, FILE *f);
+                                 double *rxn_float_data, double *rxn_env_data,
+                                 FILE *f);
 void rxn_photolysis_print(int *rxn_int_data, double *rxn_float_data);
 #ifdef PMC_USE_SUNDIALS
 

@@ -137,39 +137,40 @@ static void print_data_sizes(ModelData *md) {
   printf("n_dep_var: %d", md->n_per_cell_dep_var * md->n_cells);
 }
 
-//Print jacobian structure
+// Print jacobian structure
 void pmc_debug_print_jac_struct2(void *solver_data, SUNMatrix J,
                                  const char *message) {
   SolverData *sd = (SolverData *)solver_data;
 
   int n_cells = sd->model_data.n_cells;
-  int n_state_var = SM_COLUMNS_S(J)/n_cells;
+  int n_state_var = SM_COLUMNS_S(J) / n_cells;
   int i_elem = 0;
   int next_col = 0;
 
   printf("\n\n   Jacobian structure (↓ind →dep) - %s\n     ", message);
   for (int i_dep = 0; i_dep < n_state_var; i_dep++)
-    //printf("[%5.5s]",sd->spec_names[i_dep]);
-  //printf("[%3d]", i_dep);
-  for (int i_ind = 0; i_ind < n_state_var; i_ind++) {
-    //printf("\n[%5.5s]",sd->spec_names[i_ind]);
-    //printf("\n[%3d]", i_ind);
-    next_col = SM_INDEXPTRS_S(J)[i_ind + 1];
-    for (int i_dep = 0; i_dep < n_state_var; i_dep++) {
-      if (i_dep == SM_INDEXVALS_S(J)[i_elem] && i_elem < next_col) {
-        //printf(" %3d   ", i_elem++);
-        //printf(" % -1.2le ", SM_DATA_S(J)[i_elem++]);
-        printf(" %3d   ", 1);
-        i_elem++;
-      } else {
-        printf("   -   ");
+    // printf("[%5.5s]",sd->spec_names[i_dep]);
+    // printf("[%3d]", i_dep);
+    for (int i_ind = 0; i_ind < n_state_var; i_ind++) {
+      // printf("\n[%5.5s]",sd->spec_names[i_ind]);
+      // printf("\n[%3d]", i_ind);
+      next_col = SM_INDEXPTRS_S(J)[i_ind + 1];
+      for (int i_dep = 0; i_dep < n_state_var; i_dep++) {
+        if (i_dep == SM_INDEXVALS_S(J)[i_elem] && i_elem < next_col) {
+          // printf(" %3d   ", i_elem++);
+          // printf(" % -1.2le ", SM_DATA_S(J)[i_elem++]);
+          printf(" %3d   ", 1);
+          i_elem++;
+        } else {
+          printf("   -   ");
+        }
       }
     }
-  }
 }
 
 /*
-void pmc_debug_print_jac_struct2(void *solver_data, SUNMatrix J, const char *message) {
+void pmc_debug_print_jac_struct2(void *solver_data, SUNMatrix J, const char
+*message) {
 
   SolverData *sd = (SolverData *)solver_data;
 
@@ -194,30 +195,29 @@ void pmc_debug_print_jac_struct2(void *solver_data, SUNMatrix J, const char *mes
 }
 */
 
-//Print jac species relations (which species relations with which others)
+// Print jac species relations (which species relations with which others)
 // based on nonzero values
 void pmc_debug_print_jac_rel(void *solver_data, SUNMatrix J,
                              const char *message) {
   SolverData *sd = (SolverData *)solver_data;
 
   int n_state_var = SM_COLUMNS_S(J);
-  int i_elem = 0; //Counter non-zero values
+  int i_elem = 0;  // Counter non-zero values
   printf("\n\n   Jacobian structure - %s\n\n", message);
   for (int i_ind = 0; i_ind < n_state_var; i_ind++) {
-    printf("[%s]: ",sd->spec_names[i_ind]);
-    //printf("\n[%3d]", i_ind);
+    printf("[%s]: ", sd->spec_names[i_ind]);
+    // printf("\n[%3d]", i_ind);
     for (int i_dep = 0; i_dep < n_state_var; i_dep++) {
       if (i_dep == SM_INDEXVALS_S(J)[i_elem] &&
-          i_elem < SM_INDEXPTRS_S(J)[i_ind + 1]) //Avoid next col
+          i_elem < SM_INDEXPTRS_S(J)[i_ind + 1])  // Avoid next col
       {
-        printf("%s ",sd->spec_names[i_dep]);
+        printf("%s ", sd->spec_names[i_dep]);
         i_elem++;
       }
     }
     printf("\n");
   }
 }
-
 
 /** \brief Print Jacobian matrix in format KLU SPARSE
  *
@@ -237,34 +237,30 @@ static void print_jacobian(SUNMatrix M) {
 }
 
 static void print_jacobian_file(SUNMatrix J, char *filepath) {
-
   // *A pointer to matrix coefficients
-// *jA pointer to matrix colums
-// *iA pointer to matrix row indexes
-// nrows number of rows
-// nnz   number of non zero values
-  //void printMatrix(double* A, int* jA, int* iA, int nrows, int nnz)
+  // *jA pointer to matrix colums
+  // *iA pointer to matrix row indexes
+  // nrows number of rows
+  // nnz   number of non zero values
+  // void printMatrix(double* A, int* jA, int* iA, int nrows, int nnz)
 
   FILE *fp;
-  fp= fopen("/gpfs/scratch/bsc32/bsc32815/gpupartmc/matrix_basic_1.csr","w");
+  fp = fopen("/gpfs/scratch/bsc32/bsc32815/gpupartmc/matrix_basic_1.csr", "w");
 
+  fprintf(fp, " %d", SM_NNZ_S(J));
+  fprintf(fp, " %d", SM_NP_S(J));
+  fprintf(fp, " \n");
 
-  fprintf(fp," %d",SM_NNZ_S(J));
-  fprintf(fp," %d",SM_NP_S(J));
-  fprintf(fp," \n");
-
-  for(int i=0;i<SM_NNZ_S(J);i++)
-    fprintf(fp," %lf",SM_DATA_S(J)[i]);
-  fprintf(fp," \n");
-  for(int i=0;i<SM_NNZ_S(J);i++)
-    fprintf(fp," %d",SM_INDEXVALS_S(J)[i]);
-  fprintf(fp," \n");
-  for(int i=0;i<=SM_NP_S(J);i++)
-    fprintf(fp," %d",SM_INDEXPTRS_S(J)[i]);
-  fprintf(fp," \n");
+  for (int i = 0; i < SM_NNZ_S(J); i++) fprintf(fp, " %lf", SM_DATA_S(J)[i]);
+  fprintf(fp, " \n");
+  for (int i = 0; i < SM_NNZ_S(J); i++)
+    fprintf(fp, " %d", SM_INDEXVALS_S(J)[i]);
+  fprintf(fp, " \n");
+  for (int i = 0; i <= SM_NP_S(J); i++)
+    fprintf(fp, " %d", SM_INDEXPTRS_S(J)[i]);
+  fprintf(fp, " \n");
 
   fclose(fp);
-
 }
 
 /** \brief Print derivative array
@@ -273,22 +269,21 @@ static void print_jacobian_file(SUNMatrix J, char *filepath) {
  */
 static void print_derivative(N_Vector deriv) {
   printf("[(id) deriv], deriv length: %d\n", NV_LENGTH_S(deriv));
-  int n_cells=2;
+  int n_cells = 2;
 
-  if (NV_LENGTH_S(deriv)<72*n_cells){
+  if (NV_LENGTH_S(deriv) < 72 * n_cells) {
     for (int i = 0; i < NV_LENGTH_S(deriv); i++) {  // NV_LENGTH_S(deriv)
-      printf("(%d) %-le \n", i+1, NV_DATA_S(deriv)[i]);
+      printf("(%d) %-le \n", i + 1, NV_DATA_S(deriv)[i]);
     }
-  }else{
+  } else {
     for (int i = 0; i < n_cells; i++) {
       printf("cell %d \n", i);
       int size_j = NV_LENGTH_S(deriv) / n_cells;
       for (int j = 0; j < size_j; j++) {  // NV_LENGTH_S(deriv)
-        printf("(%d) %-le \n", j + 1, NV_DATA_S(deriv)[j+i*size_j]);
+        printf("(%d) %-le \n", j + 1, NV_DATA_S(deriv)[j + i * size_j]);
       }
       printf("\n");
     }
-
   }
   printf("\n");
 }

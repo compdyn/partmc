@@ -149,9 +149,11 @@ void rxn_wet_deposition_update_env_state(ModelData *model_data,
 
 #ifdef CHANGE_LOOPS_RXN
 
-void rxn_wet_deposition_calc_deriv_contrib(
-    ModelData *model_data, double *deriv, int *rxn_int_data,
-    double *rxn_float_data, double *rxn_env_data, realtype time_step) {
+void rxn_wet_deposition_calc_deriv_contrib(ModelData *model_data, double *deriv,
+                                           int *rxn_int_data,
+                                           double *rxn_float_data,
+                                           double *rxn_env_data,
+                                           realtype time_step) {
   int *int_data = rxn_int_data;
   double *float_data = rxn_float_data;
   double *state = model_data->grid_cell_state;

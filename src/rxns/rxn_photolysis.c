@@ -143,7 +143,6 @@ void rxn_photolysis_update_env_state(ModelData *model_data, int *rxn_int_data,
   // Calculate the rate constant in (1/s)
   RATE_CONSTANT_ = SCALING_ * BASE_RATE_;
 
-
 #ifdef PMC_USE_MPI
 /*
   int n_photo_rates_cell=25;
@@ -165,7 +164,8 @@ void rxn_photolysis_update_env_state(ModelData *model_data, int *rxn_int_data,
         printf("YIELD_: %-le\n", YIELD_(i));
       }
 
-      printf("Counter: %d BASE_RATE_: %-le\n",model_data->counterMD+1,BASE_RATE_);
+      printf("Counter: %d BASE_RATE_:
+  %-le\n",model_data->counterMD+1,BASE_RATE_);
       //printf("RATE_CONSTANT: %-le\n", RATE_CONSTANT_);
       model_data->counterMD++;
 
@@ -173,23 +173,23 @@ void rxn_photolysis_update_env_state(ModelData *model_data, int *rxn_int_data,
   }
 */
 #else
-/*
-  printf("RATE_CONSTANT: %-le\n", RATE_CONSTANT_);
-  printf("SCALING_: %-le\n", SCALING_);
-  printf("BASE_RATE_: %-le\n", BASE_RATE_);
-  printf("NUM_REACT_: %d\n", NUM_REACT_);
-  for(int i=0; i<NUM_REACT_; i++)
-    printf("%d,",REACT_(i));
-  printf("\n");
-  printf("NUM_PROD_: %d\n", NUM_PROD_);
-  for(int i=0; i<NUM_PROD_; i++) {
-    printf("%d,", PROD_(i));
-    printf("YIELD_: %-le\n", YIELD_(i));
-  }
-*/
-  //printf("SCALING_: %-le\n", SCALING_);
-  //printf("BASE_RATE_: %-le\n", BASE_RATE_);
-  ///printf("RATE_CONSTANT: %-le\n", RATE_CONSTANT_);
+  /*
+    printf("RATE_CONSTANT: %-le\n", RATE_CONSTANT_);
+    printf("SCALING_: %-le\n", SCALING_);
+    printf("BASE_RATE_: %-le\n", BASE_RATE_);
+    printf("NUM_REACT_: %d\n", NUM_REACT_);
+    for(int i=0; i<NUM_REACT_; i++)
+      printf("%d,",REACT_(i));
+    printf("\n");
+    printf("NUM_PROD_: %d\n", NUM_PROD_);
+    for(int i=0; i<NUM_PROD_; i++) {
+      printf("%d,", PROD_(i));
+      printf("YIELD_: %-le\n", YIELD_(i));
+    }
+  */
+  // printf("SCALING_: %-le\n", SCALING_);
+  // printf("BASE_RATE_: %-le\n", BASE_RATE_);
+  /// printf("RATE_CONSTANT: %-le\n", RATE_CONSTANT_);
 
 #endif
 
@@ -210,9 +210,11 @@ void rxn_photolysis_update_env_state(ModelData *model_data, int *rxn_int_data,
 
 #ifdef CHANGE_LOOPS_RXN
 
-void rxn_photolysis_calc_deriv_contrib(
-    ModelData *model_data, double *deriv, int *rxn_int_data,
-    double *rxn_float_data, double *rxn_env_data, realtype time_step) {
+void rxn_photolysis_calc_deriv_contrib(ModelData *model_data, double *deriv,
+                                       int *rxn_int_data,
+                                       double *rxn_float_data,
+                                       double *rxn_env_data,
+                                       realtype time_step) {
   int *int_data = rxn_int_data;
   double *float_data = rxn_float_data;
   double *state = model_data->grid_cell_state;
@@ -354,13 +356,13 @@ void rxn_photolysis_set_rate_update_data(void *update_data, int photo_id,
 }
 
 void rxn_photolysis_export_input(ModelData *model_data, int *rxn_int_data,
-                                     double *rxn_float_data,
-                                     double *rxn_env_data, FILE *f) {
+                                 double *rxn_float_data, double *rxn_env_data,
+                                 FILE *f) {
   int *int_data = rxn_int_data;
   double *float_data = rxn_float_data;
   double *env_data = model_data->grid_cell_env;
 
-  fprintf(f, " %-le",BASE_RATE_);
+  fprintf(f, " %-le", BASE_RATE_);
 
   return;
 }

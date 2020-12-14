@@ -134,9 +134,9 @@ void rxn_CMAQ_OH_HNO3_update_env_state(ModelData *model_data, int *rxn_int_data,
 #ifdef PMC_USE_MPI
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  if (rank==411 || rank==0)
-  {
-    printf("RATE_CONSTANT CMAQ_OH_HNO3: %-le, rank %d \n", RATE_CONSTANT_,rank);
+  if (rank == 411 || rank == 0) {
+    printf("RATE_CONSTANT CMAQ_OH_HNO3: %-le, rank %d \n", RATE_CONSTANT_,
+           rank);
   }
 #endif
 #endif
@@ -158,9 +158,11 @@ void rxn_CMAQ_OH_HNO3_update_env_state(ModelData *model_data, int *rxn_int_data,
 
 #ifdef CHANGE_LOOPS_RXN
 
-void rxn_CMAQ_OH_HNO3_calc_deriv_contrib(
-    ModelData *model_data, double *deriv, int *rxn_int_data,
-    double *rxn_float_data, double *rxn_env_data, double time_step) {
+void rxn_CMAQ_OH_HNO3_calc_deriv_contrib(ModelData *model_data, double *deriv,
+                                         int *rxn_int_data,
+                                         double *rxn_float_data,
+                                         double *rxn_env_data,
+                                         double time_step) {
   int *int_data = rxn_int_data;
   double *float_data = rxn_float_data;
   double *state = model_data->grid_cell_state;

@@ -262,7 +262,6 @@ void rxn_update_env_state(ModelData *model_data) {
  */
 #ifdef PMC_USE_SUNDIALS
 
-
 #ifdef CHANGE_LOOPS
 
 void rxn_calc_deriv(ModelData *model_data, double *deriv_data,
@@ -270,7 +269,7 @@ void rxn_calc_deriv(ModelData *model_data, double *deriv_data,
   // Get the number of reactions
   int n_rxn = model_data->n_rxn;
 
- // Loop through the reactions advancing the rxn_data pointer each time
+  // Loop through the reactions advancing the rxn_data pointer each time
   for (int i_rxn = 0; i_rxn < n_rxn; i_rxn++) {
     // Get pointers to the reaction data
     int *rxn_int_data =
@@ -284,10 +283,11 @@ void rxn_calc_deriv(ModelData *model_data, double *deriv_data,
     int rxn_type = *(rxn_int_data++);
 
     for (int i_cell = 0; i_cell < model_data->n_cells; i_cell++) {
-
       model_data->grid_cell_id = i_cell;
-      model_data->grid_cell_state = &(model_data->total_state[i_cell * model_data->n_per_cell_state_var]);
-      model_data->grid_cell_env = &(model_data->total_env[i_cell * PMC_NUM_ENV_PARAM_]);
+      model_data->grid_cell_state =
+          &(model_data->total_state[i_cell * model_data->n_per_cell_state_var]);
+      model_data->grid_cell_env =
+          &(model_data->total_env[i_cell * PMC_NUM_ENV_PARAM_]);
       model_data->grid_cell_rxn_env_data =
           &(model_data->rxn_env_data[i_cell * model_data->n_rxn_env_data]);
       /*md->grid_cell_aero_rep_env_data =
@@ -299,9 +299,9 @@ void rxn_calc_deriv(ModelData *model_data, double *deriv_data,
       // Call the appropriate function
       switch (rxn_type) {
         case RXN_AQUEOUS_EQUILIBRIUM:
-          rxn_aqueous_equilibrium_calc_deriv_contrib(model_data, deriv_data,
-                                                     rxn_int_data, rxn_float_data,
-                                                     rxn_env_data, time_step);
+          rxn_aqueous_equilibrium_calc_deriv_contrib(
+              model_data, deriv_data, rxn_int_data, rxn_float_data,
+              rxn_env_data, time_step);
           break;
         case RXN_ARRHENIUS:
           rxn_arrhenius_calc_deriv_contrib(model_data, deriv_data, rxn_int_data,
@@ -320,8 +320,8 @@ void rxn_calc_deriv(ModelData *model_data, double *deriv_data,
           break;
         case RXN_CONDENSED_PHASE_ARRHENIUS:
           rxn_condensed_phase_arrhenius_calc_deriv_contrib(
-              model_data, deriv_data, rxn_int_data, rxn_float_data, rxn_env_data,
-              time_step);
+              model_data, deriv_data, rxn_int_data, rxn_float_data,
+              rxn_env_data, time_step);
           break;
         case RXN_EMISSION:
           rxn_emission_calc_deriv_contrib(model_data, deriv_data, rxn_int_data,
@@ -339,14 +339,14 @@ void rxn_calc_deriv(ModelData *model_data, double *deriv_data,
                                                    rxn_env_data, time_step);
           break;
         case RXN_PHOTOLYSIS:
-          rxn_photolysis_calc_deriv_contrib(model_data, deriv_data, rxn_int_data,
-                                            rxn_float_data, rxn_env_data,
-                                            time_step);
+          rxn_photolysis_calc_deriv_contrib(model_data, deriv_data,
+                                            rxn_int_data, rxn_float_data,
+                                            rxn_env_data, time_step);
           break;
         case RXN_SIMPOL_PHASE_TRANSFER:
           rxn_SIMPOL_phase_transfer_calc_deriv_contrib(
-              model_data, deriv_data, rxn_int_data, rxn_float_data, rxn_env_data,
-              time_step);
+              model_data, deriv_data, rxn_int_data, rxn_float_data,
+              rxn_env_data, time_step);
           break;
         case RXN_TROE:
           rxn_troe_calc_deriv_contrib(model_data, deriv_data, rxn_int_data,
@@ -359,11 +359,11 @@ void rxn_calc_deriv(ModelData *model_data, double *deriv_data,
           break;
       }
 
-    //todo test time_deriv with all specs fom all cells, test with only r_p-r_l, and compare with original
+      // todo test time_deriv with all specs fom all cells, test with only
+      // r_p-r_l, and compare with original
 
-    // Advance the derivative for the next cell
-    deriv_data += model_data->n_per_cell_dep_var;
-
+      // Advance the derivative for the next cell
+      deriv_data += model_data->n_per_cell_dep_var;
     }
   }
 }
@@ -760,7 +760,7 @@ void rxn_update_data(int cell_id, int *rxn_id, int update_rxn_type,
   }
 }
 
-void rxn_export_input(void *solver_data, FILE *f){
+void rxn_export_input(void *solver_data, FILE *f) {
   SolverData *sd = (SolverData *)solver_data;
   ModelData *model_data = &(sd->model_data);
   int n_rxn = model_data->n_rxn;
@@ -769,29 +769,27 @@ void rxn_export_input(void *solver_data, FILE *f){
   for (int i_rxn = 0; i_rxn < n_rxn; i_rxn++) {
     // Get pointers to the reaction data
     int *rxn_int_data =
-            &(model_data->rxn_int_data[model_data->rxn_int_indices[i_rxn]]);
+        &(model_data->rxn_int_data[model_data->rxn_int_indices[i_rxn]]);
     double *rxn_float_data =
-            &(model_data->rxn_float_data[model_data->rxn_float_indices[i_rxn]]);
+        &(model_data->rxn_float_data[model_data->rxn_float_indices[i_rxn]]);
     double *rxn_env_data =
-            &(model_data->grid_cell_rxn_env_data[model_data->rxn_env_idx[i_rxn]]);
+        &(model_data->grid_cell_rxn_env_data[model_data->rxn_env_idx[i_rxn]]);
 
     // Get the reaction type
     int rxn_type = *(rxn_int_data++);
 
     for (int i_cell = 0; i_cell < model_data->n_cells; i_cell++) {
-
       // Call the appropriate function
       switch (rxn_type) {
         case RXN_PHOTOLYSIS:
-          rxn_photolysis_export_input(model_data, rxn_int_data,
-                                            rxn_float_data, rxn_env_data, f);
+          rxn_photolysis_export_input(model_data, rxn_int_data, rxn_float_data,
+                                      rxn_env_data, f);
           break;
       }
     }
   }
 
   fprintf(f, "\n");
-
 }
 
 /** \brief Print the reaction data

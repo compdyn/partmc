@@ -11,37 +11,37 @@
 #ifndef CAMP_COMMON_H
 #define CAMP_COMMON_H
 
+#include <stdio.h>
+#include <stdlib.h>
 #include <time.h>
 #include "Jacobian.h"
 #include "time_derivative.h"
-#include <stdio.h>
-#include <stdlib.h>
 
 /* SUNDIALS Header files with a description of contents used */
 #ifdef PMC_USE_SUNDIALS
-#include <cvode/cvode.h>             /* Protoypes for CVODE fcts., consts.  */
-#include <cvode/cvode_direct.h>      /* CVDls interface                     */
-#include <cvode/cvode_impl.h>        /* CVodeMem structure                  */
+#include <cvode/cvode.h>        /* Protoypes for CVODE fcts., consts.  */
+#include <cvode/cvode_direct.h> /* CVDls interface                     */
+#include <cvode/cvode_impl.h>   /* CVodeMem structure                  */
 
-//todo ifndef GPU
+// todo ifndef GPU
 //#ifdef PMC_USE_GPU
-//  #include <nvector/nvector_cuda.h>      /* access to cuda N_Vector             */
-//  #include <sunlinsol/sunlinsol_spgmr.h> /* access to SPGMR SUNLinearSolver     */
+//  #include <nvector/nvector_cuda.h>      /* access to cuda N_Vector */
+//  #include <sunlinsol/sunlinsol_spgmr.h> /* access to SPGMR SUNLinearSolver */
 //#else
-  #include <nvector/nvector_serial.h>  /* Serial N_Vector types, fcts, macros */
-  #include <sunlinsol/sunlinsol_klu.h> /* KLU SUNLinearSolver                 */
+#include <nvector/nvector_serial.h>  /* Serial N_Vector types, fcts, macros */
+#include <sunlinsol/sunlinsol_klu.h> /* KLU SUNLinearSolver                 */
 //#endif
 
-#include <sunmatrix/sunmatrix_sparse.h> /* sparse SUNMatrix                    */
 #include <sundials/sundials_nvector.h>
+#include <sunmatrix/sunmatrix_sparse.h> /* sparse SUNMatrix                    */
 
 #include <sundials/sundials_math.h>  /* SUNDIALS math function macros       */
 #include <sundials/sundials_types.h> /* definition of types                 */
 
-#include <sundials/sundials_direct.h>
-#include <sundials/sundials_matrix.h>
-#include <sundials/sundials_linearsolver.h>
 #include <cvode/cvode_direct_impl.h>
+#include <sundials/sundials_direct.h>
+#include <sundials/sundials_linearsolver.h>
+#include <sundials/sundials_matrix.h>
 
 #endif
 
@@ -50,9 +50,9 @@
 #endif
 
 #ifdef PMC_USE_GPU
-  #include <cuda.h>
-  #include <cuda_runtime.h>
-  #include "cuda/cuda_structs.h"
+#include <cuda.h>
+#include <cuda_runtime.h>
+#include "cuda/cuda_structs.h"
 #endif
 
 // State variable types (Must match parameters defined in pmc_chem_spec_data
@@ -113,7 +113,7 @@ typedef struct {
 #ifdef PMC_USE_SUNDIALS
   SUNMatrix J_init;    // sparse solver Jacobian matrix with used elements
                        // initialized to 1.0
-  SUNMatrix J_init2;    // sparse solver Jacobian matrix with used elements
+  SUNMatrix J_init2;   // sparse solver Jacobian matrix with used elements
   SUNMatrix J_rxn;     // Matrix for Jacobian contributions from reactions
   SUNMatrix J_params;  // Matrix for Jacobian contributions from sub model
                        // parameter calculations
@@ -209,11 +209,11 @@ typedef struct {
                                  // for the current grid cell
   int n_sub_model_env_data;      // Number of sub model environmental parameters
                                  // from all sub models
-   int counterMD;
+  int counterMD;
 
   //#ifdef CUDA_FOUND
   // GPU data
-//Gpu definitions
+// Gpu definitions
 #ifdef PMC_USE_GPU
   int max_n_gpu_thread;
   int max_n_gpu_blocks;
@@ -221,7 +221,8 @@ typedef struct {
   int *index_deriv_state_gpu;
   double *deriv_gpu_data;
   double *deriv_aux;
-  double *jac_gpu_data;//todo set this pointer to bicg.dA and everyone will be happy
+  double *jac_gpu_data;  // todo set this pointer to bicg.dA and everyone will
+                         // be happy
   double *jac_aux;
   int *indexvals_gpu;
   int *indexptrs_gpu;
@@ -240,9 +241,9 @@ typedef struct {
   double *env_gpu;
   double *rxn_env_data_gpu;
   int *rxn_env_data_idx_gpu;
-  int model_data_id; //Id of the modelData object
+  int model_data_id;  // Id of the modelData object
   int counterDeriv2;
-  //cudaStream_t *stream_gpu;
+  // cudaStream_t *stream_gpu;
 #endif
 
 } ModelData;
@@ -253,24 +254,24 @@ typedef struct {
   N_Vector abs_tol_nv;  // abosolute tolerance vector
   N_Vector y;           // vector of solver variables
   N_Vector y2;
-  SUNLinearSolver ls;   // linear solver
+  SUNLinearSolver ls;         // linear solver
   TimeDerivative time_deriv;  // CAMP derivative structure for use in
                               // calculating deriv
   Jacobian jac;               // CAMP Jacobian structure for use in
                               // calculating the Jacobian
-  N_Vector deriv;       // used to calculate the derivative outside the solver
+  N_Vector deriv;  // used to calculate the derivative outside the solver
   N_Vector deriv2;
-  SUNMatrix J;          // Jacobian matrix
+  SUNMatrix J;  // Jacobian matrix
   SUNMatrix J2;
-  SUNMatrix J_guess;    // Jacobian matrix for improving guesses sent to linear
-                        // solver
+  SUNMatrix J_guess;  // Jacobian matrix for improving guesses sent to linear
+                      // solver
   SUNMatrix J_guess2;
-  bool curr_J_guess;    // Flag indicating the Jacobian used by the guess helper
-                        // is current
-  realtype J_guess_t;   // Last time (t) for which J_guess was calculated
-  int Jac_eval_fails;   // Number of Jacobian evaluation failures
-  //realtype gamma;           // Scale factor jacobian (M=I-gJ)
-  int solver_flag;     // Last flag returned by a call to CVode()
+  bool curr_J_guess;   // Flag indicating the Jacobian used by the guess helper
+                       // is current
+  realtype J_guess_t;  // Last time (t) for which J_guess was calculated
+  int Jac_eval_fails;  // Number of Jacobian evaluation failures
+  // realtype gamma;           // Scale factor jacobian (M=I-gJ)
+  int solver_flag;       // Last flag returned by a call to CVode()
   int output_precision;  // Flag indicating whether to output precision loss
   int use_deriv_est;     // Flag indicating whether to use an estimated
                          // derivative in the f() calculations
@@ -286,7 +287,7 @@ typedef struct {
 #endif
 
   int counterDerivTotal;  // Total calls to f()
-  int counterDerivGPU; //todo set as counterDeriv and fix old counterDeriv
+  int counterDerivGPU;    // todo set as counterDeriv and fix old counterDeriv
   int counterJacGPU;
   int counterSolve;
   int counterFail;
@@ -296,11 +297,11 @@ typedef struct {
 
 #endif
 #ifdef PMC_USE_GPU
-    itsolver bicg;
-#ifdef CHECK_GPU_LINSOLVE //todo fix name
-    double max_error_linsolver;
-    int max_error_linsolver_i;
-    int n_linsolver_i;
+  itsolver bicg;
+#ifdef CHECK_GPU_LINSOLVE  // todo fix name
+  double max_error_linsolver;
+  int max_error_linsolver_i;
+  int n_linsolver_i;
 #endif
 #endif
   void *cvode_mem;       // CVodeMem object
@@ -308,7 +309,7 @@ typedef struct {
   bool no_solve;  // Flag to indicate whether to run the solver needs to be
                   // run. Set to true when no reactions are present.
   double init_time_step;  // Initial time step (s)
-  char **spec_names; // Species names
+  char **spec_names;      // Species names
 } SolverData;
 
 #endif

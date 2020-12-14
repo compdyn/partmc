@@ -217,7 +217,8 @@ void rxn_condensed_phase_arrhenius_calc_deriv_contrib(
         i_deriv++;
         continue;
       }
-      deriv[DERIV_ID_(i_deriv++)] -= rate / (UGM3_TO_MOLM3_(i_react) * unit_conv);
+      deriv[DERIV_ID_(i_deriv++)] -=
+          rate / (UGM3_TO_MOLM3_(i_react) * unit_conv);
     }
 
     // Products change
@@ -226,8 +227,9 @@ void rxn_condensed_phase_arrhenius_calc_deriv_contrib(
         i_deriv++;
         continue;
       }
-      deriv[DERIV_ID_(i_deriv++)] += rate * YIELD_(i_prod) /
-              (UGM3_TO_MOLM3_(NUM_REACT_ + i_prod) * unit_conv);
+      deriv[DERIV_ID_(i_deriv++)] +=
+          rate * YIELD_(i_prod) /
+          (UGM3_TO_MOLM3_(NUM_REACT_ + i_prod) * unit_conv);
     }
   }
 

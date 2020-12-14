@@ -117,9 +117,8 @@ void rxn_arrhenius_update_env_state(ModelData *model_data, int *rxn_int_data,
 #ifdef PMC_USE_MPI
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  if (rank==411 || rank==0)
-  {
-    printf("RATE_CONSTANT ARRHENIUS: %-le, rank %d \n", RATE_CONSTANT_,rank);
+  if (rank == 411 || rank == 0) {
+    printf("RATE_CONSTANT ARRHENIUS: %-le, rank %d \n", RATE_CONSTANT_, rank);
     /*printf("A_: %-le\n", A_);
     printf("B_: %-le\n", B_);
     printf("C_: %-le\n", C_);
@@ -158,8 +157,7 @@ void rxn_arrhenius_update_env_state(ModelData *model_data, int *rxn_int_data,
 
 #ifdef CHANGE_LOOPS_RXN
 
-void rxn_arrhenius_calc_deriv_contrib(ModelData *model_data,
-                                      double *deriv,
+void rxn_arrhenius_calc_deriv_contrib(ModelData *model_data, double *deriv,
                                       int *rxn_int_data, double *rxn_float_data,
                                       double *rxn_env_data, double time_step) {
   int *int_data = rxn_int_data;
@@ -177,7 +175,7 @@ void rxn_arrhenius_calc_deriv_contrib(ModelData *model_data,
     int i_dep_var = 0;
     for (int i_spec = 0; i_spec < NUM_REACT_; i_spec++, i_dep_var++) {
       if (DERIV_ID_(i_dep_var) < 0) continue;
-          deriv[DERIV_ID_(i_dep_var)] -= rate;
+      deriv[DERIV_ID_(i_dep_var)] -= rate;
     }
     for (int i_spec = 0; i_spec < NUM_PROD_; i_spec++, i_dep_var++) {
       if (DERIV_ID_(i_dep_var) < 0) continue;

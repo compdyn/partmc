@@ -345,9 +345,8 @@ void rxn_aqueous_equilibrium_calc_deriv_contrib(
 
     // Get the rate using the standard calculation
     double rate_forward, rate_reverse;
-    double rate =
-        calc_standard_rate(rxn_int_data, rxn_float_data, rxn_env_data, false,
-                           &rate_forward, &rate_reverse);
+    double rate = calc_standard_rate(rxn_int_data, rxn_float_data, rxn_env_data,
+                                     false, &rate_forward, &rate_reverse);
     if (rate == ZERO) {
       i_deriv += NUM_REACT_ + NUM_PROD_;
       continue;
@@ -360,12 +359,9 @@ void rxn_aqueous_equilibrium_calc_deriv_contrib(
         continue;
       }
 
-      deriv[DERIV_ID_(i_deriv++)] +=
-          -rate_forward / MASS_FRAC_TO_M_(i_react);
+      deriv[DERIV_ID_(i_deriv++)] += -rate_forward / MASS_FRAC_TO_M_(i_react);
 
-      deriv[DERIV_ID_(i_deriv++)] +=
-          rate_reverse / MASS_FRAC_TO_M_(i_react);
-
+      deriv[DERIV_ID_(i_deriv++)] += rate_reverse / MASS_FRAC_TO_M_(i_react);
     }
 
     // Products change as (forward - reverse) (ug/m3/s)
@@ -380,13 +376,11 @@ void rxn_aqueous_equilibrium_calc_deriv_contrib(
 
       deriv[DERIV_ID_(i_deriv++)] +=
           -rate_reverse / MASS_FRAC_TO_M_(NUM_REACT_ + i_prod);
-
     }
   }
 
   return;
 }
-
 
 #else
 

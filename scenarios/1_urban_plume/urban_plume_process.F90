@@ -36,7 +36,8 @@ program process
        diam_gamma_dist_avg(:,:)
   type(stats_1d_t) :: stats_num_dist, stats_d_alpha, stats_tot_num_conc, &
        stats_tot_mass_conc, stats_d_gamma, stats_chi, &
-       stats_mass_bc_dist, stats_mass_so4_dist, stats_mass_no3_dist, stats_mass_nh4_dist
+       stats_mass_bc_dist, stats_mass_so4_dist, stats_mass_no3_dist, stats_mass_nh4_dist, &
+       stats_n2o5_uptake_pr, stats_n2o5_uptake_comp
   type(stats_2d_t) :: stats_diam_bc_dist, stats_diam_sc_dist, &
        stats_diam_gamma_dist_pr, stats_diam_gamma_dist_avg
 
@@ -126,6 +127,7 @@ program process
         env_state, n2o5_type, gamma_part, aero_state_n2o5_uptake)
         diam_gamma_dist_pr = bin_grid_histogram_2d(diam_grid, dry_diameters, &
              gamma_grid, gamma_part, num_concs)
+        call stats_1d_add_entry(stats_n2o5_uptake_pr, aero_state_n2o5_uptake, i_index)
         call stats_2d_add(stats_diam_gamma_dist_pr, diam_gamma_dist_pr)
 
         n2o5_type = N2O5_HYDR_COMP
@@ -133,6 +135,7 @@ program process
         env_state, n2o5_type, gamma_part, aero_state_n2o5_uptake)
         diam_gamma_dist_avg = bin_grid_histogram_2d(diam_grid, dry_diameters, &
              gamma_grid, gamma_part, num_concs)
+        call stats_1d_add_entry(stats_n2o5_uptake_comp, aero_state_n2o5_uptake, i_index)
         call stats_2d_add(stats_diam_gamma_dist_avg, diam_gamma_dist_avg)
 
      end do
@@ -196,6 +199,10 @@ program process
   call stats_1d_output_netcdf(stats_d_gamma, ncid, &
        "d_gamma", dim_name="time", unit="1")
   call stats_1d_output_netcdf(stats_chi, ncid, "chi", &
+       dim_name="time", unit="1")
+  call stats_1d_output_netcdf(stats_n2o5_uptake_pr, ncid, "n2o5_uptake_pr", &
+       dim_name="time", unit="1")
+  call stats_1d_output_netcdf(stats_n2o5_uptake_comp, ncid, "n2o5_uptake_comp", &
        dim_name="time", unit="1")
   call pmc_nc_close(ncid)
 

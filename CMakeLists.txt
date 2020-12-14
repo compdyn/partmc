@@ -452,8 +452,10 @@ endif()
 set(STD_C_FLAGS "-std=c99")
 set(STD_CXX_FLAGS "-fpermissive")
 
-#-lcusolver -lcusparse_static -lculibos -lpthread -ldl #--compiler-options '-fPIC'
-set(STD_CUDA_FLAGS "-dc -arch=compute_70 -code=sm_70 --compiler-options '-fPIC' -lcusolver -lcudart -lcublas -lcusparse_static -lculibos -lpthread -ldl")
+#todo check where is rxns.cu and where is the global function (camp_gpu_solver.cu)... if is in a different unit or what https://stackoverflow.com/questions/31006581/cuda-device-unresolved-extern-function
+#set(STD_CUDA_FLAGS "-dc -arch=compute_70 -code=sm_70 --compiler-options '-fPIC' -lcusolver -lcudart -lcublas -lcusparse_static -lculibos -lpthread -ldl")
+set(STD_CUDA_FLAGS "-arch=compute_70 -code=sm_70 --compiler-options '-fPIC' -lcusolver -lcudart -lcudadevrt -lcublas -lcusparse_static -lculibos -lpthread -ldl")
+
 
 if(${CMAKE_Fortran_COMPILER_ID} MATCHES "Intel")
   set(STD_F_FLAGS "-extend_source -warn truncated_source")

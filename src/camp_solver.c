@@ -1160,7 +1160,13 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
 #endif
 
 // todo avoid ifndef an use only ifdef and else
-#ifndef PMC_USE_GPU
+#ifdef PMC_USE_GPU
+
+  // Add contributions from reactions not implemented on GPU
+  // FIXME need to fix this to use TimeDerivative
+  rxn_calc_deriv_specific_types(md, sd->time_deriv, (double)time_step);
+
+#else
 
   // Calculate the time derivative f(t,y)
   rxn_calc_deriv(md, deriv_data, (double)time_step);
@@ -1182,10 +1188,7 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
                            sd->output_precision);
   }
    */
-#else
-  // Add contributions from reactions not implemented on GPU
-  // FIXME need to fix this to use TimeDerivative
-  rxn_calc_deriv_specific_types(md, sd->time_deriv, (double)time_step);
+
 #endif
 
 #ifdef PMC_DEBUG
@@ -1230,8 +1233,25 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
     clock_t start4 = clock();
 #endif
 
-#ifndef PMC_USE_GPU  // CPU always better atm cause delay double loop
-    //#ifndef COMMENTING
+#ifdef PMC_USE_GPU  // CPU always better atm cause delay double loop
+
+    // If we have small_data, it's faster to compute them in cpu
+    // if(md->small_data){
+    if (0) {
+      rxn_calc_deriv(md, sd->time_deriv, (double)time_step);
+    } else {
+      // Add contributions from reactions not implemented on GPU
+      // TODO: compute hl & simpol on gpu
+      // rxn_calc_deriv_specific_types(md, deriv_data, (double)time_step);
+      // FIXME need to fix this to use TimeDerivative
+      rxn_calc_deriv_specific_types(md, sd->time_deriv, (double)time_step);
+      // rxn_calc_deriv(md, deriv_data, (double)time_step);
+    }
+    // rxn_calc_deriv_aux(md, deriv_data, (double)time_step);
+    // rxn_calc_deriv(md, deriv_data, (double)time_step);
+
+#else
+
     // Reset the TimeDerivative
     time_derivative_reset(sd->time_deriv);
 
@@ -1247,21 +1267,6 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data) {
       time_derivative_output(sd->time_deriv, deriv_data, NULL,
                              sd->output_precision);
     }
-#else
-    // If we have small_data, it's faster to compute them in cpu
-    // if(md->small_data){
-    if (0) {
-      rxn_calc_deriv(md, sd->time_deriv, (double)time_step);
-    } else {
-      // Add contributions from reactions not implemented on GPU
-      // TODO: compute hl & simpol on gpu
-      // rxn_calc_deriv_specific_types(md, deriv_data, (double)time_step);
-      // FIXME need to fix this to use TimeDerivative
-      rxn_calc_deriv_specific_types(md, sd->time_deriv, (double)time_step);
-      // rxn_calc_deriv(md, deriv_data, (double)time_step);
-    }
-    // rxn_calc_deriv_aux(md, deriv_data, (double)time_step);
-    // rxn_calc_deriv(md, deriv_data, (double)time_step);
 
 #endif
 
@@ -1442,15 +1447,17 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
     clock_t start = clock();
 #endif
 
-    //#ifndef PMC_USE_GPU
+    /*#ifdef PMC_USE_GPU
+
+        // Add contributions from reactions not implemented on GPU
+        rxn_calc_jac_specific_types(md, sd->jac, time_step);
+
+    #else*/
 
     // Calculate the reaction Jacobian
     rxn_calc_jac(md, sd->jac, time_step);
 
-/*#else
-      // Add contributions from reactions not implemented on GPU
-      rxn_calc_jac_specific_types(md, sd->jac, time_step);
-#endif*/
+//#endif
 
 // rxn_calc_jac_specific_types(md, J_rxn_data, time_step);
 #ifdef PMC_DEBUG

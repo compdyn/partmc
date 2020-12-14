@@ -361,7 +361,6 @@ contains
     ! Set the photolysis rates (dummy values for solver comparison)
     is_sunny = .true.
     allocate(photo_rates(NUM_EBI_PHOTO_RXN))
-    !todo found why don't photo_rates(:)/60
 
     photo_rates(:) = 0.0001 * 60.0 ! EBI solver wants rates in min^-1
     KPP_PHOTO_RATES(:) = photo_rates(1)/60
@@ -369,7 +368,6 @@ contains
     ! Set O2 + hv rate constant to 0 in KPP (not present in ebi version)
     KPP_PHOTO_RATES(1) = 0.0
     call jo2_rate_update%set_rate(real(0.0, kind=dp))
-
     call camp_core%update_data(jo2_rate_update)
     ! Set the remaining rates
     do i_photo_rxn = 1, n_photo_rxn
@@ -631,23 +629,12 @@ contains
       KPP_C(:) = MAX(KPP_C(:), SMALL_NUM/conv)
       camp_state%state_var(:) = max(camp_state%state_var(:), SMALL_NUM)
 
-    !todo check why this equals camp to ebi after compute ebi instead of doing it before
-    ! well no differences by setting this before
-    ! Set KPP and camp-chem concentrations to those of EBI at first time step to match steady-state
-    ! EBI species
-    if (i_time.eq.1) then
-      ! Set KPP species in #/cc
-      do i_spec = 1, NUM_EBI_SPEC
-        do j_spec = 1, KPP_NSPEC
-          if (trim(ebi_spec_names(i_spec)%string).eq.trim(KPP_SPC_NAMES(j_spec))) then
-            !KPP_C(j_spec) = YC(i_spec) / conv
-          end if
-        end do
-        !camp_state%state_var( &
-        !        chem_spec_data%gas_state_id( &
-        !                ebi_spec_names(i_spec)%string)) = YC(i_spec)
-      end do
-    end if
+      ! Output current time step
+      if (i_repeat.eq.1) then
+      write(EBI_FILE_UNIT,*) i_time*EBI_TMSTEP, YC(:)
+      write(KPP_FILE_UNIT,*) i_time*KPP_DT/60.0d0, KPP_C(:)*conv
+      write(CAMP_FILE_UNIT,*) i_time*EBI_TMSTEP, camp_state%state_var(:)
+      end if
 
       ! EBI solver
       call cpu_time(comp_start)
@@ -723,13 +710,6 @@ contains
     end do
     end do
 
-
-
-    ! Output the computational time
-    write(*,*) "EBI calculation time: ", comp_ebi," s"
-    write(*,*) "KPP calculation time: ", comp_kpp," s"
-    write(*,*) "CAMP-chem calculation time: ", comp_camp," s"
-
     ! Output final timestep
     write(EBI_FILE_UNIT,*) i_time*EBI_TMSTEP, YC(:)
     write(KPP_FILE_UNIT,*) i_time*EBI_TMSTEP, KPP_C(:)*conv
@@ -740,6 +720,11 @@ contains
     write(CAMP_KPP_FILE_UNIT,*) "spec_name, concentrations rel. error [(camp_state-kpp)/(camp_state+kpp)], camp_state, kpp"
     write(EBI_KPP_FILE_UNIT,*) "Repeat", i_repeat, "timestep ", NUM_TIME_STEPS
     write(EBI_KPP_FILE_UNIT,*) "spec_name, concentrations rel. error [(èbi-kpp)/(ebi+kpp)], ebi, kpp"
+
+    ! Output the computational time
+    write(*,*) "EBI calculation time: ", comp_ebi," s"
+    write(*,*) "KPP calculation time: ", comp_kpp," s"
+    write(*,*) "CAMP-chem calculation time: ", comp_camp," s"
 
     ! Compare the results
     ! EBI <-> CAMP-chem
@@ -764,6 +749,7 @@ contains
                   ebi_spec_names(i_spec)%string)))))
 
 #ifndef PMC_USE_MPI
+#ifdef COMPARE_CAMP_FILE
       associate (camp_var=>camp_state%state_var( &
               chem_spec_data%gas_state_id( &
                       ebi_monarch_spec_names(i_spec)%string)))
@@ -775,8 +761,8 @@ contains
                 YC(map_ebi_monarch(i_spec))
       end associate
 #endif
+#endif
     end do
-
     ! KPP <-> CAMP-chem
     do i_spec = 1, KPP_NSPEC
       str_temp%string = trim(KPP_SPC_NAMES(i_spec))
@@ -800,6 +786,7 @@ contains
                   chem_spec_data%gas_state_id( &
                   str_temp%string)))))
 #ifndef PMC_USE_MPI
+#ifdef COMPARE_CAMP_FILE
       associate (camp_var=>camp_state%state_var( &
               chem_spec_data%gas_state_id( &
                       str_temp%string)))
@@ -810,6 +797,7 @@ contains
                 camp_var, &
                 real(KPP_C(i_spec)*conv, kind=dp)
       end associate
+#endif
 #endif
     end do
 

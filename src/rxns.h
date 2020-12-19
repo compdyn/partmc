@@ -81,8 +81,7 @@ void rxn_CMAQ_H2O2_calc_jac_contrib(ModelData *model_data, Jacobian jac,
 
 // CMAQ_OH_HNO3
 void rxn_CMAQ_OH_HNO3_get_used_jac_elem(int *rxn_int_data,
-                                        double *rxn_float_data,
-                                        Jacobian *jac);
+                                        double *rxn_float_data, Jacobian *jac);
 void rxn_CMAQ_OH_HNO3_update_ids(ModelData *model_data, int *deriv_ids,
                                  Jacobian jac, int *rxn_int_data,
                                  double *rxn_float_data);

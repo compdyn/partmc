@@ -67,7 +67,8 @@ void rxn_wet_deposition_update_ids(ModelData *model_data, int *deriv_ids,
     DERIV_ID_(i_spec) = deriv_ids[REACT_(i_spec)];
 
     // Update the Jacobian id
-    JAC_ID_(i_spec) = jacobian_get_element_id(jac, REACT_(i_spec), REACT_(i_spec));
+    JAC_ID_(i_spec) =
+        jacobian_get_element_id(jac, REACT_(i_spec), REACT_(i_spec));
   }
 
   return;

@@ -82,10 +82,12 @@ void rxn_CMAQ_H2O2_update_ids(ModelData *model_data, int *deriv_ids,
   int i_jac = 0;
   for (int i_ind = 0; i_ind < NUM_REACT_; i_ind++) {
     for (int i_dep = 0; i_dep < NUM_REACT_; i_dep++) {
-      JAC_ID_(i_jac++) = jacobian_get_element_id(jac, REACT_(i_dep), REACT_(i_ind));
+      JAC_ID_(i_jac++) =
+          jacobian_get_element_id(jac, REACT_(i_dep), REACT_(i_ind));
     }
     for (int i_dep = 0; i_dep < NUM_PROD_; i_dep++) {
-      JAC_ID_(i_jac++) = jacobian_get_element_id(jac, PROD_(i_dep), REACT_(i_ind));
+      JAC_ID_(i_jac++) =
+          jacobian_get_element_id(jac, PROD_(i_dep), REACT_(i_ind));
     }
   }
   return;

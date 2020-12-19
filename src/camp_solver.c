@@ -1435,7 +1435,8 @@ SUNMatrix get_jac_init(SolverData *solver_data) {
   int n_dep_var_total = n_dep_var * n_cells;
 
   // Initialize the Jacobian for reactions
-  if (jacobian_initialize_empty(&(solver_data->jac), (unsigned int)n_state_var) != 1) {
+  if (jacobian_initialize_empty(&(solver_data->jac),
+                                (unsigned int)n_state_var) != 1) {
     printf("\n\nERROR allocating Jacobian structure\n\n");
     exit(EXIT_FAILURE);
   }
@@ -1693,7 +1694,8 @@ SUNMatrix get_jac_init(SolverData *solver_data) {
       if (solver_data->model_data.var_type[i_ind] == CHEM_SPEC_VARIABLE &&
           solver_data->model_data.var_type[i_dep] == CHEM_SPEC_VARIABLE) {
         map[i_mapped_value].solver_id = jac_struct_solver[i_dep][i_ind];
-        map[i_mapped_value].rxn_id = jacobian_get_element_id(solver_data->jac, i_dep, i_ind);
+        map[i_mapped_value].rxn_id =
+            jacobian_get_element_id(solver_data->jac, i_dep, i_ind);
         map[i_mapped_value].param_id = 0;
         ++i_mapped_value;
         continue;
@@ -1704,7 +1706,8 @@ SUNMatrix get_jac_init(SolverData *solver_data) {
         if (jac_ids_param[i_ind][j_ind] >= 0 &&
             solver_data->model_data.var_type[j_ind] == CHEM_SPEC_VARIABLE) {
           map[i_mapped_value].solver_id = jac_struct_solver[i_dep][j_ind];
-          map[i_mapped_value].rxn_id = jacobian_get_element_id(solver_data->jac, i_dep, i_ind);
+          map[i_mapped_value].rxn_id =
+              jacobian_get_element_id(solver_data->jac, i_dep, i_ind);
           map[i_mapped_value].param_id = jac_struct_param[i_ind][j_ind];
           ++i_mapped_value;
         }

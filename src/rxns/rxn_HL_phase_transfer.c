@@ -89,9 +89,11 @@ void rxn_HL_phase_transfer_get_used_jac_elem(ModelData *model_data,
   for (int i_aero_phase = 0; i_aero_phase < NUM_AERO_PHASE_; i_aero_phase++) {
     jacobian_register_element(jac, AERO_SPEC_(i_aero_phase), GAS_SPEC_);
     jacobian_register_element(jac, GAS_SPEC_, AERO_SPEC_(i_aero_phase));
-    jacobian_register_element(jac, AERO_SPEC_(i_aero_phase), AERO_SPEC_(i_aero_phase));
+    jacobian_register_element(jac, AERO_SPEC_(i_aero_phase),
+                              AERO_SPEC_(i_aero_phase));
     jacobian_register_element(jac, GAS_SPEC_, AERO_WATER_(i_aero_phase));
-    jacobian_register_element(jac, AERO_SPEC_(i_aero_phase), AERO_WATER_(i_aero_phase));
+    jacobian_register_element(jac, AERO_SPEC_(i_aero_phase),
+                              AERO_WATER_(i_aero_phase));
 
     for (int i_elem = 0; i_elem < model_data->n_per_cell_state_var; i_elem++)
       aero_jac_elem[i_elem] = false;
@@ -159,23 +161,26 @@ void rxn_HL_phase_transfer_update_ids(ModelData *model_data, int *deriv_ids,
   int i_jac = 0;
   JAC_ID_(i_jac++) = jacobian_get_element_id(jac, GAS_SPEC_, GAS_SPEC_);
   for (int i_aero_phase = 0; i_aero_phase < NUM_AERO_PHASE_; i_aero_phase++) {
-    JAC_ID_(i_jac++) = jacobian_get_element_id(jac, AERO_SPEC_(i_aero_phase), GAS_SPEC_);
-    JAC_ID_(i_jac++) = jacobian_get_element_id(jac, GAS_SPEC_, AERO_SPEC_(i_aero_phase));
     JAC_ID_(i_jac++) =
-        jacobian_get_element_id(jac, AERO_SPEC_(i_aero_phase), AERO_SPEC_(i_aero_phase));
-    JAC_ID_(i_jac++) = jacobian_get_element_id(jac, GAS_SPEC_, AERO_WATER_(i_aero_phase));
+        jacobian_get_element_id(jac, AERO_SPEC_(i_aero_phase), GAS_SPEC_);
     JAC_ID_(i_jac++) =
-        jacobian_get_element_id(jac, AERO_SPEC_(i_aero_phase), AERO_WATER_(i_aero_phase));
+        jacobian_get_element_id(jac, GAS_SPEC_, AERO_SPEC_(i_aero_phase));
+    JAC_ID_(i_jac++) = jacobian_get_element_id(jac, AERO_SPEC_(i_aero_phase),
+                                               AERO_SPEC_(i_aero_phase));
+    JAC_ID_(i_jac++) =
+        jacobian_get_element_id(jac, GAS_SPEC_, AERO_WATER_(i_aero_phase));
+    JAC_ID_(i_jac++) = jacobian_get_element_id(jac, AERO_SPEC_(i_aero_phase),
+                                               AERO_WATER_(i_aero_phase));
     for (int i_elem = 0; i_elem < NUM_AERO_PHASE_JAC_ELEM_(i_aero_phase);
          i_elem++) {
       if (PHASE_JAC_ID_(i_aero_phase, JAC_GAS, i_elem) > 0) {
-        PHASE_JAC_ID_(i_aero_phase, JAC_GAS, i_elem) =
-            jacobian_get_element_id(jac, GAS_SPEC_, PHASE_JAC_ID_(i_aero_phase, JAC_GAS, i_elem));
+        PHASE_JAC_ID_(i_aero_phase, JAC_GAS, i_elem) = jacobian_get_element_id(
+            jac, GAS_SPEC_, PHASE_JAC_ID_(i_aero_phase, JAC_GAS, i_elem));
       }
       if (PHASE_JAC_ID_(i_aero_phase, JAC_AERO, i_elem) > 0) {
-        PHASE_JAC_ID_(i_aero_phase, JAC_AERO, i_elem) =
-            jacobian_get_element_id(jac, AERO_SPEC_(i_aero_phase),
-                   PHASE_JAC_ID_(i_aero_phase, JAC_AERO, i_elem));
+        PHASE_JAC_ID_(i_aero_phase, JAC_AERO, i_elem) = jacobian_get_element_id(
+            jac, AERO_SPEC_(i_aero_phase),
+            PHASE_JAC_ID_(i_aero_phase, JAC_AERO, i_elem));
       }
     }
   }

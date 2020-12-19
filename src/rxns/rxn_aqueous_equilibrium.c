@@ -80,7 +80,8 @@ void rxn_aqueous_equilibrium_get_used_jac_elem(int *rxn_int_data,
          i_react_ind < (i_phase + 1) * NUM_REACT_; i_react_ind++) {
       for (int i_react_dep = i_phase * NUM_REACT_;
            i_react_dep < (i_phase + 1) * NUM_REACT_; i_react_dep++)
-        jacobian_register_element(jac, REACT_(i_react_dep), REACT_(i_react_ind));
+        jacobian_register_element(jac, REACT_(i_react_dep),
+                                  REACT_(i_react_ind));
       for (int i_prod_dep = i_phase * NUM_PROD_;
            i_prod_dep < (i_phase + 1) * NUM_PROD_; i_prod_dep++)
         jacobian_register_element(jac, PROD_(i_prod_dep), REACT_(i_react_ind));
@@ -109,10 +110,12 @@ void rxn_aqueous_equilibrium_get_used_jac_elem(int *rxn_int_data,
     if (ACTIVITY_COEFF_(i_phase) < 0) continue;
     for (int i_react_dep = i_phase * NUM_REACT_;
          i_react_dep < (i_phase + 1) * NUM_REACT_; ++i_react_dep)
-      jacobian_register_element(jac, REACT_(i_react_dep), ACTIVITY_COEFF_(i_phase));
+      jacobian_register_element(jac, REACT_(i_react_dep),
+                                ACTIVITY_COEFF_(i_phase));
     for (int i_prod_dep = i_phase * NUM_PROD_;
          i_prod_dep < (i_phase + 1) * NUM_PROD_; ++i_prod_dep)
-      jacobian_register_element(jac, PROD_(i_prod_dep), ACTIVITY_COEFF_(i_phase));
+      jacobian_register_element(jac, PROD_(i_prod_dep),
+                                ACTIVITY_COEFF_(i_phase));
   }
 
   return;
@@ -147,10 +150,12 @@ void rxn_aqueous_equilibrium_update_ids(ModelData *model_data, int *deriv_ids,
          i_react_ind < (i_phase + 1) * NUM_REACT_; i_react_ind++) {
       for (int i_react_dep = i_phase * NUM_REACT_;
            i_react_dep < (i_phase + 1) * NUM_REACT_; i_react_dep++)
-        JAC_ID_(i_jac++) = jacobian_get_element_id(jac, REACT_(i_react_dep), REACT_(i_react_ind));
+        JAC_ID_(i_jac++) = jacobian_get_element_id(jac, REACT_(i_react_dep),
+                                                   REACT_(i_react_ind));
       for (int i_prod_dep = i_phase * NUM_PROD_;
            i_prod_dep < (i_phase + 1) * NUM_PROD_; i_prod_dep++)
-        JAC_ID_(i_jac++) = jacobian_get_element_id(jac, PROD_(i_prod_dep), REACT_(i_react_ind));
+        JAC_ID_(i_jac++) = jacobian_get_element_id(jac, PROD_(i_prod_dep),
+                                                   REACT_(i_react_ind));
     }
 
     // Add dependence on products for reactants and products (reverse reaction)
@@ -158,19 +163,23 @@ void rxn_aqueous_equilibrium_update_ids(ModelData *model_data, int *deriv_ids,
          i_prod_ind < (i_phase + 1) * NUM_PROD_; i_prod_ind++) {
       for (int i_react_dep = i_phase * NUM_REACT_;
            i_react_dep < (i_phase + 1) * NUM_REACT_; i_react_dep++)
-        JAC_ID_(i_jac++) = jacobian_get_element_id(jac, REACT_(i_react_dep), PROD_(i_prod_ind));
+        JAC_ID_(i_jac++) = jacobian_get_element_id(jac, REACT_(i_react_dep),
+                                                   PROD_(i_prod_ind));
       for (int i_prod_dep = i_phase * NUM_PROD_;
            i_prod_dep < (i_phase + 1) * NUM_PROD_; i_prod_dep++)
-        JAC_ID_(i_jac++) = jacobian_get_element_id(jac, PROD_(i_prod_dep), PROD_(i_prod_ind));
+        JAC_ID_(i_jac++) =
+            jacobian_get_element_id(jac, PROD_(i_prod_dep), PROD_(i_prod_ind));
     }
 
     // Add dependence on aerosol-phase water for reactants and products
     for (int i_react_dep = i_phase * NUM_REACT_;
          i_react_dep < (i_phase + 1) * NUM_REACT_; i_react_dep++)
-      JAC_ID_(i_jac++) = jacobian_get_element_id(jac, REACT_(i_react_dep), WATER_(i_phase));
+      JAC_ID_(i_jac++) =
+          jacobian_get_element_id(jac, REACT_(i_react_dep), WATER_(i_phase));
     for (int i_prod_dep = i_phase * NUM_PROD_;
          i_prod_dep < (i_phase + 1) * NUM_PROD_; i_prod_dep++)
-      JAC_ID_(i_jac++) = jacobian_get_element_id(jac, PROD_(i_prod_dep), WATER_(i_phase));
+      JAC_ID_(i_jac++) =
+          jacobian_get_element_id(jac, PROD_(i_prod_dep), WATER_(i_phase));
 
     // Add dependence on activity coefficients for reactants and products
     if (ACTIVITY_COEFF_(i_phase) < 0) {
@@ -183,11 +192,12 @@ void rxn_aqueous_equilibrium_update_ids(ModelData *model_data, int *deriv_ids,
     } else {
       for (int i_react_dep = i_phase * NUM_REACT_;
            i_react_dep < (i_phase + 1) * NUM_REACT_; ++i_react_dep)
-        JAC_ID_(i_jac++) =
-            jacobian_get_element_id(jac, REACT_(i_react_dep), ACTIVITY_COEFF_(i_phase));
+        JAC_ID_(i_jac++) = jacobian_get_element_id(jac, REACT_(i_react_dep),
+                                                   ACTIVITY_COEFF_(i_phase));
       for (int i_prod_dep = i_phase * NUM_PROD_;
            i_prod_dep < (i_phase + 1) * NUM_PROD_; ++i_prod_dep)
-        JAC_ID_(i_jac++) = jacobian_get_element_id(jac, PROD_(i_prod_dep), ACTIVITY_COEFF_(i_phase));
+        JAC_ID_(i_jac++) = jacobian_get_element_id(jac, PROD_(i_prod_dep),
+                                                   ACTIVITY_COEFF_(i_phase));
     }
   }
 

@@ -2939,7 +2939,7 @@ contains
 
   !>
   subroutine aero_n2o5_uptake(aero_state, aero_data, &
-       env_state, n2o5_type, gamma_part, aero_state_n2o5_uptake)
+       env_state, n2o5_type, gamma_part, aero_state_n2o5_uptake, gamma_pop)
 
     !> Aerosol state.
     type(aero_state_t), intent(in) :: aero_state
@@ -2968,6 +2968,7 @@ contains
     !real(kind=dp), intent(inout) :: gamma_part(aero_state_n_part(aero_state))
     real(kind=dp), allocatable, intent(out) :: gamma_part(:)
     real(kind=dp), intent(out) :: aero_state_n2o5_uptake
+    real(kind=dp), intent(out) :: gamma_pop
 
     aero_state_n2o5_uptake = 0d0
 
@@ -3013,6 +3014,7 @@ contains
     end do
 
     aero_state_n2o5_uptake = 0.25d0 * c_n2o5 * gamma_n2o5
+    gamma_pop = gamma_n2o5/sum(surf_area_concs)
 
   end subroutine aero_n2o5_uptake
 

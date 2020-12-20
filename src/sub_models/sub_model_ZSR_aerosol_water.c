@@ -76,11 +76,11 @@
  *
  * \param sub_model_int_data Pointer to the sub model integer data
  * \param sub_model_float_data Pointer to the sub model floating-point data
- * \param jac_struct A matrix of flags for needed Jac elements
+ * \param jac Jacobian
  */
 void sub_model_ZSR_aerosol_water_get_used_jac_elem(int *sub_model_int_data,
                                                    double *sub_model_float_data,
-                                                   bool **jac_struct) {
+                                                   Jacobian *jac) {
   int *int_data = sub_model_int_data;
   double *float_data = sub_model_float_data;
 
@@ -88,7 +88,7 @@ void sub_model_ZSR_aerosol_water_get_used_jac_elem(int *sub_model_int_data,
   // elements for each
   for (int i_phase = 0; i_phase < NUM_PHASE_; ++i_phase) {
     // Flag the gas-phase water species
-    jac_struct[PHASE_ID_(i_phase)][GAS_WATER_ID_] = true;
+    jacobian_register_element(jac, PHASE_ID_(i_phase), GAS_WATER_ID_);
 
     // Flag elements for each ion pair
     for (int i_ion_pair = 0; i_ion_pair < NUM_ION_PAIR_; ++i_ion_pair) {
@@ -98,10 +98,12 @@ void sub_model_ZSR_aerosol_water_get_used_jac_elem(int *sub_model_int_data,
         case ACT_TYPE_JACOBSON:
 
           // Flag the anion and cation Jacobian elements
-          jac_struct[PHASE_ID_(i_phase)]
-                    [PHASE_ID_(i_phase) + JACOB_CATION_ID_(i_ion_pair)] = true;
-          jac_struct[PHASE_ID_(i_phase)]
-                    [PHASE_ID_(i_phase) + JACOB_ANION_ID_(i_ion_pair)] = true;
+          jacobian_register_element(
+              jac, PHASE_ID_(i_phase),
+              PHASE_ID_(i_phase) + JACOB_CATION_ID_(i_ion_pair));
+          jacobian_register_element(
+              jac, PHASE_ID_(i_phase),
+              PHASE_ID_(i_phase) + JACOB_ANION_ID_(i_ion_pair));
           break;
 
         // EQSAM (Metger et al., 2002)
@@ -109,9 +111,9 @@ void sub_model_ZSR_aerosol_water_get_used_jac_elem(int *sub_model_int_data,
 
           // Flag the ion Jacobian elements
           for (int i_ion = 0; i_ion < EQSAM_NUM_ION_(i_ion_pair); i_ion++) {
-            jac_struct[PHASE_ID_(i_phase)]
-                      [PHASE_ID_(i_phase) + EQSAM_ION_ID_(i_ion_pair, i_ion)] =
-                          true;
+            jacobian_register_element(
+                jac, PHASE_ID_(i_phase),
+                PHASE_ID_(i_phase) + EQSAM_ION_ID_(i_ion_pair, i_ion));
           }
           break;
       }

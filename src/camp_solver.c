@@ -1407,8 +1407,6 @@ int guess_helper(const realtype t_n, const realtype h_n, N_Vector y_n,
 SUNMatrix get_jac_init(SolverData *solver_data) {
   int n_rxn;                     /* number of reactions in the mechanism
                                   * (stored in first position in *rxn_data) */
-  bool **jac_struct_param;       /* structure of Jacobian with flags to indicate
-                                  * elements that could be used by sub models. */
   bool **jac_struct_solver;      /* structure of Jacobian with flags to indicate
                                   * elements that could be used in the solver. */
   sunindextype n_jac_elem_rxn;   /* number of potentially non-zero Jacobian
@@ -1507,36 +1505,12 @@ SUNMatrix get_jac_init(SolverData *solver_data) {
     exit(EXIT_FAILURE);
   }
 
-  // Set up the 2D array of flags
-  jac_struct_param = (bool **)malloc(sizeof(int *) * n_state_var);
-  if (jac_struct_param == NULL) {
-    printf("\n\nERROR allocating space for jacobian structure array\n\n");
-    exit(EXIT_FAILURE);
-  }
-  for (int i_spec = 0; i_spec < n_state_var; i_spec++) {
-    jac_struct_param[i_spec] = (bool *)malloc(sizeof(int) * n_state_var);
-    if (jac_struct_param[i_spec] == NULL) {
-      printf(
-          "\n\nERROR allocating space for jacobian structure array "
-          "row %d\n\n",
-          i_spec);
-      exit(EXIT_FAILURE);
-    }
-    for (int j_spec = 0; j_spec < n_state_var; j_spec++)
-      jac_struct_param[i_spec][j_spec] = false;
-  }
   // Set up a dummy param at the first position
-  jac_struct_param[0][0] = true;
+  jacobian_register_element(&param_jac, 0, 0);
 
   // Fill in the 2D array of flags with Jacobian elements used by the
   // mechanism sub models
-  sub_model_get_used_jac_elem(&(solver_data->model_data), jac_struct_param);
-
-  // Register non-zero Jacobian elements
-  for (int i = 0; i < n_state_var; i++)
-    for (int j = 0; j < n_state_var; j++)
-      if (jac_struct_param[i][j] == true)
-        jacobian_register_element(&param_jac, i, j);
+  sub_model_get_used_jac_elem(&(solver_data->model_data), &param_jac);
 
   // Build the sparse Jacobian for sub-model parameters
   if (jacobian_build_matrix(&param_jac) != 1) {
@@ -1544,9 +1518,8 @@ SUNMatrix get_jac_init(SolverData *solver_data) {
     exit(EXIT_FAILURE);
   }
 
-  n_jac_elem_param = jacobian_number_of_elements(param_jac);
-
   // Save the number of sub model Jacobian elements per grid cell
+  n_jac_elem_param = jacobian_number_of_elements(param_jac);
   solver_data->model_data.n_per_cell_param_jac_elem = (int)n_jac_elem_param;
 
   // Set up the parameter Jacobian (sized for one grid cell)
@@ -1566,16 +1539,6 @@ SUNMatrix get_jac_init(SolverData *solver_data) {
     (SM_INDEXVALS_S(solver_data->model_data.J_params))[i_elem] =
         jacobian_row_index(param_jac, i_elem);
   }
-
-  // Build the set of Jacobian ids
-  int **jac_ids_param = (int **)jac_struct_param;
-  for (int i_ind = 0, i_jac_elem_param = 0; i_ind < n_state_var; i_ind++)
-    for (int i_dep = 0; i_dep < n_state_var; i_dep++)
-      if (jac_struct_param[i_dep][i_ind] == true) {
-        jac_ids_param[i_dep][i_ind] = i_jac_elem_param++;
-      } else {
-        jac_ids_param[i_dep][i_ind] = -1;
-      }
 
   // Update the ids in the sub model data
   sub_model_update_ids(&(solver_data->model_data), deriv_ids, param_jac);
@@ -1719,7 +1682,8 @@ SUNMatrix get_jac_init(SolverData *solver_data) {
           map[i_mapped_value].solver_id = jac_struct_solver[i_dep][j_ind];
           map[i_mapped_value].rxn_id =
               jacobian_get_element_id(solver_data->jac, i_dep, i_ind);
-          map[i_mapped_value].param_id = jac_struct_param[i_ind][j_ind];
+          map[i_mapped_value].param_id =
+              jacobian_get_element_id(param_jac, i_ind, j_ind);
           ++i_mapped_value;
         }
       }
@@ -1748,9 +1712,7 @@ SUNMatrix get_jac_init(SolverData *solver_data) {
   N_VConst(0.0, solver_data->model_data.J_deriv);
 
   // Free the memory used
-  for (int i_spec = 0; i_spec < n_state_var; i_spec++)
-    free(jac_struct_param[i_spec]);
-  free(jac_struct_param);
+  jacobian_free(&param_jac);
   for (int i_spec = 0; i_spec < n_state_var; i_spec++)
     free(jac_struct_solver[i_spec]);
   free(jac_struct_solver);

@@ -77,11 +77,11 @@
  *
  * \param sub_model_int_data Pointer to the sub model integer data
  * \param sub_model_float_data Pointer to the sub model floating-point data
- * \param jac_struct A matrix of flags for needed Jac elements
+ * \param jac Jacobian
  */
 void sub_model_UNIFAC_get_used_jac_elem(int *sub_model_int_data,
                                         double *sub_model_float_data,
-                                        bool **jac_struct) {
+                                        Jacobian *jac) {
   int *int_data = sub_model_int_data;
   double *float_data = sub_model_float_data;
 
@@ -89,10 +89,10 @@ void sub_model_UNIFAC_get_used_jac_elem(int *sub_model_int_data,
     for (int i_inst = 0; i_inst < NUM_PHASE_INSTANCE_(i_phase); ++i_inst)
       for (int i_gamma = 0; i_gamma < NUM_SPEC_(i_phase); ++i_gamma)
         for (int i_spec = 0; i_spec < NUM_SPEC_(i_phase); ++i_spec)
-          jac_struct[PHASE_INST_ID_(i_phase, i_inst) +
-                     GAMMA_ID_(i_phase, i_gamma)]
-                    [PHASE_INST_ID_(i_phase, i_inst) +
-                     SPEC_ID_(i_phase, i_spec)] = true;
+          jacobian_register_element(
+              jac,
+              PHASE_INST_ID_(i_phase, i_inst) + GAMMA_ID_(i_phase, i_gamma),
+              PHASE_INST_ID_(i_phase, i_inst) + SPEC_ID_(i_phase, i_spec));
 }
 
 /** \brief Update stored ids for elements used within a row of the Jacobian

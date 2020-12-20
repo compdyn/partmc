@@ -15,7 +15,7 @@
 // PD-FiTE activity
 void sub_model_PDFiTE_get_used_jac_elem(int *sub_model_int_data,
                                         double *sub_model_float_data,
-                                        bool **jac_struct);
+                                        Jacobian *jac);
 void sub_model_PDFiTE_update_ids(int *sub_model_int_data,
                                  double *sub_model_float_data, int *deriv_ids,
                                  Jacobian jac);
@@ -40,7 +40,7 @@ void sub_model_PDFiTE_print(int *sub_model_int_data,
 // UNIFAC
 void sub_model_UNIFAC_get_used_jac_elem(int *sub_model_int_data,
                                         double *sub_model_float_data,
-                                        bool **jac_struct);
+                                        Jacobian *jac);
 void sub_model_UNIFAC_update_ids(int *sub_model_int_data,
                                  double *sub_model_float_data, int *deriv_ids,
                                  Jacobian jac);
@@ -65,7 +65,7 @@ void sub_model_UNIFAC_print(int *sub_model_int_data,
 // ZSR_aerosol_water
 void sub_model_ZSR_aerosol_water_get_used_jac_elem(int *sub_model_int_data,
                                                    double *sub_model_float_data,
-                                                   bool **jac_struct);
+                                                   Jacobian *jac);
 void sub_model_ZSR_aerosol_water_update_ids(int *sub_model_int_data,
                                             double *sub_model_float_data,
                                             int *deriv_ids, Jacobian jac);

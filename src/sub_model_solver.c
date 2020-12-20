@@ -20,10 +20,19 @@
 /** \brief Get the Jacobian elements used by a particular sub model
  *
  * \param model_data A pointer to the model data
- * \param jac_struct A 2D array of flags indicating which Jacobian elements
- *                   may be used
+ * \param jac Jacobian
  */
-void sub_model_get_used_jac_elem(ModelData *model_data, bool **jac_struct) {
+void sub_model_get_used_jac_elem(ModelData *model_data, Jacobian *jac) {
+  // Set up local Jacobian to collect used elements
+  Jacobian local_jac;
+  if (jacobian_initialize_empty(
+          &local_jac, (unsigned int)model_data->n_per_cell_state_var) != 1) {
+    printf(
+        "\n\nERROR allocating sub-model Jacobian structure for sub-model "
+        "interdepenedence\n\n");
+    exit(EXIT_FAILURE);
+  }
+
   // Get the number of sub models
   int n_sub_model = model_data->n_sub_model;
 
@@ -42,31 +51,58 @@ void sub_model_get_used_jac_elem(ModelData *model_data, bool **jac_struct) {
     switch (sub_model_type) {
       case SUB_MODEL_PDFITE:
         sub_model_PDFiTE_get_used_jac_elem(sub_model_int_data,
-                                           sub_model_float_data, jac_struct);
+                                           sub_model_float_data, &local_jac);
         break;
       case SUB_MODEL_UNIFAC:
         sub_model_UNIFAC_get_used_jac_elem(sub_model_int_data,
-                                           sub_model_float_data, jac_struct);
+                                           sub_model_float_data, &local_jac);
         break;
       case SUB_MODEL_ZSR_AEROSOL_WATER:
         sub_model_ZSR_aerosol_water_get_used_jac_elem(
-            sub_model_int_data, sub_model_float_data, jac_struct);
+            sub_model_int_data, sub_model_float_data, &local_jac);
         break;
     }
   }
 
-  // Account for sub-model interdependence
-  int n_map_elem = 0;
-  for (int i_dep = 0; i_dep < model_data->n_per_cell_state_var; ++i_dep)
-    for (int i_ind = 0; i_ind < model_data->n_per_cell_state_var; ++i_ind)
-      if (jac_struct[i_dep][i_ind] == true && i_dep != i_ind &&
-          model_data->var_type[i_ind] != CHEM_SPEC_VARIABLE)
-        for (int j_ind = 0; j_ind < model_data->n_per_cell_state_var; ++j_ind)
-          if (jac_struct[i_ind][j_ind] == true) {
-            jac_struct[i_dep][j_ind] = true;
-            ++n_map_elem;
+  // Build the sparse Jacobian
+  if (jacobian_build_matrix(&local_jac) != 1) {
+    printf("\n\nERROR building sparse Jacobian for sub models\n\n");
+    exit(EXIT_FAILURE);
+  }
+
+  // Add registered elements to sub-model Jacobian
+  for (unsigned int i_ind = 0; i_ind < model_data->n_per_cell_state_var;
+       ++i_ind) {
+    for (unsigned int i_elem = jacobian_column_pointer_value(local_jac, i_ind);
+         i_elem < jacobian_column_pointer_value(local_jac, i_ind + 1);
+         ++i_elem) {
+      unsigned int i_dep = jacobian_row_index(local_jac, i_elem);
+      jacobian_register_element(jac, i_dep, i_ind);
+    }
+  }
+
+  // Add elements for sub-model interdependence and save number of
+  // interdepenedent elements
+  model_data->n_mapped_params = 0;
+  for (unsigned int i_ind = 0; i_ind < model_data->n_per_cell_state_var;
+       ++i_ind) {
+    for (unsigned int i_elem = jacobian_column_pointer_value(local_jac, i_ind);
+         i_elem < jacobian_column_pointer_value(local_jac, i_ind + 1);
+         ++i_elem) {
+      unsigned int i_dep = jacobian_row_index(local_jac, i_elem);
+      if (i_dep != i_ind && model_data->var_type[i_ind] != CHEM_SPEC_VARIABLE) {
+        for (unsigned int j_ind = 0; j_ind < model_data->n_per_cell_state_var;
+             ++j_ind) {
+          if (jacobian_get_element_id(local_jac, i_ind, j_ind) != -1) {
+            jacobian_register_element(jac, i_dep, j_ind);
+            ++(model_data->n_mapped_params);
           }
-  model_data->n_mapped_params = n_map_elem;
+        }
+      }
+    }
+  }
+
+  jacobian_free(&local_jac);
 }
 
 /** \brief Set the map for sub-model interdependence
@@ -91,23 +127,6 @@ void sub_model_set_jac_map(ModelData *model_data, Jacobian jac) {
     exit(EXIT_FAILURE);
   }
 
-  // Set up a local structure array for individual sub-model Jacobian elements
-  bool **jac_struct_local =
-      malloc(sizeof(bool *) * model_data->n_per_cell_state_var);
-  if (jac_struct_local == NULL) {
-    printf("\n\nError allocating space for sub model Jac structure array\n\n");
-    exit(EXIT_FAILURE);
-  }
-  for (int i_var = 0; i_var < model_data->n_per_cell_state_var; ++i_var) {
-    jac_struct_local[i_var] =
-        malloc(sizeof(bool) * model_data->n_per_cell_state_var);
-    if (jac_struct_local[i_var] == NULL) {
-      printf(
-          "\n\nError allocating space for sub model Jac structure array\n\n");
-      exit(EXIT_FAILURE);
-    }
-  }
-
   // Set up an index for map elements;
   int i_map = 0;
 
@@ -116,11 +135,6 @@ void sub_model_set_jac_map(ModelData *model_data, Jacobian jac) {
 
   // Loop through the sub models and get their Jacobian elements
   for (int i_sub_model = 0; i_sub_model < n_sub_model; i_sub_model++) {
-    // Reset the local structure array
-    for (int i_dep = 0; i_dep < model_data->n_per_cell_state_var; ++i_dep)
-      for (int i_ind = 0; i_ind < model_data->n_per_cell_state_var; ++i_ind)
-        jac_struct_local[i_dep][i_ind] = false;
-
     // Set up a local Jacobian for individual sub-model Jacobian elements
     Jacobian local_jac;
     if (jacobian_initialize_empty(
@@ -143,16 +157,16 @@ void sub_model_set_jac_map(ModelData *model_data, Jacobian jac) {
 
     switch (sub_model_type) {
       case SUB_MODEL_PDFITE:
-        sub_model_PDFiTE_get_used_jac_elem(
-            sub_model_int_data, sub_model_float_data, jac_struct_local);
+        sub_model_PDFiTE_get_used_jac_elem(sub_model_int_data,
+                                           sub_model_float_data, &local_jac);
         break;
       case SUB_MODEL_UNIFAC:
-        sub_model_UNIFAC_get_used_jac_elem(
-            sub_model_int_data, sub_model_float_data, jac_struct_local);
+        sub_model_UNIFAC_get_used_jac_elem(sub_model_int_data,
+                                           sub_model_float_data, &local_jac);
         break;
       case SUB_MODEL_ZSR_AEROSOL_WATER:
         sub_model_ZSR_aerosol_water_get_used_jac_elem(
-            sub_model_int_data, sub_model_float_data, jac_struct_local);
+            sub_model_int_data, sub_model_float_data, &local_jac);
         break;
     }
 
@@ -166,11 +180,16 @@ void sub_model_set_jac_map(ModelData *model_data, Jacobian jac) {
 
     // Check for dependence on sub-model calculations and set mapping elements
     // if necessary
-    for (int i_dep = 0; i_dep < model_data->n_per_cell_state_var; ++i_dep)
-      for (int i_ind = 0; i_ind < model_data->n_per_cell_state_var; ++i_ind)
-        if (jac_struct_local[i_dep][i_ind] == true && i_dep != i_ind &&
+    for (unsigned int i_ind = 0; i_ind < model_data->n_per_cell_state_var;
+         ++i_ind) {
+      for (unsigned int i_elem =
+               jacobian_column_pointer_value(local_jac, i_ind);
+           i_elem < jacobian_column_pointer_value(local_jac, i_ind + 1);
+           ++i_elem) {
+        unsigned int i_dep = jacobian_row_index(local_jac, i_elem);
+        if (i_dep != i_ind &&
             model_data->var_type[i_ind] != CHEM_SPEC_VARIABLE) {
-          for (int j_ind = 0; j_ind < model_data->n_per_cell_state_var;
+          for (unsigned int j_ind = 0; j_ind < model_data->n_per_cell_state_var;
                ++j_ind) {
             if (jacobian_get_element_id(jac, i_ind, j_ind) != -1) {
               model_data->jac_map_params[i_map].solver_id =
@@ -183,6 +202,8 @@ void sub_model_set_jac_map(ModelData *model_data, Jacobian jac) {
             }
           }
         }
+      }
+    }
 
     // free the local Jacobian
     jacobian_free(&local_jac);
@@ -193,12 +214,8 @@ void sub_model_set_jac_map(ModelData *model_data, Jacobian jac) {
            model_data->n_mapped_params);
     exit(EXIT_FAILURE);
   }
-
-  // free allocated memory
-  for (int i_var = 0; i_var < model_data->n_per_cell_state_var; ++i_var)
-    free(jac_struct_local[i_var]);
-  free(jac_struct_local);
 }
+
 /** \brief Update the time derivative and Jacobian array ids
  *
  * \param model_data Pointer to the model data

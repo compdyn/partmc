@@ -11,6 +11,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "../Jacobian.h"
 #include "../sub_models.h"
 
 // TODO Lookup environmental indices during initialization
@@ -125,11 +126,11 @@ void sub_model_ZSR_aerosol_water_get_used_jac_elem(int *sub_model_int_data,
  * \param sub_model_int_data Pointer to the sub model integer data
  * \param sub_model_float_data Pointer to the sub model floating-point data
  * \param deriv_ids Indices for state array variables on the solver state array
- * \param jac_ids Indices for Jacobian elements in the sparse data array
+ * \param jac Jacobian
  */
 void sub_model_ZSR_aerosol_water_update_ids(int *sub_model_int_data,
                                             double *sub_model_float_data,
-                                            int *deriv_ids, int **jac_ids) {
+                                            int *deriv_ids, Jacobian jac) {
   int *int_data = sub_model_int_data;
   double *float_data = sub_model_float_data;
 
@@ -145,15 +146,15 @@ void sub_model_ZSR_aerosol_water_update_ids(int *sub_model_int_data,
 
           // Save the gas-phase water species
           JACOB_GAS_WATER_JAC_ID_(i_phase, i_ion_pair) =
-              jac_ids[PHASE_ID_(i_phase)][GAS_WATER_ID_];
+              jacobian_get_element_id(jac, PHASE_ID_(i_phase), GAS_WATER_ID_);
 
           // Save the cation and anion Jacobian elements
-          JACOB_CATION_JAC_ID_(i_phase, i_ion_pair) =
-              jac_ids[PHASE_ID_(i_phase)]
-                     [PHASE_ID_(i_phase) + JACOB_CATION_ID_(i_ion_pair)];
-          JACOB_ANION_JAC_ID_(i_phase, i_ion_pair) =
-              jac_ids[PHASE_ID_(i_phase)]
-                     [PHASE_ID_(i_phase) + JACOB_ANION_ID_(i_ion_pair)];
+          JACOB_CATION_JAC_ID_(i_phase, i_ion_pair) = jacobian_get_element_id(
+              jac, PHASE_ID_(i_phase),
+              PHASE_ID_(i_phase) + JACOB_CATION_ID_(i_ion_pair));
+          JACOB_ANION_JAC_ID_(i_phase, i_ion_pair) = jacobian_get_element_id(
+              jac, PHASE_ID_(i_phase),
+              PHASE_ID_(i_phase) + JACOB_ANION_ID_(i_ion_pair));
           break;
 
         // EQSAM (Metger et al., 2002)
@@ -161,13 +162,14 @@ void sub_model_ZSR_aerosol_water_update_ids(int *sub_model_int_data,
 
           // Save the gas-phase water species
           EQSAM_GAS_WATER_JAC_ID_(i_phase, i_ion_pair) =
-              jac_ids[PHASE_ID_(i_phase)][GAS_WATER_ID_];
+              jacobian_get_element_id(jac, PHASE_ID_(i_phase), GAS_WATER_ID_);
 
           // Save the ion Jacobian elements
           for (int i_ion = 0; i_ion < EQSAM_NUM_ION_(i_ion_pair); i_ion++) {
             EQSAM_ION_JAC_ID_(i_phase, i_ion_pair, i_ion) =
-                jac_ids[PHASE_ID_(i_phase)]
-                       [PHASE_ID_(i_phase) + EQSAM_ION_ID_(i_ion_pair, i_ion)];
+                jacobian_get_element_id(
+                    jac, PHASE_ID_(i_phase),
+                    PHASE_ID_(i_phase) + EQSAM_ION_ID_(i_ion_pair, i_ion));
           }
           break;
       }

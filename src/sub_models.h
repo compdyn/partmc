@@ -9,6 +9,7 @@
  */
 #ifndef SUB_MODELS_H
 #define SUB_MODELS_H
+#include "Jacobian.h"
 #include "camp_common.h"
 
 // PD-FiTE activity
@@ -17,7 +18,7 @@ void sub_model_PDFiTE_get_used_jac_elem(int *sub_model_int_data,
                                         bool **jac_struct);
 void sub_model_PDFiTE_update_ids(int *sub_model_int_data,
                                  double *sub_model_float_data, int *deriv_ids,
-                                 int **jac_ids);
+                                 Jacobian jac);
 void sub_model_PDFiTE_update_env_state(int *sub_model_int_data,
                                        double *sub_model_float_data,
                                        double *sub_model_env_data,
@@ -42,7 +43,7 @@ void sub_model_UNIFAC_get_used_jac_elem(int *sub_model_int_data,
                                         bool **jac_struct);
 void sub_model_UNIFAC_update_ids(int *sub_model_int_data,
                                  double *sub_model_float_data, int *deriv_ids,
-                                 int **jac_ids);
+                                 Jacobian jac);
 void sub_model_UNIFAC_update_env_state(int *sub_model_int_data,
                                        double *sub_model_float_data,
                                        double *sub_model_env_data,
@@ -67,7 +68,7 @@ void sub_model_ZSR_aerosol_water_get_used_jac_elem(int *sub_model_int_data,
                                                    bool **jac_struct);
 void sub_model_ZSR_aerosol_water_update_ids(int *sub_model_int_data,
                                             double *sub_model_float_data,
-                                            int *deriv_ids, int **jac_ids);
+                                            int *deriv_ids, Jacobian jac);
 void sub_model_ZSR_aerosol_water_update_env_state(int *sub_model_int_data,
                                                   double *sub_model_float_data,
                                                   double *sub_model_env_data,

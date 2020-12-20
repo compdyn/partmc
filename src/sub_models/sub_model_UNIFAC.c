@@ -16,6 +16,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "../Jacobian.h"
 #include "../sub_models.h"
 
 // TODO Lookup environmental indicies during initialization
@@ -100,11 +101,11 @@ void sub_model_UNIFAC_get_used_jac_elem(int *sub_model_int_data,
  * \param sub_model_int_data Pointer to the sub model integer data
  * \param sub_model_float_data Pointer to the sub model floating-point data
  * \param deriv_ids Indices for state array variables on the solver state array
- * \param jac_ids Indices for Jacobian elements in the sparse data array
+ * \param jac Jacobian
  */
 void sub_model_UNIFAC_update_ids(int *sub_model_int_data,
                                  double *sub_model_float_data, int *deriv_ids,
-                                 int **jac_ids) {
+                                 Jacobian jac) {
   int *int_data = sub_model_int_data;
   double *float_data = sub_model_float_data;
 
@@ -112,11 +113,10 @@ void sub_model_UNIFAC_update_ids(int *sub_model_int_data,
     for (int i_inst = 0; i_inst < NUM_PHASE_INSTANCE_(i_phase); ++i_inst)
       for (int i_gamma = 0; i_gamma < NUM_SPEC_(i_phase); ++i_gamma)
         for (int i_spec = 0; i_spec < NUM_SPEC_(i_phase); ++i_spec)
-          JAC_ID_(i_phase, i_inst, i_gamma, i_spec) =
-              jac_ids[PHASE_INST_ID_(i_phase, i_inst) +
-                      GAMMA_ID_(i_phase, i_gamma)]
-                     [PHASE_INST_ID_(i_phase, i_inst) +
-                      SPEC_ID_(i_phase, i_spec)];
+          JAC_ID_(i_phase, i_inst, i_gamma, i_spec) = jacobian_get_element_id(
+              jac,
+              PHASE_INST_ID_(i_phase, i_inst) + GAMMA_ID_(i_phase, i_gamma),
+              PHASE_INST_ID_(i_phase, i_inst) + SPEC_ID_(i_phase, i_spec));
 }
 
 /** \brief Update sub-model data for new environmental conditions

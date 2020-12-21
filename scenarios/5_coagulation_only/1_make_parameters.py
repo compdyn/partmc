@@ -4,7 +4,7 @@ import numpy as np
 n_scenarios = 1000 # number of scenarios
 n_modes = 1 # number of modes
 
-diam_range = [2e-9,1e-6]
+diam_range = [2e-9,50e-6]
 sigma_range = [1.4,2.4]
 conc_range = [1e5,1e11]
 

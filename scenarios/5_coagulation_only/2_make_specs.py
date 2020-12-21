@@ -59,8 +59,10 @@ for counter in range(n_scenarios):
             # Standard deviation diameter range
             num_dev = 3.0
             dev = np.log(num_dev*values[counter,n_modes+i_mode])
-            d_min[i_mode] = np.exp(np.log(values[counter,i_mode]) - dev)
-            d_max[i_mode] = np.exp(np.log(values[counter,i_mode]) + dev)
+            d_min[i_mode] = max(np.exp(np.log(values[counter,i_mode]) - dev),
+                                   bin_edges_diam[0])
+            d_max[i_mode] = min(np.exp(np.log(values[counter,i_mode]) + dev),
+                                   bin_edges_diam[-1])
         f_out.write(line)
 
     f_in.close()
@@ -83,8 +85,10 @@ for counter in range(n_scenarios):
        include_smaller = True
        all_bins = np.zeros(20)
        for i_mode in range(n_modes):
+          print(d_min[i_mode],d_max[i_mode])
           all_bins[np.where(((bin_edges_diam > d_min[i_mode]) &  \
                             (bin_edges_diam < d_max[i_mode])))] += 1
+          print(all_bins)
        n_i = np.sum(values[counter,2*n_modes:]) * 1e-2
        if (include_smaller):
            first_ind = (all_bins!=0).argmax(axis=0)

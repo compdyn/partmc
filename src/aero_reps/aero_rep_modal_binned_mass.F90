@@ -880,11 +880,11 @@ contains
     !> Unique name
     character(len=*), intent(in) :: unique_name
 
-    type(string_t), allocatable, save :: unique_names(:)
+    type(string_t), allocatable :: unique_names(:)
     integer(kind=i_kind) :: i_spec
 
     spec_id = 0
-    if (.not.allocated(unique_names)) unique_names = this%unique_names()
+    unique_names = this%unique_names()
     do i_spec = 1, size(unique_names)
       if (unique_names(i_spec)%string .eq. unique_name) then
         spec_id = this%phase_state_id(1) + i_spec - 1

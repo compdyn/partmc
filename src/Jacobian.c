@@ -102,24 +102,24 @@ int jacobian_column_elements_add_space(JacobianColumnElements *column) {
   return 1;
 }
 
-void jacobian_register_element(Jacobian *jac, unsigned int row_id,
-                               unsigned int col_id) {
+void jacobian_register_element(Jacobian *jac, unsigned int dep_id,
+                               unsigned int ind_id) {
   if (!jac->elements) {
     printf(
         "\n\nERROR - Trying to register elements in a Jacobian that has "
         "already been built.\n\n");
     exit(EXIT_FAILURE);
   }
-  JacobianColumnElements *column = &(jac->elements[col_id]);
+  JacobianColumnElements *column = &(jac->elements[ind_id]);
   for (unsigned int i_elem = 0; i_elem < column->number_of_elements; ++i_elem) {
-    if (column->row_ids[i_elem] == row_id) return;
+    if (column->row_ids[i_elem] == dep_id) return;
   }
   if (column->array_size == column->number_of_elements) {
     jacobian_column_elements_add_space(column);
   }
-  jac->elements[col_id].row_ids[jac->elements[col_id].number_of_elements] =
-      row_id;
-  ++(jac->elements[col_id].number_of_elements);
+  jac->elements[ind_id].row_ids[jac->elements[ind_id].number_of_elements] =
+      dep_id;
+  ++(jac->elements[ind_id].number_of_elements);
 }
 
 int compare_ids(const void *a, const void *b) {
@@ -197,18 +197,18 @@ unsigned int jacobian_row_index(Jacobian jac, unsigned int elem_id) {
   return jac.row_ids[elem_id];
 }
 
-unsigned int jacobian_get_element_id(Jacobian jac, unsigned int row_id,
-                                     unsigned int col_id) {
-  if (col_id >= jac.num_spec || col_id < 0) {
+unsigned int jacobian_get_element_id(Jacobian jac, unsigned int dep_id,
+                                     unsigned int ind_id) {
+  if (ind_id >= jac.num_spec || ind_id < 0) {
     printf(
         "\nError: Bad Jacobian column id: %u. Expected value between 0 and "
         "%u\n",
-        col_id, jac.num_spec);
+        ind_id, jac.num_spec);
     exit(EXIT_FAILURE);
   }
-  for (unsigned int i_elem = jac.col_ptrs[col_id];
-       i_elem < jac.col_ptrs[col_id + 1]; ++i_elem) {
-    if (jac.row_ids[i_elem] == row_id) return i_elem;
+  for (unsigned int i_elem = jac.col_ptrs[ind_id];
+       i_elem < jac.col_ptrs[ind_id + 1]; ++i_elem) {
+    if (jac.row_ids[i_elem] == dep_id) return i_elem;
   }
   return -1;
 }

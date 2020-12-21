@@ -1405,14 +1405,12 @@ int guess_helper(const realtype t_n, const realtype h_n, N_Vector y_n,
  *         to 1.0
  */
 SUNMatrix get_jac_init(SolverData *solver_data) {
-  int n_rxn;                     /* number of reactions in the mechanism
-                                  * (stored in first position in *rxn_data) */
-  bool **jac_struct_solver;      /* structure of Jacobian with flags to indicate
-                                  * elements that could be used in the solver. */
-  sunindextype n_jac_elem_rxn;   /* number of potentially non-zero Jacobian
-                                    elements in the reaction matrix*/
-  sunindextype n_jac_elem_param; /* number of potentially non-zero Jacobian
-                                    elements in the reaction matrix*/
+  int n_rxn;                      /* number of reactions in the mechanism
+                                   * (stored in first position in *rxn_data) */
+  sunindextype n_jac_elem_rxn;    /* number of potentially non-zero Jacobian
+                                     elements in the reaction matrix*/
+  sunindextype n_jac_elem_param;  /* number of potentially non-zero Jacobian
+                                     elements in the reaction matrix*/
   sunindextype n_jac_elem_solver; /* number of potentially non-zero Jacobian
                                      elements in the reaction matrix*/
   // Number of grid cells
@@ -1637,8 +1635,12 @@ SUNMatrix get_jac_init(SolverData *solver_data) {
   // Set map indices (when no sub-model value is used, the param_id is
   // set to 0 which maps to a fixed value of 1.0
   int i_mapped_value = 0;
-  for (int i_ind = 0; i_ind < n_state_var; ++i_ind) {
-    for (int i_dep = 0; i_dep < n_state_var; ++i_dep) {
+  for (unsigned int i_ind = 0; i_ind < n_state_var; ++i_ind) {
+    for (unsigned int i_elem =
+             jacobian_column_pointer_value(solver_data->jac, i_ind);
+         i_elem < jacobian_column_pointer_value(solver_data->jac, i_ind + 1);
+         ++i_elem) {
+      unsigned int i_dep = jacobian_row_index(solver_data->jac, i_elem);
       // skip dependent species that are not solver variables and
       // depenedent species that aren't used by any reaction
       if (solver_data->model_data.var_type[i_dep] != CHEM_SPEC_VARIABLE ||
@@ -1649,8 +1651,7 @@ SUNMatrix get_jac_init(SolverData *solver_data) {
           solver_data->model_data.var_type[i_dep] == CHEM_SPEC_VARIABLE) {
         map[i_mapped_value].solver_id =
             jacobian_get_element_id(solver_jac, i_dep, i_ind);
-        map[i_mapped_value].rxn_id =
-            jacobian_get_element_id(solver_data->jac, i_dep, i_ind);
+        map[i_mapped_value].rxn_id = i_elem;
         map[i_mapped_value].param_id = 0;
         ++i_mapped_value;
         continue;
@@ -1662,8 +1663,7 @@ SUNMatrix get_jac_init(SolverData *solver_data) {
             solver_data->model_data.var_type[j_ind] == CHEM_SPEC_VARIABLE) {
           map[i_mapped_value].solver_id =
               jacobian_get_element_id(solver_jac, i_dep, j_ind);
-          map[i_mapped_value].rxn_id =
-              jacobian_get_element_id(solver_data->jac, i_dep, i_ind);
+          map[i_mapped_value].rxn_id = i_elem;
           map[i_mapped_value].param_id =
               jacobian_get_element_id(param_jac, i_ind, j_ind);
           ++i_mapped_value;

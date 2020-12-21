@@ -101,7 +101,7 @@ contains
 
 #ifdef PMC_USE_JSON
 
-    integer(kind=i_kind) :: i_spec, j_spec, i_phase
+    integer(kind=i_kind) :: i_spec, j_spec, i_phase, spec_id
     character(len=:), allocatable :: rep_name, spec_name, phase_name
     type(string_t), allocatable :: file_list(:), unique_names(:)
 #ifdef PMC_USE_MPI
@@ -138,8 +138,8 @@ contains
     call assert_msg(282826419, allocated(unique_names), rep_name)
     call assert_msg(114575049, size(unique_names).eq.48, rep_name)
     do i_spec = 1, size(unique_names)
-      call assert_msg(339211739, aero_rep%spec_state_id(&
-              unique_names(i_spec)%string).gt.0, rep_name)
+      spec_id = aero_rep%spec_state_id(unique_names(i_spec)%string)
+      call assert_msg(339211739, spec_id.gt.0, rep_name)
       do j_spec = 1, size(unique_names)
         if (i_spec.eq.j_spec) cycle
         call assert_msg(104046435, aero_rep%spec_state_id(&

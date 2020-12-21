@@ -66,11 +66,11 @@ int jacobian_initialize(Jacobian *jac, unsigned int num_spec,
 /** \brief Adds an element to the sparse matrix
  *
  * \param jac Jacobian object
- * \param row_id Row index
- * \param col_id Column index
+ * \param dep_id Dependent species index
+ * \param ind_id Independent species index
  */
-void jacobian_register_element(Jacobian *jac, unsigned int row_id,
-                               unsigned int col_id);
+void jacobian_register_element(Jacobian *jac, unsigned int dep_id,
+                               unsigned int ind_id);
 
 /** \brief Builds the sparse matrix with the registered elements
  *
@@ -106,12 +106,12 @@ unsigned int jacobian_row_index(Jacobian jac, unsigned int elem_id);
  * If the element is not included in the sparse matrix, -1 is returned.
  *
  * \param jac Jacobian object
- * \param row_id Row index
- * \param col_id Column index
+ * \param dep_id Dependent species index
+ * \param ind_id Independent species index
  * \return Index of Jacobian element in the data array
  */
-unsigned int jacobian_get_element_id(Jacobian jac, unsigned int row_id,
-                                     unsigned int col_id);
+unsigned int jacobian_get_element_id(Jacobian jac, unsigned int dep_id,
+                                     unsigned int ind_id);
 
 /** \brief Reset the Jacobian
  *

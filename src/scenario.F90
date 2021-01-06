@@ -283,6 +283,7 @@ contains
     !> Whether to allow halving of the population.
     logical, intent(in) :: allow_halving
 
+    real(kind=dp), parameter :: sample_timescale = 3600.0d0
     real(kind=dp) :: emission_rate_scale, dilution_rate, p
     type(aero_dist_t) :: emissions, background
     type(aero_state_t) :: aero_state_delta
@@ -294,7 +295,7 @@ contains
          env_state%elapsed_time, emissions, emission_rate_scale)
     p = emission_rate_scale * delta_t / env_state%height
     call aero_state_add_aero_dist_sample(aero_state, aero_data, &
-         emissions, p, env_state%elapsed_time, allow_doubling, allow_halving, &
+         emissions, p, sample_timescale, env_state%elapsed_time, allow_doubling, allow_halving, &
          n_emit)
     end if
 #ifndef PMC_USE_WRF
@@ -312,7 +313,7 @@ contains
     n_dil_out = aero_state_total_particles(aero_state_delta)
     ! addition from background
     call aero_state_add_aero_dist_sample(aero_state, aero_data, &
-         background, 1d0 - p, env_state%elapsed_time, allow_doubling, &
+         background, 1d0 - p, sample_timescale, env_state%elapsed_time, allow_doubling, &
          allow_halving, n_dil_in)
 
     ! particle loss function

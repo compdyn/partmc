@@ -650,7 +650,7 @@ contains
           end if
           call aero_state_set_n_part_ideal(aero_state, n_part)
           call aero_state_add_aero_dist_sample(aero_state, aero_data, &
-               aero_dist_init, 1d0, 0d0, run_part_opt%allow_doubling, &
+               aero_dist_init, 1d0, 1d0, 0d0, run_part_opt%allow_doubling, &
                run_part_opt%allow_halving)
        end if
        env_state = env_state_init

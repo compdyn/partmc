@@ -407,19 +407,21 @@ contains
 
   !> Generates a normally distributed random number with the given
   !> mean and standard deviation.
-  real(kind=dp) function rand_normal(mean, stddev)
+  real(kind=dp) function rand_normal(mean, stddev, threshold)
 
     !> Mean of distribution.
     real(kind=dp), intent(in) :: mean
     !> Standard deviation of distribution.
     real(kind=dp), intent(in) :: stddev
-
+    !>
+    real(kind=dp), intent(in), optional :: threshold
 #ifdef PMC_USE_GSL
     real(kind=c_double) :: mean_c, stddev_c
     real(kind=c_double), target :: harvest
     type(c_ptr) :: harvest_ptr
 #else
     real(kind=dp) :: u1, u2, r, theta, z0, z1
+    logical :: acceptable
 #endif
 
 #ifdef PMC_USE_GSL
@@ -447,12 +449,20 @@ contains
 #else
     ! Uses the Box-Muller transform
     ! http://en.wikipedia.org/wiki/Box-Muller_transform
-    u1 = pmc_random()
-    u2 = pmc_random()
-    r = sqrt(-2d0 * log(u1))
-    theta = 2d0 * const%pi * u2
-    z0 = r * cos(theta)
-    z1 = r * sin(theta)
+!    acceptable = .false.
+!    do while (.not. acceptable)
+       u1 = pmc_random()
+       u2 = pmc_random()
+       r = sqrt(-2d0 * log(u1))
+       theta = 2d0 * const%pi * u2
+       z0 = r * cos(theta)
+       z1 = r * sin(theta)
+!       if (present(threshold)) then
+!          if (1.0d0 - abs(erf(z0/2.0**.5)) >= threshold) acceptable = .true.
+!       else
+!          acceptable = .true.
+!       end if
+!    end do
     ! z0 and z1 are now independent N(0,1) random variables
     ! We throw away z1, but we could use a SAVE variable to only do
     ! the computation on every second call of this function.

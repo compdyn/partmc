@@ -25,6 +25,8 @@ option(ENABLE_DEBUG "Compile debugging functions" OFF)
 option(FAILURE_DETAIL "Output conditions before and after solver failures" OFF)
 option(ENABLE_CXX "Enable C++" OFF)
 option(ENABLE_GPU "Enable use of GPUs in chemistry solving" OFF)
+option(ENABLE_ODE_GPU "Enable ODE solving in GPUs" OFF)
+option(ENABLE_DEBUG_GPU "Compile debugging GPU functions" OFF)
 
 mark_as_advanced(FORCE ENABLE_DEBUG FAILURE_DETAIL)
 
@@ -43,6 +45,7 @@ include(CPack)
 find_path(NETCDF_INCLUDE_DIR netcdf.mod NETCDF.mod
   DOC "NetCDF include directory (must contain netcdf.mod)"
   PATHS
+  $ENV{NETCDF_FORTRAN_HOME}/include
   $ENV{NETCDF_HOME}/include
   /usr/lib/gfortran/modules
   /usr/lib64/gfortran/modules
@@ -52,7 +55,10 @@ find_library(NETCDF_C_LIB netcdf
   PATHS $ENV{NETCDF_HOME}/lib $ENV{NETCDF_HOME}/lib64 /opt/local/lib)
 find_library(NETCDF_FORTRAN_LIB netcdff
   DOC "NetCDF Fortran library"
-  PATHS $ENV{NETCDF_HOME}/lib $ENV{NETCDF_HOME}/lib64 /opt/local/lib)
+  PATHS
+  $ENV{NETCDF_HOME}/lib $ENV{NETCDF_HOME}/lib64
+  $ENV{NETCDF_FORTRAN_HOME}/lib $ENV{NETCDF_FORTRAN_HOME}/lib64
+  /opt/local/lib)
 set(NETCDF_LIBS ${NETCDF_C_LIB})
 if(NETCDF_FORTRAN_LIB)
   set(NETCDF_LIBS ${NETCDF_LIBS} ${NETCDF_FORTRAN_LIB})
@@ -106,6 +112,11 @@ endif()
 # MPI
 
 if(ENABLE_MPI)
+
+    if(NOT MPI_FOUND)
+        message( WARNING "Not MPI found")
+    endif()
+
   add_definitions(-DPMC_USE_MPI)
 endif()
 
@@ -170,20 +181,27 @@ endif()
 ######################################################################
 # GPU support
 
-if (ENABLE_GPU)
-  add_definitions(-DPMC_USE_GPU)
-  enable_language(CUDA)
+#Compile GPU tests if CUDA detected
+find_package(CUDA)
+if (CUDA_FOUND)
+    enable_language(CUDA)
+    #If enable_gpu, all will be executed on GPU
+    if (ENABLE_GPU)
+        #Define global variable of use gpu no matter what test to include user main test
+        add_definitions(-DPMC_USE_GPU)
+        #debug gpu add a considerable overhead in time
+        if (ENABLE_ODE_GPU)
+            add_definitions(-DPMC_USE_ODE_GPU)
+        endif()
+        if (ENABLE_DEBUG_GPU OR ENABLE_DEBUG)
+          add_definitions(-DPMC_DEBUG_GPU)
+          #add_definitions(-DCHECK_GPU_LINSOLVE)
+        endif()
+    endif()
 endif()
 
-
-######################################################################
-# debugging options
-
-if (ENABLE_DEBUG)
-  add_definitions(-DPMC_DEBUG)
-endif()
-if (FAILURE_DETAIL)
-  add_definitions(-DFAILURE_DETAIL)
+if(NOT CUDA_FOUND AND ENABLE_GPU)
+    message( WARNING "Not CUDA module found, can't support GPU computation")
 endif()
 
 ######################################################################
@@ -224,7 +242,6 @@ enable_testing()
 do_unit_test(property "PASS")
 do_unit_test(chem_spec_data "PASS")
 do_unit_test(aero_phase_data "PASS")
-do_unit_test(jacobian "PASS")
 if(ENABLE_JSON)
   do_unit_test(aero_rep_single_particle "PASS")
   do_unit_test(aero_rep_modal_binned_mass "PASS")
@@ -633,23 +650,30 @@ add_executable(mock_monarch test/monarch/mock_monarch.F90
 
 target_link_libraries(mock_monarch partmclib)
 
-if (ENABLE_TESTS)
-
 ######################################################################
 # test_chemistry_cb05cl_ae5
 
 add_executable(test_chemistry_cb05cl_ae5
-    test/chemistry/cb05cl_ae5/test_cb05cl_ae5.F90
-    ${CB5_EBI_SOLVER} ${CB5_KPP_SOLVER}
-    test/chemistry/cb05cl_ae5/module_BSC_CHEM_DATA.F90)
+        test/chemistry/cb05cl_ae5/test_cb05cl_ae5.F90
+        ${CB5_EBI_SOLVER} ${CB5_KPP_SOLVER}
+        test/chemistry/cb05cl_ae5/module_BSC_CHEM_DATA.F90)
 target_link_libraries(test_chemistry_cb05cl_ae5 partmclib)
+
+#if (CUDA_FOUND AND ENABLE_GPU AND ENABLE_TESTS)
+#    add_executable(test_chemistry_cb05cl_ae5_big_gpu
+#            test/chemistry/cb05cl_ae5/test_cb05cl_ae5_big.F90
+#            ${CB5_EBI_SOLVER} ${CB5_KPP_SOLVER}
+#            test/chemistry/cb05cl_ae5/module_BSC_CHEM_DATA.F90)
+#    target_link_libraries(test_chemistry_cb05cl_ae5_big_gpu partmclib_gpu)
+#endif()
+
+if (ENABLE_TESTS)
 
 ######################################################################
 # test_chemistry_eqsam_v03d
 
 set(EQSAM_V03D
-	test/chemistry/eqsam_v03d/eqsam_v03d.F90
-	)
+	test/chemistry/eqsam_v03d/eqsam_v03d.F90)
 
 add_executable(test_chemistry_eqsam_v03d test/chemistry/eqsam_v03d/test_eqsam_v03d.F90
 	${EQSAM_V03D})

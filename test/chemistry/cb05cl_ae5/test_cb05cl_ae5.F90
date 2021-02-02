@@ -45,16 +45,8 @@ program pmc_test_cb05cl_ae5
   integer(kind=i_kind), parameter :: KPP_FILE_UNIT = 11
   ! CAMP-chem output file unit
   integer(kind=i_kind), parameter :: CAMP_FILE_UNIT = 12
-  ! CAMP-chem output profiling stats file unit
-  integer(kind=i_kind), parameter :: CAMP_FILE_UNIT_PROFILE = 13
-  ! EBI solver output file unit
-  integer(kind=i_kind), parameter :: CAMP_EBI_FILE_UNIT = 14
-  ! file unit
-  integer(kind=i_kind), parameter :: CAMP_KPP_FILE_UNIT = 15
-  ! file unit
-  integer(kind=i_kind), parameter :: EBI_KPP_FILE_UNIT = 16
   ! Number of timesteps to integrate over
-  integer(kind=i_kind), parameter :: NUM_TIME_STEPS = 10
+  integer(kind=i_kind), parameter :: NUM_TIME_STEPS = 100
   ! Number of EBI-solver species
   integer(kind=i_kind), parameter :: NUM_EBI_SPEC = 72
   ! Number of EBI-solever photolysis reactions
@@ -141,8 +133,6 @@ contains
 
     ! EBI-solver species names
     type(string_t), dimension(NUM_EBI_SPEC) :: ebi_spec_names
-    ! EBI-solver species names in MONARCH order
-    type(string_t), dimension(NUM_EBI_SPEC) :: monarch_spec_names
 
     ! KPP reaction labels
     type(string_t), allocatable :: kpp_rxn_labels(:)
@@ -157,7 +147,6 @@ contains
     logical :: is_sunny
     ! Photolysis rates (\min)
     real, allocatable :: photo_rates(:)
-    real, allocatable :: new_rates(:)
     ! Temperature (K)
     real :: temperature
     ! Pressure (atm)
@@ -203,13 +192,11 @@ contains
 
     ! Arrays to hold starting concentrations
     real(kind=dp), allocatable :: ebi_init(:), kpp_init(:), camp_init(:)
-    real(kind=dp), dimension(NUM_EBI_SPEC) :: ebi_monarch_init
-    integer, dimension(NUM_EBI_SPEC) :: map_ebi_monarch
 
     KPP_ICNTRL( : ) = 0
 
-    temperature = 272.5 !v9:202.9565 !v48:297.93 !orig:272.5
-    pressure = 0.8 !v9:0.1456779 !v48:0.998 !orig:0.8
+    temperature = 272.5
+    pressure = 0.8
     water_conc = 0.0 ! (Set by CAMP-chem initial concentration)
 
     passed = .false.
@@ -273,6 +260,7 @@ contains
     CALL KPP_Initialize()
     call cpu_time(comp_end)
     write(*,*) "KPP initialization time: ", comp_end-comp_start," s"
+
 
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !!! Initialize camp-chem !!!
@@ -361,22 +349,16 @@ contains
     ! Set the photolysis rates (dummy values for solver comparison)
     is_sunny = .true.
     allocate(photo_rates(NUM_EBI_PHOTO_RXN))
-
-    photo_rates(:) = 0.0001 * 60.0 ! EBI solver wants rates in min^-1
-
-#ifndef TEST_PHOTO_RATES
-    photo_rates(:) = 0.1 * 60.0
-#endif
-
-    KPP_PHOTO_RATES(:) = photo_rates(1)/60
-
+    photo_rates(:) = 0.1 * 60.0 ! EBI solver wants rates in min^-1
+    KPP_PHOTO_RATES(:) = 0.1
     ! Set O2 + hv rate constant to 0 in KPP (not present in ebi version)
     KPP_PHOTO_RATES(1) = 0.0
+    ! Set the O2 + hv rate constant to 0 (not present in ebi version)
     call jo2_rate_update%set_rate(real(0.0, kind=dp))
     call camp_core%update_data(jo2_rate_update)
     ! Set the remaining rates
     do i_photo_rxn = 1, n_photo_rxn
-      call rate_update(i_photo_rxn)%set_rate(real(photo_rates(1)/60, kind=dp))
+      call rate_update(i_photo_rxn)%set_rate(real(0.1, kind=dp))
       call camp_core%update_data(rate_update(i_photo_rxn))
     end do
 
@@ -498,12 +480,6 @@ contains
             action="write")
     open(CAMP_FILE_UNIT, file="out/cb05cl_ae5_camp_results.txt", status="replace", &
             action="write")
-    open(CAMP_EBI_FILE_UNIT, file="out/cb05cl_ae5_camp_ebi_diff.txt", status="replace", &
-            action="write")
-    open(CAMP_KPP_FILE_UNIT, file="out/cb05cl_ae5_camp_kpp_diff.txt", status="replace", &
-            action="write")
-    open(EBI_KPP_FILE_UNIT, file="out/cb05cl_ae5_ebi_kpp_diff.txt", status="replace", &
-            action="write")
     n_gas_spec = chem_spec_data%size(spec_phase=CHEM_SPEC_GAS_PHASE)
     allocate(camp_spec_names(n_gas_spec))
     do i_spec = 1, n_gas_spec
@@ -515,8 +491,6 @@ contains
             KPP_NSPEC)
     write(CAMP_FILE_UNIT,*) "time ", (camp_spec_names(i_spec)%string//" ", i_spec=1, &
             size(camp_spec_names))
-    write(CAMP_EBI_FILE_UNIT,*) "CAMP order: ", (camp_spec_names(i_spec)%string//" ", i_spec=1, &
-            NUM_EBI_SPEC)
 
     ! Set up the reaction map between camp-chem, kpp and ebi solvers
     key = "rxn id"
@@ -719,12 +693,6 @@ contains
     write(EBI_FILE_UNIT,*) i_time*EBI_TMSTEP, YC(:)
     write(KPP_FILE_UNIT,*) i_time*EBI_TMSTEP, KPP_C(:)*conv
     write(CAMP_FILE_UNIT,*) i_time*EBI_TMSTEP, camp_state%state_var(:)
-    write(CAMP_EBI_FILE_UNIT,*) "Repeat", i_repeat, "timestep ", NUM_TIME_STEPS
-    write(CAMP_EBI_FILE_UNIT,*) "spec_name, concentrations rel. error [(camp_state-ebi)/(camp_state+ebi)], camp_state, ebi"
-    write(CAMP_KPP_FILE_UNIT,*) "Repeat", i_repeat, "timestep ", NUM_TIME_STEPS
-    write(CAMP_KPP_FILE_UNIT,*) "spec_name, concentrations rel. error [(camp_state-kpp)/(camp_state+kpp)], camp_state, kpp"
-    write(EBI_KPP_FILE_UNIT,*) "Repeat", i_repeat, "timestep ", NUM_TIME_STEPS
-    write(EBI_KPP_FILE_UNIT,*) "spec_name, concentrations rel. error [(èbi-kpp)/(ebi+kpp)], ebi, kpp"
 
     ! Output the computational time
     write(*,*) "EBI calculation time: ", comp_ebi," s"
@@ -752,21 +720,6 @@ contains
           trim(to_string(real(ebi_init(i_spec), kind=dp)))//"; camp init: "// &
           trim(to_string(camp_init(chem_spec_data%gas_state_id( &
                   ebi_spec_names(i_spec)%string)))))
-
-#ifndef PMC_USE_MPI
-#ifdef COMPARE_CAMP_FILE
-      associate (camp_var=>camp_state%state_var( &
-              chem_spec_data%gas_state_id( &
-                      monarch_spec_names(i_spec)%string)))
-        write(CAMP_EBI_FILE_UNIT,*) monarch_spec_names(i_spec)%string, &
-                (abs(camp_var) - abs(YC(map_ebi_monarch(i_spec)))) / &
-                        (abs(camp_var) + abs(YC(map_ebi_monarch(i_spec)))+ &
-                                1.0d-30), & !avoid division by zero, &
-                camp_var, &
-                YC(map_ebi_monarch(i_spec))
-      end associate
-#endif
-#endif
     end do
     ! KPP <-> CAMP-chem
     do i_spec = 1, KPP_NSPEC
@@ -790,29 +743,13 @@ contains
           "; camp init: "//trim(to_string(camp_init( &
                   chem_spec_data%gas_state_id( &
                   str_temp%string)))))
-#ifndef PMC_USE_MPI
-#ifdef COMPARE_CAMP_FILE
-      associate (camp_var=>camp_state%state_var( &
-              chem_spec_data%gas_state_id( &
-                      str_temp%string)))
-        write(CAMP_KPP_FILE_UNIT,*) str_temp%string, &
-                (abs(camp_var) - abs(real(KPP_C(i_spec)*conv, kind=dp))) / &
-                        (abs(camp_var) + abs(real(KPP_C(i_spec)*conv, kind=dp))+ &
-                                1.0d-30), & !avoid division by zero, &
-                camp_var, &
-                real(KPP_C(i_spec)*conv, kind=dp)
-      end associate
-#endif
-#endif
+
     end do
 
     ! Close the output files
     close(EBI_FILE_UNIT)
     close(KPP_FILE_UNIT)
     close(CAMP_FILE_UNIT)
-    close(CAMP_EBI_FILE_UNIT)
-    close(CAMP_KPP_FILE_UNIT)
-    close(EBI_KPP_FILE_UNIT)
 
     ! Create the gnuplot script
     open(unit=CAMP_FILE_UNIT, file="out/plot_cb05cl_ae.conf", status="replace", action="write")
@@ -942,91 +879,7 @@ contains
 
   end subroutine set_ebi_species
 
-  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Set the EBI-solver species names in MONARCH order
-  subroutine set_monarch_species(spec_names)
-
-    !> EBI solver species names
-    type(string_t), dimension(NUM_EBI_SPEC) :: spec_names
-
-    !Monarch order
-    spec_names(1)%string = "NO2"
-    spec_names(2)%string = "NO"
-    spec_names(3)%string = "O3"
-    spec_names(4)%string = "NO3"
-    spec_names(5)%string = "N2O5"
-    spec_names(6)%string = "HNO3"
-    spec_names(7)%string = "HONO"
-    spec_names(8)%string = "PNA"
-    spec_names(9)%string = "H2O2"
-    spec_names(10)%string = "NTR"
-    spec_names(11)%string = "ROOH"
-    spec_names(12)%string = "FORM"
-    spec_names(13)%string = "ALD2"
-    spec_names(14)%string = "ALDX"
-    spec_names(15)%string = "PAR"
-    spec_names(16)%string = "CO"
-    spec_names(17)%string = "MEPX"
-    spec_names(18)%string = "MEOH"
-    spec_names(19)%string = "FACD"
-    spec_names(20)%string = "PAN"
-    spec_names(21)%string = "PACD"
-    spec_names(22)%string = "AACD"
-    spec_names(23)%string = "PANX"
-    spec_names(24)%string = "OLE"
-    spec_names(25)%string = "ETH"
-    spec_names(26)%string = "IOLE"
-    spec_names(27)%string = "TOL"
-    spec_names(28)%string = "CRES"
-    spec_names(29)%string = "OPEN"
-    spec_names(30)%string = "MGLY"
-    spec_names(31)%string = "XYL"
-    spec_names(32)%string = "ISOP"
-    spec_names(33)%string = "ISPD"
-    spec_names(34)%string = "TERP"
-    spec_names(35)%string = "SO2"
-    spec_names(36)%string = "SULF"
-    spec_names(37)%string = "ETOH"
-    spec_names(38)%string = "ETHA"
-    spec_names(39)%string = "CL2"
-    spec_names(40)%string = "HOCL"
-    spec_names(41)%string = "FMCL"
-    spec_names(42)%string = "HCL"
-    spec_names(43)%string = "BENZENE"
-    spec_names(44)%string = "SESQ"
-    spec_names(45)%string = "O"
-    spec_names(46)%string = "O1D"
-    spec_names(47)%string = "OH"
-    spec_names(48)%string = "HO2"
-    spec_names(49)%string = "XO2"
-    spec_names(50)%string = "XO2N"
-    spec_names(51)%string = "MEO2"
-    spec_names(52)%string = "HCO3"
-    spec_names(53)%string = "C2O3"
-    spec_names(54)%string = "CXO3"
-    spec_names(55)%string = "ROR"
-    spec_names(56)%string = "TO2"
-    spec_names(57)%string = "TOLRO2"
-    spec_names(58)%string = "CRO"
-    spec_names(59)%string = "XYLRO2"
-    spec_names(60)%string = "ISOPRXN"
-    spec_names(61)%string = "TRPRXN"
-    spec_names(62)%string = "SULRXN"
-    spec_names(63)%string = "CL"
-    spec_names(64)%string = "CLO"
-    spec_names(65)%string = "TOLNRXN"
-    spec_names(66)%string = "TOLHRXN"
-    spec_names(67)%string = "XYLNRXN"
-    spec_names(68)%string = "XYLHRXN"
-    spec_names(69)%string = "BENZRO2"
-    spec_names(70)%string = "BNZNRXN"
-    spec_names(71)%string = "BNZHRXN"
-    spec_names(72)%string = "SESQRXN"
-
-  end subroutine set_monarch_species
-
-  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Load a string array with KPP reaction labels
   subroutine get_kpp_rxn_labels(kpp_rxn_labels)
@@ -1425,7 +1278,7 @@ contains
 
   !> Compare calculated rates between the modules
   subroutine compare_rates(camp_core, camp_state, ebi_spec_names, conv, &
-          ebi_rxn_map, kpp_rxn_map)
+                  ebi_rxn_map, kpp_rxn_map)
 
     use EXT_RXCM,                               only : NRXNS, RXLABEL
     use EXT_HRDATA,                             only : EBI_PROD => PROD, &

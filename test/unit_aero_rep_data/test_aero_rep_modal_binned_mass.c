@@ -126,7 +126,7 @@ int test_number_conc(ModelData * model_data, N_Vector state) {
                              CONC_3B / DENSITY_B +
                              CONC_3E / DENSITY_E) / vp_bin4;
 
-  double vp_mode1 = M_PI/6.0 * pow(1.2e-6, 3.0) * exp(9.0/2.0 * 1.2 * 1.2);
+  double vp_mode1 = M_PI/6.0 * pow(1.2e-6, 3.0) * exp(9.0/2.0 * log(1.2) * log(1.2));
 
   double real_number_conc_2 = (CONC_2_1A / DENSITY_A +
                                CONC_2_1B / DENSITY_B +

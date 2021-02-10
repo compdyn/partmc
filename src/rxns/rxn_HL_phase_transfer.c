@@ -251,6 +251,9 @@ void rxn_HL_phase_transfer_update_env_state(ModelData *model_data,
 /** \brief Calculate contributions to the time derivative \f$f(t,y)\f$ from
  * this reaction.
  *
+ * \bug this does not work for modal/binned aero reps. Needs update following
+ *      the logic in the SIMPOL partitioning reaction
+ *
  * \param model_data Pointer to the model data, including the state array
  * \param time_deriv TimeDerivative object
  * \param rxn_int_data Pointer to the reaction integer data

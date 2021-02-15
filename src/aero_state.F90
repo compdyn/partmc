@@ -3014,7 +3014,9 @@ contains
     end do
 
     aero_state_n2o5_uptake = 0.25d0 * c_n2o5 * gamma_n2o5
-    gamma_pop = gamma_n2o5/sum(surf_area_concs)
+    !is_gamma = gamma_part > 0
+    !surf_area_concs_sub = pack(surf_area_concs, is_gamma)
+    gamma_pop = gamma_n2o5/sum(pack(surf_area_concs,  gamma_part > 0))
 
   end subroutine aero_n2o5_uptake
 

@@ -16,9 +16,9 @@ program process
        = "out/urban_plume_ch"
 
   character(len=PMC_MAX_FILENAME_LEN) :: in_filename, out_filename
-  type(bin_grid_t) :: diam_grid, bc_grid, sc_grid, gamma_grid
+  type(bin_grid_t) :: diam_grid, bc_grid, sc_grid, gamma_grid, avg_bin_grid
   type(aero_data_t) :: aero_data
-  type(aero_state_t) :: aero_state
+  type(aero_state_t) :: aero_state, aero_state_averaged
   type(env_state_t) :: env_state
   integer :: ncid, index, repeat, i_index, i_repeat, n_index, n_repeat
   real(kind=dp) :: time, del_t, tot_num_conc, tot_mass_conc
@@ -28,25 +28,32 @@ program process
   integer       :: n2o5_type 
   character(len=PMC_UUID_LEN) :: uuid
   real(kind=dp), allocatable :: times(:), dry_diameters(:), num_concs(:), &
-       dry_masses(:), masses(:), bc_masses(:), bc_fracs(:), &
-       so4_masses(:), no3_masses(:), nh4_masses(:), &
+       dry_masses(:), wet_masses(:), bc_masses(:), bc_fracs(:), &
+       so4_masses(:), no3_masses(:), nh4_masses(:), wet_diameters(:), &
        crit_rhs(:), scs(:), num_dist(:), &
        mass_bc_dist(:), mass_so4_dist(:), mass_no3_dist(:), mass_nh4_dist(:), &
        diam_bc_dist(:,:), diam_sc_dist(:,:), diam_gamma_dist_pr(:,:), &
-       diam_gamma_dist_avg(:,:)
+       diam_gamma_dist_avg(:,:), gamma_size_pr(:), gamma_size_comp(:), &
+       surf_area_pr(:), surf_area_comp(:), surf_area_dist_pr(:), &
+       surf_area_dist_comp(:), h2o_masses(:), h2o_masses_avg(:), &
+       diam_h2o_2d_avg(:,:), diam_h2o_2d_pr(:,:) 
   type(stats_1d_t) :: stats_num_dist, stats_d_alpha, stats_tot_num_conc, &
        stats_tot_mass_conc, stats_d_gamma, stats_chi, &
        stats_mass_bc_dist, stats_mass_so4_dist, stats_mass_no3_dist, stats_mass_nh4_dist, &
        stats_n2o5_uptake_pr, stats_n2o5_uptake_comp, stats_gamma_pop_pr, &
-       stats_gamma_pop_comp
+       stats_gamma_pop_comp, stats_gamma_size_pr, stats_gamma_size_comp, &
+       stats_surf_area_dist_pr, stats_surf_area_dist_comp
   type(stats_2d_t) :: stats_diam_bc_dist, stats_diam_sc_dist, &
-       stats_diam_gamma_dist_pr, stats_diam_gamma_dist_avg
+       stats_diam_gamma_dist_pr, stats_diam_gamma_dist_avg, &
+       stats_diam_h2o_2d_avg, stats_diam_h2o_2d_pr 
+  logical, allocatable :: has_gamma(:)
 
   call pmc_mpi_init()
 
   call input_n_files(prefix, n_repeat, n_index)
 
   call bin_grid_make(diam_grid, BIN_GRID_TYPE_LOG, 180, 1d-9, 1d-3)
+  call bin_grid_make(avg_bin_grid, BIN_GRID_TYPE_LOG, 1, 1d-30, 1d10)
   call bin_grid_make(bc_grid, BIN_GRID_TYPE_LINEAR, 50, 0d0, 1d0)
   call bin_grid_make(sc_grid, BIN_GRID_TYPE_LOG, 50, 1d-4, 1d0)
   call bin_grid_make(gamma_grid, BIN_GRID_TYPE_LOG, 50, 1d-3, 1d-1)
@@ -68,7 +75,13 @@ program process
 
         times(i_index) = time
 
+        !!!!Create an averaged aero_state!!!!
+        aero_state_averaged = aero_state
+        call aero_state_bin_average_comp(aero_state_averaged, avg_bin_grid, &
+            aero_data)
+
         dry_diameters = aero_state_dry_diameters(aero_state, aero_data)
+        wet_diameters = aero_state_diameters(aero_state, aero_data)
         num_concs = aero_state_num_concs(aero_state, aero_data)
         num_dist = bin_grid_histogram_1d(diam_grid, dry_diameters, num_concs)
         call stats_1d_add(stats_num_dist, num_dist)
@@ -76,8 +89,8 @@ program process
         tot_num_conc = sum(num_concs)
         call stats_1d_add_entry(stats_tot_num_conc, tot_num_conc, i_index)
 
-        masses = aero_state_masses(aero_state, aero_data)
-        tot_mass_conc = sum(masses * num_concs)
+        wet_masses = aero_state_masses(aero_state, aero_data)
+        tot_mass_conc = sum(wet_masses * num_concs)
         call stats_1d_add_entry(stats_tot_mass_conc, tot_mass_conc, i_index)
 
         ! Calcluate masses of different species
@@ -89,6 +102,11 @@ program process
              include=(/"NO3"/))
         nh4_masses = aero_state_masses(aero_state, aero_data, &
              include=(/"NH4"/))
+        h2o_masses = aero_state_masses(aero_state, aero_data, &
+             include=(/"H2O"/))
+
+        h2o_masses_avg = aero_state_masses(aero_state_averaged, aero_data, &
+             include=(/"H2O"/))
 
         ! Make distribution for different species
         mass_bc_dist  = bin_grid_histogram_1d(diam_grid, dry_diameters, bc_masses * num_concs)
@@ -122,24 +140,59 @@ program process
         call stats_1d_add_entry(stats_d_gamma, d_gamma, i_index)
         call stats_1d_add_entry(stats_chi, chi, i_index)
     
-        !n2o5_type = N2O5_HYDR_COMP
+        !n2o5_type = N2O5_HYDR_PR
         n2o5_type = N2O5_HYDR_PR 
         call aero_n2o5_uptake(aero_state, aero_data, &
         env_state, n2o5_type, gamma_part, aero_state_n2o5_uptake, gamma_pop)
-        diam_gamma_dist_pr = bin_grid_histogram_2d(diam_grid, dry_diameters, &
+
+        surf_area_pr = aero_state_surf_area_concs(aero_state, aero_data)
+
+        has_gamma = gamma_part > 0.0   
+        surf_area_dist_pr  = bin_grid_histogram_1d(diam_grid, &
+             pack(wet_diameters, has_gamma), &
+             pack(surf_area_pr,  has_gamma))
+        call stats_1d_add(stats_surf_area_dist_pr,  surf_area_dist_pr)
+
+        gamma_size_pr  = bin_grid_histogram_1d(diam_grid, &
+             pack(wet_diameters,has_gamma), &
+             pack(gamma_part * surf_area_pr,has_gamma ))
+        call stats_1d_add(stats_gamma_size_pr,  gamma_size_pr)
+
+
+        diam_gamma_dist_pr = bin_grid_histogram_2d(diam_grid, wet_diameters, &
              gamma_grid, gamma_part, num_concs)
         call stats_1d_add_entry(stats_n2o5_uptake_pr, aero_state_n2o5_uptake, i_index)
         call stats_1d_add_entry(stats_gamma_pop_pr, gamma_pop, i_index)
         call stats_2d_add(stats_diam_gamma_dist_pr, diam_gamma_dist_pr)
 
+        diam_h2o_2d_pr = bin_grid_histogram_2d(diam_grid, wet_diameters, &
+             bc_grid, h2o_masses/wet_masses, num_concs)
+        call stats_2d_add(stats_diam_h2o_2d_pr, diam_h2o_2d_pr)
+
+        !n2o5_type = N2O5_HYDR_COMP
         n2o5_type = N2O5_HYDR_COMP
         call aero_n2o5_uptake(aero_state, aero_data, &
         env_state, n2o5_type, gamma_part, aero_state_n2o5_uptake, gamma_pop)
-        diam_gamma_dist_avg = bin_grid_histogram_2d(diam_grid, dry_diameters, &
+
+        surf_area_comp = aero_state_surf_area_concs(aero_state_averaged, aero_data)
+
+        surf_area_dist_comp  = bin_grid_histogram_1d(diam_grid, wet_diameters, &
+             surf_area_comp)
+        call stats_1d_add(stats_surf_area_dist_comp,  surf_area_dist_comp)
+
+        gamma_size_comp  = bin_grid_histogram_1d(diam_grid, wet_diameters, &
+             gamma_part * surf_area_comp)
+        call stats_1d_add(stats_gamma_size_comp, gamma_size_comp)
+
+        diam_gamma_dist_avg = bin_grid_histogram_2d(diam_grid, wet_diameters, &
              gamma_grid, gamma_part, num_concs)
         call stats_1d_add_entry(stats_n2o5_uptake_comp, aero_state_n2o5_uptake, i_index)
         call stats_1d_add_entry(stats_gamma_pop_comp, gamma_pop, i_index)
         call stats_2d_add(stats_diam_gamma_dist_avg, diam_gamma_dist_avg)
+
+        diam_h2o_2d_avg = bin_grid_histogram_2d(diam_grid, wet_diameters, &
+             bc_grid, h2o_masses_avg/wet_masses, num_concs)
+        call stats_2d_add(stats_diam_h2o_2d_avg, diam_h2o_2d_avg)
 
      end do
 
@@ -169,6 +222,22 @@ program process
           dim_name="diam", unit="m^{-3}")
      call stats_1d_clear(stats_mass_nh4_dist)
 
+     call stats_1d_output_netcdf(stats_gamma_size_pr, ncid, "gamma_size_pr", &
+          dim_name="diam", unit="m^{-3}")
+     call stats_1d_clear(stats_gamma_size_pr)
+
+     call stats_1d_output_netcdf(stats_gamma_size_comp, ncid, "gamma_size_comp", &
+          dim_name="diam", unit="m^{-3}")
+     call stats_1d_clear(stats_gamma_size_comp)
+ 
+     call stats_1d_output_netcdf(stats_surf_area_dist_pr, ncid, "surf_area_dist_pr", &
+          dim_name="diam", unit="m^{-3}")
+     call stats_1d_clear(stats_surf_area_dist_pr)
+
+     call stats_1d_output_netcdf(stats_surf_area_dist_comp, ncid, "surf_area_dist_comp", &
+          dim_name="diam", unit="m^{-3}")
+     call stats_1d_clear(stats_surf_area_dist_comp)
+
      call stats_2d_output_netcdf(stats_diam_bc_dist, ncid, "diam_bc_dist", &
           dim_name_1="diam", dim_name_2="bc_frac", unit="m^{-3}")
      call stats_2d_clear(stats_diam_bc_dist)
@@ -184,6 +253,14 @@ program process
      call stats_2d_output_netcdf(stats_diam_gamma_dist_avg, ncid, &
           "diam_gamma_dist_avg", dim_name_1="diam", dim_name_2="gamma", unit="m^{-3}")
      call stats_2d_clear(stats_diam_gamma_dist_avg)
+
+     call stats_2d_output_netcdf(stats_diam_h2o_2d_avg, ncid, &
+          "diam_h2o_2d_avg", dim_name_1="diam", dim_name_2="fracs", unit="m^{-3}")
+     call stats_2d_clear(stats_diam_h2o_2d_avg)
+
+     call stats_2d_output_netcdf(stats_diam_h2o_2d_pr, ncid, &
+          "diam_h2o_2d_pr", dim_name_1="diam", dim_name_2="fracs", unit="m^{-3}")
+     call stats_2d_clear(stats_diam_h2o_2d_pr)
 
      call pmc_nc_close(ncid)
   end do

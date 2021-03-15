@@ -56,7 +56,7 @@ contains
     !> A new photolysis rate calculator
     type(photolysis_t), pointer :: new_obj
     !> The CAMP core containing photolysis reactions
-    class(camp_core_t), pointer, intent(in), optional :: camp_core
+    type(camp_core_t), pointer, intent(in), optional :: camp_core
 
     character(len=:), allocatable :: rxn_key, rxn_val, rate_key, str_val
     real(kind=dp) :: rate_val

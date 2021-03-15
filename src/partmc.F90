@@ -223,6 +223,7 @@ program partmc
   use pmc_gas_state
   use pmc_util
   use pmc_camp_core
+  use pmc_photolysis
 #ifdef PMC_USE_SUNDIALS
   use pmc_condense
 #endif

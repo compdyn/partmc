@@ -121,6 +121,22 @@ if(ENABLE_SUNDIALS)
     DOC "SuiteSparse klu library"
     PATHS $ENV{SUITE_SPARSE_HOME}/lib $ENV{SUNDIALS_HOME}/lib
           /opt/local/lib /usr/local/lib)
+  find_library(SUITE_SPARSE_AMD_LIB amd
+    DOC "SuiteSparse amd library"
+    PATHS $ENV{SUITE_SPARSE_HOME}/lib $ENV{SUNDIALS_HOME}/lib
+          /opt/local/lib /usr/local/lib)
+  find_library(SUITE_SPARSE_BTF_LIB btf
+    DOC "SuiteSparse btf library"
+    PATHS $ENV{SUITE_SPARSE_HOME}/lib $ENV{SUNDIALS_HOME}/lib
+          /opt/local/lib /usr/local/lib)
+  find_library(SUITE_SPARSE_COLAMD_LIB colamd
+    DOC "SuiteSparse colamd library"
+    PATHS $ENV{SUITE_SPARSE_HOME}/lib $ENV{SUNDIALS_HOME}/lib
+          /opt/local/lib /usr/local/lib)
+  find_library(SUITE_SPARSE_CONFIG_LIB suitesparseconfig
+    DOC "SuiteSparse config library"
+    PATHS $ENV{SUITE_SPARSE_HOME}/lib $ENV{SUNDIALS_HOME}/lib
+          /opt/local/lib /usr/local/lib)
   find_path(SUNDIALS_INCLUDE_DIR cvode/cvode.h
     DOC "SUNDIALS include directory (must have cvode/, sundials/, nvector/ subdirs)"
     PATHS $ENV{SUNDIALS_HOME}/include /opt/local/include /usr/local/include)
@@ -139,7 +155,9 @@ if(ENABLE_SUNDIALS)
     PATHS $ENV{SUITE_SPARSE_HOME}/lib $ENV{SUNDIALS_HOME}/lib
           /opt/local/lib /usr/local/lib)
   set(SUNDIALS_LIBS ${SUNDIALS_NVECSERIAL_LIB} ${SUNDIALS_CVODE_LIB}
-    ${SUITE_SPARSE_KLU_LIB} ${SUNDIALS_KLU_LIB} ${SUNDIALS_SUNMATRIX_SPARSE_LIB})
+    ${SUNDIALS_KLU_LIB} ${SUNDIALS_SUNMATRIX_SPARSE_LIB} ${SUITE_SPARSE_KLU_LIB}
+    ${SUITE_SPARSE_COLAMD_LIB} ${SUITE_SPARSE_AMD_LIB} ${SUITE_SPARSE_BTF_LIB}
+    ${SUITE_SPARSE_CONFIG_LIB})
   set(SUNDIALS_SRC src/condense_solver.c)
   include_directories(${SUNDIALS_INCLUDE_DIR} ${SUITE_SPARSE_INCLUDE_DIR})
   add_definitions(-DPMC_USE_SUNDIALS)
@@ -201,7 +219,7 @@ endif()
 
 macro(do_unit_test test_name result)
   if(ENABLE_MPI)
-    add_test(unit_test_${test_name} mpirun -v -np 2 ${CMAKE_BINARY_DIR}/unit_test_${test_name})
+    add_test(unit_test_${test_name} mpiexec_mpt -v -np 2 ${CMAKE_BINARY_DIR}/unit_test_${test_name})
   else()
     add_test(unit_test_${test_name} ${CMAKE_BINARY_DIR}/unit_test_${test_name})
   endif()
@@ -724,15 +742,9 @@ set(UNIT_TEST_SRC
 
 set(UNIT_TEST_RXN_ARRHENIUS_SRC
     test/unit_tests/rxns/unit_test_rxn_arrhenius.F90 ${UNIT_TEST_SRC})
-if(${CMAKE_Fortran_COMPILER_ID} MATCHES "Intel" AND ENABLE_MPI)
-  set_source_files_properties(${UNIT_TEST_RXN_ARRHENIUS_SRC} PROPERTIES COMPILE_DEFINITIONS
-    "UNIT_TEST_MODULE_=pmc_unit_test_rxn_arrhenius \
-    ;UNIT_TEST_TYPE_=unit_test_rxn_arrhenius_t\\(\\)")
-else()
   set_source_files_properties(${UNIT_TEST_RXN_ARRHENIUS_SRC} PROPERTIES COMPILE_DEFINITIONS
     "UNIT_TEST_MODULE_=pmc_unit_test_rxn_arrhenius \
     ;UNIT_TEST_TYPE_=unit_test_rxn_arrhenius_t()")
-endif()
 set_source_files_properties(${UNIT_TEST_RXN_ARRHENIUS_SRC} PROPERTIES COMPILE_FLAGS
                             ${STD_F_FLAGS})
 add_executable(unit_test_rxn_arrhenius ${UNIT_TEST_RXN_ARRHENIUS_SRC})

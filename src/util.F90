@@ -134,12 +134,21 @@ contains
     logical, intent(in) :: condition_ok
     !> Msg if assertion fails.
     character(len=*), intent(in) :: error_msg
+
+    integer, parameter :: kErrorFileId = 10
 #ifdef PMC_USE_MPI
     integer :: ierr
 #endif
     if (.not. condition_ok) then
-       write(0,'(a)') 'ERROR (PartMC-' // trim(integer_to_string(code)) &
+      write(0,'(a)') 'ERROR (PartMC-' // trim(integer_to_string(code)) &
             // '): ' // trim(error_msg)
+      open(unit=kErrorFileId, file = "error.json", action = "WRITE")
+      write(kErrorFileId,'(A)') '{'
+      write(kErrorFileId,'(A)') '  "code" : "'//                              &
+                                    trim(integer_to_string(code))//'",'
+      write(kErrorFileId,'(A)') '  "message" : "'//trim(error_msg)//'"'
+      write(kErrorFileId,'(A)') '}'
+      close(kErrorFileId)
 #ifdef PMC_USE_MPI
        call mpi_abort(MPI_COMM_WORLD, code, ierr)
 #else

@@ -180,8 +180,13 @@ void rxn_photolysis_calc_deriv_contrib(
     }
     for (int i_spec = 0; i_spec < NUM_PROD_; i_spec++, i_dep_var++) {
       if (DERIV_ID_(i_dep_var) < 0) continue;
-      time_derivative_add_value(time_deriv, DERIV_ID_(i_dep_var),
-                                rate * YIELD_(i_spec));
+
+      // Negative yields are allowed, but prevented from causing negative
+      // concentrations that lead to solver failures
+      if (-rate * YIELD_(i_spec) * time_step <= state[PROD_(i_spec)]){
+        time_derivative_add_value(time_deriv, DERIV_ID_(i_dep_var),
+                                  rate * YIELD_(i_spec));
+      }
     }
   }
 
@@ -210,15 +215,29 @@ void rxn_photolysis_calc_jac_contrib(ModelData *model_data, Jacobian jac,
   // Add contributions to the Jacobian
   int i_elem = 0;
   for (int i_ind = 0; i_ind < NUM_REACT_; i_ind++) {
+    // Calculate d_rate / d_i_ind
+    realtype rate = RATE_CONSTANT_;
+    for (int i_spec = 0; i_spec < NUM_REACT_; i_spec++)
+      if (i_spec != i_ind) rate *= state[REACT_(i_spec)];
+
     for (int i_dep = 0; i_dep < NUM_REACT_; i_dep++, i_elem++) {
       if (JAC_ID_(i_elem) < 0) continue;
+      //jacobian_add_value(jac, (unsigned int)JAC_ID_(i_elem), JACOBIAN_LOSS,
+      //                   RATE_CONSTANT_);
       jacobian_add_value(jac, (unsigned int)JAC_ID_(i_elem), JACOBIAN_LOSS,
-                         RATE_CONSTANT_);
+                        rate);
     }
     for (int i_dep = 0; i_dep < NUM_PROD_; i_dep++, i_elem++) {
       if (JAC_ID_(i_elem) < 0) continue;
+      // Negative yields are allowed, but prevented from causing negative
+      // concentrations that lead to solver failures
+      if (-rate * state[REACT_(i_ind)] * YIELD_(i_dep) * time_step <=
+          state[PROD_(i_dep)]) {
+      //jacobian_add_value(jac, (unsigned int)JAC_ID_(i_elem),
+      //                   JACOBIAN_PRODUCTION, YIELD_(i_dep) * RATE_CONSTANT_);
       jacobian_add_value(jac, (unsigned int)JAC_ID_(i_elem),
-                         JACOBIAN_PRODUCTION, YIELD_(i_dep) * RATE_CONSTANT_);
+                   JACOBIAN_PRODUCTION, YIELD_(i_dep) * rate);
+      }
     }
   }
 

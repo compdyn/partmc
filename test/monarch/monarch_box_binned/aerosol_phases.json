@@ -1,0 +1,37 @@
+{
+  "description" : "These aerosol phases correspond to the MONARCH 'mod37' configuration",
+  "pmc-data" : [
+    {
+      "name" : "dust",
+      "type": "AERO_PHASE",
+      "species" : [ "LHD_DUST", "LLD_DUST" ],
+      "notes" : {
+        "MLD 02/05/2018" : "consider replacing this with a set of inorganic species"
+      }
+    },
+    {
+      "name" : "sea_salt",
+      "type" : "AERO_PHASE",
+      "species" : [ "SEA_SALT" ],
+      "notes" : {
+        "MLD 02/05/2018" : "consider replacing with H2O, Na+, Cl-"
+      }
+    },
+    {
+      "name" : "organic_matter",
+      "type" : "AERO_PHASE",
+      "species" : [ "POA", "ISOP-P1_aero", "ISOP-P2_aero", "TERP-P1_aero", "TERP-P2_aero" ]
+    },
+    {
+      "name" : "black_carbon",
+      "type" : "AERO_PHASE",
+      "species" : [ "BC_phob", "BC_phil" ]
+    },
+    {
+      "name" : "other_PM",
+      "type" : "AERO_PHASE",
+      "species" : [ "other_PM", "other_other_PM" ],
+      "description" : "unspecified particulate matter"
+    }
+  ]
+}

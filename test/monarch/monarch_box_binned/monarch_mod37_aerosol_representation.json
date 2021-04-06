@@ -1,0 +1,56 @@
+{
+  "description" : [
+    "This is the mass-based MONARCH aerosol representation for the 'mod37' configuration",
+    "Parameter for the bins and modes were taken from Spada et al. (2015) manuscript -",
+    "'Global aerosols in the online multiscale NMMB/BSC Chemical Transport Model'"
+  ],
+  "pmc-data" : [
+    {
+      "name" : "MONARCH mass-based",
+      "type" : "AERO_REP_MODAL_BINNED_MASS",
+      "modes/bins" :
+      {
+        "dust" :
+        {
+          "type" : "BINNED",
+          "phases" : [ "dust" ],
+          "bins" : 8,
+          "minimum diameter [m]" : 1.0e-7,
+          "maximum diameter [m]" : 1.0e-5,
+          "scale" : "LOG"
+        },
+        "sea_salt" :
+        {
+          "type" : "BINNED",
+          "phases" : [ "sea_salt" ],
+          "bins" : 8,
+          "minimum diameter [m]" : 1.0e-7,
+          "maximum diameter [m]" : 1.5e-5,
+          "scale" : "LOG"
+        },
+        "organic_matter" :
+        {
+          "type" : "BINNED",
+          "phases" : [ "organic_matter" ],
+          "bins" : 8,
+          "minimum diameter [m]" : 6.577e-9,
+          "maximum diameter [m]" : 2.485e-5,
+          "scale" : "LOG"
+        },
+        "black_carbon" :
+        {
+          "type" : "MODAL",
+          "phases" : [ "black_carbon" ],
+          "shape" : "LOG_NORMAL"
+        },
+        "other_PM" :
+        {
+          "type" : "MODAL",
+          "phases" : [ "other_PM" ],
+          "shape" : "LOG_NORMAL",
+          "notes" : "FIXME - other PM not in manuscript, using parameters for organic aerosol"
+        }
+      }
+    }
+  ]
+}

@@ -8,6 +8,8 @@ __next version__ - XXXX-XX-XX
 
   * Automatically retry failing tests up to 10 times (Matt West).
 
+  * Update Docker build to use Fedora 33 (Matt West).
+
   * Add multiple groups for mixing state index calculations (Matt West).
 
 2.5.0 - 2018-11-17

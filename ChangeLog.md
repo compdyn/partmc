@@ -3,6 +3,8 @@ __next version__ - XXXX-XX-XX
 
   * Clean up README formatting (Matt West).
 
+  * Automatically retry failing tests up to 10 times (Matt West).
+
 2.5.0 - 2018-11-17
 
   * Shift NetCDF CMake rules to `netcdf.cmake` (Matt West).

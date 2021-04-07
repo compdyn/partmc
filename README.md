@@ -15,7 +15,7 @@ Released 2018-11-17
 
 **Cite as:** M. West, N. Riemer, J. Curtis, M. Michelotti, and J. Tian (2018) PartMC, [![version](https://img.shields.io/github/release/compdyn/partmc.svg?label=version)](https://github.com/compdyn/partmc), [![DOI](https://zenodo.org/badge/24058992.svg)](https://zenodo.org/badge/latestdoi/24058992)
 
-Copyright (C) 2005-2018 Nicole Riemer and Matthew West  
+Copyright (C) 2005-2021 Nicole Riemer and Matthew West  
 Portions copyright (C) Andreas Bott, Richard Easter, Jeffrey Curtis,
 Matthew Michelotti, and Jian Tian  
 Licensed under the GNU General Public License version 2 or (at your
@@ -209,14 +209,12 @@ Installation
 
         -O2 -g -fimplicit-none -W -Wall -Wconversion -Wunderflow -Wimplicit-interface -Wno-compare-reals -Wno-unused -Wno-unused-parameter -Wno-unused-dummy-argument -fbounds-check
 
-8. Compile PartMC and test it as follows. Some tests may fail due to
-   bad random initial conditions, so re-run the tests a few times to
-   see if failures persist.
+8. Compile PartMC and test it as follows.
 
         make
         make test
 
-9. To run just a single set of tests do something like:
+9. To run just a single test do something like:
 
         ctest -R bidisperse   # argument is a regexp for test names
 
@@ -225,7 +223,10 @@ Installation
         VERBOSE=1 make
 
 11. To run tests with visible output or to make some plots from the
-    tests run them as:
+    tests run them as follows. Note that tests often rely on earlier
+    tests in the same directory, so always run `test_1`, then
+    `test_2`, etc. Tests occasionally fail due to random sampling, so
+    re-run the entire sequence after failures. For example:
 
         cd test_run/emission
         ./test_emission_1.sh

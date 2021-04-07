@@ -3,6 +3,11 @@ __next version__ - XXXX-XX-XX
 
   * Clean up README formatting (Matt West).
 
+  * Fix particle ID initialization after loading of `aero_state`
+    (Jeff Curtis).
+
+  * Automatically retry failing tests up to 10 times (Matt West).
+
   * Add multiple groups for mixing state index calculations (Matt West).
 
 2.5.0 - 2018-11-17

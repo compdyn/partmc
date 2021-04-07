@@ -1410,7 +1410,7 @@ contains
     masses_of_avg_part = aero_state_masses(aero_state_averaged, &
          aero_data, include, exclude)
     entropies_of_avg_part = aero_state_mass_entropies(aero_state_averaged, &
-         aero_data, include, exclude, group)
+         aero_data, include, exclude, group, groups)
 
     d_gamma = exp(sum(entropies_of_avg_part * masses_of_avg_part &
          * num_concs_of_avg_part) &

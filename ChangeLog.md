@@ -3,6 +3,9 @@ __next version__ - XXXX-XX-XX
 
   * Clean up README formatting (Matt West).
 
+  * Fix particle ID initialization after loading of `aero_state`
+    (Jeff Curtis).
+
 2.5.0 - 2018-11-17
 
   * Shift NetCDF CMake rules to `netcdf.cmake` (Matt West).

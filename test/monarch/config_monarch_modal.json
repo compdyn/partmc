@@ -3,7 +3,7 @@
     "monarch_box_modal/monarch_mod37_aerosol_representation.json",
     "monarch_box_modal/aerosol_phases.json",
     "monarch_box_modal/cb05_abs_tol.json",
-    "monarch_box_modal/cb05_mechanism.json",
+    "monarch_box_modal/cb05_mechanism.noR142R143.json",
     "monarch_box_modal/cb05_species.json",
     "monarch_box_modal/custom_species.json",
     "monarch_box_modal/partitioning_species_params.json",

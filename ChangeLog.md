@@ -6,6 +6,8 @@ __next version__ - XXXX-XX-XX
   * Fix particle ID initialization after loading of `aero_state`
     (Jeff Curtis).
 
+  * Automatically retry failing tests up to 10 times (Matt West).
+
 2.5.0 - 2018-11-17
 
   * Shift NetCDF CMake rules to `netcdf.cmake` (Matt West).

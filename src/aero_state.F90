@@ -725,7 +725,7 @@ contains
   !> Generates a Poisson sample of an \c aero_dist, adding to \c
   !> aero_state, with the given sample proportion.
   subroutine aero_state_add_aero_dist_sample(aero_state, aero_data, &
-       aero_dist, sample_prop, sample_timescale, create_time, allow_doubling, allow_halving, &
+       aero_dist, sample_prop, characteristic_factor, create_time, allow_doubling, allow_halving, &
        n_part_add)
 
     !> Aero state to add to.
@@ -736,8 +736,8 @@ contains
     type(aero_dist_t), intent(in) :: aero_dist
     !> Fraction to sample (1).
     real(kind=dp), intent(in) :: sample_prop
-    !>
-    real(kind=dp), intent(in) :: sample_timescale
+    !> Factor to scale current sample to achieve characteristic sample.
+    real(kind=dp), intent(in) :: characteristic_factor 
     !> Creation time for new particles (s).
     real(kind=dp), intent(in) :: create_time
     !> Whether to allow doubling of the population.
@@ -753,7 +753,8 @@ contains
     integer :: n_samp, i_mode, i_samp, i_group, i_class, n_group, n_class
     type(aero_particle_t) :: aero_particle
     real(kind=dp) :: num_conc_threshold
-    real(kind=dp), parameter :: factor = .1d0
+    ! Low weight undersampling factor
+    real(kind=dp), parameter :: low_num_conc_factor = .1d0
 
     n_group = size(aero_state%awa%weight, 1)
     n_class = size(aero_state%awa%weight, 2)
@@ -775,17 +776,15 @@ contains
           n_samp_avg = sample_prop * aero_mode_number(aero_dist%mode(i_mode), &
                aero_state%awa%weight(i_group, i_class))
           n_samp = rand_poisson(n_samp_avg)
-          num_conc_threshold = (aero_mode_total_num_conc(aero_dist%mode(i_mode)) &
-               / n_samp_avg) * factor
-!          size_factor = min((1.0d0 / (sample_timescale*n_samp_avg)), 0.32d0)
+          num_conc_threshold = aero_mode_total_num_conc(aero_dist%mode(i_mode)) &
+               / (n_samp_avg * characteristic_factor) * low_num_conc_factor
           if (present(n_part_add)) then
              n_part_add = n_part_add + n_samp
           end if
           do i_samp = 1,n_samp
              call aero_particle_zero(aero_particle, aero_data)
              call aero_mode_sample_radius(aero_dist%mode(i_mode), aero_data, &
-                  aero_state%awa%weight(i_group, i_class), radius) ! &
-!                  size_factor)
+                  aero_state%awa%weight(i_group, i_class), radius)
              total_vol = aero_data_rad2vol(aero_data, radius)
              call aero_mode_sample_vols(aero_dist%mode(i_mode), total_vol, &
                   vols)

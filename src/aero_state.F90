@@ -1307,11 +1307,11 @@ contains
                = entropy([group_mass, non_group_mass])
        end do
     else if (present(groups)) then
-       call assert_msg(161633285, present(include), &
+       call assert_msg(161633285, .not. present(include), &
             "cannot specify both 'include' and 'groups' arguments")
-       call assert_msg(273540426, present(exclude), &
+       call assert_msg(273540426, .not. present(exclude), &
             "cannot specify both 'exclude' and 'groups' arguments")
-       call assert_msg(499993914, present(group), &
+       call assert_msg(499993914, .not. present(group), &
             "cannot specify both 'group' and 'groups' arguments")
 
        n_group = size(groups, 1)
@@ -1404,11 +1404,11 @@ contains
     ! per-particle masses need to take groups into account
 
     if (present(groups)) then
-       call assert_msg(726652236, present(include), &
+       call assert_msg(726652236, .not. present(include), &
             "cannot specify both 'include' and 'groups' arguments")
-       call assert_msg(891097454, present(exclude), &
+       call assert_msg(891097454, .not. present(exclude), &
             "cannot specify both 'exclude' and 'groups' arguments")
-       call assert_msg(938789093, present(group), &
+       call assert_msg(938789093, .not. present(group), &
             "cannot specify both 'group' and 'groups' arguments")
        allocate(groups_mask(size(groups, 1), size(groups, 2)))
        do i_group = 1, size(groups, 1)

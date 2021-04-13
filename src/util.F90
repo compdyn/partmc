@@ -1037,19 +1037,23 @@ contains
 
   !> Return a new array that contains only the non-blank entries in
   !> the given array.
-  integer function string_array_strip_blank(array)
+  function string_array_strip_blank(array)
 
-    !> Array of values.
+    !> Array of values to strip.
     character(len=*), intent(in) :: array(:)
-    !> Value to find.
-    character(len=*), intent(in) :: val
 
-    do string_array_find = 1,size(array)
-       if (trim(array(string_array_find)) == trim(val)) return
+    !> Return array of strings with blanks removed.
+    character(len=len(array)), allocatable :: string_array_strip_blank(:)
+
+    integer :: i
+    logical :: mask(size(array))
+
+    do i = 1,size(array)
+       mask(i) = (len_trim(array(i)) > 0)
     end do
-    string_array_find = 0
+    string_array_strip_blank = pack(array, mask)
 
-  end function string_array_find
+  end function string_array_strip_blank
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

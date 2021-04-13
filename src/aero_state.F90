@@ -1395,9 +1395,6 @@ contains
     real(kind=dp), allocatable :: entropies(:), entropies_of_avg_part(:)
     real(kind=dp), allocatable :: masses(:), num_concs(:), &
          num_concs_of_avg_part(:), masses_of_avg_part(:)
-    character(len=AERO_NAME_LEN), allocatable :: groups_include(:)
-    logical, allocatable :: groups_mask(:,:)
-    integer :: i_group, i_item
     type(aero_state_t) :: aero_state_averaged
     type(bin_grid_t) :: avg_bin_grid
 
@@ -1410,14 +1407,8 @@ contains
             "cannot specify both 'exclude' and 'groups' arguments")
        call assert_msg(938789093, .not. present(group), &
             "cannot specify both 'group' and 'groups' arguments")
-       allocate(groups_mask(size(groups, 1), size(groups, 2)))
-       do i_group = 1, size(groups, 1)
-          do i_item = 1, size(groups, 2)
-             groups_mask(i_group, i_item) = (len(groups(i_group, i_item)) > 0)
-          end do
-       end do
-       groups_include = pack(groups, groups_mask)
-       masses = aero_state_masses(aero_state, aero_data, include=groups_include)
+       masses = aero_state_masses(aero_state, aero_data, &
+            include=pack(groups, len_trim(groups) > 0))
     else
        masses = aero_state_masses(aero_state, aero_data, include, exclude)
     end if

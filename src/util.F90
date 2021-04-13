@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2016 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2016, 2021 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -1020,6 +1020,24 @@ contains
   !> Return the index of the first occurance of the given value in the
   !> array, or 0 if it is not present.
   integer function string_array_find(array, val)
+
+    !> Array of values.
+    character(len=*), intent(in) :: array(:)
+    !> Value to find.
+    character(len=*), intent(in) :: val
+
+    do string_array_find = 1,size(array)
+       if (trim(array(string_array_find)) == trim(val)) return
+    end do
+    string_array_find = 0
+
+  end function string_array_find
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Return a new array that contains only the non-blank entries in
+  !> the given array.
+  integer function string_array_strip_blank(array)
 
     !> Array of values.
     character(len=*), intent(in) :: array(:)

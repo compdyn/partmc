@@ -1282,8 +1282,6 @@ contains
        end do
     end if
     if (present(group)) then
-       call assert_msg(262020374, .not. present(groups), &
-            "cannot specify both 'group' and 'groups' arguments")
        group_species = .false.
        do i_name = 1, size(group)
           i_spec = aero_data_spec_by_name(aero_data, group(i_name))
@@ -1309,6 +1307,13 @@ contains
                = entropy([group_mass, non_group_mass])
        end do
     else if (present(groups)) then
+       call assert_msg(161633285, present(include), &
+            "cannot specify both 'include' and 'groups' arguments")
+       call assert_msg(273540426, present(exclude), &
+            "cannot specify both 'exclude' and 'groups' arguments")
+       call assert_msg(499993914, present(group), &
+            "cannot specify both 'group' and 'groups' arguments")
+
        n_group = size(groups, 1)
        ! species_group_numbers(i_spec) will give the group number for
        ! each species, or zero for non-included
@@ -1362,7 +1367,9 @@ contains
   !! specified then the species are divided into two sets, given by
   !! those in the group and those not in the group. The entropies are
   !! then computed using the total mass of each set. Alternatively \c
-  !! groups can be specified, which lists several groups of species.
+  !! groups can be specified, which lists several groups of
+  !! species. If \c groups is provided, only species explicitly listed
+  !! will be included.
   subroutine aero_state_mixing_state_metrics(aero_state, aero_data, d_alpha, &
        d_gamma, chi, include, exclude, group, groups)
 
@@ -1391,9 +1398,21 @@ contains
     type(aero_state_t) :: aero_state_averaged
     type(bin_grid_t) :: avg_bin_grid
 
-    ! per-particle properties
+    ! per-particle masses need to take groups into account
+
+    if (present(groups)) then
+       call assert_msg(726652236, present(include), &
+            "cannot specify both 'include' and 'groups' arguments")
+       call assert_msg(891097454, present(exclude), &
+            "cannot specify both 'exclude' and 'groups' arguments")
+       call assert_msg(938789093, present(group), &
+            "cannot specify both 'group' and 'groups' arguments")
+    else
+       masses = aero_state_masses(aero_state, aero_data, include, exclude)
+    end if
+
+    ! other per-particle properties
     num_concs = aero_state_num_concs(aero_state, aero_data)
-    masses = aero_state_masses(aero_state, aero_data, include, exclude)
     entropies = aero_state_mass_entropies(aero_state, aero_data, &
          include, exclude, group, groups)
 

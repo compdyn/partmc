@@ -42,7 +42,7 @@ program process
 
   allocate(times(n_index))
 
-  allocate(mixing_state_groups(3, 4)) ! 3 group, max 4 species per group
+  allocate(mixing_state_groups(3, 4)) ! 3 groups, max 4 species per group
   mixing_state_groups(1,:) = ["OC    ", "BC    ", "      ", "      "]
   mixing_state_groups(2,:) = ["API1  ", "API2  ", "LIM1  ", "LIM2  "]
   mixing_state_groups(3,:) = ["SO4   ", "NO3   ", "NH4   ", "      "]

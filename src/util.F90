@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2016, 2021 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2016 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -1032,28 +1032,6 @@ contains
     string_array_find = 0
 
   end function string_array_find
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Return a new array that contains only the non-blank entries in
-  !> the given array.
-  function string_array_strip_blank(array)
-
-    !> Array of values to strip.
-    character(len=*), intent(in) :: array(:)
-
-    !> Return array of strings with blanks removed.
-    character(len=len(array)), allocatable :: string_array_strip_blank(:)
-
-    integer :: i
-    logical :: mask(size(array))
-
-    do i = 1,size(array)
-       mask(i) = (len_trim(array(i)) > 0)
-    end do
-    string_array_strip_blank = pack(array, mask)
-
-  end function string_array_strip_blank
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

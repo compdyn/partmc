@@ -1,0 +1,258 @@
+{
+  "description" : [
+    "Partitioning of species to cloud and rain water. Parameters are from existing wet-deposition module."
+  ],
+  "pmc-data" : [
+    {
+      "name" : "MONARCH mod37",
+      "type" : "MECHANISM",
+      "reactions" : [
+        {
+          "type" : "HL_PHASE_TRANSFER",
+          "gas-phase species" : "NO2",
+          "aerosol phase" : "cloud and rain water",
+          "aerosol-phase species" : "NO2_aq",
+          "aerosol-phase water" : "H2O_aq"
+        },
+        {
+          "type" : "HL_PHASE_TRANSFER",
+          "gas-phase species" : "NO",
+          "aerosol phase" : "cloud and rain water",
+          "aerosol-phase species" : "NO_aq",
+          "aerosol-phase water" : "H2O_aq"
+        },
+        {
+          "type" : "HL_PHASE_TRANSFER",
+          "gas-phase species" : "O3",
+          "aerosol phase" : "cloud and rain water",
+          "aerosol-phase species" : "O3_aq",
+          "aerosol-phase water" : "H2O_aq"
+        },
+        {
+          "type" : "HL_PHASE_TRANSFER",
+          "gas-phase species" : "NO3",
+          "aerosol phase" : "cloud and rain water",
+          "aerosol-phase species" : "NO3_aq",
+          "aerosol-phase water" : "H2O_aq"
+        },
+        {
+          "type" : "HL_PHASE_TRANSFER",
+          "gas-phase species" : "N2O5",
+          "aerosol phase" : "cloud and rain water",
+          "aerosol-phase species" : "N2O5_aq",
+          "aerosol-phase water" : "H2O_aq"
+        },
+        {
+          "type" : "HL_PHASE_TRANSFER",
+          "gas-phase species" : "HNO3",
+          "aerosol phase" : "cloud and rain water",
+          "aerosol-phase species" : "HNO3_aq",
+          "aerosol-phase water" : "H2O_aq"
+        },
+        {
+          "type" : "HL_PHASE_TRANSFER",
+          "gas-phase species" : "HONO",
+          "aerosol phase" : "cloud and rain water",
+          "aerosol-phase species" : "HONO_aq",
+          "aerosol-phase water" : "H2O_aq"
+        },
+        {
+          "type" : "HL_PHASE_TRANSFER",
+          "gas-phase species" : "PNA",
+          "aerosol phase" : "cloud and rain water",
+          "aerosol-phase species" : "HNO4_aq",
+          "aerosol-phase water" : "H2O_aq"
+        },
+        {
+          "type" : "HL_PHASE_TRANSFER",
+          "gas-phase species" : "H2O2",
+          "aerosol phase" : "cloud and rain water",
+          "aerosol-phase species" : "H2O2_aq",
+          "aerosol-phase water" : "H2O_aq"
+        },
+        {
+          "type" : "HL_PHASE_TRANSFER",
+          "gas-phase species" : "NTR",
+          "aerosol phase" : "cloud and rain water",
+          "aerosol-phase species" : "NTR_aq",
+          "aerosol-phase water" : "H2O_aq"
+        },
+        {
+          "type" : "HL_PHASE_TRANSFER",
+          "gas-phase species" : "ROOH",
+          "aerosol phase" : "cloud and rain water",
+          "aerosol-phase species" : "ROOH_aq",
+          "aerosol-phase water" : "H2O_aq"
+        },
+        {
+          "type" : "HL_PHASE_TRANSFER",
+          "gas-phase species" : "FORM",
+          "aerosol phase" : "cloud and rain water",
+          "aerosol-phase species" : "FORM_aq",
+          "aerosol-phase water" : "H2O_aq"
+        },
+        {
+          "type" : "HL_PHASE_TRANSFER",
+          "gas-phase species" : "ALD2",
+          "aerosol phase" : "cloud and rain water",
+          "aerosol-phase species" : "ALD2_aq",
+          "aerosol-phase water" : "H2O_aq"
+        },
+        {
+          "type" : "HL_PHASE_TRANSFER",
+          "gas-phase species" : "ALDX",
+          "aerosol phase" : "cloud and rain water",
+          "aerosol-phase species" : "ALDX_aq",
+          "aerosol-phase water" : "H2O_aq"
+        },
+        {
+          "type" : "HL_PHASE_TRANSFER",
+          "gas-phase species" : "CO",
+          "aerosol phase" : "cloud and rain water",
+          "aerosol-phase species" : "CO_aq",
+          "aerosol-phase water" : "H2O_aq"
+        },
+        {
+          "type" : "HL_PHASE_TRANSFER",
+          "gas-phase species" : "MEPX",
+          "aerosol phase" : "cloud and rain water",
+          "aerosol-phase species" : "MEPX_aq",
+          "aerosol-phase water" : "H2O_aq"
+        },
+        {
+          "type" : "HL_PHASE_TRANSFER",
+          "gas-phase species" : "MEOH",
+          "aerosol phase" : "cloud and rain water",
+          "aerosol-phase species" : "MEOH_aq",
+          "aerosol-phase water" : "H2O_aq"
+        },
+        {
+          "type" : "HL_PHASE_TRANSFER",
+          "gas-phase species" : "FACD",
+          "aerosol phase" : "cloud and rain water",
+          "aerosol-phase species" : "FACD_aq",
+          "aerosol-phase water" : "H2O_aq"
+        },
+        {
+          "type" : "HL_PHASE_TRANSFER",
+          "gas-phase species" : "PAN",
+          "aerosol phase" : "cloud and rain water",
+          "aerosol-phase species" : "PAN_aq",
+          "aerosol-phase water" : "H2O_aq"
+        },
+        {
+          "type" : "HL_PHASE_TRANSFER",
+          "gas-phase species" : "PACD",
+          "aerosol phase" : "cloud and rain water",
+          "aerosol-phase species" : "PACD_aq",
+          "aerosol-phase water" : "H2O_aq"
+        },
+        {
+          "type" : "HL_PHASE_TRANSFER",
+          "gas-phase species" : "AACD",
+          "aerosol phase" : "cloud and rain water",
+          "aerosol-phase species" : "AACD_aq",
+          "aerosol-phase water" : "H2O_aq"
+        },
+        {
+          "type" : "HL_PHASE_TRANSFER",
+          "gas-phase species" : "PANX",
+          "aerosol phase" : "cloud and rain water",
+          "aerosol-phase species" : "PANX_aq",
+          "aerosol-phase water" : "H2O_aq"
+        },
+        {
+          "type" : "HL_PHASE_TRANSFER",
+          "gas-phase species" : "SO2",
+          "aerosol phase" : "cloud and rain water",
+          "aerosol-phase species" : "SO2_aq",
+          "aerosol-phase water" : "H2O_aq"
+        },
+        {
+          "type" : "HL_PHASE_TRANSFER",
+          "gas-phase species" : "SULF",
+          "aerosol phase" : "cloud and rain water",
+          "aerosol-phase species" : "H2SO4_aq",
+          "aerosol-phase water" : "H2O_aq"
+        },
+        {
+          "type" : "HL_PHASE_TRANSFER",
+          "gas-phase species" : "CL2",
+          "aerosol phase" : "cloud and rain water",
+          "aerosol-phase species" : "CL2_aq",
+          "aerosol-phase water" : "H2O_aq"
+        },
+        {
+          "type" : "HL_PHASE_TRANSFER",
+          "gas-phase species" : "HOCL",
+          "aerosol phase" : "cloud and rain water",
+          "aerosol-phase species" : "HOCL_aq",
+          "aerosol-phase water" : "H2O_aq"
+        },
+        {
+          "type" : "HL_PHASE_TRANSFER",
+          "gas-phase species" : "FMCL",
+          "aerosol phase" : "cloud and rain water",
+          "aerosol-phase species" : "FMCL_aq",
+          "aerosol-phase water" : "H2O_aq"
+        },
+        {
+          "type" : "HL_PHASE_TRANSFER",
+          "gas-phase species" : "HCL",
+          "aerosol phase" : "cloud and rain water",
+          "aerosol-phase species" : "HCL_aq",
+          "aerosol-phase water" : "H2O_aq"
+        },
+        {
+          "type" : "HL_PHASE_TRANSFER",
+          "gas-phase species" : "NH3",
+          "aerosol phase" : "cloud and rain water",
+          "aerosol-phase species" : "NH3_aq",
+          "aerosol-phase water" : "H2O_aq"
+        },
+        {
+          "type" : "HL_PHASE_TRANSFER",
+          "gas-phase species" : "ISOP-P1",
+          "aerosol phase" : "cloud and rain water",
+          "aerosol-phase species" : "ISOP-P1_aero",
+          "aerosol-phase water" : "H2O_aq"
+        },
+        {
+          "type" : "HL_PHASE_TRANSFER",
+          "gas-phase species" : "ISOP-P2",
+          "aerosol phase" : "cloud and rain water",
+          "aerosol-phase species" : "ISOP-P2_aero",
+          "aerosol-phase water" : "H2O_aq"
+        },
+        {
+          "type" : "HL_PHASE_TRANSFER",
+          "gas-phase species" : "TERP-P1",
+          "aerosol phase" : "cloud and rain water",
+          "aerosol-phase species" : "TERP-P1_aero",
+          "aerosol-phase water" : "H2O_aq"
+        },
+        {
+          "type" : "HL_PHASE_TRANSFER",
+          "gas-phase species" : "TERP-P2",
+          "aerosol phase" : "cloud and rain water",
+          "aerosol-phase species" : "TERP-P2_aero",
+          "aerosol-phase water" : "H2O_aq"
+        },
+        {
+          "type" : "HL_PHASE_TRANSFER",
+          "gas-phase species" : "DMS",
+          "aerosol phase" : "cloud and rain water",
+          "aerosol-phase species" : "DMS_aq",
+          "aerosol-phase water" : "H2O_aq"
+        },
+        {
+          "type" : "HL_PHASE_TRANSFER",
+          "gas-phase species" : "ETOH",
+          "aerosol phase" : "cloud and rain water",
+          "aerosol-phase species" : "ETOH_aq",
+          "aerosol-phase water" : "H2O_aq"
+        }
+      ]
+    }
+  ]
+}

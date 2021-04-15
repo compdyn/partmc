@@ -44,21 +44,19 @@
  *
  * \param rxn_int_data Pointer to the reaction integer data
  * \param rxn_float_data Pointer to the reaction floating-point data
- * \param jac_struct 2D array of flags indicating potentially non-zero
- *                   Jacobian elements
+ * \param jac Jacobian
  */
 void rxn_CMAQ_OH_HNO3_get_used_jac_elem(int *rxn_int_data,
-                                        double *rxn_float_data,
-                                        bool **jac_struct) {
+                                        double *rxn_float_data, Jacobian *jac) {
   int *int_data = rxn_int_data;
   double *float_data = rxn_float_data;
 
   for (int i_ind = 0; i_ind < NUM_REACT_; i_ind++) {
     for (int i_dep = 0; i_dep < NUM_REACT_; i_dep++) {
-      jac_struct[REACT_(i_dep)][REACT_(i_ind)] = true;
+      jacobian_register_element(jac, REACT_(i_dep), REACT_(i_ind));
     }
     for (int i_dep = 0; i_dep < NUM_PROD_; i_dep++) {
-      jac_struct[PROD_(i_dep)][REACT_(i_ind)] = true;
+      jacobian_register_element(jac, PROD_(i_dep), REACT_(i_ind));
     }
   }
 
@@ -69,12 +67,12 @@ void rxn_CMAQ_OH_HNO3_get_used_jac_elem(int *rxn_int_data,
  *
  * \param model_data Pointer to the model data
  * \param deriv_ids Id of each state variable in the derivative array
- * \param jac_ids Id of each state variable combo in the Jacobian array
+ * \param jac Jacobian
  * \param rxn_int_data Pointer to the reaction integer data
  * \param rxn_float_data Pointer to the reaction floating-point data
  */
 void rxn_CMAQ_OH_HNO3_update_ids(ModelData *model_data, int *deriv_ids,
-                                 int **jac_ids, int *rxn_int_data,
+                                 Jacobian jac, int *rxn_int_data,
                                  double *rxn_float_data) {
   int *int_data = rxn_int_data;
   double *float_data = rxn_float_data;
@@ -88,10 +86,12 @@ void rxn_CMAQ_OH_HNO3_update_ids(ModelData *model_data, int *deriv_ids,
   int i_jac = 0;
   for (int i_ind = 0; i_ind < NUM_REACT_; i_ind++) {
     for (int i_dep = 0; i_dep < NUM_REACT_; i_dep++) {
-      JAC_ID_(i_jac++) = jac_ids[REACT_(i_dep)][REACT_(i_ind)];
+      JAC_ID_(i_jac++) =
+          jacobian_get_element_id(jac, REACT_(i_dep), REACT_(i_ind));
     }
     for (int i_dep = 0; i_dep < NUM_PROD_; i_dep++) {
-      JAC_ID_(i_jac++) = jac_ids[PROD_(i_dep)][REACT_(i_ind)];
+      JAC_ID_(i_jac++) =
+          jacobian_get_element_id(jac, PROD_(i_dep), REACT_(i_ind));
     }
   }
   return;

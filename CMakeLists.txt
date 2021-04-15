@@ -219,7 +219,7 @@ endif()
 
 macro(do_unit_test test_name result)
   if(ENABLE_MPI)
-    add_test(unit_test_${test_name} mpirun -v -np 2 ${CMAKE_BINARY_DIR}/unit_test_${test_name})
+    add_test(unit_test_${test_name} mpiexec_mpt -v -np 2 ${CMAKE_BINARY_DIR}/unit_test_${test_name})
   else()
     add_test(unit_test_${test_name} ${CMAKE_BINARY_DIR}/unit_test_${test_name})
   endif()
@@ -242,6 +242,7 @@ enable_testing()
 do_unit_test(property "PASS")
 do_unit_test(chem_spec_data "PASS")
 do_unit_test(aero_phase_data "PASS")
+do_unit_test(jacobian "PASS")
 if(ENABLE_JSON)
   do_unit_test(aero_rep_single_particle "PASS")
   do_unit_test(aero_rep_modal_binned_mass "PASS")
@@ -510,7 +511,7 @@ set(SUB_MODELS_SRC ${SUB_MODELS_F_SRC} ${SUB_MODELS_C_SRC})
 set(CAMP_C_SRC
         src/camp_solver.c src/rxn_solver.c src/aero_phase_solver.c
         src/aero_rep_solver.c src/sub_model_solver.c
-        src/time_derivative.c src/Jacobian.c)
+        src/time_derivative.c src/Jacobian.c src/debug_diff_check.c)
 
 set_source_files_properties(${CAMP_C_SRC} PROPERTIES COMPILE_FLAGS
         ${STD_C_FLAGS})
@@ -566,7 +567,8 @@ add_library(partmclib src/aero_state.F90 src/integer_varray.F90
   src/camp_core.F90 src/camp_solver_data.F90 src/aero_rep_data.F90
   src/aero_phase_data.F90 src/aero_rep_factory.F90 src/camp_interface.F90
   src/rxn_factory.F90 src/sub_model_data.F90 src/sub_model_factory.F90
-  src/solver_stats.F90 src/camp_box_model_data.F90
+  src/solver_stats.F90 src/camp_box_model_data.F90 src/photolysis.F90
+  src/debug_diff_check.F90
   ${CAMP_C_SRC} ${AEROSOL_REPS_SRC} ${SUB_MODELS_SRC} ${REACTIONS_SRC}
   ${SUNDIALS_SRC} ${GSL_SRC} ${C_SORT_SRC} ${CAMP_CUDA_SRC} ${CAMP_CXX_SRC} )
 
@@ -678,6 +680,13 @@ target_link_libraries(test_chemistry_eqsam_v03d partmclib)
 add_executable(unit_test_property test/unit_property/test_property.F90)
 
 target_link_libraries(unit_test_property partmclib)
+
+######################################################################
+# test_jacobian
+
+add_executable(unit_test_jacobian test/unit_jacobian/test_jacobian.c)
+
+target_link_libraries(unit_test_jacobian partmclib)
 
 ######################################################################
 # test_chem_spec_data
@@ -907,7 +916,7 @@ target_link_libraries(numeric_diff partmclib)
 add_executable(numeric_average src/numeric_average.F90)
 
 ######################################################################
-# scenarios/1_urban_plume/urban_plum_process
+# scenarios/1_urban_plume/urban_plume_process
 
 add_executable(urban_plume_process
   scenarios/1_urban_plume/urban_plume_process.F90)
@@ -919,6 +928,13 @@ target_link_libraries(urban_plume_process partmclib)
 add_executable(chamber_process
   scenarios/4_chamber/chamber_process.F90)
 target_link_libraries(chamber_process partmclib)
+
+######################################################################
+# scenarios/5_urban_plume_camp/urban_plume_camp_process
+
+add_executable(urban_plume_camp_process
+  scenarios/5_urban_plume_camp/urban_plume_camp_process.F90)
+target_link_libraries(urban_plume_camp_process partmclib)
 
 ######################################################################
 endif()

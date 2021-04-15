@@ -18,7 +18,7 @@
     "type" : "CHEM_SPEC",
     "phase" : "AEROSOL",
     "molecular weight [kg mol-1]" : 0.04607,
-    "density [kg m-3]" : 1.0,
+    "density [kg m-3]" : 1000.0,
     "absolute tolerance" : 1.0e-20
   },
   {
@@ -26,7 +26,7 @@
     "type" : "CHEM_SPEC",
     "phase" : "AEROSOL",
     "molecular weight [kg mol-1]" : 0.01801,
-    "density [kg m-3]" : 1.0,
+    "density [kg m-3]" : 1000.0,
     "absolute tolerance" : 1.0e-20
   },
   {
@@ -36,15 +36,18 @@
   },
   {
     "type" : "AERO_REP_SINGLE_PARTICLE",
-    "name" : "my aero rep 1"
+    "name" : "my aero rep 1",
+    "maximum computational particles" : 1
   },
   {
     "type" : "AERO_REP_SINGLE_PARTICLE",
-    "name" : "my aero rep 2"
+    "name" : "my aero rep 2",
+    "maximum computational particles" : 1
   },
   {
     "type" : "AERO_REP_SINGLE_PARTICLE",
-    "name" : "my aero rep 3"
+    "name" : "my aero rep 3",
+    "maximum computational particles" : 1
   },
   {
     "name" : "SIMPOL.1 phase transfer",

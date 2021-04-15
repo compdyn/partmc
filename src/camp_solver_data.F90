@@ -902,8 +902,8 @@ contains
     ! Run the solver
     solver_status = solver_run( &
             this%solver_c_ptr,              & ! Pointer to intialized solver
-            c_loc(camp_state%state_var),   & ! Pointer to state array
-            c_loc(camp_state%env_var),     & ! Pointer to environmental vars
+            c_loc(camp_state%state_var),    & ! Pointer to state array
+            c_loc(camp_state%env_var),      & ! Pointer to environmental vars
             real(t_initial, kind=c_double), & ! Start time (s)
             real(t_final, kind=c_double)    & ! Final time (s)
             )

@@ -103,7 +103,7 @@ contains
             i_time, i_spec
     character(len=:), allocatable :: key, idx_prefix
     real(kind=dp) :: time_step, time, n_star, del_H, del_S, del_G, alpha, &
-            crms, M_to_ppm, ugm3_to_ppm, K_eq_O3, K_eq_H2O2, k_O3_forward, &
+            crms, M_to_ppm, kgm3_to_ppm, K_eq_O3, K_eq_H2O2, k_O3_forward, &
             k_O3_backward, k_H2O2_forward, k_H2O2_backward, equil_O3, &
             equil_O3_aq, equil_H2O2, equil_H2O2_aq, temp, pressure
     real(kind=dp), target :: radius, number_conc
@@ -116,7 +116,6 @@ contains
 
     ! For setting particle radius and number concentration
     type(aero_rep_factory_t) :: aero_rep_factory
-    type(aero_rep_update_data_single_particle_radius_t) :: radius_update
     type(aero_rep_update_data_single_particle_number_t) :: number_update
 
     integer(kind=i_kind) :: i_sect_unused, i_sect_the_mode
@@ -177,8 +176,6 @@ contains
         select type (aero_rep_ptr)
           type is (aero_rep_single_particle_t)
             call camp_core%initialize_update_object( aero_rep_ptr, &
-                                                     radius_update)
-            call camp_core%initialize_update_object( aero_rep_ptr, &
                                                      number_update)
           class default
             call die_msg(866102326, "Incorrect aerosol representation type")
@@ -206,7 +203,7 @@ contains
 
       ! Get species indices
       if (scenario.eq.1) then
-        idx_prefix = ""
+        idx_prefix = "P1."
       else if (scenario.eq.2) then
         idx_prefix = "the mode."
       end if
@@ -258,7 +255,6 @@ contains
       pack_size = camp_core%pack_size()
       if (scenario.eq.1) then
         pack_size = pack_size &
-                  + radius_update%pack_size() &
                   + number_update%pack_size()
       else if (scenario.eq.2) then
         pack_size = pack_size &
@@ -269,7 +265,6 @@ contains
       pos = 0
       call camp_core%bin_pack(buffer, pos)
       if (scenario.eq.1) then
-        call radius_update%bin_pack(buffer, pos)
         call number_update%bin_pack(buffer, pos)
       else if (scenario.eq.2) then
         call update_data_GMD%bin_pack(buffer, pos)
@@ -314,7 +309,6 @@ contains
       pos = 0
       call camp_core%bin_unpack(buffer, pos)
       if (scenario.eq.1) then
-        call radius_update%bin_unpack(buffer, pos)
         call number_update%bin_unpack(buffer, pos)
       else if (scenario.eq.2) then
         call update_data_GMD%bin_unpack(buffer, pos)
@@ -325,7 +319,6 @@ contains
       pos = 0
       call camp_core%bin_pack(buffer_copy, pos)
       if (scenario.eq.1) then
-        call radius_update%bin_pack(buffer_copy, pos)
         call number_update%bin_pack(buffer_copy, pos)
       else if (scenario.eq.2) then
         call update_data_GMD%bin_pack(buffer_copy, pos)
@@ -383,18 +376,16 @@ contains
         number_conc = 1.3e6         ! particle number concentration (#/cc)
       else if (scenario.eq.2) then
         ! radius (m)
-        radius = 9.37e-7 / 2.0 * exp(9.0/2.0 * 0.9 * 0.9)
+        radius = 9.37e-7 / 2.0 * exp(2.0 * log(2.1d0) * log(2.1d0) )
         ! number conc
         number_conc = 1.0 / (const%pi/6.0 * (9.37e-7)**3.0 * &
-                             exp(9.0/2.0 * 0.9 * 0.9))
+                             exp(2.0 * log(2.1d0) * log(2.1d0) ))
         number_conc = number_conc * 1.0e-9 * (1.0e-3 + 1.4e-2)
       end if
 
       ! Update the aerosol representation (single-particle only)
       if (scenario.eq.1) then
-        call radius_update%set_radius(radius)
-        call number_update%set_number(number_conc)
-        call camp_core%update_data(radius_update)
+        call number_update%set_number__n_m3(1, number_conc)
         call camp_core%update_data(number_update)
       end if
 
@@ -407,7 +398,7 @@ contains
         call camp_core%update_data(update_data_GSD)
         ! the mode
         call update_data_GMD%set_GMD(i_sect_the_mode, 9.3d-7)
-        call update_data_GSD%set_GSD(i_sect_the_mode, 0.9d0)
+        call update_data_GSD%set_GSD(i_sect_the_mode, 2.1d0)
         call camp_core%update_data(update_data_GMD)
         call camp_core%update_data(update_data_GSD)
       end if
@@ -447,19 +438,19 @@ contains
       ! Determine the equilibrium concentrations
       ! [A_gas] = [A_total] / (1 + 1/K_HL)
       ! [A_aero] = [A_total] / (K_HL + 1)
-      ugm3_to_ppm = const%univ_gas_const * temp / (48.0d0 * pressure)
+      kgm3_to_ppm = const%univ_gas_const * temp / (48.0d0 * pressure)
       equil_O3 = (true_conc(0,idx_O3) + &
-              true_conc(0,idx_O3_aq)*number_conc*ugm3_to_ppm) / &
+              true_conc(0,idx_O3_aq)*number_conc*kgm3_to_ppm) / &
               (K_eq_O3*M_to_ppm + 1.0d0)
-      equil_O3_aq = (true_conc(0,idx_O3)/ugm3_to_ppm/number_conc + &
+      equil_O3_aq = (true_conc(0,idx_O3)/kgm3_to_ppm/number_conc + &
               true_conc(0,idx_O3_aq)) / &
               (1.0d0 + 1.0d0/(K_eq_O3*M_to_ppm))
 
-      ugm3_to_ppm = const%univ_gas_const * temp / (34.0d0 * pressure)
+      kgm3_to_ppm = const%univ_gas_const * temp / (34.0d0 * pressure)
       equil_H2O2 = (true_conc(0,idx_H2O2) + &
-              true_conc(0,idx_H2O2_aq)*number_conc*ugm3_to_ppm) / &
+              true_conc(0,idx_H2O2_aq)*number_conc*kgm3_to_ppm) / &
               (K_eq_H2O2*M_to_ppm + 1.0d0)
-      equil_H2O2_aq = (true_conc(0,idx_H2O2)/ugm3_to_ppm/number_conc + &
+      equil_H2O2_aq = (true_conc(0,idx_H2O2)/kgm3_to_ppm/number_conc + &
               true_conc(0,idx_H2O2_aq)) / &
               (1.0d0 + 1.0d0/(K_eq_H2O2*M_to_ppm))
 
@@ -559,6 +550,8 @@ contains
       close(7)
 
       ! Analyze the results (single-particle only)
+      ! TODO figure out if this can be solved analytically with a varying radius
+#if 0
       if (scenario.eq.1) then
         do i_time = 1, NUM_TIME_STEP
           do i_spec = 1, size(model_conc, 2)
@@ -575,7 +568,7 @@ contains
           end do
         end do
       endif
-
+#endif
       deallocate(camp_state)
 
 #ifdef PMC_USE_MPI

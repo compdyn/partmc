@@ -25,6 +25,7 @@ module pmc_run_part
   use pmc_camp_core
   use pmc_camp_state
   use pmc_camp_interface
+  use pmc_photolysis
 #ifdef PMC_USE_SUNDIALS
   use pmc_condense
 #endif
@@ -109,14 +110,14 @@ contains
 
   !> Do a particle-resolved Monte Carlo simulation.
   subroutine run_part(scenario, env_state, aero_data, aero_state, gas_data, &
-       gas_state, run_part_opt, camp_core)
+       gas_state, run_part_opt, camp_core, photolysis)
 
     !> Environment state.
     type(scenario_t), intent(in) :: scenario
     !> Environment state.
     type(env_state_t), intent(inout) :: env_state
     !> Aerosol data.
-    type(aero_data_t), intent(in) :: aero_data
+    type(aero_data_t), intent(inout) :: aero_data
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     !> Gas data.
@@ -126,10 +127,13 @@ contains
     !> Monte Carlo options.
     type(run_part_opt_t), intent(in) :: run_part_opt
     !> CAMP chemistry core
-    type(camp_core_t), pointer, intent(in), optional :: camp_core
+    type(camp_core_t), pointer, intent(inout), optional :: camp_core
+    !> Photolysis calculator
+    type(photolysis_t), pointer, intent(inout), optional :: photolysis
 
 
     type(camp_state_t), pointer :: camp_state
+    type(camp_state_t), pointer :: camp_pre_aero_state, camp_post_aero_state
     real(kind=dp) :: time, pre_time, pre_del_t, prop_done
     real(kind=dp) :: last_output_time, last_progress_time
     integer :: rank, n_proc, pre_index, ncid
@@ -171,6 +175,8 @@ contains
 
     if (run_part_opt%do_camp_chem) then
        camp_state => camp_core%new_state(env_state)
+       camp_pre_aero_state => camp_core%new_state(env_state)
+       camp_post_aero_state => camp_core%new_state(env_state)
     end if
 
     if (run_part_opt%do_mosaic) then
@@ -273,8 +279,10 @@ contains
 
 #ifdef PMC_USE_SUNDIALS
        if (run_part_opt%do_camp_chem) then
-          call pmc_camp_interface_solve(camp_core, camp_state, aero_data, &
-               aero_state, gas_state, run_part_opt%del_t)
+          call pmc_camp_interface_solve(camp_core, camp_state, &
+               camp_pre_aero_state, camp_post_aero_state, aero_data, &
+               aero_state, gas_data, gas_state, photolysis, &
+               run_part_opt%del_t)
        end if
 #endif
 

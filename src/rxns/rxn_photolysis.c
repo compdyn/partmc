@@ -36,20 +36,19 @@
  *
  * \param rxn_int_data Pointer to the reaction integer data
  * \param rxn_float_data Pointer to the reaction floating-point data
- * \param jac_struct 2D array of flags indicating potentially non-zero
- *                   Jacobian elements
+ * \param jac Jacobian
  */
 void rxn_photolysis_get_used_jac_elem(int *rxn_int_data, double *rxn_float_data,
-                                      bool **jac_struct) {
+                                      Jacobian *jac) {
   int *int_data = rxn_int_data;
   double *float_data = rxn_float_data;
 
   for (int i_ind = 0; i_ind < NUM_REACT_; i_ind++) {
     for (int i_dep = 0; i_dep < NUM_REACT_; i_dep++) {
-      jac_struct[REACT_(i_dep)][REACT_(i_ind)] = true;
+      jacobian_register_element(jac, REACT_(i_dep), REACT_(i_ind));
     }
     for (int i_dep = 0; i_dep < NUM_PROD_; i_dep++) {
-      jac_struct[PROD_(i_dep)][REACT_(i_ind)] = true;
+      jacobian_register_element(jac, PROD_(i_dep), REACT_(i_ind));
     }
   }
 
@@ -60,12 +59,12 @@ void rxn_photolysis_get_used_jac_elem(int *rxn_int_data, double *rxn_float_data,
  *
  * \param model_data Pointer to the model data
  * \param deriv_ids Id of each state variable in the derivative array
- * \param jac_ids Id of each state variable combo in the Jacobian array
+ * \param jac Jacobian
  * \param rxn_int_data Pointer to the reaction integer data
  * \param rxn_float_data Pointer to the reaction floating-point data
  */
 void rxn_photolysis_update_ids(ModelData *model_data, int *deriv_ids,
-                               int **jac_ids, int *rxn_int_data,
+                               Jacobian jac, int *rxn_int_data,
                                double *rxn_float_data) {
   int *int_data = rxn_int_data;
   double *float_data = rxn_float_data;
@@ -79,10 +78,12 @@ void rxn_photolysis_update_ids(ModelData *model_data, int *deriv_ids,
   int i_jac = 0;
   for (int i_ind = 0; i_ind < NUM_REACT_; i_ind++) {
     for (int i_dep = 0; i_dep < NUM_REACT_; i_dep++) {
-      JAC_ID_(i_jac++) = jac_ids[REACT_(i_dep)][REACT_(i_ind)];
+      JAC_ID_(i_jac++) =
+          jacobian_get_element_id(jac, REACT_(i_dep), REACT_(i_ind));
     }
     for (int i_dep = 0; i_dep < NUM_PROD_; i_dep++) {
-      JAC_ID_(i_jac++) = jac_ids[PROD_(i_dep)][REACT_(i_ind)];
+      JAC_ID_(i_jac++) =
+          jacobian_get_element_id(jac, PROD_(i_dep), REACT_(i_ind));
     }
   }
   return;
@@ -179,8 +180,13 @@ void rxn_photolysis_calc_deriv_contrib(
     }
     for (int i_spec = 0; i_spec < NUM_PROD_; i_spec++, i_dep_var++) {
       if (DERIV_ID_(i_dep_var) < 0) continue;
-      time_derivative_add_value(time_deriv, DERIV_ID_(i_dep_var),
-                                rate * YIELD_(i_spec));
+
+      // Negative yields are allowed, but prevented from causing negative
+      // concentrations that lead to solver failures
+      if (-rate * YIELD_(i_spec) * time_step <= state[PROD_(i_spec)]) {
+        time_derivative_add_value(time_deriv, DERIV_ID_(i_dep_var),
+                                  rate * YIELD_(i_spec));
+      }
     }
   }
 
@@ -209,15 +215,25 @@ void rxn_photolysis_calc_jac_contrib(ModelData *model_data, Jacobian jac,
   // Add contributions to the Jacobian
   int i_elem = 0;
   for (int i_ind = 0; i_ind < NUM_REACT_; i_ind++) {
+    // Calculate d_rate / d_i_ind
+    realtype rate = RATE_CONSTANT_;
+    for (int i_spec = 0; i_spec < NUM_REACT_; i_spec++)
+      if (i_spec != i_ind) rate *= state[REACT_(i_spec)];
+
     for (int i_dep = 0; i_dep < NUM_REACT_; i_dep++, i_elem++) {
       if (JAC_ID_(i_elem) < 0) continue;
       jacobian_add_value(jac, (unsigned int)JAC_ID_(i_elem), JACOBIAN_LOSS,
-                         RATE_CONSTANT_);
+                         rate);
     }
     for (int i_dep = 0; i_dep < NUM_PROD_; i_dep++, i_elem++) {
       if (JAC_ID_(i_elem) < 0) continue;
-      jacobian_add_value(jac, (unsigned int)JAC_ID_(i_elem),
-                         JACOBIAN_PRODUCTION, YIELD_(i_dep) * RATE_CONSTANT_);
+      // Negative yields are allowed, but prevented from causing negative
+      // concentrations that lead to solver failures
+      if (-rate * state[REACT_(i_ind)] * YIELD_(i_dep) * time_step <=
+          state[PROD_(i_dep)]) {
+        jacobian_add_value(jac, (unsigned int)JAC_ID_(i_elem),
+                           JACOBIAN_PRODUCTION, YIELD_(i_dep) * rate);
+      }
     }
   }
 

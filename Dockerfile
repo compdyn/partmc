@@ -53,9 +53,8 @@ RUN tar -zxvf /partmc/cvode-3.4-alpha.tar.gz \
     && cd build \
     && export JSON_FORTRAN_HOME="/usr/local/jsonfortran-gnu-6.1.0" \
     && cmake -D CMAKE_BUILD_TYPE=release \
-             -D CMAKE_C_FLAGS_DEBUG="-g -pg" \
-             -D CMAKE_Fortran_FLAGS_DEBUG="-g -pg" \
-             -D CMAKE_MODULE_LINKER_FLAGS="-pg" \
+             -D CMAKE_C_FLAGS_DEBUG="-g" \
+             -D CMAKE_Fortran_FLAGS_DEBUG="-g" \
              -D ENABLE_SUNDIALS:BOOL=TRUE \
              -D ENABLE_GSL:BOOL=TRUE \
              -D SUNDIALS_CVODE_LIB=/usr/local/lib/libsundials_cvode.so \

@@ -2,7 +2,8 @@
 	"pmc-data" : [
 {
 	"type" : "AERO_REP_SINGLE_PARTICLE",
-	"name" : "AERO_REP_SINGLE_PARTICLE"
+	"name" : "AERO_REP_SINGLE_PARTICLE",
+  "maximum computational particles" : 3
 },
 {
 	"name" : "my test phase one",

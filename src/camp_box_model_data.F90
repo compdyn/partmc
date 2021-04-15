@@ -874,8 +874,6 @@ contains
           end select
         class is( aero_rep_single_particle_t )
           select case( update_type )
-            case( "UPDATE_RADIUS" )
-              allocate( aero_rep_update_data_single_particle_radius_t::new_obj%update_data )
             case( "UPDATE_NUMBER" )
               allocate( aero_rep_update_data_single_particle_number_t::new_obj%update_data )
             case default
@@ -917,10 +915,8 @@ contains
       class is( aero_rep_update_data_modal_binned_mass_GSD_t )
         call assert( 264057359, this%section_id.gt.0 )
         call ud%set_GSD( this%section_id, this%current_value( ) )
-      class is( aero_rep_update_data_single_particle_radius_t )
-        call ud%set_radius( this%current_value( ) )
       class is( aero_rep_update_data_single_particle_number_t )
-        call ud%set_number( this%current_value( ) )
+        call ud%set_number__n_m3( 1, this%current_value( ) )
       class default
         call die( 623019372 )
     end select

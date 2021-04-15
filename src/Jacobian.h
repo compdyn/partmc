@@ -18,6 +18,15 @@
 #define JACOBIAN_PRODUCTION 0
 #define JACOBIAN_LOSS 1
 
+/* Registered elements for a column in the Jacobian */
+typedef struct {
+  unsigned int array_size;  // Size of the array of flagged elements
+  unsigned int
+      number_of_elements;  // Number of registered elements in the column
+  unsigned int
+      *row_ids;  // Array of row ids for each registered element in the column
+} JacobianColumnElements;
+
 /* Jacobian for solver species */
 typedef struct {
   unsigned int num_spec;   // Number of species
@@ -27,7 +36,20 @@ typedef struct {
   long double
       *production_partials;    // Data array for productions rate partial derivs
   long double *loss_partials;  // Data array for loss rate partial derivs
+  JacobianColumnElements *elements;  // Jacobian elements flagged for inclusion
 } Jacobian;
+
+/** \brief Initialize the Jacobian
+ *
+ * Sets up a sparse matrix (num_spec x num_spec) containing zero elements.
+ * Elements can be added using the \c jacobian_register_element function.
+ *
+ * \param jac Jacobian object
+ * \param num_spec Number of species
+ * \return Flag indicating whether the Jacobian was successfully initialized
+ *         (0 = false; 1 = true)
+ */
+int jacobian_initialize_empty(Jacobian *jac, unsigned int num_spec);
 
 /** \brief Initialize the Jacobian
  *
@@ -41,15 +63,55 @@ typedef struct {
 int jacobian_initialize(Jacobian *jac, unsigned int num_spec,
                         unsigned int **jac_struct);
 
-/** \brief Get an element id in the Jacobian data arrays
+/** \brief Adds an element to the sparse matrix
  *
  * \param jac Jacobian object
- * \param col_id Column index
- * \param row_id Row index
+ * \param dep_id Dependent species index
+ * \param ind_id Independent species index
+ */
+void jacobian_register_element(Jacobian *jac, unsigned int dep_id,
+                               unsigned int ind_id);
+
+/** \brief Builds the sparse matrix with the registered elements
+ *
+ * \return 1 on success, 0 otherwise
+ */
+unsigned int jacobian_build_matrix(Jacobian *jac);
+
+/** \brief Returns the number of elements in the Jacobian
+ *
+ * \param jac Jacobian object
+ * \return Number of Jacobian elements
+ */
+unsigned int jacobian_number_of_elements(Jacobian jac);
+
+/** \brief Returns the value of a column pointer
+ *
+ * \param jac Jacobian object
+ * \param col_id Column index (0...number of columns)
+ * \return Column pointer value
+ */
+unsigned int jacobian_column_pointer_value(Jacobian jac, unsigned int col_id);
+
+/** \brief Returns the row for a given Jacobian element
+ *
+ * \param jac Jacobian object
+ * \param elem_id Jacobian element index (0...number of elements-1)
+ * \return Row index for given element
+ */
+unsigned int jacobian_row_index(Jacobian jac, unsigned int elem_id);
+
+/** \brief Get an element id in the Jacobian data arrays
+ *
+ * If the element is not included in the sparse matrix, -1 is returned.
+ *
+ * \param jac Jacobian object
+ * \param dep_id Dependent species index
+ * \param ind_id Independent species index
  * \return Index of Jacobian element in the data array
  */
-unsigned int jacobian_get_element_id(Jacobian jac, unsigned int col_id,
-                                     unsigned int row_id);
+unsigned int jacobian_get_element_id(Jacobian jac, unsigned int dep_id,
+                                     unsigned int ind_id);
 
 /** \brief Reset the Jacobian
  *
@@ -78,10 +140,22 @@ void jacobian_add_value(Jacobian jac, unsigned int elem_id,
                         unsigned int prod_or_loss,
                         long double jac_contribution);
 
+/** \brief Prints the Jacobian structure
+ *
+ * \param jac Jacobian object
+ */
+void jacobian_print(Jacobian jac);
+
+/** \brief Free memory associated with a JacobianColumnElements
+ *
+ * \param column Jacobian column elements
+ */
+void jacobian_column_elements_free(JacobianColumnElements *column);
+
 /** \brief Free memory associated with a Jacobian
  *
  * \param jac Jacobian object
  */
-void jacobian_free(Jacobian jac);
+void jacobian_free(Jacobian *jac);
 
 #endif

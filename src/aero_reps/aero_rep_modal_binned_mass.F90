@@ -119,7 +119,7 @@ module pmc_aero_rep_modal_binned_mass
 ! Real-time number concetration - used for modes and bins - for modes, b=1
 #define NUMBER_CONC_(x,b) this%condensed_data_real(MODE_REAL_PROP_LOC_(x)+(b-1)*3+1)
 
-! Real-time effective radius - only used for modesi, b=1
+! Real-time effective radius - for modes, b=1
 #define EFFECTIVE_RADIUS_(x,b) this%condensed_data_real(MODE_REAL_PROP_LOC_(x)+(b-1)*3+2)
 
 ! Real-time aerosol phase mass - used for modes and bins - for modes, b=1
@@ -532,6 +532,9 @@ contains
 
         ! Currently no mode parameters
 
+        EFFECTIVE_RADIUS_(i_section,1) = -9999.9
+        NUMBER_CONC_(i_section,1)      = -9999.9
+
       ! Get bin parameters
       else if (SECTION_TYPE_(i_section).eq.BINNED) then
 
@@ -570,10 +573,6 @@ contains
           do i_bin = 1, NUM_BINS_(i_section)
             BIN_DP_(i_section,i_bin) = 10.0d0**( log10(min_Dp) + &
                     (i_bin-1) * d_log_Dp )
-
-            ! Set the effective radius
-            EFFECTIVE_RADIUS_(i_section,i_bin) = &
-                BIN_DP_(i_section,i_bin) / 2.0
           end do
         else
           call die_msg(236797392, "Invalid scale specified for bin '"// &
@@ -581,7 +580,11 @@ contains
                 "' in modal/binned mass aerosol representation '"// &
                 this%rep_name//"'")
         end if
-
+        do i_bin = 1, NUM_BINS_(i_section)
+          ! Set the effective radius
+          EFFECTIVE_RADIUS_(i_section,i_bin) = BIN_DP_(i_section,i_bin) / 2.0
+          NUMBER_CONC_(i_section,i_bin)      = -9999.9
+        end do
       end if
 
       ! Get the set of phases
@@ -877,17 +880,18 @@ contains
     !> Unique name
     character(len=*), intent(in) :: unique_name
 
-    type(string_t), allocatable, save :: unique_names(:)
+    type(string_t), allocatable :: unique_names(:)
     integer(kind=i_kind) :: i_spec
 
     spec_id = 0
-    if (.not.allocated(unique_names)) unique_names = this%unique_names()
+    unique_names = this%unique_names()
     do i_spec = 1, size(unique_names)
       if (unique_names(i_spec)%string .eq. unique_name) then
         spec_id = this%phase_state_id(1) + i_spec - 1
         return
       end if
     end do
+    call die_msg( 105414960, "Cannot find species '"//unique_name//"'" )
 
   end function spec_state_id
 

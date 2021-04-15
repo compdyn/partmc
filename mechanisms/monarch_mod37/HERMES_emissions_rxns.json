@@ -1,0 +1,181 @@
+{
+  "description" : [
+    "CB05 -- HERMES anthropogenic emission reactions"
+  ],
+  "pmc-data" : [
+    {
+      "name" : "MONARCH mod37",
+      "type" : "MECHANISM",
+      "reactions" : [
+        {
+          "type" : "EMISSION",
+          "species" : "CO",
+          "netcdf input" : {
+            "file label" : "anthro",
+            "species name" : "CO"
+          }
+        },
+        {
+          "type" : "EMISSION",
+          "species" : "SO2",
+          "netcdf input" : {
+            "file label" : "anthro",
+            "species name" : "SO2"
+          }
+        },
+        {
+          "type" : "EMISSION",
+          "species" : "NO",
+          "netcdf input" : {
+            "file label" : "anthro",
+            "species name" : "NO"
+          }
+        },
+        {
+          "type" : "EMISSION",
+          "species" : "NO2",
+          "netcdf input" : {
+            "file label" : "anthro",
+            "species name" : "NO2"
+          }
+        },
+        {
+          "type" : "EMISSION",
+          "species" : "HONO",
+          "netcdf input" : {
+            "file label" : "anthro",
+            "species name" : "HONO"
+          }
+        },
+        {
+          "type" : "EMISSION",
+          "species" : "NH3",
+          "netcdf input" : {
+            "file label" : "anthro",
+            "species name" : "NH3"
+          }
+        },
+        {
+          "type" : "EMISSION",
+          "species" : "ALDX",
+          "netcdf input" : {
+            "file label" : "anthro",
+            "species name" : "ALDX"
+          }
+        },
+        {
+          "type" : "EMISSION",
+          "species" : "ALD2",
+          "netcdf input" : {
+            "file label" : "anthro",
+            "species name" : "ALD2"
+          }
+        },
+        {
+          "type" : "EMISSION",
+          "species" : "BENZENE",
+          "netcdf input" : {
+            "file label" : "anthro",
+            "species name" : "BENZENE"
+          }
+        },
+        {
+          "type" : "EMISSION",
+          "species" : "ETH",
+          "netcdf input" : {
+            "file label" : "anthro",
+            "species name" : "ETH"
+          }
+        },
+        {
+          "type" : "EMISSION",
+          "species" : "ETHA",
+          "netcdf input" : {
+            "file label" : "anthro",
+            "species name" : "ETHA"
+          }
+        },
+        {
+          "type" : "EMISSION",
+          "species" : "ETOH",
+          "netcdf input" : {
+            "file label" : "anthro",
+            "species name" : "ETOH"
+          }
+        },
+        {
+          "type" : "EMISSION",
+          "species" : "FORM",
+          "netcdf input" : {
+            "file label" : "anthro",
+            "species name" : "FORM"
+          }
+        },
+        {
+          "type" : "EMISSION",
+          "species" : "IOLE",
+          "netcdf input" : {
+            "file label" : "anthro",
+            "species name" : "IOLE"
+          }
+        },
+        {
+          "type" : "EMISSION",
+          "species" : "ISOP",
+          "netcdf input" : {
+            "file label" : "anthro",
+            "species name" : "ISOP"
+          }
+        },
+        {
+          "type" : "EMISSION",
+          "species" : "MEOH",
+          "netcdf input" : {
+            "file label" : "anthro",
+            "species name" : "MEOH"
+          }
+        },
+        {
+          "type" : "EMISSION",
+          "species" : "OLE",
+          "netcdf input" : {
+            "file label" : "anthro",
+            "species name" : "OLE"
+          }
+        },
+        {
+          "type" : "EMISSION",
+          "species" : "PAR",
+          "netcdf input" : {
+            "file label" : "anthro",
+            "species name" : "PAR"
+          }
+        },
+        {
+          "type" : "EMISSION",
+          "species" : "TERP",
+          "netcdf input" : {
+            "file label" : "anthro",
+            "species name" : "TERP"
+          }
+        },
+        {
+          "type" : "EMISSION",
+          "species" : "TOL",
+          "netcdf input" : {
+            "file label" : "anthro",
+            "species name" : "TOL"
+          }
+        },
+        {
+          "type" : "EMISSION",
+          "species" : "XYL",
+          "netcdf input" : {
+            "file label" : "anthro",
+            "species name" : "XYL"
+          }
+        }
+      ]
+    }
+  ]
+}

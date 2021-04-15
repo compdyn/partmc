@@ -37,10 +37,12 @@
 !! \f[
 !!   \frac{\alpha}{1-\alpha} = e^{\frac{-\Delta G^{\*}}{RT}}
 !! \f]
+!! If \f$\Delta H\f$ and \f$\Detla S\f$ are not provided, \f$\alpha\f$ is
+!! set to 0.1 \cite Zaveri2008.
 !!
 !! Condensation rate constants are calculated as:
 !! \f[
-!!   k_{f} = (\frac{r^2}{3D_g} + \frac{4r}{3 \langle c \rangle \alpha})
+!!   k_{f} = (\frac{r^2}{3D_g} + \frac{4r}{3 \langle c \rangle \alpha})^{-1}
 !! \f]
 !! where \f$r\f$ is the particle radius (\f$\mbox{m}\f$) and
 !! \f$\langle c \rangle \f$ is the mean speed of the gas-phase molecules:
@@ -105,12 +107,11 @@ module pmc_rxn_HL_phase_transfer
 #define C_ this%condensed_data_real(6)
 #define CONV_ this%condensed_data_real(7)
 #define MW_ this%condensed_data_real(8)
-#define SMALL_NUMBER_ this%condensed_data_real(9)
 #define NUM_AERO_PHASE_ this%condensed_data_int(1)
 #define GAS_SPEC_ this%condensed_data_int(2)
 #define NUM_INT_PROP_ 2
-#define NUM_REAL_PROP_ 9
-#define NUM_ENV_PARAM_ 3
+#define NUM_REAL_PROP_ 8
+#define NUM_ENV_PARAM_ 4
 #define DERIV_ID_(x) this%condensed_data_int(NUM_INT_PROP_+x)
 #define JAC_ID_(x) this%condensed_data_int(NUM_INT_PROP_+1+NUM_AERO_PHASE_+x)
 #define PHASE_INT_LOC_(x) this%condensed_data_int(NUM_INT_PROP_+2+6*NUM_AERO_PHASE_+x)
@@ -173,8 +174,8 @@ contains
     integer(kind=i_kind), intent(in) :: n_cells
 
     type(property_t), pointer :: spec_props
-    character(len=:), allocatable :: key_name, spec_name, water_name, &
-            phase_name
+    character(len=:), allocatable :: key_name, gas_spec_name, &
+            water_name, aero_spec_name, phase_name, error_msg
     integer(kind=i_kind) :: i_spec, i_aero_rep, n_aero_ids, i_aero_id, &
             n_aero_jac_elem, i_phase, tmp_size
     type(string_t), allocatable :: unique_spec_names(:), &
@@ -186,6 +187,12 @@ contains
     if (.not. associated(this%property_set)) call die_msg(318525776, &
             "Missing property set needed to initialize reaction")
 
+    ! Get the gas-phase species name
+    key_name = "gas-phase species"
+    call assert_msg(847983010, &
+            this%property_set%get_string(key_name, gas_spec_name), &
+            "Missing gas-phase species in phase-transfer reaction")
+
     ! Get the aerosol phase name
     key_name = "aerosol phase"
     call assert_msg(448087197, &
@@ -195,20 +202,25 @@ contains
     ! Get the aerosol-phase species name
     key_name = "aerosol-phase species"
     call assert_msg(797902545, &
-            this%property_set%get_string(key_name, spec_name), &
+            this%property_set%get_string(key_name, aero_spec_name), &
             "Missing aerosol-phase species in phase-transfer reaction")
+
+    ! Set up a general error message
+    error_msg = " for HL partitioning reaction of gas-phase species '"// &
+                gas_spec_name//"' to aerosol-phase species '"// &
+                aero_spec_name//"' in phase '"//phase_name
 
     ! Get the aerosol-phase water name
     key_name = "aerosol-phase water"
     call assert_msg(386889865, &
             this%property_set%get_string(key_name, water_name), &
-            "Missing aerosol-phase water in phase-transfer reaction")
+            "Missing aerosol-phase water"//error_msg)
 
     ! Check for aerosol representations
     call assert_msg(234155350, associated(aero_rep), &
-            "Missing aerosol representation for phase transfer reaction")
+            "Missing aerosol representation"//error_msg)
     call assert_msg(207961800, size(aero_rep).gt.0, &
-            "Missing aerosol representation for phase transfer reaction")
+            "Missing aerosol representation"//error_msg)
 
     ! Count the instances of this phase/species pair, and the number of
     ! Jacobian elements needed in calculations of mass, volume, etc.
@@ -219,7 +231,7 @@ contains
       ! Get the unique names in this aerosol representation for the
       ! partitioning species and aerosol-phase water
       unique_spec_names = aero_rep(i_aero_rep)%val%unique_names( &
-              phase_name = phase_name, spec_name = spec_name)
+              phase_name = phase_name, spec_name = aero_spec_name)
       unique_water_names = aero_rep(i_aero_rep)%val%unique_names( &
               phase_name = phase_name, spec_name = water_name)
 
@@ -229,9 +241,9 @@ contains
       ! Check the size of the unique name lists
       call assert_msg(598091463, size(unique_spec_names).eq. &
               size(unique_water_names), "Missing species "// &
-              spec_name//" or "//water_name//" in phase "//phase_name// &
+              aero_spec_name//" or "//water_name//" in phase "//phase_name// &
               " or improper implementation of aerosol phase in aerosol "// &
-              "representation")
+              "representation"//error_msg)
 
       ! Add these instances to the list
       n_aero_ids = n_aero_ids + size(unique_spec_names)
@@ -265,25 +277,23 @@ contains
 
     ! Get the properties required of the aerosol species
     call assert_msg(669162256, &
-            chem_spec_data%get_property_set(spec_name, spec_props), &
-            "Missing properties required for phase-transfer of "// &
-            "aerosol-phase species "//trim(spec_name))
+            chem_spec_data%get_property_set(aero_spec_name, spec_props), &
+            "Missing aerosol species properties"//error_msg)
 
     ! Get the aerosol species molecular weight
     key_name = "molecular weight [kg mol-1]"
     call assert_msg(209812557, spec_props%get_real(key_name, MW_), &
-            "Missing property 'MW' for aerosol species "//trim(spec_name)// &
-            " required for phase-transfer reaction")
+            "Missing property 'MW' for aerosol species"//error_msg)
 
-    ! Set the ug/m3 -> ppm conversion prefactor (multiply by T/P to get
+    ! Set the kg/m3 -> ppm conversion prefactor (multiply by T/P to get
     ! conversion)
-    CONV_ = const%univ_gas_const / MW_ / 1.0d3
+    CONV_ = const%univ_gas_const / MW_ * 1.0e6
 
     ! Get the aerosol-phase water species
     key_name = "aerosol-phase water"
     call assert_msg(374667967, &
             this%property_set%get_string(key_name, water_name), &
-            "Missing aerosol-phase water in phase-transfer reaction")
+            "Missing aerosol-phase water"//error_msg)
 
     ! Set the ids of each aerosol-phase species instance
     i_aero_id = 1
@@ -294,7 +304,7 @@ contains
       ! Get the unique names in this aerosol representation for the
       ! partitioning species and aerosol-phase water
       unique_spec_names = aero_rep(i_aero_rep)%val%unique_names( &
-              phase_name = phase_name, spec_name = spec_name)
+              phase_name = phase_name, spec_name = aero_spec_name)
       unique_water_names = aero_rep(i_aero_rep)%val%unique_names( &
               phase_name = phase_name, spec_name = water_name)
 
@@ -329,37 +339,27 @@ contains
 
     end do
 
-    ! Get the gas-phase species and find the required species properties and
-    ! index
-    key_name = "gas-phase species"
-    call assert_msg(847983010, &
-            this%property_set%get_string(key_name, spec_name), &
-            "Missing gas-phase species in phase-transfer reaction")
-
-    ! Save the index of this species in the state variable array
-    GAS_SPEC_ = chem_spec_data%gas_state_id(spec_name)
+    ! Save the index of the gas-phase species in the state variable array
+    GAS_SPEC_ = chem_spec_data%gas_state_id(gas_spec_name)
 
     ! Make sure the species exists
     call assert_msg(955306778, GAS_SPEC_.gt.0, &
-            "Missing phase-transfer gas-phase species: "//spec_name)
+            "Missing gas-phase species"//error_msg)
 
     ! Get the required properties for the gas-phase species
     call assert_msg(757296139, &
-            chem_spec_data%get_property_set(spec_name, spec_props), &
-            "Missing properties required for phase-transfer of "// &
-            "gas-phase species "//trim(spec_name))
+            chem_spec_data%get_property_set(gas_spec_name, spec_props), &
+            "Missing gas-phase species properties"//error_msg)
 
     ! Get Henry's Law constant parameters
     key_name = "HLC(298K) [M Pa-1]"
     call assert_msg(637925661, spec_props%get_real(key_name, A_), &
-                    "Missing Henry's Law constant at 298 K for "// &
-                    "partitioning species "//trim(spec_name))
-    A_ = A_ * 101325.0 * 1.0d-6; ! save A in (M/ppm)
+                    "Missing Henry's Law constant at 298 K"//error_msg)
 
     key_name = "HLC exp factor [K]"
     call assert_msg(801365019, spec_props%get_real(key_name, C_), &
-                    "Missing Henry's Law constant exponential factor "// &
-                    "for partitioning species "//trim(spec_name))
+                    "Missing Henry's Law constant exponential factor"// &
+                    error_msg)
 
     ! Get N* to calculate the mass accomodation coefficient. If it is not
     ! present, set DELTA_H_ and DELTA_S_ to zero to indicate a mass accomodation
@@ -387,23 +387,23 @@ contains
     ! Get the diffusion coefficient (m^2/s)
     key_name = "diffusion coeff [m2 s-1]"
     call assert_msg(100205531, spec_props%get_real(key_name, DIFF_COEFF_), &
-            "Missing diffusion coefficient for species "//spec_name)
+            "Missing diffusion coefficient for gas-phase species"//error_msg)
 
     ! Calculate the constant portion of c_rms [m/(K^2*s)]
     key_name = "molecular weight [kg mol-1]"
     call assert_msg(469582180, spec_props%get_real(key_name, temp_real), &
-            "Missing molecular weight for species "//spec_name)
+            "Missing molecular weight for gas-phase species"//error_msg)
     PRE_C_AVG_ = sqrt(8.0*const%univ_gas_const/(const%pi*temp_real))
 
     ! Check the sizes of the data arrays
     tmp_size = PHASE_INT_LOC_(i_aero_id - 1) + 5 + &
                2*NUM_AERO_PHASE_JAC_ELEM_(i_aero_id - 1) - 1
     call assert_msg(881234422, size(this%condensed_data_int) .eq. tmp_size, &
-                    "int array size mismatch")
+                    "int array size mismatch"//error_msg)
     tmp_size = PHASE_REAL_LOC_(i_aero_id - 1) + 1 + &
                2*NUM_AERO_PHASE_JAC_ELEM_(i_aero_id - 1) - 1
     call assert_msg(520767976, size(this%condensed_data_real) .eq. tmp_size,&
-                    "real array size mismatch")
+                    "real array size mismatch"//error_msg)
 
   end subroutine initialize
 

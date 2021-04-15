@@ -19,6 +19,8 @@ scenarios/2_urban_plume2/out
 scenarios/3_condense/out
 !scenarios/4_chamber
 scenarios/4_chamber/out
+!scenarios/5_urban_plume_camp
+scenarios/5_urban_plume_camp/out
 
 # include CAMP box model scenarios
 !scenarios/camp_box_model/

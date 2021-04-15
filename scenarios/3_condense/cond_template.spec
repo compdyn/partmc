@@ -10,6 +10,8 @@ del_t 1                         # timestep (s)
 t_output 1                      # output interval (0 disables) (s)
 t_progress 60                   # progress printing interval (0 disables) (s)
 
+do_camp_chem no                 # whether to use CAMP for chemistry
+
 temp_profile %%TEMP_PROFILE%%   # temperature profile file
 pressure_profile pressure.dat   # pressure profile file
 height_profile height.dat       # height profile file

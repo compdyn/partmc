@@ -11,6 +11,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "../Jacobian.h"
 #include "../sub_models.h"
 
 // TODO Lookup environmental indices during initialization
@@ -67,23 +68,26 @@
  *
  * \param sub_model_int_data Pointer to the sub model integer data
  * \param sub_model_float_data Pointer to the sub model floating-point data
- * \param jac_struct A matrix of flags for needed Jac elements
+ * \param jac Jacobian
  */
 void sub_model_PDFiTE_get_used_jac_elem(int *sub_model_int_data,
                                         double *sub_model_float_data,
-                                        bool **jac_struct) {
+                                        Jacobian *jac) {
   int *int_data = sub_model_int_data;
   double *float_data = sub_model_float_data;
 
   for (int i_phase = 0; i_phase < NUM_PHASE_; ++i_phase) {
     for (int i_ion_pair = 0; i_ion_pair < NUM_ION_PAIRS_; ++i_ion_pair) {
-      jac_struct[PHASE_ID_(i_phase) + ION_PAIR_ACT_ID_(i_ion_pair)]
-                [GAS_WATER_ID_] = true;
+      jacobian_register_element(
+          jac, PHASE_ID_(i_phase) + ION_PAIR_ACT_ID_(i_ion_pair),
+          GAS_WATER_ID_);
       for (int j_ion_pair = 0; j_ion_pair < NUM_ION_PAIRS_; ++j_ion_pair) {
-        jac_struct[PHASE_ID_(i_phase) + ION_PAIR_ACT_ID_(i_ion_pair)]
-                  [PHASE_ID_(i_phase) + CATION_ID_(j_ion_pair)] = true;
-        jac_struct[PHASE_ID_(i_phase) + ION_PAIR_ACT_ID_(i_ion_pair)]
-                  [PHASE_ID_(i_phase) + ANION_ID_(j_ion_pair)] = true;
+        jacobian_register_element(
+            jac, PHASE_ID_(i_phase) + ION_PAIR_ACT_ID_(i_ion_pair),
+            PHASE_ID_(i_phase) + CATION_ID_(j_ion_pair));
+        jacobian_register_element(
+            jac, PHASE_ID_(i_phase) + ION_PAIR_ACT_ID_(i_ion_pair),
+            PHASE_ID_(i_phase) + ANION_ID_(j_ion_pair));
       }
     }
   }
@@ -96,26 +100,28 @@ void sub_model_PDFiTE_get_used_jac_elem(int *sub_model_int_data,
  * \param sub_model_int_data Pointer to the sub model integer data
  * \param sub_model_float_data Pointer to the sub model floating-point data
  * \param deriv_ids Indices for state array variables on the solver state array
- * \param jac_ids Indices for Jacobian elements in the sparse data array
+ * \param jac Jacobian
  */
 void sub_model_PDFiTE_update_ids(int *sub_model_int_data,
                                  double *sub_model_float_data, int *deriv_ids,
-                                 int **jac_ids) {
+                                 Jacobian jac) {
   int *int_data = sub_model_int_data;
   double *float_data = sub_model_float_data;
 
   for (int i_phase = 0; i_phase < NUM_PHASE_; ++i_phase) {
     for (int i_ion_pair = 0; i_ion_pair < NUM_ION_PAIRS_; ++i_ion_pair) {
-      JAC_WATER_ID_(i_phase, i_ion_pair) =
-          jac_ids[PHASE_ID_(i_phase) + ION_PAIR_ACT_ID_(i_ion_pair)]
-                 [GAS_WATER_ID_];
+      JAC_WATER_ID_(i_phase, i_ion_pair) = jacobian_get_element_id(
+          jac, PHASE_ID_(i_phase) + ION_PAIR_ACT_ID_(i_ion_pair),
+          GAS_WATER_ID_);
       for (int j_ion_pair = 0; j_ion_pair < NUM_ION_PAIRS_; ++j_ion_pair) {
         JAC_CATION_ID_(i_phase, i_ion_pair, j_ion_pair) =
-            jac_ids[PHASE_ID_(i_phase) + ION_PAIR_ACT_ID_(i_ion_pair)]
-                   [PHASE_ID_(i_phase) + CATION_ID_(j_ion_pair)];
+            jacobian_get_element_id(
+                jac, PHASE_ID_(i_phase) + ION_PAIR_ACT_ID_(i_ion_pair),
+                PHASE_ID_(i_phase) + CATION_ID_(j_ion_pair));
         JAC_ANION_ID_(i_phase, i_ion_pair, j_ion_pair) =
-            jac_ids[PHASE_ID_(i_phase) + ION_PAIR_ACT_ID_(i_ion_pair)]
-                   [PHASE_ID_(i_phase) + ANION_ID_(j_ion_pair)];
+            jacobian_get_element_id(
+                jac, PHASE_ID_(i_phase) + ION_PAIR_ACT_ID_(i_ion_pair),
+                PHASE_ID_(i_phase) + ANION_ID_(j_ion_pair));
       }
     }
   }

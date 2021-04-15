@@ -12,6 +12,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+/// Minimum aerosol-phase mass concentration [kg m-3]
+#define MINIMUM_MASS_ 1.0e-25L
+/// Minimum mass assumed molecular weight [kg mol-1]
+#define MINIMUM_MW_ 0.1L
+/// Minimum mass assumed density [kg m-3]
+#define MINIMUM_DENSITY_ 1800.0L
+
 // TODO move all shared constants to a common header file
 #define CHEM_SPEC_UNKNOWN_TYPE 0
 #define CHEM_SPEC_VARIABLE 1
@@ -65,8 +72,8 @@ int aero_phase_get_used_jac_elem(ModelData *model_data, int aero_phase_idx,
  * \param aero_phase_idx Index of the aerosol phase to use in the calculation
  * \param state_var Pointer the aerosol phase on the state variable array
  * \param mass Pointer to hold total aerosol phase mass
- *             (\f$\mbox{\si{\micro\gram\per\cubic\metre}}\f$ or
- *              \f$\mbox{\si{\micro\gram\per particle}}\f$)
+ *             (\f$\mbox{\si{\kilogram\per\cubic\metre}}\f$ or
+ *              \f$\mbox{\si{\kilogram\per particle}}\f$)
  * \param MW Pointer to hold average MW of the aerosol phase
  *           (\f$\mbox{\si{\kilogram\per\mol}}\f$)
  * \param jac_elem_mass When not NULL, a pointer to an array whose length is the
@@ -83,9 +90,9 @@ int aero_phase_get_used_jac_elem(ModelData *model_data, int aero_phase_idx,
  *                 concentration \f$\frac{dMW}{dy_i}\f$ of each component
  *                 species \f$y_i\f$.
  */
-void aero_phase_get_mass(ModelData *model_data, int aero_phase_idx,
-                         double *state_var, double *mass, double *MW,
-                         double *jac_elem_mass, double *jac_elem_MW) {
+void aero_phase_get_mass__kg_m3(ModelData *model_data, int aero_phase_idx,
+                                double *state_var, double *mass, double *MW,
+                                double *jac_elem_mass, double *jac_elem_MW) {
   // Get the requested aerosol phase data
   int *int_data = &(model_data->aero_phase_int_data
                         [model_data->aero_phase_int_indices[aero_phase_idx]]);
@@ -94,8 +101,8 @@ void aero_phase_get_mass(ModelData *model_data, int aero_phase_idx,
             [model_data->aero_phase_float_indices[aero_phase_idx]]);
 
   // Sum the mass and MW
-  long double l_mass = 0.0;
-  long double moles = 0.0;
+  long double l_mass = MINIMUM_MASS_;
+  long double moles = MINIMUM_MASS_ / MINIMUM_MW_;
   int i_jac = 0;
   for (int i_spec = 0; i_spec < NUM_STATE_VAR_; i_spec++) {
     if (SPEC_TYPE_(i_spec) == CHEM_SPEC_VARIABLE ||
@@ -134,9 +141,9 @@ void aero_phase_get_mass(ModelData *model_data, int aero_phase_idx,
  *                 concentration \f$\frac{dv}{dy_i}\f$ of each component
  *                 species \f$y_i\f$.
  */
-void aero_phase_get_volume(ModelData *model_data, int aero_phase_idx,
-                           double *state_var, double *volume,
-                           double *jac_elem) {
+void aero_phase_get_volume__m3_m3(ModelData *model_data, int aero_phase_idx,
+                                  double *state_var, double *volume,
+                                  double *jac_elem) {
   // Get the requested aerosol phase data
   int *int_data = &(model_data->aero_phase_int_data
                         [model_data->aero_phase_int_indices[aero_phase_idx]]);
@@ -145,14 +152,14 @@ void aero_phase_get_volume(ModelData *model_data, int aero_phase_idx,
             [model_data->aero_phase_float_indices[aero_phase_idx]]);
 
   // Sum the mass and MW
-  *volume = 0.0;
+  *volume = MINIMUM_MASS_ / MINIMUM_DENSITY_;
   int i_jac = 0;
   for (int i_spec = 0; i_spec < NUM_STATE_VAR_; i_spec++) {
     if (SPEC_TYPE_(i_spec) == CHEM_SPEC_VARIABLE ||
         SPEC_TYPE_(i_spec) == CHEM_SPEC_CONSTANT ||
         SPEC_TYPE_(i_spec) == CHEM_SPEC_PSSA) {
-      *volume += state_var[i_spec] * 1.0e-9 / DENSITY_(i_spec);
-      if (jac_elem) jac_elem[i_jac++] = 1.0e-9 / DENSITY_(i_spec);
+      *volume += state_var[i_spec] / DENSITY_(i_spec);
+      if (jac_elem) jac_elem[i_jac++] = 1.0 / DENSITY_(i_spec);
     }
   }
 }

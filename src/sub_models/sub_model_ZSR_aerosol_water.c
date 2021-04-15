@@ -11,13 +11,15 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "../Jacobian.h"
 #include "../sub_models.h"
 
 // TODO Lookup environmental indices during initialization
 #define TEMPERATURE_K_ env_data[0]
 #define PRESSURE_PA_ env_data[1]
 
-#define SMALL_NUMBER_ 1.0e-30
+// Minimum aerosol water mass [kg m-3]
+#define MINIMUM_WATER_MASS_ 1.0e-30L
 
 // Smoothing factor for max function
 #define ALPHA_ (-100.0)
@@ -74,11 +76,11 @@
  *
  * \param sub_model_int_data Pointer to the sub model integer data
  * \param sub_model_float_data Pointer to the sub model floating-point data
- * \param jac_struct A matrix of flags for needed Jac elements
+ * \param jac Jacobian
  */
 void sub_model_ZSR_aerosol_water_get_used_jac_elem(int *sub_model_int_data,
                                                    double *sub_model_float_data,
-                                                   bool **jac_struct) {
+                                                   Jacobian *jac) {
   int *int_data = sub_model_int_data;
   double *float_data = sub_model_float_data;
 
@@ -86,7 +88,7 @@ void sub_model_ZSR_aerosol_water_get_used_jac_elem(int *sub_model_int_data,
   // elements for each
   for (int i_phase = 0; i_phase < NUM_PHASE_; ++i_phase) {
     // Flag the gas-phase water species
-    jac_struct[PHASE_ID_(i_phase)][GAS_WATER_ID_] = true;
+    jacobian_register_element(jac, PHASE_ID_(i_phase), GAS_WATER_ID_);
 
     // Flag elements for each ion pair
     for (int i_ion_pair = 0; i_ion_pair < NUM_ION_PAIR_; ++i_ion_pair) {
@@ -96,10 +98,12 @@ void sub_model_ZSR_aerosol_water_get_used_jac_elem(int *sub_model_int_data,
         case ACT_TYPE_JACOBSON:
 
           // Flag the anion and cation Jacobian elements
-          jac_struct[PHASE_ID_(i_phase)]
-                    [PHASE_ID_(i_phase) + JACOB_CATION_ID_(i_ion_pair)] = true;
-          jac_struct[PHASE_ID_(i_phase)]
-                    [PHASE_ID_(i_phase) + JACOB_ANION_ID_(i_ion_pair)] = true;
+          jacobian_register_element(
+              jac, PHASE_ID_(i_phase),
+              PHASE_ID_(i_phase) + JACOB_CATION_ID_(i_ion_pair));
+          jacobian_register_element(
+              jac, PHASE_ID_(i_phase),
+              PHASE_ID_(i_phase) + JACOB_ANION_ID_(i_ion_pair));
           break;
 
         // EQSAM (Metger et al., 2002)
@@ -107,9 +111,9 @@ void sub_model_ZSR_aerosol_water_get_used_jac_elem(int *sub_model_int_data,
 
           // Flag the ion Jacobian elements
           for (int i_ion = 0; i_ion < EQSAM_NUM_ION_(i_ion_pair); i_ion++) {
-            jac_struct[PHASE_ID_(i_phase)]
-                      [PHASE_ID_(i_phase) + EQSAM_ION_ID_(i_ion_pair, i_ion)] =
-                          true;
+            jacobian_register_element(
+                jac, PHASE_ID_(i_phase),
+                PHASE_ID_(i_phase) + EQSAM_ION_ID_(i_ion_pair, i_ion));
           }
           break;
       }
@@ -124,11 +128,11 @@ void sub_model_ZSR_aerosol_water_get_used_jac_elem(int *sub_model_int_data,
  * \param sub_model_int_data Pointer to the sub model integer data
  * \param sub_model_float_data Pointer to the sub model floating-point data
  * \param deriv_ids Indices for state array variables on the solver state array
- * \param jac_ids Indices for Jacobian elements in the sparse data array
+ * \param jac Jacobian
  */
 void sub_model_ZSR_aerosol_water_update_ids(int *sub_model_int_data,
                                             double *sub_model_float_data,
-                                            int *deriv_ids, int **jac_ids) {
+                                            int *deriv_ids, Jacobian jac) {
   int *int_data = sub_model_int_data;
   double *float_data = sub_model_float_data;
 
@@ -144,15 +148,15 @@ void sub_model_ZSR_aerosol_water_update_ids(int *sub_model_int_data,
 
           // Save the gas-phase water species
           JACOB_GAS_WATER_JAC_ID_(i_phase, i_ion_pair) =
-              jac_ids[PHASE_ID_(i_phase)][GAS_WATER_ID_];
+              jacobian_get_element_id(jac, PHASE_ID_(i_phase), GAS_WATER_ID_);
 
           // Save the cation and anion Jacobian elements
-          JACOB_CATION_JAC_ID_(i_phase, i_ion_pair) =
-              jac_ids[PHASE_ID_(i_phase)]
-                     [PHASE_ID_(i_phase) + JACOB_CATION_ID_(i_ion_pair)];
-          JACOB_ANION_JAC_ID_(i_phase, i_ion_pair) =
-              jac_ids[PHASE_ID_(i_phase)]
-                     [PHASE_ID_(i_phase) + JACOB_ANION_ID_(i_ion_pair)];
+          JACOB_CATION_JAC_ID_(i_phase, i_ion_pair) = jacobian_get_element_id(
+              jac, PHASE_ID_(i_phase),
+              PHASE_ID_(i_phase) + JACOB_CATION_ID_(i_ion_pair));
+          JACOB_ANION_JAC_ID_(i_phase, i_ion_pair) = jacobian_get_element_id(
+              jac, PHASE_ID_(i_phase),
+              PHASE_ID_(i_phase) + JACOB_ANION_ID_(i_ion_pair));
           break;
 
         // EQSAM (Metger et al., 2002)
@@ -160,13 +164,14 @@ void sub_model_ZSR_aerosol_water_update_ids(int *sub_model_int_data,
 
           // Save the gas-phase water species
           EQSAM_GAS_WATER_JAC_ID_(i_phase, i_ion_pair) =
-              jac_ids[PHASE_ID_(i_phase)][GAS_WATER_ID_];
+              jacobian_get_element_id(jac, PHASE_ID_(i_phase), GAS_WATER_ID_);
 
           // Save the ion Jacobian elements
           for (int i_ion = 0; i_ion < EQSAM_NUM_ION_(i_ion_pair); i_ion++) {
             EQSAM_ION_JAC_ID_(i_phase, i_ion_pair, i_ion) =
-                jac_ids[PHASE_ID_(i_phase)]
-                       [PHASE_ID_(i_phase) + EQSAM_ION_ID_(i_ion_pair, i_ion)];
+                jacobian_get_element_id(
+                    jac, PHASE_ID_(i_phase),
+                    PHASE_ID_(i_phase) + EQSAM_ION_ID_(i_ion_pair, i_ion));
           }
           break;
       }
@@ -222,7 +227,7 @@ void sub_model_ZSR_aerosol_water_calculate(int *sub_model_int_data,
   // Calculate the total aerosol water for each instance of the aerosol phase
   for (int i_phase = 0; i_phase < NUM_PHASE_; i_phase++) {
     double *water = &(state[PHASE_ID_(i_phase)]);
-    *water = 0.0;
+    *water = MINIMUM_WATER_MASS_;
 
     // Get the contribution from each ion pair
     for (int i_ion_pair = 0; i_ion_pair < NUM_ION_PAIR_; i_ion_pair++) {

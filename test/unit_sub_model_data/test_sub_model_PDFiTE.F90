@@ -138,23 +138,23 @@ contains
       ! Get species indices
       key = "H2O"
       idx_H2O = chem_spec_data%gas_state_id(key);
-      key = "aqueous aerosol.H2O_aq"
+      key = "P1.aqueous aerosol.H2O_aq"
       idx_H2O_aq = aero_rep_ptr%spec_state_id(key);
-      key = "aqueous aerosol.H_p"
+      key = "P1.aqueous aerosol.H_p"
       idx_H_p = aero_rep_ptr%spec_state_id(key);
-      key = "aqueous aerosol.NH4_p"
+      key = "P1.aqueous aerosol.NH4_p"
       idx_NH4_p = aero_rep_ptr%spec_state_id(key);
-      key = "aqueous aerosol.SO4_mm"
+      key = "P1.aqueous aerosol.SO4_mm"
       idx_SO4_mm = aero_rep_ptr%spec_state_id(key);
-      key = "aqueous aerosol.NO3_m"
+      key = "P1.aqueous aerosol.NO3_m"
       idx_NO3_m = aero_rep_ptr%spec_state_id(key);
-      key = "aqueous aerosol.(NH4)2-SO4"
+      key = "P1.aqueous aerosol.(NH4)2-SO4"
       idx_NH42_SO4 = aero_rep_ptr%spec_state_id(key);
-      key = "aqueous aerosol.NH4-NO3"
+      key = "P1.aqueous aerosol.NH4-NO3"
       idx_NH4_NO3 = aero_rep_ptr%spec_state_id(key);
-      key = "aqueous aerosol.H-NO3"
+      key = "P1.aqueous aerosol.H-NO3"
       idx_H_NO3 = aero_rep_ptr%spec_state_id(key);
-      key = "aqueous aerosol.H2-SO4"
+      key = "P1.aqueous aerosol.H2-SO4"
       idx_H2_SO4 = aero_rep_ptr%spec_state_id(key);
 
       ! Make sure the expected species are in the model

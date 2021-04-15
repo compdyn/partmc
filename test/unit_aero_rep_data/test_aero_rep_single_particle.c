@@ -16,13 +16,22 @@
 // index for the test aerosol representation
 #define AERO_REP_IDX 0
 
-// index for the test phase
-#define AERO_PHASE_IDX 1 // (phase 2)
+// test computational particle
+#define TEST_PARTICLE 2
+
+// number of computational particles in the test
+#define N_COMP_PARTICLES 3
+
+// number of aerosol phases per particle
+#define NUM_AERO_PHASE 3
+
+// index for the test phase (test-particle phase 2)
+#define AERO_PHASE_IDX ((TEST_PARTICLE-1)*NUM_AERO_PHASE+1)
 
 // number of Jacobian elements used for the test phase
 #define N_JAC_ELEM 8
 
-// Test concentrations (ug/m3)
+// Test concentrations (kg/m3)
 #define CONC_1A 1.0
 #define CONC_1B 2.0
 #define CONC_1C 3.0
@@ -32,7 +41,7 @@
 #define CONC_3B 7.0
 #define CONC_3E 8.0
 
-// Molecular weight of test species (must match json file)
+// Molecular weight (kg/mol) of test species (must match json file)
 #define MW_A 1.0
 #define MW_B 11.0
 #define MW_C 36.2
@@ -41,7 +50,7 @@
 #define MW_F 623.2
 #define MW_G 72.3
 
-// Density of test species (must match json file)
+// Density (kg/m3) of test species (must match json file)
 #define DENSITY_A 1.0
 #define DENSITY_B 2.0
 #define DENSITY_C 3.0
@@ -52,7 +61,6 @@
 
 // Externally set properties
 #define PART_NUM_CONC 1.23e3
-#define PART_RADIUS 2.43e-7
 
 /** \brief Test the effective radius function
  *
@@ -68,17 +76,41 @@ int test_effective_radius(ModelData * model_data, N_Vector state) {
 
   for( int i = 0; i < N_JAC_ELEM+2; ++i ) partial_deriv[i] = 999.9;
 
-  aero_rep_get_effective_radius(model_data, AERO_REP_IDX,
+  aero_rep_get_effective_radius__m(model_data, AERO_REP_IDX,
                                 AERO_PHASE_IDX, &eff_rad, &(partial_deriv[1]));
 
-  ret_val += ASSERT_MSG(fabs(eff_rad-PART_RADIUS) < 1.0e-6*PART_RADIUS,
+  double volume_density = ( CONC_1A / DENSITY_A +
+                            CONC_1B / DENSITY_B +
+                            CONC_1C / DENSITY_C +
+                            CONC_2C / DENSITY_C +
+                            CONC_2D / DENSITY_D +
+                            CONC_2E / DENSITY_E +
+                            CONC_3B / DENSITY_B +
+                            CONC_3E / DENSITY_E ); // volume density (m3/m3)
+  double eff_rad_expected = pow( ( 3.0 / 4.0 / 3.14159265359 * volume_density ), 1.0/3.0 );
+  ret_val += ASSERT_MSG(fabs(eff_rad-eff_rad_expected) < 1.0e-6*eff_rad_expected,
                         "Bad effective radius");
 
   ret_val += ASSERT_MSG(partial_deriv[0] = 999.9,
                         "Bad Jacobian (-1)");
-  for( int i = 1; i < N_JAC_ELEM+1; ++i )
-    ret_val += ASSERT_MSG(partial_deriv[i] == ZERO,
-                          "Bad Jacobian element");
+  double d_eff_rad_dx = 1.0 / 4.0 / 3.14159265359 *
+                        pow( 3.0 / 4.0 / 3.14159265359 * volume_density, -2.0/3.0 );
+  ret_val += ASSERT_MSG(fabs(partial_deriv[1] - d_eff_rad_dx / DENSITY_A) <
+                        1.0e-10 * partial_deriv[1], "Bad Jacobian element");
+  ret_val += ASSERT_MSG(fabs(partial_deriv[2] - d_eff_rad_dx / DENSITY_B) <
+                        1.0e-10 * partial_deriv[2], "Bad Jacobian element");
+  ret_val += ASSERT_MSG(fabs(partial_deriv[3] - d_eff_rad_dx / DENSITY_C) <
+                        1.0e-10 * partial_deriv[3], "Bad Jacobian element");
+  ret_val += ASSERT_MSG(fabs(partial_deriv[4] - d_eff_rad_dx / DENSITY_C) <
+                        1.0e-10 * partial_deriv[4], "Bad Jacobian element");
+  ret_val += ASSERT_MSG(fabs(partial_deriv[5] - d_eff_rad_dx / DENSITY_D) <
+                        1.0e-10 * partial_deriv[5], "Bad Jacobian element");
+  ret_val += ASSERT_MSG(fabs(partial_deriv[6] - d_eff_rad_dx / DENSITY_E) <
+                        1.0e-10 * partial_deriv[6], "Bad Jacobian element");
+  ret_val += ASSERT_MSG(fabs(partial_deriv[7] - d_eff_rad_dx / DENSITY_B) <
+                        1.0e-10 * partial_deriv[7], "Bad Jacobian element");
+  ret_val += ASSERT_MSG(fabs(partial_deriv[8] - d_eff_rad_dx / DENSITY_E) <
+                        1.0e-10 * partial_deriv[8], "Bad Jacobian element");
   ret_val += ASSERT_MSG(partial_deriv[N_JAC_ELEM+1] = 999.9,
                         "Bad Jacobian (end+1)");
 
@@ -98,7 +130,7 @@ int test_number_concentration(ModelData * model_data, N_Vector state) {
 
   for( int i = 0; i < N_JAC_ELEM+2; ++i ) partial_deriv[i] = 999.9;
 
-  aero_rep_get_number_conc(model_data, AERO_REP_IDX,
+  aero_rep_get_number_conc__n_m3(model_data, AERO_REP_IDX,
                            AERO_PHASE_IDX, &num_conc, &(partial_deriv[1]));
 
   ret_val += ASSERT_MSG(fabs(num_conc-PART_NUM_CONC) < 1.0e-10*PART_NUM_CONC,
@@ -128,7 +160,7 @@ int test_aero_phase_mass(ModelData * model_data, N_Vector state) {
 
   for( int i = 0; i < N_JAC_ELEM+2; ++i ) partial_deriv[i] = 999.9;
 
-  aero_rep_get_aero_phase_mass(model_data, AERO_REP_IDX, AERO_PHASE_IDX,
+  aero_rep_get_aero_phase_mass__kg_m3(model_data, AERO_REP_IDX, AERO_PHASE_IDX,
                                &phase_mass, &(partial_deriv[1]));
 
   double mass = CONC_2C + CONC_2D + CONC_2E;
@@ -166,7 +198,7 @@ int test_aero_phase_avg_MW(ModelData * model_data, N_Vector state) {
 
   for( int i = 0; i < N_JAC_ELEM+2; ++i ) partial_deriv[i] = 999.9;
 
-  aero_rep_get_aero_phase_avg_MW(model_data, AERO_REP_IDX, AERO_PHASE_IDX,
+  aero_rep_get_aero_phase_avg_MW__kg_mol(model_data, AERO_REP_IDX, AERO_PHASE_IDX,
                                  &avg_mw, &(partial_deriv[1]));
 
   double mass = CONC_2C + CONC_2D + CONC_2E;
@@ -239,15 +271,15 @@ int run_aero_rep_single_particle_c_tests(void *solver_data, double *state, doubl
 
   ret_val += ASSERT_MSG(n_jac_elem==N_JAC_ELEM, "Bad number of Jac elements");
 
-  // tests are for bin 2
-  NV_DATA_S(solver_state)[0] = state[0] = CONC_1A; // phase one, species a
-  NV_DATA_S(solver_state)[1] = state[1] = CONC_1B; // phase one, species a
-  NV_DATA_S(solver_state)[2] = state[2] = CONC_1C; // phase one, species a
-  NV_DATA_S(solver_state)[3] = state[3] = CONC_2C; // phase one, species a
-  NV_DATA_S(solver_state)[4] = state[4] = CONC_2D; // phase one, species a
-  NV_DATA_S(solver_state)[5] = state[5] = CONC_2E; // phase one, species a
-  NV_DATA_S(solver_state)[6] = state[6] = CONC_3B; // phase one, species a
-  NV_DATA_S(solver_state)[7] = state[7] = CONC_3E; // phase one, species a
+  // set concentrations of test particle species
+  NV_DATA_S(solver_state)[(TEST_PARTICLE-1)*8+0] = state[(TEST_PARTICLE-1)*8+0] = CONC_1A; // phase one, species a
+  NV_DATA_S(solver_state)[(TEST_PARTICLE-1)*8+1] = state[(TEST_PARTICLE-1)*8+1] = CONC_1B; // phase one, species b
+  NV_DATA_S(solver_state)[(TEST_PARTICLE-1)*8+2] = state[(TEST_PARTICLE-1)*8+2] = CONC_1C; // phase one, species c
+  NV_DATA_S(solver_state)[(TEST_PARTICLE-1)*8+3] = state[(TEST_PARTICLE-1)*8+3] = CONC_2C; // phase two, species c
+  NV_DATA_S(solver_state)[(TEST_PARTICLE-1)*8+4] = state[(TEST_PARTICLE-1)*8+4] = CONC_2D; // phase two, species d
+  NV_DATA_S(solver_state)[(TEST_PARTICLE-1)*8+5] = state[(TEST_PARTICLE-1)*8+5] = CONC_2E; // phase two, species e
+  NV_DATA_S(solver_state)[(TEST_PARTICLE-1)*8+6] = state[(TEST_PARTICLE-1)*8+6] = CONC_3B; // phase three, species b
+  NV_DATA_S(solver_state)[(TEST_PARTICLE-1)*8+7] = state[(TEST_PARTICLE-1)*8+7] = CONC_3E; // phase three, species e
 
   // Set the environment-dependent parameter pointer to the first grid cell
   model_data->grid_cell_aero_rep_env_data = model_data->aero_rep_env_data;

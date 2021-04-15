@@ -2,7 +2,8 @@
   "description" : [
     "These reactions are based on the original MONARCH implementation of EQSAM where",
     "only the SO4-NO3-NH3 system is included, and inorganic reactions are only applied",
-    "to the sulfate aerosol mode. Reaction parameters are from CAPRAM2.4 (Ervens et al. 2003)"
+    "to the sulfate aerosol mode. Reaction parameters are from CAPRAM2.4 (Ervens et al. 2003)",
+    "!!!NOTE!!! The reverse rate constants have been scaled down by a factor of 1.0e5 to reduce the stiffness of the system. This is still being evaluated"
   ],
   "pmc-data" : [
     {
@@ -15,7 +16,7 @@
           "aerosol-phase water" : "H2O_aq",
           "A" : 1.8e-16,
           "C" : -6800.0,
-          "k_reverse" : 1.3e11,
+          "k_reverse" : 1.3e06,
           "reactants" : {
             "H2O_aq" : {}
           },
@@ -30,7 +31,7 @@
           "aerosol-phase water" : "H2O_aq",
           "A" : 1.02e-2,
           "C" : 2700.0,
-          "k_reverse" : 1.0e11,
+          "k_reverse" : 1.0e06,
           "ion pair" : "H2-SO4",
           "reactants" : {
             "HSO4_m" : {}
@@ -45,7 +46,7 @@
           "aerosol phase" : "aqueous sulfate",
           "aerosol-phase water" : "H2O_aq",
           "A" : 1000.0,
-          "k_reverse" : 5.0e10,
+          "k_reverse" : 5.0e05,
           "ion pair" : "H-HSO4",
           "reactants" : {
             "H2SO4_aq" : {}
@@ -61,7 +62,7 @@
           "aerosol-phase water" : "H2O_aq",
           "A" : 3.17e-7,
           "C" : -560.0,
-          "k_reverse" : 3.4e10,
+          "k_reverse" : 3.4e05,
           "ion pair" : "NH4/H",
           "reactants" : {
             "NH3_aq" : {},
@@ -78,7 +79,7 @@
           "aerosol-phase water" : "H2O_aq",
           "A" : 22.0,
           "C" : 1800.0,
-          "k_reverse" : 5.0e10,
+          "k_reverse" : 5.0e05,
           "ion pair" : "H-NO3",
           "reactants" : {
             "HNO3_aq" : {}

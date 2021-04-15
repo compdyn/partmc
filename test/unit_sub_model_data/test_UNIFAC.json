@@ -65,15 +65,18 @@
   },
   {
     "name" : "my aero rep",
-    "type" : "AERO_REP_SINGLE_PARTICLE"
+    "type" : "AERO_REP_SINGLE_PARTICLE",
+    "maximum computational particles" : 1
   },
   {
     "name" : "my second aero rep",
-    "type" : "AERO_REP_SINGLE_PARTICLE"
+    "type" : "AERO_REP_SINGLE_PARTICLE",
+    "maximum computational particles" : 1
   },
   {
     "name" : "my last aero rep",
-    "type" : "AERO_REP_SINGLE_PARTICLE"
+    "type" : "AERO_REP_SINGLE_PARTICLE",
+    "maximum computational particles" : 1
   },
   {
     "name" : "n-butanol/water activity",

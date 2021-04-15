@@ -65,11 +65,11 @@
 // Real-time number concentration - used for modes and bins - for modes, b=0
 #define NUMBER_CONC_(x, b) (float_data[MODE_FLOAT_PROP_LOC_(x) + b * 3 + 1])
 
-// Real-time effective radius - only used for modes, b=0
+// Real-time effective radius - for modes, b=0
 #define EFFECTIVE_RADIUS_(x, b) \
   (float_data[MODE_FLOAT_PROP_LOC_(x) + b * 3 + 2])
 
-// Real-time phase mass (ug/m^3) - used for modes and bins - for modes, b=0
+// Real-time phase mass (kg/m^3) - used for modes and bins - for modes, b=0
 #define PHASE_MASS_(x, y, b)                                                   \
   (float_data[MODE_FLOAT_PROP_LOC_(x) + 3 * NUM_BINS_(x) + b * NUM_PHASE_(x) + \
               y])
@@ -195,32 +195,33 @@ void aero_rep_modal_binned_mass_update_state(ModelData *model_data,
       // Mode
       case (MODAL):
 
-        // Sum the volumes of each species in the mode
+        // Sum the volumes of each species in the mode [m3 m-3]
         volume = 0.0;
         for (int i_phase = 0; i_phase < NUM_PHASE_(i_section); i_phase++) {
           // Get a pointer to the phase on the state array
           double *state = (double *)(model_data->grid_cell_state);
           state += PHASE_STATE_ID_(i_section, i_phase, 0);
 
-          // Set the aerosol-phase mass and average MW
-          aero_phase_get_mass(
+          // Set the aerosol-phase mass [kg m-3] and average MW [kg mol-1]
+          aero_phase_get_mass__kg_m3(
               model_data, PHASE_MODEL_DATA_ID_(i_section, i_phase, 0), state,
               &(PHASE_MASS_(i_section, i_phase, 0)),
               &(PHASE_AVG_MW_(i_section, i_phase, 0)), NULL, NULL);
 
-          // Get the phase volume
+          // Get the phase volume [m3 m-3]
           double phase_volume = 0.0;
-          aero_phase_get_volume(model_data,
-                                PHASE_MODEL_DATA_ID_(i_section, i_phase, 0),
-                                state, &phase_volume, NULL);
+          aero_phase_get_volume__m3_m3(
+              model_data, PHASE_MODEL_DATA_ID_(i_section, i_phase, 0), state,
+              &phase_volume, NULL);
           volume += phase_volume;
         }
 
-        // Calculate the number concentration based on the total mode volume
-        // (see aero_rep_modal_binned_mass_get_number_conc for details)
-        NUMBER_CONC_(i_section, 0) = volume * 6.0 /
-                                     (M_PI * pow(GMD_(i_section), 3) *
-                                      exp(9.0 / 2.0 * pow(GSD_(i_section), 2)));
+        // Calculate the number concentration [# m-3] based on the total mode
+        // volume (see aero_rep_modal_binned_mass_get_number_conc for details)
+        NUMBER_CONC_(i_section, 0) =
+            volume * 6.0 /
+            (M_PI * pow(GMD_(i_section), 3) *
+             exp(9.0 / 2.0 * pow(log(GSD_(i_section)), 2)));
 
         break;
 
@@ -229,29 +230,29 @@ void aero_rep_modal_binned_mass_update_state(ModelData *model_data,
 
         // Loop through the bins
         for (int i_bin = 0; i_bin < NUM_BINS_(i_section); i_bin++) {
-          // Sum the volumes of each species in the bin
+          // Sum the volumes of each species in the bin [m3 m-3]
           volume = 0.0;
           for (int i_phase = 0; i_phase < NUM_PHASE_(i_section); i_phase++) {
             // Get a pointer to the phase on the state array
             double *state = (double *)(model_data->grid_cell_state);
             state += PHASE_STATE_ID_(i_section, i_phase, i_bin);
 
-            // Set the aerosol-phase mass and average MW
-            aero_phase_get_mass(
+            // Set the aerosol-phase mass [kg m-3] and average MW [kg mol-1]
+            aero_phase_get_mass__kg_m3(
                 model_data, PHASE_MODEL_DATA_ID_(i_section, i_phase, i_bin),
                 state, &(PHASE_MASS_(i_section, i_phase, i_bin)),
                 &(PHASE_AVG_MW_(i_section, i_phase, i_bin)), NULL, NULL);
 
-            // Get the phase volume
+            // Get the phase volume [m3 m-3]
             double phase_volume = 0.0;
-            aero_phase_get_volume(
+            aero_phase_get_volume__m3_m3(
                 model_data, PHASE_MODEL_DATA_ID_(i_section, i_phase, i_bin),
                 state, &phase_volume, NULL);
             volume += phase_volume;
           }
 
-          // Calculate the number concentration based on the total bin volume
-          // (see aero_rep_modal_binned_mass_get_number_conc for details)
+          // Calculate the number concentration [# m-3] based on the total bin
+          // volume (see aero_rep_modal_binned_mass_get_number_conc for details)
           NUMBER_CONC_(i_section, i_bin) =
               volume * 3.0 / (4.0 * M_PI) /
               pow(BIN_DP_(i_section, i_bin) / 2.0, 3);
@@ -274,7 +275,7 @@ void aero_rep_modal_binned_mass_update_state(ModelData *model_data,
  * in Table 1 of Zender \cite Zender2002 :
  *
  * \f[
- *      r_{eff} = \frac{\tilde{D}_n}{2}*exp(9\tilde{\sigma}_g^2/2)
+ *      r_{eff} = \frac{\tilde{D}_n}{2}*exp(9 ln(\tilde{\sigma}_g)^2/2)
  * \f]
  * \f[
  *      r_{eff} = \frac{D_{eff}}{2}
@@ -293,7 +294,7 @@ void aero_rep_modal_binned_mass_update_state(ModelData *model_data,
  * \param aero_rep_env_data Pointer to the aerosol representation
  *                          environment-dependent parameters
  */
-void aero_rep_modal_binned_mass_get_effective_radius(
+void aero_rep_modal_binned_mass_get_effective_radius__m(
     ModelData *model_data, int aero_phase_idx, double *radius,
     double *partial_deriv, int *aero_rep_int_data, double *aero_rep_float_data,
     double *aero_rep_env_data) {
@@ -325,7 +326,7 @@ void aero_rep_modal_binned_mass_get_effective_radius(
 }
 
 /** \brief Get the particle number concentration \f$n\f$
- * (\f$\mbox{\si{\#\per\cubic\centi\metre}}\f$)
+ * (\f$\mbox{\si{\#\per\cubic\metre}}\f$)
  *
  * The modal mass number concentration is calculated for a log-normal
  * distribution where the geometric mean diameter (\f$\tilde{D}_n\f$) and
@@ -334,13 +335,10 @@ void aero_rep_modal_binned_mass_get_effective_radius(
  * calculated according to the equation given in Table 1 of Zender
  * \cite Zender2002 :
  * \f[
- *      n = N_0 = \frac{6V_0}{\pi}\tilde{D}_n^{-3}e^{-9\tilde{\sigma}_g^2/2}
- * \f]
- * \f[
- *      V_0 = \sum_i{\frac{m_i}{\rho_i}}
- * \f]
- * where \f$\rho_i\f$ and \f$m_i\f$ are the density and total mass of species
- * \f$i\f$ in the specified mode.
+ *      n = N_0 = \frac{6V_0}{\pi}\tilde{D}_n^{-3}e^{-9
+ * ln(\tilde{\sigma}_g)^2/2} \f] \f[ V_0 = \sum_i{\frac{m_i}{\rho_i}} \f] where
+ * \f$\rho_i\f$ and \f$m_i\f$ are the density and total mass of species \f$i\f$
+ * in the specified mode.
  *
  * The binned number concentration is calculated according to:
  * \f[
@@ -364,7 +362,7 @@ void aero_rep_modal_binned_mass_get_effective_radius(
  * \param aero_rep_env_data Pointer to the aerosol representation
  *                          environment-dependent parameters
  */
-void aero_rep_modal_binned_mass_get_number_conc(
+void aero_rep_modal_binned_mass_get_number_conc__n_m3(
     ModelData *model_data, int aero_phase_idx, double *number_conc,
     double *partial_deriv, int *aero_rep_int_data, double *aero_rep_float_data,
     double *aero_rep_env_data) {
@@ -384,9 +382,9 @@ void aero_rep_modal_binned_mass_get_number_conc(
             double *state = (double *)(model_data->grid_cell_state);
             state += PHASE_STATE_ID_(i_section, i_phase, i_bin);
 
-            // Get the aerosol phase volume
+            // Get the aerosol phase volume [m3 m-3]
             double phase_volume = 0.0;
-            aero_phase_get_volume(
+            aero_phase_get_volume__m3_m3(
                 model_data, PHASE_MODEL_DATA_ID_(i_section, i_phase, i_bin),
                 state, &phase_volume, partial_deriv);
 
@@ -398,7 +396,7 @@ void aero_rep_modal_binned_mass_get_number_conc(
                 case (MODAL):
                   *(partial_deriv++) *=
                       6.0 / (M_PI * pow(GMD_(i_section), 3) *
-                             exp(9.0 / 2.0 * pow(GSD_(i_section), 2)));
+                             exp(9.0 / 2.0 * pow(log(GSD_(i_section)), 2)));
                   break;
                 case (BINNED):
                   *(partial_deriv++) *= 3.0 / (4.0 * M_PI) /
@@ -444,12 +442,12 @@ void aero_rep_modal_binned_mass_get_aero_conc_type(int aero_phase_idx,
 }
 
 /** \brief Get the total mass in an aerosol phase \f$m\f$
- * (\f$\mbox{\si{\micro\gram\per\cubic\metre}}\f$)
+ * (\f$\mbox{\si{\kilogram\per\cubic\metre}}\f$)
  *
  * \param model_data Pointer to the model data, including the state array
  * \param aero_phase_idx Index of the aerosol phase within the representation
  * \param aero_phase_mass Total mass in the aerosol phase, \f$m\f$
- *                        (\f$\mbox{\si{\micro\gram\per\cubic\metre}}\f$)
+ *                        (\f$\mbox{\si{\kilogram\per\cubic\metre}}\f$)
  * \param partial_deriv \f$\frac{\partial m}{\partial y}\f$ where \f$y\f$ are
  *                      the species on the state array
  * \param aero_rep_int_data Pointer to the aerosol representation integer data
@@ -458,7 +456,7 @@ void aero_rep_modal_binned_mass_get_aero_conc_type(int aero_phase_idx,
  * \param aero_rep_env_data Pointer to the aerosol representation
  *                          environment-dependent parameters
  */
-void aero_rep_modal_binned_mass_get_aero_phase_mass(
+void aero_rep_modal_binned_mass_get_aero_phase_mass__kg_m3(
     ModelData *model_data, int aero_phase_idx, double *aero_phase_mass,
     double *partial_deriv, int *aero_rep_int_data, double *aero_rep_float_data,
     double *aero_rep_env_data) {
@@ -483,9 +481,9 @@ void aero_rep_modal_binned_mass_get_aero_phase_mass(
 
             // Get d_mass / d_conc
             double mass, mw;
-            aero_phase_get_mass(model_data,
-                                PHASE_MODEL_DATA_ID_(i_section, i_phase, i_bin),
-                                state, &mass, &mw, partial_deriv, NULL);
+            aero_phase_get_mass__kg_m3(
+                model_data, PHASE_MODEL_DATA_ID_(i_section, i_phase, i_bin),
+                state, &mass, &mw, partial_deriv, NULL);
             partial_deriv += PHASE_NUM_JAC_ELEM_(i_section, i_phase, i_bin);
           }
 
@@ -507,7 +505,7 @@ void aero_rep_modal_binned_mass_get_aero_phase_mass(
 }
 
 /** \brief Get the average molecular weight in an aerosol phase
- **        \f$m\f$ (\f$\mbox{\si{\micro\gram\per\cubic\metre}}\f$)
+ **        \f$m\f$ (\f$\mbox{\si{\kilogram\per\mole}}\f$)
  *
  * \param model_data Pointer to the model data, including the state array
  * \param aero_phase_idx Index of the aerosol phase within the representation
@@ -521,7 +519,7 @@ void aero_rep_modal_binned_mass_get_aero_phase_mass(
  * \param aero_rep_env_data Pointer to the aerosol representation
  *                          environment-dependent parameters
  */
-void aero_rep_modal_binned_mass_get_aero_phase_avg_MW(
+void aero_rep_modal_binned_mass_get_aero_phase_avg_MW__kg_mol(
     ModelData *model_data, int aero_phase_idx, double *aero_phase_avg_MW,
     double *partial_deriv, int *aero_rep_int_data, double *aero_rep_float_data,
     double *aero_rep_env_data) {
@@ -546,9 +544,9 @@ void aero_rep_modal_binned_mass_get_aero_phase_avg_MW(
 
             // Get d_MW / d_conc
             double mass, mw;
-            aero_phase_get_mass(model_data,
-                                PHASE_MODEL_DATA_ID_(i_section, i_phase, i_bin),
-                                state, &mass, &mw, NULL, partial_deriv);
+            aero_phase_get_mass__kg_m3(
+                model_data, PHASE_MODEL_DATA_ID_(i_section, i_phase, i_bin),
+                state, &mass, &mw, NULL, partial_deriv);
             partial_deriv += PHASE_NUM_JAC_ELEM_(i_section, i_phase, i_bin);
           }
 
@@ -606,19 +604,50 @@ bool aero_rep_modal_binned_mass_update_data(void *update_data,
   // Set the new GMD or GSD for matching aerosol representations
   if (*aero_rep_id == AERO_REP_ID_ && AERO_REP_ID_ != 0) {
     if (*update_type == UPDATE_GMD) {
-      GMD_(*section_id) = (double)*new_value;
+      if (SECTION_TYPE_(*section_id) != MODAL) {
+        printf(
+            "\n\nERROR Trying to set geometric mean diameter for non-modal"
+            " aerosol section.");
+        exit(1);
+      }
+      GMD_(*section_id) = (double)*new_value;  // [m]
       ret_val = true;
     } else if (*update_type == UPDATE_GSD) {
+      if (SECTION_TYPE_(*section_id) != MODAL) {
+        printf(
+            "\n\nERROR Trying to set geometric standard deviation for non-modal"
+            " aerosol section.");
+        exit(1);
+      }
       GSD_(*section_id) = (double)*new_value;
       ret_val = true;
     }
   }
 
   if (ret_val == true) {
-    // Recalculate the effective radius
-    double gsd = GSD_(*section_id);
+    /// Recalculate the effective radius [m]
+    ///
+    /// Equation based on \cite Zender2002 eq. (23) and Table 1 median diameter
+    /// (\f$\tilde{D_n}\f$)
+    /// and Table 1 effective radius \f$(D_s, D_eff\f$) equations:
+    /// \f[
+    /// \tilde{\sigma_g} \equiv ln( \sigma_g )
+    /// \f]
+    /// \f[
+    /// \tilde{D_n} = \bar{D_n} e^{-\tilde{\sigma_g}^2 / 2}
+    /// \f]
+    /// \f[
+    /// D_s = D_{eff} = \tilde{D_n} e^{5 \tilde{\sigma_g}^2 / 2}
+    /// \f]
+    /// \f[
+    /// D_{eff} = \bar{D_n} e^{ 2 \tilde{\sigma_g}^2 }
+    /// \f]
+    /// where \f$\bar{D_n}\f$ is the mean diameter [m] and \f$\sigma_g\f$
+    /// is the geometric standard deviation [unitless].
+    ///
+    double ln_gsd = log(GSD_(*section_id));
     EFFECTIVE_RADIUS_(*section_id, 0) =
-        GMD_(*section_id) / 2.0 * exp(9.0 / 2.0 * gsd * gsd);
+        GMD_(*section_id) / 2.0 * exp(2.0 * ln_gsd * ln_gsd);
   }
 
   return ret_val;

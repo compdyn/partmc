@@ -1,0 +1,11 @@
+{
+  "pmc-data" : [
+    {
+      "name" : "PartMC single particle",
+      "type" : "AERO_REP_SINGLE_PARTICLE"
+    },
+    {
+      "type" : "SPLIT_GAS_AERO"
+    }
+  ]
+}

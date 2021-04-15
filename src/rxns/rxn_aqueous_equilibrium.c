@@ -65,12 +65,11 @@
  *
  * \param rxn_int_data Pointer to the reaction integer data
  * \param rxn_float_data Pointer to the reaction floating-point data
- * \param jac_struct 2D array of flags indicating potentially non-zero
- *                   Jacobian elements
+ * \param jac Jacobian
  */
 void rxn_aqueous_equilibrium_get_used_jac_elem(int *rxn_int_data,
                                                double *rxn_float_data,
-                                               bool **jac_struct) {
+                                               Jacobian *jac) {
   int *int_data = rxn_int_data;
   double *float_data = rxn_float_data;
 
@@ -81,10 +80,11 @@ void rxn_aqueous_equilibrium_get_used_jac_elem(int *rxn_int_data,
          i_react_ind < (i_phase + 1) * NUM_REACT_; i_react_ind++) {
       for (int i_react_dep = i_phase * NUM_REACT_;
            i_react_dep < (i_phase + 1) * NUM_REACT_; i_react_dep++)
-        jac_struct[REACT_(i_react_dep)][REACT_(i_react_ind)] = true;
+        jacobian_register_element(jac, REACT_(i_react_dep),
+                                  REACT_(i_react_ind));
       for (int i_prod_dep = i_phase * NUM_PROD_;
            i_prod_dep < (i_phase + 1) * NUM_PROD_; i_prod_dep++)
-        jac_struct[PROD_(i_prod_dep)][REACT_(i_react_ind)] = true;
+        jacobian_register_element(jac, PROD_(i_prod_dep), REACT_(i_react_ind));
     }
 
     // Add dependence on products for reactants and products (reverse reaction)
@@ -92,28 +92,30 @@ void rxn_aqueous_equilibrium_get_used_jac_elem(int *rxn_int_data,
          i_prod_ind < (i_phase + 1) * NUM_PROD_; i_prod_ind++) {
       for (int i_react_dep = i_phase * NUM_REACT_;
            i_react_dep < (i_phase + 1) * NUM_REACT_; i_react_dep++)
-        jac_struct[REACT_(i_react_dep)][PROD_(i_prod_ind)] = true;
+        jacobian_register_element(jac, REACT_(i_react_dep), PROD_(i_prod_ind));
       for (int i_prod_dep = i_phase * NUM_PROD_;
            i_prod_dep < (i_phase + 1) * NUM_PROD_; i_prod_dep++)
-        jac_struct[PROD_(i_prod_dep)][PROD_(i_prod_ind)] = true;
+        jacobian_register_element(jac, PROD_(i_prod_dep), PROD_(i_prod_ind));
     }
 
     // Add dependence on aerosol-phase water for reactants and products
     for (int i_react_dep = i_phase * NUM_REACT_;
          i_react_dep < (i_phase + 1) * NUM_REACT_; i_react_dep++)
-      jac_struct[REACT_(i_react_dep)][WATER_(i_phase)] = true;
+      jacobian_register_element(jac, REACT_(i_react_dep), WATER_(i_phase));
     for (int i_prod_dep = i_phase * NUM_PROD_;
          i_prod_dep < (i_phase + 1) * NUM_PROD_; i_prod_dep++)
-      jac_struct[PROD_(i_prod_dep)][WATER_(i_phase)] = true;
+      jacobian_register_element(jac, PROD_(i_prod_dep), WATER_(i_phase));
 
     // Add dependence on activity coefficients for reactants and products
     if (ACTIVITY_COEFF_(i_phase) < 0) continue;
     for (int i_react_dep = i_phase * NUM_REACT_;
          i_react_dep < (i_phase + 1) * NUM_REACT_; ++i_react_dep)
-      jac_struct[REACT_(i_react_dep)][ACTIVITY_COEFF_(i_phase)] = true;
+      jacobian_register_element(jac, REACT_(i_react_dep),
+                                ACTIVITY_COEFF_(i_phase));
     for (int i_prod_dep = i_phase * NUM_PROD_;
          i_prod_dep < (i_phase + 1) * NUM_PROD_; ++i_prod_dep)
-      jac_struct[PROD_(i_prod_dep)][ACTIVITY_COEFF_(i_phase)] = true;
+      jacobian_register_element(jac, PROD_(i_prod_dep),
+                                ACTIVITY_COEFF_(i_phase));
   }
 
   return;
@@ -123,12 +125,12 @@ void rxn_aqueous_equilibrium_get_used_jac_elem(int *rxn_int_data,
  *
  * \param model_data Pointer to the model data
  * \param deriv_ids Id of each state variable in the derivative array
- * \param jac_ids Id of each state variable combo in the Jacobian array
+ * \param jac Jacobian
  * \param rxn_int_data Pointer to the reaction integer data
  * \param rxn_float_data Pointer to the reaction floating-point data
  */
 void rxn_aqueous_equilibrium_update_ids(ModelData *model_data, int *deriv_ids,
-                                        int **jac_ids, int *rxn_int_data,
+                                        Jacobian jac, int *rxn_int_data,
                                         double *rxn_float_data) {
   int *int_data = rxn_int_data;
   double *float_data = rxn_float_data;
@@ -148,10 +150,12 @@ void rxn_aqueous_equilibrium_update_ids(ModelData *model_data, int *deriv_ids,
          i_react_ind < (i_phase + 1) * NUM_REACT_; i_react_ind++) {
       for (int i_react_dep = i_phase * NUM_REACT_;
            i_react_dep < (i_phase + 1) * NUM_REACT_; i_react_dep++)
-        JAC_ID_(i_jac++) = jac_ids[REACT_(i_react_dep)][REACT_(i_react_ind)];
+        JAC_ID_(i_jac++) = jacobian_get_element_id(jac, REACT_(i_react_dep),
+                                                   REACT_(i_react_ind));
       for (int i_prod_dep = i_phase * NUM_PROD_;
            i_prod_dep < (i_phase + 1) * NUM_PROD_; i_prod_dep++)
-        JAC_ID_(i_jac++) = jac_ids[PROD_(i_prod_dep)][REACT_(i_react_ind)];
+        JAC_ID_(i_jac++) = jacobian_get_element_id(jac, PROD_(i_prod_dep),
+                                                   REACT_(i_react_ind));
     }
 
     // Add dependence on products for reactants and products (reverse reaction)
@@ -159,19 +163,23 @@ void rxn_aqueous_equilibrium_update_ids(ModelData *model_data, int *deriv_ids,
          i_prod_ind < (i_phase + 1) * NUM_PROD_; i_prod_ind++) {
       for (int i_react_dep = i_phase * NUM_REACT_;
            i_react_dep < (i_phase + 1) * NUM_REACT_; i_react_dep++)
-        JAC_ID_(i_jac++) = jac_ids[REACT_(i_react_dep)][PROD_(i_prod_ind)];
+        JAC_ID_(i_jac++) = jacobian_get_element_id(jac, REACT_(i_react_dep),
+                                                   PROD_(i_prod_ind));
       for (int i_prod_dep = i_phase * NUM_PROD_;
            i_prod_dep < (i_phase + 1) * NUM_PROD_; i_prod_dep++)
-        JAC_ID_(i_jac++) = jac_ids[PROD_(i_prod_dep)][PROD_(i_prod_ind)];
+        JAC_ID_(i_jac++) =
+            jacobian_get_element_id(jac, PROD_(i_prod_dep), PROD_(i_prod_ind));
     }
 
     // Add dependence on aerosol-phase water for reactants and products
     for (int i_react_dep = i_phase * NUM_REACT_;
          i_react_dep < (i_phase + 1) * NUM_REACT_; i_react_dep++)
-      JAC_ID_(i_jac++) = jac_ids[REACT_(i_react_dep)][WATER_(i_phase)];
+      JAC_ID_(i_jac++) =
+          jacobian_get_element_id(jac, REACT_(i_react_dep), WATER_(i_phase));
     for (int i_prod_dep = i_phase * NUM_PROD_;
          i_prod_dep < (i_phase + 1) * NUM_PROD_; i_prod_dep++)
-      JAC_ID_(i_jac++) = jac_ids[PROD_(i_prod_dep)][WATER_(i_phase)];
+      JAC_ID_(i_jac++) =
+          jacobian_get_element_id(jac, PROD_(i_prod_dep), WATER_(i_phase));
 
     // Add dependence on activity coefficients for reactants and products
     if (ACTIVITY_COEFF_(i_phase) < 0) {
@@ -184,11 +192,12 @@ void rxn_aqueous_equilibrium_update_ids(ModelData *model_data, int *deriv_ids,
     } else {
       for (int i_react_dep = i_phase * NUM_REACT_;
            i_react_dep < (i_phase + 1) * NUM_REACT_; ++i_react_dep)
-        JAC_ID_(i_jac++) =
-            jac_ids[REACT_(i_react_dep)][ACTIVITY_COEFF_(i_phase)];
+        JAC_ID_(i_jac++) = jacobian_get_element_id(jac, REACT_(i_react_dep),
+                                                   ACTIVITY_COEFF_(i_phase));
       for (int i_prod_dep = i_phase * NUM_PROD_;
            i_prod_dep < (i_phase + 1) * NUM_PROD_; ++i_prod_dep)
-        JAC_ID_(i_jac++) = jac_ids[PROD_(i_prod_dep)][ACTIVITY_COEFF_(i_phase)];
+        JAC_ID_(i_jac++) = jacobian_get_element_id(jac, PROD_(i_prod_dep),
+                                                   ACTIVITY_COEFF_(i_phase));
     }
   }
 
@@ -256,7 +265,7 @@ void rxn_aqueous_equilibrium_update_env_state(ModelData *model_data,
 }
 
 /** \brief Calculate the reaction rate for a set of conditions using the
- *         standard equation per mixing ratio of water [M_X/s*ug_H2O/m^3]
+ *         standard equation per mixing ratio of water [M_X/s*kg_H2O/m^3]
  * \param rxn_int_data Pointer to the reaction integer data
  * \param rxn_float_data Pointer to the reaction floating point data
  * \param rxn_env_data Pointer to the environment-dependent parameters
@@ -264,7 +273,7 @@ void rxn_aqueous_equilibrium_update_env_state(ModelData *model_data,
  *                         return the partial derivative d_rate/d_H2O
  * \param rate_forward [output] calculated forward rate
  * \param rate_reverse [output] calculated reverse rate
- * \return reaction rate per mixing ratio of water [M_X/s*ug_H2O/m^3]
+ * \return reaction rate per mixing ratio of water [M_X/s*kg_H2O/m^3]
  */
 long double calc_standard_rate(int *rxn_int_data, double *rxn_float_data,
                                double *rxn_env_data, bool is_water_partial,
@@ -350,7 +359,7 @@ void rxn_aqueous_equilibrium_calc_deriv_contrib(
       continue;
     }
 
-    // Reactants change as (reverse - forward) (ug/m3/s)
+    // Reactants change as (reverse - forward) (kg/m3/s)
     for (int i_react = 0; i_react < NUM_REACT_; i_react++) {
       if (DERIV_ID_(i_deriv) < 0) {
         i_deriv++;
@@ -362,7 +371,7 @@ void rxn_aqueous_equilibrium_calc_deriv_contrib(
                                 rate_reverse / MASS_FRAC_TO_M_(i_react));
     }
 
-    // Products change as (forward - reverse) (ug/m3/s)
+    // Products change as (forward - reverse) (kg/m3/s)
     for (int i_prod = 0; i_prod < NUM_PROD_; i_prod++) {
       if (DERIV_ID_(i_deriv) < 0) {
         i_deriv++;

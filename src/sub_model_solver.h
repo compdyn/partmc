@@ -15,9 +15,9 @@
 /** Public sub model functions **/
 
 /* Solver functions */
-void sub_model_get_used_jac_elem(ModelData *model_data, bool **jac_struct);
-void sub_model_set_jac_map(ModelData *model_data, int **jac_ids);
-void sub_model_update_ids(ModelData *model_data, int *deriv_ids, int **jac_ids);
+void sub_model_get_used_jac_elem(ModelData *model_data, Jacobian *jac);
+void sub_model_set_jac_map(ModelData *model_data, Jacobian jac);
+void sub_model_update_ids(ModelData *model_data, int *deriv_ids, Jacobian jac);
 void sub_model_update_env_state(ModelData *model_data);
 void sub_model_calculate(ModelData *model_data);
 #ifdef PMC_USE_SUNDIALS

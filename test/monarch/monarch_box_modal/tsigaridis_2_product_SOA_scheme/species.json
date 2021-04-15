@@ -1,0 +1,125 @@
+{
+  "description" : [
+    "These species needed for the 2 product SOA scheme",
+    "(see mechanism.json for details)"
+  ],
+  "pmc-data" : [
+    {
+      "name" : "ISOP-P1",
+      "type" : "CHEM_SPEC",
+      "absolute integration tolerance" : 1.0E-03,
+      "molecular weight [kg mol-1]" : 0.08806,
+      "description" : "gas-phase product from isoprene oxidation by OH",
+      "notes" : [
+        "using diffusion coefficient from dry deposition",
+        "see notes on ISOP-P1_aero species"
+      ]
+    },
+    {
+      "name" : "ISOP-P2",
+      "type" : "CHEM_SPEC",
+      "absolute integration tolerance" : 1.0E-03,
+      "molecular weight [kg mol-1]" : 0.09003,
+      "description" : "gas-phase product from isoprene oxidation by O3",
+      "notes" : [
+        "using diffusion coefficient from dry deposition",
+        "see notes on ISOP-P2_aero species"
+      ]
+    },
+    {
+      "name" : "TERP-P1",
+      "type" : "CHEM_SPEC",
+      "absolute integration tolerance" : 1.0E-03,
+      "molecular weight [kg mol-1]" : 0.17025,
+      "description" : "gas-phase product from monoterpene oxidation by OH",
+      "notes" : [
+        "using diffusion coefficient from dry deposition",
+        "see notes on TERP-P1_aero species"
+      ]
+    },
+    {
+      "name" : "TERP-P2",
+      "type" : "CHEM_SPEC",
+      "absolute integration tolerance" : 1.0E-03,
+      "molecular weight [kg mol-1]" : 0.202162,
+      "description" : "gas-phase product from monoterpene oxidation by O3",
+      "notes" : [
+        "using diffusion coefficient from dry deposition",
+        "see notes on TERP-P2_aero species"
+      ]
+    },
+    {
+      "name" : "POA",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-05,
+      "density [kg m-3]" : 1800.0,
+      "molecular weight [kg mol-1]" : 0.41475,
+      "description" : "lumped hydrophobic particulate matter",
+      "num_ions" : 0,
+      "kappa" : 0.0,
+      "note" : "Using C30H54 for molecular weight. TODO find best surrogate"
+    },
+    {
+      "name" : "ISOP-P1_aero",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-05,
+      "density [kg m-3]" : 1800.0,
+      "molecular weight [kg mol-1]" : 0.08806,
+      "description" : "First isoprene SOA species in 2-product scheme",
+      "num_ions" : 0,
+      "kappa" : 0.1,
+      "note" : [
+        "Using ketopropanoic acid for molecular weight. TODO find best surrogate",
+        "TODO update SIMPOL parameters based on MW of new surrogate"
+      ]
+    },
+    {
+      "name" : "ISOP-P2_aero",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-05,
+      "density [kg m-3]" : 1800.0,
+      "molecular weight [kg mol-1]" : 0.09003,
+      "description" : "Second isoprene SOA species in 2-product scheme",
+      "num_ions" : 0,
+      "kappa" : 0.1,
+      "note" : [
+        "Using oxalic acid for molecular weight. TODO find best surrogate",
+        "TODO update SIMPOL parameters based on MW of new surrogate"
+      ]
+    },
+    {
+      "name" : "TERP-P1_aero",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-05,
+      "density [kg m-3]" : 1800.0,
+      "molecular weight [kg mol-1]" : 0.17025,
+      "description" : "First monoterpene SOA species in 2-product scheme",
+      "num_ions" : 0,
+      "kappa" : 0.1,
+      "note" : [
+        "Using 2-hydroxy-3-isopropyl-6-methyl-cyclohexanone for molecular weight",
+        "TODO find best surrogate",
+        "TODO update SIMPOL parameters based on MW of new surrogate"
+      ]
+    },
+    {
+      "name" : "TERP-P2_aero",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-05,
+      "density [kg m-3]" : 1800.0,
+      "molecular weight [kg mol-1]" : 0.202162,
+      "description" : "Second monoterpene SOA species in 2-product scheme",
+      "num_ions" : 0,
+      "kappa" : 0.1,
+      "note" : [
+        "Using 2-methyl-5-carboxy-2,4-hexodienoic acid. TODO find best surrogate",
+        "TODO update SIMPOL parameters based on MW of new surrogate"
+      ]
+    }
+  ]
+}

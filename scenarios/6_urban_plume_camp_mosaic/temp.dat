@@ -1,0 +1,4 @@
+#	time	(s)
+#	temp	(K)
+time 0 100000	
+temp 290.0 290.0

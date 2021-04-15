@@ -45,6 +45,7 @@
 !!   - \subpage camp_rxn_HL_phase_transfer "Henry's Law phase transfer"
 !!   - \subpage camp_rxn_photolysis "photolysis"
 !!   - \subpage camp_rxn_SIMPOL_phase_transfer "SIMPOL.1 phase transfer"
+!!   - \subpage camp_rxn_ternary_chemical_activation "ternary chemical activation"
 !!   - \subpage camp_rxn_troe "Troe (fall-off)"
 !!   - \subpage camp_rxn_wet_deposition "wet deposition"
 !!

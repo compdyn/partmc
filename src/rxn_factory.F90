@@ -192,6 +192,7 @@ module pmc_rxn_factory
   use pmc_rxn_HL_phase_transfer
   use pmc_rxn_photolysis
   use pmc_rxn_SIMPOL_phase_transfer
+  use pmc_rxn_ternary_chemical_activation
   use pmc_rxn_troe
   use pmc_rxn_wet_deposition
 
@@ -216,6 +217,7 @@ module pmc_rxn_factory
   integer(kind=i_kind), parameter, public :: RXN_FIRST_ORDER_LOSS = 12
   integer(kind=i_kind), parameter, public :: RXN_EMISSION = 13
   integer(kind=i_kind), parameter, public :: RXN_WET_DEPOSITION = 14
+  integer(kind=i_kind), parameter, public :: RXN_TERNARY_CHEMICAL_ACTIVATION = 15
 
   !> Factory type for chemical reactions
   !!
@@ -281,6 +283,8 @@ contains
         new_obj => rxn_emission_t()
       case ("WET_DEPOSITION")
         new_obj => rxn_wet_deposition_t()
+      case ("TERNARY_CHEMICAL_ACTIVATION")
+        new_obj => rxn_ternary_chemical_activation_t()
       case default
         call die_msg(367114278, "Unknown chemical reaction type: " &
                 //type_name)
@@ -370,6 +374,8 @@ contains
         rxn_type = RXN_EMISSION
       type is (rxn_wet_deposition_t)
         rxn_type = RXN_WET_DEPOSITION
+      type is (rxn_ternary_chemical_activation_t)
+        rxn_type = RXN_TERNARY_CHEMICAL_ACTIVATION
       class default
         call die_msg(343941184, "Unknown reaction type.")
     end select
@@ -485,6 +491,8 @@ contains
         rxn_type = RXN_EMISSION
       type is (rxn_wet_deposition_t)
         rxn_type = RXN_WET_DEPOSITION
+      type is (rxn_ternary_chemical_activation_t)
+        rxn_type = RXN_TERNARY_CHEMICAL_ACTIVATION
       class default
         call die_msg(343941184, "Trying to pack reaction of unknown type.")
     end select
@@ -542,6 +550,8 @@ contains
         rxn => rxn_emission_t()
       case (RXN_WET_DEPOSITION)
         rxn => rxn_wet_deposition_t()
+      case (RXN_TERNARY_CHEMICAL_ACTIVATION)
+        rxn => rxn_ternary_chemical_activation_t()
       case default
         call die_msg(659290342, &
                 "Trying to unpack reaction of unknown type:"// &

@@ -28,6 +28,7 @@
 #define RXN_FIRST_ORDER_LOSS 12
 #define RXN_EMISSION 13
 #define RXN_WET_DEPOSITION 14
+#define RXN_TERNARY_CHEMICAL_ACTIVATION 15
 
 /** \brief Get the Jacobian elements used by a particular reaction
  *
@@ -86,6 +87,10 @@ void rxn_get_used_jac_elem(ModelData *model_data, Jacobian *jac) {
       case RXN_SIMPOL_PHASE_TRANSFER:
         rxn_SIMPOL_phase_transfer_get_used_jac_elem(model_data, rxn_int_data,
                                                     rxn_float_data, jac);
+        break;
+      case RXN_TERNARY_CHEMICAL_ACTIVATION:
+        rxn_ternary_chemical_activation_get_used_jac_elem(rxn_int_data,
+                                                          rxn_float_data, jac);
         break;
       case RXN_TROE:
         rxn_troe_get_used_jac_elem(rxn_int_data, rxn_float_data, jac);
@@ -160,6 +165,10 @@ void rxn_update_ids(ModelData *model_data, int *deriv_ids, Jacobian jac) {
         rxn_SIMPOL_phase_transfer_update_ids(model_data, deriv_ids, jac,
                                              rxn_int_data, rxn_float_data);
         break;
+      case RXN_TERNARY_CHEMICAL_ACTIVATION:
+        rxn_ternary_chemical_activation_update_ids(
+            model_data, deriv_ids, jac, rxn_int_data, rxn_float_data);
+        break;
       case RXN_TROE:
         rxn_troe_update_ids(model_data, deriv_ids, jac, rxn_int_data,
                             rxn_float_data);
@@ -233,6 +242,10 @@ void rxn_update_env_state(ModelData *model_data) {
         break;
       case RXN_SIMPOL_PHASE_TRANSFER:
         rxn_SIMPOL_phase_transfer_update_env_state(
+            model_data, rxn_int_data, rxn_float_data, rxn_env_data);
+        break;
+      case RXN_TERNARY_CHEMICAL_ACTIVATION:
+        rxn_ternary_chemical_activation_update_env_state(
             model_data, rxn_int_data, rxn_float_data, rxn_env_data);
         break;
       case RXN_TROE:
@@ -321,6 +334,11 @@ void rxn_calc_deriv(ModelData *model_data, TimeDerivative time_deriv,
         break;
       case RXN_SIMPOL_PHASE_TRANSFER:
         rxn_SIMPOL_phase_transfer_calc_deriv_contrib(
+            model_data, time_deriv, rxn_int_data, rxn_float_data, rxn_env_data,
+            time_step);
+        break;
+      case RXN_TERNARY_CHEMICAL_ACTIVATION:
+        rxn_ternary_chemical_activation_calc_deriv_contrib(
             model_data, time_deriv, rxn_int_data, rxn_float_data, rxn_env_data,
             time_step);
         break;
@@ -454,6 +472,11 @@ void rxn_calc_jac(ModelData *model_data, Jacobian jac, realtype time_step) {
         rxn_SIMPOL_phase_transfer_calc_jac_contrib(model_data, jac,
                                                    rxn_int_data, rxn_float_data,
                                                    rxn_env_data, time_step);
+        break;
+      case RXN_TERNARY_CHEMICAL_ACTIVATION:
+        rxn_ternary_chemical_activation_calc_jac_contrib(
+            model_data, jac, rxn_int_data, rxn_float_data, rxn_env_data,
+            time_step);
         break;
       case RXN_TROE:
         rxn_troe_calc_jac_contrib(model_data, jac, rxn_int_data, rxn_float_data,
@@ -693,6 +716,9 @@ void rxn_print_data(void *solver_data) {
         break;
       case RXN_SIMPOL_PHASE_TRANSFER:
         rxn_SIMPOL_phase_transfer_print(rxn_int_data, rxn_float_data);
+        break;
+      case RXN_TERNARY_CHEMICAL_ACTIVATION:
+        rxn_ternary_chemical_activation_print(rxn_int_data, rxn_float_data);
         break;
       case RXN_TROE:
         rxn_troe_print(rxn_int_data, rxn_float_data);

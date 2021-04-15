@@ -270,6 +270,7 @@ if (ENABLE_TESTS)
       add_test(test_rxn_HL_phase_transfer ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_HL_phase_transfer.sh ${MPI_TEST_FLAG})
       add_test(test_rxn_photolysis ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_photolysis.sh ${MPI_TEST_FLAG})
       add_test(test_rxn_SIMPOL_phase_transfer ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_SIMPOL_phase_transfer.sh ${MPI_TEST_FLAG})
+      add_test(test_rxn_ternary_chemical_activation ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_ternary_chemical_activation.sh ${MPI_TEST_FLAG})
       add_test(test_rxn_troe ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_troe.sh ${MPI_TEST_FLAG})
       add_test(test_rxn_wet_deposition ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_wet_deposition.sh ${MPI_TEST_FLAG})
       add_test(test_sub_model_PDFiTE ${CMAKE_BINARY_DIR}/test_run/unit_sub_model_data/test_PDFiTE.sh ${MPI_TEST_FLAG})
@@ -448,9 +449,10 @@ set(REACTIONS_F_SRC
 	src/rxns/rxn_first_order_loss.F90
 	src/rxns/rxn_HL_phase_transfer.F90
 	src/rxns/rxn_photolysis.F90
-        src/rxns/rxn_SIMPOL_phase_transfer.F90
+  src/rxns/rxn_SIMPOL_phase_transfer.F90
+	src/rxns/rxn_ternary_chemical_activation.F90
 	src/rxns/rxn_troe.F90
-        src/rxns/rxn_wet_deposition.F90)
+  src/rxns/rxn_wet_deposition.F90)
 
 set(REACTIONS_C_SRC
 	src/rxns/rxn_aqueous_equilibrium.c
@@ -462,9 +464,10 @@ set(REACTIONS_C_SRC
 	src/rxns/rxn_first_order_loss.c
 	src/rxns/rxn_HL_phase_transfer.c
 	src/rxns/rxn_photolysis.c
-        src/rxns/rxn_SIMPOL_phase_transfer.c
+  src/rxns/rxn_SIMPOL_phase_transfer.c
+	src/rxns/rxn_ternary_chemical_activation.c
 	src/rxns/rxn_troe.c
-        src/rxns/rxn_wet_deposition.c)
+  src/rxns/rxn_wet_deposition.c)
 
 set_source_files_properties(${REACTIONS_F_SRC} PROPERTIES COMPILE_FLAGS
         ${STD_F_FLAGS})
@@ -716,6 +719,8 @@ add_executable(test_rxn_photolysis test/unit_rxn_data/test_rxn_photolysis.F90)
 target_link_libraries(test_rxn_photolysis partmclib)
 add_executable(test_rxn_SIMPOL_phase_transfer test/unit_rxn_data/test_rxn_SIMPOL_phase_transfer.F90)
 target_link_libraries(test_rxn_SIMPOL_phase_transfer partmclib)
+add_executable(test_rxn_ternary_chemical_activation test/unit_rxn_data/test_rxn_ternary_chemical_activation.F90)
+target_link_libraries(test_rxn_ternary_chemical_activation partmclib)
 add_executable(test_rxn_troe test/unit_rxn_data/test_rxn_troe.F90)
 target_link_libraries(test_rxn_troe partmclib)
 add_executable(test_rxn_wet_deposition test/unit_rxn_data/test_rxn_wet_deposition.F90)

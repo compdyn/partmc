@@ -249,6 +249,29 @@ void rxn_SIMPOL_phase_transfer_calc_jac_contrib(ModelData *model_data,
                                                 realtype time_step);
 #endif
 
+// ternary_chemical_activation
+void rxn_ternary_chemical_activation_get_used_jac_elem(int *rxn_int_data,
+                                                       double *rxn_float_data,
+                                                       Jacobian *jac);
+void rxn_ternary_chemical_activation_update_ids(ModelData *model_data,
+                                                int *deriv_ids, Jacobian jac,
+                                                int *rxn_int_data,
+                                                double *rxn_float_data);
+void rxn_ternary_chemical_activation_update_env_state(ModelData *model_data,
+                                                      int *rxn_int_data,
+                                                      double *rxn_float_data,
+                                                      double *rxn_env_data);
+void rxn_ternary_chemical_activation_print(int *rxn_int_data,
+                                           double *rxn_float_data);
+#ifdef PMC_USE_SUNDIALS
+void rxn_ternary_chemical_activation_calc_deriv_contrib(
+    ModelData *model_data, TimeDerivative time_deriv, int *rxn_int_data,
+    double *rxn_float_data, double *rxn_env_data, realtype time_step);
+void rxn_ternary_chemical_activation_calc_jac_contrib(
+    ModelData *model_data, Jacobian jac, int *rxn_int_data,
+    double *rxn_float_data, double *rxn_env_data, realtype time_step);
+#endif
+
 // troe
 void rxn_troe_get_used_jac_elem(int *rxn_int_data, double *rxn_float_data,
                                 Jacobian *jac);

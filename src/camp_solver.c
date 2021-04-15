@@ -1091,11 +1091,10 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
     // Set the solver Jacobian using the reaction and sub-model Jacobians
     JacMap *jac_map = md->jac_map;
     SM_DATA_S(md->J_params)[0] = 1.0;  // dummy value for non-sub model calcs
-    for (int i_map = 0; i_map < md->n_mapped_values; ++i_map)
-      SM_DATA_S(J)
-      [i_cell * md->n_per_cell_solver_jac_elem + jac_map[i_map].solver_id] +=
-          SM_DATA_S(md->J_rxn)[jac_map[i_map].rxn_id] *
-          SM_DATA_S(md->J_params)[jac_map[i_map].param_id];
+    for (int i_map = 0; i_map < md->n_mapped_values; ++i_map) SM_DATA_S(J)
+    [i_cell * md->n_per_cell_solver_jac_elem + jac_map[i_map].solver_id] +=
+        SM_DATA_S(md->J_rxn)[jac_map[i_map].rxn_id] *
+        SM_DATA_S(md->J_params)[jac_map[i_map].param_id];
     PMC_DEBUG_JAC(J, "solver Jacobian");
   }
 

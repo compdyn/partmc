@@ -1428,8 +1428,13 @@ contains
          aero_data)
     num_concs_of_avg_part = aero_state_num_concs(aero_state_averaged, &
          aero_data)
-    masses_of_avg_part = aero_state_masses(aero_state_averaged, &
-         aero_data, include, exclude)
+    if (present(groups)) then
+       masses_of_avg_part = aero_state_masses(aero_state_averaged, aero_data, &
+            include=pack(groups, len_trim(groups) > 0))
+    else
+       masses_of_avg_part = aero_state_masses(aero_state_averaged, aero_data, &
+            include, exclude)
+    end if
     entropies_of_avg_part = aero_state_mass_entropies(aero_state_averaged, &
          aero_data, include, exclude, group, groups)
 

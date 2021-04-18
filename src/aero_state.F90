@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2018 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2021 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -1234,9 +1234,10 @@ contains
   !! include but not in \c exclude are included. If \c group is
   !! specified then the species are divided into two sets, given by
   !! those in the group and those not in the group. The entropy is
-  !! then computed using the total mass of each set.
+  !! then computed using the total mass of each set. Alternatively \c
+  !! groups can be specified, which lists several groups of species.
   function aero_state_mass_entropies(aero_state, aero_data, include, exclude, &
-       group)
+       group, groups)
 
     !> Aerosol state.
     type(aero_state_t), intent(in) :: aero_state
@@ -1248,14 +1249,18 @@ contains
     character(len=*), optional :: exclude(:)
     !> Species names to group together.
     character(len=*), optional :: group(:)
+    !> Sets of species names to group together.
+    character(len=*), optional :: groups(:,:)
 
     !> Return value.
     real(kind=dp) :: aero_state_mass_entropies(aero_state_n_part(aero_state))
 
     logical :: use_species(aero_data_n_spec(aero_data))
     logical :: group_species(aero_data_n_spec(aero_data))
-    integer :: i_name, i_spec, i_part
+    integer :: i_name, i_spec, i_part, i_group, n_group
+    integer :: species_group_numbers(aero_data_n_spec(aero_data))
     real(kind=dp) :: group_mass, non_group_mass, mass
+    real(kind=dp), allocatable :: group_masses(:)
 
     if (present(include)) then
        use_species = .false.
@@ -1301,6 +1306,45 @@ contains
           aero_state_mass_entropies(i_part) &
                = entropy([group_mass, non_group_mass])
        end do
+    else if (present(groups)) then
+       call assert_msg(161633285, .not. present(include), &
+            "cannot specify both 'include' and 'groups' arguments")
+       call assert_msg(273540426, .not. present(exclude), &
+            "cannot specify both 'exclude' and 'groups' arguments")
+       call assert_msg(499993914, .not. present(group), &
+            "cannot specify both 'group' and 'groups' arguments")
+
+       n_group = size(groups, 1)
+       ! species_group_numbers(i_spec) will give the group number for
+       ! each species, or zero for non-included
+       species_group_numbers = 0 ! extra species go into zero (unuesd) group
+       do i_group = 1, n_group
+          do i_name = 1, size(groups, 2)
+             if (len_trim(groups(i_group, i_name)) > 0) then
+                i_spec = aero_data_spec_by_name(aero_data, &
+                     groups(i_group, i_name))
+                call assert_msg(926066826, i_spec > 0, &
+                     "unknown species: " // trim(groups(i_group, i_name)))
+                if (use_species(i_spec)) then
+                   species_group_numbers(i_spec) = i_group
+                end if
+             end if
+          end do
+       end do
+
+       allocate(group_masses(n_group))
+       do i_part = 1,aero_state_n_part(aero_state)
+          group_masses = 0d0
+          do i_spec = 1,aero_data_n_spec(aero_data)
+             mass = aero_particle_species_mass( &
+                  aero_state%apa%particle(i_part), i_spec, aero_data)
+             i_group = species_group_numbers(i_spec)
+             if (i_group > 0) then
+                group_masses(i_group) = group_masses(i_group) + mass
+             end if
+          end do
+          aero_state_mass_entropies(i_part) = entropy(group_masses)
+       end do
     else
        do i_part = 1,aero_state_n_part(aero_state)
           aero_state_mass_entropies(i_part) = entropy(pack( &
@@ -1322,9 +1366,12 @@ contains
   !! include but not in \c exclude are included. If \c group is
   !! specified then the species are divided into two sets, given by
   !! those in the group and those not in the group. The entropies are
-  !! then computed using the total mass of each set.
+  !! then computed using the total mass of each set. Alternatively \c
+  !! groups can be specified, which lists several groups of
+  !! species. If \c groups is provided, only species explicitly listed
+  !! will be included.
   subroutine aero_state_mixing_state_metrics(aero_state, aero_data, d_alpha, &
-       d_gamma, chi, include, exclude, group)
+       d_gamma, chi, include, exclude, group, groups)
 
     !> Aerosol state.
     type(aero_state_t), intent(in) :: aero_state
@@ -1342,6 +1389,8 @@ contains
     character(len=*), optional :: exclude(:)
     !> Species names to group together.
     character(len=*), optional :: group(:)
+    !> Sets of species names to group together.
+    character(len=*), optional :: groups(:,:)
 
     real(kind=dp), allocatable :: entropies(:), entropies_of_avg_part(:)
     real(kind=dp), allocatable :: masses(:), num_concs(:), &
@@ -1349,11 +1398,25 @@ contains
     type(aero_state_t) :: aero_state_averaged
     type(bin_grid_t) :: avg_bin_grid
 
-    ! per-particle properties
+    ! per-particle masses need to take groups into account
+
+    if (present(groups)) then
+       call assert_msg(726652236, .not. present(include), &
+            "cannot specify both 'include' and 'groups' arguments")
+       call assert_msg(891097454, .not. present(exclude), &
+            "cannot specify both 'exclude' and 'groups' arguments")
+       call assert_msg(938789093, .not. present(group), &
+            "cannot specify both 'group' and 'groups' arguments")
+       masses = aero_state_masses(aero_state, aero_data, &
+            include=pack(groups, len_trim(groups) > 0))
+    else
+       masses = aero_state_masses(aero_state, aero_data, include, exclude)
+    end if
+
+    ! other per-particle properties
     num_concs = aero_state_num_concs(aero_state, aero_data)
-    masses = aero_state_masses(aero_state, aero_data, include, exclude)
     entropies = aero_state_mass_entropies(aero_state, aero_data, &
-         include, exclude, group)
+         include, exclude, group, groups)
 
     d_alpha = exp(sum(entropies * masses * num_concs) &
              / sum(masses * num_concs))
@@ -1365,10 +1428,15 @@ contains
          aero_data)
     num_concs_of_avg_part = aero_state_num_concs(aero_state_averaged, &
          aero_data)
-    masses_of_avg_part = aero_state_masses(aero_state_averaged, &
-         aero_data, include, exclude)
+    if (present(groups)) then
+       masses_of_avg_part = aero_state_masses(aero_state_averaged, aero_data, &
+            include=pack(groups, len_trim(groups) > 0))
+    else
+       masses_of_avg_part = aero_state_masses(aero_state_averaged, aero_data, &
+            include, exclude)
+    end if
     entropies_of_avg_part = aero_state_mass_entropies(aero_state_averaged, &
-         aero_data, include, exclude, group)
+         aero_data, include, exclude, group, groups)
 
     d_gamma = exp(sum(entropies_of_avg_part * masses_of_avg_part &
          * num_concs_of_avg_part) &

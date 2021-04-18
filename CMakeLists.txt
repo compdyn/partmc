@@ -121,6 +121,7 @@ add_test(test_emission ${CMAKE_BINARY_DIR}/test_run/run_test_directory.sh emissi
 add_test(test_fractal ${CMAKE_BINARY_DIR}/test_run/run_test_directory.sh fractal)
 add_test(test_loss ${CMAKE_BINARY_DIR}/test_run/run_test_directory.sh loss)
 add_test(test_nucleate ${CMAKE_BINARY_DIR}/test_run/run_test_directory.sh nucleate)
+add_test(test_mixing_state ${CMAKE_BINARY_DIR}/test_run/run_test_directory.sh mixing_state)
 if(ENABLE_MOSAIC)
   add_test(test_mosaic ${CMAKE_BINARY_DIR}/test_run/run_test_directory.sh mosaic)
 endif()
@@ -229,6 +230,14 @@ add_executable(test_fractal_radii_conversion
   test/fractal/test_fractal_radii_conversion.F90)
 
 target_link_libraries(test_fractal_radii_conversion partmclib)
+
+######################################################################
+# test_mixing_state_process
+
+add_executable(test_mixing_state_process
+  test/mixing_state/test_mixing_state_process.F90)
+
+target_link_libraries(test_mixing_state_process partmclib)
 
 ######################################################################
 # bin_average_comp

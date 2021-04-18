@@ -10,6 +10,8 @@ __next version__ - XXXX-XX-XX
 
   * Update Docker build to use Fedora 33 (Matt West).
 
+  * Add multiple groups for mixing state index calculations (Matt West).
+
 2.5.0 - 2018-11-17
 
   * Shift NetCDF CMake rules to `netcdf.cmake` (Matt West).

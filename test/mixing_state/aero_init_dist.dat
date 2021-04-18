@@ -1,0 +1,13 @@
+mode_name init1                 # name of mode source
+mass_frac aero_init_comp_1.dat  # species mass fractions
+diam_type geometric             # type of diameter specified
+mode_type mono                  # type of mode
+num_conc 1e13                   # particle number concentration (#/m^3)
+diam 1e-7                       # particle diameter (m)
+
+mode_name init2                 # name of mode source
+mass_frac aero_init_comp_2.dat  # species mass fractions
+diam_type geometric             # type of diameter specified
+mode_type mono                  # type of mode
+num_conc 1e10                   # particle number concentration (#/m^3)
+diam 1e-6                       # particle diameter (m)

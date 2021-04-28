@@ -10,7 +10,7 @@
 !! Troe (fall-off) reaction rate constant equations take the form:
 !!
 !! \f[
-!!   \frac{k_0[\mbox{M}]}{1+k_0[\mbox{M}]/k_{\inf}}F_C^{1+(1/N[log_{10}(k_0[\mbox{M}]/k_{\inf})]^2)^{-1}}
+!!   \frac{k_0[\mbox{M}]}{1+k_0[\mbox{M}]/k_{\inf}}F_C^{(1+1/N[log_{10}(k_0[\mbox{M}]/k_{\inf})]^2)^{-1}}
 !! \f]
 !!
 !! where \f$k_0\f$ is the low-pressure limiting rate constant, \f$k_{\inf}\f$

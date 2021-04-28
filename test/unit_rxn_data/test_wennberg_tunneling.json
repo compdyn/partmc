@@ -1,0 +1,52 @@
+{
+  "pmc-data" : [
+  {
+    "type" : "RELATIVE_TOLERANCE",
+    "value" : 1.0e-30
+  },
+  {
+    "name" : "A",
+    "type" : "CHEM_SPEC",
+    "absolute tolerance" : 1.0e-30
+  },
+  {
+    "name" : "B",
+    "type" : "CHEM_SPEC",
+    "absolute tolerance" : 1.0e-30
+  },
+  {
+    "name" : "C",
+    "type" : "CHEM_SPEC",
+    "absolute tolerance" : 1.0e-30
+  },
+  {
+    "name" : "troe",
+    "type" : "MECHANISM",
+    "reactions" : [
+      {
+	      "type" : "WENNBERG_TUNNELING",
+	      "reactants" : {
+	        "A" : {}
+	      },
+	      "products" : {
+	        "B" : {}
+	      },
+	      "A" : 4.0e-3
+      },
+      {
+	      "type" : "WENNBERG_TUNNELING",
+	      "reactants" : {
+	        "B" : {}
+	      },
+	      "products" : {
+	        "C" : {}
+	      },
+	      "A" : 1.2e-4,
+	      "B" : 167,
+        "C" : 1.0e8,
+	      "time unit" : "MIN"
+      }
+    ]
+  }
+  ]
+}

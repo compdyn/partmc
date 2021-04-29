@@ -415,6 +415,7 @@ void *aero_rep_single_particle_create_number_update_data() {
  *
  * \param update_data Pointer to an allocated number update data object
  * \param aero_rep_id Id of the aerosol representation(s) to update
+ * \param particle_id Id of the computational particle
  * \param number_conc New particle number (#/m3)
  */
 void aero_rep_single_particle_set_number_update_data__n_m3(void *update_data,

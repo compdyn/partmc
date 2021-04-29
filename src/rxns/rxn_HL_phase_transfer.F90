@@ -15,12 +15,12 @@
 !! \f]
 !!
 !! where \f$HLC(298K)\f$ is the Henry's Law constant at 298 K
-!! [\f$\mbox{\si{M Pa^{-1}}}\f$], \f$C\f$ is a constant [\f$\mbox{K}\f$] and
-!! \f$T\f$ is the temperature [\f$\mbox{K}\f$]. Uptake kinetics are based on
+!! [M\f$\mbox{Pa}^{-1}\f$], \f$C\f$ is a constant [K] and
+!! \f$T\f$ is the temperature [K]. Uptake kinetics are based on
 !! the particle effective radius, \f$r_{eff}\f$ [\f$\mbox{m}\f$], the
 !! condensing species gas-phase diffusion coefficient, \f$D_g\f$
-!! [\f$\mbox{\si{\square\metre\per\second}}\f$], its molecular weight \f$MW\f$
-!! [\f$\mbox{\si{\kilo\gram\per\mole}}\f$], and \f$N^{*}\f$, which is
+!! [\f$\mbox{m}^2\,\mbox{s}^{-1}\f$], its molecular weight \f$MW\f$
+!! [kg\f$\mbox{mol}^{-3}\f$], and \f$N^{*}\f$, which is
 !! used to calculate the mass accomodation coefficient.
 !!
 !! Mass accomodation coefficients and condensation rate constants are
@@ -29,15 +29,15 @@
 !! calculated as:
 !!
 !! \f[
-!!   \Delta H_{obs} = -10 \times (N^*-1) + 7.53 \times (N^{*2/3}-1) - 0.1 \times 10 (\mbox{\si{kcal.M^{-1}}})
+!!   \Delta H_{obs} = -10 \times (N^*-1) + 7.53 \times (N^{*2/3}-1) - 0.1 \times 10 \quad (\mbox{kcal}\,\mbox{M}^{-1})
 !! \f]
 !! \f[
-!!   \Delta S_{obs} = -13 \times (N^*-1) - 19 \times (N^*-1) + 9.21 \times (N^{*2/3}-1) - 0.1 \times 13 (\mbox{\si{cal.M^{-1}.K^{-1}}})
+!!   \Delta S_{obs} = -13 \times (N^*-1) - 19 \times (N^*-1) + 9.21 \times (N^{*2/3}-1) - 0.1 \times 13 \quad (\mbox{cal}\,\mbox{M}^{-1}\,\mbox{K}^{-1})
 !! \f]
 !! \f[
-!!   \frac{\alpha}{1-\alpha} = e^{\frac{-\Delta G^{\*}}{RT}}
+!!   \frac{\alpha}{1-\alpha} = e^{\frac{-\Delta G^{*}}{RT}}
 !! \f]
-!! If \f$\Delta H\f$ and \f$\Detla S\f$ are not provided, \f$\alpha\f$ is
+!! If \f$\Delta H\f$ and \f$\Delta S\f$ are not provided, \f$\alpha\f$ is
 !! set to 0.1 \cite Zaveri2008.
 !!
 !! Condensation rate constants are calculated as:
@@ -50,7 +50,7 @@
 !!   \langle c \rangle = \sqrt{\frac{8RT}{\pi MW}}
 !! \f]
 !! where \f$R\f$ is the ideal gas constant
-!! [\f$\mbox{\si{\joule\per\kelvin\per\mole}}\f$]. The particle radius used
+!! [\f$\mbox{J}\,\mbox{K}^{-1}\,\mbox{mol}^{-1}\f$]. The particle radius used
 !! to calculate \f$k_{f}\f$ is the effective radius [\f$r_{eff}\f$], which is
 !! taken as the "least-wrong" choice for condensation rates, as it is weighted
 !! to surface area \cite Zender2002 .
@@ -69,13 +69,13 @@
 !! The key-value pairs \b gas-phase \b species, and \b aerosol-phase
 !! \b species are required. Only one gas- and one aerosol-phase species are
 !! allowed per phase-transfer reaction. Additionally, gas-phase species must
-!! include parameters named \b HLC(298K) \b [M \b Pa-1], which is the Henry's
-!! Law constant at 298 K, \b HLC \b exp \b factor \b [K], which is the
-!! Henry's Law constant exponential factor "C", \b diffusion \b coeff \b [m2
+!! include parameters named \b HLC(298K) \b [\b M \b Pa-1], which is the Henry's
+!! Law constant at 298 K, \b HLC \b exp \b factor \b [\b K], which is the
+!! Henry's Law constant exponential factor "C", \b diffusion \b coeff \b [\b m2
 !! \b s-1], which specifies the diffusion coefficient in
-!! \f$\mbox{\si{\square\metre\per\second}}\f$, and \b molecular \b weight
-!! \b [kg \b mol-1], which specifies the molecular weight of the species in
-!! \f$\mbox{\si{\kilo\gram\per\mole}}\f$. They may optionally include the
+!! \f$\mbox{m}^2\,\mbox{s}^{-1}\f$, and \b molecular \b weight
+!! \b [\b kg \b mol-1], which specifies the molecular weight of the species in
+!! \f$\mbox{kg}\,\mbox{mol}^{-1}\f$. They may optionally include the
 !! parameter \b N \b star, which will be used to calculate the mass
 !! accomodation coefficient. When this parameter is not included, the mass
 !! accomodation coefficient is assumed to be 1.0.

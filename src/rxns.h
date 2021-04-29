@@ -290,6 +290,35 @@ void rxn_troe_calc_jac_contrib(ModelData *model_data, Jacobian jac,
                                double *rxn_env_data, realtype time_step);
 #endif
 
+// wennberg_no_ro2
+void rxn_wennberg_no_ro2_get_used_jac_elem(int *rxn_int_data,
+                                           double *rxn_float_data,
+                                           Jacobian *jac);
+void rxn_wennberg_no_ro2_update_ids(ModelData *model_data, int *deriv_ids,
+                                    Jacobian jac, int *rxn_int_data,
+                                    double *rxn_float_data);
+void rxn_wennberg_no_ro2_update_env_state(ModelData *model_data,
+                                          int *rxn_int_data,
+                                          double *rxn_float_data,
+                                          double *rxn_env_data);
+bool rxn_wennberg_no_ro2_update_data(void *update_data, int *rxn_int_data,
+                                     double *rxn_float_data,
+                                     double *rxn_env_data);
+void rxn_wennberg_no_ro2_print(int *rxn_int_data, double *rxn_float_data);
+#ifdef PMC_USE_SUNDIALS
+void rxn_wennberg_no_ro2_calc_deriv_contrib(
+    ModelData *model_data, TimeDerivative time_deriv, int *rxn_int_data,
+    double *rxn_float_data, double *rxn_env_data, realtype time_step);
+void rxn_wennberg_no_ro2_calc_jac_contrib(ModelData *model_data, Jacobian jac,
+                                          int *rxn_int_data,
+                                          double *rxn_float_data,
+                                          double *rxn_env_data,
+                                          realtype time_step);
+#endif
+void *rxn_wennberg_no_ro2_create_rate_update_data();
+void rxn_wennberg_no_ro2_set_rate_update_data(void *update_data, int rxn_id,
+                                              double base_rate);
+
 // wennberg_tunneling
 void rxn_wennberg_tunneling_get_used_jac_elem(int *rxn_int_data,
                                               double *rxn_float_data,

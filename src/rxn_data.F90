@@ -47,6 +47,7 @@
 !!   - \subpage camp_rxn_SIMPOL_phase_transfer "SIMPOL.1 phase transfer"
 !!   - \subpage camp_rxn_ternary_chemical_activation "ternary chemical activation"
 !!   - \subpage camp_rxn_troe "Troe (fall-off)"
+!!   - \subpage camp_rxn_wennberg_no_ro2 "Wennberg NO + RO2"
 !!   - \subpage camp_rxn_wennberg_tunneling "Wennberg tunneling"
 !!   - \subpage camp_rxn_wet_deposition "wet deposition"
 !!

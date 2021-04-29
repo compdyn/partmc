@@ -1,0 +1,64 @@
+{
+  "pmc-data" : [
+  {
+    "type" : "RELATIVE_TOLERANCE",
+    "value" : 1.0e-30
+  },
+  {
+    "name" : "A",
+    "type" : "CHEM_SPEC",
+    "absolute tolerance" : 1.0e-30
+  },
+  {
+    "name" : "B",
+    "type" : "CHEM_SPEC",
+    "absolute tolerance" : 1.0e-30
+  },
+  {
+    "name" : "C",
+    "type" : "CHEM_SPEC",
+    "absolute tolerance" : 1.0e-30
+  },
+  {
+    "name" : "D",
+    "type" : "CHEM_SPEC",
+    "absolute tolerance" : 1.0e-30
+  },
+  {
+    "name" : "troe",
+    "type" : "MECHANISM",
+    "reactions" : [
+      {
+	      "type" : "WENNBERG_NO_RO2",
+	      "reactants" : {
+	        "A" : {}
+	      },
+	      "alkoxy products" : {
+	        "C" : {}
+	      },
+        "nitrate products" : {
+          "B" : {}
+        },
+	      "X" : 4.0e-3
+      },
+      {
+	      "type" : "WENNBERG_NO_RO2",
+	      "reactants" : {
+	        "B" : {}
+	      },
+	      "alkoxy products" : {
+	        "C" : {}
+	      },
+        "nitrate products" : {
+          "D" : {}
+        },
+	      "X" : 1.2e-4,
+	      "Y" : 167,
+        "a0" : 0.15,
+        "n" : 9,
+	      "time unit" : "MIN"
+      }
+    ]
+  }
+  ]
+}

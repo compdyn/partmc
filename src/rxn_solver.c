@@ -30,6 +30,7 @@
 #define RXN_WET_DEPOSITION 14
 #define RXN_TERNARY_CHEMICAL_ACTIVATION 15
 #define RXN_WENNBERG_TUNNELING 16
+#define RXN_WENNBERG_NO_RO2 17
 
 /** \brief Get the Jacobian elements used by a particular reaction
  *
@@ -95,6 +96,10 @@ void rxn_get_used_jac_elem(ModelData *model_data, Jacobian *jac) {
         break;
       case RXN_TROE:
         rxn_troe_get_used_jac_elem(rxn_int_data, rxn_float_data, jac);
+        break;
+      case RXN_WENNBERG_NO_RO2:
+        rxn_wennberg_no_ro2_get_used_jac_elem(rxn_int_data, rxn_float_data,
+                                              jac);
         break;
       case RXN_WENNBERG_TUNNELING:
         rxn_wennberg_tunneling_get_used_jac_elem(rxn_int_data, rxn_float_data,
@@ -178,6 +183,10 @@ void rxn_update_ids(ModelData *model_data, int *deriv_ids, Jacobian jac) {
         rxn_troe_update_ids(model_data, deriv_ids, jac, rxn_int_data,
                             rxn_float_data);
         break;
+      case RXN_WENNBERG_NO_RO2:
+        rxn_wennberg_no_ro2_update_ids(model_data, deriv_ids, jac, rxn_int_data,
+                                       rxn_float_data);
+        break;
       case RXN_WENNBERG_TUNNELING:
         rxn_wennberg_tunneling_update_ids(model_data, deriv_ids, jac,
                                           rxn_int_data, rxn_float_data);
@@ -260,6 +269,10 @@ void rxn_update_env_state(ModelData *model_data) {
       case RXN_TROE:
         rxn_troe_update_env_state(model_data, rxn_int_data, rxn_float_data,
                                   rxn_env_data);
+        break;
+      case RXN_WENNBERG_NO_RO2:
+        rxn_wennberg_no_ro2_update_env_state(model_data, rxn_int_data,
+                                             rxn_float_data, rxn_env_data);
         break;
       case RXN_WENNBERG_TUNNELING:
         rxn_wennberg_tunneling_update_env_state(model_data, rxn_int_data,
@@ -358,6 +371,11 @@ void rxn_calc_deriv(ModelData *model_data, TimeDerivative time_deriv,
       case RXN_TROE:
         rxn_troe_calc_deriv_contrib(model_data, time_deriv, rxn_int_data,
                                     rxn_float_data, rxn_env_data, time_step);
+        break;
+      case RXN_WENNBERG_NO_RO2:
+        rxn_wennberg_no_ro2_calc_deriv_contrib(model_data, time_deriv,
+                                               rxn_int_data, rxn_float_data,
+                                               rxn_env_data, time_step);
         break;
       case RXN_WENNBERG_TUNNELING:
         rxn_wennberg_tunneling_calc_deriv_contrib(model_data, time_deriv,
@@ -499,6 +517,11 @@ void rxn_calc_jac(ModelData *model_data, Jacobian jac, realtype time_step) {
       case RXN_TROE:
         rxn_troe_calc_jac_contrib(model_data, jac, rxn_int_data, rxn_float_data,
                                   rxn_env_data, time_step);
+        break;
+      case RXN_WENNBERG_NO_RO2:
+        rxn_wennberg_no_ro2_calc_jac_contrib(model_data, jac, rxn_int_data,
+                                             rxn_float_data, rxn_env_data,
+                                             time_step);
         break;
       case RXN_WENNBERG_TUNNELING:
         rxn_wennberg_tunneling_calc_jac_contrib(model_data, jac, rxn_int_data,
@@ -745,6 +768,9 @@ void rxn_print_data(void *solver_data) {
         break;
       case RXN_TROE:
         rxn_troe_print(rxn_int_data, rxn_float_data);
+        break;
+      case RXN_WENNBERG_NO_RO2:
+        rxn_wennberg_no_ro2_print(rxn_int_data, rxn_float_data);
         break;
       case RXN_WENNBERG_TUNNELING:
         rxn_wennberg_tunneling_print(rxn_int_data, rxn_float_data);

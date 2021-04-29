@@ -13,7 +13,7 @@
 !!   \rightarrow \mbox{X}
 !! \f]
 !!
-!! where \f$\mbox{\ch{X}}\f$ is the species being emitted.
+!! where \f$\ce{X}\f$ is the species being emitted.
 !!
 !! Emission rates can be constant or set from an external module using the
 !! \c pmc_rxn_emission::rxn_update_data_emission_t object.

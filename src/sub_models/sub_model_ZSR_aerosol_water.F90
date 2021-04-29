@@ -18,11 +18,11 @@
 !! \f]
 !!
 !! where \f$M\f$ is the concentration of binary electrolyte \f$i\f$
-!! (\f$\mbox{\si{\micro\gram\per\cubic\metre}}\f$) with molecular weight
-!! \f$MW_i\f$ (\f$\mbox{\si{\kilo\gram\per\mole}}\f$) and molality
+!! (\f$\mbox{$\mu$g}\,\mbox{m}^{-3}\f$) with molecular weight
+!! \f$MW_i\f$ (\f$\mbox{kg}\,\mbox{mol}^{-1}\f$) and molality
 !! \f$m_{i}\f$ at a given water activity \f$a_w\f$ (RH; 0--1)
 !! contributing to the total aerosol water content \f$W\f$
-!! (\f$\mbox{\si{\micro\gram\per\cubic\metre}}\f$).
+!! (\f$\mbox{$\mu$g}\,\mbox{m}^{-3}\f$).
 !!
 !! Input data for ZSR aerosol water calculations have the following format :
 !! \code{.json}
@@ -93,8 +93,8 @@
 !! electrolyte includes. Each species must correspond to a species present in
 !! \b aerosol \b phase and  have a \b charge parameter that specifies their
 !! charge (uncharged species are not permitted in this set) and a
-!! \b molecular \b weight \b [kg \b mol-1]
-!! (\f$\mbox{\si{\kilo\gram\per\mole}}\f$) property.
+!! \b molecular \b weight \b [\b kg \b mol-1]
+!! (\f$\mbox{kg}\,\mbox{mol}^{-1}\f$) property.
 !! Ions without a \b qty specified are assumed to appear once in the binary
 !! electrolyte. The total molecular weight for the binary electroly
 !! \f$MW_i\f$ is calculated as a sum of its ionic components, and the ion
@@ -150,7 +150,7 @@
 !! where \f$NW_i\f$ and \f$ZW_i\f$ are fitting parameters \cite Metzger2002,
 !! and must be provided in key-value pairs \b NW and \b ZW, along with the
 !! binary electrolyte molecular weight \b MW
-!! (\f$\mbox{\si{\kilo\gram\per\mole}}\f$). The key-value pair \b ions must
+!! (\f$\mbox{kg}\,\mbox{mol}^{-1}\f$). The key-value pair \b ions must
 !! contain a set of ions that can be summed to calculate \f$M_i\f$ at runtime.
 !!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

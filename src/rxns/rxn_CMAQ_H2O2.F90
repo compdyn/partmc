@@ -9,12 +9,12 @@
 !!
 !! For the reactions:
 !!
-!! \f[\mbox{\ch{
+!! \f[\ce{
 !!   HO2 + HO2 ->[k] H2O2
-!! }}\f]
-!! \f[\mbox{\ch{
+!! }\f]
+!! \f[\ce{
 !!   HO2 + HO2 + H2O ->[k] H2O2
-!! }}\f]
+!! }\f]
 !!
 !! CMAQ rate constants are calculated as:
 !!
@@ -24,9 +24,9 @@
 !!
 !! where \f$k_1\f$ and \f$k_2\f$ are \ref camp_rxn_arrhenius "Arrhenius" rate
 !! constants with \f$D=300\f$ and \f$E=0\f$, and \f$[\mbox{M}]\f$ is the
-!! concentration of air (\f$10^6\f$ ppm) \cite Gipson.
+!! concentration of air \cite Gipson.
 !!
-!! Input data for CMAQ \f$\mbox{\ch{H2O2}}\f$ reactions have the following
+!! Input data for CMAQ \f$\ce{H2O2}\f$ reactions have the following
 !! format:
 !! \code{.json}
 !!   {

@@ -9,14 +9,14 @@
 !!
 !! Photolysis reactions take the form:
 !!
-!! \f[\mbox{\ch{
+!! \f[\ce{
 !!   X + h $\nu$ -> Y_1 ( + Y_2 \dots )
-!! }}\f]
+!! }\f]
 !!
-!! where \f$\mbox{\ch{X}}\f$ is the species being photolyzed, and
-!! \f$\mbox{\ch{Y_n}}\f$ are the photolysis products.
+!! where \f$\ce{X}\f$ is the species being photolyzed, and
+!! \f$\ce{Y_n}\f$ are the photolysis products.
 !!
-!! Photolysis rate constants (including the \f$\mbox{\ch{h $\nu$}}\f$ term)
+!! Photolysis rate constants (including the \f$\ce{h $\nu$}\f$ term)
 !! can be constant or set from an external photolysis module using the
 !! \c pmc_rxn_photolysis::rxn_update_data_photolysis_t object.
 !! External modules can use the

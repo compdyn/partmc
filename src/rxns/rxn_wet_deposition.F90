@@ -13,7 +13,7 @@
 !!   \mbox{X} \rightarrow
 !! \f]
 !!
-!! where \f$\mbox{\ch{X}}\f$ is a set of species in an aerosol phase
+!! where \f$\ce{X}\f$ is a set of species in an aerosol phase
 !! undergoing wet deposition at a given rate.
 !!
 !! Wet deposition rate constants can be constant or set from an external

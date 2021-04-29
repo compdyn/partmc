@@ -17,7 +17,7 @@
 !! where \f$A\f$ is the pre-exponential factor
 !! (\f$[\mbox{U}]^{-(n-1)} s^{-1}\f$), \f$U\f$ is the unit of the reactants
 !! and products, which can be \f$M\f$ for aqueous-phase reactions or
-!! \f$\mbox{\si{\mole\per\cubic\metre}}\f$ for all other condensed-phase
+!! mol \f$\mbox{m}^{-3}\f$ for all other condensed-phase
 !! reactions, \f$n\f$ is the number of reactants, \f$E_a\f$ is the activation
 !! energy (J), \f$k_b\f$ is the Boltzmann constant (J/K), \f$D\f$ (K), \f$B\f$
 !! (unitless) and \f$E\f$ (\f$Pa^{-1}\f$) are reaction parameters, \f$T\f$ is

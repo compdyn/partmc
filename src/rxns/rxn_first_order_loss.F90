@@ -13,7 +13,7 @@
 !!   \mbox{X} \rightarrow
 !! \f]
 !!
-!! where \f$\mbox{\ch{X}}\f$ is the species being lost.
+!! where \f$\ce{X}\f$ is the species being lost.
 !!
 !! First-Order loss rate constants can be constant or set from an external
 !! module using the

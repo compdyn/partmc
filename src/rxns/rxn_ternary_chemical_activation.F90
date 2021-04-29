@@ -15,7 +15,7 @@
 !!
 !! where \f$k_0\f$ is the low-pressure limiting rate constant, \f$k_{\inf}\f$
 !! is the high-pressure limiting rate constant, \f$[\mbox{M}]\f$ is the
-!! density of air (\f$10^6\f$ ppm), and \f$F_C\f$ and \f$N\f$ are parameters
+!! density of air, and \f$F_C\f$ and \f$N\f$ are parameters
 !! that determine the shape of the fall-off curve, and are typically 0.6 and
 !! 1.0, respectively \cite JPL15. \f$k_0\f$ and
 !! \f$k_{\inf}\f$ are calculated as \ref camp_rxn_arrhenius "Arrhenius" rate

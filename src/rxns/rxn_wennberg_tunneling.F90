@@ -14,7 +14,7 @@
 !! \f]
 !!
 !! where \f$A\f$ is the pre-exponential factor
-!! (\f$(\mbox{\si{\#.cm^{-3}}})^{-(n-1)}\mbox{\si{\per\second}}\f$),
+!! (\f$(\mbox{#}\,\mbox{cm}^{-3})^{-(n-1)}\mbox{s}^{-1}\f$),
 !! and \f$B\f$ and \f$C\f$ are parameters that capture the temperature
 !! dependence as described in Wennberg et al. (2018) \cite Wennberg2018 .
 !!

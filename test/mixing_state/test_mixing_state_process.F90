@@ -54,6 +54,30 @@ program test_mixing_state_process
   write(unit,'(g30.20,g30.20,g30.20)') d_alpha, d_gamma, chi
   call close_file(unit)
 
+  call aero_state_mixing_state_metrics(aero_state, aero_data, &
+       d_alpha, d_gamma, chi, group=["A", "C"])
+  write(*,'(a20,g24.16,g24.16,g24.16)') 'groupAC', &
+       d_alpha, d_gamma, chi
+  call open_file_write('out/test_groupAC.txt', unit)
+  write(unit,'(g30.20,g30.20,g30.20)') d_alpha, d_gamma, chi
+  call close_file(unit)
+
+  call aero_state_mixing_state_metrics(aero_state, aero_data, &
+       d_alpha, d_gamma, chi, group=["B", "C"], exclude=["D"])
+  write(*,'(a20,g24.16,g24.16,g24.16)') 'group_exclude', &
+       d_alpha, d_gamma, chi
+  call open_file_write('out/test_group_exclude.txt', unit)
+  write(unit,'(g30.20,g30.20,g30.20)') d_alpha, d_gamma, chi
+  call close_file(unit)
+
+  call aero_state_mixing_state_metrics(aero_state, aero_data, &
+       d_alpha, d_gamma, chi, group=["A", "D"], include=["B", "C", "D"])
+  write(*,'(a20,g24.16,g24.16,g24.16)') 'group_include', &
+       d_alpha, d_gamma, chi
+  call open_file_write('out/test_group_include.txt', unit)
+  write(unit,'(g30.20,g30.20,g30.20)') d_alpha, d_gamma, chi
+  call close_file(unit)
+
   call pmc_mpi_finalize()
 
 end program test_mixing_state_process

@@ -9,5 +9,4 @@ cd ${0%/*}
 # make the output directory if it doesn't exist
 mkdir -p out
 
-../../partmc run_part.spec
-../../test_mixing_state_process
+../../numeric_diff --by elem --abs-tol 1e-3 ref_groups.txt out/test_groups.txt

@@ -135,4 +135,19 @@ use_mu2 = np.array([mu2[0], mu2[2] + mu2[3]])
 compute_chi('groups', use_mu1, use_mu2, 'mass')
 
 print('\n' + '#' * 78)
+use_mu1 = np.array([mu1[0] + mu1[2], mu1[1] + mu1[3]])
+use_mu2 = np.array([mu2[0] + mu2[2], mu2[1] + mu2[3]])
+compute_chi('groupAC', use_mu1, use_mu2, 'mass')
+
+print('\n' + '#' * 78)
+use_mu1 = np.array([mu1[1] + mu1[2], mu1[0]])
+use_mu2 = np.array([mu2[1] + mu2[2], mu2[0]])
+compute_chi('group_exclude', use_mu1, use_mu2, 'mass')
+
+print('\n' + '#' * 78)
+use_mu1 = np.array([mu1[3], mu1[1] + mu1[2]])
+use_mu2 = np.array([mu2[3], mu2[1] + mu2[2]])
+compute_chi('group_include', use_mu1, use_mu2, 'mass')
+
+print('\n' + '#' * 78)
 

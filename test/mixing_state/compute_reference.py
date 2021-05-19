@@ -115,12 +115,20 @@ def compute_chi(name, mu1, mu2, weighting):
     chi = (Dalpha - 1) / (Dgamma - 1)
     print(f'chi = {chi}')
 
-    with open(f'ref_{name}.txt', 'w') as f:
+    output_name = f'ref_{name}.txt'
+    print(f'\nwriting output to {output_name}')
+    with open(output_name, 'w') as f:
         f.write(f'{Dalpha} {Dgamma} {chi}\n')
 
 print('\n' + '#' * 78)
-compute_chi('all_species', mu1, mu2, 'mass')
+use_mu1 = mu1
+use_mu2 = mu2
+compute_chi('all_species', use_mu1, use_mu2, 'mass')
+
 print('\n' + '#' * 78)
-compute_chi('groups', mu1, mu2, 'mass')
+use_mu1 = np.array([mu1[0], mu1[2] + mu1[3]])
+use_mu2 = np.array([mu2[0], mu2[2] + mu2[3]])
+compute_chi('groups', use_mu1, use_mu2, 'mass')
+
 print('\n' + '#' * 78)
 

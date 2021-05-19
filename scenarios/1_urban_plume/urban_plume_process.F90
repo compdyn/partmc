@@ -1,4 +1,4 @@
-! Copyright (C) 2009-2013, 2016, 2017 Matthew West
+! Copyright (C) 2009-2013, 2016, 2017, 2021 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -30,6 +30,7 @@ program process
   type(stats_1d_t) :: stats_num_dist, stats_d_alpha, stats_tot_num_conc, &
        stats_tot_mass_conc, stats_d_gamma, stats_chi
   type(stats_2d_t) :: stats_diam_bc_dist, stats_diam_sc_dist
+  character(len=AERO_NAME_LEN), allocatable :: mixing_state_groups(:,:)
 
   call pmc_mpi_init()
 
@@ -40,6 +41,11 @@ program process
   call bin_grid_make(sc_grid, BIN_GRID_TYPE_LOG, 50, 1d-4, 1d0)
 
   allocate(times(n_index))
+
+  allocate(mixing_state_groups(3, 4)) ! 3 groups, max 4 species per group
+  mixing_state_groups(1,:) = ["OC    ", "BC    ", "      ", "      "]
+  mixing_state_groups(2,:) = ["API1  ", "API2  ", "LIM1  ", "LIM2  "]
+  mixing_state_groups(3,:) = ["SO4   ", "NO3   ", "NH4   ", "      "]
 
   scs = [ real(kind=dp) :: ] ! silence compiler warnings
   bc_fracs = [ real(kind=dp) :: ]
@@ -85,7 +91,7 @@ program process
         call stats_2d_add(stats_diam_sc_dist, diam_sc_dist)
 
         call aero_state_mixing_state_metrics(aero_state, aero_data, &
-             d_alpha, d_gamma, chi, exclude=(/"H2O"/))
+             d_alpha, d_gamma, chi, groups=mixing_state_groups)
 
         call stats_1d_add_entry(stats_d_alpha, d_alpha, i_index)
         call stats_1d_add_entry(stats_d_gamma, d_gamma, i_index)

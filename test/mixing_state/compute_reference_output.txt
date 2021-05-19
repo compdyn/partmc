@@ -1,0 +1,75 @@
+##############################################################################
+
+densities of species A, B, C, D
+rho = [1000 1500 2000 2500] kg m^-3
+
+mass fractions in populations P1 and P2
+w1 = [0.2 0.3 0.1 0.4]
+w2 = [0.5 0.2 0.2 0.1]
+
+diameters of particles in populations P1 and P2
+D1 = 1e-07 m
+D2 = 1e-06 m
+
+number concentrations of populations P1 and P2
+N1 = 1.000000e+13 m^-3
+N2 = 1.000000e+10 m^-3
+
+average densities in each population
+rho1 = 1639.344262295082 kg m^-3
+rho2 = 1293.1034482758619 kg m^-3
+
+per-particle mass in each population
+m1 = 8.583586485218013e-19 kg
+m2 = 6.770673822391794e-16 kg
+
+per-species masses in each population
+mu1 = [1.71671730e-19 2.57507595e-19 8.58358649e-20 3.43343459e-19] kg
+mu2 = [3.38533691e-16 1.35413476e-16 1.35413476e-16 6.77067382e-17] kg
+
+##############################################################################
+
+per-species masses in each population
+mu1 = [1.71671730e-19 2.57507595e-19 8.58358649e-20 3.43343459e-19] kg
+mu2 = [3.38533691e-16 1.35413476e-16 1.35413476e-16 6.77067382e-17] kg
+
+total per-particle mass in each population
+m1 = 8.583586485218013e-19
+m2 = 6.770673822391794e-16
+
+mass concentrations of each population
+M1 = 8.583586485218013e-06 kg m^-3
+M2 = 6.770673822391794e-06 kg m^-3
+
+mass fractions in each population
+p1 = [0.2 0.3 0.1 0.4]
+p2 = [0.5 0.2 0.2 0.1]
+
+entropy of particles in each population
+Halpha1 = 1.2798542258336676
+Halpha2 = 1.2206072645530175
+
+diversity of particles in each population
+Dalpha1 = 3.5961154666243225
+Dalpha2 = 3.389245277339832
+
+weighting = mass
+pw1 = 8.583586485218013e-06
+pw2 = 6.770673822391794e-06
+
+average particle diversity over entire population
+Dalpha = 3.5048931903856193
+
+average particle mass fractions
+p = [0.33228916 0.25590361 0.14409639 0.26771084]
+
+entropy of average particle
+Hgamma = 1.3468406197445824
+
+diversity of average particle
+Dgamma = 3.84525768818054
+
+mixing state index
+chi = 0.8803748078042893
+
+##############################################################################

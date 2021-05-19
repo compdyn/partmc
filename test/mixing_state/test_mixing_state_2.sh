@@ -9,4 +9,4 @@ cd ${0%/*}
 # make the output directory if it doesn't exist
 mkdir -p out
 
-../../numeric_diff --by elem --rel-tol 1e-3 ref_groups.txt out/test_groups.txt
+../../numeric_diff --by elem --abs-tol 1e-3 ref_groups.txt out/test_groups.txt

@@ -12,4 +12,4 @@ mkdir -p out
 ../../partmc run_part.spec
 ../../test_mixing_state_process
 
-../../numeric_diff --by elem --rel-tol 1e-3 ref_all_species.txt out/test_all_species.txt
+../../numeric_diff --by elem --abs-tol 1e-3 ref_all_species.txt out/test_all_species.txt

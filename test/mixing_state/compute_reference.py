@@ -95,8 +95,12 @@ def compute_chi(name, mu1, mu2, weighting):
     print(f'pw1 = {pw1}')
     print(f'pw2 = {pw2}')
 
+    print('\naverage particle entropy over entire population')
+    Halpha = (pw1*Halpha1 + pw2*Halpha2) / (pw1 + pw2)
+    print(f'Halpha = {Halpha}')
+
     print('\naverage particle diversity over entire population')
-    Dalpha = (pw1*Dalpha1 + pw2*Dalpha2) / (pw1 + pw2)
+    Dalpha = np.exp(Halpha)
     print(f'Dalpha = {Dalpha}')
 
     print('\naverage particle mass fractions')

@@ -73,7 +73,7 @@
 !!
 !! \section mem_manage Memory Management
 !!
-!! The memory allocation policy to is to always use \c allocatable
+!! The memory allocation policy is to always use \c allocatable
 !! arrays and to do the allocation in the lowest-level routine
 !! possible. Explicit \c allocate() and \c deallocate() statements are
 !! discouraged in favor of automatic memory management, where
@@ -296,7 +296,7 @@ contains
     character, allocatable :: buffer(:)
     integer :: buffer_size, max_buffer_size
     integer :: position
-    logical :: do_restart, do_init_equilibriate, aero_mode_type_exp_present
+    logical :: do_restart, do_init_equilibrate, aero_mode_type_exp_present
     character(len=PMC_MAX_FILENAME_LEN) :: restart_filename
     integer :: dummy_index, dummy_i_repeat
     real(kind=dp) :: dummy_time, dummy_del_t, n_part
@@ -357,15 +357,16 @@ contains
     !!   in; cannot be used simultaneously with MOSAIC). If \c
     !!   do_condensation is \c yes, then the following parameters must
     !!   also be provided:
-    !!   - \b do_init_equilibriate (logical): whether to equilibriate
+    !!   - \b do_init_equilibrate (logical): whether to equilibrate
     !!     the water content of each particle before starting the
-    !!     simulation
+    !!     simulation, note that \b do_init_equilibriate (sic!)
+    !!     spelling will work as well for compatibility
     !! - \b do_mosaic (logical): whether to use the MOSAIC chemistry
     !!   code (requires support to be compiled in; cannot be used
     !!   simultaneously with condensation). If \c do_mosaic is \c
     !!   yes, then the following parameters must also be provided:
     !!   - \b do_optical (logical): whether to compute optical
-    !!     properties of the aersol particles for the output files ---
+    !!     properties of the aerosol particles for the output files ---
     !!     see output_format_aero_state
     !! - \b do_nucleation (logical): whether to perform particle
     !!   nucleation. If \c do_nucleation is \c yes, then the following
@@ -477,11 +478,16 @@ contains
             run_part_opt%do_condensation .eqv. .false., &
             "cannot use condensation, SUNDIALS support is not compiled in")
 #endif
+       do_init_equilibrate = .false.
        if (run_part_opt%do_condensation) then
           call spec_file_read_logical(file, 'do_init_equilibriate', &
-               do_init_equilibriate)
-       else
-          do_init_equilibriate = .false.
+               do_init_equilibrate)
+          if (do_init_equilibrate) then
+             write(*,*) 'Deprecation warning: use do_init_equilibrate instead " &
+               // "of do_init_equilibriate, the latter is ignored if both present'
+          end if
+          call spec_file_read_logical(file, 'do_init_equilibrate', &
+               do_init_equilibrate)
        end if
 
        call spec_file_read_logical(file, 'do_mosaic', run_part_opt%do_mosaic)
@@ -589,7 +595,7 @@ contains
        max_buffer_size = max_buffer_size &
             + pmc_mpi_pack_size_logical(do_restart)
        max_buffer_size = max_buffer_size &
-            + pmc_mpi_pack_size_logical(do_init_equilibriate)
+            + pmc_mpi_pack_size_logical(do_init_equilibrate)
        max_buffer_size = max_buffer_size &
             + pmc_mpi_pack_size_aero_state(aero_state_init)
 
@@ -606,7 +612,7 @@ contains
        call pmc_mpi_pack_env_state(buffer, position, env_state_init)
        call pmc_mpi_pack_integer(buffer, position, rand_init)
        call pmc_mpi_pack_logical(buffer, position, do_restart)
-       call pmc_mpi_pack_logical(buffer, position, do_init_equilibriate)
+       call pmc_mpi_pack_logical(buffer, position, do_init_equilibrate)
        call pmc_mpi_pack_aero_state(buffer, position, aero_state_init)
        call assert(181905491, position <= max_buffer_size)
        buffer_size = position ! might be less than we allocated
@@ -636,7 +642,7 @@ contains
        call pmc_mpi_unpack_env_state(buffer, position, env_state_init)
        call pmc_mpi_unpack_integer(buffer, position, rand_init)
        call pmc_mpi_unpack_logical(buffer, position, do_restart)
-       call pmc_mpi_unpack_logical(buffer, position, do_init_equilibriate)
+       call pmc_mpi_unpack_logical(buffer, position, do_init_equilibrate)
        call pmc_mpi_unpack_aero_state(buffer, position, aero_state_init)
        call assert(143770146, position == buffer_size)
     end if
@@ -684,7 +690,7 @@ contains
             env_state_init%elapsed_time)
 
 #ifdef PMC_USE_SUNDIALS
-       if (do_init_equilibriate) then
+       if (do_init_equilibrate) then
           call condense_equilib_particles(env_state, aero_data, aero_state)
        end if
 #endif

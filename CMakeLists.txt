@@ -16,6 +16,8 @@ set(PACKAGE_VERSION "2.5.0")
 
 option(ENABLE_GSL "Enable GSL library for random number generation" OFF)
 option(ENABLE_MOSAIC "Enable MOSAIC chemistry support" OFF)
+option(ENABLE_CAMP "Enable CAMP chemistry support" OFF)
+option(ENABLE_JSON "Enable json-fortran support" ON)
 option(ENABLE_MPI "Enable MPI parallel support" OFF)
 option(ENABLE_SUNDIALS "Enable SUNDIALS solver for condensation support" OFF)
 option(ENABLE_C_SORT "Enable C sorting routines" OFF)
@@ -78,6 +80,20 @@ if(ENABLE_MOSAIC)
 endif()
 
 ######################################################################
+# CAMP
+
+if(ENABLE_CAMP)
+  find_path(CAMP_INCLUDE_DIR
+    DOC "CAMP include directory"
+    PATHS $ENV{CAMP_HOME} $ENV{CAMP_HOJME}/include)
+  find_library(CAMP_LIB camp
+    DOC "CAMP library"
+    PATHS $ENV{CAMP_HOME} $ENV{CAMP_HOME}/lib)
+  include_directories(${CAMP_INCLUDE_DIR})
+  add_definitions(-DPMC_USE_CAMP)
+endif()
+
+######################################################################
 # MPI
 
 if(ENABLE_MPI)
@@ -88,19 +104,65 @@ endif()
 # SUNDIALS
 
 if(ENABLE_SUNDIALS)
+  find_path(SUITE_SPARSE_INCLUDE_DIR klu.h
+    DOC "SuiteSparse include directory (must have klu.h)"
+    PATHS $ENV{SUITE_SPARSE_HOME}/include $ENV{SUNDIALS_HOME}/include
+          /opt/local/include /usr/local/include)
+  find_library(SUITE_SPARSE_KLU_LIB klu
+    DOC "SuiteSparse klu library"
+    PATHS $ENV{SUITE_SPARSE_HOME}/lib $ENV{SUNDIALS_HOME}/lib
+          /opt/local/lib /usr/local/lib)
+  find_library(SUITE_SPARSE_AMD_LIB amd
+    DOC "SuiteSparse amd library"
+    PATHS $ENV{SUITE_SPARSE_HOME}/lib $ENV{SUNDIALS_HOME}/lib
+          /opt/local/lib /usr/local/lib)
+  find_library(SUITE_SPARSE_BTF_LIB btf
+    DOC "SuiteSparse btf library"
+    PATHS $ENV{SUITE_SPARSE_HOME}/lib $ENV{SUNDIALS_HOME}/lib
+          /opt/local/lib /usr/local/lib)
+  find_library(SUITE_SPARSE_COLAMD_LIB colamd
+    DOC "SuiteSparse colamd library"
+    PATHS $ENV{SUITE_SPARSE_HOME}/lib $ENV{SUNDIALS_HOME}/lib
+          /opt/local/lib /usr/local/lib)
+  find_library(SUITE_SPARSE_CONFIG_LIB suitesparseconfig
+    DOC "SuiteSparse config library"
+    PATHS $ENV{SUITE_SPARSE_HOME}/lib $ENV{SUNDIALS_HOME}/lib
+          /opt/local/lib /usr/local/lib)
   find_path(SUNDIALS_INCLUDE_DIR cvode/cvode.h
     DOC "SUNDIALS include directory (must have cvode/, sundials/, nvector/ subdirs)"
-    PATHS $ENV{SUNDIALS_HOME}/include /opt/local/include)
+    PATHS $ENV{SUNDIALS_HOME}/include /opt/local/include /usr/local/include)
   find_library(SUNDIALS_NVECSERIAL_LIB sundials_nvecserial
     DOC "SUNDIALS serial vector library"
-    PATHS $ENV{SUNDIALS_HOME}/lib /opt/local/lib)
+    PATHS $ENV{SUNDIALS_HOME}/lib /opt/local/lib /usr/local/lib)
   find_library(SUNDIALS_CVODE_LIB sundials_cvode
     DOC "SUNDIALS CVODE library"
-    PATHS $ENV{SUNDIALS_HOME}/lib /opt/local/lib)
-  set(SUNDIALS_LIBS ${SUNDIALS_NVECSERIAL_LIB} ${SUNDIALS_CVODE_LIB})
+    PATHS $ENV{SUNDIALS_HOME}/lib /opt/local/lib /usr/local/lib)
+  find_library(SUNDIALS_KLU_LIB sundials_sunlinsolklu
+    DOC "SUNDIALS KLU library"
+    PATHS $ENV{SUITE_SPARSE_HOME}/lib $ENV{SUNDIALS_HOME}/lib
+          /opt/local/lib /usr/local/lib)
+  find_library(SUNDIALS_SUNMATRIX_SPARSE_LIB sundials_sunmatrixsparse
+    DOC "SUNDIALS SUNMatrixSparse library"
+    PATHS $ENV{SUITE_SPARSE_HOME}/lib $ENV{SUNDIALS_HOME}/lib
+          /opt/local/lib /usr/local/lib)
+  set(SUNDIALS_LIBS ${SUNDIALS_NVECSERIAL_LIB} ${SUNDIALS_CVODE_LIB}
+    ${SUNDIALS_KLU_LIB} ${SUNDIALS_SUNMATRIX_SPARSE_LIB} ${SUITE_SPARSE_KLU_LIB}
+    ${SUITE_SPARSE_COLAMD_LIB} ${SUITE_SPARSE_AMD_LIB} ${SUITE_SPARSE_BTF_LIB}
+    ${SUITE_SPARSE_CONFIG_LIB})
   set(SUNDIALS_SRC src/condense_solver.c)
-  include_directories(${SUNDIALS_INCLUDE_DIR})
+  include_directories(${SUNDIALS_INCLUDE_DIR} ${SUITE_SPARSE_INCLUDE_DIR})
   add_definitions(-DPMC_USE_SUNDIALS)
+endif()
+
+if (ENABLE_JSON)
+  find_path(JSON_INCLUDE_DIR json_module.mod
+    DOC "json-fortran include directory (must include json_*.mod files)"
+    PATHS $ENV{JSON_FORTRAN_HOME}/lib /opt/local/lib /usr/local/lib)
+  find_library(JSON_LIB jsonfortran
+    DOC "json-fortran library"
+    PATHS $ENV{JSON_FORTRAN_HOME}/lib /opt/local/lib /usr/local/lib)
+  include_directories(${JSON_INCLUDE_DIR})
+  add_definitions(-DPMC_USE_JSON)
 endif()
 
 ######################################################################
@@ -150,11 +212,12 @@ add_library(partmclib src/aero_state.F90 src/integer_varray.F90
   src/aero_particle.F90 src/aero_particle_array.F90 src/mpi.F90
   src/netcdf.F90 src/aero_info.F90 src/aero_info_array.F90
   src/nucleate.F90 src/condense.F90 src/fractal.F90 src/chamber.F90
+  src/camp_interface.F90 src/photolysis.F90
   ${SUNDIALS_SRC} ${GSL_SRC}
   ${C_SORT_SRC})
 
 target_link_libraries(partmclib ${NETCDF_LIBS} ${SUNDIALS_LIBS}
-  ${MOSAIC_LIB} ${GSL_LIBS})
+  ${MOSAIC_LIB} ${GSL_LIBS} ${CAMP_LIB} ${JSON_LIB})
 
 set_target_properties(partmclib PROPERTIES OUTPUT_NAME partmc)
 

@@ -8,6 +8,7 @@
 !> Monte Carlo simulation.
 module pmc_run_part
 
+  use pmc_constants
   use pmc_util
   use pmc_aero_state
   use pmc_scenario
@@ -22,6 +23,13 @@ module pmc_run_part
   use pmc_coag_kernel
   use pmc_nucleate
   use pmc_mpi
+  use pmc_camp_interface
+  use pmc_photolysis
+#ifdef PMC_USE_CAMP
+  use camp_camp_core
+  use camp_camp_state
+  use camp_env_state, only: camp_env_state_t
+#endif
 #ifdef PMC_USE_SUNDIALS
   use pmc_condense
 #endif
@@ -94,6 +102,8 @@ module pmc_run_part
      logical :: env_average
      !> Parallel coagulation method type.
      integer :: parallel_coag_type
+     !> Whether to run CAMP
+     logical :: do_camp_chem
      !> UUID for this simulation.
      character(len=PMC_UUID_LEN) :: uuid
   end type run_part_opt_t
@@ -104,14 +114,14 @@ contains
 
   !> Do a particle-resolved Monte Carlo simulation.
   subroutine run_part(scenario, env_state, aero_data, aero_state, gas_data, &
-       gas_state, run_part_opt)
+       gas_state, run_part_opt, camp_core, photolysis)
 
     !> Environment state.
     type(scenario_t), intent(in) :: scenario
     !> Environment state.
     type(env_state_t), intent(inout) :: env_state
     !> Aerosol data.
-    type(aero_data_t), intent(in) :: aero_data
+    type(aero_data_t), intent(inout) :: aero_data
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     !> Gas data.
@@ -120,6 +130,15 @@ contains
     type(gas_state_t), intent(inout) :: gas_state
     !> Monte Carlo options.
     type(run_part_opt_t), intent(in) :: run_part_opt
+    !> CAMP chemistry core
+    type(camp_core_t), pointer, intent(inout), optional :: camp_core
+    !> Photolysis calculator
+    type(photolysis_t), pointer, intent(inout), optional :: photolysis
+
+    type(camp_state_t), pointer :: camp_state
+    type(camp_state_t), pointer :: camp_pre_aero_state, camp_post_aero_state
+!    type(camp_state_t) :: camp_state
+!    type(camp_state_t) :: camp_pre_aero_state, camp_post_aero_stat
 
     real(kind=dp) :: time, pre_time, pre_del_t, prop_done
     real(kind=dp) :: last_output_time, last_progress_time
@@ -137,6 +156,7 @@ contains
     type(env_state_t) :: old_env_state
     integer :: n_time, i_time, i_time_start, pre_i_time
     integer :: i_state, i_state_netcdf, i_output
+    type(camp_env_state_t) :: camp_env_state
 
     rank = pmc_mpi_rank()
     n_proc = pmc_mpi_size()
@@ -159,6 +179,14 @@ contains
          "del_t", run_part_opt%del_t)
     call check_time_multiple("t_progress", run_part_opt%t_progress, &
          "del_t", run_part_opt%del_t)
+
+    if (run_part_opt%do_camp_chem) then
+       camp_env_state%temp = env_state%temp
+       camp_env_state%pressure = env_state%pressure
+       camp_state =>  camp_core%new_state_one_cell(camp_env_state)
+       camp_pre_aero_state => camp_core%new_state_one_cell(camp_env_state)
+       camp_post_aero_state => camp_core%new_state_one_cell(camp_env_state)
+    end if
 
     if (run_part_opt%do_mosaic) then
        call mosaic_init(env_state, aero_data, run_part_opt%del_t, &
@@ -257,6 +285,13 @@ contains
        progress_n_emit = progress_n_emit + n_emit
        progress_n_dil_in = progress_n_dil_in + n_dil_in
        progress_n_dil_out = progress_n_dil_out + n_dil_out
+
+       if (run_part_opt%do_camp_chem) then
+          call pmc_camp_interface_solve(camp_core, camp_state, &
+               camp_pre_aero_state, camp_post_aero_state, aero_data, &
+               aero_state, gas_data, gas_state, photolysis, &
+               run_part_opt%del_t)
+       end if
 
        if (run_part_opt%do_mosaic) then
           call mosaic_timestep(env_state, aero_data, aero_state, gas_data, &

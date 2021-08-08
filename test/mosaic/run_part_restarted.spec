@@ -10,6 +10,8 @@ del_t 300                       # timestep (s)
 t_output 3600                   # output interval (0 disables) (s)
 t_progress 3600                 # progress printing interval (0 disables) (s)
 
+do_camp_chem no                # whether to run the campible chemistry module
+
 temp_profile temp.dat           # temperature profile file
 pressure_profile pressure.dat   # pressure profile file
 height_profile height.dat       # height profile file

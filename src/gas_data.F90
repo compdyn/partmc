@@ -33,6 +33,8 @@ module pmc_gas_data
      !> gas_data_n_spec(gas_data)]. \c to_mosaic(i) is the mosaic index of
      !> species \c i, or 0 if there is no match.
      integer, allocatable :: mosaic_index(:)
+     !> Index for gas-phase water in the CAMP state array
+     integer :: i_camp_water = 0
   end type gas_data_t
 
 contains

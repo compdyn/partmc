@@ -12,6 +12,11 @@ module pmc_gas_data
   use pmc_mpi
   use pmc_util
   use pmc_netcdf
+#ifdef PMC_USE_CAMP
+  use camp_camp_core
+  use camp_chem_spec_data
+  use camp_property
+#endif
 #ifdef PMC_USE_MPI
   use mpi
 #endif
@@ -38,6 +43,63 @@ module pmc_gas_data
   end type gas_data_t
 
 contains
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+#ifdef PMC_USE_CAMP
+  !> Initialize the gas_data_t instance from camp_core data
+  subroutine gas_data_initialize(gas_data, camp_core)
+
+    !> Gas-phase species data
+    class(gas_data_t), intent(inout) :: gas_data 
+    !> CAMP core
+    class(camp_core_t), intent(in) :: camp_core
+
+    type(chem_spec_data_t), pointer :: chem_spec_data
+    integer :: i_spec
+    type(string_t), allocatable :: gas_spec_names(:)
+    type(property_t), pointer :: property_set
+    character(len=:), allocatable :: prop_name
+    logical :: bool_val
+
+    ! Get the chemical species data
+    call assert_msg(139566827, &
+            camp_core%get_chem_spec_data(chem_spec_data), &
+            "No chemical species data in camp core.")
+
+    ! Get the gas-phase species names
+    gas_spec_names = chem_spec_data%get_spec_names( &
+            spec_phase = CHEM_SPEC_GAS_PHASE)
+
+    ! Allocate space for the gas-phase species
+    allocate(gas_data%name(size(gas_spec_names)))
+
+    ! Set the species names and locate gas-phase water
+    prop_name = "is gas-phase water"
+    do i_spec = 1, size(gas_spec_names)
+      gas_data%name(i_spec) = gas_spec_names(i_spec)%string
+      call assert_msg(990037352, &
+                      chem_spec_data%get_property_set( &
+                        gas_spec_names(i_spec)%string, &
+                        property_set ), &
+                      "Missing property set for gas species "// &
+                      gas_spec_names(i_spec)%string )
+      if (property_set%get_logical(prop_name, bool_val)) then
+        call assert_msg(423633615, gas_data%i_camp_water.eq.0, &
+                        "More than one gas-phase water species specified")
+        gas_data%i_camp_water = i_spec
+      end if
+    end do
+
+    call assert_msg(134440820, gas_data%i_camp_water.ne.0, &
+                    "No gas-phase water species specified.")
+
+    ! Allocate the mosaic index array and set to zero
+    allocate(gas_data%mosaic_index(size(gas_spec_names)))
+    gas_data%mosaic_index(:) = 0
+
+  end subroutine gas_data_initialize
+#endif
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

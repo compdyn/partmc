@@ -28,7 +28,7 @@ module pmc_run_part
 #ifdef PMC_USE_CAMP
   use camp_camp_core
   use camp_camp_state
-  use camp_env_state, only: camp_env_state_t
+  use camp_env_state, only: camp_env_state_t => env_state_t
 #endif
 #ifdef PMC_USE_SUNDIALS
   use pmc_condense

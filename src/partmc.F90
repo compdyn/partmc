@@ -465,23 +465,28 @@ contains
 
        if (.not. do_restart) then
           env_state_init%elapsed_time = 0d0
-
-          call spec_file_read_string(file, 'gas_data', sub_filename)
-          call spec_file_open(sub_filename, sub_file)
-          call spec_file_read_gas_data(sub_file, gas_data)
-          call spec_file_close(sub_file)
-
+          if (.not. run_part_opt%do_camp_chem) then
+            call spec_file_read_string(file, 'gas_data', sub_filename)
+            call spec_file_open(sub_filename, sub_file)
+            call spec_file_read_gas_data(sub_file, gas_data)
+            call spec_file_close(sub_file)
+          else
+            call gas_data_initialize(gas_data, camp_core)
+          end if
           call spec_file_read_string(file, 'gas_init', sub_filename)
           call spec_file_open(sub_filename, sub_file)
           call spec_file_read_gas_state(sub_file, gas_data, &
                gas_state_init)
           call spec_file_close(sub_file)
 
-          call spec_file_read_string(file, 'aerosol_data', sub_filename)
-          call spec_file_open(sub_filename, sub_file)
-          call spec_file_read_aero_data(sub_file, aero_data)
-          call spec_file_close(sub_file)
-
+          if (.not. run_part_opt%do_camp_chem) then
+             call spec_file_read_string(file, 'aerosol_data', sub_filename)
+             call spec_file_open(sub_filename, sub_file)
+             call spec_file_read_aero_data(sub_file, aero_data)
+             call spec_file_close(sub_file)
+          else
+             call aero_data_initialize(aero_data, camp_core)
+          end if
           call spec_file_read_fractal(file, aero_data%fractal)
 
           call spec_file_read_string(file, 'aerosol_init', sub_filename)
@@ -676,6 +681,11 @@ contains
     ! free the buffer
     deallocate(buffer)
 #endif
+
+    ! initialize the chemistry solver
+    if (run_part_opt%do_camp_chem) then
+      call camp_core%solver_initialize()
+    end if
 
     ! re-initialize RNG with the given seed
     call pmc_rand_finalize()

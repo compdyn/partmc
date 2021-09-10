@@ -8,11 +8,15 @@
 !> The photolysis_t type and related functions
 module pmc_photolysis
 
-  use camp_camp_core
   use pmc_constants
+#ifdef PMC_USE_CAMP
+  use camp_camp_core
   use camp_rxn_data
   use camp_rxn_photolysis
+#endif
   use pmc_util
+
+#ifdef PMC_USE_CAMP
 
   implicit none
   private
@@ -290,5 +294,5 @@ contains
   end subroutine do_print
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
+#endif
 end module pmc_photolysis

@@ -14,20 +14,26 @@ module pmc_camp_interface
   use pmc_constants,                  only : dp
   use pmc_gas_data
   use pmc_gas_state
+#ifdef PMC_USE_CAMP
   use camp_camp_core
   use camp_camp_state
   use pmc_photolysis
   use camp_rxn_data
   use camp_solver_stats
-  use pmc_util,                       only : die_msg, string_t, &
-                                             warn_assert_msg, assert_msg
   use camp_util, only: split_string
+#endif
+  use pmc_util,                       only : die_msg, &
+#ifdef PMC_USE_CAMP
+                                             string_t,&
+#endif
+                                             warn_assert_msg, assert_msg
+
   implicit none
 
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
+#ifdef PMC_USE_CAMP
   !> Run the CAMP module for the current PartMC state
   subroutine pmc_camp_interface_solve(camp_core, camp_state, &
           camp_pre_aero_state, camp_post_aero_state, aero_data, &
@@ -88,7 +94,6 @@ contains
     call gas_state_get_camp_conc(gas_state, camp_state)
 
   end subroutine pmc_camp_interface_solve
-
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Set the CAMP aerosol-phase species and number concentrations
@@ -185,5 +190,5 @@ contains
   end subroutine pmc_camp_interface_set_partmc_aerosol
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
+#endif
 end module pmc_camp_interface

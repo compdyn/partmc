@@ -295,8 +295,10 @@ contains
     type(env_state_t) :: env_state
     type(env_state_t) :: env_state_init
     type(run_part_opt_t) :: run_part_opt
+#ifdef PMC_USE_CAMP
     type(camp_core_t), pointer :: camp_core
     type(photolysis_t), pointer :: photolysis
+#endif
     integer :: i_repeat, i_group
     integer :: rand_init
     character, allocatable :: buffer(:)
@@ -450,11 +452,16 @@ contains
          call spec_file_die_msg(905205341, file, &
                  'cannot do camp chem, SUNDIALS support not compiled in')
 #endif
+#ifdef PMC_USE_CAMP
          call spec_file_read_string(file, 'camp_config', &
                  camp_config_filename)
          camp_core => camp_core_t(camp_config_filename)
          call camp_core%initialize()
          photolysis => photolysis_t(camp_core)
+#else
+         call spec_file_die_msg(648994111, file, &
+              'cannot do camp chem, CAMP support not compiled in')
+#endif
        end if
 
        if (do_restart) then
@@ -471,7 +478,9 @@ contains
             call spec_file_read_gas_data(sub_file, gas_data)
             call spec_file_close(sub_file)
           else
+#ifdef PMC_USE_CAMP
             call gas_data_initialize(gas_data, camp_core)
+#endif
           end if
           call spec_file_read_string(file, 'gas_init', sub_filename)
           call spec_file_open(sub_filename, sub_file)
@@ -485,7 +494,9 @@ contains
              call spec_file_read_aero_data(sub_file, aero_data)
              call spec_file_close(sub_file)
           else
+#ifdef PMC_USE_CAMP
              call aero_data_initialize(aero_data, camp_core)
+#endif
           end if
           call spec_file_read_fractal(file, aero_data%fractal)
 
@@ -684,7 +695,9 @@ contains
 
     ! initialize the chemistry solver
     if (run_part_opt%do_camp_chem) then
+#ifdef PMC_USE_CAMP
       call camp_core%solver_initialize()
+#endif
     end if
 
     ! re-initialize RNG with the given seed
@@ -732,9 +745,11 @@ contains
 #endif
 
        if (run_part_opt%do_camp_chem) then
+#ifdef PMC_USE_CAMP
           call run_part(scenario, env_state, aero_data, aero_state, gas_data, &
                gas_state, run_part_opt, camp_core=camp_core, &
                photolysis=photolysis)
+#endif
        else
           call run_part(scenario, env_state, aero_data, aero_state, gas_data, &
                gas_state, run_part_opt)

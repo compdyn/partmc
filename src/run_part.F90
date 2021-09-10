@@ -113,9 +113,13 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Do a particle-resolved Monte Carlo simulation.
+#ifdef PMC_USE_CAMP
   subroutine run_part(scenario, env_state, aero_data, aero_state, gas_data, &
        gas_state, run_part_opt, camp_core, photolysis)
-
+#else
+  subroutine run_part(scenario, env_state, aero_data, aero_state, gas_data, &
+       gas_state, run_part_opt)
+#endif
     !> Environment state.
     type(scenario_t), intent(in) :: scenario
     !> Environment state.
@@ -130,6 +134,7 @@ contains
     type(gas_state_t), intent(inout) :: gas_state
     !> Monte Carlo options.
     type(run_part_opt_t), intent(in) :: run_part_opt
+#ifdef PMC_USE_CAMP
     !> CAMP chemistry core
     type(camp_core_t), pointer, intent(inout), optional :: camp_core
     !> Photolysis calculator
@@ -137,8 +142,7 @@ contains
 
     type(camp_state_t), pointer :: camp_state
     type(camp_state_t), pointer :: camp_pre_aero_state, camp_post_aero_state
-!    type(camp_state_t) :: camp_state
-!    type(camp_state_t) :: camp_pre_aero_state, camp_post_aero_stat
+#endif
 
     real(kind=dp) :: time, pre_time, pre_del_t, prop_done
     real(kind=dp) :: last_output_time, last_progress_time
@@ -156,7 +160,9 @@ contains
     type(env_state_t) :: old_env_state
     integer :: n_time, i_time, i_time_start, pre_i_time
     integer :: i_state, i_state_netcdf, i_output
+#ifdef PMC_USE_CAMP
     type(camp_env_state_t) :: camp_env_state
+#endif
 
     rank = pmc_mpi_rank()
     n_proc = pmc_mpi_size()
@@ -179,7 +185,7 @@ contains
          "del_t", run_part_opt%del_t)
     call check_time_multiple("t_progress", run_part_opt%t_progress, &
          "del_t", run_part_opt%del_t)
-
+#ifdef PMC_USE_CAMP
     if (run_part_opt%do_camp_chem) then
        camp_env_state%temp = env_state%temp
        camp_env_state%pressure = env_state%pressure
@@ -187,6 +193,7 @@ contains
        camp_pre_aero_state => camp_core%new_state_one_cell(camp_env_state)
        camp_post_aero_state => camp_core%new_state_one_cell(camp_env_state)
     end if
+#endif
 
     if (run_part_opt%do_mosaic) then
        call mosaic_init(env_state, aero_data, run_part_opt%del_t, &
@@ -287,10 +294,12 @@ contains
        progress_n_dil_out = progress_n_dil_out + n_dil_out
 
        if (run_part_opt%do_camp_chem) then
+#ifdef PMC_USE_CAMP
           call pmc_camp_interface_solve(camp_core, camp_state, &
                camp_pre_aero_state, camp_post_aero_state, aero_data, &
                aero_state, gas_data, gas_state, photolysis, &
                run_part_opt%del_t)
+#endif
        end if
 
        if (run_part_opt%do_mosaic) then

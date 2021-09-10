@@ -14,7 +14,9 @@ module pmc_gas_state
   use pmc_env_state
   use pmc_mpi
   use pmc_netcdf
+#ifdef PMC_USE_CAMP
   use camp_camp_state
+#endif
 #ifdef PMC_USE_MPI
   use mpi
 #endif
@@ -188,6 +190,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+#ifdef PMC_USE_CAMP
   !> Set CAMP gas-phase species concentrations
   subroutine gas_state_set_camp_conc(this, camp_state, gas_data)
 
@@ -231,6 +234,7 @@ contains
     this%mix_rat(:) = camp_state%state_var(1:size(this%mix_rat)) * 1000.0d0
 
   end subroutine gas_state_get_camp_conc
+#endif
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

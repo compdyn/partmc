@@ -11,14 +11,16 @@ module pmc_aero_data
   use pmc_spec_file
   use pmc_mpi
   use pmc_util
-  use camp_util, only: string_t
   use pmc_fractal
   use pmc_netcdf
+#ifdef PMC_USE_CAMP
+  use camp_util, only: string_t
   use camp_camp_core
   use camp_chem_spec_data
   use camp_aero_rep_data
   use camp_aero_rep_single_particle
   use camp_property
+#endif
 #ifdef PMC_USE_MPI
   use mpi
 #endif
@@ -64,6 +66,7 @@ module pmc_aero_data
      character(len=AERO_SOURCE_NAME_LEN), allocatable :: source_name(:)
      !> Fractal particle parameters.
      type(fractal_t) :: fractal
+#ifdef PMC_USE_CAMP
      !> CAMP aerosol representation pointer
      class(aero_rep_data_t), pointer :: aero_rep_ptr
      !> CAMP update number conc cookie
@@ -80,6 +83,7 @@ module pmc_aero_data
      !> Get the index on the CAMP state array for a specified species and
      !! computation particle
      procedure :: camp_spec_id
+#endif
   end type aero_data_t
 
 contains
@@ -367,10 +371,12 @@ contains
     !> Aerosol species index in aero_particle_t%vol(:) array
     integer, intent(in) :: i_spec
 
+#ifdef PMC_USE_CAMP
     call assert(106669451, allocated(aero_data%camp_particle_spec_id))
     call assert(278731889, aero_data%camp_particle_state_size .ge. 0)
     camp_spec_id = (i_part - 1) * aero_data%camp_particle_state_size + &
                    aero_data%camp_particle_spec_id(i_spec)
+#endif
 
   end function camp_spec_id
 
@@ -843,6 +849,8 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+
+#ifdef PMC_USE_CAMP
   !> Initialize the aero_data_t variable with camp chem data
   subroutine aero_data_initialize(aero_data, camp_core)
 
@@ -952,6 +960,7 @@ contains
     end select
 
   end subroutine aero_data_initialize
+#endif
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

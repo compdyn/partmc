@@ -371,6 +371,8 @@ contains
     !!   nucleation. If \c do_nucleation is \c yes, then the following
     !!   parameters must also be provided:
     !!   - \subpage input_format_nucleate
+    !! - \b do_freezing (logical): whether to perform particle
+    !!   freezing.
     !! - \b rand_init (integer): if greater than zero then use as
     !!   the seed for the random number generator, or if zero then
     !!   generate a random seed for the random number generator ---
@@ -508,6 +510,9 @@ contains
        else
           run_part_opt%nucleate_type = NUCLEATE_TYPE_INVALID
        end if
+
+       call spec_file_read_logical(file, 'do_freezing', &
+               run_part_opt%do_freezing)
 
        call spec_file_read_integer(file, 'rand_init', rand_init)
        call spec_file_read_logical(file, 'allow_doubling', &

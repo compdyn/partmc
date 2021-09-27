@@ -21,6 +21,7 @@ module pmc_run_part
   use pmc_coagulation_dist
   use pmc_coag_kernel
   use pmc_nucleate
+  use pmc_freezing
   use pmc_mpi
 #ifdef PMC_USE_SUNDIALS
   use pmc_condense
@@ -58,6 +59,8 @@ module pmc_run_part
      logical :: do_coagulation
      !> Whether to do nucleation.
      logical :: do_nucleation
+     !> Whether to do freezing.
+     logical :: do_freezing
      !> Allow doubling if needed.
      logical :: allow_doubling
      !> Allow halving if needed.
@@ -222,6 +225,11 @@ contains
           n_nuc = aero_state_total_particles(aero_state) &
                - n_part_before
           progress_n_nuc = progress_n_nuc + n_nuc
+       end if
+
+       if (run_part_opt%do_freezing) then
+           call freeze(aero_state, aero_data, old_env_state, &
+                   env_state, run_part_opt%del_t)
        end if
 
        if (run_part_opt%do_coagulation) then

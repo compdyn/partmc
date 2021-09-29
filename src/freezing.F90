@@ -35,8 +35,12 @@ contains
         real(kind=dp) :: tmp
 
         do i_part = 1, aero_state_n_part(aero_state)
-            tmp = pmc_random()
-            !print *, 'i: ', i_part, tmp
+            rand = pmc_random()
+!            p = 1 - exp(-J_het * immersed_surface_area[i] * del_t)
+            p = 1 - exp(-.00123456789 * del_t)
+            if (rand < p) then
+                aero_state%apa%particle(i_part)%frozen = .TRUE.
+            end if
         end do
 
     end subroutine freeze

@@ -10,3 +10,4 @@ cd ${0%/*}
 mkdir -p out
 
 ../../partmc run_part.spec
+for i in out/freezing_part_*.nc; do ../../extract_aero_particles $i; done;

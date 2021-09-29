@@ -1,12 +1,12 @@
 run_type particle               # particle-resolved run
-output_prefix out/sedi_part     # prefix of output files
+output_prefix out/freezing_part # prefix of output files
 n_repeat 1                      # number of Monte Carlo repeats
 n_part 1000                     # total number of particles
 restart no                      # whether to restart from saved state (yes/no)
 
 t_max 600                       # total simulation time (s)
 del_t 5                         # timestep (s)
-t_output 300                    # output interval (0 disables) (s)
+t_output 100                    # output interval (0 disables) (s)
 t_progress 60                   # progress printing interval (0 disables) (s)
 
 gas_data gas_data.dat           # file containing gas data

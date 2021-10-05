@@ -1,0 +1,10 @@
+{
+  "description" : "These aerosol phases correspond to the MONARCH 'mod37' configuration",
+  "camp-data" : [
+    {
+      "name" : "organic_matter",
+      "type" : "AERO_PHASE",
+      "species" : [ "POA", "ISOP-P1_aero", "ISOP-P2_aero", "TERP-P1_aero", "TERP-P2_aero" ]
+    }
+  ]
+}

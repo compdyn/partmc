@@ -1,0 +1,23 @@
+mode_name init_small
+mass_frac aero_init_comp.dat      # composition proportions of species
+diam_type geometric               # type of diameter specified
+mode_type log_normal              # type of distribution
+num_conc 3200.0e6 
+geom_mean_diam 2.0e-8 # geometric mean diameter (m)
+log10_geom_std_dev 0.16136800223497488 # log_10 of geometric std dev of diameter
+
+mode_name init_large
+mass_frac aero_init_comp.dat      # composition proportions of species
+diam_type geometric               # type of diameter specified
+mode_type log_normal              # type of distribution
+num_conc 2900.0e6 
+geom_mean_diam 1.16e-7 # geometric mean diameter (m)
+log10_geom_std_dev 0.21748394421390627  # log_10 of geometric std dev of diameter
+
+mode_name init_coarse
+mass_frac aero_init_comp.dat      # composition proportions of species
+diam_type geometric               # type of diameter specified
+mode_type log_normal              # type of distribution
+num_conc 0.3e6
+geom_mean_diam 1.8e-6 # geometric mean diameter (m)
+log10_geom_std_dev 0.38021124171160603 # log_10 of geometric std dev of diameter

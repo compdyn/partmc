@@ -17,7 +17,6 @@ set(PACKAGE_VERSION "2.5.0")
 option(ENABLE_GSL "Enable GSL library for random number generation" OFF)
 option(ENABLE_MOSAIC "Enable MOSAIC chemistry support" OFF)
 option(ENABLE_CAMP "Enable CAMP chemistry support" OFF)
-option(ENABLE_JSON "Enable json-fortran support" OFF)
 option(ENABLE_MPI "Enable MPI parallel support" OFF)
 option(ENABLE_SUNDIALS "Enable SUNDIALS solver for condensation support" OFF)
 option(ENABLE_C_SORT "Enable C sorting routines" OFF)
@@ -85,7 +84,7 @@ endif()
 if(ENABLE_CAMP)
   find_path(CAMP_INCLUDE_DIR
     DOC "CAMP include directory"
-    PATHS $ENV{CAMP_HOME} $ENV{CAMP_HOJME}/include)
+    PATHS $ENV{CAMP_HOME} $ENV{CAMP_HOME}/include)
   find_library(CAMP_LIB camp
     DOC "CAMP library"
     PATHS $ENV{CAMP_HOME} $ENV{CAMP_HOME}/lib)
@@ -154,17 +153,6 @@ if(ENABLE_SUNDIALS)
   add_definitions(-DPMC_USE_SUNDIALS)
 endif()
 
-if (ENABLE_JSON)
-  find_path(JSON_INCLUDE_DIR json_module.mod
-    DOC "json-fortran include directory (must include json_*.mod files)"
-    PATHS $ENV{JSON_FORTRAN_HOME}/lib /opt/local/lib /usr/local/lib)
-  find_library(JSON_LIB jsonfortran
-    DOC "json-fortran library"
-    PATHS $ENV{JSON_FORTRAN_HOME}/lib /opt/local/lib /usr/local/lib)
-  include_directories(${JSON_INCLUDE_DIR})
-  add_definitions(-DPMC_USE_JSON)
-endif()
-
 ######################################################################
 # tests
 
@@ -176,6 +164,9 @@ add_test(test_additive ${CMAKE_BINARY_DIR}/test_run/run_test_directory.sh additi
 add_test(test_average ${CMAKE_BINARY_DIR}/test_run/run_test_directory.sh average)
 add_test(test_bidisperse ${CMAKE_BINARY_DIR}/test_run/run_test_directory.sh bidisperse)
 add_test(test_brownian ${CMAKE_BINARY_DIR}/test_run/run_test_directory.sh brownian)
+if(ENABLE_CAMP)
+  add_test(test_camp ${CMAKE_BINARY_DIR}/test_run/run_test_directory.sh camp)
+endif()
 if(ENABLE_SUNDIALS)
   add_test(test_condense ${CMAKE_BINARY_DIR}/test_run/run_test_directory.sh condense)
 endif()
@@ -217,7 +208,7 @@ add_library(partmclib src/aero_state.F90 src/integer_varray.F90
   ${C_SORT_SRC})
 
 target_link_libraries(partmclib ${NETCDF_LIBS} ${SUNDIALS_LIBS}
-  ${MOSAIC_LIB} ${GSL_LIBS} ${CAMP_LIB} ${JSON_LIB})
+  ${MOSAIC_LIB} ${GSL_LIBS} ${CAMP_LIB})
 
 set_target_properties(partmclib PROPERTIES OUTPUT_NAME partmc)
 

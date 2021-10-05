@@ -336,9 +336,8 @@ contains
     !!   output data to disk (see \ref output_format)
     !! - \b t_progress (real, unit s): the interval on which to
     !!   write summary information to the screen while running
-    !! - \b do_camp_chem (logical): whether to run <b>CAMP
-    !!   </b> (requires JSON and SUNDIALS support to be compiled
-    !!   in). If \c do_camp_chem is \c yes, then the following parameters
+    !! - \b do_camp_chem (logical): whether to run <b>CAMP</b>.
+    !!   If \c do_camp_chem is \c yes, then the following parameters
     !!   must also be provided:
     !!   - \b camp_config (string): name of file containing a list of \b
     !!     camp-chem configuration files. File format should be \ref
@@ -444,14 +443,6 @@ contains
        call spec_file_read_logical(file, 'do_camp_chem', &
                run_part_opt%do_camp_chem)
        if (run_part_opt%do_camp_chem) then
-#ifndef PMC_USE_JSON
-         call spec_file_die_msg(581685398, file, &
-                 'cannot do camp chem, JSON support not compiled in')
-#endif
-#ifndef PMC_USE_SUNDIALS
-         call spec_file_die_msg(905205341, file, &
-                 'cannot do camp chem, SUNDIALS support not compiled in')
-#endif
 #ifdef PMC_USE_CAMP
          call spec_file_read_string(file, 'camp_config', &
                  camp_config_filename)

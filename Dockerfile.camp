@@ -76,13 +76,11 @@ COPY . /partmc/
 
 RUN mkdir build \
     && cd build \
-    && export JSON_FORTRAN_HOME="/usr/local/jsonfortran-gnu-6.1.0" \
     && export CAMP_HOME="/camp-1.0.0-alpha/build/" \
     && cmake -D CMAKE_BUILD_TYPE=release \
              -D CMAKE_C_FLAGS_DEBUG="-g" \
              -D CMAKE_Fortran_FLAGS_DEBUG="-g" \
              -D ENABLE_GSL:BOOL=TRUE \
-             -D ENABLE_JSON=TRUE \
              -D ENABLE_CAMP=TRUE \
              -D CAMP_LIB=/camp-1.0.0-alpha/build/lib/libcamp.so \
              -D CAMP_INCLUDE_DIR=/camp-1.0.0-alpha/build/include/ \

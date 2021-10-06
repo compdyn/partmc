@@ -10,3 +10,6 @@ cd ${0%/*}
 mkdir -p out
 
 ../../partmc camp.spec
+
+../../extract_aero_time out/camp_0001
+../../numeric_diff --by col --rel-tol 0.5 ref_camp_0001_aero_time.txt out/camp_0001_aero_time.txt

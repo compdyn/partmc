@@ -82,12 +82,12 @@ endif()
 # CAMP
 
 if(ENABLE_CAMP)
-  find_path(CAMP_INCLUDE_DIR
+  find_path(CAMP_INCLUDE_DIR camp_camp_core.mod
     DOC "CAMP include directory"
-    PATHS $ENV{CAMP_HOME} $ENV{CAMP_HOME}/include)
+    PATHS $ENV{CAMP_HOME}/include)
   find_library(CAMP_LIB camp
     DOC "CAMP library"
-    PATHS $ENV{CAMP_HOME} $ENV{CAMP_HOME}/lib)
+    PATHS $ENV{CAMP_HOME}/lib)
   include_directories(${CAMP_INCLUDE_DIR})
   add_definitions(-DPMC_USE_CAMP)
 endif()

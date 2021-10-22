@@ -9,9 +9,6 @@
 module pmc_util
 
   use pmc_constants
-#ifdef PMC_USE_CAMP
-  use camp_util, only: string_t, split_string, split_char
-#endif
 #ifdef PMC_USE_MPI
   use mpi
 #endif

@@ -16,6 +16,7 @@ module pmc_gas_data
   use camp_camp_core
   use camp_chem_spec_data
   use camp_property
+  use camp_util, only: string_t, split_string, split_char
 #endif
 #ifdef PMC_USE_MPI
   use mpi

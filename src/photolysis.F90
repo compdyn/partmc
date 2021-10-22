@@ -69,7 +69,7 @@ contains
 
     ! If no core is provided, return an empty object that can be
     ! unpacked from an MPI buffer
-    if(.not.present(camp_core)) return
+    if (.not. present(camp_core)) return
 
     ! Strings needed to find all the photolysis reactions
     rxn_key = "type"
@@ -111,9 +111,9 @@ contains
 
         ! Get the base photolysis rate
         call assert_msg(501329648, &
-                        rxn%property_set%get_real(rate_key, rate_val), &
-                        "Missing 'base rate' for photolysis reaction "// &
-                        trim(integer_to_string(i_photo_rxn)))
+             rxn%property_set%get_real(rate_key, rate_val), &
+             "Missing 'base rate' for photolysis reaction "// &
+             trim(integer_to_string(i_photo_rxn)))
         new_obj%base_rates(i_photo_rxn) = rate_val
 
         ! Create an update rate object for this photolysis reaction

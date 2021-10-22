@@ -192,10 +192,10 @@ contains
 
 #ifdef PMC_USE_CAMP
   !> Set CAMP gas-phase species concentrations
-  subroutine gas_state_set_camp_conc(this, camp_state, gas_data)
+  subroutine gas_state_set_camp_conc(gas_state, camp_state, gas_data)
 
     !> Gas state
-    class(gas_state_t), intent(in) :: this
+    class(gas_state_t), intent(in) :: gas_state
     !> CAMP state
     type(camp_state_t), intent(inout) :: camp_state
     !> Gas data
@@ -204,7 +204,8 @@ contains
     real(kind=dp), parameter :: t_steam = 373.15 ! steam temperature (K)
     real(kind=dp) :: a, water_vp
 
-    camp_state%state_var(1:size(this%mix_rat)) = this%mix_rat(:) / 1000.0d0
+    camp_state%state_var(1:size(gas_state%mix_rat)) = gas_state%mix_rat(:) &
+         / 1000.0d0
 
     ! Convert relative humidity (1) to [H2O] (ppm)
     ! From MOSAIC code - reference to Seinfeld & Pandis page 181
@@ -216,22 +217,23 @@ contains
     water_vp = 101325.0 * exp(a)  ! (Pa)
 
     camp_state%state_var(gas_data%i_camp_water) = &
-      camp_state%env_states(1)%val%rel_humid * water_vp * 1.0e6 &
-      / camp_state%env_states(1)%val%pressure ! (ppm)
+         camp_state%env_states(1)%val%rel_humid * water_vp * 1.0e6 &
+         / camp_state%env_states(1)%val%pressure ! (ppm)
 
   end subroutine gas_state_set_camp_conc
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Get CAMP gas-phase species concentrations
-  subroutine gas_state_get_camp_conc(this, camp_state)
+  subroutine gas_state_get_camp_conc(gas_state, camp_state)
 
     !> Gas state
-    class(gas_state_t), intent(inout) :: this
+    class(gas_state_t), intent(inout) :: gas_state
     !> CAMP state
     type(camp_state_t), intent(in) :: camp_state
 
-    this%mix_rat(:) = camp_state%state_var(1:size(this%mix_rat)) * 1000.0d0
+    gas_state%mix_rat(:) = camp_state%state_var(1:size(gas_state%mix_rat)) &
+         * 1000.0d0
 
   end subroutine gas_state_get_camp_conc
 #endif

@@ -866,14 +866,14 @@ contains
     type(property_t), pointer :: property_set
 
     rep_name = "PartMC single particle"
-    if (.not.camp_core%get_aero_rep(rep_name, aero_data%aero_rep_ptr)) then
+    if (.not. camp_core%get_aero_rep(rep_name, aero_data%aero_rep_ptr)) then
       call die_msg(418509983, "Missing 'PartMC single particle' aerosol "// &
-              "representation.")
+           "representation.")
     end if
 
     call assert_msg(935419266, &
-            camp_core%get_chem_spec_data(chem_spec_data), &
-            "No chemical species data in camp_core.")
+         camp_core%get_chem_spec_data(chem_spec_data), &
+         "No chemical species data in camp_core.")
 
     ! Only include real aerosol species (no activity coefficients)
     spec_names = aero_data%aero_rep_ptr%unique_names()
@@ -881,12 +881,12 @@ contains
     num_spec = 0
     do i_spec = 1, size(spec_names)
       call assert(496388827, chem_spec_data%get_type( &
-                  aero_data%aero_rep_ptr%spec_name(spec_names(i_spec)%string), &
-                  spec_type))
-      if( spec_type.ne.CHEM_SPEC_VARIABLE .and. &
+           aero_data%aero_rep_ptr%spec_name(spec_names(i_spec)%string), &
+           spec_type))
+      if (spec_type.ne.CHEM_SPEC_VARIABLE .and. &
           spec_type.ne.CHEM_SPEC_CONSTANT .and. &
-          spec_type.ne.CHEM_SPEC_PSSA ) cycle
-      if( spec_names(i_spec)%string(1:3) .ne. "P1." ) exit
+          spec_type.ne.CHEM_SPEC_PSSA) cycle
+      if (spec_names(i_spec)%string(1:3) .ne. "P1.") exit
       num_spec = num_spec + 1
       tmp_spec_names(num_spec)%string = spec_names(i_spec)%string(4:) ! remove 'P1.'
     end do
@@ -908,7 +908,7 @@ contains
 
     do i_spec = 1, num_spec
       aero_data%name(i_spec) = spec_names(i_spec)%string
-      if (.not.chem_spec_data%get_property_set( &
+      if (.not. chem_spec_data%get_property_set( &
         aero_data%aero_rep_ptr%spec_name("P1."//spec_names(i_spec)%string), &
         property_set)) then
         call die_msg(934844845, "Missing property set for aerosol species "//&
@@ -938,7 +938,7 @@ contains
       if (property_set%get_string(prop_name, str_val)) then
         if (str_val.eq."H2O") then
           call assert_msg(227489086, aero_data%i_water.eq.0, &
-                          "Multiple aerosol water species")
+               "Multiple aerosol water species")
           aero_data%i_water = i_spec
         end if
       end if
@@ -946,15 +946,15 @@ contains
           aero_data%aero_rep_ptr%spec_state_id("P1."//spec_names(i_spec)%string)
     end do
 
-    select type( aero_rep => aero_data%aero_rep_ptr )
+    select type( aero_rep => aero_data%aero_rep_ptr)
       type is(aero_rep_single_particle_t)
 
         ! Get the number of elements per-particle on the CAMP state array
-        aero_data%camp_particle_state_size = aero_rep%per_particle_size( )
+        aero_data%camp_particle_state_size = aero_rep%per_particle_size()
 
         ! Set up the update data objects for number
-        call camp_core%initialize_update_object( aero_rep, &
-                                                 aero_data%update_number )
+        call camp_core%initialize_update_object(aero_rep, &
+                                                 aero_data%update_number)
       class default
         call die_msg(281737350, "Wrong aerosol representation type")
     end select

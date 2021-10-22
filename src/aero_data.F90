@@ -362,13 +362,13 @@ contains
 
   !> Get the index on the CAMP state array for a specified species and
   !! computational particle
-  integer function camp_spec_id(aero_data, i_part, i_spec )
+  integer function camp_spec_id(aero_data, i_part, i_spec)
 
     !> Aerosol data.
     class(aero_data_t), intent(in) :: aero_data
-    !> Computational particle index (1...aero_state_t%n_part)
+    !> Computational particle index (1...aero_state_t%n_part).
     integer, intent(in) :: i_part
-    !> Aerosol species index in aero_particle_t%vol(:) array
+    !> Aerosol species index in aero_particle_t%vol(:) array.
     integer, intent(in) :: i_spec
 
 #ifdef PMC_USE_CAMP
@@ -871,8 +871,7 @@ contains
            "representation.")
     end if
 
-    call assert_msg(935419266, &
-         camp_core%get_chem_spec_data(chem_spec_data), &
+    call assert_msg(935419266, camp_core%get_chem_spec_data(chem_spec_data), &
          "No chemical species data in camp_core.")
 
     ! Only include real aerosol species (no activity coefficients)
@@ -880,15 +879,15 @@ contains
     allocate(tmp_spec_names(size(spec_names)))
     num_spec = 0
     do i_spec = 1, size(spec_names)
-      call assert(496388827, chem_spec_data%get_type( &
-           aero_data%aero_rep_ptr%spec_name(spec_names(i_spec)%string), &
-           spec_type))
-      if (spec_type.ne.CHEM_SPEC_VARIABLE .and. &
-          spec_type.ne.CHEM_SPEC_CONSTANT .and. &
-          spec_type.ne.CHEM_SPEC_PSSA) cycle
-      if (spec_names(i_spec)%string(1:3) .ne. "P1.") exit
-      num_spec = num_spec + 1
-      tmp_spec_names(num_spec)%string = spec_names(i_spec)%string(4:) ! remove 'P1.'
+       call assert(496388827, chem_spec_data%get_type( &
+            aero_data%aero_rep_ptr%spec_name(spec_names(i_spec)%string), &
+            spec_type))
+       if (spec_type.ne.CHEM_SPEC_VARIABLE .and. &
+           spec_type.ne.CHEM_SPEC_CONSTANT .and. &
+           spec_type.ne.CHEM_SPEC_PSSA) cycle
+       if (spec_names(i_spec)%string(1:3) .ne. "P1.") exit
+       num_spec = num_spec + 1
+       tmp_spec_names(num_spec)%string = spec_names(i_spec)%string(4:)
     end do
     deallocate(spec_names)
     allocate(spec_names(num_spec))
@@ -907,56 +906,61 @@ contains
     aero_data%i_water = 0
 
     do i_spec = 1, num_spec
-      aero_data%name(i_spec) = spec_names(i_spec)%string
-      if (.not. chem_spec_data%get_property_set( &
-        aero_data%aero_rep_ptr%spec_name("P1."//spec_names(i_spec)%string), &
-        property_set)) then
-        call die_msg(934844845, "Missing property set for aerosol species "//&
-             spec_names(i_spec)%string)
-      end if
-      prop_name = "density [kg m-3]"
-      if (.not. property_set%get_real(prop_name, aero_data%density(i_spec))) then
-        call die_msg(547508215, "Missing density for aerosol species "//&
-             spec_names(i_spec)%string)
-      end if
-      prop_name = "num_ions"
-      if (.not. property_set%get_int(prop_name, aero_data%num_ions(i_spec))) then
-        call die_msg(324777059, "Missing num_ions for aerosol species "//&
-             spec_names(i_spec)%string)
-      end if
-      prop_name = "molecular weight [kg mol-1]"
-      if (.not. property_set%get_real(prop_name, aero_data%molec_weight(i_spec))) then
-        call die_msg(549413749, "Missing molec_weight for aerosol species "//&
-             spec_names(i_spec)%string)
-      end if
-      prop_name = "kappa"
-      if (.not. property_set%get_real(prop_name, aero_data%kappa(i_spec))) then
-        call die_msg(944207343, "Missing kappa for aerosol species "//&
-             spec_names(i_spec)%string)
-      end if
-      prop_name = "PartMC name"
-      if (property_set%get_string(prop_name, str_val)) then
-        if (str_val.eq."H2O") then
-          call assert_msg(227489086, aero_data%i_water.eq.0, &
-               "Multiple aerosol water species")
-          aero_data%i_water = i_spec
-        end if
-      end if
-      aero_data%camp_particle_spec_id(i_spec) = &
-          aero_data%aero_rep_ptr%spec_state_id("P1."//spec_names(i_spec)%string)
+       aero_data%name(i_spec) = spec_names(i_spec)%string
+       if (.not. chem_spec_data%get_property_set( &
+            aero_data%aero_rep_ptr%spec_name("P1." &
+            // spec_names(i_spec)%string), property_set)) then
+          call die_msg(934844845, "Missing property set for aerosol species " &
+               // spec_names(i_spec)%string)
+       end if
+       prop_name = "density [kg m-3]"
+       if (.not. property_set%get_real(prop_name, &
+            aero_data%density(i_spec))) then
+          call die_msg(547508215, "Missing density for aerosol species " &
+               // spec_names(i_spec)%string)
+       end if
+       prop_name = "num_ions"
+       if (.not. property_set%get_int(prop_name, &
+            aero_data%num_ions(i_spec))) then
+          call die_msg(324777059, "Missing num_ions for aerosol species " &
+               // spec_names(i_spec)%string)
+       end if
+       prop_name = "molecular weight [kg mol-1]"
+       if (.not. property_set%get_real(prop_name, &
+            aero_data%molec_weight(i_spec))) then
+          call die_msg(549413749, "Missing molec_weight for aerosol species " &
+               // spec_names(i_spec)%string)
+       end if
+       prop_name = "kappa"
+       if (.not. property_set%get_real(prop_name, &
+            aero_data%kappa(i_spec))) then
+          call die_msg(944207343, "Missing kappa for aerosol species "//&
+               spec_names(i_spec)%string)
+       end if
+       prop_name = "PartMC name"
+       if (property_set%get_string(prop_name, str_val)) then
+          if (str_val.eq."H2O") then
+             call assert_msg(227489086, aero_data%i_water .eq. 0, &
+                  "Multiple aerosol water species")
+             aero_data%i_water = i_spec
+          end if
+       end if
+       aero_data%camp_particle_spec_id(i_spec) = &
+            aero_data%aero_rep_ptr%spec_state_id("P1." &
+            // spec_names(i_spec)%string)
     end do
 
     select type( aero_rep => aero_data%aero_rep_ptr)
-      type is(aero_rep_single_particle_t)
+       type is(aero_rep_single_particle_t)
 
-        ! Get the number of elements per-particle on the CAMP state array
-        aero_data%camp_particle_state_size = aero_rep%per_particle_size()
+          ! Get the number of elements per-particle on the CAMP state array
+          aero_data%camp_particle_state_size = aero_rep%per_particle_size()
 
-        ! Set up the update data objects for number
-        call camp_core%initialize_update_object(aero_rep, &
+          ! Set up the update data objects for number
+          call camp_core%initialize_update_object(aero_rep, &
                                                  aero_data%update_number)
-      class default
-        call die_msg(281737350, "Wrong aerosol representation type")
+       class default
+          call die_msg(281737350, "Wrong aerosol representation type")
     end select
 
   end subroutine aero_data_initialize

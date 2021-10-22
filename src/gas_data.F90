@@ -82,9 +82,9 @@ contains
       call assert_msg(990037352, &
                       chem_spec_data%get_property_set( &
                         gas_spec_names(i_spec)%string, &
-                        property_set ), &
+                        property_set), &
                       "Missing property set for gas species "// &
-                      gas_spec_names(i_spec)%string )
+                      gas_spec_names(i_spec)%string)
       if (property_set%get_logical(prop_name, bool_val)) then
         call assert_msg(423633615, gas_data%i_camp_water.eq.0, &
                         "More than one gas-phase water species specified")

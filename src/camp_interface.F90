@@ -22,11 +22,7 @@ module pmc_camp_interface
   use camp_solver_stats
   use camp_util, only: split_string
 #endif
-  use pmc_util,                       only : die_msg, &
-#ifdef PMC_USE_CAMP
-                                             string_t,&
-#endif
-                                             warn_assert_msg, assert_msg
+  use pmc_util, only : die_msg, warn_assert_msg, assert_msg
 
   implicit none
 
@@ -116,13 +112,13 @@ contains
     select type (aero_rep)
       type is (aero_rep_single_particle_t)
         call assert_msg(858496327, aero_state_n_part(aero_state) .le. &
-             aero_rep%maximum_computational_particles( ), &
+             aero_rep%maximum_computational_particles(), &
              "Exceeded CAMP maximum number of particles. Number "// &
              "of computational particles: "// &
              trim(integer_to_string(aero_state_n_part(aero_state)))// &
              ". CAMP maximum: "// &
              trim(integer_to_string( &
-                 aero_rep%maximum_computational_particles( ))))
+                 aero_rep%maximum_computational_particles())))
         do i_part = 1, aero_state_n_part(aero_state)
           associate (part => aero_state%apa%particle(i_part))
           num_conc = aero_weight_array_num_conc(aero_state%awa, part, aero_data)
@@ -135,17 +131,17 @@ contains
           end associate
         end do
         do i_part = aero_state_n_part(aero_state) + 1, &
-                    aero_rep%maximum_computational_particles( )
-          call aero_data%update_number%set_number__n_m3(i_part, 0.0_dp)
+                    aero_rep%maximum_computational_particles()
+          call aero_data%update_number%set_number__n_m3(i_part, 0.0d0)
           call camp_core%update_data(aero_data%update_number)
           do i_spec = 1, size(aero_data%camp_particle_spec_id)
-            camp_state%state_var(aero_data%camp_spec_id(i_part, i_spec)) = &
-                0.0_dp
+             camp_state%state_var(aero_data%camp_spec_id(i_part, i_spec)) = &
+                  0.0d0
           end do
         end do
       class default
         call die_msg(780366884, &
-                "Wrong type for PartMC aerosol representation.")
+             "Wrong type for PartMC aerosol representation.")
     end select
     end associate
 
@@ -170,8 +166,8 @@ contains
     select type (aero_rep)
       type is (aero_rep_single_particle_t)
         call assert_msg(464490945, aero_state_n_part(aero_state) .le. &
-             aero_rep%maximum_computational_particles( ), &
-             "Exceeded CAMP maximum number of particles" )
+             aero_rep%maximum_computational_particles(), &
+             "Exceeded CAMP maximum number of particles")
         do i_part = 1, aero_state_n_part(aero_state)
           associate (part => aero_state%apa%particle(i_part))
           do i_spec = 1, size(aero_data%camp_particle_spec_id)

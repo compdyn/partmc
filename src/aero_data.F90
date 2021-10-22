@@ -78,8 +78,6 @@ module pmc_aero_data
      !! particle
      integer :: camp_particle_state_size = -1
   contains
-     !> Initialize the aero_data_t variable with camp chem data
-     procedure :: initialize => aero_data_initialize
      !> Get the index on the CAMP state array for a specified species and
      !! computation particle
      procedure :: camp_spec_id
@@ -934,8 +932,8 @@ contains
        prop_name = "kappa"
        if (.not. property_set%get_real(prop_name, &
             aero_data%kappa(i_spec))) then
-          call die_msg(944207343, "Missing kappa for aerosol species "//&
-               spec_names(i_spec)%string)
+         call die_msg(944207343, "Missing kappa for aerosol species " &
+              // spec_names(i_spec)%string)
        end if
        prop_name = "PartMC name"
        if (property_set%get_string(prop_name, str_val)) then

@@ -96,13 +96,13 @@ contains
   subroutine pmc_camp_interface_set_camp_aerosol(aero_data, aero_state, &
       camp_core, camp_state)
 
-    !> Aerosol data
+    !> Aerosol data.
     type(aero_data_t), intent(inout) :: aero_data
-    !> Aerosol state
+    !> Aerosol state.
     type(aero_state_t), intent(in) :: aero_state
-    !> CAMP core
+    !> CAMP core.
     type(camp_core_t), intent(in) :: camp_core
-    !> CAMP state
+    !> CAMP state.
     type(camp_state_t), intent(inout) :: camp_state
 
     real(kind=dp) :: num_conc
@@ -110,37 +110,38 @@ contains
 
     associate (aero_rep => aero_data%aero_rep_ptr)
     select type (aero_rep)
-      type is (aero_rep_single_particle_t)
-        call assert_msg(858496327, aero_state_n_part(aero_state) .le. &
-             aero_rep%maximum_computational_particles(), &
-             "Exceeded CAMP maximum number of particles. Number "// &
-             "of computational particles: "// &
-             trim(integer_to_string(aero_state_n_part(aero_state)))// &
-             ". CAMP maximum: "// &
-             trim(integer_to_string( &
-                 aero_rep%maximum_computational_particles())))
-        do i_part = 1, aero_state_n_part(aero_state)
-          associate (part => aero_state%apa%particle(i_part))
-          num_conc = aero_weight_array_num_conc(aero_state%awa, part, aero_data)
-          call aero_data%update_number%set_number__n_m3(i_part, num_conc)
-          call camp_core%update_data(aero_data%update_number)
-          do i_spec = 1, size(aero_data%camp_particle_spec_id)
-            camp_state%state_var(aero_data%camp_spec_id(i_part, i_spec)) = &
-                    part%vol(i_spec) * aero_data%density(i_spec) ! kg m-3
+       type is (aero_rep_single_particle_t)
+          call assert_msg(858496327, aero_state_n_part(aero_state) .le. &
+               aero_rep%maximum_computational_particles(), &
+               "Exceeded CAMP maximum number of particles. Number "// &
+               "of computational particles: "// &
+               trim(integer_to_string(aero_state_n_part(aero_state)))// &
+               ". CAMP maximum: "// &
+               trim(integer_to_string( &
+                    aero_rep%maximum_computational_particles())))
+          do i_part = 1, aero_state_n_part(aero_state)
+             associate (part => aero_state%apa%particle(i_part))
+             num_conc = aero_weight_array_num_conc(aero_state%awa, part, &
+                  aero_data)
+             call aero_data%update_number%set_number__n_m3(i_part, num_conc)
+             call camp_core%update_data(aero_data%update_number)
+             do i_spec = 1, size(aero_data%camp_particle_spec_id)
+                camp_state%state_var(aero_data%camp_spec_id(i_part, i_spec)) &
+                     = part%vol(i_spec) * aero_data%density(i_spec) ! kg m-3
+             end do
+             end associate
           end do
-          end associate
-        end do
-        do i_part = aero_state_n_part(aero_state) + 1, &
-                    aero_rep%maximum_computational_particles()
-          call aero_data%update_number%set_number__n_m3(i_part, 0.0d0)
-          call camp_core%update_data(aero_data%update_number)
-          do i_spec = 1, size(aero_data%camp_particle_spec_id)
-             camp_state%state_var(aero_data%camp_spec_id(i_part, i_spec)) = &
-                  0.0d0
+          do i_part = aero_state_n_part(aero_state) + 1, &
+               aero_rep%maximum_computational_particles()
+             call aero_data%update_number%set_number__n_m3(i_part, 0.0d0)
+             call camp_core%update_data(aero_data%update_number)
+             do i_spec = 1,size(aero_data%camp_particle_spec_id)
+                camp_state%state_var(aero_data%camp_spec_id(i_part, i_spec)) &
+                     = 0.0d0
+             end do
           end do
-        end do
       class default
-        call die_msg(780366884, &
+         call die_msg(780366884, &
              "Wrong type for PartMC aerosol representation.")
     end select
     end associate

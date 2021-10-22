@@ -120,7 +120,7 @@ contains
         select type (rxn_photo => rxn)
           class is (rxn_photolysis_t)
           call camp_core%initialize_update_object(rxn_photo, &
-                                                  new_obj%photo_rxns(i_photo_rxn))
+               new_obj%photo_rxns(i_photo_rxn))
           class default
             call die(722633162)
         end select

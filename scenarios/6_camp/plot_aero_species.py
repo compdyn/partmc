@@ -59,7 +59,6 @@ def time_formatter(x, pos):
     return f'{x/60: .0f}'
 
 freq = 2
-monarch_ind_to_plot = np.arange(0,721,5*freq)
 partmc_ind_to_plot = np.arange(0,145,freq)
 file = './out/camp' 
 times = get_times(file, n_times)
@@ -73,37 +72,32 @@ pos = [0,0]
 mass_conc, mass_std = get_mass_conc(file, n_times,'organic_matter.ISOP-P1_aero',
      n_repeats=n_runs)
 axes[pos[0]][pos[1]].plot(times[partmc_ind_to_plot], mass_conc[partmc_ind_to_plot],
-             color=colors[0], ls='', marker='%s'%(part_symbol), label="ISOP-P1\_aero",
+             color=colors[0], ls='', marker='%s'%(part_symbol), label="ISOP_P1_aero",
              markerfacecolor='none')
 
-times = np.linspace(0,2*24*60,n_times)
 axes[pos[0]][pos[1]].legend(framealpha=1, edgecolor='k') 
-ymax = .5
 axes[pos[0]][pos[1]].grid(True,linestyle='--')
 axes[pos[0]][pos[1]].set_xlim([0,24*60])
 axes[pos[0]][pos[1]].xaxis.set_major_locator(ticker.FixedLocator([0,360,720,1080,1440]))
 axes[pos[0]][pos[1]].xaxis.set_major_formatter(time_formatter)
-
-
+axes[pos[0]][pos[1]].set_ylim([0,3e-9])
+axes[pos[0]][pos[1]].yaxis.set_major_formatter(major_formatter)
+axes[pos[0]][pos[1]].set_ylabel(r'Mass concentration ($\mu \rm g \, m^{-3}$)')
 pos = [1,0]
-mass_conc, mass_std = get_mass_conc(file, n_times,'organic_matter.ISOP-P1_aero',
+mass_conc, mass_std = get_mass_conc(file, n_times,'organic_matter.ISOP-P2_aero',
      n_repeats=n_runs)
 axes[pos[0]][pos[1]].plot(times[partmc_ind_to_plot], mass_conc[partmc_ind_to_plot],
-             color=colors[0], ls='', marker='%s'%(part_symbol), label="ISOP-P1\_aero",
+             color=colors[0], ls='', marker='%s'%(part_symbol), label="ISOP-P2_aero",
              markerfacecolor='none')
-
-times = np.linspace(0,2*24*60,n_times)
 axes[pos[0]][pos[1]].legend(framealpha=1, edgecolor='k')
-ymax = .5
 axes[pos[0]][pos[1]].grid(True,linestyle='--')
 axes[pos[0]][pos[1]].set_xlabel('Simulation time (h)')
 axes[pos[0]][pos[1]].set_xlim([0,24*60])
 axes[pos[0]][pos[1]].xaxis.set_major_locator(ticker.FixedLocator([0,360,720,1080,1440]))
 axes[pos[0]][pos[1]].xaxis.set_major_formatter(time_formatter)
 axes[pos[0]][pos[1]].set_ylabel(r'Mass concentration ($\mu \rm g \, m^{-3}$)')
-axes[pos[0]][pos[1]].set_ylim([0,ymax])
-axes[pos[0]][pos[1]].set_ylim([0,3e-9])
+axes[pos[0]][pos[1]].set_ylim([0,3e-10])
 axes[pos[0]][pos[1]].yaxis.set_major_formatter(major_formatter)
-out_filename = 'timeseries_aero.pdf'
+out_filename = 'out/timeseries_aero.pdf'
 print("Writing %s" % out_filename)
 fig.savefig(out_filename)

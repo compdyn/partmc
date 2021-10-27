@@ -1,4 +1,4 @@
-FROM fedora:27
+FROM fedora:33
 
 RUN dnf -y update \
     && dnf -y install \
@@ -33,11 +33,11 @@ RUN curl -LO https://github.com/jacobwilliams/json-fortran/archive/6.1.0.tar.gz 
     && make install \
     && cd ~
 
-RUN curl -LO https://github.com/open-atmos/camp/archive/refs/tags/v1.0.0-alpha.tar.gz \
-    && tar -zxvf v1.0.0-alpha.tar.gz
+RUN curl -LO https://github.com/open-atmos/camp/archive/refs/tags/v1.0.0-gamma.tar.gz \
+    && tar -zxvf v1.0.0-gamma.tar.gz
 
 # Install a modified version of CVODE
-RUN cd camp-1.0.0-alpha \
+RUN cd camp-1.0.0-gamma \
     && tar -zxvf cvode-3.4-alpha.tar.gz \
     && cd cvode-3.4-alpha \
     && mkdir build \
@@ -58,7 +58,7 @@ ENV LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib:/usr/local/lib64:/usr/loc
 ENV PATH="${PATH}:/usr/local/jsonfortran-gnu-6.1.0/lib"
 
 # Build CAMP
-RUN  cd camp-1.0.0-alpha \
+RUN  cd camp-1.0.0-gamma \
     && mkdir build \
     && cd build \
     && export JSON_FORTRAN_HOME="/usr/local/jsonfortran-gnu-6.1.0" \
@@ -76,13 +76,13 @@ COPY . /partmc/
 
 RUN mkdir build \
     && cd build \
-    && export CAMP_HOME="/camp-1.0.0-alpha/build/" \
+    && export CAMP_HOME="/camp-1.0.0-gamma/build/" \
     && cmake -D CMAKE_BUILD_TYPE=release \
              -D CMAKE_C_FLAGS_DEBUG="-g" \
              -D CMAKE_Fortran_FLAGS_DEBUG="-g" \
              -D ENABLE_GSL:BOOL=TRUE \
              -D ENABLE_CAMP=TRUE \
-             -D CAMP_LIB=/camp-1.0.0-alpha/build/lib/libcamp.so \
-             -D CAMP_INCLUDE_DIR=/camp-1.0.0-alpha/build/include/ \
+             -D CAMP_LIB=/camp-1.0.0-gamma/build/lib/libcamp.so \
+             -D CAMP_INCLUDE_DIR=/camp-1.0.0-gamma/build/include/ \
              /partmc \
     && make

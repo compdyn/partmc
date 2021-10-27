@@ -296,8 +296,8 @@ contains
        if (run_part_opt%do_camp_chem) then
 #ifdef PMC_USE_CAMP
           call pmc_camp_interface_solve(camp_core, camp_state, &
-               camp_pre_aero_state, camp_post_aero_state, aero_data, &
-               aero_state, gas_data, gas_state, photolysis, &
+               camp_pre_aero_state, camp_post_aero_state, env_state, &
+               aero_data, aero_state, gas_data, gas_state, photolysis, &
                run_part_opt%del_t)
 #endif
        end if

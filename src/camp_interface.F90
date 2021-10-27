@@ -32,7 +32,7 @@ contains
 #ifdef PMC_USE_CAMP
   !> Run the CAMP module for the current PartMC state
   subroutine pmc_camp_interface_solve(camp_core, camp_state, &
-          camp_pre_aero_state, camp_post_aero_state, aero_data, &
+          camp_pre_aero_state, camp_post_aero_state, env_state, aero_data, &
           aero_state, gas_data, gas_state, photolysis, del_t)
 
     !> CAMP core
@@ -43,6 +43,8 @@ contains
     type(camp_state_t), intent(inout) :: camp_pre_aero_state
     !> Working CAMP state
     type(camp_state_t), intent(inout) :: camp_post_aero_state
+    !> Environment.
+    type(env_state_t), intent(inout) :: env_state
     !> Aerosol data
     type(aero_data_t), intent(inout) :: aero_data
     !> Aerosol state
@@ -61,6 +63,9 @@ contains
     integer :: camp_state_size
     type(solver_stats_t), target :: solver_stats
     type(camp_state_t) :: camp_state_pre_aero
+
+    ! Set the CAMP environmental state.
+    call env_state_set_camp_env_state(env_state, camp_state)
 
     ! Set the CAMP gas-phase species concentrations
     call gas_state_set_camp_conc(gas_state, camp_state, gas_data)

@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2012 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2012, 2021 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 !
@@ -127,13 +127,16 @@ contains
 
     integer :: n_spec, n_source
     real(kind=dp) :: v_big, k
+    real(kind=dp) :: particle_1_vol(1), particle_2_vol(2)
     type(aero_particle_t) :: aero_particle_1, aero_particle_2
     
     v_big = v_big_init + (n_small_init - n_small) * v_small
     n_spec = 1
     n_source = 1
-    aero_particle_1%vol = [v_small]
-    aero_particle_2%vol = [v_big]
+    allocate(aero_particle_1%vol(1)) ! hack to avoid compiler warning
+    allocate(aero_particle_2%vol(1))
+    aero_particle_1%vol(1) = v_small
+    aero_particle_2%vol(1) = v_big
     call kernel_sedi(aero_particle_1, aero_particle_2, aero_data, &
          env_state, k)
     n_small_dot = - k / comp_vol * n_small

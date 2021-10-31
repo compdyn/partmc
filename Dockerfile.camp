@@ -74,12 +74,14 @@ RUN  cd camp-1.0.0-gamma \
 # NOTE: Modify .dockerignore to whitelist files/directories to copy.
 COPY . /partmc/
 
-RUN mkdir build \
-    && cd build \
+RUN mkdir /build \
+    && cd /build \
     && export CAMP_HOME="/camp-1.0.0-gamma/build/" \
     && cmake -D CMAKE_BUILD_TYPE=release \
              -D CMAKE_C_FLAGS_DEBUG="-g" \
              -D CMAKE_Fortran_FLAGS_DEBUG="-g" \
+             -D CMAKE_C_FLAGS_RELEASE="-O2 -g -Werror -Wall -Wextra" \
+             -D CMAKE_Fortran_FLAGS_RELEASE="-O2 -g -Werror -fimplicit-none -Wall -Wextra -Wconversion -Wunderflow -Wimplicit-interface -Wno-compare-reals -Wno-unused -Wno-unused-parameter -Wno-unused-dummy-argument -fbounds-check" \
              -D ENABLE_GSL:BOOL=TRUE \
              -D ENABLE_CAMP=TRUE \
              -D CAMP_LIB=/camp-1.0.0-gamma/build/lib/libcamp.so \

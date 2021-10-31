@@ -69,6 +69,7 @@ contains
 
     ! If no core is provided, return an empty object that can be
     ! unpacked from an MPI buffer
+    new_obj => NULL()
     if (.not. present(camp_core)) return
 
     ! Strings needed to find all the photolysis reactions

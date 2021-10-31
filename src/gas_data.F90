@@ -422,7 +422,7 @@ contains
 
     character(len=1000) :: name
     integer :: dimid_gas_species, n_spec, varid_gas_species, i_spec, i
-    character(len=((GAS_NAME_LEN + 2) * 1000)) :: gas_species_names
+    character(len=:), allocatable :: gas_species_names
 
     call pmc_nc_check(nf90_inq_dimid(ncid, "gas_species", dimid_gas_species))
     call pmc_nc_check(nf90_Inquire_Dimension(ncid, dimid_gas_species, name, &
@@ -438,6 +438,7 @@ contains
          "gas_mosaic_index")
 
     call pmc_nc_check(nf90_inq_varid(ncid, "gas_species", varid_gas_species))
+    allocate(character(len=((GAS_NAME_LEN + 2) * 1000)) :: gas_species_names)
     call pmc_nc_check(nf90_get_att(ncid, varid_gas_species, "names", &
          gas_species_names))
     ! gas_species_names are comma-separated, so unpack them

@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2016, 2021 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2016 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -430,7 +430,7 @@ contains
           do_event = .false.
        else
           ! if it's been too long since the last time then do it
-          if ((time - last_time) >= interval) then
+          if ((time - last_time) .ge. interval) then
              do_event = .true.
           else
              ! gray area -- if we are closer than we will be next

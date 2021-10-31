@@ -374,6 +374,8 @@ contains
     call assert(278731889, aero_data%camp_particle_state_size .ge. 0)
     camp_spec_id = (i_part - 1) * aero_data%camp_particle_state_size + &
                    aero_data%camp_particle_spec_id(i_spec)
+#else
+    camp_spec_id = 0
 #endif
 
   end function camp_spec_id

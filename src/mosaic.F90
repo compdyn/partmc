@@ -195,7 +195,7 @@ contains
     end do
 
     tmid_sec = tcur_sec + 0.5d0*dt_sec
-    if(tmid_sec .ge. tmar21_sec) then
+    if(tmid_sec .ge. tmar21_sec)then
        tmid_sec = tmid_sec - tmar21_sec     ! seconds since noon, march 21
     else
        tmid_sec = tmid_sec &

@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2012, 2016 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2012, 2016, 2021 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -880,10 +880,10 @@ contains
        call assert(496388827, chem_spec_data%get_type( &
             aero_data%aero_rep_ptr%spec_name(spec_names(i_spec)%string), &
             spec_type))
-       if (spec_type.ne.CHEM_SPEC_VARIABLE .and. &
-           spec_type.ne.CHEM_SPEC_CONSTANT .and. &
-           spec_type.ne.CHEM_SPEC_PSSA) cycle
-       if (spec_names(i_spec)%string(1:3) .ne. "P1.") exit
+       if (spec_type /= CHEM_SPEC_VARIABLE .and. &
+           spec_type /= CHEM_SPEC_CONSTANT .and. &
+           spec_type /= CHEM_SPEC_PSSA) cycle
+       if (spec_names(i_spec)%string(1:3) /= "P1.") exit
        num_spec = num_spec + 1
        tmp_spec_names(num_spec)%string = spec_names(i_spec)%string(4:)
     end do
@@ -937,8 +937,8 @@ contains
        end if
        prop_name = "PartMC name"
        if (property_set%get_string(prop_name, str_val)) then
-          if (str_val.eq."H2O") then
-             call assert_msg(227489086, aero_data%i_water .eq. 0, &
+          if (str_val == "H2O") then
+             call assert_msg(227489086, aero_data%i_water == 0, &
                   "Multiple aerosol water species")
              aero_data%i_water = i_spec
           end if

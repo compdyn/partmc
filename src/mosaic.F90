@@ -1,4 +1,4 @@
-! Copyright (C) 2007-2012, 2016 Matthew West
+! Copyright (C) 2007-2012, 2016, 2021 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -195,7 +195,7 @@ contains
     end do
 
     tmid_sec = tcur_sec + 0.5d0*dt_sec
-    if (tmid_sec .ge. tmar21_sec)then
+    if (tmid_sec >= tmar21_sec) then
        tmid_sec = tmid_sec - tmar21_sec     ! seconds since noon, march 21
     else
        tmid_sec = tmid_sec &

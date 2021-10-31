@@ -1,4 +1,4 @@
-! Copyright (C) 2020 Matt Dawson
+! Copyright (C) 2020, 2021 Matt Dawson
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -89,7 +89,7 @@ contains
       do i_rxn = 1, camp_core%mechanism(i_mech)%val%size()
         rxn => camp_core%mechanism(i_mech)%val%get_rxn(i_rxn)
         call assert(106297725, rxn%property_set%get_string(rxn_key, str_val))
-        if (trim(str_val).eq.rxn_val) n_photo_rxns = n_photo_rxns + 1
+        if (trim(str_val) == rxn_val) n_photo_rxns = n_photo_rxns + 1
       end do
     end do
 
@@ -106,7 +106,7 @@ contains
         call assert(799145523, rxn%property_set%get_string(rxn_key, str_val))
 
         ! Is this a photolysis reaction?
-        if (trim(str_val).ne.rxn_val) cycle
+        if (trim(str_val) /= rxn_val) cycle
         i_photo_rxn = i_photo_rxn + 1
 
         ! Get the base photolysis rate

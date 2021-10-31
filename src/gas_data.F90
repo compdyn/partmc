@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2012 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2012, 2021 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -86,13 +86,13 @@ contains
                       "Missing property set for gas species "// &
                       gas_spec_names(i_spec)%string)
       if (property_set%get_logical(prop_name, bool_val)) then
-        call assert_msg(423633615, gas_data%i_camp_water.eq.0, &
+        call assert_msg(423633615, gas_data%i_camp_water == 0, &
                         "More than one gas-phase water species specified")
         gas_data%i_camp_water = i_spec
       end if
     end do
 
-    call assert_msg(134440820, gas_data%i_camp_water.ne.0, &
+    call assert_msg(134440820, gas_data%i_camp_water /= 0, &
                     "No gas-phase water species specified.")
 
     ! Allocate the mosaic index array and set to zero

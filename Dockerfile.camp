@@ -68,7 +68,7 @@ RUN  cd camp-1.0.0-gamma \
              -D CMAKE_MODULE_LINKER_FLAGS="-pg" \
              -D ENABLE_GSL:BOOL=TRUE \
              .. \
-    && make install \
+    && make \
     && cd ~
 
 # NOTE: Modify .dockerignore to whitelist files/directories to copy.

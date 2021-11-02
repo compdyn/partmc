@@ -487,6 +487,7 @@ contains
           else
 #ifdef PMC_USE_CAMP
              call aero_data_initialize(aero_data, camp_core)
+             call aero_state_initialize(aero_state, aero_data, camp_core)
 #endif
           end if
           call spec_file_read_fractal(file, aero_data%fractal)

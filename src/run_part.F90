@@ -125,7 +125,7 @@ contains
     !> Environment state.
     type(env_state_t), intent(inout) :: env_state
     !> Aerosol data.
-    type(aero_data_t), intent(inout) :: aero_data
+    type(aero_data_t), intent(in) :: aero_data
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     !> Gas data.

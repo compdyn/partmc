@@ -69,8 +69,6 @@ module pmc_aero_data
 #ifdef PMC_USE_CAMP
      !> CAMP aerosol representation pointer
      class(aero_rep_data_t), pointer :: aero_rep_ptr
-     !> CAMP update number conc cookie
-     type(aero_rep_update_data_single_particle_number_t) :: update_number
      !> Aerosol species ids on the camp chem state array for the first
      !! computational particle
      integer, allocatable :: camp_particle_spec_id(:)
@@ -957,9 +955,6 @@ contains
           ! Get the number of elements per-particle on the CAMP state array
           aero_data%camp_particle_state_size = aero_rep%per_particle_size()
 
-          ! Set up the update data objects for number
-          call camp_core%initialize_update_object(aero_rep, &
-                                                 aero_data%update_number)
        class default
           call die_msg(281737350, "Wrong aerosol representation type")
     end select

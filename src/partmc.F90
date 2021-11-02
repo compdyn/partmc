@@ -480,12 +480,6 @@ contains
 #endif
        do_init_equilibrate = .false.
        if (run_part_opt%do_condensation) then
-          call spec_file_read_logical(file, 'do_init_equilibriate', &
-               do_init_equilibrate)
-          if (do_init_equilibrate) then
-             write(*,*) 'Deprecation warning: use do_init_equilibrate instead ' &
-                // 'of do_init_equilibriate, the latter ignored if both present'
-          end if
           call spec_file_read_logical(file, 'do_init_equilibrate', &
                do_init_equilibrate)
        end if

@@ -27,6 +27,6 @@ bins = np.logspace(-8,-6,3*20+1)
 plt.hist(aero_diameter, bins=bins, weights=num_conc_per_particle/np.log10(bins[1]/bins[0]))
 
 plt.xscale('log')
-plt.xlabel('diameter [m]')
-plt.ylabel(r'num conc. [# m$^{-3}$]')
+plt.xlabel('diameter $D_p$ [m]')
+plt.ylabel(r'$dN/d \log D_p$ [# m$^{-3}$]')
 plt.savefig('out/size_dist_%03i.pdf' % i_hr)

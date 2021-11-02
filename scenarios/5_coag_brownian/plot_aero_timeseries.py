@@ -17,4 +17,6 @@ for fn in fn_ls:
 plt.plot(num_conc_ls)
 plt.xlabel("hour")
 plt.ylabel(r"number conc [# m$^{-3}$]")
+plt.xlim([0,24])
+plt.xticks([0,6,12,18,24])
 plt.savefig('out/num_conc.pdf')

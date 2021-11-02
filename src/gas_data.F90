@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2012 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2012, 2021 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -12,6 +12,12 @@ module pmc_gas_data
   use pmc_mpi
   use pmc_util
   use pmc_netcdf
+#ifdef PMC_USE_CAMP
+  use camp_camp_core
+  use camp_chem_spec_data
+  use camp_property
+  use camp_util, only: string_t, split_string, split_char
+#endif
 #ifdef PMC_USE_MPI
   use mpi
 #endif
@@ -33,9 +39,68 @@ module pmc_gas_data
      !> gas_data_n_spec(gas_data)]. \c to_mosaic(i) is the mosaic index of
      !> species \c i, or 0 if there is no match.
      integer, allocatable :: mosaic_index(:)
+     !> Index for gas-phase water in the CAMP state array
+     integer :: i_camp_water = 0
   end type gas_data_t
 
 contains
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+#ifdef PMC_USE_CAMP
+  !> Initialize the gas_data_t instance from camp_core data
+  subroutine gas_data_initialize(gas_data, camp_core)
+
+    !> Gas-phase species data
+    class(gas_data_t), intent(inout) :: gas_data 
+    !> CAMP core
+    class(camp_core_t), intent(in) :: camp_core
+
+    type(chem_spec_data_t), pointer :: chem_spec_data
+    integer :: i_spec
+    type(string_t), allocatable :: gas_spec_names(:)
+    type(property_t), pointer :: property_set
+    character(len=:), allocatable :: prop_name
+    logical :: bool_val
+
+    ! Get the chemical species data
+    call assert_msg(139566827, &
+            camp_core%get_chem_spec_data(chem_spec_data), &
+            "No chemical species data in camp core.")
+
+    ! Get the gas-phase species names
+    gas_spec_names = chem_spec_data%get_spec_names( &
+            spec_phase = CHEM_SPEC_GAS_PHASE)
+
+    ! Allocate space for the gas-phase species
+    allocate(gas_data%name(size(gas_spec_names)))
+
+    ! Set the species names and locate gas-phase water
+    prop_name = "is gas-phase water"
+    do i_spec = 1, size(gas_spec_names)
+      gas_data%name(i_spec) = gas_spec_names(i_spec)%string
+      call assert_msg(990037352, &
+                      chem_spec_data%get_property_set( &
+                        gas_spec_names(i_spec)%string, &
+                        property_set), &
+                      "Missing property set for gas species "// &
+                      gas_spec_names(i_spec)%string)
+      if (property_set%get_logical(prop_name, bool_val)) then
+        call assert_msg(423633615, gas_data%i_camp_water == 0, &
+                        "More than one gas-phase water species specified")
+        gas_data%i_camp_water = i_spec
+      end if
+    end do
+
+    call assert_msg(134440820, gas_data%i_camp_water /= 0, &
+                    "No gas-phase water species specified.")
+
+    ! Allocate the mosaic index array and set to zero
+    allocate(gas_data%mosaic_index(size(gas_spec_names)))
+    gas_data%mosaic_index(:) = 0
+
+  end subroutine gas_data_initialize
+#endif
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -357,7 +422,7 @@ contains
 
     character(len=1000) :: name
     integer :: dimid_gas_species, n_spec, varid_gas_species, i_spec, i
-    character(len=((GAS_NAME_LEN + 2) * 1000)) :: gas_species_names
+    character(len=:), allocatable :: gas_species_names
 
     call pmc_nc_check(nf90_inq_dimid(ncid, "gas_species", dimid_gas_species))
     call pmc_nc_check(nf90_Inquire_Dimension(ncid, dimid_gas_species, name, &
@@ -373,6 +438,7 @@ contains
          "gas_mosaic_index")
 
     call pmc_nc_check(nf90_inq_varid(ncid, "gas_species", varid_gas_species))
+    allocate(character(len=((GAS_NAME_LEN + 2) * 1000)) :: gas_species_names)
     call pmc_nc_check(nf90_get_att(ncid, varid_gas_species, "names", &
          gas_species_names))
     ! gas_species_names are comma-separated, so unpack them

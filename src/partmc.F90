@@ -200,6 +200,10 @@ program partmc
   use pmc_gas_data
   use pmc_gas_state
   use pmc_util
+#ifdef PMC_USE_CAMP
+  use camp_camp_core
+  use pmc_photolysis
+#endif
 #ifdef PMC_USE_SUNDIALS
   use pmc_condense
 #endif
@@ -291,6 +295,10 @@ contains
     type(env_state_t) :: env_state
     type(env_state_t) :: env_state_init
     type(run_part_opt_t) :: run_part_opt
+#ifdef PMC_USE_CAMP
+    type(camp_core_t), pointer :: camp_core
+    type(photolysis_t), pointer :: photolysis
+#endif
     integer :: i_repeat, i_group
     integer :: rand_init
     character, allocatable :: buffer(:)
@@ -302,6 +310,7 @@ contains
     real(kind=dp) :: dummy_time, dummy_del_t, n_part
     character(len=PMC_MAX_FILENAME_LEN) :: sub_filename
     type(spec_file_t) :: sub_file
+    character(len=PMC_MAX_FILENAME_LEN) :: camp_config_filename
 
     !> \page input_format_particle Input File Format: Particle-Resolved Simulation
     !!
@@ -327,6 +336,12 @@ contains
     !!   output data to disk (see \ref output_format)
     !! - \b t_progress (real, unit s): the interval on which to
     !!   write summary information to the screen while running
+    !! - \b do_camp_chem (logical): whether to run <b>CAMP</b>.
+    !!   If \c do_camp_chem is \c yes, then the following parameters
+    !!   must also be provided:
+    !!   - \b camp_config (string): name of file containing a list of \b
+    !!     camp-chem configuration files. File format should be \ref
+    !!     input_format_camp_config
     !! - \b gas_data (string): name of file from which to read the gas
     !!   material data (only provide if \c restart is \c no) --- the
     !!   file format should be \subpage input_format_gas_data
@@ -425,6 +440,21 @@ contains
        call spec_file_read_real(file, 't_output', run_part_opt%t_output)
        call spec_file_read_real(file, 't_progress', run_part_opt%t_progress)
 
+       call spec_file_read_logical(file, 'do_camp_chem', &
+               run_part_opt%do_camp_chem)
+       if (run_part_opt%do_camp_chem) then
+#ifdef PMC_USE_CAMP
+         call spec_file_read_string(file, 'camp_config', &
+                 camp_config_filename)
+         camp_core => camp_core_t(camp_config_filename)
+         call camp_core%initialize()
+         photolysis => photolysis_t(camp_core)
+#else
+         call spec_file_die_msg(648994111, file, &
+              'cannot do camp chem, CAMP support not compiled in')
+#endif
+       end if
+
        if (do_restart) then
           call input_state(restart_filename, dummy_index, dummy_time, &
                dummy_del_t, dummy_i_repeat, run_part_opt%uuid, aero_data, &
@@ -433,23 +463,33 @@ contains
 
        if (.not. do_restart) then
           env_state_init%elapsed_time = 0d0
-
-          call spec_file_read_string(file, 'gas_data', sub_filename)
-          call spec_file_open(sub_filename, sub_file)
-          call spec_file_read_gas_data(sub_file, gas_data)
-          call spec_file_close(sub_file)
-
+          if (.not. run_part_opt%do_camp_chem) then
+            call spec_file_read_string(file, 'gas_data', sub_filename)
+            call spec_file_open(sub_filename, sub_file)
+            call spec_file_read_gas_data(sub_file, gas_data)
+            call spec_file_close(sub_file)
+          else
+#ifdef PMC_USE_CAMP
+            call gas_data_initialize(gas_data, camp_core)
+#endif
+          end if
           call spec_file_read_string(file, 'gas_init', sub_filename)
           call spec_file_open(sub_filename, sub_file)
           call spec_file_read_gas_state(sub_file, gas_data, &
                gas_state_init)
           call spec_file_close(sub_file)
 
-          call spec_file_read_string(file, 'aerosol_data', sub_filename)
-          call spec_file_open(sub_filename, sub_file)
-          call spec_file_read_aero_data(sub_file, aero_data)
-          call spec_file_close(sub_file)
-
+          if (.not. run_part_opt%do_camp_chem) then
+             call spec_file_read_string(file, 'aerosol_data', sub_filename)
+             call spec_file_open(sub_filename, sub_file)
+             call spec_file_read_aero_data(sub_file, aero_data)
+             call spec_file_close(sub_file)
+          else
+#ifdef PMC_USE_CAMP
+             call aero_data_initialize(aero_data, camp_core)
+             call aero_state_initialize(aero_state, aero_data, camp_core)
+#endif
+          end if
           call spec_file_read_fractal(file, aero_data%fractal)
 
           call spec_file_read_string(file, 'aerosol_init', sub_filename)
@@ -645,6 +685,13 @@ contains
     deallocate(buffer)
 #endif
 
+    ! initialize the chemistry solver
+    if (run_part_opt%do_camp_chem) then
+#ifdef PMC_USE_CAMP
+      call camp_core%solver_initialize()
+#endif
+    end if
+
     ! re-initialize RNG with the given seed
     call pmc_rand_finalize()
     call pmc_srand(rand_init, pmc_mpi_rank())
@@ -689,8 +736,16 @@ contains
        end if
 #endif
 
-       call run_part(scenario, env_state, aero_data, aero_state, gas_data, &
-            gas_state, run_part_opt)
+       if (run_part_opt%do_camp_chem) then
+#ifdef PMC_USE_CAMP
+          call run_part(scenario, env_state, aero_data, aero_state, gas_data, &
+               gas_state, run_part_opt, camp_core=camp_core, &
+               photolysis=photolysis)
+#endif
+       else
+          call run_part(scenario, env_state, aero_data, aero_state, gas_data, &
+               gas_state, run_part_opt)
+       end if
 
     end do
 

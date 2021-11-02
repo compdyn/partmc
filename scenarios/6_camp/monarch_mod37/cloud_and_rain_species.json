@@ -1,0 +1,476 @@
+{
+  "description" : "Aqueous species present in cloud and rain water",
+  "pmc-data" : [
+    {
+      "name" : "NO2",
+      "type" : "CHEM_SPEC",
+      "molecular weight [kg mol-1]" : 0.046006
+    },
+    {
+      "name" : "NO2_aq",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-05,
+      "molecular weight [kg mol-1]" : 0.046006,
+      "density [kg m-3]" : 1000.0,
+      "description" : "aqueous nitrogen dioxide",
+      "num_ions" : 0,
+      "kappa" : 0.0
+    },
+    {
+      "name" : "NO",
+      "type" : "CHEM_SPEC",
+      "molecular weight [kg mol-1]" : 0.03001
+    },
+    {
+      "name" : "NO_aq",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-05,
+      "molecular weight [kg mol-1]" : 0.03001,
+      "density [kg m-3]" : 1000.0,
+      "description" : "aqueous nitrogen oxide",
+      "num_ions" : 0,
+      "kappa" : 0.0
+    },
+    {
+      "name" : "O3",
+      "type" : "CHEM_SPEC",
+      "molecular weight [kg mol-1]" : 0.04800
+    },
+    {
+      "name" : "O3_aq",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-05,
+      "molecular weight [kg mol-1]" : 0.04800,
+      "density [kg m-3]" : 1000.0,
+      "description" : "aqueous ozone",
+      "num_ions" : 0,
+      "kappa" : 0.0
+    },
+    {
+      "name" : "NO3",
+      "type" : "CHEM_SPEC",
+      "molecular weight [kg mol-1]" : 0.07601
+    },
+    {
+      "name" : "NO3_aq",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-05,
+      "molecular weight [kg mol-1]" : 0.07601,
+      "density [kg m-3]" : 1000.0,
+      "description" : "aqueous nitrogen trioxide",
+      "num_ions" : 0,
+      "kappa" : 0.0
+    },
+    {
+      "name" : "N2O5",
+      "type" : "CHEM_SPEC",
+      "molecular weight [kg mol-1]" : 0.10801
+    },
+    {
+      "name" : "N2O5_aq",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-05,
+      "molecular weight [kg mol-1]" : 0.10801,
+      "density [kg m-3]" : 1000.0,
+      "description" : "aqueous dinitrogen pentoxide",
+      "num_ions" : 0,
+      "kappa" : 0.0
+    },
+    {
+      "name" : "HONO",
+      "type" : "CHEM_SPEC",
+      "molecular weight [kg mol-1]" : 0.047013
+    },
+    {
+      "name" : "HONO_aq",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-05,
+      "molecular weight [kg mol-1]" : 0.047013,
+      "density [kg m-3]" : 1000.0,
+      "description" : "aqueous nitrous acid",
+      "num_ions" : 0,
+      "kappa" : 0.0
+    },
+    {
+      "name" : "PNA",
+      "type" : "CHEM_SPEC",
+      "molecular weight [kg mol-1]" : 0.01224
+    },
+    {
+      "name" : "HNO4_aq",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-05,
+      "molecular weight [kg mol-1]" : 0.01224,
+      "density [kg m-3]" : 1000.0,
+      "description" : "aqueous peroxy nitric acid (HNO4)",
+      "num_ions" : 0,
+      "kappa" : 0.0
+    },
+    {
+      "name" : "H2O2",
+      "type" : "CHEM_SPEC",
+      "molecular weight [kg mol-1]" : 0.0340147
+    },
+    {
+      "name" : "H2O2_aq",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-05,
+      "molecular weight [kg mol-1]" : 0.0340147,
+      "density [kg m-3]" : 1000.0,
+      "description" : "aqueous hydrogen peroxide",
+      "num_ions" : 0,
+      "kappa" : 0.0
+    },
+    {
+      "name" : "NTR",
+      "type" : "CHEM_SPEC",
+      "molecular weight [kg mol-1]" : 0.091066
+    },
+    {
+      "name" : "NTR_aq",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-05,
+      "molecular weight [kg mol-1]" : 0.091066,
+      "density [kg m-3]" : 1000.0,
+      "description" : "aqueous organic nitrates (RNO3); using CH3CH2NO3 as surrogate",
+      "num_ions" : 0,
+      "kappa" : 0.0
+    },
+    {
+      "name" : "ROOH",
+      "type" : "CHEM_SPEC",
+      "molecular weight [kg mol-1]" : 0.074079
+    },
+    {
+      "name" : "ROOH_aq",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-05,
+      "molecular weight [kg mol-1]" : 0.074079,
+      "density [kg m-3]" : 1000.0,
+      "description" : "aqueous alkyl peroxides; using CH3CH3OOH as surrogate",
+      "num_ions" : 0,
+      "kappa" : 0.0
+    },
+    {
+      "name" : "FORM",
+      "type" : "CHEM_SPEC",
+      "molecular weight [kg mol-1]" : 0.030031
+    },
+    {
+      "name" : "FORM_aq",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-05,
+      "molecular weight [kg mol-1]" : 0.030031,
+      "density [kg m-3]" : 1000.0,
+      "description" : "aqueous formaldehyde",
+      "num_ions" : 0,
+      "kappa" : 0.0
+    },
+    {
+      "name" : "ALD2",
+      "type" : "CHEM_SPEC",
+      "molecular weight [kg mol-1]" : 0.04405
+    },
+    {
+      "name" : "ALD2_aq",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-05,
+      "molecular weight [kg mol-1]" : 0.04405,
+      "density [kg m-3]" : 1000.0,
+      "description" : "aqueous acetaldehyde",
+      "num_ions" : 0,
+      "kappa" : 0.0
+    },
+    {
+      "name" : "ALDX",
+      "type" : "CHEM_SPEC",
+      "molecular weight [kg mol-1]" : 0.05808
+    },
+    {
+      "name" : "ALDX_aq",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-05,
+      "molecular weight [kg mol-1]" : 0.05808,
+      "density [kg m-3]" : 1000.0,
+      "description" : "propionaldehyde and higher aldehydes",
+      "num_ions" : 0,
+      "kappa" : 0.0
+    },
+    {
+      "name" : "CO",
+      "type" : "CHEM_SPEC",
+      "molecular weight [kg mol-1]" : 0.028010
+    },
+    {
+      "name" : "CO_aq",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-05,
+      "molecular weight [kg mol-1]" : 0.028010,
+      "density [kg m-3]" : 1000.0,
+      "description" : "aqueous carbon monoxide",
+      "num_ions" : 0,
+      "kappa" : 0.0
+    },
+    {
+      "name" : "MEPX",
+      "type" : "CHEM_SPEC",
+      "molecular weight [kg mol-1]" : 0.048041
+    },
+    {
+      "name" : "MEPX_aq",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-05,
+      "molecular weight [kg mol-1]" : 0.048041,
+      "density [kg m-3]" : 1000.0,
+      "description" : "aqueous methylhydroperoxide",
+      "num_ions" : 0,
+      "kappa" : 0.0
+    },
+    {
+      "name" : "MEOH",
+      "type" : "CHEM_SPEC",
+      "molecular weight [kg mol-1]" : 0.03204
+    },
+    {
+      "name" : "MEOH_aq",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-05,
+      "molecular weight [kg mol-1]" : 0.03204,
+      "density [kg m-3]" : 1000.0,
+      "description" : "aqueous methanol",
+      "num_ions" : 0,
+      "kappa" : 0.0
+    },
+    {
+      "name" : "FACD",
+      "type" : "CHEM_SPEC",
+      "molecular weight [kg mol-1]" : 0.04603
+    },
+    {
+      "name" : "FACD_aq",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-05,
+      "molecular weight [kg mol-1]" : 0.04603,
+      "density [kg m-3]" : 1000.0,
+      "description" : "aqueous formic acid",
+      "num_ions" : 0,
+      "kappa" : 0.0
+    },
+    {
+      "name" : "PAN",
+      "type" : "CHEM_SPEC",
+      "molecular weight [kg mol-1]" : 0.12105
+    },
+    {
+      "name" : "PAN_aq",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-05,
+      "molecular weight [kg mol-1]" : 0.12105,
+      "density [kg m-3]" : 1000.0,
+      "description" : "aqueous peroxy-acetyl nitrate",
+      "num_ions" : 0,
+      "kappa" : 0.0
+    },
+    {
+      "name" : "PACD",
+      "type" : "CHEM_SPEC",
+      "molecular weight [kg mol-1]" : 0.0760514
+    },
+    {
+      "name" : "PACD_aq",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-05,
+      "molecular weight [kg mol-1]" : 0.0760514,
+      "density [kg m-3]" : 1000.0,
+      "description" : "aqueous peroxyacetic acid and higher peroxycarboxylic acids",
+      "num_ions" : 0,
+      "kappa" : 0.0
+    },
+    {
+      "name" : "AACD",
+      "type" : "CHEM_SPEC",
+      "molecular weight [kg mol-1]" : 0.06005
+    },
+    {
+      "name" : "AACD_aq",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-05,
+      "molecular weight [kg mol-1]" : 0.06005,
+      "density [kg m-3]" : 1000.0,
+      "description" : "aqueous acetic and higher carboxylic acids",
+      "num_ions" : 0,
+      "kappa" : 0.0
+    },
+    {
+      "name" : "PANX",
+      "type" : "CHEM_SPEC",
+      "molecular weight [kg mol-1]" : 0.135075
+    },
+    {
+      "name" : "PANX_aq",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-05,
+      "molecular weight [kg mol-1]" : 0.135075,
+      "density [kg m-3]" : 1000.0,
+      "description" : "C3 and higher peroxyacyl nitrates",
+      "num_ions" : 0,
+      "kappa" : 0.0
+    },
+    {
+      "name" : "SO2",
+      "type" : "CHEM_SPEC",
+      "molecular weight [kg mol-1]" : 0.064066
+    },
+    {
+      "name" : "SO2_aq",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-05,
+      "molecular weight [kg mol-1]" : 0.064066,
+      "density [kg m-3]" : 1000.0,
+      "description" : "aqueous sulfur dioxide",
+      "num_ions" : 0,
+      "kappa" : 0.0
+    },
+    {
+      "name" : "CL2",
+      "type" : "CHEM_SPEC",
+      "HLC(298K) [M Pa-1]" : 8.6E-02,
+      "HLC exp factor [K]" : 2000.0,
+      "diffusion coeff [m2 s-1]" : 1.28E-05,
+      "notes" : [ "diffusion coeff from CAPRAMv2.4" ],
+      "molecular weight [kg mol-1]" : 0.07090
+    },
+    {
+      "name" : "CL2_aq",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-05,
+      "molecular weight [kg mol-1]" : 0.07090,
+      "density [kg m-3]" : 1000.0,
+      "description" : "aqueous molecular chlorine",
+      "num_ions" : 0,
+      "kappa" : 0.0
+    },
+    {
+      "name" : "HOCL",
+      "type" : "CHEM_SPEC",
+      "HLC(298K) [M Pa-1]" : 6.6E+02,
+      "HLC exp factor [K]" : 5900.0,
+      "diffusion coeff [m2 s-1]" : 1.28E-05,
+      "notes" : [ "using diffusion coeff for CL2 from CAPRAMv2.4" ],
+      "molecular weight [kg mol-1]" : 0.05246
+    },
+    {
+      "name" : "HOCL_aq",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-05,
+      "molecular weight [kg mol-1]" : 0.05246,
+      "density [kg m-3]" : 1000.0,
+      "description" : "aqueous hypochlorous acid",
+      "num_ions" : 0,
+      "kappa" : 0.0
+    },
+    {
+      "name" : "FMCL",
+      "type" : "CHEM_SPEC",
+      "HLC(298K) [M Pa-1]" : 1.1,
+      "HLC exp factor [K]" : 0.0,
+      "diffusion coeff [m2 s-1]" : 1.28E-05,
+      "notes" : [ "using diffusion coeff for CL2 from CAPRAMv2.4" ],
+      "molecular weight [kg mol-1]" : 0.064468
+    },
+    {
+      "name" : "FMCL_aq",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-05,
+      "molecular weight [kg mol-1]" : 0.064468,
+      "density [kg m-3]" : 1000.0,
+      "description" : "aqueous formyl chloride (HC(O)Cl)",
+      "num_ions" : 0,
+      "kappa" : 0.0
+    },
+    {
+      "name" : "HCL",
+      "type" : "CHEM_SPEC",
+      "molecular weight [kg mol-1]" : 0.03646
+    },
+    {
+      "name" : "HCL_aq",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-05,
+      "molecular weight [kg mol-1]" : 0.03646,
+      "density [kg m-3]" : 1000.0,
+      "description" : "aqueous hydrochloric acid",
+      "num_ions" : 0,
+      "kappa" : 0.53
+    },
+    {
+      "name" : "CL_m",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-05,
+      "molecular weight [kg mol-1]" : 0.03545,
+      "density [kg m-3]" : 1000.0,
+      "description" : "chloride ion",
+      "num_ions" : 1,
+      "kappa" : 0
+    },
+    {
+      "name" : "DMS",
+      "type" : "CHEM_SPEC",
+      "molecular weight [kg mol-1]" : 0.06213
+    },
+    {
+      "name" : "DMS_aq",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-05,
+      "molecular weight [kg mol-1]" : 0.06213,
+      "density [kg m-3]" : 1000.0,
+      "description" : "aqueous dimethyl sulfide",
+      "num_ions" : 0,
+      "kappa" : 0.0
+    },
+    {
+      "name" : "ETOH",
+      "type" : "CHEM_SPEC",
+      "molecular weight [kg mol-1]" : 0.04607
+    },
+    {
+      "name" : "ETOH_aq",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-05,
+      "molecular weight [kg mol-1]" : 0.04607,
+      "density [kg m-3]" : 1000.0,
+      "description" : "aqueous ethanol",
+      "num_ions" : 0,
+      "kappa" : 0.0
+    }
+  ]
+}

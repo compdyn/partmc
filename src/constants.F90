@@ -13,6 +13,9 @@ module pmc_constants
   !> Kind of a double precision complex number.
   integer, parameter :: dc = dp
 
+  !> Kind of an integer
+  integer, parameter :: i_kind = kind(1)
+
   !> Physical constants.
   !!
   !! These are all absolute constants. Environment parameters that in

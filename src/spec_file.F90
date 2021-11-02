@@ -1,4 +1,4 @@
-! Copyright (C) 2007-2012 Nicole Riemer and Matthew West
+! Copyright (C) 2007-2012, 2021 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -325,11 +325,12 @@ contains
 
     logical :: eof
     integer :: i, num_lines
-    type(spec_line_t) :: temp_line_list(SPEC_FILE_MAX_LIST_LINES)
+    type(spec_line_t), allocatable :: temp_line_list(:)
 
     ! read file, working out how many lines we have
     num_lines = 0
     eof = .false.
+    allocate(temp_line_list(SPEC_FILE_MAX_LIST_LINES))
     call spec_file_read_line(file, temp_line_list(num_lines + 1), eof)
     do while (.not. eof)
        num_lines = num_lines + 1

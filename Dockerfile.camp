@@ -1,0 +1,84 @@
+FROM fedora:33
+
+RUN dnf -y update \
+    && dnf -y install \
+        gcc-gfortran \
+        gcc-c++ \
+        make \
+        netcdf-fortran-devel \
+        metis-devel \
+        sundials-devel \
+        lapack-devel \
+        openblas-devel \
+        gsl-devel \
+        cmake \
+    && dnf clean all
+
+# Build the SuiteSparse libraries for sparse matrix support
+# (-k included because of problem with SuiteSparse security certificate - 1 Aug 2021)
+RUN curl -kLO http://faculty.cse.tamu.edu/davis/SuiteSparse/SuiteSparse-5.1.0.tar.gz \
+    && tar -zxvf SuiteSparse-5.1.0.tar.gz \
+    && export CXX=/usr/bin/cc \
+    && cd SuiteSparse \
+    && make install INSTALL=/usr/local BLAS="-L/lib64 -lopenblas"
+
+# Install json-fortran
+RUN curl -LO https://github.com/jacobwilliams/json-fortran/archive/6.1.0.tar.gz \
+    && tar -zxvf 6.1.0.tar.gz \
+    && cd json-fortran-6.1.0 \
+    && export FC=gfortran \
+    && mkdir build \
+    && cd build \
+    && cmake -D SKIP_DOC_GEN:BOOL=TRUE .. \
+    && make install \
+    && cd ~
+
+RUN curl -LO https://github.com/open-atmos/camp/archive/refs/tags/v1.0.0-gamma.tar.gz \
+    && tar -zxvf v1.0.0-gamma.tar.gz
+
+# Install a modified version of CVODE
+RUN cd camp-1.0.0-gamma \
+    && tar -zxvf cvode-3.4-alpha.tar.gz \
+    && cd cvode-3.4-alpha \
+    && mkdir build \
+    && cd build \
+    && cmake -D CMAKE_BUILD_TYPE=release \
+             -D KLU_ENABLE:BOOL=TRUE \
+             -D KLU_LIBRARY_DIR=/usr/local/lib \
+             -D KLU_INCLUDE_DIR=/usr/local/include \
+             .. \
+    && make install \
+    && cd ~
+
+ENV LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib:/usr/local/lib64:/usr/local/jsonfortran-gnu-6.1.0/lib"
+ENV PATH="${PATH}:/usr/local/jsonfortran-gnu-6.1.0/lib"
+
+# Build CAMP
+RUN  cd camp-1.0.0-gamma \
+    && mkdir build \
+    && cd build \
+    && export JSON_FORTRAN_HOME="/usr/local/jsonfortran-gnu-6.1.0" \
+    && cmake -D CMAKE_BUILD_TYPE=release \
+             -D CMAKE_C_FLAGS_DEBUG="-pg" \
+             -D CMAKE_Fortran_FLAGS_DEBUG="-pg" \
+             -D CMAKE_MODULE_LINKER_FLAGS="-pg" \
+             -D ENABLE_GSL:BOOL=TRUE \
+             .. \
+    && make \
+    && cd ~
+
+# NOTE: Modify .dockerignore to whitelist files/directories to copy.
+COPY . /partmc/
+
+RUN mkdir /build \
+    && cd /build \
+    && export CAMP_HOME="/camp-1.0.0-gamma/build/" \
+    && cmake -D CMAKE_BUILD_TYPE=release \
+             -D CMAKE_C_FLAGS_DEBUG="-g" \
+             -D CMAKE_Fortran_FLAGS_DEBUG="-g" \
+             -D CMAKE_C_FLAGS_RELEASE="-O2 -g -Werror -Wall -Wextra" \
+             -D CMAKE_Fortran_FLAGS_RELEASE="-O2 -g -Werror -fimplicit-none -Wall -Wextra -Wconversion -Wunderflow -Wimplicit-interface -Wno-compare-reals -Wno-unused -Wno-unused-parameter -Wno-unused-dummy-argument -fbounds-check" \
+             -D ENABLE_GSL:BOOL=TRUE \
+             -D ENABLE_CAMP:BOOL=TRUE \
+             /partmc \
+    && make

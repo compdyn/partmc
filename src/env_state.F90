@@ -13,6 +13,9 @@ module pmc_env_state
   use pmc_spec_file
   use pmc_mpi
   use pmc_netcdf
+#ifdef PMC_USE_CAMP
+  use camp_camp_state
+#endif
 #ifdef PMC_USE_MPI
   use mpi
 #endif
@@ -212,6 +215,25 @@ contains
          / const%avagadro
 
   end function env_state_conc_to_ppb
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+#ifdef PMC_USE_CAMP
+  !> Sets CAMP environmental variables from PartMC environmental variables.
+  subroutine env_state_set_camp_env_state(env_state, camp_state)
+
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+    !> Environment state.
+    type(camp_state_t), intent(in) :: camp_state
+
+
+    camp_state%env_states(1)%val%rel_humid = env_state%rel_humid
+    camp_state%env_states(1)%val%temp = env_state%temp
+
+
+  end subroutine env_state_set_camp_env_state
+#endif
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

@@ -46,7 +46,7 @@ contains
     !> Environment.
     type(env_state_t), intent(inout) :: env_state
     !> Aerosol data
-    type(aero_data_t), intent(inout) :: aero_data
+    type(aero_data_t), intent(in) :: aero_data
     !> Aerosol state
     type(aero_state_t), intent(inout) :: aero_state
     !> Gas data
@@ -103,9 +103,9 @@ contains
       camp_core, camp_state)
 
     !> Aerosol data.
-    type(aero_data_t), intent(inout) :: aero_data
+    type(aero_data_t), intent(in) :: aero_data
     !> Aerosol state.
-    type(aero_state_t), intent(in) :: aero_state
+    type(aero_state_t), intent(inout) :: aero_state
     !> CAMP core.
     type(camp_core_t), intent(in) :: camp_core
     !> CAMP state.
@@ -129,8 +129,8 @@ contains
              associate (part => aero_state%apa%particle(i_part))
              num_conc = aero_weight_array_num_conc(aero_state%awa, part, &
                   aero_data)
-             call aero_data%update_number%set_number__n_m3(i_part, num_conc)
-             call camp_core%update_data(aero_data%update_number)
+             call aero_state%update_number%set_number__n_m3(i_part, num_conc)
+             call camp_core%update_data(aero_state%update_number)
              do i_spec = 1, size(aero_data%camp_particle_spec_id)
                 camp_state%state_var(aero_data%camp_spec_id(i_part, i_spec)) &
                      = part%vol(i_spec) * aero_data%density(i_spec) ! kg m-3
@@ -139,8 +139,8 @@ contains
           end do
           do i_part = aero_state_n_part(aero_state) + 1, &
                aero_rep%maximum_computational_particles()
-             call aero_data%update_number%set_number__n_m3(i_part, 0.0d0)
-             call camp_core%update_data(aero_data%update_number)
+             call aero_state%update_number%set_number__n_m3(i_part, 0.0d0)
+             call camp_core%update_data(aero_state%update_number)
              do i_spec = 1,size(aero_data%camp_particle_spec_id)
                 camp_state%state_var(aero_data%camp_spec_id(i_part, i_spec)) &
                      = 0.0d0

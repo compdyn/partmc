@@ -73,6 +73,10 @@ module pmc_aero_state
      real(kind=dp), allocatable :: n_part_ideal(:, :)
      !> Information on removed particles.
      type(aero_info_array_t) :: aero_info_array
+#ifdef PMC_USE_CAMP
+     !> CAMP update number conc cookie
+     type(aero_rep_update_data_single_particle_number_t) :: update_number
+#endif
   end type aero_state_t
 
 contains
@@ -2970,6 +2974,31 @@ contains
     end if
 
   end subroutine aero_state_check
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+#ifdef PMC_USE_CAMP
+  !> Initialize the aero_state_t variable with camp chem data
+  subroutine aero_state_initialize(aero_state, aero_data, camp_core)
+
+    !> Aerosol state.
+    type(aero_state_t), intent(inout) :: aero_state
+    !> Aerosol data.
+    class(aero_data_t), intent(in) :: aero_data
+    !> CAMP core.
+    type(camp_core_t), intent(in) :: camp_core
+
+    select type( aero_rep => aero_data%aero_rep_ptr)
+       type is(aero_rep_single_particle_t)
+          ! Set up the update data objects for number
+          call camp_core%initialize_update_object(aero_rep, &
+                                                 aero_state%update_number)
+       class default
+          call die_msg(927605681, "Wrong aerosol representation type")
+    end select
+
+  end subroutine aero_state_initialize
+#endif
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

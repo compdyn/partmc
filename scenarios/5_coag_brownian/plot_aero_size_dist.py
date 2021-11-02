@@ -1,6 +1,7 @@
 from scipy.io import netcdf
 import numpy as np
 import matplotlib.pyplot as plt
+import scipy.stats
 
 # file name
 i_hr = 25
@@ -22,9 +23,8 @@ aero_diameter = np.cbrt(aero_volume_per_particle*6.0/np.pi)
 
 # ## number distribution
 # setup the bins range
-bins = np.logspace(-8,-6,30*20+1)
-plt.hist(aero_diameter, bins=bins, weights=num_conc_per_particle)
-
+bins = np.logspace(-8,-6,3*20+1)
+plt.hist(aero_diameter, bins=bins, weights=num_conc_per_particle/np.log10(bins[1]/bins[0]))
 
 plt.xscale('log')
 plt.xlabel('diameter [m]')

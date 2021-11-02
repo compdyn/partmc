@@ -1,4 +1,4 @@
-name: CI
+name: MPI 
 
 on: [push, pull_request]
 

@@ -2,8 +2,6 @@ name: Images
 
 on:
   push:
-    branches:
-      - 'master'
 
 jobs:
   docker:

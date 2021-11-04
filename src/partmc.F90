@@ -1,4 +1,4 @@
-! Copyright (C) 2007-2012, 2016, 2017, 2018 Nicole Riemer and Matthew West
+! Copyright (C) 2007-2012, 2016, 2017, 2018, 2021 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -83,6 +83,36 @@
 
 !> \page publications PartMC Publications
 !!
+!!   - Z.&nbsp;Zheng, J.&nbsp;H. Curtis, Y. Yao, J.&nbsp;T. Gasparik,
+!!     V.&nbsp;G. Anantharaj, L. Zhao, M. West, and N. Riemer (2021)
+!!     Estimating submicron aerosol mixing state at the global scale
+!!     with machine learning and earth system modeling, <i>Earth and
+!!     Space Science</i> <b>8</b>(2), e2020EA001500, DOI: <a
+!!     href="http://dx.doi.org/10.1029/2020EA001500">10.1029/2020EA001500</a>.
+!!   - J.&nbsp;T. Gasparik, Q. Ye, J.&nbsp;H. Curtis,
+!!     A.&nbsp;A. Presto, N.&nbsp;M. Donahue, R.&nbsp;C. Sullivan,
+!!     M. West, and N. Riemer (2020) Quantifying errors in the aerosol
+!!     mixing-state index based on limited particle sample size,
+!!     <i>Aerosol Science and Technology</i> <b>54</b>(12), 1527-1541,
+!!     DOI: <a
+!!     href="http://dx.doi.org/10.1080/02786826.2020.1804523">10.1080/02786826.2020.1804523</a>.
+!!   - C. Shou, N. Riemer, T.&nbsp;B. Onasch, A.&nbsp;J. Sedlacek,
+!!     A.&nbsp;T. Lambe, E.&nbsp;R. Lewis, P. Davidovits, and M. West
+!!     (2019) Mixing state evolution of agglomerating particles in an
+!!     aerosol chamber: Comparison of measurements and
+!!     particle-resolved simulations, <i>Aerosol Science and
+!!     Technology</i> <b>53</b>(11), 1229-1243, DOI: <a
+!!     href="http://dx.doi.org/10.1080/02786826.2019.1661959">10.1080/02786826.2019.1661959</a>
+!!   - N. Riemer, A.&nbsp;P. Ault, M. West, R.&nbsp;L. Craig, and
+!!     J.&nbsp;H. Curtis (2019) Aerosol mixing state: Measurements,
+!!     modeling, and impacts, <i>Reviews of Geophysics</i>
+!!     <b>57</b>(2), 187-249, DOI: <a
+!!     href="http://dx.doi.org/10.1029/2018RG000615">10.1029/2018RG000615</a>
+!!   - R.&nbsp;E.&nbsp;L. DeVille, N. Riemer, and M. West (2019)
+!!     Convergence of a generalized Weighted Flow Algorithm for
+!!     stochastic particle coagulation, <i>Journal of Computational
+!!     Dynamics</i> <b>6</b>(1), 69-94, DOI: <a
+!!     href="http://dx.doi.org/10.3934/jcd.2019003">10.3934/jcd.2019003</a>
 !!   - M.&nbsp;Hughes, J.&nbsp;K.&nbsp;Kodros, J.&nbsp;R.&nbsp;Pierce,
 !!     M.&nbsp;West, and N.&nbsp;Riemer (2018) Machine learning to
 !!     predict the global distribution of aerosol mixing state
@@ -339,9 +369,8 @@ contains
     !! - \b do_camp_chem (logical): whether to run <b>CAMP</b>.
     !!   If \c do_camp_chem is \c yes, then the following parameters
     !!   must also be provided:
-    !!   - \b camp_config (string): name of file containing a list of \b
-    !!     camp-chem configuration files. File format should be \ref
-    !!     input_format_camp_config
+    !!   - \b camp_config (string): name of JSON file containing a list of \b
+    !!     CAMP configuration files.
     !! - \b gas_data (string): name of file from which to read the gas
     !!   material data (only provide if \c restart is \c no) --- the
     !!   file format should be \subpage input_format_gas_data

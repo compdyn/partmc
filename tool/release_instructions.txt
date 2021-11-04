@@ -10,6 +10,7 @@ README:
   Released date
   Year in "cite as"
   Change version in build instructions (2 places)
+  References
 ChangeLog: update release info (plus release date)
 CMakeLists.txt:
   PACKAGE_STRING
@@ -17,9 +18,10 @@ CMakeLists.txt:
 doc/Makefile: Version
 doc/Doxyfile: Version
 src/output.F90: PARTMC_VERSION
+src/partmc.F90: \page publications
 
 git add -u
-git commit -m "update info for 2.1.0 release"
+git commit -m "Update info for 2.1.0 release"
 
 git tag -a 2.1.0 -m "Version 2.1.0"
 
@@ -29,34 +31,33 @@ cd ~/t/partmc
 git checkout 2.1
 
 cd ~/t/partmc
-# do the same thing as in partmc/.travis.yml as follows:
+# do the same thing as in partmc/.github/workflows/main.yml as follows:
 docker build -t partmc-test .
-docker run -it partmc-test bash -c 'cd /build; make test'
+docker run -it --rm -w /build partmc-test make test
 
-cd ~/t/partmc/doc
-make
+cd ~/t/partmc
+docker build -t partmc-doc -f Dockerfile.doc .
+docker run -it --rm -v $PWD:/partmc -w /partmc/doc partmc-doc make
 check README.html, ChangeLog.html and html/index.html look ok
 check module diagram page
 
 cd ~/t/partmc
 mkdir build
-cd build
-export MOSAIC_HOME=~/git/mosaic
-ccmake ..
-make
-make test
+docker run -it --rm -v $PWD:/partmc -w /partmc/build partmc-test bash -c 'cmake .. ; make package_source'
 
-make package_source
 
 test package:
 
-cd t
+cd ~/t
 tar xf ~/t/partmc/build/partmc-2.1.0.tar.gz
-build and test
+cd partmc-2.1.0
+mkdir build
+docker run -it --rm -v $PWD:/partmc -w /partmc/build partmc-test bash -c 'cmake .. ; make ; make test'
+
 
 update website:
 
-cd ~/work/web/site/partmc/
+cd ~/git/web/site/partmc/
 cp ~/t/partmc/build/partmc-2.1.0.tar.gz .
 tar xf partmc-2.1.0.tar.gz
 

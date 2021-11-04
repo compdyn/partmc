@@ -4,16 +4,16 @@ PartMC
 
 PartMC: Particle-resolved Monte Carlo code for atmospheric aerosol simulation
 
-[![Latest version](https://img.shields.io/github/tag/compdyn/partmc.svg?label=version)](https://github.com/compdyn/partmc/blob/master/ChangeLog.md) [![Docker build status](https://img.shields.io/docker/automated/compdyn/partmc.svg)](https://hub.docker.com/r/compdyn/partmc/builds/) [![Build Status](https://img.shields.io/travis/compdyn/partmc/master.svg)](https://travis-ci.org/compdyn/partmc) [![License](https://img.shields.io/github/license/compdyn/partmc.svg)](https://github.com/compdyn/partmc/blob/master/COPYING) [![DOI](https://zenodo.org/badge/24058992.svg)](https://zenodo.org/badge/latestdoi/24058992)
+[![Latest version](https://img.shields.io/github/tag/compdyn/partmc.svg?label=version)](https://github.com/compdyn/partmc/blob/master/ChangeLog.md) [![GitHub build](https://img.shields.io/github/workflow/status/compdyn/partmc/CI.svg)](https://github.com/compdyn/partmc/actions) [![License](https://img.shields.io/github/license/compdyn/partmc.svg)](https://github.com/compdyn/partmc/blob/master/COPYING) [![DOI](https://zenodo.org/badge/24058992.svg)](https://zenodo.org/badge/latestdoi/24058992)
 
-Version 2.5.0  
-Released 2018-11-17
+Version 2.6.0  
+Released 2021-11-03
 
 **Source:** <https://github.com/compdyn/partmc>
 
 **Homepage:** <http://lagrange.mechse.illinois.edu/partmc/>
 
-**Cite as:** M. West, N. Riemer, J. Curtis, M. Michelotti, and J. Tian (2018) PartMC, [![version](https://img.shields.io/github/release/compdyn/partmc.svg?label=version)](https://github.com/compdyn/partmc), [![DOI](https://zenodo.org/badge/24058992.svg)](https://zenodo.org/badge/latestdoi/24058992)
+**Cite as:** M. West, N. Riemer, J. Curtis, M. Michelotti, and J. Tian (2021) PartMC, [![version](https://img.shields.io/github/release/compdyn/partmc.svg?label=version)](https://github.com/compdyn/partmc), [![DOI](https://zenodo.org/badge/24058992.svg)](https://zenodo.org/badge/latestdoi/24058992)
 
 Copyright (C) 2005-2021 Nicole Riemer and Matthew West  
 Portions copyright (C) Andreas Bott, Richard Easter, Jeffrey Curtis,
@@ -25,75 +25,97 @@ For details see the file COPYING or
 
 **References:**
 
-   * N. Riemer, M. West, R. A. Zaveri, and R. C. Easter (2009),
+   * N. Riemer, M. West, R. A. Zaveri, and R. C. Easter (2009)
      Simulating the evolution of soot mixing state with a
      particle-resolved aerosol model, _J. Geophys. Res._ 114(D09202),
      <http://dx.doi.org/10.1029/2008JD011073>.
-   * N. Riemer, M. West, R. A. Zaveri, and R. C. Easter (2010),
+   * N. Riemer, M. West, R. A. Zaveri, and R. C. Easter (2010)
      Estimating black carbon aging time-scales with a
-     particle-resolved aerosol model, _J. Aerosol Sci._ 41(1), 143-158,
-     <http://dx.doi.org/10.1016/j.jaerosci.2009.08.009>.
+     particle-resolved aerosol model, _J. Aerosol Sci._ 41(1),
+     143-158, <http://dx.doi.org/10.1016/j.jaerosci.2009.08.009>.
    * R. A. Zaveri, J. C. Barnard, R. C. Easter, N. Riemer, and M. West
-     (2010), Particle-resolved simulation of aerosol size,
-     composition, mixing state, and the associated optical and cloud
-     condensation nuclei activation properties in an evolving urban
-     plume, _J. Geophys. Res._ 115(D17210),
+     (2010) Particle-resolved simulation of aerosol size, composition,
+     mixing state, and the associated optical and cloud condensation
+     nuclei activation properties in an evolving urban plume,
+     _J. Geophys. Res._ 115(D17210),
      <http://dx.doi.org/10.1029/2009JD013616>.
-   * R. E. L. DeVille, N. Riemer, and M. West, Weighted Flow
+   * R. E. L. DeVille, N. Riemer, and M. West (2011) Weighted Flow
      Algorithms (WFA) for stochastic particle coagulation,
-     _J. Comp. Phys._ 230(23), 8427-8451, 2011,
+     _J. Comp. Phys._ 230(23), 8427-8451,
      <http://dx.doi.org/10.1016/j.jcp.2011.07.027>
-   * J. Ching, N. Riemer, and M. West, Impacts of black carbon mixing
-     state on black carbon nucleation scavenging: Insights from a
-     particle-resolved model, _J. Geophys. Res._ 117(D23209), 2012,
+   * J. Ching, N. Riemer, and M. West (2012) Impacts of black carbon
+     mixing state on black carbon nucleation scavenging: Insights from
+     a particle-resolved model, _J. Geophys. Res._ 117(D23209),
      <http://dx.doi.org/10.1029/2012JD018269>
-   * M. D. Michelotti, M. T. Heath, and M. West, Binning for efficient
-     stochastic multiscale particle simulations, _Multiscale
-     Model. Simul._ 11(4), 1071-1096, 2013,
+   * M. D. Michelotti, M. T. Heath, and M. West (2013) Binning for
+     efficient stochastic multiscale particle simulations, _Multiscale
+     Model. Simul._ 11(4), 1071-1096,
      <http://dx.doi.org/10.1137/130908038>
-   * N. Riemer and M. West, Quantifying aerosol mixing state with
-     entropy and diversity measures, _Atmos. Chem. Phys._ 13,
-     11423-11439, 2013, <http://dx.doi.org/10.5194/acp-13-11423-2013>
+   * N. Riemer and M. West (2013) Quantifying aerosol mixing state
+     with entropy and diversity measures, _Atmos. Chem. Phys._ 13,
+     11423-11439, <http://dx.doi.org/10.5194/acp-13-11423-2013>
    * J. Tian, N. Riemer, M. West, L. Pfaffenberger, H. Schlager, and
-     A. Petzold, Modeling the evolution of aerosol particles in a ship
-     plume using PartMC-MOSAIC, _Atmos. Chem. Phys._ 14, 5327-5347,
-     2014, <http://dx.doi.org/10.5194/acp-14-5327-2014>
+     A. Petzold (2014) Modeling the evolution of aerosol particles in
+     a ship plume using PartMC-MOSAIC, _Atmos. Chem. Phys._ 14,
+     5327-5347, <http://dx.doi.org/10.5194/acp-14-5327-2014>
    * R. M. Healy, N. Riemer, J. C. Wenger, M. Murphy, M. West,
      L. Poulain, A. Wiedensohler, I. P. O'Connor, E. McGillicuddy,
-     J. R. Sodeau, and G. J. Evans, Single
-     particle diversity and mixing state measurements,
-     _Atmos. Chem. and Phys._ 14, 6289-6299,
-     2014, <http://dx.doi.org/10.5194/acp-14-6289-2014>
-   * J. H. Curtis, M. D. Michelotti, N. Riemer, M. Heath, and M. West,
-     Accelerated simulation of stochastic particle removal processes
-     in particle-resolved aerosol models, _J. Comp. Phys._ 322, 21-32,
-     2016, <http://dx.doi.org/10.1016/j.jcp.2016.06.029>
-   * J. Ching, N. Riemer, and M. West, Black carbon mixing state
+     J. R. Sodeau, and G. J. Evans (2014) Single particle diversity
+     and mixing state measurements, _Atmos. Chem. and Phys._ 14,
+     6289-6299, <http://dx.doi.org/10.5194/acp-14-6289-2014>
+   * J. H. Curtis, M. D. Michelotti, N. Riemer, M. Heath, and M. West
+     (2016) Accelerated simulation of stochastic particle removal
+     processes in particle-resolved aerosol models, _J. Comp. Phys._
+     322, 21-32, <http://dx.doi.org/10.1016/j.jcp.2016.06.029>
+   * J. Ching, N. Riemer, and M. West (2016) Black carbon mixing state
      impacts on cloud microphysical properties: Effects of aerosol
      plume and environmental conditions, _J. Geophys. Res._ 121(10),
-     5990-6013, 2016 <http://dx.doi.org/10.1002/2016JD024851>
-   * J. Ching, J. Fast, M. West, and N. Riemer, Metrics to quantify
-     the importance of mixing state for CCN activity, _Atmos.
-     Chem. and Phys._ 17, 7445-7458, 2017
+     5990-6013, <http://dx.doi.org/10.1002/2016JD024851>
+   * J. Ching, J. Fast, M. West, and N. Riemer (2017) Metrics to
+     quantify the importance of mixing state for CCN activity, _Atmos.
+     Chem. and Phys._ 17, 7445-7458,
      <http://dx.doi.org/10.5194/acp-17-7445-2017>
    * J. Tian, B. T. Brem, M. West, T. C. Bond, M. J. Rood, and
-     N. Riemer, Simulating aerosol chamber experiments with the
+     N. Riemer (2017) Simulating aerosol chamber experiments with the
      particle-resolved aerosol model PartMC, _Aerosol Sci. Technol._
-     51(7), 856-867, 2017
-     <http://dx.doi.org/10.1080/02786826.2017.1311988>
-   * J. H. Curtis, N. Riemer, and M. West, A single-column
+     51(7), 856-867, <http://dx.doi.org/10.1080/02786826.2017.1311988>
+   * J. H. Curtis, N. Riemer, and M. West (2017) A single-column
      particle-resolved model for simulating the vertical distribution
      of aerosol mixing state: WRF-PartMC-MOSAIC-SCM v1.0,
-     _Geosci. Model Dev._ 10, 4057-4079, 2017
+     _Geosci. Model Dev._ 10, 4057-4079,
      <http://dx.doi.org/10.5194/gmd-10-4057-2017>
-   * J. Ching, M. West, and N. Riemer, Quantifying impacts of aerosol
-     mixing state on nucleation-scavenging of black carbon aerosol
-     particles, _Atmosphere_ 9(1), 17, 2018
+   * J. Ching, M. West, and N. Riemer (2018) Quantifying impacts of
+     aerosol mixing state on nucleation-scavenging of black carbon
+     aerosol particles, _Atmosphere_ 9(1), 17,
      <http://dx.doi.org/10.3390/atmos9010017>
-   * M. Hughes, J. K. Kodros, J. R. Pierce, M. West, and N. Riemer,
-     Machine learning to predict the global distribution of aerosol
-     mixing state metrics, _Atmosphere_ 9(1), 15, 2018
+   * M. Hughes, J. K. Kodros, J. R. Pierce, M. West, and N. Riemer
+     (2018) Machine learning to predict the global distribution of
+     aerosol mixing state metrics, _Atmosphere_ 9(1), 15,
      <http://dx.doi.org/10.3390/atmos9010015>
+   * R. E. L. DeVille, N. Riemer, and M. West (2019) Convergence of a
+     generalized Weighted Flow Algorithm for stochastic particle
+     coagulation, _Journal of Computational Dynamics_ 6(1), 69-94,
+     <http://dx.doi.org/10.3934/jcd.2019003>
+   * N. Riemer, A. P. Ault, M. West, R. L. Craig, and J. H. Curtis
+     (2019) Aerosol mixing state: Measurements, modeling, and impacts,
+     _Reviews of Geophysics_ 57(2), 187-249,
+     <http://dx.doi.org/10.1029/2018RG000615>
+   * C. Shou, N. Riemer, T. B. Onasch, A. J. Sedlacek, A. T. Lambe,
+     E. R. Lewis, P. Davidovits, and M. West (2019) Mixing state
+     evolution of agglomerating particles in an aerosol chamber:
+     Comparison of measurements and particle-resolved simulations,
+     _Aerosol Science and Technology_ 53(11), 1229-1243,
+     <http://dx.doi.org/10.1080/02786826.2019.1661959>
+   * J. T. Gasparik, Q. Ye, J. H. Curtis, A. A. Presto, N. M. Donahue,
+     R. C. Sullivan, M. West, and N. Riemer (2020) Quantifying errors
+     in the aerosol mixing-state index based on limited particle
+     sample size, _Aerosol Science and Technology_ 54(12), 1527-1541,
+     <http://dx.doi.org/10.1080/02786826.2020.1804523>
+   * Z. Zheng, J. H. Curtis, Y. Yao, J. T. Gasparik, V. G. Anantharaj,
+     L. Zhao, M. West, and N. Riemer (2021) Estimating submicron
+     aerosol mixing state at the global scale with machine learning
+     and earth system modeling, _Earth and Space Science_ 8(2),
+     e2020EA001500, <http://dx.doi.org/10.1029/2020EA001500>
 
 
 Running PartMC with Docker
@@ -142,6 +164,7 @@ Required dependencies:
 
 Optional dependencies:
 
+   * CAMP chemistry code - <https://github.com/open-atmos/camp>
    * MOSAIC chemistry code version 2012-01-25 - Available from Rahul
      Zaveri - <Rahul.Zaveri@pnl.gov>
    * MPI parallel support - <http://www.open-mpi.org/>
@@ -162,12 +185,12 @@ Installation
 
 2. Unpack PartMC:
 
-        tar xzvf partmc-2.5.0.tar.gz
+        tar xzvf partmc-2.6.0.tar.gz
 
 3. Change into the main PartMC directory (where this README file is
    located):
 
-        cd partmc-2.5.0
+        cd partmc-2.6.0
 
 4. Make a directory called `build` and change into it:
 

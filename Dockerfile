@@ -2,6 +2,8 @@ FROM fedora:33
 
 RUN dnf -y update \
     && dnf -y install \
+        less \
+        tmux \
         gcc-gfortran \
         make \
         netcdf-fortran-devel \

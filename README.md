@@ -147,7 +147,7 @@ Optional dependencies:
    * MPI parallel support - <http://www.open-mpi.org/>
    * GSL for random number generators -
      <http://www.gnu.org/software/gsl/>
-   * SUNDIALS ODE solver version 2.6 for condensation support -
+   * SUNDIALS ODE solver for condensation support -
      <http://www.llnl.gov/casc/sundials/>
    * gnuplot for testcase plotting - <http://www.gnuplot.info/>
 

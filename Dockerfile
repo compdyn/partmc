@@ -6,9 +6,18 @@ RUN dnf -y update \
         make \
         netcdf-fortran-devel \
         sundials-devel \
+        openblas-devel \
         gsl-devel \
         cmake \
     && dnf clean all
+
+# Build the SuiteSparse libraries for sparse matrix support
+# (-k included because of problem with SuiteSparse security certificate - 1 Aug 2021)
+RUN curl -kLO http://faculty.cse.tamu.edu/davis/SuiteSparse/SuiteSparse-5.1.0.tar.gz \
+    && tar -zxvf SuiteSparse-5.1.0.tar.gz \
+    && export CXX=/usr/bin/cc \
+    && cd SuiteSparse \
+    && make install INSTALL=/usr/local BLAS="-L/lib64 -lopenblas"
 
 # NOTE: Modify .dockerignore to whitelist files/directories to copy.
 COPY . /partmc/

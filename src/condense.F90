@@ -22,7 +22,7 @@
 !!
 !! The SUNDIALS ODE solver is used to compute the system evolution
 !! using an implicit method. The system Jacobian is explicitly
-!! inverveted as its structure is very simple.
+!! inverted as its structure is very simple.
 !!
 !! All equations used in this file are written in detail in the file
 !! \c doc/condense.tex.

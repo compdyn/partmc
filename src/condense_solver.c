@@ -60,8 +60,8 @@ static int condense_solver_Solve(double t, N_Vector ycur, N_Vector fcur,
 
 /*******************************************************/
 
-condense_vf_f(int neq, realtype t, double *y_f, double *ydot_f);
-condense_jac_solve_f(int neq, double t, double *ycur_f, double *fcur_f, double *b_f, double gamma);
+void condense_vf_f(int neq, realtype t, double *y_f, double *ydot_f);
+void condense_jac_solve_f(int neq, double t, double *ycur_f, double *fcur_f, double *b_f, double gamma);
 
 /** \brief Call the ODE solver.
  *

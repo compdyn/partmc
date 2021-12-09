@@ -9,6 +9,7 @@ RUN dnf -y update \
         sundials-devel \
         openblas-devel \
         metis-devel \
+        lapack-devel \
         gsl-devel \
         cmake \
     && dnf clean all

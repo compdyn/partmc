@@ -7,6 +7,7 @@ RUN dnf -y update \
         netcdf-fortran-devel \
         sundials-devel \
         openblas-devel \
+        metis-devel \
         gsl-devel \
         cmake \
     && dnf clean all

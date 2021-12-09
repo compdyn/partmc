@@ -3,6 +3,7 @@ FROM fedora:33
 RUN dnf -y update \
     && dnf -y install \
         gcc-gfortran \
+        gcc-c++ \
         make \
         netcdf-fortran-devel \
         sundials-devel \

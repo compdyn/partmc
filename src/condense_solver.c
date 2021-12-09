@@ -60,6 +60,9 @@ static int condense_solver_Solve(double t, N_Vector ycur, N_Vector fcur,
 
 /*******************************************************/
 
+condense_vf_f(int neq, realtype t, double *y_f, double *ydot_f);
+condense_jac_solve_f(int neq, double t, double *ycur_f, double *fcur_f, double *b_f, double gamma);
+
 /** \brief Call the ODE solver.
  *
  * \param neq The number of equations.
@@ -154,7 +157,9 @@ int condense_solver(int neq, double *x_f, double *abstol_f, double reltol_f,
  * \param user_data A pointer to user-provided data.
  * \return A result code (0 is success).
  */
-static int condense_vf(realtype t, N_Vector y, N_Vector ydot, void*)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+static int condense_vf(realtype t, N_Vector y, N_Vector ydot, void *user_data)
 {
 	realtype *y_data, *ydot_data;
 	int i, neq;
@@ -179,6 +184,7 @@ static int condense_vf(realtype t, N_Vector y, N_Vector ydot, void*)
 	free(ydot_f);
 	return(0);
 }
+#pragma GCC diagnostic pop
 
 /** \brief Check the return value from a SUNDIALS call.
  *
@@ -234,8 +240,10 @@ static int condense_check_flag(void *flagvalue, char *funcname, int opt)
  * scalar, and \f$b\f$ is a given vector.
  *
  */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 static int condense_solver_Solve(double t, N_Vector ycur, N_Vector fcur,
-				 N_Vector b, N_Vector z, double gamma, double, int, void*)
+				 N_Vector b, N_Vector z, double gamma, double delta, int lr, void *user_data)
 {
 	realtype *b_data, *ycur_data, *fcur_data, *z_data;
 	int i, neq;
@@ -266,4 +274,4 @@ static int condense_solver_Solve(double t, N_Vector ycur, N_Vector fcur,
 	free(fcur_f);
 	return(0);
 }
-
+#pragma GCC diagnostic pop

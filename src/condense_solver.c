@@ -76,10 +76,10 @@ static int condense_solver_Solve(double t, N_Vector ycur, N_Vector fcur,
 int condense_solver(int neq, double *x_f, double *abstol_f, double reltol_f,
 		    double t_initial_f, double t_final_f)
 {
-	realtype reltol, t_initial, t_final, t, tout;
+	realtype reltol, t_initial, t_final, t;
 	N_Vector y, abstol;
 	void *cvode_mem;
-	int flag, i, pretype, maxl;
+	int flag, i;
 	realtype *y_data, *abstol_data;
 
 	y = abstol = NULL;
@@ -154,7 +154,7 @@ int condense_solver(int neq, double *x_f, double *abstol_f, double reltol_f,
  * \param user_data A pointer to user-provided data.
  * \return A result code (0 is success).
  */
-static int condense_vf(realtype t, N_Vector y, N_Vector ydot, void *user_data)
+static int condense_vf(realtype t, N_Vector y, N_Vector ydot, void*)
 {
 	realtype *y_data, *ydot_data;
 	int i, neq;
@@ -235,7 +235,7 @@ static int condense_check_flag(void *flagvalue, char *funcname, int opt)
  *
  */
 static int condense_solver_Solve(double t, N_Vector ycur, N_Vector fcur,
-				 N_Vector b, N_Vector z, double gamma, double delta, int lr, void *user_data)
+				 N_Vector b, N_Vector z, double gamma, double, int, void*)
 {
 	realtype *b_data, *ycur_data, *fcur_data, *z_data;
 	int i, neq;

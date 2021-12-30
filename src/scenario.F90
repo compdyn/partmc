@@ -284,21 +284,24 @@ contains
     logical, intent(in) :: allow_halving
 
     real(kind=dp), parameter :: sample_timescale = 3600.0d0
-    real(kind=dp) :: characteristic_factor
+    real(kind=dp) :: characteristic_factor, sample_timescale_effective
     real(kind=dp) :: emission_rate_scale, dilution_rate, p
     type(aero_dist_t) :: emissions, background
     type(aero_state_t) :: aero_state_delta
 
+    sample_timescale_effective = max(1.0, min(sample_timescale, &
+         env_state%elapsed_time))
+    characteristic_factor = sample_timescale_effective / delta_t
+
     ! emissions
     if (size(scenario%aero_emission) > 0) then
-    call aero_dist_interp_1d(scenario%aero_emission, &
-         scenario%aero_emission_time, scenario%aero_emission_rate_scale, &
-         env_state%elapsed_time, emissions, emission_rate_scale)
-    p = emission_rate_scale * delta_t / env_state%height
-    characteristic_factor = sample_timescale / delta_t
-    call aero_state_add_aero_dist_sample(aero_state, aero_data, &
-         emissions, p, characteristic_factor, env_state%elapsed_time, &
-         allow_doubling, allow_halving, n_emit)
+       call aero_dist_interp_1d(scenario%aero_emission, &
+            scenario%aero_emission_time, scenario%aero_emission_rate_scale, &
+            env_state%elapsed_time, emissions, emission_rate_scale)
+       p = emission_rate_scale * delta_t / env_state%height
+       call aero_state_add_aero_dist_sample(aero_state, aero_data, &
+            emissions, p, characteristic_factor, env_state%elapsed_time, &
+            allow_doubling, allow_halving, n_emit)
     end if
 #ifndef PMC_USE_WRF
     ! dilution

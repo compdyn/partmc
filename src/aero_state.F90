@@ -776,15 +776,17 @@ contains
           n_samp_avg = sample_prop * aero_mode_number(aero_dist%mode(i_mode), &
                aero_state%awa%weight(i_group, i_class))
           n_samp = rand_poisson(n_samp_avg)
-          num_conc_threshold = aero_mode_total_num_conc(aero_dist%mode(i_mode)) &
-               / (n_samp_avg * characteristic_factor) * low_num_conc_factor
+  !        num_conc_threshold = aero_mode_total_num_conc(aero_dist%mode(i_mode)) &
+  !             / (n_samp_avg * characteristic_factor) * low_num_conc_factor
+          size_factor = min((1.0d0 / (characteristic_factor*n_samp_avg)), 0.32d0)
+
           if (present(n_part_add)) then
              n_part_add = n_part_add + n_samp
           end if
           do i_samp = 1,n_samp
              call aero_particle_zero(aero_particle, aero_data)
              call aero_mode_sample_radius(aero_dist%mode(i_mode), aero_data, &
-                  aero_state%awa%weight(i_group, i_class), radius)
+                  aero_state%awa%weight(i_group, i_class), radius, size_factor)
              total_vol = aero_data_rad2vol(aero_data, radius)
              call aero_mode_sample_vols(aero_dist%mode(i_mode), total_vol, &
                   vols)
@@ -793,11 +795,11 @@ contains
              call aero_particle_set_weight(aero_particle, i_group, i_class)
              call aero_particle_set_component(aero_particle, &
                   aero_dist%mode(i_mode)%source, create_time)
-             if (aero_weight_array_num_conc(aero_state%awa, aero_particle, &
-                  aero_data) > num_conc_threshold) then
-                call aero_state_add_particle(aero_state, aero_particle, &
-                     aero_data)
-             end if
+!             if (aero_weight_array_num_conc(aero_state%awa, aero_particle, &
+!                  aero_data) > num_conc_threshold) then
+             call aero_state_add_particle(aero_state, aero_particle, &
+                  aero_data)
+!             end if
           end do
        end do
     end do

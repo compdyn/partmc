@@ -421,3 +421,11 @@ add_executable(chamber_process
 target_link_libraries(chamber_process partmclib)
 
 ######################################################################
+# scenarios/5_tube/
+
+add_executable(tube_process
+  scenarios/5_tube/tube_process.F90)
+target_link_libraries(tube_process partmclib)
+
+######################################################################
+

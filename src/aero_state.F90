@@ -1062,6 +1062,29 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Returns the kappas of all particles.
+  function aero_state_solute_kappas(aero_state, aero_data)
+
+    !> Aerosol state.
+    type(aero_state_t), intent(in) :: aero_state
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+
+    !> Return value (1) 
+    real(kind=dp) :: aero_state_solute_kappas(aero_state_n_part(aero_state))
+
+    integer :: i_part
+
+    do i_part = 1,aero_state_n_part(aero_state)
+       aero_state_solute_kappas(i_part) &
+            = aero_particle_solute_kappa( &
+            aero_state%apa%particle(i_part), aero_data)
+    end do
+
+  end function aero_state_solute_kappas
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Returns the volumes of all particles.
   !!
   !! If \c include is specified then only those species are included

@@ -1,4 +1,8 @@
 
+2.6.1 - 2022-02-18
+
+  * Update to support SUNDIALS version 5.8.0 (Sylwester Arabas).
+
 2.6.0 - 2021-11-03
 
   * Clean up README formatting (Matt West).

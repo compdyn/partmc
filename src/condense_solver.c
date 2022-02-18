@@ -12,7 +12,7 @@
 #include <cvode/cvode.h>
 #include <nvector/nvector_serial.h>
 #include <sundials/sundials_types.h>
-#include <cvode/cvode_impl.h>
+#include <sunlinsol/sunlinsol_spgmr.h>
 
 /** \brief Result code indicating successful completion.
  */
@@ -38,6 +38,15 @@
 /** \brief Result code indicating failure of the solver.
  */
 #define PMC_CONDENSE_SOLVER_FAIL           7
+/** \brief Result code indicating failure in creation of the linear solver.
+ */
+#define PMC_CONDENSE_SOLVER_LINSOL_CTOR    8
+/** \brief Result code indicating failure in setting the linear solver.
+ */
+#define PMC_CONDENSE_SOLVER_LINSOL_SET     9
+/** \brief Result code indicating failure in setting the preconditioner.
+ */
+#define PMC_CONDENSE_SOLVER_LINSOL_PREC    10
 
 static int condense_vf(realtype t, N_Vector y, N_Vector ydot, void *user_data);
 
@@ -45,17 +54,14 @@ static int condense_check_flag(void *flagvalue, char *funcname, int opt);
 
 /*******************************************************/
 // solver block
-static int condense_solver_Init(CVodeMem cv_mem);
 
-static int condense_solver_Setup(CVodeMem cv_mem, int convfail, N_Vector ypred,
-				 N_Vector fpred, booleantype *jcurPtr,
-				 N_Vector vtemp1, N_Vector vtemp2, N_Vector vtemp3);
+static int condense_solver_Solve(double t, N_Vector ycur, N_Vector fcur,
+				 N_Vector r, N_Vector b, double gamma, double delta, int lr, void *user_data);
 
-static int condense_solver_Solve(CVodeMem cv_mem, N_Vector b, N_Vector weight,
-				 N_Vector ycur, N_Vector fcur);
-
-static void condense_solver_Free(CVodeMem cv_mem);
 /*******************************************************/
+
+void condense_vf_f(int neq, realtype t, double *y_f, double *ydot_f);
+void condense_jac_solve_f(int neq, double t, double *ycur_f, double *fcur_f, double *b_f, double gamma);
 
 /** \brief Call the ODE solver.
  *
@@ -73,11 +79,10 @@ static void condense_solver_Free(CVodeMem cv_mem);
 int condense_solver(int neq, double *x_f, double *abstol_f, double reltol_f,
 		    double t_initial_f, double t_final_f)
 {
-	realtype reltol, t_initial, t_final, t, tout;
+	realtype reltol, t_initial, t_final, t;
 	N_Vector y, abstol;
 	void *cvode_mem;
-	CVodeMem cv_mem;
-	int flag, i, pretype, maxl;
+	int flag, i;
 	realtype *y_data, *abstol_data;
 
 	y = abstol = NULL;
@@ -102,7 +107,7 @@ int condense_solver(int neq, double *x_f, double *abstol_f, double reltol_f,
 	t_initial = t_initial_f;
 	t_final = t_final_f;
 
-	cvode_mem = CVodeCreate(CV_BDF, CV_NEWTON);
+	cvode_mem = CVodeCreate(CV_BDF);
 	if (condense_check_flag((void *)cvode_mem, "CVodeCreate", 0))
                 return PMC_CONDENSE_SOLVER_INIT_CVODE_MEM;
 
@@ -118,34 +123,16 @@ int condense_solver(int neq, double *x_f, double *abstol_f, double reltol_f,
 	if (condense_check_flag(&flag, "CVodeSetMaxNumSteps", 1))
                 return PMC_CONDENSE_SOLVER_SET_MAX_STEPS;
 
-        /*******************************************************/
-	// dense solver
-	//flag = CVDense(cvode_mem, neq);
-	//if (condense_check_flag(&flag, "CVDense", 1)) return(1);
-        /*******************************************************/
 
-        /*******************************************************/
-	// iterative solver
-	//pretype = PREC_LEFT;
-	//maxl = 0;
-	//flag = CVSptfqmr(cvode_mem, pretype, maxl);
-	//if (condense_check_flag(&flag, "CVSptfqmr", 1)) return(1);
-
-	//flag = CVSpilsSetJacTimesVecFn(cvode_mem, condense_jtimes);
-	//if (condense_check_flag(&flag, "CVSpilsSetJacTimesVecFn", 1)) return(1);
-
-	//flag = CVSpilsSetPreconditioner(cvode_mem, NULL, condense_prec);
-	//if (condense_check_flag(&flag, "CVSpilsSetPreconditioner", 1)) return(1);
-        /*******************************************************/
-
-        /*******************************************************/
-	// explicit solver
-	cv_mem = (CVodeMem)cvode_mem;
-	cv_mem->cv_linit = condense_solver_Init;
-	cv_mem->cv_lsetup = condense_solver_Setup;
-	cv_mem->cv_lsolve = condense_solver_Solve;
-	cv_mem->cv_lfree = condense_solver_Free;
-        /*******************************************************/
+        SUNLinearSolver LS = SUNLinSol_SPGMR(y, PREC_LEFT, 0);
+        if (condense_check_flag((void *)LS, "SUNLinSol_SPGMR", 0))
+                return PMC_CONDENSE_SOLVER_LINSOL_CTOR;
+	flag = CVodeSetLinearSolver(cvode_mem, LS, NULL);
+        if (condense_check_flag(&flag, "CVodeSetLinearSolver", 1))
+                return PMC_CONDENSE_SOLVER_LINSOL_SET;
+	flag = CVodeSetPreconditioner(cvode_mem, NULL, condense_solver_Solve);
+        if (condense_check_flag(&flag, "CVodeSetPreconditioner", 1))
+                return PMC_CONDENSE_SOLVER_LINSOL_PREC;
 
 	t = t_initial;
 	flag = CVode(cvode_mem, t_final, y, &t, CV_NORMAL);
@@ -170,6 +157,8 @@ int condense_solver(int neq, double *x_f, double *abstol_f, double reltol_f,
  * \param user_data A pointer to user-provided data.
  * \return A result code (0 is success).
  */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 static int condense_vf(realtype t, N_Vector y, N_Vector ydot, void *user_data)
 {
 	realtype *y_data, *ydot_data;
@@ -195,6 +184,7 @@ static int condense_vf(realtype t, N_Vector y, N_Vector ydot, void *user_data)
 	free(ydot_f);
 	return(0);
 }
+#pragma GCC diagnostic pop
 
 /** \brief Check the return value from a SUNDIALS call.
  *
@@ -243,67 +233,31 @@ static int condense_check_flag(void *flagvalue, char *funcname, int opt)
   return(0);
 }
 
-/** \brief Initialization routine for the ODE linear equation solver.
- *
- * \param cv_mem The \c CVODE solver parameter structure.
- * \return A result code (0 is success).
- */
-static int condense_solver_Init(CVodeMem cv_mem)
-{
-	return(0);
-}
-
-/** \brief Setup routine for the ODE linear equation solver.
- *
- * \param cv_mem The \c CVODE solver parameter structure.
- * \param convfail
- * \param ypred
- * \param fpred
- * \param jcurPtr
- * \param vtemp1
- * \param vtemp2
- * \param vtemp3
- * \return A result code (0 is success).
- */
-static int condense_solver_Setup(CVodeMem cv_mem, int convfail, N_Vector ypred,
-				 N_Vector fpred, booleantype *jcurPtr,
-				 N_Vector vtemp1, N_Vector vtemp2, N_Vector vtemp3)
-{
-	return(0);
-}
-
 /** \brief Linear solver routine for use by the ODE solver.
  *
  * Should solve the system \f$(I - \gamma J) x = b\f$, where \f$J\f$
  * is the current vector field Jacobian, \f$\gamma\f$ is a given
  * scalar, and \f$b\f$ is a given vector.
  *
- * \param cv_mem The \c CVODE solver parameter structure.
- * \param b The right-hand-side of the linear system.
- * \param weight
- * \param ycur The current state vector.
- * \param fcur The current vector field vector.
- * \return A result code (0 is success).
  */
-static int condense_solver_Solve(CVodeMem cv_mem, N_Vector b, N_Vector weight,
-				 N_Vector ycur, N_Vector fcur)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+static int condense_solver_Solve(double t, N_Vector ycur, N_Vector fcur,
+				 N_Vector b, N_Vector z, double gamma, double delta, int lr, void *user_data)
 {
-	realtype *b_data, *ycur_data, *fcur_data;
+	realtype *b_data, *ycur_data, *fcur_data, *z_data;
 	int i, neq;
 	double *b_f, *ycur_f, *fcur_f;
-	double t, gamma;
 
 	neq = NV_LENGTH_S(b);
 	b_data = NV_DATA_S(b);
+	z_data = NV_DATA_S(z);
 	ycur_data = NV_DATA_S(ycur);
 	fcur_data = NV_DATA_S(fcur);
 
 	b_f = malloc(neq * sizeof(double));
 	ycur_f = malloc(neq * sizeof(double));
 	fcur_f = malloc(neq * sizeof(double));
-
-	t = cv_mem->cv_tn;
-	gamma = cv_mem->cv_gamma;
 
 	for (i = 0; i < neq; i++) {
 		b_f[i] = b_data[i];
@@ -312,7 +266,7 @@ static int condense_solver_Solve(CVodeMem cv_mem, N_Vector b, N_Vector weight,
 	}
 	condense_jac_solve_f(neq, t, ycur_f, fcur_f, b_f, gamma);
 	for (i = 0; i < neq; i++) {
-		b_data[i] = b_f[i];
+		z_data[i] = b_f[i];
 	}
 
 	free(b_f);
@@ -320,11 +274,4 @@ static int condense_solver_Solve(CVodeMem cv_mem, N_Vector b, N_Vector weight,
 	free(fcur_f);
 	return(0);
 }
-
-/** \brief Finalization routine for the ODE linear equation solver.
- *
- * \param cv_mem The \c CVODE solver parameter structure.
- */
-static void condense_solver_Free(CVodeMem cv_mem)
-{
-}
+#pragma GCC diagnostic pop

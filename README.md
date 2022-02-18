@@ -4,7 +4,7 @@ PartMC
 
 PartMC: Particle-resolved Monte Carlo code for atmospheric aerosol simulation
 
-[![Latest version](https://img.shields.io/github/tag/compdyn/partmc.svg?label=version)](https://github.com/compdyn/partmc/blob/master/ChangeLog.md) [![GitHub build](https://img.shields.io/github/workflow/status/compdyn/partmc/CI.svg)](https://github.com/compdyn/partmc/actions) [![License](https://img.shields.io/github/license/compdyn/partmc.svg)](https://github.com/compdyn/partmc/blob/master/COPYING) [![DOI](https://zenodo.org/badge/24058992.svg)](https://zenodo.org/badge/latestdoi/24058992)
+[![Latest version](https://img.shields.io/github/tag/compdyn/partmc.svg?label=version)](https://github.com/compdyn/partmc/blob/master/ChangeLog.md) [![Docker build status](https://img.shields.io/docker/automated/compdyn/partmc.svg)](https://hub.docker.com/r/compdyn/partmc/builds/) [![Github Actions Status](https://github.com/compdyn/partmc/workflows/CI/badge.svg?branch=master)](https://github.com/compdyn/partmc/actions/workflows/main.yml) [![License](https://img.shields.io/github/license/compdyn/partmc.svg)](https://github.com/compdyn/partmc/blob/master/COPYING) [![DOI](https://zenodo.org/badge/24058992.svg)](https://zenodo.org/badge/latestdoi/24058992)
 
 Version 2.6.0  
 Released 2021-11-03
@@ -170,7 +170,7 @@ Optional dependencies:
    * MPI parallel support - <http://www.open-mpi.org/>
    * GSL for random number generators -
      <http://www.gnu.org/software/gsl/>
-   * SUNDIALS ODE solver version 2.6 for condensation support -
+   * SUNDIALS ODE solver for condensation support -
      <http://www.llnl.gov/casc/sundials/>
    * gnuplot for testcase plotting - <http://www.gnuplot.info/>
 

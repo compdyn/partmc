@@ -1,0 +1,6 @@
+# time (s)
+# rate (s^{-1})
+# aerosol distribution filename
+time    0
+rate    1.93e-04 
+dist    aero_back_dist_suc.dat

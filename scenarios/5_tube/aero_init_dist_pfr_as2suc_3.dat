@@ -1,0 +1,9 @@
+# sucrose initial condition
+mode_name sucrose 
+mass_frac aero_init_comp_suc.dat      # composition proportions of species
+diam_type geometric                  # type of diameter specified
+mode_type log_normal                 # type of distribution
+num_conc 1.32e11                         # particle number concentration (#/m^3)
+geom_mean_diam 6.57e-8                # geometric mean diameter (m)
+log10_geom_std_dev 0.286            # log_10 of geometric std dev of diameter
+

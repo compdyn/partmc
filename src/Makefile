@@ -166,7 +166,7 @@ integer_rmap2.o: integer_varray.o util.o mpi.o
 integer_varray.o: util.o mpi.o
 
 mosaic.o: aero_data.o aero_state.o constants.o env_state.o \
-     gas_data.o gas_state.o util.o
+     gas_data.o gas_state.o output.o util.o
 
 mpi.o: util.o
 

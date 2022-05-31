@@ -364,6 +364,9 @@ contains
        ! normal approximation with continuity correction
        k = nint(rand_normal(np, sqrt(np * (1d0 - p))))
        rand_binomial = min(max(k, 0), n)
+    elseif (p < 1d-15) then
+       ! Method below needs to compute log(1-p) so p can not be too small
+       rand_binomial = 0
     elseif (np < 1d-200) then
        rand_binomial = 0
     elseif (nomp < 1d-200) then
@@ -404,20 +407,23 @@ contains
 
   !> Generates a normally distributed random number with the given
   !> mean and standard deviation.
-  real(kind=dp) function rand_normal(mean, stddev)
+  real(kind=dp) function rand_normal(mean, stddev, threshold)
 
     !> Mean of distribution.
     real(kind=dp), intent(in) :: mean
     !> Standard deviation of distribution.
     real(kind=dp), intent(in) :: stddev
-
+    !>
+    real(kind=dp), intent(in), optional :: threshold
 #ifdef PMC_USE_GSL
     real(kind=c_double) :: mean_c, stddev_c
     real(kind=c_double), target :: harvest
+    real(kind=c_double) :: z0
     type(c_ptr) :: harvest_ptr
 #else
     real(kind=dp) :: u1, u2, r, theta, z0, z1
 #endif
+    logical :: acceptable
 
 #ifdef PMC_USE_GSL
 #ifndef DOXYGEN_SKIP_DOC
@@ -438,18 +444,35 @@ contains
     mean_c = real(mean, kind=c_double)
     stddev_c = real(stddev, kind=c_double)
     harvest_ptr = c_loc(harvest)
-    call rand_check_gsl(102078576, &
-         pmc_rand_normal_gsl(mean_c, stddev_c, harvest_ptr))
-    rand_normal = real(harvest, kind=dp)
+    acceptable = .false.
+    do while (.not. acceptable)
+       call rand_check_gsl(102078576, &
+            pmc_rand_normal_gsl(mean_c, stddev_c, harvest_ptr))
+       rand_normal = real(harvest, kind=dp)
+       z0 = (rand_normal - mean)/ stddev
+       if (present(threshold)) then
+          if (1.0d0 - abs(erf(z0/(2.0**.5))) >= threshold) acceptable = .true.
+       else
+          acceptable = .true.
+       end if
+    end do
 #else
     ! Uses the Box-Muller transform
     ! http://en.wikipedia.org/wiki/Box-Muller_transform
-    u1 = pmc_random()
-    u2 = pmc_random()
-    r = sqrt(-2d0 * log(u1))
-    theta = 2d0 * const%pi * u2
-    z0 = r * cos(theta)
-    z1 = r * sin(theta)
+    acceptable = .false.
+    do while (.not. acceptable)
+       u1 = pmc_random()
+       u2 = pmc_random()
+       r = sqrt(-2d0 * log(u1))
+       theta = 2d0 * const%pi * u2
+       z0 = r * cos(theta)
+       z1 = r * sin(theta)
+       if (present(threshold)) then
+          if (1.0d0 - abs(erf(z0/(2.0**.5))) >= threshold) acceptable = .true.
+       else
+          acceptable = .true.
+       end if
+    end do
     ! z0 and z1 are now independent N(0,1) random variables
     ! We throw away z1, but we could use a SAVE variable to only do
     ! the computation on every second call of this function.

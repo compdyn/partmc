@@ -823,4 +823,77 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  subroutine output_column_to_file(prefix, aero_data, aero_state, gas_data, &
+       gas_state, env_state, nz, index, time, del_t, i_repeat, &
+       record_removals, record_optical, uuid, write_rank, write_n_proc)
+
+    !> Prefix of state file.
+    character(len=*), intent(in) :: prefix
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol state.
+    type(aero_state_t), dimension(nz), intent(in) :: aero_state
+    !> Gas data.
+    type(gas_data_t), intent(in) :: gas_data
+    !> Gas state.
+    type(gas_state_t), dimension(nz), intent(in) :: gas_state
+    !> Environment state.
+    type(env_state_t), dimension(nz), intent(in) :: env_state
+    !>
+    integer, intent(in) :: nz
+    !> Filename index.
+    integer, intent(in) :: index
+    !> Current time (s).
+    real(kind=dp), intent(in) :: time
+    !> Current timestep (s).
+    real(kind=dp), intent(in) :: del_t
+    !> Current repeat number.
+    integer, intent(in) :: i_repeat
+    !> Whether to output particle removal info.
+    logical, intent(in) :: record_removals
+    !> Whether to output aerosol optical properties.
+    logical, intent(in) :: record_optical
+    !> UUID of the simulation.
+    character(len=PMC_UUID_LEN), intent(in) :: uuid
+    !> Rank to write into file.
+    integer, intent(in), optional :: write_rank
+    !> Number of processes to write into file.
+    integer, intent(in), optional :: write_n_proc
+
+    character(len=len(prefix)+100) :: filename
+    integer :: ncid
+    character(len=50) :: group_name
+    integer :: ncid_group
+    integer :: k
+
+#ifdef PMC_USE_WRF
+    write(filename,'(a,a,i3.3,a,i3.3,a,i8.8,a)') trim(prefix), &
+         '_', env_state(1)%ix, '_', env_state(1)%iy, '_', index, '.nc'
+    call pmc_nc_open_write(filename, ncid)
+    call pmc_nc_write_info(ncid, uuid, &
+         "WRF-PartMC version " // trim(PARTMC_VERSION), write_rank, &
+          write_n_proc)
+    call write_time(ncid, time, del_t, index)
+
+    call gas_data_output_netcdf(gas_data, ncid)
+    call aero_data_output_netcdf(aero_data, ncid)
+
+    do k = 1, nz
+       call pmc_nc_check_msg(nf90_redef(ncid),'in define mode for level')
+       write(group_name,'(a,i2.2)') 'level_', env_state(k)%iz
+       call pmc_nc_check_msg(nf90_def_grp(ncid, group_name, ncid_group), &
+            'creating level group')
+       call pmc_nc_check_msg(nf90_enddef(ncid),'end define mode for level')
+       call gas_state_output_netcdf(gas_state(k), ncid_group, gas_data)
+       call aero_state_output_netcdf(aero_state(k), ncid_group, aero_data, &
+            record_removals, record_optical)
+    end do
+
+    call pmc_nc_check(nf90_close(ncid))
+#endif
+
+  end subroutine output_column_to_file
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 end module pmc_output

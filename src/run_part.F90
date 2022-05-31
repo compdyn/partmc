@@ -62,6 +62,8 @@ module pmc_run_part
      integer :: nucleate_type
      !> Source of nucleation.
      integer :: nucleate_source
+     !> Weight class of nucleation.
+     integer :: nucleate_weight_class
      !> Whether to do coagulation.
      logical :: do_coagulation
      !> Whether to do nucleation.
@@ -251,8 +253,9 @@ contains
        if (run_part_opt%do_nucleation) then
           n_part_before = aero_state_total_particles(aero_state)
           call nucleate(run_part_opt%nucleate_type, &
-               run_part_opt%nucleate_source, env_state, gas_data, aero_data, &
-               aero_state, gas_state, run_part_opt%del_t, &
+               run_part_opt%nucleate_source, &
+               run_part_opt%nucleate_weight_class,env_state, gas_data, &
+               aero_data, aero_state, gas_state, run_part_opt%del_t, &
                run_part_opt%allow_doubling, run_part_opt%allow_halving)
           n_nuc = aero_state_total_particles(aero_state) &
                - n_part_before
@@ -304,7 +307,7 @@ contains
 
        if (run_part_opt%do_mosaic) then
           call mosaic_timestep(env_state, aero_data, aero_state, gas_data, &
-               gas_state, run_part_opt%do_optical)
+               gas_state, run_part_opt%do_optical, run_part_opt%uuid)
        end if
 
        if (run_part_opt%mix_timescale > 0d0) then

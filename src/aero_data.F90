@@ -64,6 +64,8 @@ module pmc_aero_data
      real(kind=dp), allocatable :: kappa(:)
      !> Length \c aero_data_n_source(aero_data), source names.
      character(len=AERO_SOURCE_NAME_LEN), allocatable :: source_name(:)
+     !> Length \c aero_data_n_weight_classes, weight class names.
+     character(len=AERO_SOURCE_NAME_LEN), allocatable :: weight_class_name(:)
      !> Fractal particle parameters.
      type(fractal_t) :: fractal
 #ifdef PMC_USE_CAMP
@@ -263,6 +265,22 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Return the number of aerosol sources, or -1 if uninitialized.
+  elemental integer function aero_data_n_weight_class(aero_data)
+
+    !> Aero data structure.
+    type(aero_data_t), intent(in) :: aero_data
+
+    if (allocated(aero_data%weight_class_name)) then
+       aero_data_n_weight_class = size(aero_data%weight_class_name)
+    else
+       aero_data_n_weight_class = -1
+    end if
+
+  end function aero_data_n_weight_class
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Returns the number of the species in aero_data with the given name, or
   !> returns 0 if there is no such species.
   integer function aero_data_spec_by_name(aero_data, name)
@@ -313,6 +331,31 @@ contains
     aero_data_source_by_name = size(aero_data%source_name)
 
   end function aero_data_source_by_name
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Returns the number of the weight class with the given name, or
+  !> adds the weight class if it doesn't exist yet.
+  integer function aero_data_weight_class_by_name(aero_data, name)
+
+    !> Aero_data data.
+    type(aero_data_t), intent(inout) :: aero_data
+    !> Name of source to find.
+    character(len=*), intent(in) :: name
+
+    if (.not. allocated(aero_data%weight_class_name)) then
+       aero_data%weight_class_name = [name(1:AERO_SOURCE_NAME_LEN)]
+       aero_data_weight_class_by_name = 1
+       return
+    end if
+    aero_data_weight_class_by_name= string_array_find(aero_data%weight_class_name, &
+         name)
+    if (aero_data_weight_class_by_name > 0) return
+    aero_data%weight_class_name = [aero_data%weight_class_name, &
+         name(1:AERO_SOURCE_NAME_LEN)]
+    aero_data_weight_class_by_name = size(aero_data%weight_class_name)
+
+  end function aero_data_weight_class_by_name
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -520,6 +563,7 @@ contains
          + pmc_mpi_pack_size_real_array(val%molec_weight) &
          + pmc_mpi_pack_size_real_array(val%kappa) &
          + pmc_mpi_pack_size_string_array(val%source_name) &
+         + pmc_mpi_pack_size_string_array(val%weight_class_name) &
          + pmc_mpi_pack_size_fractal(val%fractal)
 
   end function pmc_mpi_pack_size_aero_data
@@ -548,6 +592,7 @@ contains
     call pmc_mpi_pack_real_array(buffer, position, val%molec_weight)
     call pmc_mpi_pack_real_array(buffer, position, val%kappa)
     call pmc_mpi_pack_string_array(buffer, position, val%source_name)
+    call pmc_mpi_pack_string_array(buffer, position, val%weight_class_name)
     call pmc_mpi_pack_fractal(buffer, position, val%fractal)
     call assert(183834856, &
          position - prev_position <= pmc_mpi_pack_size_aero_data(val))
@@ -579,6 +624,7 @@ contains
     call pmc_mpi_unpack_real_array(buffer, position, val%molec_weight)
     call pmc_mpi_unpack_real_array(buffer, position, val%kappa)
     call pmc_mpi_unpack_string_array(buffer, position, val%source_name)
+    call pmc_mpi_unpack_string_array(buffer, position, val%weight_class_name)
     call pmc_mpi_unpack_fractal(buffer, position, val%fractal)
     call assert(188522823, &
          position - prev_position <= pmc_mpi_pack_size_aero_data(val))
@@ -702,6 +748,63 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Write the aero weight class dimension to the given NetCDF file if it
+  !> is not already present and in any case return the associated
+  !> dimid.
+  subroutine aero_data_netcdf_dim_aero_weight_classes(aero_data, ncid, &
+       dimid_aero_weight_class)
+
+    !> Aero_data structure.
+    type(aero_data_t), intent(in) :: aero_data
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+    !> Dimid of the weight class dimension.
+    integer, intent(out) :: dimid_aero_weight_class
+
+    integer :: status, i_source, i_class
+    integer :: varid_aero_weight_class
+    integer :: aero_weight_class_centers(aero_data_n_weight_class(aero_data))
+    character(len=(AERO_SOURCE_NAME_LEN * aero_data_n_weight_class(aero_data))) &
+         :: aero_weight_class_names
+
+    ! try to get the dimension ID
+    status = nf90_inq_dimid(ncid, "aero_weight_class", dimid_aero_weight_class)
+    if (status == NF90_NOERR) return
+    if (status /= NF90_EBADDIM) call pmc_nc_check(status)
+
+    ! dimension not defined, so define now define it
+    call pmc_nc_check(nf90_redef(ncid))
+
+    call pmc_nc_check(nf90_def_dim(ncid, "aero_weight_class", &
+         aero_data_n_weight_class(aero_data), dimid_aero_weight_class))
+    aero_weight_class_names = ""
+    do i_class = 1,aero_data_n_weight_class(aero_data)
+       aero_weight_class_names((len_trim(aero_weight_class_names) + 1):) &
+            = trim(aero_data%weight_class_name(i_class))
+       if (i_class < aero_data_n_weight_class(aero_data)) then
+          aero_weight_class_names((len_trim(aero_weight_class_names) + 1):) = ","
+       end if
+    end do
+    call pmc_nc_check(nf90_def_var(ncid, "aero_data_weight_class", NF90_INT, &
+         dimid_aero_weight_class, varid_aero_weight_class))
+    call pmc_nc_check(nf90_put_att(ncid, varid_aero_weight_class, "names", &
+         aero_weight_class_names))
+    call pmc_nc_check(nf90_put_att(ncid, varid_aero_weight_class, "description", &
+         "dummy dimension variable (no useful value) - read source names " &
+         // "as comma-separated values from the 'names' attribute"))
+
+    call pmc_nc_check(nf90_enddef(ncid))
+
+    do i_class = 1,aero_data_n_weight_class(aero_data)
+       aero_weight_class_centers(i_class) = i_class
+    end do
+    call pmc_nc_check(nf90_put_var(ncid, varid_aero_weight_class, &
+         aero_weight_class_centers))
+
+  end subroutine aero_data_netcdf_dim_aero_weight_classes
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Write full state.
   subroutine aero_data_output_netcdf(aero_data, ncid)
 
@@ -710,7 +813,7 @@ contains
     !> NetCDF file ID, in data mode.
     integer, intent(in) :: ncid
 
-    integer :: dimid_aero_species, dimid_aero_source
+    integer :: dimid_aero_species, dimid_aero_source, dimid_aero_weight_classes
 
     !> \page output_format_aero_data Output File Format: Aerosol Material Data
     !!
@@ -744,6 +847,8 @@ contains
          dimid_aero_species)
     call aero_data_netcdf_dim_aero_source(aero_data, ncid, &
          dimid_aero_source)
+    call aero_data_netcdf_dim_aero_weight_classes(aero_data, ncid, &
+         dimid_aero_weight_classes)
 
     call pmc_nc_write_integer_1d(ncid, aero_data%mosaic_index, &
          "aero_mosaic_index", (/ dimid_aero_species /), &
@@ -780,8 +885,13 @@ contains
     character(len=1000) :: name
     integer :: dimid_aero_species, n_spec, varid_aero_species, i_spec, i
     integer :: dimid_aero_source, n_source, varid_aero_source, i_source
+    integer :: dimid_aero_weight_class, n_class, i_class, &
+         varid_aero_weight_class
     character(len=((AERO_NAME_LEN + 2) * MAX_SPECIES)) :: aero_species_names
-    character(len=:), allocatable :: aero_source_names
+    character(len=((AERO_SOURCE_NAME_LEN + 2) * MAX_SOURCES)) &
+         :: aero_source_names
+    character(len=((AERO_SOURCE_NAME_LEN + 2) * MAX_SOURCES)) &
+         :: aero_weight_class_names
 
     call pmc_nc_check(nf90_inq_dimid(ncid, "aero_species", &
          dimid_aero_species))
@@ -822,8 +932,6 @@ contains
 
     call pmc_nc_check(nf90_inq_varid(ncid, "aero_source", &
          varid_aero_source))
-    allocate(character(len=((AERO_SOURCE_NAME_LEN + 2) * MAX_SPECIES)) &
-         :: aero_source_names)
     call pmc_nc_check(nf90_get_att(ncid, varid_aero_source, "names", &
          aero_source_names))
     ! aero_source_names are comma-separated, so unpack them
@@ -839,6 +947,28 @@ contains
        aero_source_names = aero_source_names((i+1):)
     end do
     call assert(377166446, aero_source_names == "")
+
+    call pmc_nc_check(nf90_inq_varid(ncid, "aero_data_weight_class", &
+         varid_aero_weight_class))
+    call pmc_nc_check(nf90_get_att(ncid, varid_aero_weight_class, "names", &
+         aero_weight_class_names))
+    ! aero_source_names are comma-separated, so unpack them
+    call pmc_nc_check(nf90_inq_dimid(ncid, "aero_weight_class", &
+         dimid_aero_weight_class))
+    call pmc_nc_check(nf90_Inquire_Dimension(ncid, &
+         dimid_aero_weight_class, name, n_class))
+    call ensure_string_array_size(aero_data%weight_class_name, n_class)
+    do i_class = 1,n_class
+       i = 1
+       do while ((aero_weight_class_names(i:i) /= " ") &
+            .and. (aero_weight_class_names(i:i) /= ","))
+          i = i + 1
+       end do
+       call assert(840982472, i > 1)
+       aero_data%weight_class_name(i_class) = aero_weight_class_names(1:(i-1))
+       aero_weight_class_names = aero_weight_class_names((i+1):)
+    end do
+    call assert(377166448, aero_weight_class_names == "")
 
     call aero_data_set_water_index(aero_data)
 

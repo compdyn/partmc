@@ -28,13 +28,16 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Do nucleation of the type given by the first argument.
-  subroutine nucleate(nucleate_type, nucleate_source, env_state, gas_data, &
-       aero_data, aero_state, gas_state, del_t, allow_doubling, allow_halving)
+  subroutine nucleate(nucleate_type, nucleate_source, nucleate_weight_class, &
+       env_state, gas_data, aero_data, aero_state, gas_state, del_t, &
+       allow_doubling, allow_halving)
 
     !> Type of nucleation.
     integer, intent(in) :: nucleate_type
     !> Nucleate source number.
     integer, intent(in) :: nucleate_source
+    !> Nucleate weight class.
+    integer, intent(in) :: nucleate_weight_class
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
     !> Gas data.
@@ -53,9 +56,9 @@ contains
     logical, intent(in) :: allow_halving
 
     if (nucleate_type == NUCLEATE_TYPE_SULF_ACID) then
-       call nucleate_sulf_acid(nucleate_source, env_state, gas_data, &
-            aero_data, aero_state, gas_state, del_t, allow_doubling, &
-            allow_halving)
+       call nucleate_sulf_acid(nucleate_source, nucleate_weight_class, &
+            env_state, gas_data, aero_data, aero_state, gas_state, del_t, &
+            allow_doubling, allow_halving)
     else
        call die_msg(983831728, &
             "unknown nucleation type: " &
@@ -80,11 +83,14 @@ contains
   !! concentration in diverse atmospheric locations,
   !! <i>J. Geophys. Res.</i>, 113, D10209, doi:<a
   !! href="http://dx.doi.org/10.1029/2007JD009253">10.1029/2007JD009253</a>.
-  subroutine nucleate_sulf_acid(nucleate_source, env_state, gas_data, &
-       aero_data, aero_state, gas_state, del_t, allow_doubling, allow_halving)
+  subroutine nucleate_sulf_acid(nucleate_source, nucleate_weight_class, &
+       env_state, gas_data, aero_data, aero_state, gas_state, del_t, &
+       allow_doubling, allow_halving)
 
     !> Nucleate source number.
     integer, intent(in) :: nucleate_source
+    !> Nucleate weight class.
+    integer, intent(in) :: nucleate_weight_class
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
     !> Gas data.
@@ -107,7 +113,7 @@ contains
                                                        ! particles (m)
 
     integer :: i_gas_h2so4, i_aero_so4, n_samp, i_samp, i_bin, i_group, n_group
-    integer :: i_class
+    integer :: i_class, i_source
     real(kind=dp) :: sulf_acid_conc, nucleate_rate, n_samp_avg
     real(kind=dp) :: total_so4_vol, so4_vol, h2so4_removed_conc
     type(aero_particle_t) :: aero_particle
@@ -129,6 +135,7 @@ contains
 
     ! weight class to nucleate into
     i_class = aero_state_weight_class_for_source(aero_state, nucleate_source)
+    i_source = nucleate_source
 
     ! add particles to each weight group
     total_so4_vol = 0d0
@@ -150,7 +157,7 @@ contains
           total_so4_vol = total_so4_vol + so4_vol
 
           call aero_particle_zero(aero_particle, aero_data)
-          call aero_particle_set_create_time(aero_particle, &
+          call aero_particle_set_component(aero_particle, i_source, &
                env_state%elapsed_time)
           aero_particle%vol(i_aero_so4) = so4_vol
           call aero_particle_new_id(aero_particle)
@@ -178,7 +185,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine spec_file_read_nucleate_type(file, aero_data, nucleate_type, &
-       nucleate_source)
+       nucleate_source, nucleate_weight_class)
 
     !> Spec file.
     type(spec_file_t), intent(inout) :: file
@@ -188,6 +195,8 @@ contains
     integer, intent(out) :: nucleate_type
     !> Nucleate source number.
     integer, intent(out) :: nucleate_source
+    !> Nucleate weight class.
+    integer, intent(out) :: nucleate_weight_class
 
     character(len=SPEC_LINE_MAX_VAR_LEN) :: nucleate_type_name
 
@@ -206,6 +215,8 @@ contains
     if (nucleate_type_name == 'sulf_acid') then
        nucleate_type = NUCLEATE_TYPE_SULF_ACID
        nucleate_source = aero_data_source_by_name(aero_data, &
+            NUCLEATE_SOURCE_NAME)
+       nucleate_weight_class = aero_data_weight_class_by_name(aero_data, &
             NUCLEATE_SOURCE_NAME)
     else
        call spec_file_die_msg(707263678, file, "unknown nucleate type: " &

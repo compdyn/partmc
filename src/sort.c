@@ -25,6 +25,22 @@ int pair_compare(const void *a, const void *b)
         }
 }
 
+/** \brief Helper function for double_sort_c()
+*/
+int pair_compare_d(const void *a, const void *b)
+{
+        double a_val = *((double*)a);
+        double b_val = *((double*)b);
+
+        if (a_val < b_val) {
+                return -1;
+        } else if (a_val > b_val) {
+                return 1;
+        } else {
+                return 0;
+        }
+}
+
 /** \brief Sort the given data array and return the permutation.
  *
  * On return the \c data array is sorted and the \c perm array
@@ -51,6 +67,24 @@ int integer_sort_c(int n, int *data, int *perm)
         for (i = 0; i < n; i++) {
                 data[i] = data_perm[2 * i];
                 perm[i] = data_perm[2 * i + 1];
+        }
+        free(data_perm);
+}
+
+int double_sort_c(int n, double *data, int *perm)
+{
+        double *data_perm;
+        int i;
+
+        data_perm = (double*)malloc(sizeof(double) * 2 * n);
+        for (i = 0; i < n; i++) {
+                data_perm[2 * i] = data[i];
+                data_perm[2 * i + 1] = i + 1;
+        }
+        qsort(data_perm, n, 2 * sizeof(double), pair_compare_d);
+        for (i = 0; i < n; i++) {
+                data[i] = data_perm[2 * i];
+                perm[i] = (int) data_perm[2 * i + 1];
         }
         free(data_perm);
 }

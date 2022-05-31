@@ -18,6 +18,7 @@ module pmc_coagulation
   use pmc_aero_state
   use pmc_aero_weight
   use pmc_aero_weight_array
+  use pmc_aero_component
   use pmc_mpi
   use pmc_coag_kernel
   use pmc_aero_sorted
@@ -134,10 +135,10 @@ contains
          aero_state%aero_sorted%bin_grid, b1, b2, c1, c2, cc, f_max)
     k_max = aero_state%aero_sorted%coag_kernel_max(b1, b2) * f_max
 
-    call try_per_particle_coag(coag_kernel_type, k_max, env_state, aero_data, &
-         aero_state, del_t, tot_n_samp, tot_n_coag, b1, b2, c1, c2, cc, &
-         per_particle_coag_succeeded)
-    if (per_particle_coag_succeeded) return
+    !call try_per_particle_coag(coag_kernel_type, k_max, env_state, aero_data, &
+    !     aero_state, del_t, tot_n_samp, tot_n_coag, b1, b2, c1, c2, cc, &
+    !     per_particle_coag_succeeded)
+    !if (per_particle_coag_succeeded) return
 
     call per_set_coag(coag_kernel_type, k_max, env_state, aero_data, &
          aero_state, del_t, tot_n_samp, tot_n_coag, b1, b2, c1, c2, cc)
@@ -369,7 +370,8 @@ contains
     real(kind=dp) :: vol_cv(aero_data_n_spec(aero_data)), vol_cv_max
     real(kind=dp) :: mean_95_conf_cv
     integer :: n_samp_remove, n_samp_extra, n_samp_total, n_avg, i_samp
-    integer :: i_unif_entry, i_part, target_id, new_bin, ct
+    integer :: i_unif_entry, i_part, new_bin, ct
+    integer(kind=8) :: target_id
     type(aero_info_t) :: aero_info
 
     if (integer_varray_n_entry( &
@@ -434,7 +436,7 @@ contains
        if (pmc_random() < prob_coag) then
           n_avg = n_avg + 1
           call aero_particle_coagulate(source_particle, &
-               aero_state%apa%particle(i_part), source_particle)
+               aero_state%apa%particle(i_part), source_particle, .false.)
           vol_sq = vol_sq + aero_state%apa%particle(i_part)%vol**2
           if (i_samp <= n_samp_remove) then
              num_conc_i = aero_weight_array_num_conc(aero_state%awa, &
@@ -487,7 +489,8 @@ contains
     !> Weight class for coagulated particle.
     integer, intent(in) :: cc
 
-    integer :: target_part, target_id, new_bin, new_group
+    integer :: target_part, new_bin, new_group
+    integer(kind=8) :: target_id
     real(kind=dp) :: old_num_conc_target, new_num_conc_target
 
     target_part = aero_state%aero_sorted%size_class%inverse(bt, &
@@ -496,7 +499,7 @@ contains
     old_num_conc_target = aero_weight_array_num_conc(aero_state%awa, &
          aero_state%apa%particle(target_part), aero_data)
     call aero_particle_coagulate(aero_state%apa%particle(target_part), &
-         source_particle, aero_state%apa%particle(target_part))
+         source_particle, aero_state%apa%particle(target_part), .false.)
     aero_state%apa%particle(target_part)%id = target_id
     ! assign to a randomly chosen group
     new_group = aero_weight_array_rand_group(aero_state%awa, cc, &
@@ -794,9 +797,11 @@ contains
 
     real(kind=dp) :: r1, r2, rc, nc_min, nc1, nc2, ncc
     real(kind=dp) :: prob_remove_1, prob_remove_2, prob_create_new
-    integer :: info_other_id, new_group
+    integer(kind=8) :: info_other_id
+    integer :: new_group
 
-    call assert(371947172, pt1%id /= pt2%id)
+    ! FIXME: Jeff hack
+    !call assert(371947172, pt1%id /= pt2%id)
 
     ! decide which old particles are to be removed and whether to
     ! create the resulting coagulated particle
@@ -841,7 +846,7 @@ contains
 
     ! create a new particle and set its ID
     if (create_new) then
-       call aero_particle_coagulate(pt1, pt2, ptc)
+       call aero_particle_coagulate(pt1, pt2, ptc, .true.)
        call aero_particle_set_weight(ptc, new_group, cc)
        if (remove_1 .and. (.not. id_1_lost)) then
           ptc%id = pt1%id

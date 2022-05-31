@@ -14,6 +14,7 @@ module pmc_mosaic
   use pmc_env_state
   use pmc_gas_data
   use pmc_gas_state
+  use pmc_output
   use pmc_util
 
 contains
@@ -148,7 +149,7 @@ contains
 
 #ifdef PMC_USE_MOSAIC
     use module_data_mosaic_aero, only: nbin_a, aer, num_a, jhyst_leg, &
-         jtotal, water_a
+         jtotal, water_a, particle_error
 
     use module_data_mosaic_main, only: tbeg_sec, tcur_sec, tmid_sec, &
          dt_sec, dt_min, dt_aeroptic_min, RH, te, pr_atm, cnn, cair_mlc, &
@@ -262,6 +263,8 @@ contains
           cnn(i_spec_mosaic) = gas_state%mix_rat(i_spec) * cair_mlc / ppb
        end if
     end do
+
+    particle_error = .false.
 #endif
 
   end subroutine mosaic_from_partmc
@@ -270,11 +273,11 @@ contains
 
   !> Map all data MOSAIC -> PartMC.
   subroutine mosaic_to_partmc(env_state, aero_data, aero_state, gas_data, &
-       gas_state)
+       gas_state, uuid)
 
 #ifdef PMC_USE_MOSAIC
     use module_data_mosaic_aero, only: nbin_a, aer, num_a, jhyst_leg, &
-         jtotal, water_a
+         jtotal, water_a, particle_error
 
     use module_data_mosaic_main, only: tbeg_sec, tcur_sec, tmid_sec, &
          dt_sec, dt_min, dt_aeroptic_min, RH, te, pr_atm, cnn, cair_mlc, &
@@ -291,12 +294,21 @@ contains
     type(gas_data_t), intent(in) :: gas_data
     !> Gas state.
     type(gas_state_t), intent(inout) :: gas_state
+    !>
+    character(len=PMC_UUID_LEN), intent(in) :: uuid
 
 #ifdef PMC_USE_MOSAIC
     ! local variables
     real(kind=dp) :: conv_fac(aero_data_n_spec(aero_data)), dum_var, num_conc
     integer :: i_part, i_spec, i_spec_mosaic
-    real(kind=dp) :: reweight_num_conc(aero_state_n_part(aero_state))
+    real(kind=dp), allocatable :: reweight_num_conc(:)
+
+    if (any(particle_error) .eqv. .true.) then
+       call output_state('before_error', OUTPUT_TYPE_DIST, aero_data, &
+            aero_state, gas_data, gas_state, env_state, &
+            int(env_state%elapsed_time / dt_sec), tcur_sec, dt_sec, 1, .false., .false., &
+            uuid)
+    end if
 
     ! compute aerosol conversion factors
     do i_spec = 1,aero_data_n_spec(aero_data)
@@ -316,10 +328,20 @@ contains
     cair_molm3 = 1d6*pr_atm/(82.056d0*te)    ! air conc [mol/m^3]
     ppb = 1d9
 
+    ! gas chemistry: map MOSAIC -> PartMC
+    do i_spec = 1,gas_data_n_spec(gas_data)
+       i_spec_mosaic = gas_data%mosaic_index(i_spec)
+       if (i_spec_mosaic > 0) then
+          ! convert molec/cc to ppbv
+          gas_state%mix_rat(i_spec) = cnn(i_spec_mosaic) / cair_mlc * ppb
+       end if
+    end do
+
     ! We're modifying particle diameters, so the bin sort is now invalid
     aero_state%valid_sort = .false.
 
     ! aerosol data: map MOSAIC -> PartMC
+    allocate(reweight_num_conc(aero_state_n_part(aero_state)))
     call aero_state_num_conc_for_reweight(aero_state, aero_data, &
          reweight_num_conc)
     do i_part = 1,aero_state_n_part(aero_state),1
@@ -339,17 +361,29 @@ contains
        aero_state%apa%particle(i_part)%vol(aero_data%i_water) = &
             water_a(i_part) / aero_data%density(aero_data%i_water) / num_conc
     end do
+
+    if (any(particle_error) .eqv. .true.) then
+       call output_state('after_error', OUTPUT_TYPE_DIST, aero_data, &
+            aero_state, gas_data, gas_state, env_state, &
+            int(env_state%elapsed_time / dt_sec), tcur_sec, dt_sec, 1,&
+            .false., .false., uuid)
+       do i_part = aero_state_n_part(aero_state),1,-1
+          if (particle_error(i_part)) then
+             ! Move last element to the current spot if its going to be removed.
+             if (i_part < aero_state_n_part(aero_state)) then
+                reweight_num_conc(i_part) = reweight_num_conc( &
+                     aero_state_n_part(aero_state))
+             end if
+             call aero_state_remove_particle_no_info(aero_state, i_part)
+          end if
+       end do
+       ! Shrink the reweight_num_conc array to the number of particles
+       reweight_num_conc = reweight_num_conc(1:aero_state_n_part(aero_state))
+    end if
+
     ! adjust particles to account for weight changes
     call aero_state_reweight(aero_state, aero_data, reweight_num_conc)
 
-    ! gas chemistry: map MOSAIC -> PartMC
-    do i_spec = 1,gas_data_n_spec(gas_data)
-       i_spec_mosaic = gas_data%mosaic_index(i_spec)
-       if (i_spec_mosaic > 0) then
-          ! convert molec/cc to ppbv
-          gas_state%mix_rat(i_spec) = cnn(i_spec_mosaic) / cair_mlc * ppb
-       end if
-    end do
 #endif
 
   end subroutine mosaic_to_partmc
@@ -364,7 +398,7 @@ contains
   !! really matters, however. Because of this mosaic_aero_optical() is
   !! currently disabled.
   subroutine mosaic_timestep(env_state, aero_data, aero_state, gas_data, &
-       gas_state, do_optical)
+       gas_state, do_optical, uuid)
 
 #ifdef PMC_USE_MOSAIC
     use module_data_mosaic_main, only: msolar
@@ -382,6 +416,8 @@ contains
     type(gas_state_t), intent(inout) :: gas_state
     !> Whether to compute optical properties.
     logical, intent(in) :: do_optical
+    !>
+    character(len=PMC_UUID_LEN), intent(in) :: uuid
 
 #ifdef PMC_USE_MOSAIC
     ! MOSAIC function interfaces
@@ -414,7 +450,7 @@ contains
     end if
 
     call mosaic_to_partmc(env_state, aero_data, aero_state, gas_data, &
-         gas_state)
+         gas_state, uuid)
 #endif
 
   end subroutine mosaic_timestep

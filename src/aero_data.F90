@@ -888,10 +888,8 @@ contains
     integer :: dimid_aero_weight_class, n_class, i_class, &
          varid_aero_weight_class
     character(len=((AERO_NAME_LEN + 2) * MAX_SPECIES)) :: aero_species_names
-    character(len=((AERO_SOURCE_NAME_LEN + 2) * MAX_SOURCES)) &
-         :: aero_source_names
-    character(len=((AERO_SOURCE_NAME_LEN + 2) * MAX_SOURCES)) &
-         :: aero_weight_class_names
+    character(len=:), allocatable :: aero_source_names
+    character(len=:), allocatable :: aero_weight_class_names
 
     call pmc_nc_check(nf90_inq_dimid(ncid, "aero_species", &
          dimid_aero_species))
@@ -932,6 +930,8 @@ contains
 
     call pmc_nc_check(nf90_inq_varid(ncid, "aero_source", &
          varid_aero_source))
+    allocate(character(len=((AERO_SOURCE_NAME_LEN + 2) * MAX_SOURCES)) &
+         :: aero_source_names)
     call pmc_nc_check(nf90_get_att(ncid, varid_aero_source, "names", &
          aero_source_names))
     ! aero_source_names are comma-separated, so unpack them
@@ -950,6 +950,8 @@ contains
 
     call pmc_nc_check(nf90_inq_varid(ncid, "aero_data_weight_class", &
          varid_aero_weight_class))
+    allocate(character(len=((AERO_SOURCE_NAME_LEN + 2) * MAX_SOURCES)) &
+         :: aero_weight_class_names)
     call pmc_nc_check(nf90_get_att(ncid, varid_aero_weight_class, "names", &
          aero_weight_class_names))
     ! aero_source_names are comma-separated, so unpack them

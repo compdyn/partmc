@@ -2556,7 +2556,7 @@ contains
     integer :: aero_component_source_num(aero_state_n_components(aero_state))
     integer :: aero_component_len(aero_state_n_part(aero_state))
     integer :: aero_component_start_ind(aero_state_n_part(aero_state))
-    integer :: array_position, i_comp
+    integer :: array_position, i_comp, next_start_component_ind
 
     !> \page output_format_aero_state Output File Format: Aerosol Particle State
     !!
@@ -2664,18 +2664,15 @@ contains
        call aero_state_netcdf_dim_aero_components(aero_state, ncid, &
             dimid_aero_components)
        aero_n_orig_part = 0
+       next_start_component_ind = 1
        do i_part = 1,aero_state_n_part(aero_state)
           aero_particle_mass(i_part, :) &
                = aero_state%apa%particle(i_part)%vol * aero_data%density
           aero_component_len(i_part) = aero_particle_n_components( &
               aero_state%apa%particle(i_part))
-          if (i_part == 1) then
-             aero_component_start_ind(i_part) = 1
-          else
-             aero_component_start_ind(i_part) = &
-                  aero_component_start_ind(i_part - 1) &
-                  + aero_component_len(i_part - 1)
-          end if
+          aero_component_start_ind(i_part) = next_start_component_ind
+          next_start_component_ind = next_start_component_ind &
+               + aero_component_len(i_part)
           do i_comp = 1, aero_component_len(i_part)
              array_position = aero_component_start_ind(i_part) + i_comp - 1
              aero_component_particle_num(array_position) = i_part

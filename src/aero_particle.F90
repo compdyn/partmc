@@ -864,8 +864,8 @@ contains
           exit
        end if
     end do
-    !call warn_assert_msg(408545686, i_newton < CRIT_DIAM_MAX_ITER, &
-    !     "critical diameter Newton loop failed to converge")
+    call warn_assert_msg(408545686, i_newton < CRIT_DIAM_MAX_ITER, &
+         "critical diameter Newton loop failed to converge")
     call warn_assert_msg(353290871, d >= dry_diam, &
          "critical diameter Newton loop converged to invalid solution")
     aero_particle_crit_diameter = d

@@ -800,8 +800,7 @@ contains
     integer(kind=8) :: info_other_id
     integer :: new_group
 
-    ! FIXME: Jeff hack
-    !call assert(371947172, pt1%id /= pt2%id)
+    call assert(371947172, pt1%id /= pt2%id)
 
     ! decide which old particles are to be removed and whether to
     ! create the resulting coagulated particle

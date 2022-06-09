@@ -149,7 +149,10 @@ contains
 
 #ifdef PMC_USE_MOSAIC
     use module_data_mosaic_aero, only: nbin_a, aer, num_a, jhyst_leg, &
-         jtotal, water_a, particle_error
+#ifdef PMC_USE_WRF
+         particle_error, &
+#endif
+         jtotal, water_a
 
     use module_data_mosaic_main, only: tbeg_sec, tcur_sec, tmid_sec, &
          dt_sec, dt_min, dt_aeroptic_min, RH, te, pr_atm, cnn, cair_mlc, &
@@ -263,8 +266,9 @@ contains
           cnn(i_spec_mosaic) = gas_state%mix_rat(i_spec) * cair_mlc / ppb
        end if
     end do
-
+#ifdef PMC_USE_WRF
     particle_error = .false.
+#endif
 #endif
 
   end subroutine mosaic_from_partmc
@@ -277,7 +281,10 @@ contains
 
 #ifdef PMC_USE_MOSAIC
     use module_data_mosaic_aero, only: nbin_a, aer, num_a, jhyst_leg, &
-         jtotal, water_a, particle_error
+#ifdef PMC_USE_WRF
+         particle_error, &
+#endif
+         jtotal, water_a
 
     use module_data_mosaic_main, only: tbeg_sec, tcur_sec, tmid_sec, &
          dt_sec, dt_min, dt_aeroptic_min, RH, te, pr_atm, cnn, cair_mlc, &
@@ -303,12 +310,14 @@ contains
     integer :: i_part, i_spec, i_spec_mosaic
     real(kind=dp), allocatable :: reweight_num_conc(:)
 
+#ifdef PMC_USE_WRF
     if (any(particle_error) .eqv. .true.) then
        call output_state('before_error', OUTPUT_TYPE_DIST, aero_data, &
             aero_state, gas_data, gas_state, env_state, &
-            int(env_state%elapsed_time / dt_sec), tcur_sec, dt_sec, 1, .false., .false., &
-            uuid)
+            int(env_state%elapsed_time / dt_sec), tcur_sec, dt_sec, 1, 
+            .false., .false., uuid)
     end if
+#endif
 
     ! compute aerosol conversion factors
     do i_spec = 1,aero_data_n_spec(aero_data)
@@ -362,6 +371,7 @@ contains
             water_a(i_part) / aero_data%density(aero_data%i_water) / num_conc
     end do
 
+#ifdef PMC_USE_WRF
     if (any(particle_error) .eqv. .true.) then
        call output_state('after_error', OUTPUT_TYPE_DIST, aero_data, &
             aero_state, gas_data, gas_state, env_state, &
@@ -380,6 +390,7 @@ contains
        ! Shrink the reweight_num_conc array to the number of particles
        reweight_num_conc = reweight_num_conc(1:aero_state_n_part(aero_state))
     end if
+#endif
 
     ! adjust particles to account for weight changes
     call aero_state_reweight(aero_state, aero_data, reweight_num_conc)

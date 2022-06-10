@@ -113,6 +113,7 @@ contains
     aero_particle%water_hyst_leg = 0
     aero_particle%id = 0
     if (allocated(aero_particle%component)) deallocate(aero_particle%component)
+    allocate(aero_particle%component(0))
     aero_particle%least_create_time = 0d0
     aero_particle%greatest_create_time = 0d0
 
@@ -157,6 +158,7 @@ contains
     !> Creation time.
     real(kind=dp), intent(in) :: create_time
 
+    if (allocated(aero_particle%component)) deallocate(aero_particle%component)
     allocate(aero_particle%component(1))
     call aero_particle_set_source(aero_particle, i_source)
     call aero_particle_set_create_time(aero_particle, create_time)
@@ -888,6 +890,7 @@ contains
 
     integer :: n_comp_1, n_comp_2
     logical, intent(in) :: component_flag
+    type(aero_component_t), allocatable :: new_aero_component(:)
 
     call assert(203741686, size(aero_particle_1%vol) &
          == size(aero_particle_2%vol))
@@ -910,13 +913,13 @@ contains
     if (component_flag) then
        n_comp_1 = aero_particle_n_components(aero_particle_1)
        n_comp_2 = aero_particle_n_components(aero_particle_2)
+       print*, n_comp_1, n_comp_2
        if (n_comp_1 + n_comp_2 >  MAX_AERO_COMPONENT_SIZE) then
           aero_particle_new%component = aero_particle_1%component
        else
-          allocate(aero_particle_new%component(n_comp_1 + n_comp_2))
-          aero_particle_new%component(1:n_comp_1) = aero_particle_1%component
-          aero_particle_new%component(n_comp_1+1:n_comp_1 + n_comp_2) = &
-               aero_particle_2%component
+          new_aero_component = [aero_particle_1%component, &
+               aero_particle_2%component]
+          call move_alloc(new_aero_component, aero_particle_new%component)
        end if
     end if
     aero_particle_new%greatest_create_time = &

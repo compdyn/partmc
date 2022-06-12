@@ -26,7 +26,7 @@ module pmc_aero_component
   end type aero_component_t
 
   !> Maximum size of aero_components for a single particle.
-  integer, parameter :: MAX_AERO_COMPONENT_SIZE = 10
+  integer, parameter :: MAX_AERO_COMPONENT_SIZE = 20
 
 contains
 

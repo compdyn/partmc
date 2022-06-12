@@ -2673,7 +2673,7 @@ contains
           aero_component_start_ind(i_part) = next_start_component_ind
           next_start_component_ind = next_start_component_ind &
                + aero_component_len(i_part)
-          do i_comp = 1, aero_component_len(i_part)
+          do i_comp = 1,aero_component_len(i_part)
              array_position = aero_component_start_ind(i_part) + i_comp - 1
              aero_component_particle_num(array_position) = i_part
              aero_component_source_num(array_position) =  &

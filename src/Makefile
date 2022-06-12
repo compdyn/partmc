@@ -1,4 +1,4 @@
-#
+# NOTE: This Makefile is only to be used when compiling PartMC in WRF
 
 LN      =       ln -sf
 MAKE    =       make -i -r
@@ -19,6 +19,7 @@ PMC_MODULES =                           \
   aero_weight.o                 \
   aero_weight_array.o           \
   bin_grid.o                    \
+  camp_interface.o              \
   chamber.o                     \
   coag_kernel.o                 \
   coag_kernel_additive.o        \
@@ -110,6 +111,9 @@ aero_weight_array.o: util.o constants.o rand.o spec_file.o \
      aero_particle.o netcdf.o mpi.o aero_weight.o aero_data.o
 
 bin_grid.o: constants.o util.o spec_file.o mpi.o netcdf.o
+
+camp_interface.o: aero_data.o aero_particle.o constants.o gas_data.o \
+     gas_state.o util.o
 
 chamber.o: aero_data.o constants.o env_state.o spec_file.o
 

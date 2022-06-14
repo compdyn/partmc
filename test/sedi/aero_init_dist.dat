@@ -1,5 +1,4 @@
 mode_name init                  # name of mode source
-weight_class_name init          # weight class name
 mass_frac aero_init_comp.dat    # species mass fractions
 diam_type geometric             # type of diameter specified
 mode_type log_normal            # type of distribution

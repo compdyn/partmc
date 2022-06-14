@@ -1,5 +1,4 @@
 mode_name init1                  # name of mode source
-weight_class_name init1          # weight class name
 mass_frac aero_init_comp.dat     # species mass fractions
 diam_type geometric             # type of diameter specified
 mode_type log_normal             # type of distribution
@@ -8,7 +7,6 @@ geom_mean_diam 5e-8              # geometric mean diameter (m)
 log10_geom_std_dev 0.24          # log_10 of geometric std dev of diameter
 
 mode_name init2                  # name of mode source
-weight_class_name init2          # weight class name
 mass_frac aero_init_comp.dat     # species mass fractions
 diam_type geometric             # type of diameter specified
 mode_type log_normal             # type of distribution

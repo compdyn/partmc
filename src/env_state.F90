@@ -46,8 +46,6 @@ module pmc_env_state
      real(kind=dp) :: z_max
      !> Specific volume (m^3 kg^{-1}).
      real(kind=dp) :: rrho
-     !> 
-     real(kind=dp) :: rdnw
      !> East-West index.
      integer :: ix
      !> North-South index.
@@ -60,7 +58,7 @@ module pmc_env_state
      real(kind=dp), allocatable :: prob_advection(:,:,:,:)
      !> Transfer probability in all directions due to diffusion.
      real(kind=dp), allocatable :: prob_diffusion(:,:,:,:)
-     !>
+     !> Transfer probability in vertical direction due to turbulent diffusion.
      real(kind=dp), allocatable :: prob_vert_diffusion(:,:)
 #endif
      !> Start time (s since 00:00 UTC on \c start_day).
@@ -372,7 +370,6 @@ contains
          + pmc_mpi_pack_size_real(val%z_min) &
          + pmc_mpi_pack_size_real(val%z_max) &
          + pmc_mpi_pack_size_real(val%rrho) &
-         + pmc_mpi_pack_size_real(val%rdnw) &
          + pmc_mpi_pack_size_integer(val%ix) &
          + pmc_mpi_pack_size_integer(val%iy) &
          + pmc_mpi_pack_size_integer(val%iz) &
@@ -415,7 +412,6 @@ contains
     call pmc_mpi_pack_real(buffer, position, val%z_min)
     call pmc_mpi_pack_real(buffer, position, val%z_max)
     call pmc_mpi_pack_real(buffer, position, val%rrho)
-    call pmc_mpi_pack_real(buffer, position, val%rdnw)
     call pmc_mpi_pack_integer(buffer, position, val%ix)
     call pmc_mpi_pack_integer(buffer, position, val%iy)
     call pmc_mpi_pack_integer(buffer, position, val%iz)
@@ -461,7 +457,6 @@ contains
     call pmc_mpi_unpack_real(buffer, position, val%z_min)
     call pmc_mpi_unpack_real(buffer, position, val%z_max)
     call pmc_mpi_unpack_real(buffer, position, val%rrho)
-    call pmc_mpi_unpack_real(buffer, position, val%rdnw)
     call pmc_mpi_unpack_integer(buffer, position, val%ix)
     call pmc_mpi_unpack_integer(buffer, position, val%iy)
     call pmc_mpi_unpack_integer(buffer, position, val%iz)

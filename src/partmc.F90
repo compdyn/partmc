@@ -361,6 +361,10 @@ contains
     !!   following parameters must also be provided:
     !!   - \b restart_file (string): name of file from which to load
     !!     restart data, which must be a PartMC output NetCDF file
+    !! - \b do_select_weighting (logical): whether to explicitly select
+    !!   the weighting scheme. If \c do_select_weighting is \c yes, then the
+    !!   following parameters must also be provided:
+    !!   - \subpage input_format_weight_type
     !! - \b t_max (real, unit s): total simulation time
     !! - \b del_t (real, unit s): timestep size
     !! - \b t_output (real, unit s): the interval on which to
@@ -430,10 +434,6 @@ contains
     !!   number of simulated particles rises above <tt>n_part *
     !!   2</tt>, half of the particles are removed (chosen randomly)
     !!   to reduce the computational expense
-    !! - \b do_select_weighting (logical): whether to explicitly select
-    !!   the weighting scheme. If \c do_select_weighting is \c yes, then the
-    !!   following parameters must also be provided:
-    !!   - \subpage input_format_weight_type
     !! - \b record_removals (logical): whether to record information
     !!   about aerosol particles removed from the simulation --- see
     !!   \ref output_format_aero_removed

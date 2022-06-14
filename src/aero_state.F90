@@ -753,8 +753,8 @@ contains
   !> Generates a Poisson sample of an \c aero_dist, adding to \c
   !> aero_state, with the given sample proportion.
   subroutine aero_state_add_aero_dist_sample(aero_state, aero_data, &
-       aero_dist, sample_prop, characteristic_factor, create_time, allow_doubling, allow_halving, &
-       n_part_add)
+       aero_dist, sample_prop, characteristic_factor, create_time, &
+       allow_doubling, allow_halving, n_part_add)
 
     !> Aero state to add to.
     type(aero_state_t), intent(inout) :: aero_state
@@ -823,6 +823,7 @@ contains
              call aero_particle_set_weight(aero_particle, i_group, i_class)
              call aero_particle_set_component(aero_particle, &
                   aero_dist%mode(i_mode)%source, create_time)
+             aero_particle%num_primary_parts = 1
 !             if (aero_weight_array_num_conc(aero_state%awa, aero_particle, &
 !                  aero_data) > num_conc_threshold) then
              call aero_state_add_particle(aero_state, aero_particle, &
@@ -2580,6 +2581,7 @@ contains
     integer :: aero_component_source_num(aero_state_n_components(aero_state))
     integer :: aero_component_len(aero_state_n_part(aero_state))
     integer :: aero_component_start_ind(aero_state_n_part(aero_state))
+    integer :: aero_particle_num_primary_parts(aero_state_n_part(aero_state))
     integer :: array_position, i_comp, next_start_component_ind
 
     !> \page output_format_aero_state Output File Format: Aerosol Particle State
@@ -2720,6 +2722,8 @@ contains
                = aero_state%apa%particle(i_part)%least_create_time
           aero_greatest_create_time(i_part) &
                = aero_state%apa%particle(i_part)%greatest_create_time
+          aero_particle_num_primary_parts(i_part) & 
+               =  aero_state%apa%particle(i_part)%num_primary_parts
           if (record_optical) then
              aero_absorb_cross_sect(i_part) &
                   = aero_state%apa%particle(i_part)%absorb_cross_sect
@@ -2788,6 +2792,10 @@ contains
             description="greatest (latest) creation time of any original " &
             // "constituent particles that coagulated to form each " &
             // "particle, measured from the start of the simulation")
+       call pmc_nc_write_integer_1d(ncid, aero_particle_num_primary_parts, &
+            "aero_particle_num_primary_parts", (/ dimid_aero_particle /), &
+            unit="1", long_name="number of primary particles that contribute" &
+            // "to each particle.")
        if (record_optical) then
           call pmc_nc_write_real_1d(ncid, aero_absorb_cross_sect, &
                "aero_absorb_cross_sect", (/ dimid_aero_particle /), &

@@ -473,7 +473,8 @@ contains
           if (run_part_opt%do_select_weighting) then
              call spec_file_read_aero_state_weighting_type(file, &
                   run_part_opt%weighting_type, run_part_opt%weighting_exponent)
-             if (run_part_opt%weighting_type > 7)then
+             if (run_part_opt%weighting_type &
+                  >= AERO_STATE_WEIGHT_FLAT_SPECIFIED)then
                 read_aero_weight_classes = .true.
              end if
           else

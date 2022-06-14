@@ -1197,7 +1197,7 @@ contains
        call pmc_nc_ensure_dim(ncid, dim_name_2, use_dimids(3), size(var, 3), 3)
     else
        call die_msg(959111259, "either dimids or dim_name_1, dim_name_2 and " &
-            "dim_name_3 must be present")
+            // "dim_name_3 must be present")
     end if
     call pmc_nc_check(nf90_redef(ncid))
     call pmc_nc_check(nf90_def_var(ncid, name, NF90_DOUBLE, use_dimids, varid))

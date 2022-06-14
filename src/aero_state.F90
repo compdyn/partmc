@@ -1581,7 +1581,7 @@ contains
             aero_data))
        if ((i_bin < 1) .or. (i_bin > bin_grid_size(bin_grid))) then
           call warn_msg(503871022, "particle ID " // trim ( &
-               // integer64_to_string(aero_state%apa%particle(i_part)%id)) &
+               integer64_to_string(aero_state%apa%particle(i_part)%id)) &
                // " outside of bin_grid, discarding")
        else
           factor = aero_weight_array_num_conc(aero_state%awa, &
@@ -2571,6 +2571,8 @@ contains
          max(1, aero_info_array_n_item(aero_state%aero_info_array)))
     integer :: aero_component_particle_num(aero_state_n_components(aero_state))
     integer :: aero_component_source_num(aero_state_n_components(aero_state))
+    real(kind=dp) :: aero_component_create_time(aero_state_n_components( &
+         aero_state))
     integer :: aero_component_len(aero_state_n_part(aero_state))
     integer :: aero_component_start_ind(aero_state_n_part(aero_state))
     integer :: aero_particle_num_primary_parts(aero_state_n_part(aero_state))
@@ -2694,8 +2696,11 @@ contains
           do i_comp = 1,aero_component_len(i_part)
              array_position = aero_component_start_ind(i_part) + i_comp - 1
              aero_component_particle_num(array_position) = i_part
-             aero_component_source_num(array_position) =  &
-                  aero_state%apa%particle(i_part)%component(i_comp)%source_id
+             aero_component_source_num(array_position) &
+                  = aero_state%apa%particle(i_part)%component(i_comp)%source_id
+             aero_component_create_time(array_position) & 
+                  = aero_state%apa%particle(i_part)%component( &
+                  i_comp)%create_time
           end do
           call aero_particle_get_component_sources( &
                aero_state%apa%particle(i_part), aero_n_orig_part(i_part, :))
@@ -2751,6 +2756,9 @@ contains
        call pmc_nc_write_integer_1d(ncid, aero_component_source_num, &
             "aero_component_source_num", (/ dimid_aero_components /), &
             long_name="associated source number for each component")
+       call pmc_nc_write_real_1d(ncid, aero_component_create_time, &
+            "aero_component_create_time", (/ dimid_aero_components /), &
+            long_name="associated creation time for each component")
        call pmc_nc_write_integer_2d(ncid, aero_n_orig_part, &
             "aero_n_orig_part", (/ dimid_aero_particle, &
             dimid_aero_source /), &
@@ -2976,6 +2984,7 @@ contains
     integer, allocatable :: aero_component_source_num(:)
     integer, allocatable :: aero_component_len(:)
     integer, allocatable :: aero_component_start_ind(:)
+    real(kind=dp), allocatable :: aero_component_create_time(:)
     integer :: i_comp
 
 
@@ -2999,6 +3008,8 @@ contains
          "aero_component_particle_num")
     call pmc_nc_read_integer_1d(ncid, aero_component_source_num, &
          "aero_component_source_num")
+    call pmc_nc_read_real_1d(ncid, aero_component_create_time, &
+         "aero_component_create_time")
     call pmc_nc_read_integer_1d(ncid, aero_component_len, "aero_component_len")
     call pmc_nc_read_integer_1d(ncid, aero_component_start_ind, &
          "aero_component_start_ind")
@@ -3042,6 +3053,9 @@ contains
        do i_comp = 1,aero_component_len(i_part)
           aero_particle%component(i_comp)%source_id = &
                aero_component_source_num(aero_component_start_ind(i_part) &
+               + i_comp - 1)
+          aero_particle%component(i_comp)%create_time = &
+               aero_component_create_time(aero_component_start_ind(i_part) &
                + i_comp - 1)
        end do
        aero_particle%weight_group = aero_particle_weight_group(i_part)

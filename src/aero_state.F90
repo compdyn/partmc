@@ -2545,7 +2545,6 @@ contains
     integer :: i_part, i_remove
     real(kind=dp) :: aero_particle_mass(aero_state_n_part(aero_state), &
          aero_data_n_spec(aero_data))
-    ! FIXME: Change dimension
     integer :: aero_n_orig_part(aero_state_n_part(aero_state), &
          aero_data_n_source(aero_data))
     integer :: aero_particle_weight_group(aero_state_n_part(aero_state))
@@ -2606,6 +2605,7 @@ contains
     !! specified in the \ref output_format_aero_data section, as well
     !! as the NetCDF dimension:
     !!   - \b aero_particle: number of aerosol particles
+    !!   - \b aero_components: total number of aerosol components
     !!
     !! The aerosol state NetCDF variables are:
     !!   - \b aero_particle (dim \c aero_particle): dummy dimension variable
@@ -2614,6 +2614,19 @@ contains
     !!     dim <tt>aero_particle x aero_species</tt>): constituent masses of
     !!     each aerosol particle - <tt>aero_particle_mass(i,s)</tt> gives the
     !!     mass of species \c s in particle \c i
+    !!   - \b aero_component_len (dim <tt>aero_particle</tt>):
+    !!     number of different components for each particle.
+    !!   - \b aero_component_start_ind (dim <tt>aero_particle</tt>):
+    !!     starting component index for each particle in
+    !!     <tt>aero_component_source_num</tt> and
+    !!     <tt>aero_component_create_time</tt>
+    !!   - \b aero_component_particle_num (dim <tt>aero_particle</tt>):
+    !!     particle index each component belongs to
+    !!   - \b aero_component_source_num (dim <tt>aero_components</tt>):
+    !!     source number for each <tt>aero_component</tt>
+    !!   - \b aero_component_create_time (unit s,
+    !!     dim <tt>aero_components</tt>): creation time for each
+    !!     <tt>aero_component</tt>
     !!   - \b aero_n_orig_part (dim <tt>aero_particle x
     !!     aero_source</tt>): number of original particles from each
     !!     source that formed each aerosol particle -
@@ -2714,7 +2727,6 @@ contains
                = aero_state_particle_num_conc(aero_state, &
                aero_state%apa%particle(i_part), aero_data)
           aero_id(i_part) = aero_state%apa%particle(i_part)%id
-          ! FIXME:
           aero_least_create_time(i_part) &
                = aero_state%apa%particle(i_part)%least_create_time
           aero_greatest_create_time(i_part) &

@@ -335,6 +335,7 @@ contains
     integer :: buffer_size, max_buffer_size
     integer :: position
     logical :: do_restart, do_init_equilibrate, aero_mode_type_exp_present
+    logical :: read_aero_weight_classes
     character(len=PMC_MAX_FILENAME_LEN) :: restart_filename
     integer :: dummy_index, dummy_i_repeat
     real(kind=dp) :: dummy_time, dummy_del_t, n_part
@@ -465,6 +466,23 @@ contains
           call spec_file_read_string(file, 'restart_file', restart_filename)
        end if
 
+       if (.not. do_restart) then
+          call spec_file_read_logical(file, 'do_select_weighting', &
+               run_part_opt%do_select_weighting)
+          read_aero_weight_classes = .false.
+          print*, 'do select', run_part_opt%do_select_weighting
+          if (run_part_opt%do_select_weighting) then
+             call spec_file_read_aero_state_weighting_type(file, &
+                  run_part_opt%weighting_type, run_part_opt%weighting_exponent)
+             print*, run_part_opt%weighting_type
+             if (run_part_opt%weighting_type > 7)then
+                read_aero_weight_classes = .true.
+             end if
+          else
+             run_part_opt%weighting_type = AERO_STATE_WEIGHT_NUMMASS_SOURCE
+             run_part_opt%weighting_exponent = 0.0d0
+          end if
+       end if
        call spec_file_read_real(file, 't_max', run_part_opt%t_max)
        call spec_file_read_real(file, 'del_t', run_part_opt%del_t)
        call spec_file_read_real(file, 't_output', run_part_opt%t_output)
@@ -524,11 +542,13 @@ contains
 
           call spec_file_read_string(file, 'aerosol_init', sub_filename)
           call spec_file_open(sub_filename, sub_file)
-          call spec_file_read_aero_dist(sub_file, aero_data, aero_dist_init)
+          call spec_file_read_aero_dist(sub_file, aero_data, &
+               read_aero_weight_classes, aero_dist_init)
           call spec_file_close(sub_file)
        end if
 
-       call spec_file_read_scenario(file, gas_data, aero_data, scenario)
+       call spec_file_read_scenario(file, gas_data, aero_data, &
+            read_aero_weight_classes, scenario)
        call spec_file_read_env_state(file, env_state_init)
 
        call spec_file_read_logical(file, 'do_coagulation', &
@@ -584,17 +604,6 @@ contains
             run_part_opt%allow_doubling)
        call spec_file_read_logical(file, 'allow_halving', &
             run_part_opt%allow_halving)
-       if (.not. do_restart) then
-          call spec_file_read_logical(file, 'do_select_weighting', &
-               run_part_opt%do_select_weighting)
-          if (run_part_opt%do_select_weighting) then
-             call spec_file_read_aero_state_weighting_type(file, &
-                  run_part_opt%weighting_type, run_part_opt%weighting_exponent)
-          else
-             run_part_opt%weighting_type = AERO_STATE_WEIGHT_NUMMASS_SPECIFIED
-             run_part_opt%weighting_exponent = 0.0d0
-          end if
-       end if
        call spec_file_read_logical(file, 'record_removals', &
             run_part_opt%record_removals)
 
@@ -915,10 +924,10 @@ contains
 
     call spec_file_read_string(file, 'aerosol_init', sub_filename)
     call spec_file_open(sub_filename, sub_file)
-    call spec_file_read_aero_dist(sub_file, aero_data, aero_dist_init)
+    call spec_file_read_aero_dist(sub_file, aero_data, .false., aero_dist_init)
     call spec_file_close(sub_file)
 
-    call spec_file_read_scenario(file, gas_data, aero_data, scenario)
+    call spec_file_read_scenario(file, gas_data, aero_data, .false., scenario)
     call spec_file_read_env_state(file, env_state)
 
     call spec_file_read_logical(file, 'do_coagulation', &
@@ -1069,10 +1078,10 @@ contains
 
     call spec_file_read_string(file, 'aerosol_init', sub_filename)
     call spec_file_open(sub_filename, sub_file)
-    call spec_file_read_aero_dist(sub_file, aero_data, aero_dist_init)
+    call spec_file_read_aero_dist(sub_file, aero_data, .false., aero_dist_init)
     call spec_file_close(sub_file)
 
-    call spec_file_read_scenario(file, gas_data, aero_data, scenario)
+    call spec_file_read_scenario(file, gas_data, aero_data, .false., scenario)
     call spec_file_read_env_state(file, env_state)
 
     call spec_file_read_logical(file, 'do_coagulation', &

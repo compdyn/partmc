@@ -878,7 +878,8 @@ contains
 
   !> Read one mode of an aerosol distribution (number concentration,
   !> volume fractions, and mode shape).
-  subroutine spec_file_read_aero_mode(file, aero_data, aero_mode, eof)
+  subroutine spec_file_read_aero_mode(file, aero_data, &
+       read_aero_weight_classes, aero_mode, eof)
 
     !> Spec file.
     type(spec_file_t), intent(inout) :: file
@@ -888,6 +889,8 @@ contains
     type(aero_mode_t), intent(inout) :: aero_mode
     !> If eof instead of reading data.
     logical :: eof
+    !> Whether the weight classes for each source are specified in inputs.
+    logical, intent(in) :: read_aero_weight_classes
 
     character(len=SPEC_LINE_MAX_VAR_LEN) :: tmp_str, mode_type, diam_type_str
     character(len=SPEC_LINE_MAX_VAR_LEN) :: mass_frac_filename
@@ -1000,7 +1003,12 @@ contains
        tmp_str = line%data(1) ! hack to avoid gfortran warning
        aero_mode%name = tmp_str(1:AERO_MODE_NAME_LEN)
        aero_mode%source = aero_data_source_by_name(aero_data, aero_mode%name)
-       call spec_file_read_string(file, 'weight_class_name', weight_class_name)
+       if (read_aero_weight_classes) then
+          call spec_file_read_string(file, 'weight_class_name', &
+               weight_class_name)
+       else
+          weight_class_name = aero_mode%name
+       end if
        aero_mode%weight_class = aero_data_weight_class_by_name(aero_data, &
             weight_class_name)
        call spec_file_read_string(file, 'mass_frac', mass_frac_filename)

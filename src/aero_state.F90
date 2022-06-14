@@ -43,12 +43,18 @@ module pmc_aero_state
   integer, parameter :: AERO_STATE_WEIGHT_POWER = 3
   !> Coupled number/mass weighting scheme.
   integer, parameter :: AERO_STATE_WEIGHT_NUMMASS = 4
+  !> Flat weighting by source.
+  integer, parameter :: AERO_STATE_WEIGHT_FLAT_SOURCE = 5
+  !> Power-law weighting by source.
+  integer, parameter :: AERO_STATE_WEIGHT_POWER_SOURCE = 6
+  !> Coupled number/mass weighting by source.
+  integer, parameter :: AERO_STATE_WEIGHT_NUMMASS_SOURCE = 7
   !> Flat weighting by specified weight classes.
-  integer, parameter :: AERO_STATE_WEIGHT_FLAT_SPECIFIED = 5
+  integer, parameter :: AERO_STATE_WEIGHT_FLAT_SPECIFIED = 8
   !> Power-law weighting by specified weight classes.
-  integer, parameter :: AERO_STATE_WEIGHT_POWER_SPECIFIED = 6
+  integer, parameter :: AERO_STATE_WEIGHT_POWER_SPECIFIED = 9
   !> Coupled number/mass weighting by specific weight classes.
-  integer, parameter :: AERO_STATE_WEIGHT_NUMMASS_SPECIFIED = 7
+  integer, parameter :: AERO_STATE_WEIGHT_NUMMASS_SPECIFIED = 10
 
   !> The current collection of aerosol particles.
   !!
@@ -137,6 +143,13 @@ contains
        call spec_file_read_real(file, 'weighting_exponent', exponent)
     elseif (trim(weighting_name) == 'nummass') then
        weighting_type = AERO_STATE_WEIGHT_NUMMASS
+    elseif (trim(weighting_name) == 'flat_source') then
+       weighting_type = AERO_STATE_WEIGHT_FLAT_SOURCE
+    elseif (trim(weighting_name) == 'power_source') then
+       weighting_type = AERO_STATE_WEIGHT_POWER_SOURCE
+       call spec_file_read_real(file, 'weighting_exponent', exponent)
+    elseif (trim(weighting_name) == 'nummass_source') then
+       weighting_type = AERO_STATE_WEIGHT_NUMMASS_SOURCE
     elseif (trim(weighting_name) == 'flat_specified') then
        weighting_type = AERO_STATE_WEIGHT_FLAT_SPECIFIED
     elseif (trim(weighting_name) == 'power_specified') then
@@ -194,6 +207,17 @@ contains
        call aero_weight_array_set_power(aero_state%awa, 1, exponent)
     case(AERO_STATE_WEIGHT_NUMMASS)
        call aero_weight_array_set_nummass(aero_state%awa, 1)
+    case(AERO_STATE_WEIGHT_FLAT_SOURCE)
+       call aero_weight_array_set_flat(aero_state%awa, &
+            aero_data_n_source(aero_data))
+    case(AERO_STATE_WEIGHT_POWER_SOURCE)
+       call assert_msg(102143848, present(exponent), &
+            "exponent parameter required for AERO_STATE_WEIGHT_POWER")
+       call aero_weight_array_set_power(aero_state%awa, &
+            aero_data_n_source(aero_data), exponent)
+    case(AERO_STATE_WEIGHT_NUMMASS_SOURCE)
+       call aero_weight_array_set_nummass(aero_state%awa, &
+            aero_data_n_source(aero_data))
     case(AERO_STATE_WEIGHT_FLAT_SPECIFIED)
        call aero_weight_array_set_flat(aero_state%awa, &
             aero_data_n_weight_class(aero_data))

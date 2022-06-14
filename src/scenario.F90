@@ -766,7 +766,8 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read environment data from an spec file.
-  subroutine spec_file_read_scenario(file, gas_data, aero_data, scenario)
+  subroutine spec_file_read_scenario(file, gas_data, aero_data, &
+       read_aero_weight_classes, scenario)
 
     !> Spec file.
     type(spec_file_t), intent(inout) :: file
@@ -774,6 +775,8 @@ contains
     type(gas_data_t), intent(in) :: gas_data
     !> Aerosol data.
     type(aero_data_t), intent(inout) :: aero_data
+    !> Whether the weight classes for each source are specified in inputs.
+    logical, intent(in) :: read_aero_weight_classes
     !> Scenario data.
     type(scenario_t), intent(inout) :: scenario
 
@@ -862,16 +865,16 @@ contains
     call spec_file_read_string(file, "aero_emissions", sub_filename)
     call spec_file_open(sub_filename, sub_file)
     call spec_file_read_aero_dists_times_rates(sub_file, aero_data, &
-         scenario%aero_emission_time, scenario%aero_emission_rate_scale, &
-         scenario%aero_emission)
+         read_aero_weight_classes, scenario%aero_emission_time, &
+         scenario%aero_emission_rate_scale, scenario%aero_emission)
     call spec_file_close(sub_file)
 
     ! aerosol background profile
     call spec_file_read_string(file, "aero_background", sub_filename)
     call spec_file_open(sub_filename, sub_file)
     call spec_file_read_aero_dists_times_rates(sub_file, aero_data, &
-         scenario%aero_dilution_time, scenario%aero_dilution_rate, &
-         scenario%aero_background)
+         read_aero_weight_classes, scenario%aero_dilution_time, &
+         scenario%aero_dilution_rate, scenario%aero_background)
     call spec_file_close(sub_file)
 
     ! loss function

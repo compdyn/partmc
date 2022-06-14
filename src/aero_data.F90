@@ -348,8 +348,8 @@ contains
        aero_data_weight_class_by_name = 1
        return
     end if
-    aero_data_weight_class_by_name= string_array_find(aero_data%weight_class_name, &
-         name)
+    aero_data_weight_class_by_name= string_array_find( &
+         aero_data%weight_class_name, name)
     if (aero_data_weight_class_by_name > 0) return
     aero_data%weight_class_name = [aero_data%weight_class_name, &
          name(1:AERO_SOURCE_NAME_LEN)]
@@ -764,8 +764,8 @@ contains
     integer :: status, i_source, i_class
     integer :: varid_aero_weight_class
     integer :: aero_weight_class_centers(aero_data_n_weight_class(aero_data))
-    character(len=(AERO_SOURCE_NAME_LEN * aero_data_n_weight_class(aero_data))) &
-         :: aero_weight_class_names
+    character(len=(AERO_SOURCE_NAME_LEN &
+         * aero_data_n_weight_class(aero_data))) :: aero_weight_class_names
 
     ! try to get the dimension ID
     status = nf90_inq_dimid(ncid, "aero_weight_class", dimid_aero_weight_class)
@@ -782,14 +782,16 @@ contains
        aero_weight_class_names((len_trim(aero_weight_class_names) + 1):) &
             = trim(aero_data%weight_class_name(i_class))
        if (i_class < aero_data_n_weight_class(aero_data)) then
-          aero_weight_class_names((len_trim(aero_weight_class_names) + 1):) = ","
+          aero_weight_class_names((len_trim(aero_weight_class_names) + 1):) &
+               = ","
        end if
     end do
     call pmc_nc_check(nf90_def_var(ncid, "aero_data_weight_class", NF90_INT, &
          dimid_aero_weight_class, varid_aero_weight_class))
     call pmc_nc_check(nf90_put_att(ncid, varid_aero_weight_class, "names", &
          aero_weight_class_names))
-    call pmc_nc_check(nf90_put_att(ncid, varid_aero_weight_class, "description", &
+    call pmc_nc_check(nf90_put_att(ncid, varid_aero_weight_class, &
+         "description", &
          "dummy dimension variable (no useful value) - read source names " &
          // "as comma-separated values from the 'names' attribute"))
 

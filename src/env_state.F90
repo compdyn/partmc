@@ -468,7 +468,8 @@ contains
     call pmc_mpi_unpack_real(buffer, position, val%diff_coef)
     call pmc_mpi_unpack_real_array_4d(buffer, position, val%prob_advection)
     call pmc_mpi_unpack_real_array_4d(buffer, position, val%prob_diffusion)
-    call pmc_mpi_unpack_real_array_2d(buffer, position, val%prob_vert_diffusion)
+    call pmc_mpi_unpack_real_array_2d(buffer, position, &
+         val%prob_vert_diffusion)
 #endif
     call pmc_mpi_unpack_real(buffer, position, val%start_time)
     call pmc_mpi_unpack_integer(buffer, position, val%start_day)

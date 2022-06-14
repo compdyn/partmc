@@ -981,8 +981,8 @@ contains
        call pmc_mpi_pack_integer(buffer, position, n1)
        call pmc_mpi_pack_integer(buffer, position, n2)
        call pmc_mpi_pack_integer(buffer, position, n3)
-       call mpi_pack(val, n1*n2*n3, MPI_DOUBLE_PRECISION, buffer, size(buffer), &
-            position, MPI_COMM_WORLD, ierr)
+       call mpi_pack(val, n1*n2*n3, MPI_DOUBLE_PRECISION, buffer, &
+            size(buffer), position, MPI_COMM_WORLD, ierr)
        call pmc_mpi_check_ierr(ierr)
     end if
     call assert(567349745, &

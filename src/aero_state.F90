@@ -801,7 +801,8 @@ contains
           n_samp_avg = sample_prop * aero_mode_number(aero_dist%mode(i_mode), &
                aero_state%awa%weight(i_group, i_class))
           n_samp = rand_poisson(n_samp_avg)
-          size_factor = min((1.0d0 / (characteristic_factor*n_samp_avg)), 0.32d0)
+          size_factor = min((1.0d0 / (characteristic_factor * n_samp_avg)), &
+               0.32d0)
 
           if (present(n_part_add)) then
              n_part_add = n_part_add + n_samp
@@ -819,8 +820,7 @@ contains
              call aero_particle_set_component(aero_particle, &
                   aero_dist%mode(i_mode)%source, create_time)
              aero_particle%num_primary_parts = 1
-             call aero_state_add_particle(aero_state, aero_particle, &
-                  aero_data)
+             call aero_state_add_particle(aero_state, aero_particle, aero_data)
           end do
        end do
     end do
@@ -1006,8 +1006,8 @@ contains
        i_bin = bin_grid_find(bin_grid, &
             aero_particle_radius(aero_state%apa%particle(i_part), aero_data))
        if ((i_bin < 1) .or. (i_bin > bin_grid_size(bin_grid))) then
-          call warn_msg(980232449, "particle ID " &
-               // trim(integer64_to_string(aero_state%apa%particle(i_part)%id)) &
+          call warn_msg(980232449, "particle ID " // trim( &
+               integer64_to_string(aero_state%apa%particle(i_part)%id)) &
                // " outside of bin_grid, discarding")
        else
           factor = aero_weight_array_num_conc(aero_state%awa, &
@@ -1580,8 +1580,8 @@ contains
             aero_particle_solute_radius(aero_state%apa%particle(i_part), &
             aero_data))
        if ((i_bin < 1) .or. (i_bin > bin_grid_size(bin_grid))) then
-          call warn_msg(503871022, "particle ID " &
-               // trim(integer64_to_string(aero_state%apa%particle(i_part)%id)) &
+          call warn_msg(503871022, "particle ID " // trim ( &
+               // integer64_to_string(aero_state%apa%particle(i_part)%id)) &
                // " outside of bin_grid, discarding")
        else
           factor = aero_weight_array_num_conc(aero_state%awa, &
@@ -2743,7 +2743,8 @@ contains
             long_name="number of aero_components for each aerosol particle")
        call pmc_nc_write_integer_1d(ncid, aero_component_start_ind, &
             "aero_component_start_ind", (/ dimid_aero_particle /), &
-            long_name="start index of aero_component for each aerosol particle")
+            long_name="start index of aero_component for each aerosol " &
+            // "particle")
        call pmc_nc_write_integer_1d(ncid, aero_component_particle_num, &
             "aero_component_particle_num", (/ dimid_aero_components /), &
             long_name="associated aerosol particle number for each component")

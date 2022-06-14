@@ -379,7 +379,7 @@ contains
             .false., .false., uuid)
        do i_part = aero_state_n_part(aero_state),1,-1
           if (particle_error(i_part)) then
-             ! Move last element to the current spot if its going to be removed.
+             ! Move last element to the current spot if it is removed.
              if (i_part < aero_state_n_part(aero_state)) then
                 reweight_num_conc(i_part) = reweight_num_conc( &
                      aero_state_n_part(aero_state))

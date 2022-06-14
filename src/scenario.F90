@@ -318,8 +318,8 @@ contains
     n_dil_out = aero_state_total_particles(aero_state_delta)
     ! addition from background
     call aero_state_add_aero_dist_sample(aero_state, aero_data, &
-         background, 1d0 - p, characteristic_factor, env_state%elapsed_time, allow_doubling, &
-         allow_halving, n_dil_in)
+         background, 1d0 - p, characteristic_factor, env_state%elapsed_time, &
+         allow_doubling, allow_halving, n_dil_in)
 
     ! particle loss function
     call scenario_particle_loss(scenario, delta_t, aero_data, aero_state, &

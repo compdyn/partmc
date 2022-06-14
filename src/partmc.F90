@@ -470,11 +470,9 @@ contains
           call spec_file_read_logical(file, 'do_select_weighting', &
                run_part_opt%do_select_weighting)
           read_aero_weight_classes = .false.
-          print*, 'do select', run_part_opt%do_select_weighting
           if (run_part_opt%do_select_weighting) then
              call spec_file_read_aero_state_weighting_type(file, &
                   run_part_opt%weighting_type, run_part_opt%weighting_exponent)
-             print*, run_part_opt%weighting_type
              if (run_part_opt%weighting_type > 7)then
                 read_aero_weight_classes = .true.
              end if

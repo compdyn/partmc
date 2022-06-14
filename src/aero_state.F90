@@ -780,9 +780,6 @@ contains
     real(kind=dp) :: size_factor
     integer :: n_samp, i_mode, i_samp, i_group, i_class, n_group, n_class
     type(aero_particle_t) :: aero_particle
-    real(kind=dp) :: num_conc_threshold
-    ! Low weight undersampling factor
-    real(kind=dp), parameter :: low_num_conc_factor = .1d0
 
     n_group = size(aero_state%awa%weight, 1)
     n_class = size(aero_state%awa%weight, 2)
@@ -804,8 +801,6 @@ contains
           n_samp_avg = sample_prop * aero_mode_number(aero_dist%mode(i_mode), &
                aero_state%awa%weight(i_group, i_class))
           n_samp = rand_poisson(n_samp_avg)
-  !        num_conc_threshold = aero_mode_total_num_conc(aero_dist%mode(i_mode)) &
-  !             / (n_samp_avg * characteristic_factor) * low_num_conc_factor
           size_factor = min((1.0d0 / (characteristic_factor*n_samp_avg)), 0.32d0)
 
           if (present(n_part_add)) then
@@ -824,11 +819,8 @@ contains
              call aero_particle_set_component(aero_particle, &
                   aero_dist%mode(i_mode)%source, create_time)
              aero_particle%num_primary_parts = 1
-!             if (aero_weight_array_num_conc(aero_state%awa, aero_particle, &
-!                  aero_data) > num_conc_threshold) then
              call aero_state_add_particle(aero_state, aero_particle, &
                   aero_data)
-!             end if
           end do
        end do
     end do

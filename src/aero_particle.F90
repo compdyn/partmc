@@ -1077,7 +1077,7 @@ contains
     end do
     call pmc_mpi_unpack_real(buffer, position, val%least_create_time)
     call pmc_mpi_unpack_real(buffer, position, val%greatest_create_time)
-    call pmc_mpi_unpack_integer(buffer, posiiton, val%num_primary_parts)
+    call pmc_mpi_unpack_integer(buffer, position, val%num_primary_parts)
     call assert(287447241, position - prev_position &
          <= pmc_mpi_pack_size_aero_particle(val))
 #endif

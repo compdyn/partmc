@@ -314,7 +314,7 @@ contains
     if (any(particle_error) .eqv. .true.) then
        call output_state('before_error', OUTPUT_TYPE_DIST, aero_data, &
             aero_state, gas_data, gas_state, env_state, &
-            int(env_state%elapsed_time / dt_sec), tcur_sec, dt_sec, 1, 
+            int(env_state%elapsed_time / dt_sec), tcur_sec, dt_sec, 1, &
             .false., .false., uuid)
     end if
 #endif

@@ -112,7 +112,7 @@ aero_weight_array.o: util.o constants.o rand.o spec_file.o \
 
 bin_grid.o: constants.o util.o spec_file.o mpi.o netcdf.o
 
-camp_interface.o: aero_data.o aero_particle.o constants.o gas_data.o \
+camp_interface.o: aero_data.o aero_state.o aero_particle.o constants.o gas_data.o \
      gas_state.o util.o
 
 chamber.o: aero_data.o constants.o env_state.o spec_file.o

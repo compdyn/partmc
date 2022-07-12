@@ -1993,8 +1993,6 @@ contains
           end if
        end do
        print*, species_group_numbers
-       allocate(group_fractions(n_group))
-       allocate(group_volume_conc(n_group))
     end if
 
     do i_bin = 1,bin_grid_size(bin_grid)
@@ -2020,13 +2018,15 @@ contains
           ! Get the total particles
           n_parts = integer_varray_n_entry( &
                aero_state%aero_sorted%size_class%inverse(i_bin, i_class))
-          group_volume_conc = 0.0d0
           if (present(groups)) then
+             allocate(group_volume_conc(n_group))
+             group_volume_conc = 0.0d0
              do i_spec = 1,aero_data_n_spec(aero_data)
                 group_volume_conc(species_group_numbers(i_spec)) &
                    =  group_volume_conc(species_group_numbers(i_spec)) &
                    + species_volume_conc(i_spec)
              end do
+             allocate(group_fractions(n_group))
              group_fractions = 0.0d0
              do i_group = 1,n_group
                 group_fractions(i_group) = n_parts * group_volume_conc(i_group) / total_volume_conc
@@ -2074,6 +2074,8 @@ contains
                 end if
              end do
              deallocate(shuffle_particles)
+             deallocate(group_fractions)
+             deallocate(group_volume_conc)
           else
           particle_fractions = n_parts * species_volume_conc / total_volume_conc
           print*, particle_fractions

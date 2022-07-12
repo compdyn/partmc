@@ -1956,14 +1956,16 @@ contains
     real(kind=dp) :: species_volume_conc(aero_data_n_spec(aero_data))
     real(kind=dp) :: total_volume_conc, particle_volume, num_conc
     integer :: i_bin, i_class, i_entry, i_part, i_spec
-    real(kind=dp) :: particle_fractions(aero_data_n_spec(aero_data))
+    real(kind=dp) :: particle_fractions(aero_data_n_spec(aero_data)), &
+         factors(aero_data_n_spec(aero_data))
     integer :: particle_index(aero_data_n_spec(aero_data))
     integer :: n_part_spec, start_val, end_val, i, n_parts
     logical :: edge_case
     integer, allocatable :: shuffle_particles(:)
     integer :: species_group_numbers(aero_data_n_spec(aero_data))
     integer :: n_group, i_group, i_name, next_group_number
-    real(kind=dp), allocatable :: group_masses(:)
+    real(kind=dp), allocatable :: group_fractions(:), &
+        group_volume_conc(:)
 
     call aero_state_sort(aero_state, aero_data, bin_grid)
 
@@ -1984,19 +1986,18 @@ contains
           end do
        end do
        ! Assign left overs to their own groups
-       next_group_number = n_group + 1
        do i_spec = 1,aero_data_n_spec(aero_data)
           if (species_group_numbers(i_spec) == 0) then
-             species_group_numbers(i_spec) = next_group_number
-             next_group_number = next_group_number + 1
+             n_group = n_group + 1
+             species_group_numbers(i_spec) = n_group
           end if
        end do
+       print*, species_group_numbers
+       allocate(group_fractions(n_group))
+       allocate(group_volume_conc(n_group))
     end if
 
     do i_bin = 1,bin_grid_size(bin_grid)
-!       if (present(groups)) then
-!
-!       else
        species_volume_conc = 0d0
        total_volume_conc = 0d0
        do i_class = 1,size(aero_state%awa%weight, 2)
@@ -2019,7 +2020,61 @@ contains
           ! Get the total particles
           n_parts = integer_varray_n_entry( &
                aero_state%aero_sorted%size_class%inverse(i_bin, i_class))
+          group_volume_conc = 0.0d0
+          if (present(groups)) then
+             do i_spec = 1,aero_data_n_spec(aero_data)
+                group_volume_conc(species_group_numbers(i_spec)) &
+                   =  group_volume_conc(species_group_numbers(i_spec)) &
+                   + species_volume_conc(i_spec)
+             end do
+             group_fractions = 0.0d0
+             do i_group = 1,n_group
+                group_fractions(i_group) = n_parts * group_volume_conc(i_group) / total_volume_conc
+             end do
+             print*, group_fractions
+             allocate(shuffle_particles(n_parts))
+             do i_part = 1,n_parts
+                shuffle_particles(i_part) = i_part
+             end do
+             call shuffle_array(shuffle_particles, n_parts)
+             start_val = 1
+             edge_case = .false.
+             do i_group = 1,n_group
+                if (group_volume_conc(i_group) > 0.0d0) then
+                   if (edge_case) then
+                      n_part_spec = prob_round(group_fractions(i_group) + 1)
+                      edge_case = .false.
+                   else
+                      n_part_spec = prob_round(group_fractions(i_group))
+                      if (n_part_spec < group_fractions(i_group)) then
+                         edge_case = .true.
+                      end if
+                   end if
 
+                   factors = 0.0d0
+                   do i_spec = 1,aero_data_n_spec(aero_data)
+                      if (species_group_numbers(i_spec) == i_group) then
+                         factors(i_spec) =  species_volume_conc(i_spec) / group_volume_conc(i_group)
+                      end if
+                   end do
+                   print*, i_group,'factors', factors
+                   do i_entry = start_val,min(start_val + n_part_spec  - 1, &
+                        n_parts)
+                      i_part = aero_state%aero_sorted%size_class%inverse(i_bin, &
+                           i_class)%entry(shuffle_particles(i_entry))
+                      particle_volume = aero_particle_volume( &
+                           aero_state%apa%particle(i_part))
+                      aero_state%apa%particle(i_part)%vol = 0.0d0
+                      do i_spec = 1,aero_data_n_spec(aero_data)
+                         aero_state%apa%particle(i_part)%vol(i_spec) &
+                             = particle_volume * factors(i_spec)
+                      end do
+                   end do
+                   start_val = start_val + n_part_spec
+                end if
+             end do
+             deallocate(shuffle_particles)
+          else
           particle_fractions = n_parts * species_volume_conc / total_volume_conc
           print*, particle_fractions
           print*, 'total particles', n_parts
@@ -2054,6 +2109,7 @@ contains
              end if
           end do
           deallocate(shuffle_particles)
+          end if
        end do
     end do
 

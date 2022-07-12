@@ -31,6 +31,12 @@ program bin_deaverage_comp
   character(len=1000) :: tmp_str
   logical :: record_removals, dry_volume, record_optical
   character(len=PMC_UUID_LEN) :: uuid
+  character(len=AERO_NAME_LEN), allocatable :: external_groups(:,:)
+
+  allocate(external_groups(3, 4)) ! 3 groups, max 4 species per group
+  external_groups(1,:) = ["OC    ", "BC    ", "      ", "      "]
+  external_groups(2,:) = ["API1  ", "API2  ", "LIM1  ", "LIM2  "]
+  external_groups(3,:) = ["SO4   ", "NO3   ", "NH4   ", "      "]
 
   ! process commandline arguments
   if (command_argument_count() .ne. 6) then
@@ -76,7 +82,8 @@ program bin_deaverage_comp
      call aero_state_make_dry(aero_state, aero_data)
   end if
 
-  call aero_state_bin_deaverage_comp(aero_state, bin_grid, aero_data)
+  call aero_state_bin_deaverage_comp(aero_state, bin_grid, aero_data, &
+       external_groups)
 
   output_type = OUTPUT_TYPE_SINGLE
   record_removals = .false.

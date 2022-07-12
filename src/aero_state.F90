@@ -1963,6 +1963,7 @@ contains
     integer, allocatable :: shuffle_particles(:)
     integer :: species_group_numbers(aero_data_n_spec(aero_data))
     integer :: n_group, i_group, i_name, next_group_number
+    real(kind=dp), allocatable :: group_masses(:)
 
     call aero_state_sort(aero_state, aero_data, bin_grid)
 
@@ -1971,8 +1972,8 @@ contains
        ! species_group_numbers(i_spec) will give the group number for
        ! each species
        species_group_numbers = 0
-       do i_group = 1, n_group
-          do i_name = 1, size(groups, 2)
+       do i_group = 1,n_group
+          do i_name = 1,size(groups, 2)
              if (len_trim(groups(i_group, i_name)) > 0) then
                 i_spec = aero_data_spec_by_name(aero_data, &
                      groups(i_group, i_name))
@@ -1993,6 +1994,9 @@ contains
     end if
 
     do i_bin = 1,bin_grid_size(bin_grid)
+!       if (present(groups)) then
+!
+!       else
        species_volume_conc = 0d0
        total_volume_conc = 0d0
        do i_class = 1,size(aero_state%awa%weight, 2)
@@ -2019,8 +2023,10 @@ contains
           particle_fractions = n_parts * species_volume_conc / total_volume_conc
           print*, particle_fractions
           print*, 'total particles', n_parts
-
-          shuffle_particles=[(i,i=1,n_parts)]
+          allocate(shuffle_particles(n_parts))
+          do i_part = 1,n_parts
+              shuffle_particles(i_part) = i_part 
+          end do
           call shuffle_array(shuffle_particles, n_parts)
           start_val = 1
           edge_case = .false.
@@ -2047,6 +2053,7 @@ contains
                  start_val = start_val + n_part_spec
              end if
           end do
+          deallocate(shuffle_particles)
        end do
     end do
 

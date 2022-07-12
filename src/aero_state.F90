@@ -1939,14 +1939,19 @@ contains
 
   end subroutine aero_state_bin_average_comp
 
-  subroutine aero_state_bin_deaverage_comp(aero_state, bin_grid, aero_data)
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-    !> Aerosol state to average.
+  subroutine aero_state_bin_deaverage_comp(aero_state, bin_grid, aero_data, &
+       groups)
+
+    !> Aerosol state to de-average.
     type(aero_state_t), intent(inout) :: aero_state
-    !> Bin grid to average within.
+    !> Bin grid to de-average within.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
+    !> Sets of species names to group together.
+    character(len=*), optional :: groups(:,:)
 
     real(kind=dp) :: species_volume_conc(aero_data_n_spec(aero_data))
     real(kind=dp) :: total_volume_conc, particle_volume, num_conc
@@ -1956,8 +1961,36 @@ contains
     integer :: n_part_spec, start_val, end_val, i, n_parts
     logical :: edge_case
     integer, allocatable :: shuffle_particles(:)
+    integer :: species_group_numbers(aero_data_n_spec(aero_data))
+    integer :: n_group, i_group, i_name, next_group_number
 
     call aero_state_sort(aero_state, aero_data, bin_grid)
+
+    if (present(groups)) then
+       n_group = size(groups, 1)
+       ! species_group_numbers(i_spec) will give the group number for
+       ! each species
+       species_group_numbers = 0
+       do i_group = 1, n_group
+          do i_name = 1, size(groups, 2)
+             if (len_trim(groups(i_group, i_name)) > 0) then
+                i_spec = aero_data_spec_by_name(aero_data, &
+                     groups(i_group, i_name))
+                call assert_msg(926066862, i_spec > 0, &
+                     "unknown species: " // trim(groups(i_group, i_name)))
+                species_group_numbers(i_spec) = i_group
+             end if
+          end do
+       end do
+       ! Assign left overs to their own groups
+       next_group_number = n_group + 1
+       do i_spec = 1,aero_data_n_spec(aero_data)
+          if (species_group_numbers(i_spec) == 0) then
+             species_group_numbers(i_spec) = next_group_number
+             next_group_number = next_group_number + 1
+          end if
+       end do
+    end if
 
     do i_bin = 1,bin_grid_size(bin_grid)
        species_volume_conc = 0d0
@@ -1976,42 +2009,43 @@ contains
              total_volume_conc = total_volume_conc + num_conc * particle_volume
           end do
        end do
+
        do i_class = 1,size(aero_state%awa%weight, 2)
 
-    ! Get the total particles
-    n_parts = integer_varray_n_entry( &
+          ! Get the total particles
+          n_parts = integer_varray_n_entry( &
                aero_state%aero_sorted%size_class%inverse(i_bin, i_class))
 
-    particle_fractions = n_parts * species_volume_conc / total_volume_conc
-    print*, particle_fractions
-    print*, 'total particles', n_parts
+          particle_fractions = n_parts * species_volume_conc / total_volume_conc
+          print*, particle_fractions
+          print*, 'total particles', n_parts
 
-    shuffle_particles=[(i,i=1,n_parts)]
-    call shuffle_array(shuffle_particles, n_parts)
-    start_val = 1
-    edge_case = .false.
-    do i_spec = 1,aero_data_n_spec(aero_data)
-      if (species_volume_conc(i_spec) > 0.0d0) then
-          if (edge_case) then
-             n_part_spec = prob_round(particle_fractions(i_spec) + 1)
-             edge_case = .false.
-          else
-             n_part_spec = prob_round(particle_fractions(i_spec))
-             if (n_part_spec < particle_fractions(i_spec)) then
-                edge_case = .true.
+          shuffle_particles=[(i,i=1,n_parts)]
+          call shuffle_array(shuffle_particles, n_parts)
+          start_val = 1
+          edge_case = .false.
+          do i_spec = 1,aero_data_n_spec(aero_data)
+             if (species_volume_conc(i_spec) > 0.0d0) then
+                 if (edge_case) then
+                    n_part_spec = prob_round(particle_fractions(i_spec) + 1)
+                    edge_case = .false.
+                 else
+                    n_part_spec = prob_round(particle_fractions(i_spec))
+                    if (n_part_spec < particle_fractions(i_spec)) then
+                       edge_case = .true.
+                    end if
+                 end if
+                 do i_entry = start_val,min(start_val + n_part_spec  - 1, n_parts)
+                    i_part = aero_state%aero_sorted%size_class%inverse(i_bin, &
+                        i_class)%entry(shuffle_particles(i_entry))
+                    particle_volume = aero_particle_volume( &
+                         aero_state%apa%particle(i_part))
+                    aero_state%apa%particle(i_part)%vol = 0.0d0
+                    aero_state%apa%particle(i_part)%vol(i_spec) &
+                         = particle_volume
+                 end do
+                 start_val = start_val + n_part_spec
              end if
-          end if
-          do i_entry = start_val,min(start_val + n_part_spec  - 1, n_parts)
-             i_part = aero_state%aero_sorted%size_class%inverse(i_bin, &
-                 i_class)%entry(shuffle_particles(i_entry))
-             particle_volume = aero_particle_volume( &
-                  aero_state%apa%particle(i_part))
-             aero_state%apa%particle(i_part)%vol = 0.0d0
-             aero_state%apa%particle(i_part)%vol(i_spec) &
-                  = particle_volume !* species_volume_conc(i_spec) / total_volume_conc
-          end do
-          start_val = start_val + n_part_spec
-          end if
           end do
        end do
     end do

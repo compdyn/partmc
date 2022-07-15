@@ -2542,6 +2542,7 @@ contains
     integer :: dimid_aero_particle, dimid_aero_species, dimid_aero_source
     integer :: dimid_aero_removed
     integer :: dimid_aero_components
+    integer :: dimid_optical_wavelengths
     integer :: i_part, i_remove
     real(kind=dp) :: aero_particle_mass(aero_state_n_part(aero_state), &
          aero_data_n_spec(aero_data))
@@ -2549,13 +2550,13 @@ contains
          aero_data_n_source(aero_data))
     integer :: aero_particle_weight_group(aero_state_n_part(aero_state))
     integer :: aero_particle_weight_class(aero_state_n_part(aero_state))
-    real(kind=dp) :: aero_absorb_cross_sect(aero_state_n_part(aero_state))
-    real(kind=dp) :: aero_scatter_cross_sect(aero_state_n_part(aero_state))
-    real(kind=dp) :: aero_asymmetry(aero_state_n_part(aero_state))
-    real(kind=dp) :: aero_refract_shell_real(aero_state_n_part(aero_state))
-    real(kind=dp) :: aero_refract_shell_imag(aero_state_n_part(aero_state))
-    real(kind=dp) :: aero_refract_core_real(aero_state_n_part(aero_state))
-    real(kind=dp) :: aero_refract_core_imag(aero_state_n_part(aero_state))
+    real(kind=dp) :: aero_absorb_cross_sect(aero_state_n_part(aero_state),4)
+    real(kind=dp) :: aero_scatter_cross_sect(aero_state_n_part(aero_state),4)
+    real(kind=dp) :: aero_asymmetry(aero_state_n_part(aero_state),4)
+    real(kind=dp) :: aero_refract_shell_real(aero_state_n_part(aero_state),4)
+    real(kind=dp) :: aero_refract_shell_imag(aero_state_n_part(aero_state),4)
+    real(kind=dp) :: aero_refract_core_real(aero_state_n_part(aero_state),4)
+    real(kind=dp) :: aero_refract_core_imag(aero_state_n_part(aero_state),4)
     real(kind=dp) :: aero_core_vol(aero_state_n_part(aero_state))
     integer :: aero_water_hyst_leg(aero_state_n_part(aero_state))
     real(kind=dp) :: aero_num_conc(aero_state_n_part(aero_state))
@@ -2691,6 +2692,12 @@ contains
     call aero_data_netcdf_dim_aero_source(aero_data, ncid, &
          dimid_aero_source)
 
+    ! Find a home for this
+    if (record_optical) then
+       call aero_state_netcdf_dim_optical_wavelengths(aero_state, ncid, &
+            dimid_optical_wavelengths)
+    end if
+
     if (aero_state_n_part(aero_state) > 0) then
        call aero_state_netcdf_dim_aero_particle(aero_state, ncid, &
             dimid_aero_particle)
@@ -2734,18 +2741,18 @@ contains
           aero_particle_num_primary_parts(i_part) & 
                =  aero_state%apa%particle(i_part)%num_primary_parts
           if (record_optical) then
-             aero_absorb_cross_sect(i_part) &
+             aero_absorb_cross_sect(i_part,:) &
                   = aero_state%apa%particle(i_part)%absorb_cross_sect
-             aero_scatter_cross_sect(i_part) &
+             aero_scatter_cross_sect(i_part,:) &
                   = aero_state%apa%particle(i_part)%scatter_cross_sect
-             aero_asymmetry(i_part) = aero_state%apa%particle(i_part)%asymmetry
-             aero_refract_shell_real(i_part) &
+             aero_asymmetry(i_part,:) = aero_state%apa%particle(i_part)%asymmetry
+             aero_refract_shell_real(i_part,:) &
                   = real(aero_state%apa%particle(i_part)%refract_shell)
-             aero_refract_shell_imag(i_part) &
+             aero_refract_shell_imag(i_part,:) &
                   = aimag(aero_state%apa%particle(i_part)%refract_shell)
-             aero_refract_core_real(i_part) &
+             aero_refract_core_real(i_part,:) &
                   = real(aero_state%apa%particle(i_part)%refract_core)
-             aero_refract_core_imag(i_part) &
+             aero_refract_core_imag(i_part,:) &
                   = aimag(aero_state%apa%particle(i_part)%refract_core)
              aero_core_vol(i_part) = aero_state%apa%particle(i_part)%core_vol
           end if
@@ -2810,38 +2817,39 @@ contains
             unit="1", long_name="number of primary particles that contribute" &
             // "to each particle.")
        if (record_optical) then
-          call pmc_nc_write_real_1d(ncid, aero_absorb_cross_sect, &
-               "aero_absorb_cross_sect", (/ dimid_aero_particle /), &
-               unit="m^2", &
+          call pmc_nc_write_real_2d(ncid, aero_absorb_cross_sect, &
+               "aero_absorb_cross_sect", (/ dimid_aero_particle, &
+               dimid_optical_wavelengths /), unit="m^2", &
                long_name="optical absorption cross sections of each " &
                // "aerosol particle")
-          call pmc_nc_write_real_1d(ncid, aero_scatter_cross_sect, &
-               "aero_scatter_cross_sect", (/ dimid_aero_particle /), &
-               unit="m^2", &
+          call pmc_nc_write_real_2d(ncid, aero_scatter_cross_sect, &
+               "aero_scatter_cross_sect", (/ dimid_aero_particle, &
+               dimid_optical_wavelengths /), unit="m^2", &
                long_name="optical scattering cross sections of each " &
                // "aerosol particle")
-          call pmc_nc_write_real_1d(ncid, aero_asymmetry, &
-               "aero_asymmetry", (/ dimid_aero_particle /), unit="1", &
+          call pmc_nc_write_real_2d(ncid, aero_asymmetry, &
+               "aero_asymmetry", (/ dimid_aero_particle, &
+               dimid_optical_wavelengths /), unit="1", &
                long_name="optical asymmetry parameters of each " &
                // "aerosol particle")
-          call pmc_nc_write_real_1d(ncid, aero_refract_shell_real, &
-               "aero_refract_shell_real", (/ dimid_aero_particle /), &
-               unit="1", &
+          call pmc_nc_write_real_2d(ncid, aero_refract_shell_real, &
+               "aero_refract_shell_real", (/ dimid_aero_particle, &
+               dimid_optical_wavelengths /), unit="1", &
                long_name="real part of the refractive indices of the " &
                // "shell of each aerosol particle")
-          call pmc_nc_write_real_1d(ncid, aero_refract_shell_imag, &
-               "aero_refract_shell_imag", (/ dimid_aero_particle /), &
-               unit="1", &
+          call pmc_nc_write_real_2d(ncid, aero_refract_shell_imag, &
+               "aero_refract_shell_imag", (/ dimid_aero_particle, &
+               dimid_optical_wavelengths /), unit="1", &
                long_name="imaginary part of the refractive indices of " &
                // "the shell of each aerosol particle")
-          call pmc_nc_write_real_1d(ncid, aero_refract_core_real, &
-               "aero_refract_core_real", (/ dimid_aero_particle /), &
-               unit="1", &
+          call pmc_nc_write_real_2d(ncid, aero_refract_core_real, &
+               "aero_refract_core_real", (/ dimid_aero_particle, &
+               dimid_optical_wavelengths /), unit="1", &
                long_name="real part of the refractive indices of the core " &
                // "of each aerosol particle")
-          call pmc_nc_write_real_1d(ncid, aero_refract_core_imag, &
-               "aero_refract_core_imag", (/ dimid_aero_particle /), &
-               unit="1", &
+          call pmc_nc_write_real_2d(ncid, aero_refract_core_imag, &
+               "aero_refract_core_imag", (/ dimid_aero_particle, &
+               dimid_optical_wavelengths /), unit="1", &
                long_name="imaginary part of the refractive indices of " &
                // "the core of each aerosol particle")
           call pmc_nc_write_real_1d(ncid, aero_core_vol, &
@@ -3237,5 +3245,45 @@ contains
   end function aero_state_num_components
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Write the aero particle dimension to the given NetCDF file if it
+  !> is not already present and in any case return the associated
+  !> dimid.
+  subroutine aero_state_netcdf_dim_optical_wavelengths(aero_state, ncid, &
+       dimid_optical_wavelengths)
+
+    !> aero_state structure.
+    type(aero_state_t), intent(in) :: aero_state
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+    !> Dimid of the optical wavelength dimension.
+    integer, intent(out) :: dimid_optical_wavelengths
+
+    integer :: status, i_part
+    integer :: varid_aero_particle
+    integer :: aero_particle_centers(aero_state_n_part(aero_state))
+
+    ! try to get the dimension ID
+    status = nf90_inq_dimid(ncid, "optical_wavelenghts", &
+         dimid_optical_wavelengths)
+    if (status == NF90_NOERR) return
+    if (status /= NF90_EBADDIM) call pmc_nc_check(status)
+
+    ! dimension not defined, so define now define it
+    call pmc_nc_check(nf90_redef(ncid))
+
+    call pmc_nc_check(nf90_def_dim(ncid, "optical_wavelengths", &
+         aero_state_n_part(aero_state), dimid_optical_wavelengths))
+
+    call pmc_nc_check(nf90_enddef(ncid))
+
+!    do i_part = 1,aero_state_n_part(aero_state)
+!       aero_particle_centers(i_part) = i_part
+!    end do
+!    call pmc_nc_write_integer_1d(ncid, aero_particle_centers, &
+!         "aero_particle", (/ dimid_aero_particle /), &
+!         description="dummy dimension variable (no useful value)")
+
+  end subroutine aero_state_netcdf_dim_optical_wavelengths
 
 end module pmc_aero_state

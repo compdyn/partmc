@@ -80,7 +80,7 @@ program bin_average_comp
 
   output_type = OUTPUT_TYPE_SINGLE
   record_removals = .false.
-  record_optical = .true.
+  record_optical = .false.
   call output_state(out_prefix, output_type, aero_data, aero_state, &
        gas_data, gas_state, env_state, index, time, del_t, i_repeat, &
        record_removals, record_optical, uuid)

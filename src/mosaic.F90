@@ -512,15 +512,15 @@ contains
     ! work backwards for consistency with mosaic_to_partmc(), which
     ! has specific ordering requirements
     do i_part = aero_state_n_part(aero_state),1,-1
-       aero_state%apa%particle(i_part)%absorb_cross_sect = (ext_cross(i_part) &
-            - scat_cross(i_part)) / 1d4                       ! (m^2)
+       aero_state%apa%particle(i_part)%absorb_cross_sect = (ext_cross(i_part,:) &
+            - scat_cross(i_part,:)) / 1d4                       ! (m^2)
        aero_state%apa%particle(i_part)%scatter_cross_sect = &
-            scat_cross(i_part) / 1d4 ! (m^2)
-       aero_state%apa%particle(i_part)%asymmetry = asym_particle(i_part) ! (1)
+            scat_cross(i_part,:) / 1d4 ! (m^2)
+       aero_state%apa%particle(i_part)%asymmetry = asym_particle(i_part,:) ! (1)
        aero_state%apa%particle(i_part)%refract_shell = &
-            cmplx(ri_shell_a(i_part), kind=dc) ! (1)
+            cmplx(ri_shell_a(i_part,:), kind=dc) ! (1)
        aero_state%apa%particle(i_part)%refract_core =&
-            cmplx(ri_core_a(i_part), kind=dc) ! (1)
+            cmplx(ri_core_a(i_part,:), kind=dc) ! (1)
        aero_state%apa%particle(i_part)%core_vol = &
             aero_data_diam2vol(aero_data, dp_core_a(i_part)) / 1d6 ! (m^3)
     end do

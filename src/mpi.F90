@@ -463,6 +463,36 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Determines the number of bytes required to pack the given value.
+  integer function pmc_mpi_pack_size_complex_array(val)
+
+    !> Value to pack.
+    complex(kind=dc), allocatable, intent(in) :: val(:)
+
+    integer :: ierr, total_size
+
+#ifdef PMC_USE_MPI
+    logical :: is_allocated
+
+    total_size = 0
+    is_allocated = allocated(val)
+    if (is_allocated) then
+       call mpi_pack_size(size(val), MPI_DOUBLE_COMPLEX, MPI_COMM_WORLD, &
+            total_size, ierr)
+       call pmc_mpi_check_ierr(ierr)
+       total_size = total_size + pmc_mpi_pack_size_integer(size(val))
+    end if
+    total_size = total_size + pmc_mpi_pack_size_logical(is_allocated)
+#else
+    total_size = 0
+#endif
+
+    pmc_mpi_pack_size_complex_array = total_size
+
+  end function pmc_mpi_pack_size_complex_array
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Determines the number of bytes required to pack the given value.
   integer function pmc_mpi_pack_size_integer_array(val)
 
     !> Value to pack.
@@ -824,6 +854,38 @@ contains
 #endif
 
   end subroutine pmc_mpi_pack_complex
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Packs the given value into the buffer, advancing position.
+  subroutine pmc_mpi_pack_complex_array(buffer, position, val)
+
+    !> Memory buffer.
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position.
+    integer, intent(inout) :: position
+    !> Value to pack.
+    complex(kind=dc), allocatable, intent(in) :: val(:)
+
+#ifdef PMC_USE_MPI
+    integer :: prev_position, ierr, n
+    logical :: is_allocated
+
+    prev_position = position
+    is_allocated = allocated(val)
+    call pmc_mpi_pack_logical(buffer, position, is_allocated)
+    if (is_allocated) then
+       n = size(val)
+       call pmc_mpi_pack_integer(buffer, position, n)
+       call mpi_pack(val, n, MPI_DOUBLE_COMPLEX, buffer, size(buffer), &
+            position, MPI_COMM_WORLD, ierr)
+       call pmc_mpi_check_ierr(ierr)
+    end if
+    call assert(640416372, &
+         position - prev_position <= pmc_mpi_pack_size_complex_array(val))
+#endif
+
+  end subroutine pmc_mpi_pack_complex_array
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -1221,6 +1283,37 @@ contains
 #endif
 
   end subroutine pmc_mpi_unpack_complex
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Unpacks the given value from the buffer, advancing position.
+  subroutine pmc_mpi_unpack_complex_array(buffer, position, val)
+
+    !> Memory buffer.
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position.
+    integer, intent(inout) :: position
+    !> Value to pack.
+    complex(kind=dc), allocatable, intent(out) :: val(:)
+
+#ifdef PMC_USE_MPI
+    integer :: prev_position, ierr, n
+    logical :: is_allocated
+
+    prev_position = position
+    call pmc_mpi_unpack_logical(buffer, position, is_allocated)
+    if (allocated(val)) deallocate(val)
+    if (is_allocated) then
+       call pmc_mpi_unpack_integer(buffer, position, n)
+       call mpi_unpack(buffer, size(buffer), position, val, n, &
+            MPI_DOUBLE_COMPLEX, MPI_COMM_WORLD, ierr)
+       call pmc_mpi_check_ierr(ierr)
+    end if
+    call assert(969672631, &
+         position - prev_position <= pmc_mpi_pack_size_complex_array(val))
+#endif
+
+  end subroutine pmc_mpi_unpack_complex_array
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

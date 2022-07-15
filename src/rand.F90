@@ -208,6 +208,29 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Shuffles randomly an array of integer values.
+  subroutine pmc_rand_shuffle_array(array, n_values)
+    !> Array of values.
+    integer, intent(inout) :: array(n_values)
+    !> Number of values.
+    integer, intent(in) :: n_values
+
+    integer :: temp
+    integer :: i, j
+    real(kind=dp) :: u
+
+    do i=1,n_values-1
+         u = pmc_random()
+         j = i + floor((n_values-i+1)*u)
+         temp=array(j)
+         array(j)=array(i)
+         array(i)=temp
+    end do
+
+  end subroutine pmc_rand_shuffle_array
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Round val to \c floor(val) or \c ceiling(val) with probability
   !> proportional to the relative distance from \c val. That is,
   !> Prob(prob_round(val) == floor(val)) = ceil(val) - val.

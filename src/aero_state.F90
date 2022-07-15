@@ -1992,7 +1992,6 @@ contains
              species_group_numbers(i_spec) = n_group
           end if
        end do
-       print*, species_group_numbers
     end if
 
     do i_bin = 1,bin_grid_size(bin_grid)
@@ -2029,14 +2028,14 @@ contains
              allocate(group_fractions(n_group))
              group_fractions = 0.0d0
              do i_group = 1,n_group
-                group_fractions(i_group) = n_parts * group_volume_conc(i_group) / total_volume_conc
+                group_fractions(i_group) = n_parts &
+                     * group_volume_conc(i_group) / total_volume_conc
              end do
-             print*, group_fractions
              allocate(shuffle_particles(n_parts))
              do i_part = 1,n_parts
                 shuffle_particles(i_part) = i_part
              end do
-             call shuffle_array(shuffle_particles, n_parts)
+             call pmc_rand_shuffle_array(shuffle_particles, n_parts)
              start_val = 1
              edge_case = .false.
              do i_group = 1,n_group
@@ -2054,10 +2053,10 @@ contains
                    factors = 0.0d0
                    do i_spec = 1,aero_data_n_spec(aero_data)
                       if (species_group_numbers(i_spec) == i_group) then
-                         factors(i_spec) =  species_volume_conc(i_spec) / group_volume_conc(i_group)
+                         factors(i_spec) = species_volume_conc(i_spec) &
+                              / group_volume_conc(i_group)
                       end if
                    end do
-                   print*, i_group,'factors', factors
                    do i_entry = start_val,min(start_val + n_part_spec  - 1, &
                         n_parts)
                       i_part = aero_state%aero_sorted%size_class%inverse(i_bin, &
@@ -2077,66 +2076,44 @@ contains
              deallocate(group_fractions)
              deallocate(group_volume_conc)
           else
-          particle_fractions = n_parts * species_volume_conc / total_volume_conc
-          print*, particle_fractions
-          print*, 'total particles', n_parts
-          allocate(shuffle_particles(n_parts))
-          do i_part = 1,n_parts
-              shuffle_particles(i_part) = i_part 
-          end do
-          call shuffle_array(shuffle_particles, n_parts)
-          start_val = 1
-          edge_case = .false.
-          do i_spec = 1,aero_data_n_spec(aero_data)
-             if (species_volume_conc(i_spec) > 0.0d0) then
-                 if (edge_case) then
-                    n_part_spec = prob_round(particle_fractions(i_spec) + 1)
-                    edge_case = .false.
-                 else
-                    n_part_spec = prob_round(particle_fractions(i_spec))
-                    if (n_part_spec < particle_fractions(i_spec)) then
-                       edge_case = .true.
+             particle_fractions = n_parts * species_volume_conc / total_volume_conc
+             allocate(shuffle_particles(n_parts))
+             do i_part = 1,n_parts
+                shuffle_particles(i_part) = i_part 
+             end do
+             call pmc_rand_shuffle_array(shuffle_particles, n_parts)
+             start_val = 1
+             edge_case = .false.
+             do i_spec = 1,aero_data_n_spec(aero_data)
+                if (species_volume_conc(i_spec) > 0.0d0) then
+                    if (edge_case) then
+                       n_part_spec = prob_round(particle_fractions(i_spec) + 1)
+                       edge_case = .false.
+                    else
+                       n_part_spec = prob_round(particle_fractions(i_spec))
+                       if (n_part_spec < particle_fractions(i_spec)) then
+                          edge_case = .true.
+                       end if
                     end if
-                 end if
-                 do i_entry = start_val,min(start_val + n_part_spec  - 1, n_parts)
-                    i_part = aero_state%aero_sorted%size_class%inverse(i_bin, &
-                        i_class)%entry(shuffle_particles(i_entry))
-                    particle_volume = aero_particle_volume( &
-                         aero_state%apa%particle(i_part))
-                    aero_state%apa%particle(i_part)%vol = 0.0d0
-                    aero_state%apa%particle(i_part)%vol(i_spec) &
-                         = particle_volume
-                 end do
-                 start_val = start_val + n_part_spec
-             end if
-          end do
-          deallocate(shuffle_particles)
+                    do i_entry = start_val,min(start_val + n_part_spec  - 1, &
+                         n_parts)
+                       i_part = aero_state%aero_sorted%size_class%inverse(i_bin, &
+                            i_class)%entry(shuffle_particles(i_entry))
+                       particle_volume = aero_particle_volume( &
+                            aero_state%apa%particle(i_part))
+                       aero_state%apa%particle(i_part)%vol = 0.0d0
+                       aero_state%apa%particle(i_part)%vol(i_spec) &
+                            = particle_volume
+                    end do
+                    start_val = start_val + n_part_spec
+                end if
+             end do
+             deallocate(shuffle_particles)
           end if
        end do
     end do
 
   end subroutine aero_state_bin_deaverage_comp
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  subroutine shuffle_array(array, n_values)
-    integer :: array(n_values)
-    integer :: n_values
-    integer :: temp
-    integer :: m, i, j
-    real(kind=dp) :: u
-
-    do i=1,n_values-1
-         u = pmc_random()
-         j = i + FLOOR((n_values-i+1)*u)
-         temp=array(j)
-         array(j)=array(i)
-         array(i)=temp
-    end do
-
-    print*, array
-
-  end subroutine
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

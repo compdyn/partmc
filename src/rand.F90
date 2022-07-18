@@ -219,6 +219,31 @@ contains
     integer :: i, j
     real(kind=dp) :: u
 
+#ifdef PMC_USE_GSL
+    integer(kind=c_int) :: n_c
+    integer(kind=c_int) :: array_c(n_values)
+#endif
+
+#ifdef PMC_USE_GSL
+#ifndef DOXYGEN_SKIP_DOC
+    interface
+       integer(kind=c_int) function pmc_rand_shuffle_gsl(array, n) bind(c)
+         use iso_c_binding
+         integer(kind=c_int), value :: n
+         integer(kind=c_int) :: array(n)
+       end function pmc_rand_shuffle_gsl
+    end interface
+#endif
+#endif
+
+#ifdef PMC_USE_GSL
+    n_c = int(n_values, kind=c_int)
+    array_c = int(array, kind=c_int)
+    call rand_check_gsl(388234845, pmc_rand_shuffle_gsl(array_c, n_c))
+    array = int(array_c)
+    print*, 'in fortran after call'
+    print*, array
+#else
     do i=1,n_values-1
          u = pmc_random()
          j = i + floor((n_values-i+1)*u)
@@ -226,6 +251,7 @@ contains
          array(j)=array(i)
          array(i)=temp
     end do
+#endif
 
   end subroutine pmc_rand_shuffle_array
 

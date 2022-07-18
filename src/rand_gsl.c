@@ -150,3 +150,22 @@ int pmc_rand_binomial_gsl(int n, double p, int *harvest)
         *harvest = gsl_ran_binomial(pmc_rand_gsl_rng, p, u);
         return PMC_RAND_GSL_SUCCESS;
 }
+
+int pmc_rand_shuffle_gsl(int *array, int n)
+{
+        printf("array size %u \n", n);
+        for (int i = 0 ; i < n ; i++)
+        {
+            printf("%u\n", array[i]);
+        }
+        if (!pmc_rand_gsl_rng) {
+                return PMC_RAND_GSL_NOT_INIT;
+        }
+        gsl_ran_shuffle(pmc_rand_gsl_rng, array, n, sizeof (int));
+        for (int i = 0 ; i < n ; i++)
+        {
+            printf("%u\n", array[i]);
+        }
+
+        return PMC_RAND_GSL_SUCCESS;
+}

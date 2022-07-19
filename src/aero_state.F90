@@ -1970,6 +1970,12 @@ contains
     integer :: n_group, i_group, i_name
     real(kind=dp), allocatable :: group_fractions(:), &
         group_volume_conc(:)
+    ! Naive variables
+    logical, parameter :: naive_algorithm = .false.
+    real(kind=dp), allocatable :: cumulative_values(:)
+    real(kind=dp), allocatable :: factors_2d(:,:)
+    integer, allocatable :: particle_group(:)
+    real(kind=dp) :: x
 
     call aero_state_sort(aero_state, aero_data, bin_grid)
 
@@ -2024,13 +2030,6 @@ contains
           n_parts = integer_varray_n_entry( &
                aero_state%aero_sorted%size_class%inverse(i_bin, i_class))
           if (n_parts > 0) then
-             allocate(shuffle_particles(n_parts))
-             do i_part = 1,n_parts
-                shuffle_particles(i_part) = i_part
-             end do
-             call pmc_rand_shuffle_array(shuffle_particles, n_parts)
-             start_val = 1
-             edge_case = .false.
              allocate(group_volume_conc(n_group))
              group_volume_conc = 0.0d0
              do i_spec = 1,aero_data_n_spec(aero_data)
@@ -2044,44 +2043,91 @@ contains
                 group_fractions(i_group) = n_parts &
                      * group_volume_conc(i_group) / total_volume_conc
              end do
-             do i_group = 1,n_group
-                if (group_volume_conc(i_group) > 0.0d0) then
-                   if (edge_case) then
-                      n_part_spec = prob_round(group_fractions(i_group) + 1)
-                      edge_case = .false.
-                   else
-                      n_part_spec = prob_round(group_fractions(i_group))
-                      if (n_part_spec < group_fractions(i_group)) then
-                         edge_case = .true.
-                      end if
-                   end if
-
-                   factors = 0.0d0
+             if (naive_algorithm) then
+                allocate(cumulative_values(n_group+1))
+                cumulative_values = 0.0d0
+                do i_group = 2,n_group + 1
+                   cumulative_values(i_group) = cumulative_values(i_group-1) &
+                        + group_fractions(i_group-1)
+                end do
+                allocate(particle_group(n_parts))
+                do i_part = 1,n_parts
+                   x = pmc_random() * n_parts
+                   particle_group(i_part) = find_1d(n_group+1, cumulative_values, x)
+                end do
+                allocate(factors_2d(n_group,aero_data_n_spec(aero_data)))
+                factors_2d = 0.0d0
+                do i_group = 1,n_group
                    do i_spec = 1,aero_data_n_spec(aero_data)
                       if (species_group_numbers(i_spec) == i_group) then
-                         factors(i_spec) = species_volume_conc(i_spec) &
+                         factors_2d(i_group,i_spec) = species_volume_conc(i_spec) &
                               / group_volume_conc(i_group)
                       end if
                    end do
+                end do
 
-                   do i_entry = start_val,min(start_val + n_part_spec - 1, &
-                        n_parts)
-                      i_part = aero_state%aero_sorted%size_class%inverse( &
-                           i_bin, i_class)%entry(shuffle_particles(i_entry))
-                      particle_volume = aero_particle_volume( &
-                           aero_state%apa%particle(i_part))
-                      aero_state%apa%particle(i_part)%vol = 0.0d0
-                      do i_spec = 1,aero_data_n_spec(aero_data)
-                         aero_state%apa%particle(i_part)%vol(i_spec) &
-                             = particle_volume * factors(i_spec)
-                      end do
+                do i_entry = 1,n_parts
+                   i_part = aero_state%aero_sorted%size_class%inverse( &
+                        i_bin, i_class)%entry(i_entry)
+                   particle_volume = aero_particle_volume( &
+                        aero_state%apa%particle(i_part))
+                   aero_state%apa%particle(i_part)%vol = 0.0d0
+                   i_group = particle_group(i_entry)
+                   do i_spec = 1,aero_data_n_spec(aero_data)
+                      aero_state%apa%particle(i_part)%vol(i_spec) &
+                           = particle_volume * factors_2d(i_group,i_spec)
                    end do
-                   start_val = start_val + n_part_spec
-                end if
-             end do
+                end do
+                deallocate(particle_group)
+                deallocate(cumulative_values)
+                deallocate(factors_2d)
+             else
+                allocate(shuffle_particles(n_parts))
+                do i_part = 1,n_parts
+                   shuffle_particles(i_part) = i_part
+                end do
+                call pmc_rand_shuffle_array(shuffle_particles, n_parts)
+                start_val = 1
+                edge_case = .false.
+                do i_group = 1,n_group
+                   if (group_volume_conc(i_group) > 0.0d0) then
+                      if (edge_case) then
+                         n_part_spec = prob_round(group_fractions(i_group) + 1)
+                         edge_case = .false.
+                      else
+                         n_part_spec = prob_round(group_fractions(i_group))
+                         if (n_part_spec < group_fractions(i_group)) then
+                            edge_case = .true.
+                         end if
+                      end if
+
+                      factors = 0.0d0
+                      do i_spec = 1,aero_data_n_spec(aero_data)
+                         if (species_group_numbers(i_spec) == i_group) then
+                            factors(i_spec) = species_volume_conc(i_spec) &
+                                 / group_volume_conc(i_group)
+                         end if
+                      end do
+
+                      do i_entry = start_val,min(start_val + n_part_spec - 1, &
+                           n_parts)
+                         i_part = aero_state%aero_sorted%size_class%inverse( &
+                              i_bin, i_class)%entry(shuffle_particles(i_entry))
+                         particle_volume = aero_particle_volume( &
+                              aero_state%apa%particle(i_part))
+                         aero_state%apa%particle(i_part)%vol = 0.0d0
+                         do i_spec = 1,aero_data_n_spec(aero_data)
+                            aero_state%apa%particle(i_part)%vol(i_spec) &
+                                = particle_volume * factors(i_spec)
+                         end do
+                      end do
+                      start_val = start_val + n_part_spec
+                   end if
+                end do
+                deallocate(shuffle_particles)
+             end if
              deallocate(group_fractions)
              deallocate(group_volume_conc)
-             deallocate(shuffle_particles)
           end if
        end do
     end do

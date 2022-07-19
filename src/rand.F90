@@ -241,8 +241,6 @@ contains
     array_c = int(array, kind=c_int)
     call rand_check_gsl(388234845, pmc_rand_shuffle_gsl(array_c, n_c))
     array = int(array_c)
-    print*, 'in fortran after call'
-    print*, array
 #else
     do i=1,n_values-1
          u = pmc_random()

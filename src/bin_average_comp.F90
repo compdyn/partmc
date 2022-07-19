@@ -66,6 +66,8 @@ program bin_average_comp
 
   call pmc_mpi_init()
 
+  call pmc_srand(0, pmc_mpi_rank())
+
   call bin_grid_make(bin_grid, BIN_GRID_TYPE_LOG, n_bin, diam2rad(d_min), &
        diam2rad(d_max))
 

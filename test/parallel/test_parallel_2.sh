@@ -7,9 +7,19 @@ set -v
 # make sure that the current directory is the one where this script is
 cd ${0%/*}
 
+a=4
+b=1
+if [ "$(uname)" == "Darwin" ]; then
+    b=$(getconf _NPROCESSORS_ONLN)
+elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
+    b=$(getconf _NPROCESSORS_ONLN)
+fi
+n_proc=$(( a < b ? a : b ))
+echo $n_proc
+
 parallel_type=dist
 
-mpirun -v -np 2 ../../partmc run_part_parallel_${parallel_type}.spec
+mpirun -np $n_proc ../../partmc run_part_parallel_${parallel_type}.spec
 for f in out/parallel_${parallel_type}_0001_????_00000001.nc ; do
     echo "####################################################################"
     echo "####################################################################"

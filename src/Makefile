@@ -31,6 +31,7 @@ PMC_MODULES =                           \
   coag_kernel_zero.o            \
   coagulation.o                 \
   coagulation_dist.o            \
+  condense.o                    \
   constants.o                   \
   env_state.o                   \
   fractal.o                     \
@@ -44,6 +45,7 @@ PMC_MODULES =                           \
   netcdf.o                      \
   nucleate.o                    \
   output.o                      \
+  photolysis.o                  \
   rand.o                        \
   rand_gsl.o                    \
   scenario.o                    \
@@ -153,7 +155,10 @@ coagulation.o: bin_grid.o aero_data.o util.o env_state.o \
 coagulation_dist.o: bin_grid.o aero_data.o util.o env_state.o \
      aero_state.o coagulation.o mpi.o
 
-constants.o:
+condense.o: 
+
+constants.o: constants.o util.o aero_particle.o aero_data.o aero_state.o \
+     env_state.o
 
 env_state.o: constants.o util.o spec_file.o mpi.o netcdf.o
 
@@ -181,6 +186,8 @@ nucleate.o: env_state.o aero_state.o aero_data.o gas_data.o gas_state.o
 
 output.o: bin_grid.o aero_data.o aero_state.o aero_binned.o \
      netcdf.o env_state.o util.o gas_data.o mpi.o
+
+photolysis.o: constants.o
 
 rand.o: util.o constants.o mpi.o rand_gsl.o
 

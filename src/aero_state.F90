@@ -1964,7 +1964,6 @@ contains
     integer :: i_bin, i_class, i_entry, i_part, i_spec
     real(kind=dp) :: factors(aero_data_n_spec(aero_data))
     integer :: n_part_spec, start_val, i, n_part
-    integer, allocatable :: shuffle_particles(:)
     integer :: species_group_numbers(aero_data_n_spec(aero_data))
     integer :: n_group, i_group, i_name
     real(kind=dp), allocatable :: group_fractions(:), &
@@ -1974,8 +1973,8 @@ contains
     real(kind=dp), allocatable :: factors_2d(:,:)
     integer, allocatable :: particle_group(:)
     real(kind=dp) :: x
-
-    real(kind=dp) :: v_aerosol, v_bulk, p, v_group
+    integer, allocatable :: particle_index(:)
+    real(kind=dp) :: v_aerosol, v_bulk, p, v_group, v_particle, v_group_prev
 
     call aero_state_sort(aero_state, aero_data, bin_grid)
 
@@ -2090,51 +2089,74 @@ contains
              end if
           end do
        else
-          n_part = aero_state_n_part(aero_state)
-          allocate(shuffle_particles(n_part))
-          do i_part = 1,n_part
-             shuffle_particles(i_part) = i_part
+          n_part = 0
+          do i_class = 1,size(aero_state%awa%weight, 2)
+             n_part = n_part + integer_varray_n_entry( &
+                  aero_state%aero_sorted%size_class%inverse(i_bin, i_class))
           end do
-          call pmc_rand_shuffle_array(shuffle_particles, n_part)
-          i_entry = 1
-          v_aerosol = 0.0d0
-          v_bulk = 0.0d0
-          v_group = 0.0d0
-          i_group = 0
-          do while (i_entry <= n_part)
-             if (v_aerosol >= v_bulk) then
-                i_group = i_group + 1
-                v_group = group_volume_conc(i_group)
-                v_bulk = v_bulk + v_group
-             end if
-             i_part = shuffle_particles(i_entry)
-             particle_volume = aero_particle_volume( &
-                      aero_state%apa%particle(i_part))
-             num_conc = aero_weight_array_num_conc(aero_state%awa, &
-                  aero_state%apa%particle(i_part), aero_data)
-             if (particle_volume * num_conc + v_aerosol < v_bulk) then
-                aero_state%apa%particle(i_part)%vol = 0.0d0
-                do i_spec = 1,aero_data_n_spec(aero_data)
-                   aero_state%apa%particle(i_part)%vol(i_spec) = &
-                        particle_volume  * factors_2d(i_group,i_spec)
+
+          if (n_part > 0) then
+             allocate(particle_index(n_part))
+             i_part = 1
+             do i_class = 1,size(aero_state%awa%weight, 2)
+                do i_entry = 1, integer_varray_n_entry( &
+                     aero_state%aero_sorted%size_class%inverse(i_bin, i_class))
+                   particle_index(i_part) = &
+                        aero_state%aero_sorted%size_class%inverse( &
+                           i_bin, i_class)%entry(i_entry)
+                   i_part = i_part + 1
                 end do
-                v_aerosol = v_aerosol + particle_volume * num_conc
-                i_entry = i_entry + 1
-             else
-                p = (v_bulk - max(v_aerosol, v_bulk - v_group)) &
-                     / (particle_volume * num_conc)
-                if (pmc_random() < p) then
+             end do
+
+             call pmc_rand_shuffle_array(particle_index, n_part)
+
+             i_entry = 1
+             v_aerosol = 0.0d0
+             v_bulk = 0.0d0
+             v_particle = 0.0d0
+             v_group = 0.0d0
+             v_group_prev = 0.0d0
+             i_group = 0
+             do while (i_entry <= n_part)
+                if (v_aerosol + v_particle >= v_bulk) then
+                   i_group = i_group + 1
+                   v_group = group_volume_conc(i_group)
+                   v_group_prev = v_bulk
+                   v_bulk = v_bulk + v_group
+                end if
+                i_part = particle_index(i_entry)
+                particle_volume = aero_particle_volume( &
+                     aero_state%apa%particle(i_part))
+                num_conc = aero_weight_array_num_conc(aero_state%awa, &
+                     aero_state%apa%particle(i_part), aero_data)
+                v_particle = particle_volume * num_conc
+                if (min(v_particle + v_aerosol, sum(group_volume_conc)) &
+                     <= v_bulk) then
                    aero_state%apa%particle(i_part)%vol = 0.0d0
                    do i_spec = 1,aero_data_n_spec(aero_data)
                       aero_state%apa%particle(i_part)%vol(i_spec) = &
-                      particle_volume  * factors_2d(i_group,i_spec)
+                           particle_volume  * factors_2d(i_group,i_spec)
                    end do
-                   v_aerosol = v_aerosol + particle_volume * num_conc
+                   v_aerosol = v_aerosol + v_particle
                    i_entry = i_entry + 1
+                   v_particle = 0.0d0
+                else
+                   p = (v_bulk - max(v_aerosol, v_group_prev)) &
+                        / (v_particle)
+                   if (pmc_random() < p) then
+                      aero_state%apa%particle(i_part)%vol = 0.0d0
+                      do i_spec = 1,aero_data_n_spec(aero_data)
+                         aero_state%apa%particle(i_part)%vol(i_spec) = &
+                              particle_volume  * factors_2d(i_group,i_spec)
+                      end do
+                      v_aerosol = v_aerosol + v_particle
+                      i_entry = i_entry + 1
+                      v_particle = 0.0d0
+                   end if
                 end if
-             end if
-          end do
-          deallocate(shuffle_particles)
+             end do
+             deallocate(particle_index)
+          end if
        end if
        deallocate(group_volume_conc)
        deallocate(factors_2d)

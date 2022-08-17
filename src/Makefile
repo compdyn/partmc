@@ -31,6 +31,7 @@ PMC_MODULES =                           \
   coag_kernel_zero.o            \
   coagulation.o                 \
   coagulation_dist.o            \
+  condense.o                    \
   constants.o                   \
   env_state.o                   \
   fractal.o                     \
@@ -152,6 +153,8 @@ coagulation.o: bin_grid.o aero_data.o util.o env_state.o \
 
 coagulation_dist.o: bin_grid.o aero_data.o util.o env_state.o \
      aero_state.o coagulation.o mpi.o
+
+condense.o: aero_state.o env_state.o aero_data.o util.o aero_particle.o constants.o
 
 constants.o:
 

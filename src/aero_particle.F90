@@ -107,7 +107,7 @@ contains
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
 
-    integer, parameter :: n_swbands = 4
+    integer, parameter :: n_swbands = 5
 
     call ensure_real_array_size(aero_particle%vol, aero_data_n_spec(aero_data))
     aero_particle%vol = 0d0

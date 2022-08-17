@@ -576,4 +576,57 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  subroutine mosaic_compute_single_aero_optical(env_state, aero_data, &
+       aero_state, gas_data, gas_state)
+
+#ifdef PMC_USE_MOSAIC
+    use module_data_mosaic_main, only: RH, pr_atm, te
+    use module_data_mosaic_aero, only: ri_shell_a, ri_core_a, &
+         ext_cross, scat_cross, asym_particle, dp_core_a, &
+         p_atm, RH_pc, aH2O, T_K
+#endif
+
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol state.
+    type(aero_state_t), intent(inout) :: aero_state
+    !> Gas data.
+    type(gas_data_t), intent(in) :: gas_data
+    !> Gas state.
+    type(gas_state_t), intent(in) :: gas_state
+
+#ifdef PMC_USE_MOSAIC
+    ! MOSAIC function interfaces
+    interface
+       subroutine aerosol_optical()
+       end subroutine aerosol_optical
+       subroutine load_mosaic_parameters()
+       end subroutine load_mosaic_parameters
+    end interface
+
+    integer :: i_part
+
+    call load_mosaic_parameters
+
+    ! map PartMC -> MOSAIC
+    call mosaic_from_partmc(env_state, aero_data, aero_state, &
+         gas_data, gas_state)
+
+    RH_pc = RH                                ! RH(%)
+    aH2O = 0.01*RH_pc                         ! aH2O (aerosol water activity)
+    P_atm = pr_atm                            ! P(atm)
+    T_K = te                                  ! T(K)
+
+    call aerosol_optical_single_wavelength
+
+    call mosaic_aero_optical(env_state, aero_data, &
+         aero_state, gas_data, gas_state)
+#endif
+
+  end subroutine mosaic_compute_single_aero_optical
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 end module pmc_mosaic

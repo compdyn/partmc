@@ -1457,7 +1457,38 @@ contains
     type(aero_state_t) :: aero_state_averaged
     type(bin_grid_t) :: avg_bin_grid
 
+    real(kind=dp), allocatable :: bulk_masses(:)
+    integer :: i_part
+    real(kind=dp) :: h_gamma
+
+    logical :: use_species(aero_data_n_spec(aero_data))
+    logical :: group_species(aero_data_n_spec(aero_data))
+    integer :: i_name, i_spec, n_group
+    integer :: species_group_numbers(aero_data_n_spec(aero_data))
+    real(kind=dp) :: group_mass, non_group_mass, mass
+    real(kind=dp), allocatable :: group_masses(:)
+
     ! per-particle masses need to take groups into account
+
+    if (present(include)) then
+       use_species = .false.
+       do i_name = 1, size(include)
+          i_spec = aero_data_spec_by_name(aero_data, include(i_name))
+          call assert_msg(890212002, i_spec > 0, &
+               "unknown species: " // trim(include(i_name)))
+          use_species(i_spec) = .true.
+       end do
+    else
+       use_species = .true.
+    end if
+    if (present(exclude)) then
+       do i_name = 1, size(exclude)
+          i_spec = aero_data_spec_by_name(aero_data, exclude(i_name))
+          call assert_msg(859945006, i_spec > 0, &
+               "unknown species: " // trim(exclude(i_name)))
+          use_species(i_spec) = .false.
+       end do
+    end if
 
     if (present(groups)) then
        call assert_msg(726652236, .not. present(include), &
@@ -1502,6 +1533,48 @@ contains
          / sum(masses_of_avg_part * num_concs_of_avg_part))
 
     chi = (d_alpha - 1) / (d_gamma - 1)
+
+    ! other way
+!    if (present(group)) then
+!       group_species = .false.
+!       do i_name = 1, size(group)
+!          i_spec = aero_data_spec_by_name(aero_data, group(i_name))
+!          call assert_msg(376359046, i_spec > 0, &
+!               "unknown species: " // trim(group(i_name)))
+!          group_species(i_spec) = .true.
+!       end do
+!       group_mass = 0d0
+!       non_group_mass = 0d0
+!       do i_part = 1,aero_state_n_part(aero_state)
+!          do i_spec = 1,aero_data_n_spec(aero_data)
+!             if (use_species(i_spec)) then
+!                mass = aero_particle_species_mass( &
+!                     aero_state%apa%particle(i_part), i_spec, aero_data)
+!                if (group_species(i_spec)) then
+!                   group_mass = group_mass + mass * num_concs(i_part)
+!                else
+!                   non_group_mass = non_group_mass + mass * num_concs(i_part)
+!                end if
+!             end if
+!          end do
+!       end do
+!       h_gamma = entropy([group_mass,non_group_mass])
+!    else
+!    allocate(bulk_masses(20))
+!    bulk_masses = 0.0d0
+!    do i_part = 1,aero_state_n_part(aero_state)
+!       bulk_masses = bulk_masses + aero_particle_species_masses(aero_state%apa%particle(i_part), &
+!               aero_data)  * num_concs(i_part)
+!    end do
+!    bulk_masses = bulk_masses / sum(bulk_masses(1:19))
+!
+!    h_gamma = entropy(bulk_masses(1:19))
+!    end if
+
+!    print*, 'in metrics', sum((masses * num_concs)), &
+!            sum((masses_of_avg_part * num_concs_of_avg_part &
+!            )), sum((num_concs)), &
+!            sum(num_concs_of_avg_part), d_gamma, exp(h_gamma)
 
   end subroutine aero_state_mixing_state_metrics
 
@@ -2021,6 +2094,246 @@ contains
     end do
 
   end subroutine aero_state_bin_average_comp
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Set each aerosol particle to have its original total volume, but
+  !> species volume ratios given by the group species volume ratio
+  !> within each bin. If no groups are specified, each particle contain a
+  !> single species (fully externally mixed). If groups are specified,
+  !> particles contain the volume fractions of the speices within the group.
+  !> This preserves per-particle total volumes.
+  subroutine aero_state_bin_deaverage_comp(aero_state, bin_grid, aero_data, &
+       groups)
+
+    !> Aerosol state to de-average.
+    type(aero_state_t), intent(inout) :: aero_state
+    !> Bin grid to de-average within.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Sets of species names to group together.
+    character(len=*), optional :: groups(:,:)
+
+    real(kind=dp) :: species_volume_conc(aero_data_n_spec(aero_data))
+    real(kind=dp) :: total_volume_conc, particle_volume, num_conc
+    integer :: i_bin, i_class, i_entry, i_part, i_spec
+    real(kind=dp) :: factors(aero_data_n_spec(aero_data))
+    integer :: n_part_spec, start_val, i, n_part
+    integer :: species_group_numbers(aero_data_n_spec(aero_data))
+    integer :: n_group, i_group, i_name
+    real(kind=dp), allocatable :: group_fractions(:), &
+        group_volume_conc(:)
+    logical, parameter :: do_naive_algorithm = .false.
+    real(kind=dp), allocatable :: cumulative_vals(:)
+    real(kind=dp), allocatable :: factors_2d(:,:)
+    integer, allocatable :: particle_group(:)
+    real(kind=dp) :: x
+    integer, allocatable :: particle_index(:)
+    real(kind=dp) :: v_aerosol, v_bulk, p, v_group, v_particle, v_group_prev
+
+    call aero_state_sort(aero_state, aero_data, bin_grid)
+
+    if (present(groups)) then
+       n_group = size(groups, 1)
+       ! species_group_numbers(i_spec) will give the group number for
+       ! each species
+       species_group_numbers = 0
+       do i_group = 1,n_group
+          do i_name = 1,size(groups, 2)
+             if (len_trim(groups(i_group, i_name)) > 0) then
+                i_spec = aero_data_spec_by_name(aero_data, &
+                     groups(i_group, i_name))
+                call assert_msg(926066862, i_spec > 0, &
+                     "unknown species: " // trim(groups(i_group, i_name)))
+                species_group_numbers(i_spec) = i_group
+             end if
+          end do
+       end do
+       ! Assign left overs to their own groups
+       do i_spec = 1,aero_data_n_spec(aero_data)
+          if (species_group_numbers(i_spec) == 0) then
+             n_group = n_group + 1
+             species_group_numbers(i_spec) = n_group
+          end if
+       end do
+    else
+       ! Assign each species to a group
+       do i_spec = 1,aero_data_n_spec(aero_data)
+          species_group_numbers(i_spec) = i_spec
+       end do
+       n_group = aero_data_n_spec(aero_data)
+    end if
+
+    do i_bin = 1,bin_grid_size(bin_grid)
+       species_volume_conc = 0d0
+       total_volume_conc = 0d0
+       do i_class = 1,size(aero_state%awa%weight, 2)
+          do i_entry = 1,integer_varray_n_entry( &
+               aero_state%aero_sorted%size_class%inverse(i_bin, i_class))
+             i_part = aero_state%aero_sorted%size_class%inverse(i_bin, &
+                  i_class)%entry(i_entry)
+             num_conc = aero_weight_array_num_conc(aero_state%awa, &
+                  aero_state%apa%particle(i_part), aero_data)
+             particle_volume = aero_particle_volume( &
+                  aero_state%apa%particle(i_part))
+             species_volume_conc = species_volume_conc &
+                  + num_conc * aero_state%apa%particle(i_part)%vol
+             total_volume_conc = total_volume_conc + num_conc * particle_volume
+          end do
+       end do
+
+       allocate(group_volume_conc(n_group))
+       group_volume_conc = 0.0d0
+       do i_spec = 1,aero_data_n_spec(aero_data)
+          group_volume_conc(species_group_numbers(i_spec)) &
+             =  group_volume_conc(species_group_numbers(i_spec)) &
+             + species_volume_conc(i_spec)
+       end do
+
+       allocate(factors_2d(n_group,aero_data_n_spec(aero_data)))
+       factors_2d = 0.0d0
+       do i_group = 1,n_group
+          do i_spec = 1,aero_data_n_spec(aero_data)
+             if (species_group_numbers(i_spec) == i_group) then
+                factors_2d(i_group,i_spec) = &
+                     species_volume_conc(i_spec) &
+                     / group_volume_conc(i_group)
+             end if
+          end do
+          if (factors_2d(i_group,3) > 0.0d0 .and. &
+             factors_2d(i_group,15) == 0.0d0) then
+                factors_2d(i_group,15) = .5d0
+                factors_2d(i_group,3) = .5d0  
+          end if
+       end do
+       if (do_naive_algorithm) then
+          do i_class = 1,size(aero_state%awa%weight, 2)
+             n_part = integer_varray_n_entry( &
+                  aero_state%aero_sorted%size_class%inverse(i_bin, i_class))
+             if (n_part > 0) then
+                allocate(group_fractions(n_group))
+                group_fractions = 0.0d0
+                do i_group = 1,n_group
+                   group_fractions(i_group) = n_part &
+                        * group_volume_conc(i_group) / total_volume_conc
+                end do
+                allocate(cumulative_vals(n_group+1))
+                cumulative_vals = 0.0d0
+                do i_group = 2,n_group + 1
+                   cumulative_vals(i_group) = cumulative_vals(i_group-1) &
+                        + group_fractions(i_group-1)
+                end do
+                allocate(particle_group(n_part))
+                do i_part = 1,n_part
+                   x = pmc_random() * n_part
+                   particle_group(i_part) = find_1d(n_group+1, &
+                       cumulative_vals, x)
+                end do
+
+                do i_entry = 1,n_part
+                   i_part = aero_state%aero_sorted%size_class%inverse( &
+                        i_bin, i_class)%entry(i_entry)
+                   particle_volume = aero_particle_volume( &
+                        aero_state%apa%particle(i_part))
+                   aero_state%apa%particle(i_part)%vol = 0.0d0
+                   i_group = particle_group(i_entry)
+                   do i_spec = 1,aero_data_n_spec(aero_data)
+                      aero_state%apa%particle(i_part)%vol(i_spec) &
+                           = particle_volume * factors_2d(i_group,i_spec)
+                   end do
+                end do
+                deallocate(particle_group)
+                deallocate(cumulative_vals)
+                deallocate(group_fractions)
+             end if
+          end do
+       else
+          n_part = 0
+          do i_class = 1,size(aero_state%awa%weight, 2)
+             n_part = n_part + integer_varray_n_entry( &
+                  aero_state%aero_sorted%size_class%inverse(i_bin, i_class))
+          end do
+
+          if (n_part > 0) then
+             allocate(particle_index(n_part))
+             i_part = 1
+             do i_class = 1,size(aero_state%awa%weight, 2)
+                do i_entry = 1, integer_varray_n_entry( &
+                     aero_state%aero_sorted%size_class%inverse(i_bin, i_class))
+                   particle_index(i_part) = &
+                        aero_state%aero_sorted%size_class%inverse( &
+                           i_bin, i_class)%entry(i_entry)
+                   i_part = i_part + 1
+                end do
+             end do
+
+             call pmc_rand_shuffle_array(particle_index, n_part)
+
+             i_entry = 1
+             v_aerosol = 0.0d0
+             v_bulk = 0.0d0
+             v_particle = 0.0d0
+             v_group = 0.0d0
+             v_group_prev = 0.0d0
+             i_group = 0
+             do while (i_entry <= n_part)
+                if (min(v_aerosol + v_particle, sum(group_volume_conc)) >= &
+v_bulk) then
+                   i_group = i_group + 1
+                   v_group = group_volume_conc(i_group)
+                   v_group_prev = v_bulk
+                   v_bulk = v_bulk + v_group
+                end if
+                i_part = particle_index(i_entry)
+                particle_volume = aero_particle_volume( &
+                     aero_state%apa%particle(i_part))
+                num_conc = aero_weight_array_num_conc(aero_state%awa, &
+                     aero_state%apa%particle(i_part), aero_data)
+                v_particle = particle_volume * num_conc
+                if (min(v_particle + v_aerosol, sum(group_volume_conc)) <= &
+v_bulk) then
+                   aero_state%apa%particle(i_part)%vol = 0.0d0
+                   do i_spec = 1,aero_data_n_spec(aero_data)
+                      aero_state%apa%particle(i_part)%vol(i_spec) = &
+                           particle_volume  * factors_2d(i_group,i_spec)
+                   end do
+                   v_aerosol = v_aerosol + v_particle
+                   i_entry = i_entry + 1
+                   v_particle = 0.0d0
+                else
+                   p = (v_bulk - max(v_aerosol, v_group_prev)) &
+                        / (v_particle)
+                   if (pmc_random() < p) then
+                      aero_state%apa%particle(i_part)%vol = 0.0d0
+                      do i_spec = 1,aero_data_n_spec(aero_data)
+                         aero_state%apa%particle(i_part)%vol(i_spec) = &
+                              particle_volume  * factors_2d(i_group,i_spec)
+                      end do
+                      v_aerosol = v_aerosol + v_particle
+                      i_entry = i_entry + 1
+                      v_particle = 0.0d0
+!                      if (i_entry > n_part) then
+!                         print*, p, v_bulk - v_aerosol
+!                      end if 
+!                   else
+!             if (i_entry == n_part) then
+!                print*, p, i_group, group_volume_conc(i_group), v_aerosol, &
+!v_bulk, &
+!                   v_bulk - v_aerosol
+!             end if
+                   end if
+                end if
+             end do
+!             print*, i_group
+             deallocate(particle_index)
+          end if
+       end if
+       deallocate(group_volume_conc)
+       deallocate(factors_2d)
+    end do
+
+  end subroutine aero_state_bin_deaverage_comp
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -3285,5 +3598,194 @@ contains
 !         description="dummy dimension variable (no useful value)")
 
   end subroutine aero_state_netcdf_dim_optical_wavelengths
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine aero_state_mixing_state_metrics_by_size(aero_state, aero_data, &
+       bin_grid, d_alpha, d_gamma, chi, include, exclude, group, groups)
+
+    !> Aerosol state.
+    type(aero_state_t), intent(in) :: aero_state
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Average particle diversity.
+    real(kind=dp), allocatable, intent(inout) :: d_alpha(:)
+    !> Bulk diversity.
+    real(kind=dp), allocatable, intent(inout) :: d_gamma(:)
+    !> Mixing state index.
+    real(kind=dp), allocatable, intent(inout) :: chi(:)
+    !> Species names to include in the mass.
+    character(len=*), optional :: include(:)
+    !> Species names to exclude in the mass.
+    character(len=*), optional :: exclude(:)
+    !> Species names to group together.
+    character(len=*), optional :: group(:)
+    !> Sets of species names to group together.
+    character(len=*), optional :: groups(:,:)
+
+    real(kind=dp), allocatable :: entropies(:), entropies_of_avg_part(:)
+    real(kind=dp), allocatable :: masses(:), num_concs(:), &
+         num_concs_of_avg_part(:), masses_of_avg_part(:)
+    type(aero_state_t) :: aero_state_averaged
+    type(bin_grid_t) :: avg_bin_grid
+    integer :: i_bin
+    real(kind=dp), allocatable :: dry_diameters(:), dry_diameters_avg(:)
+    logical, allocatable :: is_size_range(:), is_size_range_avg(:)
+
+    logical :: use_species(aero_data_n_spec(aero_data))
+    logical :: group_species(aero_data_n_spec(aero_data))
+    integer :: i_name, i_spec, n_group
+    integer :: species_group_numbers(aero_data_n_spec(aero_data))
+    real(kind=dp) :: group_mass, non_group_mass, mass
+    real(kind=dp), allocatable :: group_masses(:)
+
+    real(kind=dp), allocatable :: bulk_masses(:)
+    integer :: i_part
+    real(kind=dp) :: h_gamma
+
+    ! per-particle masses need to take groups into account
+
+    if (present(include)) then
+       use_species = .false.
+       do i_name = 1, size(include)
+          i_spec = aero_data_spec_by_name(aero_data, include(i_name))
+          call assert_msg(890212002, i_spec > 0, &
+               "unknown species: " // trim(include(i_name)))
+          use_species(i_spec) = .true.
+       end do
+    else
+       use_species = .true.
+    end if
+    if (present(exclude)) then
+       do i_name = 1, size(exclude)
+          i_spec = aero_data_spec_by_name(aero_data, exclude(i_name))
+          call assert_msg(859945006, i_spec > 0, &
+               "unknown species: " // trim(exclude(i_name)))
+          use_species(i_spec) = .false.
+       end do
+    end if
+
+    if (present(group)) then
+       group_species = .false.
+       do i_name = 1, size(group)
+          i_spec = aero_data_spec_by_name(aero_data, group(i_name))
+          call assert_msg(376359046, i_spec > 0, &
+               "unknown species: " // trim(group(i_name)))
+          group_species(i_spec) = .true.
+       end do
+    end if
+
+    ! per-particle masses need to take groups into account
+    if (present(groups)) then
+       call assert_msg(726652236, .not. present(include), &
+            "cannot specify both 'include' and 'groups' arguments")
+       call assert_msg(891097454, .not. present(exclude), &
+            "cannot specify both 'exclude' and 'groups' arguments")
+       call assert_msg(938789093, .not. present(group), &
+            "cannot specify both 'group' and 'groups' arguments")
+       masses = aero_state_masses(aero_state, aero_data, &
+            include=pack(groups, len_trim(groups) > 0))
+    else
+       masses = aero_state_masses(aero_state, aero_data, include, exclude)
+    end if
+
+    ! other per-particle properties
+    num_concs = aero_state_num_concs(aero_state, aero_data)
+    entropies = aero_state_mass_entropies(aero_state, aero_data, &
+         include, exclude, group, groups)
+
+!    aero_state_averaged = aero_state
+!    call aero_state_make_dry(aero_state_averaged, aero_data)
+!    call aero_state_bin_average_comp(aero_state_averaged, bin_grid, &
+!         aero_data)
+!    num_concs_of_avg_part = aero_state_num_concs(aero_state_averaged, &
+!         aero_data)
+
+    if (allocated(d_alpha)) deallocate(d_alpha)
+    if (allocated(d_gamma)) deallocate(d_gamma)
+    if (allocated(chi)) deallocate(chi)
+
+    allocate(d_alpha(bin_grid_size(bin_grid)))
+    allocate(d_gamma(bin_grid_size(bin_grid)))
+    allocate(chi(bin_grid_size(bin_grid)))
+    d_alpha = 1.0d0
+    d_gamma = 1.0d0
+    chi = 0.0d0
+
+    dry_diameters = aero_state_dry_diameters(aero_state, aero_data)
+!    dry_diameters_avg = aero_state_dry_diameters(aero_state_averaged, aero_data)
+    do i_bin = 1,bin_grid_size(bin_grid)
+       is_size_range = 2 * bin_grid%edges(i_bin) < dry_diameters &
+            .and. dry_diameters <= bin_grid%edges(i_bin+1) * 2
+!       is_size_range_avg = 2 * bin_grid%edges(i_bin) < dry_diameters_avg &
+!            .and. dry_diameters_avg <= bin_grid%edges(i_bin+1) *2
+
+       d_alpha(i_bin) = exp(sum(pack(entropies * masses * num_concs, &
+             is_size_range)) / sum(pack(masses * num_concs, is_size_range)))
+
+       ! per-particle properties of averaged particles
+!       if (present(groups)) then
+!          masses_of_avg_part = aero_state_masses(aero_state_averaged, aero_data, &
+!               include=pack(groups, len_trim(groups) > 0))
+!       else
+!          masses_of_avg_part = aero_state_masses(aero_state_averaged, aero_data, &
+!               include, exclude)
+!       end if
+!       entropies_of_avg_part = aero_state_mass_entropies(aero_state_averaged, &
+!            aero_data, include, exclude, group, groups)
+!
+!       d_gamma(i_bin) = exp(sum(pack(entropies_of_avg_part * masses_of_avg_part &
+!            * num_concs_of_avg_part, is_size_range_avg)) &
+!            / sum(pack(masses_of_avg_part * num_concs_of_avg_part, &
+!            is_size_range_avg)))
+
+       ! TODO: Need to do something for groups
+       if (present(group)) then
+          group_mass = 0d0
+          non_group_mass = 0d0
+          do i_part = 1,aero_state_n_part(aero_state)
+             if (is_size_range(i_part)) then
+                do i_spec = 1,aero_data_n_spec(aero_data)
+                   if (use_species(i_spec)) then
+                      mass = aero_particle_species_mass( &
+                           aero_state%apa%particle(i_part), i_spec, aero_data)
+                      if (group_species(i_spec)) then
+                         group_mass = group_mass + mass * num_concs(i_part)
+                      else
+                         non_group_mass = non_group_mass + mass * num_concs(i_part)
+                      end if
+                   end if
+                end do
+             end if
+          end do
+          h_gamma = entropy([group_mass,non_group_mass])
+       else
+          allocate(bulk_masses(aero_data_n_spec(aero_data)))
+          bulk_masses = 0.0d0
+          do i_part = 1,aero_state_n_part(aero_state)
+             if (is_size_range(i_part)) then
+                bulk_masses = bulk_masses + &
+                  aero_particle_species_masses(aero_state%apa%particle(i_part), &
+                        aero_data)  * num_concs(i_part)
+             end if
+          end do
+          h_gamma = entropy(bulk_masses(1:aero_data_n_spec(aero_data)-1))
+          deallocate(bulk_masses)
+       end if
+
+       d_gamma(i_bin) = exp(h_gamma)
+!       print*, sum(pack(masses * num_concs, is_size_range)), &
+!            sum(pack(masses_of_avg_part * num_concs_of_avg_part, &
+!            is_size_range_avg)), sum(pack(num_concs, is_size_range)), &
+!            sum(pack(num_concs_of_avg_part, is_size_range_avg)), &
+!            d_gamma(i_bin), exp(h_gamma)
+       chi(i_bin) = (d_alpha(i_bin) - 1) / (d_gamma(i_bin) - 1)
+    end do
+
+  end subroutine aero_state_mixing_state_metrics_by_size
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 end module pmc_aero_state

@@ -2,8 +2,11 @@
 *
 
 # whitelist things to copy
+!ChangeLog.md
 !CMakeLists.txt
 !netcdf.cmake
+!README.md
+!doc/
 !docker/
 !src/
 !test/
@@ -18,3 +21,7 @@ scenarios/2_urban_plume2/out
 scenarios/3_condense/out
 !scenarios/4_chamber
 scenarios/4_chamber/out
+!scenarios/5_coag_brownian
+scenarios/5_coag_brownian/out
+!scenarios/6_camp
+scenarios/6_camp/out

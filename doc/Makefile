@@ -1,5 +1,5 @@
 
-VERSION = 2.5.0
+VERSION = 2.6.1
 
 GRAPHVIZ_FILE = partmc_modules.gv
 GRAPHVIZ_PDF = $(patsubst %.gv,%.pdf,$(GRAPHVIZ_FILE))
@@ -23,15 +23,15 @@ README.html: ../README.md markdown2.py
 	echo "<html>" > $@
 	echo "<head><title>PartMC $(VERSION)</title></head>" >> $@
 	echo "<body bgcolor=\"#ffffff\">" >> $@
-	./markdown2.py ../README.md >> $@
+	python3 markdown2.py ../README.md >> $@
 	echo "</body></html>" >> $@
 
-ChangeLog.html: ../ChangeLog markdown2.py
+ChangeLog.html: ../ChangeLog.md markdown2.py
 	echo "<html>" > $@
 	echo "<head><title>ChangeLog: PartMC $(VERSION)</title></head>" >> $@
 	echo "<body bgcolor=\"#ffffff\">" >> $@
 	echo "<h1>ChangeLog: PartMC $(VERSION)</h1>" >> $@
-	./markdown2.py ../ChangeLog >> $@
+	python3 markdown2.py ../ChangeLog.md >> $@
 	echo "</body></html>" >> $@
 
 $(DOC_INDEX): $(ALL_SRC) $(GRAPHVIZ_PDF) Doxyfile
@@ -43,7 +43,7 @@ $(GRAPHVIZ_FILE): $(PARTMC_FSRC) f90_mod_deps.py
 	echo "    node [fontsize = 10, height = 0.3, width = 0.5];" >> $@
 	echo "    graph [nodesep = 0.2, ranksep = 0.3];" >> $@
 	echo "    edge [arrowsize = 0.7];" >> $@
-	./f90_mod_deps.py -d "pmc_(.*)" -D "\1" -m "pmc_(.*)" -M "\1" -g -i $(PARTMC_FSRC) >> $@
+	python3 f90_mod_deps.py -d "pmc_(.*)" -D "\1" -m "pmc_(.*)" -M "\1" -g -i $(PARTMC_FSRC) >> $@
 	echo "}" >> $@
 
 %.png: %.gv

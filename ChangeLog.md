@@ -1,5 +1,9 @@
 
-__next version__ - XXXX-XX-XX
+2.6.1 - 2022-02-18
+
+  * Update to support SUNDIALS version 5.8.0 (Sylwester Arabas).
+
+2.6.0 - 2021-11-03
 
   * Clean up README formatting (Matt West).
 
@@ -11,6 +15,12 @@ __next version__ - XXXX-XX-XX
   * Update Docker build to use Fedora 33 (Matt West).
 
   * Add multiple groups for mixing state index calculations (Matt West).
+
+  * Add interface to CAMP chemistry library (Matt Dawson and Jeff Curtis).
+
+  * Fix typo in `do_init_equilibrate` (Sylwester Arabas).
+
+  * Add `scenarios/5_coag_brownian` (Zhonghua Zheng and Jeff Curtis).
 
 2.5.0 - 2018-11-17
 

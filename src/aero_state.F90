@@ -2307,6 +2307,7 @@ contains
                AERO_STATE_TAG_GATHER, MPI_COMM_WORLD, status, ierr)
 
           ! unpack it
+          call aero_state_zero(aero_state_transfer)
           position = 0
           call pmc_mpi_unpack_aero_state(buffer, position, &
                aero_state_transfer)

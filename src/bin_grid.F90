@@ -352,6 +352,8 @@ contains
     type(bin_grid_t), intent(inout) :: val
 
 #ifdef PMC_USE_MPI
+    logical :: same_bin_min, same_bin_max
+
     if (.not. pmc_mpi_allequal_integer(val%type)) then
        pmc_mpi_allequal_bin_grid = .false.
        return
@@ -367,8 +369,9 @@ contains
        return
     end if
 
-    if (pmc_mpi_allequal_real(val%edges(1)) &
-         .and. pmc_mpi_allequal_real(val%edges(bin_grid_size(val)))) then
+    same_bin_min = pmc_mpi_allequal_real(val%edges(1))
+    same_bin_max = pmc_mpi_allequal_real(val%edges(bin_grid_size(val)))
+    if (same_bin_min  .and. same_bin_max) then
        pmc_mpi_allequal_bin_grid = .true.
     else
        pmc_mpi_allequal_bin_grid = .false.

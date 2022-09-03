@@ -397,13 +397,13 @@ else if (option_2) then
     do i_time = i_time_start,n_time
 
 #ifdef PMC_USE_CAMP
-       call run_part_timestep(scenario, env_state, aero_data, aero_state, gas_data, &
-            gas_state, run_part_opt, camp_core, photolysis, &
+       call run_part_timestep(scenario, env_state, aero_data, aero_state, &
+            gas_data, gas_state, run_part_opt, camp_core, photolysis, &
             real(i_time, kind=dp) * run_part_opt%del_t, t_start, &
             last_output_time, last_progress_time, i_output)
 #else
-       call run_part_timestep(scenario, env_state, aero_data, aero_state, gas_data, &
-            gas_state, run_part_opt, &
+       call run_part_timestep(scenario, env_state, aero_data, aero_state, &
+            gas_data, gas_state, run_part_opt, &
             real(i_time, kind=dp) * run_part_opt%del_t, t_start, &
             last_output_time, last_progress_time, i_output)
 #endif
@@ -664,11 +664,12 @@ end if
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 #ifdef PMC_USE_CAMP
-  subroutine run_part_timestep(scenario, env_state, aero_data, aero_state, gas_data, &
-       gas_state, run_part_opt, camp_core, photolysis)
+  subroutine run_part_timestep(scenario, env_state, aero_data, aero_state, &
+       gas_data, gas_state, run_part_opt, camp_core, photolysis, t_now, &
+       t_start, last_output_time, last_progress_time, i_output)
 #else
-  subroutine run_part_timestep(scenario, env_state, aero_data, aero_state, gas_data, &
-       gas_state, run_part_opt, t_now, t_start, last_output_time, &
+  subroutine run_part_timestep(scenario, env_state, aero_data, aero_state, &
+       gas_data, gas_state, run_part_opt, t_now, t_start, last_output_time, &
        last_progress_time, i_output)
 #endif
     !> Environment state.
@@ -690,17 +691,19 @@ end if
     type(camp_core_t), pointer, intent(inout), optional :: camp_core
     !> Photolysis calculator
     type(photolysis_t), pointer, intent(inout), optional :: photolysis
-
-    type(camp_state_t), pointer :: camp_state
-    type(camp_state_t), pointer :: camp_pre_aero_state, camp_post_aero_state
 #endif
-    real(kind=dp), intent(in) :: t_now, t_start
+    !> Current simulation time.
+    real(kind=dp), intent(in) :: t_now
+    ! Start time of simulation.
+    real(kind=dp), intent(in) :: t_start
+    !> Last time output was written (s).
+    real(kind=dp), intent(inout) :: last_output_time
+    !> Last time progress was output to screen (s).
+    real(kind=dp), intent(inout) :: last_progress_time
+    !> Output timestep integer for output filename.
     integer, intent(inout) :: i_output
 
     real(kind=dp) :: time, pre_time, pre_del_t, prop_done
-    real(kind=dp) :: last_output_time, last_progress_time
-    integer :: rank, n_proc, pre_index, ncid
-    integer :: pre_i_repeat
     integer :: n_samp, n_coag, n_emit, n_dil_in, n_dil_out, n_nuc
     integer :: progress_n_samp, progress_n_coag
     integer :: progress_n_emit, progress_n_dil_in, progress_n_dil_out
@@ -708,12 +711,12 @@ end if
     integer :: global_n_part, global_n_samp, global_n_coag
     integer :: global_n_emit, global_n_dil_in, global_n_dil_out
     integer :: global_n_nuc
-    logical :: do_output, do_state, do_state_netcdf, do_progress, did_coag
+    logical :: do_output, do_state, do_state_netcdf, do_progress
     real(kind=dp) :: t_wall_now, t_wall_elapsed, t_wall_remain
     type(env_state_t) :: old_env_state
-    integer :: n_time, i_time, i_time_start, pre_i_time
-    integer :: i_state, i_state_netcdf
 #ifdef PMC_USE_CAMP
+    type(camp_state_t), pointer :: camp_state
+    type(camp_state_t), pointer :: camp_pre_aero_state, camp_post_aero_state
     type(camp_env_state_t) :: camp_env_state
 #endif
 
@@ -869,12 +872,13 @@ end if
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 #ifdef PMC_USE_CAMP
-  subroutine run_part_timeblock(scenario, env_state, aero_data, aero_state, gas_data, &
-       gas_state, run_part_opt, camp_core, photolysis)
+  subroutine run_part_timeblock(scenario, env_state, aero_data, aero_state, &
+       gas_data, gas_state, run_part_opt, camp_core, photolysis, t_now, &
+       t_next, t_start, last_output_time, last_progress_time, i_output)
 #else
-  subroutine run_part_timeblock(scenario, env_state, aero_data, aero_state, gas_data, &
-       gas_state, run_part_opt, t_now, t_next, t_start, last_output_time, &
-       last_progress_time, i_output)
+  subroutine run_part_timeblock(scenario, env_state, aero_data, aero_state, &
+       gas_data, gas_state, run_part_opt, t_now, t_next, t_start, &
+       last_output_time, last_progress_time, i_output)
 #endif
     !> Environment state.
     type(scenario_t), intent(in) :: scenario
@@ -895,31 +899,30 @@ end if
     type(camp_core_t), pointer, intent(inout), optional :: camp_core
     !> Photolysis calculator
     type(photolysis_t), pointer, intent(inout), optional :: photolysis
-
-    type(camp_state_t), pointer :: camp_state
-    type(camp_state_t), pointer :: camp_pre_aero_state, camp_post_aero_state
 #endif
-    real(kind=dp), intent(in) :: t_now, t_start, t_next
-    real(kind=dp), intent(inout) :: last_output_time, &
-        last_progress_time
+    !> Current simulation time.
+    real(kind=dp), intent(in) :: t_now
+    ! Start time of simulation.
+    real(kind=dp), intent(in) :: t_start
+    ! End of time interval to simulat.
+    real(kind=dp), intent(in) :: t_next
+    !> Last time output was written (s).
+    real(kind=dp), intent(inout) :: last_output_time
+    !> Last time progress was output to screen (s).
+    real(kind=dp), intent(inout) :: last_progress_time
+    !> Output timestep integer for output filename.
     integer, intent(inout) :: i_output
 
-    real(kind=dp) :: time, pre_time, pre_del_t, prop_done
-    integer :: rank, n_proc, pre_index, ncid
-    integer :: pre_i_repeat
+    real(kind=dp) :: time
     integer :: n_samp, n_coag, n_emit, n_dil_in, n_dil_out, n_nuc
     integer :: progress_n_samp, progress_n_coag
     integer :: progress_n_emit, progress_n_dil_in, progress_n_dil_out
     integer :: progress_n_nuc, n_part_before
-    integer :: global_n_part, global_n_samp, global_n_coag
-    integer :: global_n_emit, global_n_dil_in, global_n_dil_out
-    integer :: global_n_nuc
-    logical :: do_output, do_state, do_state_netcdf, do_progress, did_coag
     real(kind=dp) :: t_wall_now, t_wall_elapsed, t_wall_remain
-    type(env_state_t) :: old_env_state
-    integer :: n_time, i_time, i_time_start, pre_i_time
-    integer :: i_state, i_state_netcdf
+    integer :: n_time, i_time, i_time_start
 #ifdef PMC_USE_CAMP
+    type(camp_state_t), pointer :: camp_state
+    type(camp_state_t), pointer :: camp_pre_aero_state, camp_post_aero_state
     type(camp_env_state_t) :: camp_env_state
 #endif
 

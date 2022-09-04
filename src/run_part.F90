@@ -418,8 +418,8 @@ else
 #ifdef PMC_USE_CAMP
        call run_part_timeblock(scenario, env_state, aero_data, aero_state, &
             gas_data, gas_state, run_part_opt, camp_core, photolysis, &
-            real(i_time, kind=dp) * run_part_opt%del_t, t_start, &
-             last_output_time, last_progress_time, i_output)
+            t_now, t_next, t_start, last_output_time, last_progress_time, &
+            i_output)
 #else
        call run_part_timeblock(scenario, env_state, aero_data, aero_state, &
             gas_data, gas_state, run_part_opt, t_now, t_next, t_start, & 

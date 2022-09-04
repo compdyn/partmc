@@ -1305,6 +1305,7 @@ contains
     if (allocated(val)) deallocate(val)
     if (is_allocated) then
        call pmc_mpi_unpack_integer(buffer, position, n)
+       allocate(val(n))
        call mpi_unpack(buffer, size(buffer), position, val, n, &
             MPI_DOUBLE_COMPLEX, MPI_COMM_WORLD, ierr)
        call pmc_mpi_check_ierr(ierr)

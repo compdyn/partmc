@@ -46,6 +46,8 @@ module pmc_env_state
      real(kind=dp) :: z_max
      !> Specific volume (m^3 kg^{-1}).
      real(kind=dp) :: rrho
+     !> Grid cell volume.
+     real(kind=dp) :: cell_volume
      !> East-West index.
      integer :: ix
      !> North-South index.
@@ -370,6 +372,7 @@ contains
          + pmc_mpi_pack_size_real(val%z_min) &
          + pmc_mpi_pack_size_real(val%z_max) &
          + pmc_mpi_pack_size_real(val%rrho) &
+         + pmc_mpi_pack_size_real(val%cell_volume) &
          + pmc_mpi_pack_size_integer(val%ix) &
          + pmc_mpi_pack_size_integer(val%iy) &
          + pmc_mpi_pack_size_integer(val%iz) &
@@ -412,6 +415,7 @@ contains
     call pmc_mpi_pack_real(buffer, position, val%z_min)
     call pmc_mpi_pack_real(buffer, position, val%z_max)
     call pmc_mpi_pack_real(buffer, position, val%rrho)
+    call pmc_mpi_pack_real(buffer, position, val%cell_volume)
     call pmc_mpi_pack_integer(buffer, position, val%ix)
     call pmc_mpi_pack_integer(buffer, position, val%iy)
     call pmc_mpi_pack_integer(buffer, position, val%iz)
@@ -457,6 +461,7 @@ contains
     call pmc_mpi_unpack_real(buffer, position, val%z_min)
     call pmc_mpi_unpack_real(buffer, position, val%z_max)
     call pmc_mpi_unpack_real(buffer, position, val%rrho)
+    call pmc_mpi_unpack_real(buffer, position, val%cell_volume)
     call pmc_mpi_unpack_integer(buffer, position, val%ix)
     call pmc_mpi_unpack_integer(buffer, position, val%iy)
     call pmc_mpi_unpack_integer(buffer, position, val%iz)
@@ -547,6 +552,8 @@ contains
          unit="m", standard_name="top_altitude")
     call pmc_nc_write_real(ncid, env_state%rrho, "specific_volume", &
          unit="m3kg-1", standard_name="specific_volume")
+    call pmc_nc_write_real(ncid, env_state%cell_volume, "cell_volume", &
+         unit="m3", standard_name="cell_volume")
     call pmc_nc_write_integer(ncid,env_state%ix,"x_index", &
          description="east-west index of WRF domain")
     call pmc_nc_write_integer(ncid,env_state%iy,"y_index", &
@@ -592,6 +599,7 @@ contains
     call pmc_nc_read_real(ncid, env_state%z_min, "bottom_boundary_altitude")
     call pmc_nc_read_real(ncid, env_state%z_max, "top_boundary_altitude")
     call pmc_nc_read_real(ncid, env_state%rrho, "specific_volume")
+    call pmc_nc_read_real(ncid, env_state%cell_volume, "cell_volume")
     call pmc_nc_read_integer(ncid,env_state%ix,"x_index")
     call pmc_nc_read_integer(ncid,env_state%iy,"y_index")
     call pmc_nc_read_integer(ncid,env_state%iz,"z_index")

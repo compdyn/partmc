@@ -665,11 +665,11 @@ end if
 
 #ifdef PMC_USE_CAMP
   subroutine run_part_timestep(scenario, env_state, aero_data, aero_state, &
-       gas_data, gas_state, run_part_opt, camp_core, photolysis, t_now, &
+       gas_data, gas_state, run_part_opt, camp_core, photolysis, time, &
        t_start, last_output_time, last_progress_time, i_output)
 #else
   subroutine run_part_timestep(scenario, env_state, aero_data, aero_state, &
-       gas_data, gas_state, run_part_opt, t_now, t_start, last_output_time, &
+       gas_data, gas_state, run_part_opt, time, t_start, last_output_time, &
        last_progress_time, i_output)
 #endif
     !> Environment state.
@@ -693,7 +693,7 @@ end if
     type(photolysis_t), pointer, intent(inout), optional :: photolysis
 #endif
     !> Current simulation time.
-    real(kind=dp), intent(in) :: t_now
+    real(kind=dp), intent(in) :: time
     ! Start time of simulation.
     real(kind=dp), intent(in) :: t_start
     !> Last time output was written (s).
@@ -703,7 +703,7 @@ end if
     !> Output timestep integer for output filename.
     integer, intent(inout) :: i_output
 
-    real(kind=dp) :: time, pre_time, pre_del_t, prop_done
+    real(kind=dp) :: prop_done
     integer :: n_samp, n_coag, n_emit, n_dil_in, n_dil_out, n_nuc
     integer :: progress_n_samp, progress_n_coag
     integer :: progress_n_emit, progress_n_dil_in, progress_n_dil_out
@@ -725,11 +725,8 @@ end if
     progress_n_emit = 0
     progress_n_dil_in = 0
     progress_n_dil_out = 0
-    progress_n_num = 0
+    progress_n_nuc = 0
 
-
-
-    time = t_now !real(i_time, kind=dp) * run_part_opt%del_t
     old_env_state = env_state
     call scenario_update_env_state(scenario, env_state, time + t_start)
 

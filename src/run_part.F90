@@ -727,6 +727,16 @@ end if
     progress_n_dil_out = 0
     progress_n_nuc = 0
 
+#ifdef PMC_USE_CAMP
+    if (run_part_opt%do_camp_chem) then
+       camp_env_state%temp = env_state%temp
+       camp_env_state%pressure = env_state%pressure
+       camp_state =>  camp_core%new_state_one_cell(camp_env_state)
+       camp_pre_aero_state => camp_core%new_state_one_cell(camp_env_state)
+       camp_post_aero_state => camp_core%new_state_one_cell(camp_env_state)
+    end if
+#endif
+
     old_env_state = env_state
     call scenario_update_env_state(scenario, env_state, time + t_start)
 
@@ -917,11 +927,6 @@ end if
     integer :: progress_n_nuc, n_part_before
     real(kind=dp) :: t_wall_now, t_wall_elapsed, t_wall_remain
     integer :: n_time, i_time, i_time_start
-#ifdef PMC_USE_CAMP
-    type(camp_state_t), pointer :: camp_state
-    type(camp_state_t), pointer :: camp_pre_aero_state, camp_post_aero_state
-    type(camp_env_state_t) :: camp_env_state
-#endif
 
     n_time = nint((t_next-t_now) / run_part_opt%del_t)
     do i_time = 1,n_time

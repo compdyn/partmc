@@ -237,11 +237,14 @@ contains
        call run_part_timeblock(scenario, env_state, aero_data, aero_state, &
             gas_data, gas_state, run_part_opt, camp_core, photolysis, &
             t_now, t_next, t_start, last_output_time, last_progress_time, &
-            i_output)
+            i_output, progress_n_samp, progress_n_coag, progress_n_emit, &
+            progress_n_dil_in, progress_n_dil_out, progress_n_nuc)
 #else
        call run_part_timeblock(scenario, env_state, aero_data, aero_state, &
             gas_data, gas_state, run_part_opt, t_now, t_next, t_start, & 
-            last_output_time, last_progress_time, i_output)
+            last_output_time, last_progress_time, i_output, progress_n_samp, &
+            progress_n_coag, progress_n_emit, progress_n_dil_in, &
+            progress_n_dil_out, progress_n_nuc)
 #endif
     end do
 
@@ -482,11 +485,15 @@ contains
 #ifdef PMC_USE_CAMP
   subroutine run_part_timestep(scenario, env_state, aero_data, aero_state, &
        gas_data, gas_state, run_part_opt, camp_core, photolysis, time, &
-       t_start, last_output_time, last_progress_time, i_output)
+       t_start, last_output_time, last_progress_time, i_output, &
+       progress_n_samp, progress_n_coag, progress_n_emit, progress_n_dil_in, &
+       progress_n_dil_out, progress_n_nuc)
 #else
   subroutine run_part_timestep(scenario, env_state, aero_data, aero_state, &
        gas_data, gas_state, run_part_opt, time, t_start, last_output_time, &
-       last_progress_time, i_output)
+       last_progress_time, i_output, progress_n_samp, progress_n_coag, &
+       progress_n_emit, progress_n_dil_in, progress_n_dil_out, &
+       progress_n_nuc)
 #endif
     !> Environment state.
     type(scenario_t), intent(in) :: scenario
@@ -518,12 +525,22 @@ contains
     real(kind=dp), intent(inout) :: last_progress_time
     !> Output timestep integer for output filename.
     integer, intent(inout) :: i_output
+    !> Total number of samples tested.
+    integer, intent(inout) :: progress_n_samp
+    !> Number of coagulation events.
+    integer, intent(inout) :: progress_n_coag
+    !> Number of particles added by emission.
+    integer, intent(inout) :: progress_n_emit
+    !> Number of particles added by dilution.
+    integer, intent(inout) :: progress_n_dil_in
+    !> Number of particles removed by dilution.
+    integer, intent(inout) :: progress_n_dil_out
+    !> Number of particles added by nucleation.
+    integer, intent(inout) :: progress_n_nuc
 
     real(kind=dp) :: prop_done
     integer :: n_samp, n_coag, n_emit, n_dil_in, n_dil_out, n_nuc
-    integer :: progress_n_samp, progress_n_coag
-    integer :: progress_n_emit, progress_n_dil_in, progress_n_dil_out
-    integer :: progress_n_nuc, n_part_before
+    integer :: n_part_before
     integer :: global_n_part, global_n_samp, global_n_coag
     integer :: global_n_emit, global_n_dil_in, global_n_dil_out
     integer :: global_n_nuc
@@ -535,13 +552,6 @@ contains
     type(camp_state_t), pointer :: camp_pre_aero_state, camp_post_aero_state
     type(camp_env_state_t) :: camp_env_state
 #endif
-
-    progress_n_samp = 0
-    progress_n_coag = 0
-    progress_n_emit = 0
-    progress_n_dil_in = 0
-    progress_n_dil_out = 0
-    progress_n_nuc = 0
 
 #ifdef PMC_USE_CAMP
     if (run_part_opt%do_camp_chem) then
@@ -697,11 +707,15 @@ contains
 #ifdef PMC_USE_CAMP
   subroutine run_part_timeblock(scenario, env_state, aero_data, aero_state, &
        gas_data, gas_state, run_part_opt, camp_core, photolysis, t_now, &
-       t_next, t_start, last_output_time, last_progress_time, i_output)
+       t_next, t_start, last_output_time, last_progress_time, i_output, &
+       progress_n_samp, progress_n_coag, progress_n_emit, progress_n_dil_in, &
+       progress_n_dil_out, progress_n_nuc)
 #else
   subroutine run_part_timeblock(scenario, env_state, aero_data, aero_state, &
        gas_data, gas_state, run_part_opt, t_now, t_next, t_start, &
-       last_output_time, last_progress_time, i_output)
+       last_output_time, last_progress_time, i_output, progress_n_samp, &
+       progress_n_coag, progress_n_emit, progress_n_dil_in, &
+       progress_n_dil_out, progress_n_nuc)
 #endif
     !> Environment state.
     type(scenario_t), intent(in) :: scenario
@@ -735,13 +749,20 @@ contains
     real(kind=dp), intent(inout) :: last_progress_time
     !> Output timestep integer for output filename.
     integer, intent(inout) :: i_output
+    !> Total number of samples tested.
+    integer, intent(inout) :: progress_n_samp
+    !> Number of coagulation events.
+    integer, intent(inout) :: progress_n_coag
+    !> Number of particles added by emission.
+    integer, intent(inout) :: progress_n_emit
+    !> Number of particles added by dilution.
+    integer, intent(inout) :: progress_n_dil_in
+    !> Number of particles removed by dilution.
+    integer, intent(inout) :: progress_n_dil_out
+    !> Number of particles added by nucleation.
+    integer, intent(inout) :: progress_n_nuc
 
     real(kind=dp) :: time
-    integer :: n_samp, n_coag, n_emit, n_dil_in, n_dil_out, n_nuc
-    integer :: progress_n_samp, progress_n_coag
-    integer :: progress_n_emit, progress_n_dil_in, progress_n_dil_out
-    integer :: progress_n_nuc, n_part_before
-    real(kind=dp) :: t_wall_now, t_wall_elapsed, t_wall_remain
     integer :: n_time, i_time, i_time_start
 
     n_time = nint((t_next-t_now) / run_part_opt%del_t)
@@ -752,11 +773,15 @@ contains
        call run_part_timestep(scenario, env_state, aero_data, aero_state, &
             gas_data, gas_state, run_part_opt, camp_core, photolysis, &
             real(i_time, kind=dp) * run_part_opt%del_t, t_start, &
-            last_output_time, last_progress_time, i_output)
+            last_output_time, last_progress_time, i_output, progress_n_samp, &
+            progress_n_coag, progress_n_emit, progress_n_dil_in, &
+            progress_n_dil_out, progress_n_nuc)
 #else
        call run_part_timestep(scenario, env_state, aero_data, aero_state, &
-            gas_data, gas_state, run_part_opt, &
-            time, t_start, last_output_time, last_progress_time, i_output)
+            gas_data, gas_state, run_part_opt, time, t_start, &
+            last_output_time, last_progress_time, i_output, progress_n_samp, &
+            progress_n_coag, progress_n_emit, progress_n_dil_in, &
+            progress_n_dil_out, progress_n_nuc)
 #endif
     end do
 

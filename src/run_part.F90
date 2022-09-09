@@ -768,14 +768,12 @@ contains
     n_time = nint((t_next-t_now) / run_part_opt%del_t)
     do i_time = 1,n_time
        time = t_now + real(i_time, kind=dp) * run_part_opt%del_t
-
 #ifdef PMC_USE_CAMP
        call run_part_timestep(scenario, env_state, aero_data, aero_state, &
-            gas_data, gas_state, run_part_opt, camp_core, photolysis, &
-            real(i_time, kind=dp) * run_part_opt%del_t, t_start, &
-            last_output_time, last_progress_time, i_output, progress_n_samp, &
-            progress_n_coag, progress_n_emit, progress_n_dil_in, &
-            progress_n_dil_out, progress_n_nuc)
+            gas_data, gas_state, run_part_opt, camp_core, photolysis, time, &
+            t_start, last_output_time, last_progress_time, i_output, &
+            progress_n_samp, progress_n_coag, progress_n_emit, &
+            progress_n_dil_in, progress_n_dil_out, progress_n_nuc)
 #else
        call run_part_timestep(scenario, env_state, aero_data, aero_state, &
             gas_data, gas_state, run_part_opt, time, t_start, &

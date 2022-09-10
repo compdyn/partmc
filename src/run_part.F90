@@ -155,9 +155,9 @@ contains
     logical :: do_output, do_state, do_state_netcdf, do_progress, did_coag
     real(kind=dp) :: t_start, t_wall_now, t_wall_elapsed, t_wall_remain
     type(env_state_t) :: old_env_state
-    integer :: n_time, i_time, i_time_start, pre_i_time
+    integer :: n_time, i_time, pre_i_time
     integer :: i_state, i_state_netcdf, i_output
-    integer :: t_now, t_next
+    integer :: i_cur, i_next
 
     rank = pmc_mpi_rank()
     n_proc = pmc_mpi_size()
@@ -207,7 +207,6 @@ contains
     last_output_time = time
     last_progress_time = time
     n_time = nint(run_part_opt%t_max / run_part_opt%del_t)
-    i_time_start = nint(time / run_part_opt%del_t) + 1
 
     global_n_part = aero_state_total_particles_all_procs(aero_state)
     if (rank == 0) then
@@ -227,18 +226,17 @@ contains
             global_n_part, 0, 0, 0, 0, 0, t_wall_elapsed, t_wall_remain)
     end if
 
-    n_time = int(run_part_opt%t_max/run_part_opt%del_t)
-    t_now = 1
-    t_next = n_time
+    i_cur = 1
+    i_next = n_time
 #ifdef PMC_USE_CAMP
     call run_part_timeblock(scenario, env_state, aero_data, aero_state, &
          gas_data, gas_state, run_part_opt, camp_core, photolysis, &
-         t_now, t_next, t_start, last_output_time, last_progress_time, &
+         i_cur, i_next, t_start, last_output_time, last_progress_time, &
          i_output, progress_n_samp, progress_n_coag, progress_n_emit, &
          progress_n_dil_in, progress_n_dil_out, progress_n_nuc)
 #else
     call run_part_timeblock(scenario, env_state, aero_data, aero_state, &
-         gas_data, gas_state, run_part_opt, t_now, t_next, t_start, & 
+         gas_data, gas_state, run_part_opt, i_cur, i_next, t_start, &
          last_output_time, last_progress_time, i_output, progress_n_samp, &
          progress_n_coag, progress_n_emit, progress_n_dil_in, &
          progress_n_dil_out, progress_n_nuc)
@@ -513,7 +511,6 @@ contains
     type(photolysis_t), pointer, intent(inout), optional :: photolysis
 #endif
     !> Current simulation time.
-!    real(kind=dp), intent(in) :: time
     integer, intent(in) :: i_time
     ! Start time of simulation.
     real(kind=dp), intent(in) :: t_start
@@ -707,13 +704,13 @@ contains
   !> Do a number of time steps of particle-reoslved Monte Carlo simulation.
 #ifdef PMC_USE_CAMP
   subroutine run_part_timeblock(scenario, env_state, aero_data, aero_state, &
-       gas_data, gas_state, run_part_opt, camp_core, photolysis, t_now, &
-       t_next, t_start, last_output_time, last_progress_time, i_output, &
+       gas_data, gas_state, run_part_opt, camp_core, photolysis, i_cur, &
+       i_next, t_start, last_output_time, last_progress_time, i_output, &
        progress_n_samp, progress_n_coag, progress_n_emit, progress_n_dil_in, &
        progress_n_dil_out, progress_n_nuc)
 #else
   subroutine run_part_timeblock(scenario, env_state, aero_data, aero_state, &
-       gas_data, gas_state, run_part_opt, i_t_now, i_t_next, t_start, &
+       gas_data, gas_state, run_part_opt, i_cur, i_next, t_start, &
        last_output_time, last_progress_time, i_output, progress_n_samp, &
        progress_n_coag, progress_n_emit, progress_n_dil_in, &
        progress_n_dil_out, progress_n_nuc)
@@ -739,11 +736,11 @@ contains
     type(photolysis_t), pointer, intent(inout), optional :: photolysis
 #endif
     !> Current simulation timestep.
-    integer, intent(in) :: i_t_now
+    integer, intent(in) :: i_cur
     ! Start time of simulation.
     real(kind=dp), intent(in) :: t_start
     ! End timestep to simulate.
-    integer, intent(in) :: i_t_next
+    integer, intent(in) :: i_next
     !> Last time output was written (s).
     real(kind=dp), intent(inout) :: last_output_time
     !> Last time progress was output to screen (s).
@@ -763,10 +760,9 @@ contains
     !> Number of particles added by nucleation.
     integer, intent(inout) :: progress_n_nuc
 
-    real(kind=dp) :: time
-    integer :: n_time, i_time, i_time_start, ii_time
+    integer :: i_time
 
-    do i_time = i_t_now,i_t_next
+    do i_time = i_cur,i_next
 #ifdef PMC_USE_CAMP
        call run_part_timestep(scenario, env_state, aero_data, aero_state, &
             gas_data, gas_state, run_part_opt, camp_core, photolysis, i_time, &

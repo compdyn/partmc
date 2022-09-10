@@ -157,7 +157,7 @@ contains
     type(env_state_t) :: old_env_state
     integer :: n_time, i_time, i_time_start, pre_i_time
     integer :: i_state, i_state_netcdf, i_output
-    real(kind=dp) :: t_now, t_next
+    integer :: t_now, t_next
 
     rank = pmc_mpi_rank()
     n_proc = pmc_mpi_size()
@@ -227,26 +227,22 @@ contains
             global_n_part, 0, 0, 0, 0, 0, t_wall_elapsed, t_wall_remain)
     end if
 
-    n_time = int(run_part_opt%t_max/run_part_opt%t_progress) 
-    t_next = 0.0
-    do i_time = 1,n_time
-       t_now = t_next
-       t_next = t_now + run_part_opt%t_progress
-
+    n_time = int(run_part_opt%t_max/run_part_opt%del_t)
+    t_now = 1
+    t_next = n_time
 #ifdef PMC_USE_CAMP
-       call run_part_timeblock(scenario, env_state, aero_data, aero_state, &
-            gas_data, gas_state, run_part_opt, camp_core, photolysis, &
-            t_now, t_next, t_start, last_output_time, last_progress_time, &
-            i_output, progress_n_samp, progress_n_coag, progress_n_emit, &
-            progress_n_dil_in, progress_n_dil_out, progress_n_nuc)
+    call run_part_timeblock(scenario, env_state, aero_data, aero_state, &
+         gas_data, gas_state, run_part_opt, camp_core, photolysis, &
+         t_now, t_next, t_start, last_output_time, last_progress_time, &
+         i_output, progress_n_samp, progress_n_coag, progress_n_emit, &
+         progress_n_dil_in, progress_n_dil_out, progress_n_nuc)
 #else
-       call run_part_timeblock(scenario, env_state, aero_data, aero_state, &
-            gas_data, gas_state, run_part_opt, t_now, t_next, t_start, & 
-            last_output_time, last_progress_time, i_output, progress_n_samp, &
-            progress_n_coag, progress_n_emit, progress_n_dil_in, &
-            progress_n_dil_out, progress_n_nuc)
+    call run_part_timeblock(scenario, env_state, aero_data, aero_state, &
+         gas_data, gas_state, run_part_opt, t_now, t_next, t_start, & 
+         last_output_time, last_progress_time, i_output, progress_n_samp, &
+         progress_n_coag, progress_n_emit, progress_n_dil_in, &
+         progress_n_dil_out, progress_n_nuc)
 #endif
-    end do
 
     if (run_part_opt%do_mosaic) then
        call mosaic_cleanup()
@@ -482,15 +478,16 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Do a one particle-resolved Monte Carlo simulation timestep.
 #ifdef PMC_USE_CAMP
   subroutine run_part_timestep(scenario, env_state, aero_data, aero_state, &
-       gas_data, gas_state, run_part_opt, camp_core, photolysis, time, &
+       gas_data, gas_state, run_part_opt, camp_core, photolysis, i_time, &
        t_start, last_output_time, last_progress_time, i_output, &
        progress_n_samp, progress_n_coag, progress_n_emit, progress_n_dil_in, &
        progress_n_dil_out, progress_n_nuc)
 #else
   subroutine run_part_timestep(scenario, env_state, aero_data, aero_state, &
-       gas_data, gas_state, run_part_opt, time, t_start, last_output_time, &
+       gas_data, gas_state, run_part_opt, i_time, t_start, last_output_time, &
        last_progress_time, i_output, progress_n_samp, progress_n_coag, &
        progress_n_emit, progress_n_dil_in, progress_n_dil_out, &
        progress_n_nuc)
@@ -516,7 +513,8 @@ contains
     type(photolysis_t), pointer, intent(inout), optional :: photolysis
 #endif
     !> Current simulation time.
-    real(kind=dp), intent(in) :: time
+!    real(kind=dp), intent(in) :: time
+    integer, intent(in) :: i_time
     ! Start time of simulation.
     real(kind=dp), intent(in) :: t_start
     !> Last time output was written (s).
@@ -545,14 +543,16 @@ contains
     integer :: global_n_emit, global_n_dil_in, global_n_dil_out
     integer :: global_n_nuc
     logical :: do_output, do_state, do_state_netcdf, do_progress
-    real(kind=dp) :: t_wall_now, t_wall_elapsed, t_wall_remain
+    real(kind=dp) :: t_wall_now, t_wall_elapsed, t_wall_remain, time
     type(env_state_t) :: old_env_state
 #ifdef PMC_USE_CAMP
     type(camp_state_t), pointer :: camp_state
     type(camp_state_t), pointer :: camp_pre_aero_state, camp_post_aero_state
     type(camp_env_state_t) :: camp_env_state
 #endif
-
+ 
+    time = i_time * run_part_opt%del_t
+ 
 #ifdef PMC_USE_CAMP
     if (run_part_opt%do_camp_chem) then
        camp_env_state%temp = env_state%temp
@@ -704,6 +704,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Do a number of time steps of particle-reoslved Monte Carlo simulation.
 #ifdef PMC_USE_CAMP
   subroutine run_part_timeblock(scenario, env_state, aero_data, aero_state, &
        gas_data, gas_state, run_part_opt, camp_core, photolysis, t_now, &
@@ -712,7 +713,7 @@ contains
        progress_n_dil_out, progress_n_nuc)
 #else
   subroutine run_part_timeblock(scenario, env_state, aero_data, aero_state, &
-       gas_data, gas_state, run_part_opt, t_now, t_next, t_start, &
+       gas_data, gas_state, run_part_opt, i_t_now, i_t_next, t_start, &
        last_output_time, last_progress_time, i_output, progress_n_samp, &
        progress_n_coag, progress_n_emit, progress_n_dil_in, &
        progress_n_dil_out, progress_n_nuc)
@@ -737,12 +738,12 @@ contains
     !> Photolysis calculator
     type(photolysis_t), pointer, intent(inout), optional :: photolysis
 #endif
-    !> Current simulation time.
-    real(kind=dp), intent(in) :: t_now
+    !> Current simulation timestep.
+    integer, intent(in) :: i_t_now
     ! Start time of simulation.
     real(kind=dp), intent(in) :: t_start
-    ! End of time interval to simulat.
-    real(kind=dp), intent(in) :: t_next
+    ! End timestep to simulate.
+    integer, intent(in) :: i_t_next
     !> Last time output was written (s).
     real(kind=dp), intent(inout) :: last_output_time
     !> Last time progress was output to screen (s).
@@ -763,20 +764,18 @@ contains
     integer, intent(inout) :: progress_n_nuc
 
     real(kind=dp) :: time
-    integer :: n_time, i_time, i_time_start
+    integer :: n_time, i_time, i_time_start, ii_time
 
-    n_time = nint((t_next-t_now) / run_part_opt%del_t)
-    do i_time = 1,n_time
-       time = t_now + real(i_time, kind=dp) * run_part_opt%del_t
+    do i_time = i_t_now,i_t_next
 #ifdef PMC_USE_CAMP
        call run_part_timestep(scenario, env_state, aero_data, aero_state, &
-            gas_data, gas_state, run_part_opt, camp_core, photolysis, time, &
+            gas_data, gas_state, run_part_opt, camp_core, photolysis, i_time, &
             t_start, last_output_time, last_progress_time, i_output, &
             progress_n_samp, progress_n_coag, progress_n_emit, &
             progress_n_dil_in, progress_n_dil_out, progress_n_nuc)
 #else
        call run_part_timestep(scenario, env_state, aero_data, aero_state, &
-            gas_data, gas_state, run_part_opt, time, t_start, &
+            gas_data, gas_state, run_part_opt, i_time, t_start, &
             last_output_time, last_progress_time, i_output, progress_n_samp, &
             progress_n_coag, progress_n_emit, progress_n_dil_in, &
             progress_n_dil_out, progress_n_nuc)

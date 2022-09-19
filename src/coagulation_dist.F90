@@ -134,13 +134,15 @@ contains
     integer, allocatable :: n_samps(:,:)
     real(kind=dp), allocatable :: accept_factors(:,:), k_max(:,:)
     logical, allocatable :: procs_done(:)
-    integer :: outgoing_buffer(COAG_DIST_OUTGOING_BUFFER_SIZE)
+    integer, allocatable :: outgoing_buffer(:)
     integer :: outgoing_buffer_size_check
     type(aero_weight_array_t) :: aero_weight_total
 
     call assert_msg(667898741, &
          aero_sorted_n_class(aero_state%aero_sorted) == 1, &
          "FIXME: mc_coag_dist() can only handle one weight class")
+
+    allocate(outgoing_buffer(COAG_DIST_OUTGOING_BUFFER_SIZE))
 
     n_proc = pmc_mpi_size()
 
@@ -236,6 +238,7 @@ contains
     call pmc_mpi_check_ierr(ierr)
     call assert(577822730, &
          COAG_DIST_OUTGOING_BUFFER_SIZE == outgoing_buffer_size_check)
+    deallocate(outgoing_buffer)
 #endif
 
   end subroutine mc_coag_dist

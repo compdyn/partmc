@@ -82,7 +82,7 @@ int condense_solver(int neq, double *x_f, double *abstol_f, double reltol_f,
 	realtype reltol, t_initial, t_final, t;
 	N_Vector y, abstol;
 	void *cvode_mem;
-	int flag, i, pretype, maxl;
+	int flag, i;
 	realtype *y_data, *abstol_data;
 
 	y = abstol = NULL;
@@ -240,6 +240,8 @@ static int condense_check_flag(void *flagvalue, char *funcname, int opt)
  * scalar, and \f$b\f$ is a given vector.
  *
  */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 static int condense_solver_Solve(double t, N_Vector ycur, N_Vector fcur,
 				 N_Vector b, N_Vector z, double gamma, double delta, int lr, void *user_data)
 {
@@ -272,3 +274,4 @@ static int condense_solver_Solve(double t, N_Vector ycur, N_Vector fcur,
 	free(fcur_f);
 	return(0);
 }
+#pragma GCC diagnostic pop

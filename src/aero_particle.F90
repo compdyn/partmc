@@ -285,7 +285,20 @@ contains
     aero_particle_species_volume = aero_particle%vol(i_spec)
 
   end function aero_particle_species_volume
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Organic volume of a single species in the particle (m^3). xtxu, Oct/19/2022
+  elemental real(kind=dp) function aero_particle_organic_species_volume( &
+       aero_particle, aero_data) 
+
+    !> Particle.
+    type(aero_particle_t), intent(in) :: aero_particle
+    !> Species number to find volume of.
+    integer, intent(in) :: i_spec_organics
+
+    aero_particle_organic_species_volume = aero_particle%vol(i_spec_organics)
+
+  end function aero_particle_organic_species_volume
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Total dry volume of the particle (m^3).
@@ -755,6 +768,85 @@ contains
   end function aero_particle_crit_rel_humid
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Returns the critical relative humidity (1).
+  real(kind=dp) function aero_particle_crit_rel_humid_varying_sigma(aero_particle, &
+       aero_data, env_state)
+
+    !> Aerosol particle.
+    type(aero_particle_t), intent(in) :: aero_particle
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+  
+    real(kind=dp) :: kappa, crit_diam, dry_diam, A_varying_sigma, sigma
+    !pass this sigma to env_state
+
+    sigma = aero_particle_varying_sigma(aero_particle, aero_data)
+    A_varying_sigma = env_state_A_varying_sigma( sigma, env_state)
+
+    dry_diam = aero_particle_dry_diameter(aero_particle, aero_data)
+    crit_diam = aero_particle_crit_diameter(aero_particle, aero_data, &
+         env_state)
+    kappa = aero_particle_solute_kappa(aero_particle, aero_data)
+    if (kappa < 1d-30) then
+      aero_particle_crit_rel_humid_varying_sigma = exp(A_varying_sigma &
+       / crit_diam)
+    else
+      aero_particle_crit_rel_humid_varying_sigma = (crit_diam**3 - dry_diam**3) &
+            / (crit_diam**3 - dry_diam**3 * (1 - kappa)) * & 
+            exp(A_varying_sigma / crit_diam)
+    end if
+
+  end function aero_particle_crit_rel_humid_varying_sigma
+
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Returns the varying sigma.
+  real(kind=dp) function aero_particle_varying_sigma(aero_particle, aero_data)
+
+    !> Aerosol particle.
+    type(aero_particle_t), intent(in) :: aero_particle
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+
+    real(kind=dp) :: v_delta, coverage, frac_core_water
+    real(kind=dp) :: sigma_core
+
+    !> Minimum shell thickness
+    real(kind=dp) :: delta_min = 1.6d-10
+    !> sigma_core 
+    real(kind=dp) :: sigma_inorganic = 0.058d0
+    !> sigma_shell 
+    real(kind=dp) :: sigma_shell = 0.03d0
+  
+    
+    !> minimum shell volume, v_delta
+    v_delta = aero_particle_volume(aero_particle) - (((4d0 * const%pi) &
+            / 3d0) * ( aero_particle_radius(aero_particle, aero_data) &
+            - delta_min)**3)
+
+    !> coverage parameter
+    coverage = min(aero_particle_organic_species_volume(aero_particle, &
+                  i_spec_organics) / v_delta, 1d0)
+    
+    !> fraction of water for inorganic core
+    frac_core_water = ((aero_particle_diameter(aero_particle, aero_data) & 
+        - 2d0 * delta_min)**3 - aero_particle_dry_volume(aero_particle, &
+        aero_data)**3) / (aero_particle_diameter(aero_particle, aero_data) &
+        - 2d0 * delta_min)**3
+
+    !> surface tension of inorganic core and water
+    sigma_core = f_core_water * const%water_surf_eng + (1d0 - & 
+                frac_core_water) * sigma_inorganic
+
+    !> calculate effective surface tension value
+    aero_particle_varying_sigma = (1d0 - coverage) * sigma_core + & 
+                coverage * sigma_shell
+
+    end function aero_particle_varying_sigma
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Returns the critical diameter (m).
   !!

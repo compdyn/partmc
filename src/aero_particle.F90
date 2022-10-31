@@ -287,18 +287,32 @@ contains
   end function aero_particle_species_volume
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Organic volume of a single species in the particle (m^3). xtxu, Oct/19/2022
-  elemental real(kind=dp) function aero_particle_organic_species_volume( &
+  !> Organic volume of a single species in the particle (m^3). 
+  real(kind=dp) function aero_particle_organic_volume( &
        aero_particle, aero_data) 
 
     !> Particle.
     type(aero_particle_t), intent(in) :: aero_particle
-    !> Species number to find volume of.
-    integer, intent(in) :: i_spec_organics
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Species names to include in the volume.
+    character(len=6), allocatable :: org_spec(:)
+    ! character(len=*), intent(in) :: include(:)
+    integer :: i_org_spec
+    integer :: n_org_spec
+     
+    org_spec = ["MSA   ", "ARO1  ", "ARO2  ", "ALK1  ", "OLE1  ", &
+                "API1  ", "API2  ", "LIM1  ", "LIM2  ", "OC    "]
 
-    aero_particle_organic_species_volume = aero_particle%vol(i_spec_organics)
+    aero_particle_organic_volume = 0d0 
 
-  end function aero_particle_organic_species_volume
+    do n_org_spec = 1, size(org_spec)
+       i_org_spec = aero_data_spec_by_name(aero_data, org_spec(n_org_spec))
+       aero_particle_organic_volume = aero_particle_organic_volume &
+            + aero_particle%vol(i_org_spec)
+    end do
+
+  end function aero_particle_organic_volume
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Total dry volume of the particle (m^3).
@@ -306,7 +320,7 @@ contains
        aero_data)
 
     !> Particle.
-    type(aero_particle_t), intent(in) :: aero_particle
+    type(aero_particle_t), intent(in) :: aero_particle 
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
 
@@ -828,8 +842,8 @@ contains
             - delta_min)**3)
 
     !> coverage parameter
-    coverage = min(aero_particle_organic_species_volume(aero_particle, &
-                  i_spec_organics) / v_delta, 1d0)
+    coverage = min(aero_particle_organic_volume(aero_particle, &
+                  aero_data) / v_delta, 1d0)
     
     !> fraction of water for inorganic core
     frac_core_water = ((aero_particle_diameter(aero_particle, aero_data) & 

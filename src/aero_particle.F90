@@ -297,7 +297,6 @@ contains
     type(aero_data_t), intent(in) :: aero_data
     !> Species names to include in the volume.
     character(len=6), allocatable :: org_spec(:)
-    ! character(len=*), intent(in) :: include(:)
     integer :: i_org_spec
     integer :: n_org_spec
      
@@ -313,6 +312,33 @@ contains
     end do
 
   end function aero_particle_organic_volume
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> inrganic volume of a single species in the particle (m^3). 
+  real(kind=dp) function aero_particle_inorganic_volume( &
+       aero_particle, aero_data) 
+
+    !> Particle.
+    type(aero_particle_t), intent(in) :: aero_particle
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Species names to include in the volume.
+    character(len=6), allocatable :: inorg_spec(:)
+    integer :: i_inorg_spec
+    integer :: n_inorg_spec
+     
+    inorg_spec = ["SO4   ", "NO3   ", "Cl    ", "NH4   ", "CO3   ", &
+                  "Na    ", "Ca    ", "OIN   ", "BC    "]
+
+    aero_particle_inorganic_volume = 0d0 
+
+    do n_inorg_spec = 1, size(inorg_spec)
+       i_inorg_spec = aero_data_spec_by_name(aero_data, inorg_spec(n_inorg_spec))
+       aero_particle_inorganic_volume = aero_particle_inorganic_volume &
+            + aero_particle%vol(i_inorg_spec)
+    end do
+
+  end function aero_particle_inorganic_volume
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Total dry volume of the particle (m^3).
@@ -835,10 +861,9 @@ contains
     !> sigma_shell 
     real(kind=dp) :: sigma_shell = 0.03d0
   
-    
     !> minimum shell volume, v_delta
     v_delta = aero_particle_volume(aero_particle) - (((4d0 * const%pi) &
-            / 3d0) * ( aero_particle_radius(aero_particle, aero_data) &
+            / 3d0) * (aero_particle_radius(aero_particle, aero_data) &
             - delta_min)**3)
 
     !> coverage parameter
@@ -846,10 +871,13 @@ contains
                   aero_data) / v_delta, 1d0)
     
     !> fraction of water for inorganic core
-    frac_core_water = ((aero_particle_diameter(aero_particle, aero_data) & 
-        - 2d0 * delta_min)**3 - aero_particle_dry_volume(aero_particle, &
-        aero_data)**3) / (aero_particle_diameter(aero_particle, aero_data) &
-        - 2d0 * delta_min)**3
+    !> v_core = D^3/6 - (4*pi/3)*(D/2 - delta_min)^3
+    v_core = aero_particle_volume(aero_particle) - (((4d0 * const%pi) &
+           / 3d0) *  (aero_particle_radius(aero_particle, aero_data) &
+          - delta_min)**3)
+
+    frac_core_water = 1 - aero_particle_inorganic_volume(aero_particle, & 
+          aero_data) / v_core
 
     !> surface tension of inorganic core and water
     sigma_core = f_core_water * const%water_surf_eng + (1d0 - & 

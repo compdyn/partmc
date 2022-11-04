@@ -824,7 +824,7 @@ contains
     !pass this sigma to env_state
 
     sigma = aero_particle_varying_sigma(aero_particle, aero_data)
-    A_varying_sigma = env_state_A_varying_sigma( sigma, env_state)
+    A_varying_sigma = env_state_A_varying_sigma(sigma, env_state)
 
     dry_diam = aero_particle_dry_diameter(aero_particle, aero_data)
     crit_diam = aero_particle_crit_diameter(aero_particle, aero_data, &
@@ -856,9 +856,9 @@ contains
 
     !> Minimum shell thickness
     real(kind=dp) :: delta_min = 1.6d-10
-    !> sigma_core 
+    !> sigma_core
     real(kind=dp) :: sigma_inorganic = 0.058d0
-    !> sigma_shell 
+    !> sigma_shell
     real(kind=dp) :: sigma_shell = 0.03d0
   
     !> minimum shell volume, v_delta
@@ -975,6 +975,57 @@ contains
     aero_particle_crit_diameter = d
 
   end function aero_particle_crit_diameter
+
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Returns the critical diameter (m) for varying simga.
+  real(kind=dp) function aero_particle_crit_diameter_varying_sigma(&
+       aero_particle, aero_data, env_state)
+
+    !> Aerosol particle.
+    type(aero_particle_t), intent(in) :: aero_particle
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+
+    integer, parameter :: CRIT_DIAM_MAX_ITER = 100
+
+    real(kind=dp) :: kappa, dry_diam, A_varying_sigma, c4, c3, & 
+         c0, d, f, df, dd
+    integer :: i_newton
+
+    A_varying_sigma = env_state_A_varying_sigma(sigma, env_state)
+    dry_diam = aero_particle_dry_diameter(aero_particle, aero_data)
+    kappa = aero_particle_solute_kappa(aero_particle, aero_data)
+    if (kappa < 1d-30) then
+       ! bail out early for hydrophobic particles
+      aero_particle_crit_diameter_varying_sigma = dry_diam
+       return
+    end if
+
+    c4 = - 3d0 * dry_diam**3 * kappa / A_varying_sigma
+    c3 = - dry_diam**3 * (2d0 - kappa)
+    c0 = dry_diam**6 * (1d0 - kappa)
+
+    ! Newton's method for f(d) = d^6 + c4 d^4 + c3 d^3 + c0
+    d = max(sqrt(-4d0 / 3d0 * c4), (-c3)**(1d0/3d0))
+    do i_newton = 1,CRIT_DIAM_MAX_ITER
+       f = d**6 + c4 * d**4 + c3 * d**3 + c0
+       df = 6 * d**5 + 4 * c4 * d**3 + 3 * c3 * d**2
+       dd = f / df
+       d = d - dd
+       if (abs(dd / d) < 1d-14) then
+          exit
+       end if
+    end do
+    call warn_assert_msg(408545686, i_newton < CRIT_DIAM_MAX_ITER, &
+         "critical diameter Newton loop failed to converge")
+    call warn_assert_msg(353290871, d >= dry_diam, &
+         "critical diameter Newton loop converged to invalid solution")
+    aero_particle_crit_diameter_varying_sigma = d
+
+  end function aero_particle_crit_diameter_varying_sigma
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

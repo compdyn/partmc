@@ -820,11 +820,11 @@ contains
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
   
-    real(kind=dp) :: kappa, crit_diam, dry_diam, A_varying_sigma, sigma
+    real(kind=dp) :: kappa, crit_diam, dry_diam, A_varying_sigma, varying_sigma
     !pass this sigma to env_state
 
-    sigma = aero_particle_varying_sigma(aero_particle, aero_data)
-    A_varying_sigma = env_state_A_varying_sigma(sigma, env_state)
+    varying_sigma = aero_particle_varying_sigma(aero_particle, aero_data)
+    A_varying_sigma = env_state_A_varying_sigma(varying_sigma, env_state)
 
     dry_diam = aero_particle_dry_diameter(aero_particle, aero_data)
     crit_diam = aero_particle_crit_diameter(aero_particle, aero_data, &
@@ -992,10 +992,10 @@ contains
     integer, parameter :: CRIT_DIAM_MAX_ITER = 100
 
     real(kind=dp) :: kappa, dry_diam, A_varying_sigma, c4, c3, & 
-         c0, d, f, df, dd
+         c0, d, f, df, dd, varying_sigma
     integer :: i_newton
 
-    A_varying_sigma = env_state_A_varying_sigma(sigma, env_state)
+    A_varying_sigma = env_state_A_varying_sigma(varying_sigma, env_state)
     dry_diam = aero_particle_dry_diameter(aero_particle, aero_data)
     kappa = aero_particle_solute_kappa(aero_particle, aero_data)
     if (kappa < 1d-30) then

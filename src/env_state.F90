@@ -189,18 +189,13 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   ! varying sigma 
   !> Condensation \f$A\f$ parameter.
-  real(kind=dp) function env_state_A_varying_sigma(sigma, env_state)
+  real(kind=dp) function env_state_A_varying_sigma(varying_sigma, env_state)
 
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
-    real(kind=dp), intent(in) :: sigma
-    !only pass surface tension here
-    !> Aerosol particle.
-    !type(aero_particle_t), intent(in) :: aero_particle
-    !> Aerosol data.
-    !type(aero_data_t), intent(in) :: aero_data
+    real(kind=dp), intent(in) :: varying_sigma
 
-    env_state_A_varying_sigma = 4d0 * sigma * const%water_molec_weight / & 
+    env_state_A_varying_sigma = 4d0 * varying_sigma * const%water_molec_weight / & 
          (const%univ_gas_const * env_state%temp * const%water_density)
 
   end function env_state_A_varying_sigma

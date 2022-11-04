@@ -199,7 +199,7 @@ contains
     !type(aero_particle_t), intent(in) :: aero_particle
     !> Aerosol data.
     !type(aero_data_t), intent(in) :: aero_data
-    
+
     env_state_A_varying_sigma = 4d0 * sigma * const%water_molec_weight / & 
          (const%univ_gas_const * env_state%temp * const%water_density)
 

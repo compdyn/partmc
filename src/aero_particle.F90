@@ -862,8 +862,9 @@ contains
     real(kind=dp) :: sigma_shell = 0.03d0
   
     !> minimum shell volume, v_delta
-    !> v_delta = (4*pi/3)*(D/2 - delta_min)^3
-    v_delta = ((4d0 * const%pi) / 3d0) * (aero_particle_radius(aero_particle, &
+    !> v_delta = D^3/6 - (4*pi/3)*(D/2 - delta_min)^3
+    v_delta = aero_particle_volume(aero_particle) - ((4d0 * const%pi) &
+                  / 3d0) * (aero_particle_radius(aero_particle, &
                   aero_data) - delta_min)**3
 
     !> coverage parameter
@@ -871,10 +872,9 @@ contains
                   aero_data) / v_delta, 1d0)
     
     !> fraction of water for inorganic core
-    !> v_core = D^3/6 - (4*pi/3)*(D/2 - delta_min)^3
-    v_core = aero_particle_volume(aero_particle) - (((4d0 * const%pi) &
-                 / 3d0) *  (aero_particle_radius(aero_particle, aero_data) &
-                 - delta_min)**3)
+    !> v_core = (4*pi/3)*(D/2 - delta_min)^3
+    v_core = ((4d0 * const%pi) / 3d0) * (aero_particle_radius( & 
+          aero_particle, aero_data) - delta_min)**3
 
     frac_core_water = 1 - aero_particle_inorganic_volume(aero_particle, & 
           aero_data) / v_core

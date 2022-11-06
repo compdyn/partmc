@@ -311,6 +311,12 @@ contains
             + aero_particle%vol(i_org_spec)
     end do
 
+    sigma_shell = 0d0
+    do n_org_spec = 1, size(org_spec)
+      i_org_spec = aero_data_spec_by_name(aero_data, org_spec(n_org_spec))
+      sigmal_shell = sigma_shell + aero_particle%vol(i_org_spec) &
+            * aero_data%sigma(i_org_spec) / aero_particle_organic_volume
+    end do
   end function aero_particle_organic_volume
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -338,6 +344,13 @@ contains
             + aero_particle%vol(i_inorg_spec)
     end do
 
+    sigma_core_without_water = 0d0
+    do n_inorg_spec = 1, size(inorg_spec)
+      i_inorg_spec = aero_data_spec_by_name(aero_data, inorg_spec(n_inorg_spec))
+      sigma_core_without_water = sigma_core_without_water + aero_particle%vol( & 
+            i_inorg_spec) * aero_data%sigma(i_inorg_spec) / & 
+            aero_particle_inorganic_volume
+    end do
   end function aero_particle_inorganic_volume
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -856,32 +869,25 @@ contains
 
     !> Minimum shell thickness
     real(kind=dp) :: delta_min = 1.6d-10
-    !> sigma_core
-    real(kind=dp) :: sigma_inorganic = 0.058d0
-    !> sigma_shell
-    real(kind=dp) :: sigma_shell = 0.03d0
-  
+
+    !> v_core = (4*pi/3)*(D/2 - delta_min)^3
+    v_core = ((4d0 * const%pi) / 3d0) * (aero_particle_radius( & 
+          aero_particle, aero_data) - delta_min)**3
+
     !> minimum shell volume, v_delta
     !> v_delta = D^3/6 - (4*pi/3)*(D/2 - delta_min)^3
-    v_delta = aero_particle_volume(aero_particle) - ((4d0 * const%pi) &
-                  / 3d0) * (aero_particle_radius(aero_particle, &
-                  aero_data) - delta_min)**3
+    v_delta = aero_particle_volume(aero_particle) - v_core
 
     !> coverage parameter
     coverage = min(aero_particle_organic_volume(aero_particle, &
                   aero_data) / v_delta, 1d0)
     
     !> fraction of water for inorganic core
-    !> v_core = (4*pi/3)*(D/2 - delta_min)^3
-    v_core = ((4d0 * const%pi) / 3d0) * (aero_particle_radius( & 
-          aero_particle, aero_data) - delta_min)**3
-
     frac_core_water = 1 - aero_particle_inorganic_volume(aero_particle, & 
           aero_data) / v_core
 
     !> surface tension of inorganic core and water
-    sigma_core = f_core_water * const%water_surf_eng + (1d0 - & 
-                frac_core_water) * sigma_inorganic
+    sigma_core = f_core_water * const%water_surf_eng + sigma_core_without_water
 
     !> calculate effective surface tension value
     aero_particle_varying_sigma = (1d0 - coverage) * sigma_core + & 

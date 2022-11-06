@@ -840,7 +840,7 @@ contains
     A_varying_sigma = env_state_A_varying_sigma(varying_sigma, env_state)
 
     dry_diam = aero_particle_dry_diameter(aero_particle, aero_data)
-    crit_diam = aero_particle_crit_diameter(aero_particle, aero_data, &
+    crit_diam = aero_particle_crit_diameter_varying_sigma(aero_particle, aero_data, &
          env_state)
     kappa = aero_particle_solute_kappa(aero_particle, aero_data)
     if (kappa < 1d-30) then

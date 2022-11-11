@@ -193,8 +193,9 @@ contains
 
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
-    real(kind=dp), intent(in) :: varying_sigma
+    real(kind=dp):: varying_sigma
     
+    varying_sigma = aero_particle_varying_sigma(aero_particle, aero_data)
     env_state_A_varying_sigma = 4d0 * varying_sigma * const%water_molec_weight / & 
          (const%univ_gas_const * env_state%temp * const%water_density)
 

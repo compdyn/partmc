@@ -604,6 +604,14 @@ program process
      dim_name_1="diam", dim_name_2="sc_varying_sigma", unit="m^{-3}")
      call stats_2d_clear(stats_diam_sc_varying_sigma_dist)
 
+     call stats_1d_output_netcdf(stats_sc_dist, ncid, "sc_dist", &
+          dim_name="sc", unit="C")
+     call stats_1d_clear(stats_sc_dist)
+
+     call stats_1d_output_netcdf(stats_sc_varying_sigma_dist, ncid, "sc_varying_sigma_dist", &
+          dim_name="sc", unit="C")
+     call stats_1d_clear(stats_sc_varying_sigma_dist)
+
      call pmc_nc_close(ncid)
   end do
 

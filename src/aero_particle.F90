@@ -861,7 +861,9 @@ contains
     integer :: i_core_spec
     integer :: n_core_spec
     
-    real(kind=dp) :: v_core, r_core, r1, r2, delta_min, v_delta, coverage
+    real(kind=dp) :: v_core, r_core, r1, r2, delta_r, v_delta, coverage
+    !> Minimum shell thickness
+    real(kind=dp) :: delta_min = 1.6d-10
     
     !> calculate inorganic volume
     inorg_spec = ["SO4   ", "NO3   ", "Cl    ", "NH4   ", "CO3   ", &
@@ -901,30 +903,10 @@ contains
 
     v_core = aero_particle_core_volume
     r_core = (3d0 * v_core / 4d0 * const%pi)**(1d0/3d0)
-
-    !> r1 is the radius for dry inorganic core
-    !> r2 is the radius for dry inorganic + orgnaic core
-    r1 = (3d0 * aero_particle_inorganic_volume / 4d0 * const%pi)**(1d0/3d0)
-    r2 = (3d0 * (aero_particle_organic_volume + aero_particle_inorganic_volume) / & 
-                4d0 * const%pi)**(1d0/3d0)
-    !> Minimum shell thickness
-    delta_min = r2 - r1
-
     !> minimum shell volume, v_delta
-    v_delta = (4d0 * const%pi / 3d0) * (r_core + delta_min)**3 - v_core  
+    v_delta = (4d0 * const%pi / 3d0) * (r_core + delta_min)**3 - v_core
 
-    !> coverage parameter
-    coverage = min(aero_particle_organic_volume / v_delta, 1d0)
-    
-    !> calculate sigma for shell 
-    sigma_shell = 0d0
-    do n_shell_spec = 1, size(shell_spec)
-      i_shell_spec = aero_data_spec_by_name(aero_data, shell_spec(n_shell_spec))
-      sigmal_shell = sigma_shell + aero_particle%vol(i_shell_spec) &
-            * aero_data%sigma(i_shell_spec) / v_delta
-    end do
-
-    !> calculate sigma for core
+    !> calculate sigma for core, sigma_core may not need to use, but it is fixed.
     sigma_core = 0d0
     do n_core_spec = 1, size(core_spec)
       i_core_spec = aero_data_spec_by_name(aero_data, core_spec(n_core_spec))
@@ -932,9 +914,59 @@ contains
               aero_data%sigma(i_core_spec) / v_core
     end do
 
-    !> calculate effective surface tension value
-    aero_particle_varying_sigma = (1d0 - coverage) * sigma_core + & 
+
+    !> r1 is the radius for dry inorganic core
+    !> r2 is the radius for dry inorganic + orgnaic core
+    r1 = (3d0 * aero_particle_inorganic_volume / 4d0 * const%pi)**(1d0/3d0)
+    r2 = (3d0 * (aero_particle_organic_volume + aero_particle_inorganic_volume) / & 
+                4d0 * const%pi)**(1d0/3d0)
+    !> shell thickness
+    delta_r = r2 - r1
+
+    if (delta_r/delta_min <= 1d0) then
+        ! use delta_min = 0.16 nm  
+        coverage = aero_particle_organic_volume / v_delta
+
+        !> calculate sigma for shell 
+        sigma_shell = 0d0
+        do n_shell_spec = 1, size(shell_spec)
+          i_shell_spec = aero_data_spec_by_name(aero_data, shell_spec(n_shell_spec))
+          sigmal_shell = sigma_shell + aero_particle%vol(i_shell_spec) &
+                * aero_data%sigma(i_shell_spec) / v_delta
+        end do
+
+        aero_particle_varying_sigma = (1d0 - coverage) * sigma_core + & 
                 coverage * sigma_shell
+
+    else if (aero_particle_organic_volume < v_delta) then
+        ! use delta_min = 0.16 nm  
+        coverage = aero_particle_organic_volume / v_delta
+
+        !> calculate sigma for shell 
+        sigma_shell = 0d0
+        do n_shell_spec = 1, size(shell_spec)
+          i_shell_spec = aero_data_spec_by_name(aero_data, shell_spec(n_shell_spec))
+          sigmal_shell = sigma_shell + aero_particle%vol(i_shell_spec) &
+                * aero_data%sigma(i_shell_spec) / v_delta
+        end do
+
+        aero_particle_varying_sigma = (1d0 - coverage) * sigma_core + & 
+                coverage * sigma_shell
+    else
+        ! v_delta = v_organic
+        ! coverage = 1
+        !> calculate sigma for shell 
+        sigma_shell = 0d0
+        do n_shell_spec = 1, size(shell_spec)
+          i_shell_spec = aero_data_spec_by_name(aero_data, shell_spec(n_shell_spec))
+          sigmal_shell = sigma_shell + aero_particle%vol(i_shell_spec) &
+                * aero_data%sigma(i_shell_spec) / aero_particle_organic_volume
+        end do
+
+        aero_particle_varying_sigma = sigma_shell
+    end if
+
+
     write(*, *) aero_particle_varying_sigma
   end function aero_particle_varying_sigma
   

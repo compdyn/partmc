@@ -756,46 +756,38 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Organic volume of a single species in the particle (m^3). 
-  real(kind=dp) function aero_particle_organic_volume( &
-       aero_particle, aero_data) 
-
-    !> Particle.
-    type(aero_particle_t), intent(in) :: aero_particle
-    !> Aerosol data.
-    type(aero_data_t), intent(in) :: aero_data
-    !> Species names to include in the volume.
-    character(len=6), allocatable :: org_spec(:)
-    integer :: i_org_spec
-    integer :: n_org_spec
-     
-    org_spec = ["MSA   ", "ARO1  ", "ARO2  ", "ALK1  ", "OLE1  ", &
-                "API1  ", "API2  ", "LIM1  ", "LIM2  ", "OC    "]
-
-    aero_particle_organic_volume = 0d0 
-    
-    do n_org_spec = 1, size(org_spec)
-       i_org_spec = aero_data_spec_by_name(aero_data, org_spec(n_org_spec))
-       aero_particle_organic_volume = aero_particle_organic_volume &
-            + aero_particle%vol(i_org_spec)
-    end do
-
-    ! sigma_shell = 0d0
-    ! do n_org_spec = 1, size(org_spec)
-    !   i_org_spec = aero_data_spec_by_name(aero_data, org_spec(n_org_spec))
-    !   sigmal_shell = sigma_shell + aero_particle%vol(i_org_spec) &
-    !         * aero_data%sigma(i_org_spec) / v_delta
-    ! end do
-  end function aero_particle_organic_volume
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> inrganic volume of a single species in the particle (m^3). 
-  ! real(kind=dp) function aero_particle_inorganic_volume( &
-  !      aero_particle, aero_data) 
+  ! !> Organic volume of a single species in the particle (m^3). 
+  ! real(kind=dp) function aero_particle_organic_volume(aero_particle, aero_data) 
 
   !   !> Particle.
   !   type(aero_particle_t), intent(in) :: aero_particle
   !   !> Aerosol data.
+  !   type(aero_data_t), intent(in) :: aero_data
+  !   !> Species names to include in the volume.
+  !   character(len=6), allocatable :: org_spec(:)
+  !   integer :: i_org_spec
+  !   integer :: n_org_spec
+     
+  !   org_spec = ["MSA   ", "ARO1  ", "ARO2  ", "ALK1  ", "OLE1  ", &
+  !               "API1  ", "API2  ", "LIM1  ", "LIM2  ", "OC    "]
+
+  !   aero_particle_organic_volume = 0d0 
+    
+  !   do n_org_spec = 1, size(org_spec)
+  !      i_org_spec = aero_data_spec_by_name(aero_data, org_spec(n_org_spec))
+  !      aero_particle_organic_volume = aero_particle_organic_volume &
+  !           + aero_particle%vol(i_org_spec)
+  !   end do
+    
+  ! end function aero_particle_organic_volume
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> inrganic volume of a single species in the particle (m^3). 
+  ! real(kind=dp) function aero_particle_inorganic_volume(aero_particle, aero_data) 
+
+  !   !> Particle.
+  !   type(aero_particle_t), intent(in) :: aero_particle
+  !   !> Aerosol data.ls
   !   type(aero_data_t), intent(in) :: aero_data
   !   !> Species names to include in the volume.
   !   character(len=6), allocatable :: inorg_spec(:)
@@ -813,17 +805,143 @@ contains
   !           + aero_particle%vol(i_inorg_spec)
   !   end do
 
-  !   sigma_core_without_water = 0d0
-  !   do n_inorg_spec = 1, size(inorg_spec)
-  !     i_inorg_spec = aero_data_spec_by_name(aero_data, inorg_spec(n_inorg_spec))
-  !     sigma_core_without_water = sigma_core_without_water + aero_particle%vol( & 
-  !           i_inorg_spec) * aero_data%sigma(i_inorg_spec) / v_core
-  !   end do
   ! end function aero_particle_inorganic_volume
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  ! !> core volume of  the particle (m^3). 
+  ! real(kind=dp) function aero_particle_core_volume(aero_particle, aero_data) 
+
+  !   !> Particle.
+  !   type(aero_particle_t), intent(in) :: aero_particle
+  !   !> Aerosol data.ls
+  !   type(aero_data_t), intent(in) :: aero_data
+  !   !> Species names to include in the volume.
+  !   character(len=6), allocatable :: core_spec(:)
+  !   integer :: i_core_spec
+  !   integer :: n_core_spec
+     
+  !   core_spec = ["SO4   ", "NO3   ", "Cl    ", "NH4   ", "CO3   ", &
+  !                "Na    ", "Ca    ", "OIN   ", "BC    ", "H2O   "]
+
+  !   aero_particle_core_volume = 0d0 
+
+  !   do n_core_spec = 1, size(core_spec)
+  !      i_core_spec = aero_data_spec_by_name(aero_data, core_spec(n_core_spec))
+  !      aero_particle_core_volume = aero_particle_core_volume &
+  !           + aero_particle%vol(i_core_spec)
+  !   end do
+
+  !   sigma_core = 0d0
+  !   do n_core_spec = 1, size(core_spec)
+  !     i_core_spec = aero_data_spec_by_name(aero_data, core_spec(n_core_spec))
+  !     sigma_core = sigma_core + aero_particle%vol(i_core_spec) * &
+  !             aero_data%sigma(i_core_spec) / v_core
+  !   end do
+
+  ! end function aero_particle_core_volume
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+ 
+  !> Returns the varying sigma.
+  real(kind=dp) function aero_particle_varying_sigma(aero_particle, aero_data)
+
+    !> Aerosol particle.
+    type(aero_particle_t), intent(in) :: aero_particle
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> inorganic species names to include in the volume.
+    character(len=6), allocatable :: inorg_spec(:)
+    integer :: i_inorg_spec
+    integer :: n_inorg_spec
+    !> shell species names to include in the volume.
+    character(len=6), allocatable :: shell_spec(:)
+    integer :: i_shell_spec
+    integer :: n_shell_spec
+    !> core/organic species names to include in the volume.
+    character(len=6), allocatable :: core_spec(:)
+    integer :: i_core_spec
+    integer :: n_core_spec
+    
+    real(kind=dp) :: v_core, r_core, r1, r2, delta_min, v_delta, coverage
+    
+    !> calculate inorganic volume
+    inorg_spec = ["SO4   ", "NO3   ", "Cl    ", "NH4   ", "CO3   ", &
+                  "Na    ", "Ca    ", "OIN   ", "BC    "]
+
+    aero_particle_inorganic_volume = 0d0 
+
+    do n_inorg_spec = 1, size(inorg_spec)
+       i_inorg_spec = aero_data_spec_by_name(aero_data, inorg_spec(n_inorg_spec))
+       aero_particle_inorganic_volume = aero_particle_inorganic_volume &
+            + aero_particle%vol(i_inorg_spec)
+    end do
+
+    !> calculate organic volume
+    shell_spec = ["MSA   ", "ARO1  ", "ARO2  ", "ALK1  ", "OLE1  ", &
+                  "API1  ", "API2  ", "LIM1  ", "LIM2  ", "OC    "]
+
+    aero_particle_organic_volume = 0d0 
+    
+    do n_shell_spec = 1, size(shell_spec)
+       i_shell_spec = aero_data_spec_by_name(aero_data, shell_spec(n_shell_spec))
+       aero_particle_organic_volume = aero_particle_organic_volume &
+            + aero_particle%vol(i_shell_spec)
+    end do
+
+    !> calculate core volume
+    core_spec = ["SO4   ", "NO3   ", "Cl    ", "NH4   ", "CO3   ", &
+                 "Na    ", "Ca    ", "OIN   ", "BC    ", "H2O   "]
+
+    aero_particle_core_volume = 0d0 
+
+    do n_core_spec = 1, size(core_spec)
+       i_core_spec = aero_data_spec_by_name(aero_data, core_spec(n_core_spec))
+       aero_particle_core_volume = aero_particle_core_volume &
+            + aero_particle%vol(i_core_spec)
+    end do    
+
+    v_core = aero_particle_core_volume
+    r_core = (3d0 * v_core / 4d0 * const%pi)**(1d0/3d0)
+
+    !> r1 is the radius for dry inorganic core
+    !> r2 is the radius for dry inorganic + orgnaic core
+    r1 = (3d0 * aero_particle_inorganic_volume / 4d0 * const%pi)**(1d0/3d0)
+    r2 = (3d0 * (aero_particle_organic_volume + aero_particle_inorganic_volume) / & 
+                4d0 * const%pi)**(1d0/3d0)
+    !> Minimum shell thickness
+    delta_min = r2 - r1
+
+    !> minimum shell volume, v_delta
+    v_delta = (4d0 * const%pi / 3d0) * (r_core + delta_min)**3 - v_core  
+
+    !> coverage parameter
+    coverage = min(aero_particle_organic_volume / v_delta, 1d0)
+    
+    !> calculate sigma for shell 
+    sigma_shell = 0d0
+    do n_shell_spec = 1, size(shell_spec)
+      i_shell_spec = aero_data_spec_by_name(aero_data, shell_spec(n_shell_spec))
+      sigmal_shell = sigma_shell + aero_particle%vol(i_shell_spec) &
+            * aero_data%sigma(i_shell_spec) / v_delta
+    end do
+
+    !> calculate sigma for core
+    sigma_core = 0d0
+    do n_core_spec = 1, size(core_spec)
+      i_core_spec = aero_data_spec_by_name(aero_data, core_spec(n_core_spec))
+      sigma_core = sigma_core + aero_particle%vol(i_core_spec) * &
+              aero_data%sigma(i_core_spec) / v_core
+    end do
+
+    !> calculate effective surface tension value
+    aero_particle_varying_sigma = (1d0 - coverage) * sigma_core + & 
+                coverage * sigma_shell
+    write(*, *) aero_particle_varying_sigma
+  end function aero_particle_varying_sigma
+  
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Returns the critical relative humidity (1).
   real(kind=dp) function aero_particle_crit_rel_humid_varying_sigma(aero_particle, &
-       aero_data, env_state)
+    aero_data, env_state)
 
     !> Aerosol particle.
     type(aero_particle_t), intent(in) :: aero_particle
@@ -831,24 +949,21 @@ contains
     type(aero_data_t), intent(in) :: aero_data
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
-  
-    real(kind=dp) :: kappa, crit_diam, dry_diam, A_varying_sigma!, varying_sigma
-    !pass this sigma to env_state
 
-    ! varying_sigma = aero_particle_varying_sigma(aero_particle, aero_data)
-    ! A_varying_sigma = env_state_A_varying_sigma(aero_particle, aero_data, env_state)
+    real(kind=dp) :: kappa, crit_diam, dry_diam, A_varying_sigma
+    !pass this sigma to env_state
     
     A_varying_sigma = 4d0 * aero_particle_varying_sigma(aero_particle, aero_data) &
-         * const%water_molec_weight / (const%univ_gas_const * env_state%temp & 
-         * const%water_density)
+          * const%water_molec_weight / (const%univ_gas_const * env_state%temp & 
+          * const%water_density)
 
     dry_diam = aero_particle_dry_diameter(aero_particle, aero_data)
     crit_diam = aero_particle_crit_diameter_varying_sigma(aero_particle, aero_data, &
-         env_state)
+          env_state)
     kappa = aero_particle_solute_kappa(aero_particle, aero_data)
     if (kappa < 1d-30) then
       aero_particle_crit_rel_humid_varying_sigma = exp(A_varying_sigma &
-       / crit_diam)
+        / crit_diam)
     else
       aero_particle_crit_rel_humid_varying_sigma = (crit_diam**3 - dry_diam**3) &
             / (crit_diam**3 - dry_diam**3 * (1 - kappa)) * & 
@@ -857,90 +972,7 @@ contains
 
   end function aero_particle_crit_rel_humid_varying_sigma
 
-  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Returns the varying sigma.
-  real(kind=dp) function aero_particle_varying_sigma(aero_particle, aero_data)
-
-    !> Aerosol particle.
-    type(aero_particle_t), intent(in) :: aero_particle
-    !> Aerosol data.
-    type(aero_data_t), intent(in) :: aero_data
-
-    real(kind=dp) :: v_core, v_delta, coverage, shell
-    
-    character(len=6), allocatable :: shell_spec(:)
-    character(len=6), allocatable :: core_spec(:)
-    integer :: i_shell_spec
-    integer :: n_shell_spec
-    integer :: i_core_spec
-    integer :: n_core_spec
-
-    !> Minimum shell thickness
-    real(kind=dp) :: delta_min = 1.6d-10
-
-    !> v_core = (4*pi/3)*(D/2 - delta_min)^3
-    v_core = ((4d0 * const%pi) / 3d0) * (aero_particle_diameter(aero_particle, &
-          aero_data) / 2d0 - delta_min)**3
-
-    !> minimum shell volume, v_delta
-    !> v_delta = D^3/6 - (4*pi/3)*(D/2 - delta_min)^3 = D^3/6 - v_core
-    v_delta = aero_particle_volume(aero_particle) - v_core
-
-    !> coverage parameter
-    coverage = min(aero_particle_organic_volume(aero_particle, &
-                  aero_data) / v_delta, 1d0)
-    
-    write(*,*) aero_particle_volume(aero_particle) / & 
-               (v_core + aero_particle_organic_volume(aero_particle, aero_data))
-
-    ! shell = aero_particle_diameter(aero_particle, aero_data) / 2d0 - &
-    !         ((aero_particle_diameter(aero_particle, aero_data))**3 - &
-    !         3*aero_particle_organic_volume(aero_particle, aero_data)/(4*const%pi))**(1d0/3d0)
-    ! write(*,*) shell
-
-    ! write(*, *) (aero_particle_diameter(aero_particle, aero_data) / 2d0)/ delta_min
-    ! write(*,*) aero_particle_organic_volume(aero_particle, aero_data) / v_delta
-
-    shell_spec = ["MSA   ", "ARO1  ", "ARO2  ", "ALK1  ", "OLE1  ", &
-                  "API1  ", "API2  ", "LIM1  ", "LIM2  ", "OC    "]  
-    
-    sigma_shell = 0d0
-    do n_shell_spec = 1, size(shell_spec)
-      i_shell_spec = aero_data_spec_by_name(aero_data, shell_spec(n_shell_spec))
-      sigmal_shell = sigma_shell + aero_particle%vol(i_shell_spec) &
-            * aero_data%sigma(i_shell_spec) / v_delta
-      ! write(*,"(E24.3)") "sigma_shell = ", sigma_shell
-      ! write(*,*) "sigma_species = ", aero_data%sigma(i_shell_spec)
-      ! write(*,*) "species", "species_sequence", "species_volume", "species_sigma"
-      ! write(*,*) shell_spec(n_shell_spec), i_shell_spec, aero_particle%vol(i_shell_spec), &
-      !            aero_data%sigma(i_shell_spec)
-    end do
-    ! write(*,*) "sigma_shell", sigma_shell
-
-    core_spec = ["H2O   ", "SO4   ", "NO3   ", "Cl    ", "NH4   ", &
-                  "CO3   ", "Na    ", "Ca    ", "OIN   ", "BC    "]
-
-    sigma_core = 0d0
-    do n_core_spec = 1, size(core_spec)
-      i_core_spec = aero_data_spec_by_name(aero_data, core_spec(n_core_spec))
-      sigma_core = sigma_core + aero_particle%vol(i_core_spec) * &
-              aero_data%sigma(i_core_spec) / v_core
-    end do
-    ! write(*,*) "sigma_core", sigma_core
-    !> fraction of water for inorganic core
-    !frac_core_water = 1 - aero_particle_inorganic_volume(aero_particle, & 
-    !      aero_data) / v_core
-
-    !> surface tension of inorganic core and water
-    !sigma_core = f_core_water * const%water_surf_eng + sigma_core_without_water
-
-    !> calculate effective surface tension value
-    aero_particle_varying_sigma = (1d0 - coverage) * sigma_core + & 
-                coverage * sigma_shell
-
-    end function aero_particle_varying_sigma
-  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Returns the critical diameter (m).
   !!
@@ -1044,10 +1076,9 @@ contains
     integer, parameter :: CRIT_DIAM_MAX_ITER = 100
 
     real(kind=dp) :: kappa, dry_diam, A_varying_sigma, c4, c3, & 
-         c0, d, f, df, dd!, varying_sigma
+         c0, d, f, df, dd
     integer :: i_newton
 
-    ! A_varying_sigma = env_state_A_varying_sigma(aero_particle, aero_data, env_state)
     A_varying_sigma = 4d0 * aero_particle_varying_sigma(aero_particle, aero_data) &
           * const%water_molec_weight / (const%univ_gas_const * env_state%temp & 
           * const%water_density)

@@ -24,7 +24,7 @@ $D_{i,\rm dry}$        & \rr dry diameter of particle $i$                       
 $D_i$                  & \rr diameter of particle $i$                                           & dynamic       & $\rm m$                               & \rr                                                \tn
 $\dot{D}_i$            & \rr rate of change of $D_i$                                            & function      & $\rm m \, s^{-1}$                     & \rr eq.~\ref{eq:Ddot}                              \tn
 $\delta_i^*$           & \rr growth parameter of particle $i$                                   & function      & $1$                                   & \rr eq.~\ref{eq:delta_star}                        \tn
-$g_i$                  & \rr equilibriation function of particle $i$                            & function      & $\rm J \, m^{-1} \, s^{-1} \, K^{-1}$ & \rr eq.~\ref{eq:g}                                 \tn
+$g_i$                  & \rr equilibration function of particle $i$                             & function      & $\rm J \, m^{-1} \, s^{-1} \, K^{-1}$ & \rr eq.~\ref{eq:g}                                 \tn
 $H$                    & \rr environmental relative humidity                                    & dynamic       & $1$                                   &                                                    \tn
 $\dot{H}$              & \rr rate of change of $H$                                              & function      & $\rm s^{-1}$                          & \rr eq.~\ref{eq:Hdot}                              \tn
 $\dot{H}_i$            & \rr rate of change of $H$ due to particle $i$                          & function      & $\rm s^{-1}$                          & \rr eq.~\ref{eq:Hdot_i}                            \tn
@@ -180,7 +180,7 @@ If $D_i < D_{i,\rm dry}$ then we take
   \frac{\partial \dot{H}_i}{\partial H}(D_i,H) &= - \frac{2\pi}{V(T) V_{i,\rm comp}(T,p)} D_{i,\rm dry}^2 \frac{\partial \dot{D}_i}{\partial H}(D_i,H)
 \end{align}
 
-For equilibriation:
+For equilibration:
 \begin{align}
   g_i(D_i, H) &= h_i(0, D_i, H) \label{eq:g} \\
   &= H - a_{{\rm w},i}(D_i) \exp\biggl(\frac{X}{D_i}\biggr) \displaybreak[0] \\

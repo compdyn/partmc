@@ -47,6 +47,9 @@
 /** \brief Result code indicating failure in setting the preconditioner.
  */
 #define PMC_CONDENSE_SOLVER_LINSOL_PREC    10
+/** \brief Result code indicating failure to allocate the SUNDIALS Context.
+ */
+#define PMC_CONDENSE_SOLVER_INIT_SUNDIALS  11
 
 static int condense_vf(realtype t, N_Vector y, N_Vector ydot, void *user_data);
 
@@ -88,11 +91,26 @@ int condense_solver(int neq, double *x_f, double *abstol_f, double reltol_f,
 	y = abstol = NULL;
 	cvode_mem = NULL;
 
+#if SUNDIALS_VERSION_MAJOR >= 6
+	SUNContext sunctx = NULL;
+	flag = SUNContext_Create(NULL, &sunctx);
+	if (condense_check_flag(&flag, "SUNContext_Create", 1))
+                return PMC_CONDENSE_SOLVER_INIT_SUNDIALS;
+#endif
+
+#if SUNDIALS_VERSION_MAJOR >= 6
+	y = N_VNew_Serial(neq, sunctx);
+#else
 	y = N_VNew_Serial(neq);
+#endif
 	if (condense_check_flag((void *)y, "N_VNew_Serial", 0))
                 return PMC_CONDENSE_SOLVER_INIT_Y;
 
+#if SUNDIALS_VERSION_MAJOR >= 6
+	abstol = N_VNew_Serial(neq, sunctx);
+#else
 	abstol = N_VNew_Serial(neq);
+#endif
 	if (condense_check_flag((void *)abstol, "N_VNew_Serial", 0))
                 return PMC_CONDENSE_SOLVER_INIT_ABSTOL;
 
@@ -107,7 +125,11 @@ int condense_solver(int neq, double *x_f, double *abstol_f, double reltol_f,
 	t_initial = t_initial_f;
 	t_final = t_final_f;
 
+#if SUNDIALS_VERSION_MAJOR >= 6
+	cvode_mem = CVodeCreate(CV_BDF, sunctx);
+#else
 	cvode_mem = CVodeCreate(CV_BDF);
+#endif
 	if (condense_check_flag((void *)cvode_mem, "CVodeCreate", 0))
                 return PMC_CONDENSE_SOLVER_INIT_CVODE_MEM;
 
@@ -124,14 +146,18 @@ int condense_solver(int neq, double *x_f, double *abstol_f, double reltol_f,
                 return PMC_CONDENSE_SOLVER_SET_MAX_STEPS;
 
 
-        SUNLinearSolver LS = SUNLinSol_SPGMR(y, PREC_LEFT, 0);
-        if (condense_check_flag((void *)LS, "SUNLinSol_SPGMR", 0))
+#if SUNDIALS_VERSION_MAJOR >= 6
+	SUNLinearSolver LS = SUNLinSol_SPGMR(y, PREC_LEFT, 0, sunctx);
+#else
+	SUNLinearSolver LS = SUNLinSol_SPGMR(y, PREC_LEFT, 0);
+#endif
+	if (condense_check_flag((void *)LS, "SUNLinSol_SPGMR", 0))
                 return PMC_CONDENSE_SOLVER_LINSOL_CTOR;
 	flag = CVodeSetLinearSolver(cvode_mem, LS, NULL);
-        if (condense_check_flag(&flag, "CVodeSetLinearSolver", 1))
+	if (condense_check_flag(&flag, "CVodeSetLinearSolver", 1))
                 return PMC_CONDENSE_SOLVER_LINSOL_SET;
 	flag = CVodeSetPreconditioner(cvode_mem, NULL, condense_solver_Solve);
-        if (condense_check_flag(&flag, "CVodeSetPreconditioner", 1))
+	if (condense_check_flag(&flag, "CVodeSetPreconditioner", 1))
                 return PMC_CONDENSE_SOLVER_LINSOL_PREC;
 
 	t = t_initial;
@@ -146,6 +172,9 @@ int condense_solver(int neq, double *x_f, double *abstol_f, double reltol_f,
 	N_VDestroy_Serial(y);
 	N_VDestroy_Serial(abstol);
 	CVodeFree(&cvode_mem);
+#if SUNDIALS_VERSION_MAJOR >= 6
+	SUNContext_Free(&sunctx);
+#endif
 	return PMC_CONDENSE_SOLVER_SUCCESS;
 }
 

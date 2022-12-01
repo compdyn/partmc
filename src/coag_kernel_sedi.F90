@@ -16,6 +16,7 @@
 !> Gravitational sedimentation coagulation kernel.
 module pmc_coag_kernel_sedi
 
+  use pmc_sys
   use pmc_env_state
   use pmc_constants
   use pmc_aero_data
@@ -279,7 +280,7 @@ contains
        ec = min(ek, 1d0)
     end if
 
-    if (ec .lt. 1d-20) stop 99
+    if (ec .lt. 1d-20) call pmc_stop(99)
 
   end subroutine effic
 

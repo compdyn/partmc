@@ -511,6 +511,7 @@ contains
     integer :: i, total_size
     logical :: is_allocated
 
+    total_size = 0
     is_allocated = allocated(val)
     if (is_allocated) then
        total_size = pmc_mpi_pack_size_integer(size(val))

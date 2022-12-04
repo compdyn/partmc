@@ -746,14 +746,45 @@ contains
          env_state)
     kappa = aero_particle_solute_kappa(aero_particle, aero_data)
     if (kappa < 1d-30) then
-       aero_particle_crit_rel_humid = exp(A / crit_diam)
+       aero_particle_crit_rel_humid = exp(A * const%water_surf_eng / crit_diam)
     else
        aero_particle_crit_rel_humid = (crit_diam**3 - dry_diam**3) &
-            / (crit_diam**3 - dry_diam**3 * (1 - kappa)) * exp(A / crit_diam)
+            / (crit_diam**3 - dry_diam**3 * (1 - kappa)) * exp(A * & 
+            const%water_surf_eng / crit_diam)
     end if
 
   end function aero_particle_crit_rel_humid
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  !> Returns the critical relative humidity (1).
+  real(kind=dp) function aero_particle_crit_rel_humid_varying_sigma(aero_particle, &
+    aero_data, env_state)
+
+    !> Aerosol particle.
+    type(aero_particle_t), intent(in) :: aero_particle
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+
+    real(kind=dp) :: kappa, crit_diam, dry_diam, A, varying_sigma
+    
+    A = env_state_A(env_state)
+    varying_sigma = aero_particle_varying_sigma(aero_particle, aero_data)
+    dry_diam = aero_particle_dry_diameter(aero_particle, aero_data)
+    crit_diam = aero_particle_crit_diameter_varying_sigma(aero_particle, aero_data, &
+          env_state)
+    kappa = aero_particle_solute_kappa(aero_particle, aero_data)
+    if (kappa < 1d-30) then
+      aero_particle_crit_rel_humid_varying_sigma = exp(A * varying_sigma &
+        / crit_diam)
+    else
+      aero_particle_crit_rel_humid_varying_sigma = (crit_diam**3 - dry_diam**3) &
+            / (crit_diam**3 - dry_diam**3 * (1 - kappa)) * & 
+            exp(A * varying_sigma / crit_diam)
+    end if
+
+  end function aero_particle_crit_rel_humid_varying_sigma
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   ! !> Organic volume of a single species in the particle (m^3). 
@@ -969,40 +1000,6 @@ contains
 
     write(*, *) aero_particle_varying_sigma
   end function aero_particle_varying_sigma
-  
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !> Returns the critical relative humidity (1).
-  real(kind=dp) function aero_particle_crit_rel_humid_varying_sigma(aero_particle, &
-    aero_data, env_state)
-
-    !> Aerosol particle.
-    type(aero_particle_t), intent(in) :: aero_particle
-    !> Aerosol data.
-    type(aero_data_t), intent(in) :: aero_data
-    !> Environment state.
-    type(env_state_t), intent(in) :: env_state
-
-    real(kind=dp) :: kappa, crit_diam, dry_diam, A_varying_sigma
-    !pass this sigma to env_state
-    
-    A_varying_sigma = 4d0 * aero_particle_varying_sigma(aero_particle, aero_data) &
-          * const%water_molec_weight / (const%univ_gas_const * env_state%temp & 
-          * const%water_density)
-
-    dry_diam = aero_particle_dry_diameter(aero_particle, aero_data)
-    crit_diam = aero_particle_crit_diameter_varying_sigma(aero_particle, aero_data, &
-          env_state)
-    kappa = aero_particle_solute_kappa(aero_particle, aero_data)
-    if (kappa < 1d-30) then
-      aero_particle_crit_rel_humid_varying_sigma = exp(A_varying_sigma &
-        / crit_diam)
-    else
-      aero_particle_crit_rel_humid_varying_sigma = (crit_diam**3 - dry_diam**3) &
-            / (crit_diam**3 - dry_diam**3 * (1 - kappa)) * & 
-            exp(A_varying_sigma / crit_diam)
-    end if
-
-  end function aero_particle_crit_rel_humid_varying_sigma
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -1069,7 +1066,7 @@ contains
        return
     end if
 
-    c4 = - 3d0 * dry_diam**3 * kappa / A
+    c4 = - 3d0 * dry_diam**3 * kappa / (A * const%water_surf_eng)
     c3 = - dry_diam**3 * (2d0 - kappa)
     c0 = dry_diam**6 * (1d0 - kappa)
 
@@ -1107,13 +1104,13 @@ contains
 
     integer, parameter :: CRIT_DIAM_MAX_ITER = 100
 
-    real(kind=dp) :: kappa, dry_diam, A_varying_sigma, c4, c3, & 
+    real(kind=dp) :: kappa, dry_diam, A, c4, c3, & 
          c0, d, f, df, dd
     integer :: i_newton
 
-    A_varying_sigma = 4d0 * aero_particle_varying_sigma(aero_particle, aero_data) &
-          * const%water_molec_weight / (const%univ_gas_const * env_state%temp & 
-          * const%water_density)
+    A = env_state_A(env_state)
+    varying_sigma = aero_particle_varying_sigma(aero_particle, aero_data)
+
     dry_diam = aero_particle_dry_diameter(aero_particle, aero_data)
     kappa = aero_particle_solute_kappa(aero_particle, aero_data)
     if (kappa < 1d-30) then
@@ -1122,7 +1119,7 @@ contains
        return
     end if
 
-    c4 = - 3d0 * dry_diam**3 * kappa / A_varying_sigma
+    c4 = - 3d0 * dry_diam**3 * kappa / (A * varying_sigma)
     c3 = - dry_diam**3 * (2d0 - kappa)
     c0 = dry_diam**6 * (1d0 - kappa)
 

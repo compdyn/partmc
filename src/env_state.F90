@@ -181,25 +181,10 @@ contains
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
 
-    env_state_A = 4d0 * const%water_surf_eng * const%water_molec_weight &
+    env_state_A = 4d0 * const%water_molec_weight &
          / (const%univ_gas_const * env_state%temp * const%water_density)
 
   end function env_state_A
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  ! varying sigma 
-  !> Condensation \f$A\f$ parameter.
-  ! real(kind=dp) function env_state_A_varying_sigma(aero_particle, aero_data, env_state)
-
-  !   !> Environment state.
-  !   type(env_state_t), intent(in) :: env_state
-  !   real(kind=dp):: varying_sigma
-    
-  !   varying_sigma = aero_particle_varying_sigma(aero_particle, aero_data)
-  !   env_state_A_varying_sigma = 4d0 * varying_sigma * const%water_molec_weight / & 
-  !        (const%univ_gas_const * env_state%temp * const%water_density)
-
-  ! end function env_state_A_varying_sigma
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Convert (ppb) to (molecules m^{-3}).

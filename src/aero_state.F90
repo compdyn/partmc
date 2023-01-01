@@ -2863,13 +2863,20 @@ v_bulk) then
          aero_data_n_source(aero_data))
     integer :: aero_particle_weight_group(aero_state_n_part(aero_state))
     integer :: aero_particle_weight_class(aero_state_n_part(aero_state))
-    real(kind=dp) :: aero_absorb_cross_sect(aero_state_n_part(aero_state),4)
-    real(kind=dp) :: aero_scatter_cross_sect(aero_state_n_part(aero_state),4)
-    real(kind=dp) :: aero_asymmetry(aero_state_n_part(aero_state),4)
-    real(kind=dp) :: aero_refract_shell_real(aero_state_n_part(aero_state),4)
-    real(kind=dp) :: aero_refract_shell_imag(aero_state_n_part(aero_state),4)
-    real(kind=dp) :: aero_refract_core_real(aero_state_n_part(aero_state),4)
-    real(kind=dp) :: aero_refract_core_imag(aero_state_n_part(aero_state),4)
+    integer, parameter :: n_swbands = 5
+    real(kind=dp) :: aero_absorb_cross_sect(aero_state_n_part(aero_state), &
+         n_swbands)
+    real(kind=dp) :: aero_scatter_cross_sect(aero_state_n_part(aero_state), &
+         n_swbands)
+    real(kind=dp) :: aero_asymmetry(aero_state_n_part(aero_state), n_swbands)
+    real(kind=dp) :: aero_refract_shell_real(aero_state_n_part(aero_state), &
+         n_swbands)
+    real(kind=dp) :: aero_refract_shell_imag(aero_state_n_part(aero_state), &
+         n_swbands)
+    real(kind=dp) :: aero_refract_core_real(aero_state_n_part(aero_state), &
+         n_swbands)
+    real(kind=dp) :: aero_refract_core_imag(aero_state_n_part(aero_state), &
+         n_swbands)
     real(kind=dp) :: aero_core_vol(aero_state_n_part(aero_state))
     integer :: aero_water_hyst_leg(aero_state_n_part(aero_state))
     real(kind=dp) :: aero_num_conc(aero_state_n_part(aero_state))
@@ -3559,7 +3566,7 @@ v_bulk) then
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Write the aero particle dimension to the given NetCDF file if it
+  !> Write the number of wavelenght dimension to the given NetCDF file if it
   !> is not already present and in any case return the associated
   !> dimid.
   subroutine aero_state_netcdf_dim_optical_wavelengths(aero_state, ncid, &
@@ -3577,7 +3584,7 @@ v_bulk) then
     integer :: aero_particle_centers(aero_state_n_part(aero_state))
 
     ! try to get the dimension ID
-    status = nf90_inq_dimid(ncid, "optical_wavelenghts", &
+    status = nf90_inq_dimid(ncid, "optical_wavelengths", &
          dimid_optical_wavelengths)
     if (status == NF90_NOERR) return
     if (status /= NF90_EBADDIM) call pmc_nc_check(status)
@@ -3586,16 +3593,10 @@ v_bulk) then
     call pmc_nc_check(nf90_redef(ncid))
 
     call pmc_nc_check(nf90_def_dim(ncid, "optical_wavelengths", &
-         aero_state_n_part(aero_state), dimid_optical_wavelengths))
+         !size(aero_state%apa%particle(1)%scatter_cross_sect), &
+         5, dimid_optical_wavelengths))
 
     call pmc_nc_check(nf90_enddef(ncid))
-
-!    do i_part = 1,aero_state_n_part(aero_state)
-!       aero_particle_centers(i_part) = i_part
-!    end do
-!    call pmc_nc_write_integer_1d(ncid, aero_particle_centers, &
-!         "aero_particle", (/ dimid_aero_particle /), &
-!         description="dummy dimension variable (no useful value)")
 
   end subroutine aero_state_netcdf_dim_optical_wavelengths
 

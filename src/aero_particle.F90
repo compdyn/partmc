@@ -53,6 +53,8 @@ module pmc_aero_particle
      real(kind=dp) :: least_create_time
      !> Last time a constituent was created (s).
      real(kind=dp) :: greatest_create_time
+     !> ice-phase flag
+     logical :: frozen
   end type aero_particle_t
 
   !> Next unique ID number to use for a particle.
@@ -88,6 +90,7 @@ contains
     aero_particle_to%least_create_time = aero_particle_from%least_create_time
     aero_particle_to%greatest_create_time = &
          aero_particle_from%greatest_create_time
+    aero_particle_to%frozen = aero_particle_from%frozen
 
   end subroutine aero_particle_shift
 
@@ -118,6 +121,7 @@ contains
     aero_particle%id = 0
     aero_particle%least_create_time = 0d0
     aero_particle%greatest_create_time = 0d0
+    aero_particle%frozen = .FALSE.
 
   end subroutine aero_particle_zero
 
@@ -884,6 +888,9 @@ contains
     aero_particle_new%greatest_create_time = &
          max(aero_particle_1%greatest_create_time, &
          aero_particle_2%greatest_create_time)
+    aero_particle_new%frozen = aero_particle_1%frozen .OR. &
+            aero_particle_2%frozen
+
 
   end subroutine aero_particle_coagulate
 
@@ -909,7 +916,8 @@ contains
          + pmc_mpi_pack_size_integer(val%water_hyst_leg) &
          + pmc_mpi_pack_size_integer(val%id) &
          + pmc_mpi_pack_size_real(val%least_create_time) &
-         + pmc_mpi_pack_size_real(val%greatest_create_time)
+         + pmc_mpi_pack_size_real(val%greatest_create_time) &
+         + pmc_mpi_pack_size_logical(val%frozen)
 
   end function pmc_mpi_pack_size_aero_particle
 
@@ -943,6 +951,7 @@ contains
     call pmc_mpi_pack_integer(buffer, position, val%id)
     call pmc_mpi_pack_real(buffer, position, val%least_create_time)
     call pmc_mpi_pack_real(buffer, position, val%greatest_create_time)
+    call pmc_mpi_pack_logical(buffer, position, val%frozen)
     call assert(810223998, position - prev_position &
          <= pmc_mpi_pack_size_aero_particle(val))
 #endif
@@ -979,6 +988,7 @@ contains
     call pmc_mpi_unpack_integer(buffer, position, val%id)
     call pmc_mpi_unpack_real(buffer, position, val%least_create_time)
     call pmc_mpi_unpack_real(buffer, position, val%greatest_create_time)
+    call pmc_mpi_unpack_logical(buffer, position, val%frozen)
     call assert(287447241, position - prev_position &
          <= pmc_mpi_pack_size_aero_particle(val))
 #endif

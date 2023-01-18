@@ -148,6 +148,7 @@ if(ENABLE_MPI)
 endif()
 add_test(test_rand ${CMAKE_BINARY_DIR}/test_run/run_test_directory.sh rand)
 add_test(test_sedi ${CMAKE_BINARY_DIR}/test_run/run_test_directory.sh sedi)
+add_test(test_freezing ${CMAKE_BINARY_DIR}/test_run/run_test_directory.sh freezing)
 
 ######################################################################
 # partmc library
@@ -169,6 +170,7 @@ add_library(partmclib src/aero_state.F90 src/integer_varray.F90
   src/netcdf.F90 src/aero_info.F90 src/aero_info_array.F90
   src/nucleate.F90 src/condense.F90 src/fractal.F90 src/chamber.F90
   src/camp_interface.F90 src/photolysis.F90 src/sys.F90
+  src/freezing.F90
   ${SUNDIALS_SRC} ${GSL_SRC}
   ${C_SORT_SRC})
 

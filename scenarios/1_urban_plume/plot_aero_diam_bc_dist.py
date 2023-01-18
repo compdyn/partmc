@@ -4,6 +4,7 @@ import sys, os
 sys.path.append("../../tool")
 import mpl_helper
 import matplotlib
+import matplotlib.pyplot as plt
 import scipy.io, numpy
 
 for (filename, index) in mpl_helper.get_filename_list('out/', r'urban_plume_([0-9]+)_process\.nc'):
@@ -34,4 +35,5 @@ for (filename, index) in mpl_helper.get_filename_list('out/', r'urban_plume_([0-
     out_filename = "out/urban_plume_diam_bc_dist_%s.pdf" % index
     print("Writing %s" % out_filename)
     figure.savefig(out_filename)
+    #plt.show()
     matplotlib.pyplot.close(figure)

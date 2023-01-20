@@ -155,10 +155,9 @@ coagulation.o: bin_grid.o aero_data.o util.o env_state.o \
 coagulation_dist.o: bin_grid.o aero_data.o util.o env_state.o \
      aero_state.o coagulation.o mpi.o
 
-condense.o: 
+condense.o: aero_state.o env_state.o aero_data.o util.o aero_particle.o constants.o
 
-constants.o: constants.o util.o aero_particle.o aero_data.o aero_state.o \
-     env_state.o
+constants.o:
 
 env_state.o: constants.o util.o spec_file.o mpi.o netcdf.o
 

@@ -32,15 +32,15 @@ module pmc_aero_particle
      !> Weighting function class number (see \c aero_weight_array_t).
      integer :: weight_class
      !> Absorption cross-section (m^2).
-     real(kind=dp) :: absorb_cross_sect
+     real(kind=dp), allocatable :: absorb_cross_sect(:)
      !> Scattering cross-section (m^2).
-     real(kind=dp) :: scatter_cross_sect
+     real(kind=dp), allocatable :: scatter_cross_sect(:)
      !> Asymmetry parameter (1).
-     real(kind=dp) :: asymmetry
+     real(kind=dp), allocatable :: asymmetry(:)
      !> Refractive index of the shell (1).
-     complex(kind=dc) :: refract_shell
+     complex(kind=dc), allocatable :: refract_shell(:)
      !> Refractive index of the core (1).
-     complex(kind=dc) :: refract_core
+     complex(kind=dc), allocatable :: refract_core(:)
      !> Volume of the core (m^3).
      real(kind=dp) :: core_vol
      !> Water hysteresis curve section (0 = lower, 1 = upper)
@@ -76,12 +76,16 @@ contains
     call move_alloc(aero_particle_from%vol, aero_particle_to%vol)
     aero_particle_to%weight_group = aero_particle_from%weight_group
     aero_particle_to%weight_class = aero_particle_from%weight_class
-    aero_particle_to%absorb_cross_sect = aero_particle_from%absorb_cross_sect
-    aero_particle_to%scatter_cross_sect = &
-         aero_particle_from%scatter_cross_sect
-    aero_particle_to%asymmetry = aero_particle_from%asymmetry
-    aero_particle_to%refract_shell = aero_particle_from%refract_shell
-    aero_particle_to%refract_core = aero_particle_from%refract_core
+    call move_alloc(aero_particle_from%absorb_cross_sect, &
+         aero_particle_to%absorb_cross_sect)
+    call move_alloc(aero_particle_from%scatter_cross_sect, &
+         aero_particle_to%scatter_cross_sect)
+    call move_alloc(aero_particle_from%asymmetry, &
+         aero_particle_to%asymmetry)
+    call move_alloc(aero_particle_from%refract_shell, &
+         aero_particle_to%refract_shell)
+    call move_alloc(aero_particle_from%refract_core, &
+         aero_particle_to%refract_core)
     aero_particle_to%core_vol = aero_particle_from%core_vol
     aero_particle_to%water_hyst_leg = aero_particle_from%water_hyst_leg
     aero_particle_to%id = aero_particle_from%id
@@ -103,14 +107,21 @@ contains
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
 
+    integer, parameter :: n_swbands = 5
+
     call ensure_real_array_size(aero_particle%vol, aero_data_n_spec(aero_data))
     aero_particle%vol = 0d0
     aero_particle%weight_group = 0
     aero_particle%weight_class = 0
+    call ensure_real_array_size(aero_particle%absorb_cross_sect, n_swbands)
     aero_particle%absorb_cross_sect = 0d0
+    call ensure_real_array_size(aero_particle%scatter_cross_sect, n_swbands)
     aero_particle%scatter_cross_sect = 0d0
+    call ensure_real_array_size(aero_particle%asymmetry, n_swbands)
     aero_particle%asymmetry = 0d0
+    call ensure_complex_array_size(aero_particle%refract_shell, n_swbands)
     aero_particle%refract_shell = (0d0, 0d0)
+    call ensure_complex_array_size(aero_particle%refract_core, n_swbands)
     aero_particle%refract_core = (0d0, 0d0)
     aero_particle%core_vol = 0d0
     aero_particle%water_hyst_leg = 0
@@ -895,12 +906,19 @@ contains
     integer :: n_comp_1, n_comp_2
     integer :: i, i1, i2, i_new
     type(aero_component_t), allocatable :: new_aero_component(:)
+    integer :: n_swbands
 
     call assert(203741686, size(aero_particle_1%vol) &
          == size(aero_particle_2%vol))
     aero_particle_new%vol = aero_particle_1%vol + aero_particle_2%vol
     aero_particle_new%weight_group = 0
     aero_particle_new%weight_class = 0
+    n_swbands = size(aero_particle_1%absorb_cross_sect)
+    call ensure_real_array_size(aero_particle_new%absorb_cross_sect, n_swbands)
+    call ensure_real_array_size(aero_particle_new%scatter_cross_sect, n_swbands)
+    call ensure_real_array_size(aero_particle_new%asymmetry, n_swbands)
+    call ensure_complex_array_size(aero_particle_new%refract_shell, n_swbands)
+    call ensure_complex_array_size(aero_particle_new%refract_core, n_swbands)
     aero_particle_new%absorb_cross_sect = 0d0
     aero_particle_new%scatter_cross_sect = 0d0
     aero_particle_new%asymmetry = 0d0
@@ -980,11 +998,11 @@ contains
          pmc_mpi_pack_size_real_array(val%vol) &
          + pmc_mpi_pack_size_integer(val%weight_group) &
          + pmc_mpi_pack_size_integer(val%weight_class) &
-         + pmc_mpi_pack_size_real(val%absorb_cross_sect) &
-         + pmc_mpi_pack_size_real(val%scatter_cross_sect) &
-         + pmc_mpi_pack_size_real(val%asymmetry) &
-         + pmc_mpi_pack_size_complex(val%refract_shell) &
-         + pmc_mpi_pack_size_complex(val%refract_core) &
+         + pmc_mpi_pack_size_real_array(val%absorb_cross_sect) &
+         + pmc_mpi_pack_size_real_array(val%scatter_cross_sect) &
+         + pmc_mpi_pack_size_real_array(val%asymmetry) &
+         + pmc_mpi_pack_size_complex_array(val%refract_shell) &
+         + pmc_mpi_pack_size_complex_array(val%refract_core) &
          + pmc_mpi_pack_size_real(val%core_vol) &
          + pmc_mpi_pack_size_integer(val%water_hyst_leg) &
          + pmc_mpi_pack_size_integer64(val%id) &
@@ -1019,11 +1037,11 @@ contains
     call pmc_mpi_pack_real_array(buffer, position, val%vol)
     call pmc_mpi_pack_integer(buffer, position, val%weight_group)
     call pmc_mpi_pack_integer(buffer, position, val%weight_class)
-    call pmc_mpi_pack_real(buffer, position, val%absorb_cross_sect)
-    call pmc_mpi_pack_real(buffer, position, val%scatter_cross_sect)
-    call pmc_mpi_pack_real(buffer, position, val%asymmetry)
-    call pmc_mpi_pack_complex(buffer, position, val%refract_shell)
-    call pmc_mpi_pack_complex(buffer, position, val%refract_core)
+    call pmc_mpi_pack_real_array(buffer, position, val%absorb_cross_sect)
+    call pmc_mpi_pack_real_array(buffer, position, val%scatter_cross_sect)
+    call pmc_mpi_pack_real_array(buffer, position, val%asymmetry)
+    call pmc_mpi_pack_complex_array(buffer, position, val%refract_shell)
+    call pmc_mpi_pack_complex_array(buffer, position, val%refract_core)
     call pmc_mpi_pack_real(buffer, position, val%core_vol)
     call pmc_mpi_pack_integer(buffer, position, val%water_hyst_leg)
     call pmc_mpi_pack_integer64(buffer, position, val%id)
@@ -1060,11 +1078,11 @@ contains
     call pmc_mpi_unpack_real_array(buffer, position, val%vol)
     call pmc_mpi_unpack_integer(buffer, position, val%weight_group)
     call pmc_mpi_unpack_integer(buffer, position, val%weight_class)
-    call pmc_mpi_unpack_real(buffer, position, val%absorb_cross_sect)
-    call pmc_mpi_unpack_real(buffer, position, val%scatter_cross_sect)
-    call pmc_mpi_unpack_real(buffer, position, val%asymmetry)
-    call pmc_mpi_unpack_complex(buffer, position, val%refract_shell)
-    call pmc_mpi_unpack_complex(buffer, position, val%refract_core)
+    call pmc_mpi_unpack_real_array(buffer, position, val%absorb_cross_sect)
+    call pmc_mpi_unpack_real_array(buffer, position, val%scatter_cross_sect)
+    call pmc_mpi_unpack_real_array(buffer, position, val%asymmetry)
+    call pmc_mpi_unpack_complex_array(buffer, position, val%refract_shell)
+    call pmc_mpi_unpack_complex_array(buffer, position, val%refract_core)
     call pmc_mpi_unpack_real(buffer, position, val%core_vol)
     call pmc_mpi_unpack_integer(buffer, position, val%water_hyst_leg)
     call pmc_mpi_unpack_integer64(buffer, position, val%id)

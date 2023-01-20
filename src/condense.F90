@@ -732,7 +732,6 @@ contains
     end do
     call warn_assert_msg(426620001, abs(g) < 1d3 * epsilon(1d0), &
          "convergence problem in equilibriation")
-
     aero_particle%vol(aero_data%i_water) = aero_data_diam2vol(aero_Data, D) &
          - aero_data_diam2vol(aero_data, D_dry)
 
@@ -746,7 +745,7 @@ contains
   subroutine condense_equilib_particles(env_state, aero_data, aero_state)
 
     !> Environment state.
-    type(env_state_t), intent(inout) :: env_state
+    type(env_state_t), intent(in) :: env_state
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
     !> Aerosol state.

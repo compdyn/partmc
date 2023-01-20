@@ -3065,13 +3065,13 @@ contains
     integer, allocatable :: aero_n_orig_part(:,:)
     integer, allocatable :: aero_particle_weight_group(:)
     integer, allocatable :: aero_particle_weight_class(:)
-    real(kind=dp), allocatable :: aero_absorb_cross_sect(:)
-    real(kind=dp), allocatable :: aero_scatter_cross_sect(:)
-    real(kind=dp), allocatable :: aero_asymmetry(:)
-    real(kind=dp), allocatable :: aero_refract_shell_real(:)
-    real(kind=dp), allocatable :: aero_refract_shell_imag(:)
-    real(kind=dp), allocatable :: aero_refract_core_real(:)
-    real(kind=dp), allocatable :: aero_refract_core_imag(:)
+    real(kind=dp), allocatable :: aero_absorb_cross_sect(:,:)
+    real(kind=dp), allocatable :: aero_scatter_cross_sect(:,:)
+    real(kind=dp), allocatable :: aero_asymmetry(:,:)
+    real(kind=dp), allocatable :: aero_refract_shell_real(:,:)
+    real(kind=dp), allocatable :: aero_refract_shell_imag(:,:)
+    real(kind=dp), allocatable :: aero_refract_core_real(:,:)
+    real(kind=dp), allocatable :: aero_refract_core_imag(:,:)
     real(kind=dp), allocatable :: aero_core_vol(:)
     integer, allocatable :: aero_water_hyst_leg(:)
     real(kind=dp), allocatable :: aero_num_conc(:)
@@ -3118,19 +3118,19 @@ contains
          "aero_particle_weight_group")
     call pmc_nc_read_integer_1d(ncid, aero_particle_weight_class, &
          "aero_particle_weight_class")
-    call pmc_nc_read_real_1d(ncid, aero_absorb_cross_sect, &
+    call pmc_nc_read_real_2d(ncid, aero_absorb_cross_sect, &
          "aero_absorb_cross_sect", must_be_present=.false.)
-    call pmc_nc_read_real_1d(ncid, aero_scatter_cross_sect, &
+    call pmc_nc_read_real_2d(ncid, aero_scatter_cross_sect, &
          "aero_scatter_cross_sect", must_be_present=.false.)
-    call pmc_nc_read_real_1d(ncid, aero_asymmetry, &
+    call pmc_nc_read_real_2d(ncid, aero_asymmetry, &
          "aero_asymmetry", must_be_present=.false.)
-    call pmc_nc_read_real_1d(ncid, aero_refract_shell_real, &
+    call pmc_nc_read_real_2d(ncid, aero_refract_shell_real, &
          "aero_refract_shell_real", must_be_present=.false.)
-    call pmc_nc_read_real_1d(ncid, aero_refract_shell_imag, &
+    call pmc_nc_read_real_2d(ncid, aero_refract_shell_imag, &
          "aero_refract_shell_imag", must_be_present=.false.)
-    call pmc_nc_read_real_1d(ncid, aero_refract_core_real, &
+    call pmc_nc_read_real_2d(ncid, aero_refract_core_real, &
          "aero_refract_core_real", must_be_present=.false.)
-    call pmc_nc_read_real_1d(ncid, aero_refract_core_imag, &
+    call pmc_nc_read_real_2d(ncid, aero_refract_core_imag, &
          "aero_refract_core_imag", must_be_present=.false.)
     call pmc_nc_read_real_1d(ncid, aero_core_vol, &
          "aero_core_vol", must_be_present=.false.)
@@ -3161,25 +3161,26 @@ contains
        end do
        aero_particle%weight_group = aero_particle_weight_group(i_part)
        aero_particle%weight_class = aero_particle_weight_class(i_part)
-       if (size(aero_absorb_cross_sect) == n_part) then
-          aero_particle%absorb_cross_sect = aero_absorb_cross_sect(i_part)
+       if (size(aero_absorb_cross_sect, 1) == n_part) then
+          aero_particle%absorb_cross_sect = aero_absorb_cross_sect(i_part, :)
        end if
-       if (size(aero_scatter_cross_sect) == n_part) then
-            aero_particle%scatter_cross_sect = aero_scatter_cross_sect(i_part)
+       if (size(aero_scatter_cross_sect, 1) == n_part) then
+            aero_particle%scatter_cross_sect = &
+                 aero_scatter_cross_sect(i_part, :)
          end if
-       if (size(aero_asymmetry) == n_part) then
-            aero_particle%asymmetry = aero_asymmetry(i_part)
+       if (size(aero_asymmetry, 1) == n_part) then
+            aero_particle%asymmetry = aero_asymmetry(i_part, :)
          end if
-       if ((size(aero_refract_shell_real) == n_part) &
-            .and. (size(aero_refract_shell_imag) == n_part)) then
+       if ((size(aero_refract_shell_real, 1) == n_part) &
+            .and. (size(aero_refract_shell_imag, 1) == n_part)) then
           aero_particle%refract_shell = &
-               cmplx(aero_refract_shell_real(i_part), &
-               aero_refract_shell_imag(i_part), kind=dc)
+               cmplx(aero_refract_shell_real(i_part, :), &
+               aero_refract_shell_imag(i_part, :), kind=dc)
        end if
-       if ((size(aero_refract_core_real) == n_part) &
-            .and. (size(aero_refract_core_imag) == n_part)) then
-          aero_particle%refract_core = cmplx(aero_refract_core_real(i_part), &
-               aero_refract_core_imag(i_part), kind=dc)
+       if ((size(aero_refract_core_real, 1) == n_part) &
+            .and. (size(aero_refract_core_imag, 1) == n_part)) then
+          aero_particle%refract_core = cmplx(aero_refract_core_real( &
+               i_part, :), aero_refract_core_imag(i_part, :), kind=dc)
        end if
        if (size(aero_core_vol) == n_part) then
           aero_particle%core_vol = aero_core_vol(i_part)

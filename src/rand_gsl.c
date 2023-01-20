@@ -150,12 +150,3 @@ int pmc_rand_binomial_gsl(int n, double p, int *harvest)
         *harvest = gsl_ran_binomial(pmc_rand_gsl_rng, p, u);
         return PMC_RAND_GSL_SUCCESS;
 }
-
-int pmc_rand_shuffle_gsl(int *array, int n)
-{
-        if (!pmc_rand_gsl_rng) {
-                return PMC_RAND_GSL_NOT_INIT;
-        }
-        gsl_ran_shuffle(pmc_rand_gsl_rng, array, n, sizeof (int));
-        return PMC_RAND_GSL_SUCCESS;
-}

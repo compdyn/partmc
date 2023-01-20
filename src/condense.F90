@@ -731,7 +731,8 @@ contains
        dg_dD = - daw_dD * exp(X / D) + a_w * exp(X / D) * (X / D**2)
     end do
     call warn_assert_msg(426620001, abs(g) < 1d3 * epsilon(1d0), &
-         "convergence problem in equilibriation")
+         "convergence problem in equilibration")
+
     aero_particle%vol(aero_data%i_water) = aero_data_diam2vol(aero_Data, D) &
          - aero_data_diam2vol(aero_data, D_dry)
 

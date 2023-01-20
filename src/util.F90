@@ -8,6 +8,7 @@
 !> Common utility subroutines.
 module pmc_util
 
+  use pmc_sys
   use pmc_constants
 #ifdef PMC_USE_MPI
   use mpi
@@ -90,7 +91,7 @@ contains
 #ifdef PMC_USE_MPI
        call mpi_abort(MPI_COMM_WORLD, code, ierr)
 #else
-       stop 3
+       call pmc_stop(3)
 #endif
     end if
 
@@ -1822,7 +1823,7 @@ contains
          iostat=ios) read_char
     if (ios /= 0) then
        write(0,*) 'ERROR: reading file: IOSTAT = ', ios
-       stop 2
+       call pmc_stop(2)
     end if
     ! only reach here if we didn't hit end-of-record (end-of-line) in
     ! the above read

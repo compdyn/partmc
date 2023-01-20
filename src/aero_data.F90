@@ -497,13 +497,13 @@ contains
             // trim(aero_data%name(i)) // " in " // trim(file%name))
        if (species_name(i) == "H2O") then
           aero_data%i_water = i
-          call warn_assert_msg(945800387, &
-               aero_data%density(i) == const%water_density, &
+          call warn_assert_msg(945800387, almost_equal(&
+               aero_data%density(i), const%water_density), &
                "input H2O density not equal to const%water_density (" &
                // trim(real_to_string(aero_data%density(i))) // " /= " &
                // trim(real_to_string(const%water_density)) // ")")
-          call warn_assert_msg(233517437, &
-               aero_data%molec_weight(i) == const%water_molec_weight, &
+          call warn_assert_msg(233517437, almost_equal( &
+               aero_data%molec_weight(i),const%water_molec_weight), &
                "input H2O molec_weight not equal " &
                // "to const%water_molec_weight (" &
                // trim(real_to_string(aero_data%molec_weight(i))) // " /= " &

@@ -1284,6 +1284,92 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Returns the total number concentration of wet particles.
+  real(kind=dp) function aero_state_total_num_conc_wet(aero_state, aero_data)
+
+    !> Aerosol state.
+    type(aero_state_t), intent(in) :: aero_state
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+
+    integer :: i_part
+
+    aero_state_total_num_conc_wet = 0d0
+    if (aero_data%i_water > 0) then
+       do i_part = 1,aero_state_n_part(aero_state)
+          if (aero_state%apa%particle(i_part)%vol(aero_data%i_water) > 0d0) &
+               then
+             aero_state_total_num_conc_wet = aero_state_total_num_conc_wet &
+                  + aero_state_particle_num_conc(aero_state, &
+                  aero_state%apa%particle(i_part), aero_data)
+          end if
+       end do
+    end if
+
+  end function aero_state_total_num_conc_wet
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  function aero_state_num_concs_by_source(aero_state, aero_data)
+
+    !> Aerosol state.
+    type(aero_state_t) :: aero_state
+    !> Aerosol data.
+    type(aero_data_t) :: aero_data
+
+    !> Return number concentrations array (m^{-3}).
+    real(kind=dp) :: aero_state_num_concs_by_source( &
+         aero_data_n_source(aero_data))
+
+    real(kind=dp) :: num_concs(aero_state_n_part(aero_state))
+    integer :: i_part, i_source, i_comp
+
+    aero_state_num_concs_by_source = 0d0
+    num_concs =  aero_state_num_concs(aero_state, aero_data)
+    do i_part = 1,aero_state_n_part(aero_state)
+       do i_comp = 1,aero_particle_n_components( &
+            aero_state%apa%particle(i_part))
+          i_source = aero_state%apa%particle(i_part)%component(i_comp)% &
+               source_id
+          aero_state_num_concs_by_source(i_source) = &
+               aero_state_num_concs_by_source(i_source) + num_concs(i_part)
+       end do
+    end do
+
+  end function aero_state_num_concs_by_source
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Returns the number concentration of a given weight group and class.
+  real(kind=dp) function aero_state_group_class_num_conc(aero_state, &
+       aero_data, i_group, i_class)
+
+    !> Aerosol state
+    type(aero_state_t) :: aero_state
+    !> Aerosol data.
+    type(aero_data_t) :: aero_data
+    !> Weight group.
+    integer :: i_group
+    !> Weight class.
+    integer :: i_class
+
+    integer :: i_part, i_entry, n_entry
+
+    aero_state_group_class_num_conc = 0.0d0
+    n_entry =  integer_varray_n_entry( &
+       aero_state%aero_sorted%group_class%inverse(i_group,i_class))
+    do i_entry = 1,n_entry
+       i_part = aero_state%aero_sorted%group_class%inverse(i_group, &
+            i_class)%entry(i_entry)
+       aero_state_group_class_num_conc = aero_state_group_class_num_conc &
+           + aero_state_particle_num_conc(aero_state, &
+            aero_state%apa%particle(i_part), aero_data)
+    end do
+
+  end function aero_state_group_class_num_conc
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Returns the mass-entropies of all particles.
   !!
   !! If \c include is specified then only those species are included

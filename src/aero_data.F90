@@ -27,6 +27,12 @@ module pmc_aero_data
 
   integer, parameter :: AERO_NAME_LEN = 50
   integer, parameter :: AERO_SOURCE_NAME_LEN = 100
+  ! Number of wavelengths to compute optical properties
+#ifdef PMC_USE_WRF
+  integer, parameter :: n_swbands = 5
+#else
+  integer, parameter :: n_swbands = 1
+#endif
 
   !> Aerosol material properties and associated data.
   !!

@@ -2710,7 +2710,6 @@ contains
          aero_data_n_source(aero_data))
     integer :: aero_particle_weight_group(aero_state_n_part(aero_state))
     integer :: aero_particle_weight_class(aero_state_n_part(aero_state))
-    integer, parameter :: n_swbands = 5
     real(kind=dp) :: aero_absorb_cross_sect(aero_state_n_part(aero_state), &
          n_swbands)
     real(kind=dp) :: aero_scatter_cross_sect(aero_state_n_part(aero_state), &
@@ -3441,8 +3440,7 @@ contains
     call pmc_nc_check(nf90_redef(ncid))
 
     call pmc_nc_check(nf90_def_dim(ncid, "optical_wavelengths", &
-         !size(aero_state%apa%particle(1)%scatter_cross_sect), &
-         5, dimid_optical_wavelengths))
+         n_swbands, dimid_optical_wavelengths))
 
     call pmc_nc_check(nf90_enddef(ncid))
 

@@ -512,6 +512,7 @@ contains
     ! work backwards for consistency with mosaic_to_partmc(), which
     ! has specific ordering requirements
     do i_part = aero_state_n_part(aero_state),1,-1
+#ifdef PMC_USE_WRF
        aero_state%apa%particle(i_part)%absorb_cross_sect = (ext_cross(i_part,:) &
             - scat_cross(i_part,:)) / 1d4                       ! (m^2)
        aero_state%apa%particle(i_part)%scatter_cross_sect = &
@@ -523,6 +524,19 @@ contains
             cmplx(ri_core_a(i_part,:), kind=dc) ! (1)
        aero_state%apa%particle(i_part)%core_vol = &
             aero_data_diam2vol(aero_data, dp_core_a(i_part)) / 1d6 ! (m^3)
+#else
+       aero_state%apa%particle(i_part)%absorb_cross_sect = (ext_cross(i_part) &
+            - scat_cross(i_part)) / 1d4                       ! (m^2)
+       aero_state%apa%particle(i_part)%scatter_cross_sect = &
+            scat_cross(i_part) / 1d4 ! (m^2)
+       aero_state%apa%particle(i_part)%asymmetry = asym_particle(i_part) ! (1)
+       aero_state%apa%particle(i_part)%refract_shell = &
+            cmplx(ri_shell_a(i_part), kind=dc) ! (1)
+       aero_state%apa%particle(i_part)%refract_core =&
+            cmplx(ri_core_a(i_part), kind=dc) ! (1)
+       aero_state%apa%particle(i_part)%core_vol = &
+            aero_data_diam2vol(aero_data, dp_core_a(i_part)) / 1d6 ! (m^3)
+#endif
     end do
 #endif
 
@@ -618,9 +632,9 @@ contains
     aH2O = 0.01*RH_pc                         ! aH2O (aerosol water activity)
     P_atm = pr_atm                            ! P(atm)
     T_K = te                                  ! T(K)
-
+#ifdef PMC_USE_WRF
     call aerosol_optical_single_wavelength
-
+#endif
     call mosaic_aero_optical(env_state, aero_data, &
          aero_state, gas_data, gas_state)
 #endif

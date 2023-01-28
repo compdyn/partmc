@@ -3472,83 +3472,11 @@ contains
     !> Sets of species names to group together.
     character(len=*), optional :: groups(:,:)
 
-    real(kind=dp), allocatable :: entropies(:), entropies_of_avg_part(:)
-    real(kind=dp), allocatable :: masses(:), num_concs(:), &
-         num_concs_of_avg_part(:), masses_of_avg_part(:)
-    type(aero_state_t) :: aero_state_averaged
-    type(bin_grid_t) :: avg_bin_grid
+    type(aero_state_t) :: aero_state_size_range
     integer :: i_bin
-    real(kind=dp), allocatable :: dry_diameters(:), dry_diameters_avg(:)
-    logical, allocatable :: is_size_range(:), is_size_range_avg(:)
-
-    logical :: use_species(aero_data_n_spec(aero_data))
-    logical :: group_species(aero_data_n_spec(aero_data))
-    integer :: i_name, i_spec, n_group
-    integer :: species_group_numbers(aero_data_n_spec(aero_data))
-    real(kind=dp) :: group_mass, non_group_mass, mass
-    real(kind=dp), allocatable :: group_masses(:)
-
-    real(kind=dp), allocatable :: bulk_masses(:)
-    integer :: i_part
-    real(kind=dp) :: h_gamma
-
-    ! per-particle masses need to take groups into account
-
-    if (present(include)) then
-       use_species = .false.
-       do i_name = 1, size(include)
-          i_spec = aero_data_spec_by_name(aero_data, include(i_name))
-          call assert_msg(890212002, i_spec > 0, &
-               "unknown species: " // trim(include(i_name)))
-          use_species(i_spec) = .true.
-       end do
-    else
-       use_species = .true.
-    end if
-    if (present(exclude)) then
-       do i_name = 1, size(exclude)
-          i_spec = aero_data_spec_by_name(aero_data, exclude(i_name))
-          call assert_msg(859945006, i_spec > 0, &
-               "unknown species: " // trim(exclude(i_name)))
-          use_species(i_spec) = .false.
-       end do
-    end if
-
-    if (present(group)) then
-       group_species = .false.
-       do i_name = 1, size(group)
-          i_spec = aero_data_spec_by_name(aero_data, group(i_name))
-          call assert_msg(376359046, i_spec > 0, &
-               "unknown species: " // trim(group(i_name)))
-          group_species(i_spec) = .true.
-       end do
-    end if
-
-    ! per-particle masses need to take groups into account
-    if (present(groups)) then
-       call assert_msg(726652236, .not. present(include), &
-            "cannot specify both 'include' and 'groups' arguments")
-       call assert_msg(891097454, .not. present(exclude), &
-            "cannot specify both 'exclude' and 'groups' arguments")
-       call assert_msg(938789093, .not. present(group), &
-            "cannot specify both 'group' and 'groups' arguments")
-       masses = aero_state_masses(aero_state, aero_data, &
-            include=pack(groups, len_trim(groups) > 0))
-    else
-       masses = aero_state_masses(aero_state, aero_data, include, exclude)
-    end if
-
-    ! other per-particle properties
-    num_concs = aero_state_num_concs(aero_state, aero_data)
-    entropies = aero_state_mass_entropies(aero_state, aero_data, &
-         include, exclude, group, groups)
-
-!    aero_state_averaged = aero_state
-!    call aero_state_make_dry(aero_state_averaged, aero_data)
-!    call aero_state_bin_average_comp(aero_state_averaged, bin_grid, &
-!         aero_data)
-!    num_concs_of_avg_part = aero_state_num_concs(aero_state_averaged, &
-!         aero_data)
+    real(kind=dp), allocatable :: dry_diameters(:)
+    logical, allocatable :: is_size_range(:)
+    integer :: i_name, i_spec, n_group, i_part
 
     if (allocated(d_alpha)) deallocate(d_alpha)
     if (allocated(d_gamma)) deallocate(d_gamma)
@@ -3562,73 +3490,19 @@ contains
     chi = 0.0d0
 
     dry_diameters = aero_state_dry_diameters(aero_state, aero_data)
-!    dry_diameters_avg = aero_state_dry_diameters(aero_state_averaged, aero_data)
     do i_bin = 1,bin_grid_size(bin_grid)
+       aero_state_size_range = aero_state
        is_size_range = 2 * bin_grid%edges(i_bin) < dry_diameters &
             .and. dry_diameters <= bin_grid%edges(i_bin+1) * 2
-!       is_size_range_avg = 2 * bin_grid%edges(i_bin) < dry_diameters_avg &
-!            .and. dry_diameters_avg <= bin_grid%edges(i_bin+1) *2
-
-       d_alpha(i_bin) = exp(sum(pack(entropies * masses * num_concs, &
-             is_size_range)) / sum(pack(masses * num_concs, is_size_range)))
-
-       ! per-particle properties of averaged particles
-!       if (present(groups)) then
-!          masses_of_avg_part = aero_state_masses(aero_state_averaged, aero_data, &
-!               include=pack(groups, len_trim(groups) > 0))
-!       else
-!          masses_of_avg_part = aero_state_masses(aero_state_averaged, aero_data, &
-!               include, exclude)
-!       end if
-!       entropies_of_avg_part = aero_state_mass_entropies(aero_state_averaged, &
-!            aero_data, include, exclude, group, groups)
-!
-!       d_gamma(i_bin) = exp(sum(pack(entropies_of_avg_part * masses_of_avg_part &
-!            * num_concs_of_avg_part, is_size_range_avg)) &
-!            / sum(pack(masses_of_avg_part * num_concs_of_avg_part, &
-!            is_size_range_avg)))
-
-       ! TODO: Need to do something for groups
-       if (present(group)) then
-          group_mass = 0d0
-          non_group_mass = 0d0
-          do i_part = 1,aero_state_n_part(aero_state)
-             if (is_size_range(i_part)) then
-                do i_spec = 1,aero_data_n_spec(aero_data)
-                   if (use_species(i_spec)) then
-                      mass = aero_particle_species_mass( &
-                           aero_state%apa%particle(i_part), i_spec, aero_data)
-                      if (group_species(i_spec)) then
-                         group_mass = group_mass + mass * num_concs(i_part)
-                      else
-                         non_group_mass = non_group_mass + mass * num_concs(i_part)
-                      end if
-                   end if
-                end do
-             end if
-          end do
-          h_gamma = entropy([group_mass,non_group_mass])
-       else
-          allocate(bulk_masses(aero_data_n_spec(aero_data)))
-          bulk_masses = 0.0d0
-          do i_part = 1,aero_state_n_part(aero_state)
-             if (is_size_range(i_part)) then
-                bulk_masses = bulk_masses + &
-                  aero_particle_species_masses(aero_state%apa%particle(i_part), &
-                        aero_data)  * num_concs(i_part)
-             end if
-          end do
-          h_gamma = entropy(bulk_masses(1:aero_data_n_spec(aero_data)-1))
-          deallocate(bulk_masses)
-       end if
-
-       d_gamma(i_bin) = exp(h_gamma)
-!       print*, sum(pack(masses * num_concs, is_size_range)), &
-!            sum(pack(masses_of_avg_part * num_concs_of_avg_part, &
-!            is_size_range_avg)), sum(pack(num_concs, is_size_range)), &
-!            sum(pack(num_concs_of_avg_part, is_size_range_avg)), &
-!            d_gamma(i_bin), exp(h_gamma)
-       chi(i_bin) = (d_alpha(i_bin) - 1) / (d_gamma(i_bin) - 1)
+       do i_part = aero_state_n_part(aero_state),1,-1
+          if (.not. is_size_range(i_part)) then
+             call aero_state_remove_particle_no_info(aero_state_size_range, &
+                  i_part)
+          end if
+       end do
+       call aero_state_mixing_state_metrics(aero_state_size_range, aero_data, &
+            d_alpha(i_bin), d_gamma(i_bin), chi(i_bin), include, exclude, &
+            group, groups)
     end do
 
   end subroutine aero_state_mixing_state_metrics_by_size

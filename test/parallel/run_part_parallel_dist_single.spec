@@ -3,7 +3,8 @@ output_prefix out/parallel_dist_single # prefix of output files
 n_repeat 1                      # number of Monte Carlo repeats
 n_part 100000                    # total number of particles
 restart no                      # whether to restart from saved state (yes/no)
-do_select_weighting no          # whether to select weighting explicitly (yes/no)
+do_select_weighting yes          # whether to select weighting explicitly (yes/no)
+weight_type flat
 
 t_max 86400                     # total simulation time (s)
 del_t 600                       # timestep (s)
@@ -44,8 +45,6 @@ do_nucleation no                # whether to do nucleation (yes/no)
 rand_init 0                     # random initialization (0 to auto-generate)
 allow_doubling yes              # whether to allow doubling (yes/no)
 allow_halving yes               # whether to allow halving (yes/no)
-do_select_weighting yes          # whether to select weighting explicitly (yes/no)
-weight_type flat 
 record_removals no              # whether to record particle removals (yes/no)
 
 do_parallel yes                 # whether to run in parallel (yes/no)

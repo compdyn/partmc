@@ -413,8 +413,9 @@ contains
     real(kind=dp), intent(in) :: mean
     !> Standard deviation of distribution.
     real(kind=dp), intent(in) :: stddev
-    !>
+    !> Probability threshold to control sampling range - 0 accepts all values.
     real(kind=dp), intent(in), optional :: threshold
+
 #ifdef PMC_USE_GSL
     real(kind=c_double) :: mean_c, stddev_c
     real(kind=c_double), target :: harvest

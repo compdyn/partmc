@@ -557,7 +557,7 @@ contains
     type(aero_weight_t), intent(in) :: aero_weight
     !> Sampled radius (m).
     real(kind=dp), intent(out) :: radius
-    !>
+    !> Control factor to limit out of range sampling of normal distribution.
     real(kind=dp), intent(in) :: size_factor
 
     real(kind=dp) :: x_mean_prime, x0, x1, x, r, inv_nc0, inv_nc1, inv_nc

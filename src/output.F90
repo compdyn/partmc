@@ -823,6 +823,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Writes the current state of a column of a WRF-PartMC domain.
   subroutine output_column_to_file(prefix, aero_data, aero_state, gas_data, &
        gas_state, env_state, nz, index, time, del_t, i_repeat, &
        record_removals, record_optical, uuid, write_rank, write_n_proc)
@@ -839,7 +840,7 @@ contains
     type(gas_state_t), dimension(nz), intent(in) :: gas_state
     !> Environment state.
     type(env_state_t), dimension(nz), intent(in) :: env_state
-    !>
+    !> Number of vertical levels.
     integer, intent(in) :: nz
     !> Filename index.
     integer, intent(in) :: index
@@ -878,7 +879,7 @@ contains
     call gas_data_output_netcdf(gas_data, ncid)
     call aero_data_output_netcdf(aero_data, ncid)
 
-    do k = 1, nz
+    do k = 1,nz
        call pmc_nc_check_msg(nf90_redef(ncid),'in define mode for level')
        write(group_name,'(a,i2.2)') 'level_', env_state(k)%iz
        call pmc_nc_check_msg(nf90_def_grp(ncid, group_name, ncid_group), &

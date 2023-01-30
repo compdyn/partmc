@@ -1620,48 +1620,6 @@ contains
 
     chi = (d_alpha - 1) / (d_gamma - 1)
 
-    ! other way
-!    if (present(group)) then
-!       group_species = .false.
-!       do i_name = 1, size(group)
-!          i_spec = aero_data_spec_by_name(aero_data, group(i_name))
-!          call assert_msg(376359046, i_spec > 0, &
-!               "unknown species: " // trim(group(i_name)))
-!          group_species(i_spec) = .true.
-!       end do
-!       group_mass = 0d0
-!       non_group_mass = 0d0
-!       do i_part = 1,aero_state_n_part(aero_state)
-!          do i_spec = 1,aero_data_n_spec(aero_data)
-!             if (use_species(i_spec)) then
-!                mass = aero_particle_species_mass( &
-!                     aero_state%apa%particle(i_part), i_spec, aero_data)
-!                if (group_species(i_spec)) then
-!                   group_mass = group_mass + mass * num_concs(i_part)
-!                else
-!                   non_group_mass = non_group_mass + mass * num_concs(i_part)
-!                end if
-!             end if
-!          end do
-!       end do
-!       h_gamma = entropy([group_mass,non_group_mass])
-!    else
-!    allocate(bulk_masses(20))
-!    bulk_masses = 0.0d0
-!    do i_part = 1,aero_state_n_part(aero_state)
-!       bulk_masses = bulk_masses + aero_particle_species_masses(aero_state%apa%particle(i_part), &
-!               aero_data)  * num_concs(i_part)
-!    end do
-!    bulk_masses = bulk_masses / sum(bulk_masses(1:19))
-!
-!    h_gamma = entropy(bulk_masses(1:19))
-!    end if
-
-!    print*, 'in metrics', sum((masses * num_concs)), &
-!            sum((masses_of_avg_part * num_concs_of_avg_part &
-!            )), sum((num_concs)), &
-!            sum(num_concs_of_avg_part), d_gamma, exp(h_gamma)
-
   end subroutine aero_state_mixing_state_metrics
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -3506,6 +3464,28 @@ contains
     end do
 
   end subroutine aero_state_mixing_state_metrics_by_size
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Copies the one aero_state to another and assigns new particle IDs.
+  subroutine aero_state_dup_all_particles(aero_state_from, aero_state_to, &
+       aero_data)
+
+    !> Aerosol state to copy from.
+    type(aero_state_t), intent(in) :: aero_state_from
+    !> Aerosol state to copy to.
+    type(aero_state_t), intent(inout) :: aero_state_to
+    type(aero_data_t), intent(in) :: aero_data
+
+    integer :: i_part
+
+    aero_state_to = aero_state_from
+
+    do i_part = 1,aero_state_n_part(aero_state_to)
+       call aero_particle_new_id(aero_state_to%apa%particle(i_part))
+    end do
+
+  end subroutine aero_state_dup_all_particles
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

@@ -180,14 +180,13 @@ mosaic.o: aero_data.o aero_state.o constants.o env_state.o \
 mpi.o: util.o
 
 netcdf.o: util.o rand.o
-#	mpif90 -c netcdf.F90 -I/data/keeling/a/jcurtis2/support/netcdf4-4.1.2/include/
 
 nucleate.o: env_state.o aero_state.o aero_data.o gas_data.o gas_state.o
 
 output.o: bin_grid.o aero_data.o aero_state.o aero_binned.o \
      netcdf.o env_state.o util.o gas_data.o mpi.o
 
-photolysis.o: constants.o
+photolysis.o: constants.o util.o
 
 rand.o: util.o constants.o mpi.o rand_gsl.o
 
@@ -206,4 +205,4 @@ stats.o:   util.o netcdf.o
 
 sys.o:
 
-util.o: constants.o sort.o
+util.o: constants.o sort.o sys.o

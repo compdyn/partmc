@@ -3417,7 +3417,7 @@ contains
     !> Wavelength index of interest.
     integer :: wavelength
 
-    real(kind=dp), allocatable :: num_concs(:)
+    real(kind=dp) :: num_concs(aero_state_n_part(aero_state))
     real(kind=dp) :: B_scat
     integer :: i_part
 
@@ -3447,7 +3447,7 @@ contains
     !> Wavelength index of interest.
     integer :: wavelength
 
-    real(kind=dp), allocatable :: num_concs(:)
+    real(kind=dp) :: num_concs(aero_state_n_part(aero_state))
     real(kind=dp) :: B_abs
     integer :: i_part
 
@@ -3480,9 +3480,10 @@ contains
     integer :: i_wavelength
 
     real(kind=dp) :: aero_state_get_bin_scat(bin_grid_size(bin_grid))
-    real(kind=dp), allocatable, dimension(:) :: num_concs, dry_diameters, &
-         scat
-    logical, allocatable, dimension(:) :: is_size_range
+    real(kind=dp) :: num_concs(aero_state_n_part(aero_state))
+    real(kind=dp) :: dry_diameters(aero_state_n_part(aero_state))
+    real(kind=dp) :: scat(aero_state_n_part(aero_state))
+    logical :: is_size_range(aero_state_n_part(aero_state))
     integer :: i_bin, i_part
 
     aero_state_get_bin_scat = 0.0d0
@@ -3490,7 +3491,6 @@ contains
     num_concs = aero_state_num_concs(aero_state, aero_data)
     dry_diameters = aero_state_dry_diameters(aero_state, aero_data)
 
-    allocate(scat(aero_state_n_part(aero_state)))
     do i_part = 1,aero_state_n_part(aero_state)
        scat(i_part) = aero_state%apa%particle(i_part)%scatter_cross_sect( &
             i_wavelength)
@@ -3521,9 +3521,10 @@ contains
     integer :: i_wavelength
 
     real(kind=dp) :: aero_state_get_bin_abs(bin_grid_size(bin_grid))
-    real(kind=dp), allocatable, dimension(:) :: num_concs, dry_diameters, &
-         absorb
-    logical, allocatable, dimension(:) :: is_size_range
+    real(kind=dp) :: num_concs(aero_state_n_part(aero_state))
+    real(kind=dp) :: dry_diameters(aero_state_n_part(aero_state))
+    real(kind=dp) :: absorb(aero_state_n_part(aero_state))
+    logical :: is_size_range(aero_state_n_part(aero_state))
     integer :: i_bin, i_part
 
     aero_state_get_bin_abs = 0.0d0
@@ -3531,7 +3532,6 @@ contains
     num_concs = aero_state_num_concs(aero_state, aero_data)
     dry_diameters = aero_state_dry_diameters(aero_state, aero_data)
 
-    allocate(absorb(aero_state_n_part(aero_state)))
     do i_part = 1,aero_state_n_part(aero_state)
        absorb(i_part) = aero_state%apa%particle(i_part)%absorb_cross_sect( &
             i_wavelength)

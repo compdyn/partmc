@@ -3406,6 +3406,162 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+   !> Return the total scattering coefficient of a population.
+   real(kind=dp) function aero_state_scattering(aero_state, aero_data, &
+        wavelength)
+
+    !> Aerosol state.
+    type(aero_state_t) :: aero_state
+    !> Aerosol data.
+    type(aero_data_t) :: aero_data
+    !> Wavelength index of interest.
+    integer :: wavelength
+
+    real(kind=dp), allocatable :: num_concs(:)
+    real(kind=dp) :: B_scat
+    integer :: i_part
+
+    num_concs = aero_state_num_concs(aero_state, aero_data)
+
+    B_scat = 0.0d0
+
+    do i_part = 1,aero_state_n_part(aero_state)
+       B_scat = B_scat + num_concs(i_part) &
+            * aero_state%apa%particle(i_part)%scatter_cross_sect(wavelength)
+    end do
+
+    aero_state_scattering = B_scat
+
+  end function aero_state_scattering
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Returns the total absorption coefficient of a population.
+  real(kind=dp) function aero_state_absorption(aero_state, aero_data, &
+        wavelength)
+
+    !> Aerosol state.
+    type(aero_state_t) :: aero_state
+    !> Aerosol data.
+    type(aero_data_t) :: aero_data
+    !> Wavelength index of interest.
+    integer :: wavelength
+
+    real(kind=dp), allocatable :: num_concs(:)
+    real(kind=dp) :: B_abs
+    integer :: i_part
+
+    num_concs = aero_state_num_concs(aero_state, aero_data)
+
+    B_abs = 0.0d0
+
+    do i_part = 1,aero_state_n_part(aero_state)
+       B_abs = B_abs +  num_concs(i_part) &
+            * aero_state%apa%particle(i_part)%absorb_cross_sect(wavelength)
+    end do
+
+    aero_state_absorption = B_abs
+
+  end function aero_state_absorption
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Returns an array of scattering coefficients based on the bin_grid.
+  function aero_state_get_bin_scat(aero_state, aero_data, bin_grid, &
+       i_wavelength)
+
+    !> Aerosol state.
+    type(aero_state_t) :: aero_state
+    !> Aerosol data.
+    type(aero_data_t) :: aero_data
+    !> Bin grid to apply.
+    type(bin_grid_t) :: bin_grid
+    !> Wavelength index of interest.
+    integer :: i_wavelength
+
+    real(kind=dp) :: aero_state_get_bin_scat(bin_grid_size(bin_grid))
+    real(kind=dp), allocatable, dimension(:) :: num_concs, dry_diameters, &
+         scat
+    logical, allocatable, dimension(:) :: is_size_range
+    integer :: i_bin, i_part
+
+    aero_state_get_bin_scat = 0.0d0
+
+    num_concs = aero_state_num_concs(aero_state, aero_data)
+    dry_diameters = aero_state_dry_diameters(aero_state, aero_data)
+
+    allocate(scat(aero_state_n_part(aero_state)))
+    do i_part = 1,aero_state_n_part(aero_state)
+       scat(i_part) = aero_state%apa%particle(i_part)%scatter_cross_sect( &
+            i_wavelength)
+    end do
+
+    do i_bin = 1,bin_grid_size(bin_grid)
+       is_size_range = 2 * bin_grid%edges(i_bin) < dry_diameters &
+            .and. dry_diameters <= bin_grid%edges(i_bin+1) * 2
+       aero_state_get_bin_scat(i_bin) = sum(pack(num_concs * scat, &
+            is_size_range))
+    end do
+
+  end function aero_state_get_bin_scat
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Returns an array of absorption coefficients based on the bin_grid.
+  function aero_state_get_bin_abs(aero_state, aero_data, bin_grid, &
+       i_wavelength)
+
+    !> Aerosol state.
+    type(aero_state_t) :: aero_state
+    !> Aerosol data.
+    type(aero_data_t) :: aero_data
+    !> Bin grid.
+    type(bin_grid_t) :: bin_grid
+    !> Wavelength index of interest.
+    integer :: i_wavelength
+
+    real(kind=dp) :: aero_state_get_bin_abs(bin_grid_size(bin_grid))
+    real(kind=dp), allocatable, dimension(:) :: num_concs, dry_diameters, &
+         absorb
+    logical, allocatable, dimension(:) :: is_size_range
+    integer :: i_bin, i_part
+
+    aero_state_get_bin_abs = 0.0d0
+
+    num_concs = aero_state_num_concs(aero_state, aero_data)
+    dry_diameters = aero_state_dry_diameters(aero_state, aero_data)
+
+    allocate(absorb(aero_state_n_part(aero_state)))
+    do i_part = 1,aero_state_n_part(aero_state)
+       absorb(i_part) = aero_state%apa%particle(i_part)%absorb_cross_sect( &
+            i_wavelength)
+    end do
+
+    do i_bin = 1,bin_grid_size(bin_grid)
+       is_size_range = 2 * bin_grid%edges(i_bin) < dry_diameters &
+            .and. dry_diameters <= bin_grid%edges(i_bin+1) * 2
+       aero_state_get_bin_abs(i_bin) = sum(pack(num_concs * absorb, &
+            is_size_range))
+    end do
+
+  end function aero_state_get_bin_abs
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Returns arrays of mixing state metrics of the particles within given size
+  !! ranges based on a given bin grid.
+  !!
+  !! If \c include is specified then only those species are included
+  !! in computing the entropies. If \c exclude is specified then all
+  !! species except those species are included. If both \c include and
+  !! \c exclude arguments are specified then only those species in \c
+  !! include but not in \c exclude are included. If \c group is
+  !! specified then the species are divided into two sets, given by
+  !! those in the group and those not in the group. The entropies are
+  !! then computed using the total mass of each set. Alternatively \c
+  !! groups can be specified, which lists several groups of
+  !! species. If \c groups is provided, only species explicitly listed
+  !! will be included.
   subroutine aero_state_mixing_state_metrics_by_size(aero_state, aero_data, &
        bin_grid, d_alpha, d_gamma, chi, include, exclude, group, groups)
 

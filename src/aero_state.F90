@@ -3635,11 +3635,15 @@ contains
 
     integer :: i_part
 
-    aero_state_to = aero_state_from
-
-    do i_part = 1,aero_state_n_part(aero_state_to)
-       call aero_particle_new_id(aero_state_to%apa%particle(i_part))
-    end do
+    if (aero_state_n_part(aero_state_from) > 0) then
+       aero_state_to = aero_state_from
+       do i_part = 1,aero_state_n_part(aero_state_to)
+          call aero_particle_new_id(aero_state_to%apa%particle(i_part))
+       end do
+    else
+       call aero_state_zero(aero_state_to)
+       aero_state_to%n_part_ideal = aero_state_from%n_part_ideal
+    end if
 
   end subroutine aero_state_dup_all_particles
 

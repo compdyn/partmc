@@ -3624,14 +3624,12 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Copies the one aero_state to another and assigns new particle IDs.
-  subroutine aero_state_dup_all_particles(aero_state_from, aero_state_to, &
-       aero_data)
+  subroutine aero_state_dup_all_particles(aero_state_from, aero_state_to)
 
     !> Aerosol state to copy from.
     type(aero_state_t), intent(in) :: aero_state_from
     !> Aerosol state to copy to.
     type(aero_state_t), intent(inout) :: aero_state_to
-    type(aero_data_t), intent(in) :: aero_data
 
     integer :: i_part
 
@@ -3643,6 +3641,9 @@ contains
     else
        call aero_state_zero(aero_state_to)
        aero_state_to%n_part_ideal = aero_state_from%n_part_ideal
+#ifdef PMC_USE_CAMP
+       aero_state_to%update_number = aero_state_from%update_number
+#endif
     end if
 
   end subroutine aero_state_dup_all_particles

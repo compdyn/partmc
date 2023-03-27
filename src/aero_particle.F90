@@ -788,42 +788,54 @@ contains
     else 
       v_delta_solid = 0d0
     end if
-
+·
     r_core = ((3d0 * (v_sol + v_solid)) / (4d0 * const%pi))**(1d0 / 3d0)
     v_delta = (4d0 * const%pi / 3) * ((r_core + delta_min)**3 - (r_core)**3)
 
     sigma_soluble = aero_particle_sigma_soluble(aero_particle, aero_data, env_state, d)
     sigma_organic = aero_particle_sigma_organic(aero_particle, aero_data)
 
-    delta_sigma = sigma_organic - sigma_soluble
+    delta_sigma = sigma_organic - sigma_soluble·
     
     if (d == dry_diam) then
       if (v_delta_solid > (v_org + v_sol)) then
         sigma = v_org * sigma_organic / v_delta_solid + &
                 v_sol * sigma_soluble / v_delta_solid
-        aero_particle_crit_rel_humid_varying_sigma = exp(A * sigma / d)       
+        aero_particle_crit_rel_humid_varying_sigma = exp(A * sigma / d)
+        ! write(*,*) "a", aero_particle_crit_rel_humid_varying_sigma
       else
         if (v_org > v_delta_solid) then
           sigma = sigma_organic
           aero_particle_crit_rel_humid_varying_sigma = exp(A * sigma / d)
+          ! write(*,*) "b", aero_particle_crit_rel_humid_varying_sigma
         else
-          sigma = sigma_soluble + v_org * delta_sigma / v_delta_solid
+          if (v_org < 1d-30) then
+            ! sigma_organic = 0d0
+            sigma = sigma_soluble
+          else
+            sigma = sigma_soluble + v_org * delta_sigma / v_delta_solid
+          end if
           aero_particle_crit_rel_humid_varying_sigma = exp(A * sigma / d)
         end if
       end if
     else
-      if (v_sol > v_delta_solid) then
         if (v_org > v_delta) then
           sigma = sigma_organic
           aero_particle_crit_rel_humid_varying_sigma = (d**3 - dry_diam**3) / & 
                   (d**3 - dry_diam**3 * (1d0 - kappa)) * exp(A * sigma / d)
         else
-          sigma = sigma_soluble + v_org * delta_sigma / v_delta
+          if (v_org < 1d-30) then
+            ! sigma_organic = 0d0
+            sigma = sigma_soluble
+          else
+            sigma = sigma_soluble + v_org * delta_sigma / v_delta
+          end if
           aero_particle_crit_rel_humid_varying_sigma = (d**3 - dry_diam**3) / & 
                   (d**3 - dry_diam**3 * (1d0 - kappa)) * exp(A * sigma / d)
         end if
       end if
-    end if 
+
+      write(*,*) aero_particle_crit_rel_humid_varying_sigma
 
   end function aero_particle_crit_rel_humid_varying_sigma
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -965,7 +977,7 @@ contains
       c_5 = v_org * (sigma_organic - sigma_soluble)
       v_sol = const%pi * d**3 / 6 - v_solid - v_org ! volume of soluble inorganics + water
 
-      if (v_sol > v_delta_solid) then ! fully cover BC/OIN
+      if (v_sol + v_org > v_delta_solid) then ! fully cover BC/OIN
         r_core = ((3d0 * (v_sol + v_solid))/(4 * const%pi))**(1d0 / 3d0) ! BC/OIN + soluble inorganics
         v_delta = (4d0 * const%pi / 3d0) * ((r_core + delta_min)**3 - (r_core)**3)
         if (v_org > v_delta) then   ! soluble inorganics and BC/OIN as core, and organics can fully cover
@@ -987,7 +999,7 @@ contains
 
         dd = f / df
         d = d - dd
-        if (abs(dd / d) < 1d-12) then
+        if (abs(dd / d) < 1d-11) then
            exit
         end if
 
@@ -997,13 +1009,13 @@ contains
       end if
 
     end do
-
+    ! write(*,*) abs(dd), abs(dd / d)
     call warn_assert_msg(408545686, i_newton < CRIT_DIAM_MAX_ITER, &
          "critical diameter for new Newton loop failed to converge")
     call warn_assert_msg(353290871, d >= dry_diam, &
          "critical diameter for new Newton loop converged to invalid solution")
     aero_particle_crit_diameter_varying_sigma = d
-
+    
   end function aero_particle_crit_diameter_varying_sigma
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

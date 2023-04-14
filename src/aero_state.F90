@@ -1121,6 +1121,50 @@ contains
   end function aero_state_volumes
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+   !> calculate organic species volume fraction
+   !> might be useful later. 
+   
+!   function aero_state_organic_volumes(aero_state, aero_data)
+
+!      !> Aerosol state.
+!      type(aero_state_t), intent(in) :: aero_state
+!      !> Aerosol data.
+!      type(aero_data_t), optional, intent(in) :: aero_data
+!      !> Species names to include in the mass.
+!      character(len=*) :: include(:)
+
+!      !> Return volumes array (m^3).
+!      real(kind=dp) :: aero_state_organic_volumes(aero_state_n_part(aero_state))
+ 
+!      logical, allocatable :: use_species(:)
+!      integer :: i_name_organics, i_spec_organics
+     
+!      include = ["MSA ", "ARO1", "ARO2", "ALK1", "OLE1", &
+!                 "API1", "API2", "LIM1", "LIM2", "OC  "]
+                
+!      allocate(use_species(aero_data_n_spec(aero_data)))
+
+!      use_species = .false.
+!      do i_name_organics = 1, size(include)
+!         i_spec_organics = aero_data_spec_by_name(aero_data, include(i_name_organics))
+!         call assert_msg(111852070, i_spec_organics > 0, &
+!              "unknown species: " // trim(include(i_name_organics)))
+!         use_species(i_spec_organics) = .true.
+!      end do
+
+!      aero_state_organic_volumes = 0d0 ! v_beta
+!      do i_spec_organics = 1,aero_data_n_spec(aero_data)
+!         if (use_species(i_spec_organics)) then
+!            aero_state_organic_volumes = aero_state_organic_volumes &
+!                 + aero_particle_organic_species_volume( &
+!                 aero_state%apa%particle(1:aero_state_n_part(aero_state)), &
+!                 i_spec_organics)
+!         end if
+!      end do
+
+!    end function aero_state_organic_volumes
+ 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Returns the masses of all particles.
   !!
@@ -1478,7 +1522,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Returns the critical relative humidity for all particles (1).
+!   !> Returns the critical relative humidity for all particles (1).
   function aero_state_crit_rel_humids(aero_state, aero_data, env_state)
 
     !> Aerosol state.
@@ -1499,6 +1543,31 @@ contains
     end do
 
   end function aero_state_crit_rel_humids
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Returns the critical relative humidity for all particles (1).
+  function aero_state_crit_rel_humids_varying_sigma(aero_state, aero_data, env_state)
+
+     !> Aerosol state.
+     type(aero_state_t), intent(in) :: aero_state
+     !> Aerosol data.
+     type(aero_data_t), intent(in) :: aero_data
+     !> Environment state.
+     type(env_state_t), intent(in) :: env_state
+ 
+     !> Return value.
+     real(kind=dp) :: aero_state_crit_rel_humids_varying_sigma(aero_state_n_part(aero_state))
+ 
+     integer :: i_part
+ 
+     do i_part = 1,aero_state_n_part(aero_state)
+        aero_state_crit_rel_humids_varying_sigma(i_part) = & 
+             aero_particle_crit_rel_humid_varying_sigma( &
+             aero_state%apa%particle(i_part), aero_data, env_state)
+     end do
+ 
+   end function aero_state_crit_rel_humids_varying_sigma
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

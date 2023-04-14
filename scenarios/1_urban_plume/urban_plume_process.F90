@@ -24,6 +24,7 @@ program process
   character(len=PMC_MAX_FILENAME_LEN) :: in_filename, out_filename, &
                                          single_particle_output
   type(bin_grid_t) :: diam_grid, bc_grid, oc_grid, sc_grid, &
+                      sc_varying_sigma_grid, &
                       so4_grid, no3_grid, nh4_grid, soa_grid, &
                       cl_grid, msa_grid, aro1_grid, aro2_grid, &
                       alk1_grid, ole1_grid, api1_grid, api2_grid, &
@@ -51,6 +52,9 @@ program process
        dry_masses(:), masses(:), bc_masses(:), bc_fracs(:), &
        diam_bc_dist(:,:), oc_masses(:), oc_fracs(:), diam_oc_dist(:,:), &
        crit_rhs(:), scs(:), num_dist(:), diam_sc_dist(:,:), &
+       sc_dist(:), sc_varying_sigma_dist(:), &
+       crit_rhs_varying_sigma(:), scs_varying_sigma(:), &
+       diam_sc_varying_sigma_dist(:,:), &
        so4_masses(:), so4_fracs(:), diam_so4_dist(:,:), &
        no3_masses(:), no3_fracs(:), diam_no3_dist(:,:), &
        nh4_masses(:), nh4_fracs(:), diam_nh4_dist(:,:), &
@@ -83,9 +87,11 @@ program process
                       stats_tot_api2_mass_conc, stats_tot_lim1_mass_conc, &  
                       stats_tot_lim2_mass_conc, stats_tot_co3_mass_conc, &  
                       stats_tot_na_mass_conc, stats_tot_ca_mass_conc, &  
-                      stats_tot_oin_mass_conc, stats_tot_h2o_mass_conc                 
+                      stats_tot_oin_mass_conc, stats_tot_h2o_mass_conc, &
+                      stats_sc_dist, stats_sc_varying_sigma_dist        
 
   type(stats_2d_t) :: stats_diam_sc_dist, stats_diam_bc_dist, &
+                      stats_diam_sc_varying_sigma_dist, &
                       stats_diam_oc_dist, stats_diam_so4_dist, &
                       stats_diam_no3_dist, stats_diam_nh4_dist, &
                       stats_diam_soa_dist, stats_diam_cl_dist, &
@@ -126,6 +132,7 @@ program process
   call bin_grid_make(oin_grid, BIN_GRID_TYPE_LINEAR, 50, 0d0, 1d0)
   call bin_grid_make(h2o_grid, BIN_GRID_TYPE_LINEAR, 50, 0d0, 1d0)
   call bin_grid_make(sc_grid, BIN_GRID_TYPE_LOG, 50, 1d-4, 1d0)
+  call bin_grid_make(sc_varying_sigma_grid, BIN_GRID_TYPE_LOG, 50, 1d-4, 1d0)
 
   allocate(times(n_index))
 
@@ -136,6 +143,7 @@ program process
 
 
   scs = [ real(kind=dp) :: ] ! silence compiler warnings
+  scs_varying_sigma = [ real(kind=dp) :: ]
   bc_fracs = [ real(kind=dp) :: ]
   oc_fracs = [ real(kind=dp) :: ]
   so4_fracs = [ real(kind=dp) :: ]
@@ -406,10 +414,26 @@ program process
              h2o_grid, h2o_fracs, num_concs)
         call stats_2d_add(stats_diam_h2o_dist, diam_h2o_dist) 
 
-!for critical RH supersaturation
+!for critical RH supersaturation     
         crit_rhs = aero_state_crit_rel_humids(aero_state, aero_data, &
              env_state)
         scs = crit_rhs - 1d0
+        diam_sc_dist = bin_grid_histogram_2d(diam_grid, dry_diameters, &
+             sc_grid, scs, num_concs)
+        sc_dist = bin_grid_histogram_1d(sc_grid, scs, num_concs)
+        call stats_1d_add(stats_sc_dist, sc_dist)
+        call stats_2d_add(stats_diam_sc_dist, diam_sc_dist)
+
+!for critical RH supersaturation with varying sigma
+        crit_rhs_varying_sigma = aero_state_crit_rel_humids_varying_sigma( &
+             aero_state, aero_data, env_state)
+        scs_varying_sigma = crit_rhs_varying_sigma - 1d0
+        diam_sc_varying_sigma_dist = bin_grid_histogram_2d(diam_grid, dry_diameters, &
+             sc_varying_sigma_grid, scs_varying_sigma, num_concs)
+        sc_varying_sigma_dist = bin_grid_histogram_1d(sc_varying_sigma_grid, & 
+             scs_varying_sigma, num_concs)
+        call stats_1d_add(stats_sc_varying_sigma_dist, sc_varying_sigma_dist)
+        call stats_2d_add(stats_diam_sc_varying_sigma_dist, diam_sc_varying_sigma_dist)
 
         call for_single_particle(single_particle_output, prefix_new, ".csv", index)
         open(15, file= trim(single_particle_output))
@@ -440,13 +464,11 @@ program process
         write(15, *) 'crit_rhs', crit_rhs
         write(15, *) 'scs', scs
         write(15, *) 'num_con', num_concs
+        write(15, *) 'crit_rhs_varying_sigma', crit_rhs_varying_sigma
+        write(15, *) 'scs_varying_sigma', scs_varying_sigma
         close(15)
         
-        diam_sc_dist = bin_grid_histogram_2d(diam_grid, dry_diameters, &
-             sc_grid, scs, num_concs)
-        call stats_2d_add(stats_diam_sc_dist, diam_sc_dist)
-
-        call aero_state_mixing_state_metrics(aero_state, aero_data, &
+         call aero_state_mixing_state_metrics(aero_state, aero_data, &
              d_alpha, d_gamma, chi, groups=mixing_state_groups)
 
         call stats_1d_add_entry(stats_d_alpha, d_alpha, i_index)
@@ -482,6 +504,8 @@ program process
      call bin_grid_output_netcdf(oin_grid, ncid, "oin_frac", unit="1")
      call bin_grid_output_netcdf(h2o_grid, ncid, "h2o_frac", unit="1")
      call bin_grid_output_netcdf(sc_grid, ncid, "sc", unit="1")
+     call bin_grid_output_netcdf(sc_varying_sigma_grid, ncid, & 
+                                 "sc_varying_sigma", unit="1")
 
      call stats_1d_output_netcdf(stats_num_dist, ncid, "num_dist", &
           dim_name="diam", unit="m^{-3}")
@@ -572,8 +596,21 @@ program process
      call stats_2d_clear(stats_diam_h2o_dist)
 
      call stats_2d_output_netcdf(stats_diam_sc_dist, ncid, "diam_sc_dist", &
-          dim_name_1="diam", dim_name_2="sc", unit="m^{-3}")
+     dim_name_1="diam", dim_name_2="sc", unit="m^{-3}")
      call stats_2d_clear(stats_diam_sc_dist)
+
+     call stats_2d_output_netcdf(stats_diam_sc_varying_sigma_dist, ncid, & 
+                                 "diam_sc_varying_sigma_dist", &
+     dim_name_1="diam", dim_name_2="sc_varying_sigma", unit="m^{-3}")
+     call stats_2d_clear(stats_diam_sc_varying_sigma_dist)
+
+     call stats_1d_output_netcdf(stats_sc_dist, ncid, "sc_dist", &
+          dim_name="sc", unit="C")
+     call stats_1d_clear(stats_sc_dist)
+
+     call stats_1d_output_netcdf(stats_sc_varying_sigma_dist, ncid, "sc_varying_sigma_dist", &
+          dim_name="sc", unit="C")
+     call stats_1d_clear(stats_sc_varying_sigma_dist)
 
      call pmc_nc_close(ncid)
   end do

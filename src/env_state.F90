@@ -174,20 +174,19 @@ contains
   end function env_state_air_molar_den
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Condensation \f$A\f$ parameter.
+  ! constant sigma
+  ! !> Condensation \f$A\f$ parameter.
   real(kind=dp) function env_state_A(env_state)
 
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
 
-    env_state_A = 4d0 * const%water_surf_eng * const%water_molec_weight &
+    env_state_A = 4d0 * const%water_molec_weight &
          / (const%univ_gas_const * env_state%temp * const%water_density)
 
   end function env_state_A
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   !> Convert (ppb) to (molecules m^{-3}).
   real(kind=dp) function env_state_ppb_to_conc(env_state, ppb)
 

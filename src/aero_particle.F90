@@ -770,8 +770,8 @@ contains
     type(env_state_t), intent(in) :: env_state
     
     real(kind=dp) :: A, dry_diam, kappa, d, v_solid, r_solid
-    real(kind=dp) :: v_org, v_sol, r_core, v_delta
-    real(kind=dp) :: sigma_soluble, sigma_organic, delta_sigma
+    real(kind=dp) :: v_org, v_sol, r_core, v_delta, v_delta_solid
+    real(kind=dp) :: sigma_soluble, sigma_organic, delta_sigma, sigma
     real(kind=dp) :: delta_min = 1.6d-10
 
     A = env_state_A(env_state)
@@ -788,54 +788,35 @@ contains
     else 
       v_delta_solid = 0d0
     end if
-·
+
     r_core = ((3d0 * (v_sol + v_solid)) / (4d0 * const%pi))**(1d0 / 3d0)
     v_delta = (4d0 * const%pi / 3) * ((r_core + delta_min)**3 - (r_core)**3)
 
     sigma_soluble = aero_particle_sigma_soluble(aero_particle, aero_data, env_state, d)
     sigma_organic = aero_particle_sigma_organic(aero_particle, aero_data)
 
-    delta_sigma = sigma_organic - sigma_soluble·
+    delta_sigma = sigma_organic - sigma_soluble
     
     if (d == dry_diam) then
-      if (v_delta_solid > (v_org + v_sol)) then
-        sigma = v_org * sigma_organic / v_delta_solid + &
-                v_sol * sigma_soluble / v_delta_solid
-        aero_particle_crit_rel_humid_varying_sigma = exp(A * sigma / d)
-        ! write(*,*) "a", aero_particle_crit_rel_humid_varying_sigma
-      else
-        if (v_org > v_delta_solid) then
-          sigma = sigma_organic
-          aero_particle_crit_rel_humid_varying_sigma = exp(A * sigma / d)
-          ! write(*,*) "b", aero_particle_crit_rel_humid_varying_sigma
-        else
-          if (v_org < 1d-30) then
-            ! sigma_organic = 0d0
-            sigma = sigma_soluble
-          else
-            sigma = sigma_soluble + v_org * delta_sigma / v_delta_solid
-          end if
-          aero_particle_crit_rel_humid_varying_sigma = exp(A * sigma / d)
-        end if
-      end if
+      sigma = v_org * sigma_organic / v_delta_solid + &
+              v_sol * sigma_soluble / v_delta_solid
+      aero_particle_crit_rel_humid_varying_sigma = exp(A * sigma / d)
     else
-        if (v_org > v_delta) then
-          sigma = sigma_organic
-          aero_particle_crit_rel_humid_varying_sigma = (d**3 - dry_diam**3) / & 
-                  (d**3 - dry_diam**3 * (1d0 - kappa)) * exp(A * sigma / d)
+      if (v_org > v_delta) then
+        sigma = sigma_organic
+      else
+        if (v_org < 1d-30) then
+          ! sigma_organic = 0d0
+          sigma = sigma_soluble
         else
-          if (v_org < 1d-30) then
-            ! sigma_organic = 0d0
-            sigma = sigma_soluble
-          else
-            sigma = sigma_soluble + v_org * delta_sigma / v_delta
-          end if
-          aero_particle_crit_rel_humid_varying_sigma = (d**3 - dry_diam**3) / & 
-                  (d**3 - dry_diam**3 * (1d0 - kappa)) * exp(A * sigma / d)
+          sigma = sigma_soluble + v_org * delta_sigma / v_delta
         end if
       end if
+      aero_particle_crit_rel_humid_varying_sigma = (d**3 - dry_diam**3) / & 
+                   (d**3 - dry_diam**3 * (1d0 - kappa)) * exp(A * sigma / d)
+    end if
 
-      write(*,*) aero_particle_crit_rel_humid_varying_sigma
+      ! write(*,*) aero_particle_crit_rel_humid_varying_sigma
 
   end function aero_particle_crit_rel_humid_varying_sigma
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -961,7 +942,7 @@ contains
     if (v_solid > 0d0) then
       v_delta_solid = (4d0 * const%pi / 3d0) * ((r_solid + delta_min)**3 - (r_solid)**3)
     else 
-      v_delta_insol = 0d0
+      v_delta_solid = 0d0
     end if
 
     c_1 = 3d0 * dry_diam**3 * kappa / A 
@@ -1026,11 +1007,8 @@ contains
     type(aero_particle_t), intent(in) :: aero_particle
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
-    !> Species names to include in the volume.
-    character(len=6), allocatable :: org_spec(:)
-    integer :: i_org_spec
-    integer :: n_org_spec
-     
+    integer :: i_org_spec, n_org_spec
+    character(len=AERO_NAME_LEN), parameter, dimension(10) :: &
     org_spec = ["MSA   ", "ARO1  ", "ARO2  ", "ALK1  ", "OLE1  ", &
                 "API1  ", "API2  ", "LIM1  ", "LIM2  ", "OC    "]
 
@@ -1052,13 +1030,10 @@ contains
     type(aero_particle_t), intent(in) :: aero_particle
     !> Aerosol data.ls
     type(aero_data_t), intent(in) :: aero_data
-    !> Species names to include in the volume.
-    character(len=6), allocatable :: solid_spec(:)
-    integer :: i_solid_spec
-    integer :: n_solid_spec
-     
+    integer :: i_solid_spec, n_solid_spec
+    character(len=AERO_NAME_LEN), parameter, dimension(2) :: &
     solid_spec = ["OIN   ", "BC    "]
-
+     
     aero_particle_solid_volume = 0d0 
 
     do n_solid_spec = 1, size(solid_spec)
@@ -1081,14 +1056,12 @@ contains
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
     
-    character(len=6), allocatable :: sol_spec(:)
-    integer :: i_sol_spec
-    integer :: n_sol_spec
+    integer :: i_sol_spec, n_sol_spec
     real(kind=dp) :: d, aero_particle_soluble_volume
-
-    !> calculate sol volume
+    real(kind=dp) :: v_solid, v_org, v_sol, v_water
+    character(len=AERO_NAME_LEN), parameter, dimension(7) :: &
     sol_spec = ["SO4   ", "NO3   ", "Cl    ", "NH4   ", "CO3   ", &
-                 "Na    ", "Ca    "]
+                "Na    ", "Ca    "]
 
     v_solid = aero_particle_solid_volume(aero_particle, aero_data)
     v_org = aero_particle_organic_volume(aero_particle, aero_data)
@@ -1126,14 +1099,11 @@ contains
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
 
-    !> org/org species names to include in the volume.
-    character(len=6), allocatable :: org_spec(:)
-    integer :: i_org_spec
-    integer :: n_org_spec
-
-    !> calculate organic volume
+    real(kind=dp) :: org_volume
+    integer :: i_org_spec, n_org_spec
+    character(len=AERO_NAME_LEN), parameter, dimension(10) :: &
     org_spec = ["MSA   ", "ARO1  ", "ARO2  ", "ALK1  ", "OLE1  ", &
-                  "API1  ", "API2  ", "LIM1  ", "LIM2  ", "OC    "]
+                "API1  ", "API2  ", "LIM1  ", "LIM2  ", "OC    "]    
 
     org_volume = aero_particle_organic_volume(aero_particle, aero_data)
     aero_particle_sigma_organic = 0d0

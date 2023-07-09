@@ -1,4 +1,4 @@
-#     dens (kg/m^3)   ions in soln (1)    molec wght (kg/mole)   kappa (1)        sigma                      
+#     dens (kg/m^3)   ions in soln (1)    molec wght (kg/mole)   kappa (1)        surface tension (J m^{-2})                      
 SO4            1800                0                   96d-3      0.65            0.073                  
 NO3            1800                0                   62d-3      0.65            0.073                  
 Cl             2200                0                   35.5d-3    1.28            0.073                 
@@ -18,4 +18,4 @@ Ca             2600                0                   40d-3      0.53          
 OIN            2600                0                   1d-3       0.1             0                 
 OC             1000                0                   1d-3       0.001           0.03                   
 BC             1800                0                   1d-3       0               0               
-H2O            1000                0                   18d-3      0               0.073            
+H2O            1000                0                   18d-3      0               0.073

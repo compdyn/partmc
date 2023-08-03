@@ -117,9 +117,10 @@ contains
   subroutine run_part(scenario, env_state, aero_data, aero_state, gas_data, &
        gas_state, run_part_opt, camp_core, photolysis)
 #else
-  subroutine run_part(scenario, env_state, aero_data, aero_state, gas_data, &
+   subroutine run_part(scenario, env_state, aero_data, aero_state, gas_data, &
        gas_state, run_part_opt)
 #endif
+
     !> Environment state.
     type(scenario_t), intent(in) :: scenario
     !> Environment state.
@@ -228,19 +229,15 @@ contains
 
     i_cur = 1
     i_next = n_time
-#ifdef PMC_USE_CAMP
+
     call run_part_timeblock(scenario, env_state, aero_data, aero_state, &
-         gas_data, gas_state, run_part_opt, camp_core, photolysis, &
+         gas_data, gas_state, run_part_opt, &
+#ifdef PMC_USE_CAMP
+         camp_core, photolysis, &
+#endif
          i_cur, i_next, t_start, last_output_time, last_progress_time, &
          i_output, progress_n_samp, progress_n_coag, progress_n_emit, &
          progress_n_dil_in, progress_n_dil_out, progress_n_nuc)
-#else
-    call run_part_timeblock(scenario, env_state, aero_data, aero_state, &
-         gas_data, gas_state, run_part_opt, i_cur, i_next, t_start, &
-         last_output_time, last_progress_time, i_output, progress_n_samp, &
-         progress_n_coag, progress_n_emit, progress_n_dil_in, &
-         progress_n_dil_out, progress_n_nuc)
-#endif
 
     if (run_part_opt%do_mosaic) then
        call mosaic_cleanup()
@@ -477,19 +474,15 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Do a one particle-resolved Monte Carlo simulation timestep.
-#ifdef PMC_USE_CAMP
   subroutine run_part_timestep(scenario, env_state, aero_data, aero_state, &
-       gas_data, gas_state, run_part_opt, camp_core, photolysis, i_time, &
-       t_start, last_output_time, last_progress_time, i_output, &
+       gas_data, gas_state, run_part_opt, &
+#ifdef PMC_USE_CAMP
+       camp_core, photolysis, &
+#endif
+       i_time, t_start, last_output_time, last_progress_time, i_output, &
        progress_n_samp, progress_n_coag, progress_n_emit, progress_n_dil_in, &
        progress_n_dil_out, progress_n_nuc)
-#else
-  subroutine run_part_timestep(scenario, env_state, aero_data, aero_state, &
-       gas_data, gas_state, run_part_opt, i_time, t_start, last_output_time, &
-       last_progress_time, i_output, progress_n_samp, progress_n_coag, &
-       progress_n_emit, progress_n_dil_in, progress_n_dil_out, &
-       progress_n_nuc)
-#endif
+
     !> Environment state.
     type(scenario_t), intent(in) :: scenario
     !> Environment state.
@@ -702,19 +695,15 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Do a number of time steps of particle-reoslved Monte Carlo simulation.
-#ifdef PMC_USE_CAMP
   subroutine run_part_timeblock(scenario, env_state, aero_data, aero_state, &
-       gas_data, gas_state, run_part_opt, camp_core, photolysis, i_cur, &
-       i_next, t_start, last_output_time, last_progress_time, i_output, &
+       gas_data, gas_state, run_part_opt, &
+#ifdef PMC_USE_CAMP
+       camp_core, photolysis, &
+#endif
+       i_cur, i_next, t_start, last_output_time, last_progress_time, i_output, &
        progress_n_samp, progress_n_coag, progress_n_emit, progress_n_dil_in, &
        progress_n_dil_out, progress_n_nuc)
-#else
-  subroutine run_part_timeblock(scenario, env_state, aero_data, aero_state, &
-       gas_data, gas_state, run_part_opt, i_cur, i_next, t_start, &
-       last_output_time, last_progress_time, i_output, progress_n_samp, &
-       progress_n_coag, progress_n_emit, progress_n_dil_in, &
-       progress_n_dil_out, progress_n_nuc)
-#endif
+
     !> Environment state.
     type(scenario_t), intent(in) :: scenario
     !> Environment state.
@@ -763,19 +752,14 @@ contains
     integer :: i_time
 
     do i_time = i_cur,i_next
-#ifdef PMC_USE_CAMP
        call run_part_timestep(scenario, env_state, aero_data, aero_state, &
-            gas_data, gas_state, run_part_opt, camp_core, photolysis, i_time, &
-            t_start, last_output_time, last_progress_time, i_output, &
+            gas_data, gas_state, run_part_opt, &
+#ifdef PMC_USE_CAMP
+            camp_core, photolysis, &
+#endif
+            i_time, t_start, last_output_time, last_progress_time, i_output, &
             progress_n_samp, progress_n_coag, progress_n_emit, &
             progress_n_dil_in, progress_n_dil_out, progress_n_nuc)
-#else
-       call run_part_timestep(scenario, env_state, aero_data, aero_state, &
-            gas_data, gas_state, run_part_opt, i_time, t_start, &
-            last_output_time, last_progress_time, i_output, progress_n_samp, &
-            progress_n_coag, progress_n_emit, progress_n_dil_in, &
-            progress_n_dil_out, progress_n_nuc)
-#endif
     end do
 
   end subroutine run_part_timeblock

@@ -49,6 +49,8 @@ module pmc_env_state
      real(kind=dp) :: solar_zenith_angle
      !> Box height (m).
      real(kind=dp) :: height
+     !> Scaling coefficient for additive coagulation kernel.
+     real(kind=dp) :: beta_1
   end type env_state_t
 
 contains
@@ -348,7 +350,8 @@ contains
          + pmc_mpi_pack_size_integer(val%start_day) &
          + pmc_mpi_pack_size_real(val%elapsed_time) &
          + pmc_mpi_pack_size_real(val%solar_zenith_angle) &
-         + pmc_mpi_pack_size_real(val%height)
+         + pmc_mpi_pack_size_real(val%height) &
+         + pmc_mpi_pack_size_real(val%beta_1)
 
   end function pmc_mpi_pack_size_env_state
 
@@ -379,6 +382,7 @@ contains
     call pmc_mpi_pack_real(buffer, position, val%elapsed_time)
     call pmc_mpi_pack_real(buffer, position, val%solar_zenith_angle)
     call pmc_mpi_pack_real(buffer, position, val%height)
+    call pmc_mpi_pack_real(buffer, position, val%beta_1)
     call assert(464101191, &
          position - prev_position <= pmc_mpi_pack_size_env_state(val))
 #endif
@@ -412,6 +416,7 @@ contains
     call pmc_mpi_unpack_real(buffer, position, val%elapsed_time)
     call pmc_mpi_unpack_real(buffer, position, val%solar_zenith_angle)
     call pmc_mpi_unpack_real(buffer, position, val%height)
+    call pmc_mpi_unpack_real(buffer, position, val%beta_1)
     call assert(205696745, &
          position - prev_position <= pmc_mpi_pack_size_env_state(val))
 #endif

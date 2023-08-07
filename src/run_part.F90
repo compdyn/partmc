@@ -435,6 +435,233 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Read the specification for a run_part simulation from a spec file.
+  subroutine spec_file_read_run_part(file, run_part_opt, aero_data, &
+       aero_state_init, gas_data, gas_state_init, env_state_init, &
+       aero_dist_init, scenario, &
+#ifdef PMC_USE_CAMP
+       camp_core, photolysis, &
+#endif
+       n_part, rand_init, do_init_equilibrate, do_restart)
+
+    !> Spec file.
+    type(spec_file_t), intent(inout) :: file
+    !> Monte Carlo options.
+    type(run_part_opt_t), intent(inout) :: run_part_opt
+    !> Aerosol data.
+    type(aero_data_t), intent(inout) :: aero_data
+    !> Initial aerosol state.
+    type(aero_state_t), intent(inout) :: aero_state_init
+    !> Gas data.
+    type(gas_data_t), intent(inout) :: gas_data
+    !> Initial gas state.
+    type(gas_state_t), intent(inout) :: gas_state_init
+    !> Initial envronmental state.
+    type(env_state_t), intent(inout) :: env_state_init
+    !> Initial aerosol distribution.
+    type(aero_dist_t), intent(inout) :: aero_dist_init
+    !> Scenario data.
+    type(scenario_t), intent(inout) :: scenario
+#ifdef PMC_USE_CAMP
+    !> CAMP core.
+    type(camp_core_t), pointer :: camp_core
+    !> Photolysis calculator.
+    type(photolysis_t), pointer :: photolysis
+#endif
+    !> Ideal number of computational particles.
+    real(kind=dp), intent(inout) :: n_part
+    !> Random number generator seed.
+    integer, intent(out) :: rand_init
+    !> Whether to equilibrate.
+    logical, intent(out) :: do_init_equilibrate
+    !> Whether simulation is a restart.
+    logical, intent(out) :: do_restart
+
+    integer :: i_repeat, i_group
+    character(len=PMC_MAX_FILENAME_LEN) :: restart_filename
+    integer :: dummy_index, dummy_i_repeat
+    real(kind=dp) :: dummy_time, dummy_del_t
+    character(len=PMC_MAX_FILENAME_LEN) :: sub_filename
+    type(spec_file_t) :: sub_file
+    character(len=PMC_MAX_FILENAME_LEN) :: camp_config_filename
+
+    call spec_file_read_string(file, 'output_prefix', &
+         run_part_opt%output_prefix)
+    call spec_file_read_integer(file, 'n_repeat', run_part_opt%n_repeat)
+    call spec_file_read_real(file, 'n_part', n_part)
+    call spec_file_read_logical(file, 'restart', do_restart)
+    if (do_restart) then
+       call spec_file_read_string(file, 'restart_file', restart_filename)
+    end if
+
+    call spec_file_read_real(file, 't_max', run_part_opt%t_max)
+    call spec_file_read_real(file, 'del_t', run_part_opt%del_t)
+    call spec_file_read_real(file, 't_output', run_part_opt%t_output)
+    call spec_file_read_real(file, 't_progress', run_part_opt%t_progress)
+
+    call spec_file_read_logical(file, 'do_camp_chem', &
+            run_part_opt%do_camp_chem)
+    if (run_part_opt%do_camp_chem) then
+#ifdef PMC_USE_CAMP
+       call spec_file_read_string(file, 'camp_config', &
+            camp_config_filename)
+       camp_core => camp_core_t(camp_config_filename)
+       call camp_core%initialize()
+       photolysis => photolysis_t(camp_core)
+#else
+       call spec_file_die_msg(648994111, file, &
+            'cannot do camp chem, CAMP support not compiled in')
+#endif
+    end if
+
+    if (do_restart) then
+       call input_state(restart_filename, dummy_index, dummy_time, &
+            dummy_del_t, dummy_i_repeat, run_part_opt%uuid, aero_data, &
+            aero_state_init, gas_data, gas_state_init, env_state_init)
+    end if
+
+    if (.not. do_restart) then
+       env_state_init%elapsed_time = 0d0
+       if (.not. run_part_opt%do_camp_chem) then
+          call spec_file_read_string(file, 'gas_data', sub_filename)
+          call spec_file_open(sub_filename, sub_file)
+          call spec_file_read_gas_data(sub_file, gas_data)
+          call spec_file_close(sub_file)
+       else
+#ifdef PMC_USE_CAMP
+          call gas_data_initialize(gas_data, camp_core)
+#endif
+       end if
+       call spec_file_read_string(file, 'gas_init', sub_filename)
+       call spec_file_open(sub_filename, sub_file)
+       call spec_file_read_gas_state(sub_file, gas_data, &
+            gas_state_init)
+       call spec_file_close(sub_file)
+
+       if (.not. run_part_opt%do_camp_chem) then
+          call spec_file_read_string(file, 'aerosol_data', sub_filename)
+          call spec_file_open(sub_filename, sub_file)
+          call spec_file_read_aero_data(sub_file, aero_data)
+          call spec_file_close(sub_file)
+       else
+#ifdef PMC_USE_CAMP
+          call aero_data_initialize(aero_data, camp_core)
+          call aero_state_initialize(aero_state, aero_data, camp_core)
+#endif
+       end if
+       call spec_file_read_fractal(file, aero_data%fractal)
+
+       call spec_file_read_string(file, 'aerosol_init', sub_filename)
+       call spec_file_open(sub_filename, sub_file)
+       call spec_file_read_aero_dist(sub_file, aero_data, aero_dist_init)
+       call spec_file_close(sub_file)
+    end if
+
+    call spec_file_read_scenario(file, gas_data, aero_data, scenario)
+    call spec_file_read_env_state(file, env_state_init)
+
+    call spec_file_read_logical(file, 'do_coagulation', &
+         run_part_opt%do_coagulation)
+    if (run_part_opt%do_coagulation) then
+       call spec_file_read_coag_kernel_type(file, &
+            run_part_opt%coag_kernel_type)
+    else
+       run_part_opt%coag_kernel_type = COAG_KERNEL_TYPE_INVALID
+    end if
+
+    call spec_file_read_logical(file, 'do_condensation', &
+         run_part_opt%do_condensation)
+#ifndef PMC_USE_SUNDIALS
+    call assert_msg(121370218, &
+         run_part_opt%do_condensation .eqv. .false., &
+         "cannot use condensation, SUNDIALS support is not compiled in")
+#endif
+    do_init_equilibrate = .false.
+    if (run_part_opt%do_condensation) then
+       call spec_file_read_logical(file, 'do_init_equilibrate', &
+            do_init_equilibrate)
+    end if
+
+    call spec_file_read_logical(file, 'do_mosaic', run_part_opt%do_mosaic)
+    if (run_part_opt%do_mosaic .and. (.not. mosaic_support())) then
+       call spec_file_die_msg(230495365, file, &
+            'cannot use MOSAIC, support is not compiled in')
+    end if
+    if (run_part_opt%do_mosaic .and. run_part_opt%do_condensation) then
+       call spec_file_die_msg(599877804, file, &
+            'cannot use MOSAIC and condensation simultaneously')
+    end if
+    if (run_part_opt%do_mosaic) then
+       call spec_file_read_logical(file, 'do_optical', &
+            run_part_opt%do_optical)
+    else
+       run_part_opt%do_optical = .false.
+    end if
+
+    call spec_file_read_logical(file, 'do_nucleation', &
+         run_part_opt%do_nucleation)
+    if (run_part_opt%do_nucleation) then
+       call spec_file_read_nucleate_type(file, aero_data, &
+            run_part_opt%nucleate_type, run_part_opt%nucleate_source)
+    else
+       run_part_opt%nucleate_type = NUCLEATE_TYPE_INVALID
+    end if
+
+    call spec_file_read_integer(file, 'rand_init', rand_init)
+    call spec_file_read_logical(file, 'allow_doubling', &
+         run_part_opt%allow_doubling)
+    call spec_file_read_logical(file, 'allow_halving', &
+         run_part_opt%allow_halving)
+    if (.not. do_restart) then
+       call spec_file_read_logical(file, 'do_select_weighting', &
+            run_part_opt%do_select_weighting)
+       if (run_part_opt%do_select_weighting) then
+          call spec_file_read_aero_state_weighting_type(file, &
+               run_part_opt%weighting_type, run_part_opt%weighting_exponent)
+       else
+          run_part_opt%weighting_type = AERO_STATE_WEIGHT_NUMMASS_SOURCE
+          run_part_opt%weighting_exponent = 0.0d0
+       end if
+    end if
+    call spec_file_read_logical(file, 'record_removals', &
+         run_part_opt%record_removals)
+
+    call spec_file_read_logical(file, 'do_parallel', &
+         run_part_opt%do_parallel)
+    if (run_part_opt%do_parallel) then
+#ifndef PMC_USE_MPI
+       call spec_file_die_msg(929006383, file, &
+            'cannot use parallel mode, support is not compiled in')
+#endif
+       call spec_file_read_output_type(file, run_part_opt%output_type)
+       call spec_file_read_real(file, 'mix_timescale', &
+            run_part_opt%mix_timescale)
+       call spec_file_read_logical(file, 'gas_average', &
+            run_part_opt%gas_average)
+       call spec_file_read_logical(file, 'env_average', &
+            run_part_opt%env_average)
+       call spec_file_read_parallel_coag_type(file, &
+            run_part_opt%parallel_coag_type)
+    else
+       run_part_opt%output_type = OUTPUT_TYPE_SINGLE
+       run_part_opt%mix_timescale = 0d0
+       run_part_opt%gas_average = .false.
+       run_part_opt%env_average = .false.
+       run_part_opt%parallel_coag_type = PARALLEL_COAG_TYPE_LOCAL
+    end if
+
+    call spec_file_close(file)
+
+    call pmc_srand(0, pmc_mpi_rank())
+
+    if (.not. do_restart) then
+       call uuid4_str(run_part_opt%uuid)
+    end if
+
+  end subroutine spec_file_read_run_part
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Read the specification for a parallel coagulation type from a spec file.
   subroutine spec_file_read_parallel_coag_type(file, parallel_coag_type)
 

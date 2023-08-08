@@ -450,16 +450,13 @@ contains
     !!     ensure a uniform environment
     !!   - \subpage input_format_parallel_coag
 
-    if (pmc_mpi_rank() == 0) then
-       ! only the root process does I/O
-       call spec_file_read_run_part(file, run_part_opt, aero_data, &
-            aero_state_init, gas_data, gas_state_init, env_state_init, &
-            aero_dist_init, scenario, &
+    call spec_file_read_run_part(file, run_part_opt, aero_data, &
+         aero_state_init, gas_data, gas_state_init, env_state_init, &
+         aero_dist_init, scenario, &
 #ifdef PMC_USE_CAMP
-            camp_core, photolysis, &
+         camp_core, photolysis, &
 #endif
-            n_part, rand_init, do_init_equilibrate, do_restart)
-    end if
+         n_part, rand_init, do_init_equilibrate, do_restart)
 
 #ifdef PMC_USE_MPI
     if (pmc_mpi_rank() == 0) then

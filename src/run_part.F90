@@ -428,7 +428,7 @@ contains
     call pmc_mpi_unpack_logical(buffer, position, val%gas_average)
     call pmc_mpi_unpack_logical(buffer, position, val%env_average)
     call pmc_mpi_unpack_integer(buffer, position, val%parallel_coag_type)
-    call pmc_mpi_unpack_integer(buffer, position, val%do_camp_chem)
+    call pmc_mpi_unpack_logical(buffer, position, val%do_camp_chem)
     call pmc_mpi_unpack_string(buffer, position, val%uuid)
     call assert(480118362, &
          position - prev_position <= pmc_mpi_pack_size_run_part_opt(val))

@@ -454,7 +454,7 @@ contains
          aero_state_init, gas_data, gas_state_init, env_state_init, &
          aero_dist_init, scenario, &
 #ifdef PMC_USE_CAMP
-         camp_core, photolysis, &
+         camp_core, photolysis, aero_state, &
 #endif
          n_part, rand_init, do_init_equilibrate, do_restart)
 

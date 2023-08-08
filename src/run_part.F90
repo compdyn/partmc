@@ -443,7 +443,7 @@ contains
        aero_state_init, gas_data, gas_state_init, env_state_init, &
        aero_dist_init, scenario, &
 #ifdef PMC_USE_CAMP
-       camp_core, photolysis, &
+       camp_core, photolysis, aero_state, &
 #endif
        n_part, rand_init, do_init_equilibrate, do_restart)
 
@@ -470,6 +470,8 @@ contains
     type(camp_core_t), pointer :: camp_core
     !> Photolysis calculator.
     type(photolysis_t), pointer :: photolysis
+    !> Aerosol state.
+    type(aero_state_t), intent(inout) :: aero_state
 #endif
     !> Ideal number of computational particles.
     real(kind=dp), intent(inout) :: n_part
@@ -550,7 +552,7 @@ contains
           else
 #ifdef PMC_USE_CAMP
              call aero_data_initialize(aero_data, camp_core)
-             call aero_state_initialize(aero_state_init, aero_data, camp_core)
+             call aero_state_initialize(aero_state, aero_data, camp_core)
 #endif
           end if
           call spec_file_read_fractal(file, aero_data%fractal)

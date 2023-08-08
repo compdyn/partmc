@@ -327,6 +327,7 @@ contains
          + pmc_mpi_pack_size_logical(val%gas_average) &
          + pmc_mpi_pack_size_logical(val%env_average) &
          + pmc_mpi_pack_size_integer(val%parallel_coag_type) &
+         + pmc_mpi_pack_size_logical(val%do_camp_chem) &
          + pmc_mpi_pack_size_string(val%uuid)
 
   end function pmc_mpi_pack_size_run_part_opt
@@ -375,6 +376,7 @@ contains
     call pmc_mpi_pack_logical(buffer, position, val%gas_average)
     call pmc_mpi_pack_logical(buffer, position, val%env_average)
     call pmc_mpi_pack_integer(buffer, position, val%parallel_coag_type)
+    call pmc_mpi_pack_logical(buffer, position, val%do_camp_chem)
     call pmc_mpi_pack_string(buffer, position, val%uuid)
     call assert(946070052, &
          position - prev_position <= pmc_mpi_pack_size_run_part_opt(val))
@@ -426,6 +428,7 @@ contains
     call pmc_mpi_unpack_logical(buffer, position, val%gas_average)
     call pmc_mpi_unpack_logical(buffer, position, val%env_average)
     call pmc_mpi_unpack_integer(buffer, position, val%parallel_coag_type)
+    call pmc_mpi_unpack_integer(buffer, position, val%do_camp_chem)
     call pmc_mpi_unpack_string(buffer, position, val%uuid)
     call assert(480118362, &
          position - prev_position <= pmc_mpi_pack_size_run_part_opt(val))

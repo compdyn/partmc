@@ -5,14 +5,14 @@ PartMC: Particle-resolved Monte Carlo code for atmospheric aerosol simulation
 
 [![Latest version](https://img.shields.io/github/tag/compdyn/partmc.svg?label=version)](https://github.com/compdyn/partmc/blob/master/ChangeLog.md) [![Docker build status](https://img.shields.io/docker/automated/compdyn/partmc.svg)](https://hub.docker.com/r/compdyn/partmc/builds/) [![Github Actions Status](https://github.com/compdyn/partmc/workflows/CI/badge.svg?branch=master)](https://github.com/compdyn/partmc/actions/workflows/main.yml) [![License](https://img.shields.io/github/license/compdyn/partmc.svg)](https://github.com/compdyn/partmc/blob/master/COPYING) [![DOI](https://zenodo.org/badge/24058992.svg)](https://zenodo.org/badge/latestdoi/24058992)
 
-Version 2.6.1  
-Released 2022-02-18
+Version 2.7.0  
+Released 2023-08-11
 
 **Source:** <https://github.com/compdyn/partmc>
 
 **Homepage:** <http://lagrange.mechse.illinois.edu/partmc/>
 
-**Cite as:** M. West, N. Riemer, J. Curtis, M. Michelotti, and J. Tian (2022) PartMC, [![version](https://img.shields.io/github/release/compdyn/partmc.svg?label=version)](https://github.com/compdyn/partmc), [![DOI](https://zenodo.org/badge/24058992.svg)](https://zenodo.org/badge/latestdoi/24058992)
+**Cite as:** M. West, N. Riemer, J. Curtis, M. Michelotti, and J. Tian (2023) PartMC, [![version](https://img.shields.io/github/release/compdyn/partmc.svg?label=version)](https://github.com/compdyn/partmc), [![DOI](https://zenodo.org/badge/24058992.svg)](https://zenodo.org/badge/latestdoi/24058992)
 
 Copyright (C) 2005-2022 Nicole Riemer and Matthew West  
 Portions copyright (C) Andreas Bott, Richard Easter, Jeffrey Curtis,
@@ -184,12 +184,12 @@ Installation
 
 2. Unpack PartMC:
 
-        tar xzvf partmc-2.6.1.tar.gz
+        tar xzvf partmc-2.7.0.tar.gz
 
 3. Change into the main PartMC directory (where this README file is
    located):
 
-        cd partmc-2.6.1
+        cd partmc-2.7.0
 
 4. Make a directory called `build` and change into it:
 

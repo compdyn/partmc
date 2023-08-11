@@ -700,9 +700,9 @@ contains
 #ifdef PMC_USE_CAMP
        camp_core, photolysis, &
 #endif
-       i_cur, i_next, t_start, last_output_time, last_progress_time, i_output, &
-       progress_n_samp, progress_n_coag, progress_n_emit, progress_n_dil_in, &
-       progress_n_dil_out, progress_n_nuc)
+       i_cur, i_next, t_start, last_output_time, last_progress_time, &
+       i_output, progress_n_samp, progress_n_coag, progress_n_emit, &
+       progress_n_dil_in, progress_n_dil_out, progress_n_nuc)
 
     !> Environment state.
     type(scenario_t), intent(in) :: scenario

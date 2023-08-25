@@ -15,8 +15,16 @@ known_long_lines = [
     '  ! This is needed because Fortran standard allows but doesn\'t *require* short-circuited',
     '                print \'(a,a,a)\', "Error: option \'", trim(arg), "\' requires an argument"',
     '    rgas = const%univ_gas_const * 1d3 / const%air_std_press ! J/mole/K to atmos/(mol/liter)/K',
+    '! Copyright (C) 2007-2012, 2016, 2017, 2018, 2021 Nicole Riemer and Matthew West',
     '!!     href="http://dx.doi.org/10.5194/acp-14-5327-2014">10.5194/acp-14-5327-2014</a>.',
     '!!     href="http://dx.doi.org/10.5194/acp-13-11423-2013">10.5194/acp-13-11423-2013</a>.',
+    '!!     href="http://dx.doi.org/10.1080/02786826.2020.1804523">10.1080/02786826.2020.1804523</a>.',
+    '!!     href="http://dx.doi.org/10.1080/02786826.2019.1661959">10.1080/02786826.2019.1661959</a>',
+    '!!     href="http://dx.doi.org/10.5194/gmd-10-4057-2017">10.5194/gmd-10-4057-2017</a>.',
+    '!!     href="http://dx.doi.org/10.1080/02786826.2017.1311988">10.1080/02786826.2017.1311988</a>.',
+    '!!     href="http://dx.doi.org/10.5194/acp-17-7445-2017">10.5194/acp-17-7445-2017</a>.',
+    '!!     href="http://dx.doi.org/10.1016/j.jcp.2016.06.029">10.1016/j.jcp.2016.06.029</a>.',
+    '!!     href="http://dx.doi.org/10.5194/acp-14-6289-2014">10.5194/acp-14-6289-2014</a>.',
     ]
 
 for filename in sys.argv[1:]:

@@ -776,9 +776,6 @@ contains
     kappa = aero_particle_solute_kappa(aero_particle, aero_data)
     d = aero_particle_crit_diameter_varying_sigma(aero_particle, aero_data, env_state, sigma)
 
-    crit_rhs = aero_particle_crit_rel_humid(aero_particle, &
-                aero_data, env_state)
-
     if (d == dry_diam) then
       aero_particle_crit_rel_humid_varying_sigma = exp(A * sigma / dry_diam)
     else 

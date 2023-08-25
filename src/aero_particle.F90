@@ -13,6 +13,7 @@ module pmc_aero_particle
   use pmc_spec_file
   use pmc_env_state
   use pmc_mpi
+  use pmc_constants
 #ifdef PMC_USE_MPI
   use mpi
 #endif
@@ -285,7 +286,6 @@ contains
     aero_particle_species_volume = aero_particle%vol(i_spec)
 
   end function aero_particle_species_volume
-
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Total dry volume of the particle (m^3).
@@ -293,7 +293,7 @@ contains
        aero_data)
 
     !> Particle.
-    type(aero_particle_t), intent(in) :: aero_particle
+    type(aero_particle_t), intent(in) :: aero_particle 
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
 
@@ -718,8 +718,9 @@ contains
 
     real(kind=dp) :: kappa, diam, C, A
 
+    A = env_state_A(env_state)
     kappa = aero_particle_solute_kappa(aero_particle, aero_data)
-    C = sqrt(4d0 * env_state_A(env_state)**3 / 27d0)
+    C = sqrt(4d0 * (A * const%water_surf_eng)**3 / 27d0)
     diam = aero_particle_diameter(aero_particle, aero_data)
     aero_particle_approx_crit_rel_humid = C / sqrt(kappa * diam**3) + 1d0
 
@@ -746,14 +747,43 @@ contains
          env_state)
     kappa = aero_particle_solute_kappa(aero_particle, aero_data)
     if (kappa < 1d-30) then
-       aero_particle_crit_rel_humid = exp(A / crit_diam)
+       aero_particle_crit_rel_humid = exp(A * const%water_surf_eng / crit_diam)
     else
        aero_particle_crit_rel_humid = (crit_diam**3 - dry_diam**3) &
-            / (crit_diam**3 - dry_diam**3 * (1 - kappa)) * exp(A / crit_diam)
+            / (crit_diam**3 - dry_diam**3 * (1 - kappa)) * exp(A * & 
+            const%water_surf_eng / crit_diam)
     end if
 
   end function aero_particle_crit_rel_humid
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  ! > Returns the critical relative humidity (1).
+  real(kind=dp) function aero_particle_crit_rel_humid_varying_sigma(aero_particle, &
+    aero_data, env_state)
+
+    !> Aerosol particle.
+    type(aero_particle_t), intent(in) :: aero_particle
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+
+    real(kind=dp) :: A, dry_diam, kappa, d, sigma
+    
+    A = env_state_A(env_state)
+    dry_diam = aero_particle_dry_diameter(aero_particle, aero_data)
+    kappa = aero_particle_solute_kappa(aero_particle, aero_data)
+    d = aero_particle_crit_diameter_varying_sigma(aero_particle, aero_data, env_state, sigma)
+
+    if (d == dry_diam) then
+      aero_particle_crit_rel_humid_varying_sigma = exp(A * sigma / dry_diam)
+    else 
+      aero_particle_crit_rel_humid_varying_sigma = (d**3 - dry_diam**3) / & 
+                  (d**3 - dry_diam**3 * (1d0 - kappa)) * exp(A * sigma / d) 
+    end if     
+ 
+  end function aero_particle_crit_rel_humid_varying_sigma
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Returns the critical diameter (m).
@@ -819,7 +849,7 @@ contains
        return
     end if
 
-    c4 = - 3d0 * dry_diam**3 * kappa / A
+    c4 = - 3d0 * dry_diam**3 * kappa / (A * const%water_surf_eng)
     c3 = - dry_diam**3 * (2d0 - kappa)
     c0 = dry_diam**6 * (1d0 - kappa)
 
@@ -835,13 +865,260 @@ contains
        end if
     end do
     call warn_assert_msg(408545686, i_newton < CRIT_DIAM_MAX_ITER, &
-         "critical diameter Newton loop failed to converge")
+         "critical diameter of old Newton loop failed to converge")
     call warn_assert_msg(353290871, d >= dry_diam, &
-         "critical diameter Newton loop converged to invalid solution")
+         "critical diameter of old Newton loop converged to invalid solution")
     aero_particle_crit_diameter = d
 
   end function aero_particle_crit_diameter
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  ! > Returns the critical diameter (m) for varying simga.
+  real(kind=dp) function aero_particle_crit_diameter_varying_sigma(&
+       aero_particle, aero_data, env_state, sigma)
+
+    !> Aerosol particle.
+    type(aero_particle_t), intent(in) :: aero_particle
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+
+    real(kind=dp), intent(out) :: sigma
+
+    integer, parameter :: CRIT_DIAM_MAX_ITER = 100
+    integer :: i_newton
+    real(kind=dp) :: delta_min = 1.6d-10
+    real(kind=dp) :: kappa, dry_diam, A, T
+    real(kind=dp) :: sigma_soluble, sigma_organic
+    real(kind=dp) :: v_solid, v_sol, v_org, r_solid
+    real(kind=dp) :: d, v_delta_solid, r_core, v_delta, d_v_delta
+    real(kind=dp) :: d_sigma, d_2_sigma, R, d_R, f, df, dd
+    real(kind=dp) :: c_1, c_2, c_3, c_4, c_5
+    
+    A = env_state_A(env_state)
+    T = env_state%temp
+    kappa = aero_particle_solute_kappa(aero_particle, aero_data)
+    dry_diam = aero_particle_dry_diameter(aero_particle, aero_data)
+    sigma_organic = aero_particle_sigma_organic(aero_particle, aero_data)
+    v_solid = aero_particle_solid_volume(aero_particle, aero_data)
+    v_org = aero_particle_organic_volume(aero_particle, aero_data)
+
+    if (kappa < 1d-30) then
+       ! bail out early for hydrophobic particles
+      aero_particle_crit_diameter_varying_sigma = dry_diam
+       return
+    end if
+
+    c_1 = 3d0 * dry_diam**3 * kappa / A 
+    c_2= (2d0 - kappa) * dry_diam**3
+    c_3 = (1d0 - kappa) * dry_diam**6
+    c_4 = 2d0 * const%pi * delta_min ! d_2_v_delta_d 
+  
+    d = 50*sqrt(4d0 / 3d0 * c_1)
+
+    if (v_solid == 0d0) then
+      do i_newton = 1, CRIT_DIAM_MAX_ITER
+        sigma_soluble = aero_particle_sigma_soluble(aero_particle, aero_data, env_state, d)
+        c_5 = v_org * (sigma_organic - sigma_soluble)
+        v_sol = const%pi * d**3 / 6d0 - v_org ! volume of soluble inorganics + water
+        r_core = ((3d0 * v_sol)/(4d0 * const%pi))**(1d0 / 3d0)
+        v_delta = (4d0 * const%pi / 3d0) * ((r_core + delta_min)**3 - (r_core)**3)
+        if (v_org > v_delta) then
+          sigma = sigma_organic
+          f = d**6 - c_1 * d**4 / sigma - c_2 * d**3 + c_3  
+          df = 6d0 * d**5 - 4d0 * c_1 * d**3 / sigma - 3d0 * c_2 * d**2
+        else 
+          if (v_org == 0) then
+            sigma = sigma_soluble
+            f = d**6 - c_1 * d**4 / sigma - c_2 * d**3 + c_3  
+            df = 6d0 * d**5 - 4d0 * c_1 * d**3 / sigma - 3d0 * c_2 * d**2
+          else
+            sigma = sigma_soluble + c_5 / v_delta
+            d_sigma = - c_5 * d_v_delta / v_delta**2
+            d_v_delta = 2d0 * const%pi * delta_min * (d - delta_min)
+            d_sigma = - c_5 * d_v_delta / v_delta**2
+            R = sigma - d * d_sigma
+            d_2_sigma = (c_5 / v_delta**3) * (2d0 * d_v_delta**2 - v_delta * c_4)
+            d_R = - d * d_2_sigma
+            f = d**6 - c_1 * d**4 / R - c_2 * d**3 + c_3  
+            df = 6d0 * d**5 - c_1 * (4d0 * d**3 * R - d**4 * d_R) / R**2 - 3d0 * c_2 * d**2
+          end if
+        end if 
+        dd = f / df
+        d = d - dd
+        if (abs(dd / d) < 1d-11) then
+           exit
+        end if
+      end do
+    else 
+      r_solid = ((3d0 * v_solid) / (4d0 * const%pi))**(1d0 / 3d0)
+      v_delta_solid = (4d0 * const%pi / 3d0) * ((r_solid + delta_min)**3 - (r_solid)**3)
+      do i_newton = 1, CRIT_DIAM_MAX_ITER
+        sigma_soluble = aero_particle_sigma_soluble(aero_particle, aero_data, env_state, d)
+        c_5 = v_org * (sigma_organic - sigma_soluble)
+        v_sol = const%pi * d**3 / 6 - v_solid - v_org
+        if (v_sol + v_org > v_delta_solid) then 
+          r_core = ((3d0 * (v_sol + v_solid))/(4 * const%pi))**(1d0 / 3d0) 
+          v_delta = (4d0 * const%pi / 3d0) * ((r_core + delta_min)**3 - (r_core)**3)
+          if (v_org > v_delta) then  
+            sigma = sigma_organic
+            f = d**6 - c_1 * d**4 / sigma - c_2 * d**3 + c_3  
+            df = 6d0 * d**5 - 4d0 * c_1 * d**3 / sigma - 3d0 * c_2 * d**2
+          else
+            if (v_org == 0) then
+              sigma = sigma_soluble
+              f = d**6 - c_1 * d**4 / sigma - c_2 * d**3 + c_3  
+              df = 6d0 * d**5 - 4d0 * c_1 * d**3 / sigma - 3d0 * c_2 * d**2
+            else
+              sigma = sigma_soluble + c_5 / v_delta
+              d_sigma = - c_5 * d_v_delta / v_delta**2
+              d_v_delta = 2d0 * const%pi * delta_min * (d - delta_min)
+              d_sigma = - c_5 * d_v_delta / v_delta**2
+              R = sigma - d * d_sigma
+              d_2_sigma = (c_5 / v_delta**3) * (2d0 * d_v_delta**2 - v_delta * c_4)
+              d_R = - d * d_2_sigma
+              f = d**6 - c_1 * d**4 / R - c_2 * d**3 + c_3  
+              df = 6d0 * d**5 - c_1 * (4d0 * d**3 * R - d**4 * d_R) / R**2 - 3d0 * c_2 * d**2
+            end if
+          end if
+          dd = f / df
+          d = d - dd
+          if (abs(dd / d) < 1d-11) then
+            exit
+          end if
+        else
+          sigma = (v_org * sigma_organic + v_sol * sigma_soluble) / v_delta_solid
+          d = dry_diam
+          exit
+        end if
+      end do
+    end if
+
+    call warn_assert_msg(408545686, i_newton < CRIT_DIAM_MAX_ITER, &
+         "critical diameter for new Newton loop failed to converge")
+    call warn_assert_msg(353290871, d >= dry_diam, &
+         "critical diameter for new Newton loop converged to invalid solution")
+    aero_particle_crit_diameter_varying_sigma = d
+    
+  end function aero_particle_crit_diameter_varying_sigma
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Organic volume of a single species in the particle (m^3). 
+  real(kind=dp) function aero_particle_organic_volume(aero_particle, aero_data) 
+
+    !> Particle.
+    type(aero_particle_t), intent(in) :: aero_particle
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    integer :: i_org_spec, n_org_spec
+    character(len=AERO_NAME_LEN), parameter, dimension(10) :: &
+    org_spec = ["MSA   ", "ARO1  ", "ARO2  ", "ALK1  ", "OLE1  ", &
+                "API1  ", "API2  ", "LIM1  ", "LIM2  ", "OC    "]
+
+    aero_particle_organic_volume = 0d0 
+    
+    do n_org_spec = 1, size(org_spec)
+       i_org_spec = aero_data_spec_by_name(aero_data, org_spec(n_org_spec))
+       aero_particle_organic_volume = aero_particle_organic_volume &
+            + aero_particle%vol(i_org_spec)
+    end do
+
+  end function aero_particle_organic_volume
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  ! > soluble inrganic volume of a single species in the particle (m^3). 
+  real(kind=dp) function aero_particle_solid_volume(aero_particle, aero_data) 
+
+    !> Particle.
+    type(aero_particle_t), intent(in) :: aero_particle
+    !> Aerosol data.ls
+    type(aero_data_t), intent(in) :: aero_data
+    integer :: i_solid_spec, n_solid_spec
+    character(len=AERO_NAME_LEN), parameter, dimension(2) :: &
+    solid_spec = ["OIN   ", "BC    "]
+     
+    aero_particle_solid_volume = 0d0 
+
+    do n_solid_spec = 1, size(solid_spec)
+       i_solid_spec = aero_data_spec_by_name(aero_data, solid_spec(n_solid_spec))
+       aero_particle_solid_volume = aero_particle_solid_volume &
+            + aero_particle%vol(i_solid_spec)
+    end do
+
+  end function aero_particle_solid_volume
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Returns the sigma of sol.
+  real(kind=dp) function aero_particle_sigma_soluble(aero_particle, & 
+              aero_data, env_state, d)
+
+    !> Aerosol particle.
+    type(aero_particle_t), intent(in) :: aero_particle
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+    
+    integer :: i_sol_spec, n_sol_spec
+    real(kind=dp) :: d, aero_particle_soluble_volume
+    real(kind=dp) :: v_solid, v_org, v_sol, v_water
+    character(len=AERO_NAME_LEN), parameter, dimension(7) :: &
+    sol_spec = ["SO4   ", "NO3   ", "Cl    ", "NH4   ", "CO3   ", &
+                "Na    ", "Ca    "]
+
+    v_solid = aero_particle_solid_volume(aero_particle, aero_data)
+    v_org = aero_particle_organic_volume(aero_particle, aero_data)
+
+    aero_particle_soluble_volume = 0d0 
+
+    do n_sol_spec = 1, size(sol_spec)
+       i_sol_spec = aero_data_spec_by_name(aero_data, sol_spec(n_sol_spec))
+       aero_particle_soluble_volume = aero_particle_soluble_volume &
+            + aero_particle%vol(i_sol_spec)
+    end do
+  
+    v_sol = d**3 * const%pi / 6 - v_solid - v_org
+    v_water = v_sol - aero_particle_soluble_volume
+
+    aero_particle_sigma_soluble = 0d0
+    do n_sol_spec = 1, size(sol_spec)
+      i_sol_spec = aero_data_spec_by_name(aero_data, sol_spec(n_sol_spec))
+      aero_particle_sigma_soluble = aero_particle_sigma_soluble & 
+              + aero_particle%vol(i_sol_spec) * &
+              aero_data%sigma(i_sol_spec) / v_sol
+    end do
+    aero_particle_sigma_soluble = aero_particle_sigma_soluble + v_water &
+              * const%water_surf_eng / v_sol
+
+  end function aero_particle_sigma_soluble
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+ 
+  !> Returns the sigma of shell
+  real(kind=dp) function aero_particle_sigma_organic(aero_particle, aero_data)
+
+    !> Aerosol particle.
+    type(aero_particle_t), intent(in) :: aero_particle
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+
+    real(kind=dp) :: org_volume
+    integer :: i_org_spec, n_org_spec
+    character(len=AERO_NAME_LEN), parameter, dimension(10) :: &
+    org_spec = ["MSA   ", "ARO1  ", "ARO2  ", "ALK1  ", "OLE1  ", &
+                "API1  ", "API2  ", "LIM1  ", "LIM2  ", "OC    "]    
+
+    org_volume = aero_particle_organic_volume(aero_particle, aero_data)
+    aero_particle_sigma_organic = 0d0
+    
+    do n_org_spec = 1, size(org_spec)
+      i_org_spec = aero_data_spec_by_name(aero_data, org_spec(n_org_spec))
+      aero_particle_sigma_organic = aero_particle_sigma_organic + aero_particle%vol(i_org_spec) * &
+              aero_data%sigma(i_org_spec) / org_volume
+    end do 
+
+  end function aero_particle_sigma_organic
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Coagulate two particles together to make a new one. The new

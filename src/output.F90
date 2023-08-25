@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2022 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2018 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -247,6 +247,51 @@ contains
 
   end subroutine make_filename
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! Modified by xx24, Feb/12/2022
+  !> Make a filename from a given prefix and other information.
+  subroutine for_single_particle(filename, prefix_single_particle, suffix, index, i_repeat, &
+   write_rank, write_n_proc)
+
+!> Filename to create.
+character(len=*), intent(out) :: filename
+!> Filename prefix.
+character(len=*), intent(in) :: prefix_single_particle
+!> Filename suffix.
+character(len=*), intent(in) :: suffix
+!> Filename index.
+integer, intent(in), optional :: index
+!> Current repeat number.
+integer, intent(in), optional :: i_repeat
+!> Rank to write into file.
+integer, intent(in), optional :: write_rank
+!> Number of processes to write into file.
+integer, intent(in), optional :: write_n_proc
+
+integer :: ncid, use_rank, use_n_proc
+character(len=100) :: proc_string, index_string, repeat_string
+
+if (present(write_rank)) then
+   use_rank = write_rank
+else
+   use_rank = pmc_mpi_rank()
+end if
+if (present(write_n_proc)) then
+   use_n_proc = write_n_proc
+else
+   use_n_proc = pmc_mpi_size()
+end if
+
+repeat_string = ""
+proc_string = ""
+index_string = ""
+if (present(i_repeat)) write(repeat_string, '(a,i4.4)') '_', i_repeat
+if (use_n_proc > 1) write(proc_string, '(a,i4.4)') '_', (use_rank + 1)
+if (present(index)) write(index_string, '(a,i8.8)') '_', index
+write(filename, '(a,a,a,a,a)') trim(prefix_single_particle), trim(repeat_string), &
+     trim(proc_string), trim(index_string), trim(suffix)
+
+end subroutine for_single_particle  
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Helper routine to write time variables. Do not call directly.

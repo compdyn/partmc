@@ -168,6 +168,10 @@ contains
     type(camp_state_t), intent(in) :: camp_state
 
     integer :: i_part, i_spec
+    real(kind=dp) :: reweight_num_conc(aero_state_n_part(aero_state))
+
+    call aero_state_num_conc_for_reweight(aero_state, aero_data, &
+         reweight_num_conc)
 
     associate (aero_rep => aero_data%aero_rep_ptr)
     select type (aero_rep)
@@ -189,6 +193,8 @@ contains
              "Wrong type for PartMC aerosol representation.")
     end select
     end associate
+
+    call aero_state_reweight(aero_state, aero_data, reweight_num_conc)
 
   end subroutine pmc_camp_interface_set_partmc_aerosol
 

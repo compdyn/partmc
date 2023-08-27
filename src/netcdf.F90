@@ -1214,4 +1214,68 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Write a simple real 4D array to a NetCDF file.
+  subroutine pmc_nc_write_real_4d(ncid, var, name, dimids, dim_name_1, &
+       dim_name_2, dim_name_3, dim_name_4, unit, long_name, standard_name, &
+       description)
+
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+    !> Data to write.
+    real(kind=dp), intent(in) :: var(:,:,:,:)
+    !> Variable name in NetCDF file.
+    character(len=*), intent(in) :: name
+    !> NetCDF dimension IDs of the variable (either \c dimids or both
+    !> \c dim_name_1 \c dim_name_2 and \c dim_name_3 must be present).
+    integer, optional, intent(in) :: dimids(4)
+    !> First NetCDF dimension name for the variable (either \c dimids
+    !> or all dimension names must be present).
+    character(len=*), optional, intent(in) :: dim_name_1
+    !> Second NetCDF dimension name for the variable (either \c dimids
+    !> or all dimension names must be present).
+    character(len=*), optional, intent(in) :: dim_name_2
+    !> Third NetCDF dimension name for the variable (either \c dimids
+    !> or all dimension names must be present).
+    character(len=*), optional, intent(in) :: dim_name_3
+    !> Fourth NetCDF dimension name for the variable (either \c dimids
+    !> or all dimension names must be present).
+    character(len=*), optional, intent(in) :: dim_name_4
+    !> Unit of variable.
+    character(len=*), optional, intent(in) :: unit
+    !> Long name of variable.
+    character(len=*), optional, intent(in) :: long_name
+    !> Standard name of variable.
+    character(len=*), optional, intent(in) :: standard_name
+    !> Description of variable.
+    character(len=*), optional, intent(in) :: description
+
+    integer :: varid, start(4), count(4), use_dimids(4)
+
+    if (present(dimids)) then
+       use_dimids = dimids
+    elseif (present(dim_name_1) .and. present(dim_name_2) .and. &
+         present(dim_name_3) .and. present(dim_name_4)) then
+       call pmc_nc_ensure_dim(ncid, dim_name_1, use_dimids(1), size(var, 1), 1)
+       call pmc_nc_ensure_dim(ncid, dim_name_2, use_dimids(2), size(var, 2), 2)
+       call pmc_nc_ensure_dim(ncid, dim_name_3, use_dimids(3), size(var, 3), 3)
+       call pmc_nc_ensure_dim(ncid, dim_name_4, use_dimids(4), size(var, 4), 4)
+    else
+       call die_msg(959111259, "either dimids or dim_name_1, dim_name_2 " &
+            // "dim_name_3 and dim_name_4 must be present")
+    end if
+    call pmc_nc_check(nf90_redef(ncid))
+    call pmc_nc_check(nf90_def_var(ncid, name, NF90_DOUBLE, use_dimids, varid))
+    call pmc_nc_write_atts(ncid, varid, unit, long_name, standard_name, &
+         description)
+    call pmc_nc_check(nf90_enddef(ncid))
+
+    start = (/ 1, 1, 1, 1 /)
+    count = (/ size(var, 1), size(var, 2), size(var, 3), size(var, 4) /)
+    call pmc_nc_check(nf90_put_var(ncid, varid, var, &
+         start = start, count = count))
+
+  end subroutine pmc_nc_write_real_4d
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 end module pmc_netcdf

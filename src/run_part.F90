@@ -459,7 +459,7 @@ contains
     type(gas_data_t), intent(inout) :: gas_data
     !> Initial gas state.
     type(gas_state_t), intent(inout) :: gas_state_init
-    !> Initial envronmental state.
+    !> Initial environmental state.
     type(env_state_t), intent(inout) :: env_state_init
     !> Initial aerosol distribution.
     type(aero_dist_t), intent(inout) :: aero_dist_init

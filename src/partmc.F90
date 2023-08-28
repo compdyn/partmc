@@ -718,51 +718,8 @@ contains
        return
     end if
 
-    call spec_file_read_string(file, 'output_prefix', run_exact_opt%prefix)
-
-    call spec_file_read_real(file, 't_max', run_exact_opt%t_max)
-    call spec_file_read_real(file, 't_output', run_exact_opt%t_output)
-
-    call spec_file_read_radius_bin_grid(file, bin_grid)
-
-    call spec_file_read_string(file, 'gas_data', sub_filename)
-    call spec_file_open(sub_filename, sub_file)
-    call spec_file_read_gas_data(sub_file, gas_data)
-    call spec_file_close(sub_file)
-
-    call spec_file_read_string(file, 'aerosol_data', sub_filename)
-    call spec_file_open(sub_filename, sub_file)
-    call spec_file_read_aero_data(sub_file, aero_data)
-    call spec_file_close(sub_file)
-
-    call spec_file_read_fractal(file, aero_data%fractal)
-
-    call spec_file_read_string(file, 'aerosol_init', sub_filename)
-    call spec_file_open(sub_filename, sub_file)
-    call spec_file_read_aero_dist(sub_file, aero_data, aero_dist_init)
-    call spec_file_close(sub_file)
-
-    call spec_file_read_scenario(file, gas_data, aero_data, scenario)
-    call spec_file_read_env_state(file, env_state)
-
-    call spec_file_read_logical(file, 'do_coagulation', &
-         run_exact_opt%do_coagulation)
-    if (run_exact_opt%do_coagulation) then
-       call spec_file_read_coag_kernel_type(file, &
-            run_exact_opt%coag_kernel_type)
-    else
-       run_exact_opt%coag_kernel_type = COAG_KERNEL_TYPE_INVALID
-    end if
-
-    call spec_file_close(file)
-
-    ! finished reading .spec data, now do the run
-
-    call pmc_srand(0, 0)
-
-    call uuid4_str(run_exact_opt%uuid)
-
-    call scenario_init_env_state(scenario, env_state, 0d0)
+    call spec_file_read_run_exact(file, run_exact_opt, aero_data, &
+       bin_grid, gas_data, env_state, aero_dist_init, scenario)
 
     call run_exact(bin_grid, scenario, env_state, aero_data, &
          aero_dist_init, gas_data, run_exact_opt)
@@ -870,53 +827,8 @@ contains
        return
     end if
 
-    call spec_file_read_string(file, 'output_prefix', run_sect_opt%prefix)
-
-    call spec_file_read_real(file, 't_max', run_sect_opt%t_max)
-    call spec_file_read_real(file, 'del_t', run_sect_opt%del_t)
-    call spec_file_read_real(file, 't_output', run_sect_opt%t_output)
-    call spec_file_read_real(file, 't_progress', run_sect_opt%t_progress)
-
-    call spec_file_read_radius_bin_grid(file, bin_grid)
-
-    call spec_file_read_string(file, 'gas_data', sub_filename)
-    call spec_file_open(sub_filename, sub_file)
-    call spec_file_read_gas_data(sub_file, gas_data)
-    call spec_file_close(sub_file)
-
-    call spec_file_read_string(file, 'aerosol_data', sub_filename)
-    call spec_file_open(sub_filename, sub_file)
-    call spec_file_read_aero_data(sub_file, aero_data)
-    call spec_file_close(sub_file)
-
-    call spec_file_read_fractal(file, aero_data%fractal)
-
-    call spec_file_read_string(file, 'aerosol_init', sub_filename)
-    call spec_file_open(sub_filename, sub_file)
-    call spec_file_read_aero_dist(sub_file, aero_data, aero_dist_init)
-    call spec_file_close(sub_file)
-
-    call spec_file_read_scenario(file, gas_data, aero_data, scenario)
-    call spec_file_read_env_state(file, env_state)
-
-    call spec_file_read_logical(file, 'do_coagulation', &
-         run_sect_opt%do_coagulation)
-    if (run_sect_opt%do_coagulation) then
-       call spec_file_read_coag_kernel_type(file, &
-            run_sect_opt%coag_kernel_type)
-    else
-       run_sect_opt%coag_kernel_type = COAG_KERNEL_TYPE_INVALID
-    end if
-
-    call spec_file_close(file)
-
-    ! finished reading .spec data, now do the run
-
-    call pmc_srand(0, 0)
-
-    call uuid4_str(run_sect_opt%uuid)
-
-    call scenario_init_env_state(scenario, env_state, 0d0)
+    call spec_file_read_run_sect(file, run_sect_opt, aero_data, bin_grid, &
+       gas_data, env_state, aero_dist_init, scenario)
 
     call run_sect(bin_grid, gas_data, aero_data, aero_dist_init, scenario, &
          env_state, run_sect_opt)

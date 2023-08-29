@@ -62,6 +62,10 @@ module pmc_aero_data
      real(kind=dp), allocatable :: molec_weight(:)
      !> Length \c aero_data_n_spec(aero_data), kappas (1).
      real(kind=dp), allocatable :: kappa(:)
+     !> Length \c aero_data_n_spec(aero_data), abifm_m (1).
+     real(kind=dp), allocatable :: abifm_m(:)
+     !> Length \c aero_data_n_spec(aero_data), abifm_c (1).
+     real(kind=dp), allocatable :: abifm_c(:)
      !> Length \c aero_data_n_source(aero_data), source names.
      character(len=AERO_SOURCE_NAME_LEN), allocatable :: source_name(:)
      !> Fractal particle parameters.
@@ -404,6 +408,8 @@ contains
     !!   - molecular weight (real, unit kg/mol)
     !!   - kappa hygroscopicity parameter (real, dimensionless) - if
     !!     zero, then inferred from the ions value
+    !!   - abifm_m: The m parameter for ABIFM algorithm
+    !!   - abifm_c: The c parameter for ABIFM algorithm
     !!
     !! This specifies both which species are to be recognized as
     !! aerosol consituents, as well as their physical properties. For
@@ -430,7 +436,7 @@ contains
 
     ! check the data size
     n_species = size(species_data, 1)
-    if (.not. ((size(species_data, 2) == 4) .or. (n_species == 0))) then
+    if (.not. ((size(species_data, 2) == 6) .or. (n_species == 0))) then
        call die_msg(428926381, 'each line in ' // trim(file%name) &
             // ' should contain exactly 5 values')
     end if
@@ -442,12 +448,16 @@ contains
     call ensure_integer_array_size(aero_data%num_ions, n_species)
     call ensure_real_array_size(aero_data%molec_weight, n_species)
     call ensure_real_array_size(aero_data%kappa, n_species)
+    call ensure_real_array_size(aero_data%abifm_m, n_species)
+    call ensure_real_array_size(aero_data%abifm_c, n_species)
     do i = 1,n_species
        aero_data%name(i) = species_name(i)(1:AERO_NAME_LEN)
        aero_data%density(i) = species_data(i,1)
        aero_data%num_ions(i) = nint(species_data(i,2))
        aero_data%molec_weight(i) = species_data(i,3)
        aero_data%kappa(i) = species_data(i,4)
+       aero_data%abifm_m(i) = species_data(i,5)
+       aero_data%abifm_c(i) = species_data(i,6)
        call assert_msg(232362742, &
             (aero_data%num_ions(i) == 0) .or. (aero_data%kappa(i) == 0d0), &
             "ions and kappa both non-zero for species " &
@@ -519,6 +529,8 @@ contains
          + pmc_mpi_pack_size_integer_array(val%num_ions) &
          + pmc_mpi_pack_size_real_array(val%molec_weight) &
          + pmc_mpi_pack_size_real_array(val%kappa) &
+         + pmc_mpi_pack_size_real_array(val%abifm_m) &
+         + pmc_mpi_pack_size_real_array(val%abifm_c) &
          + pmc_mpi_pack_size_string_array(val%source_name) &
          + pmc_mpi_pack_size_fractal(val%fractal)
 
@@ -547,6 +559,8 @@ contains
     call pmc_mpi_pack_integer_array(buffer, position, val%num_ions)
     call pmc_mpi_pack_real_array(buffer, position, val%molec_weight)
     call pmc_mpi_pack_real_array(buffer, position, val%kappa)
+    call pmc_mpi_pack_real_array(buffer, position, val%abifm_m)
+    call pmc_mpi_pack_real_array(buffer, position, val%abifm_c)
     call pmc_mpi_pack_string_array(buffer, position, val%source_name)
     call pmc_mpi_pack_fractal(buffer, position, val%fractal)
     call assert(183834856, &
@@ -578,6 +592,8 @@ contains
     call pmc_mpi_unpack_integer_array(buffer, position, val%num_ions)
     call pmc_mpi_unpack_real_array(buffer, position, val%molec_weight)
     call pmc_mpi_unpack_real_array(buffer, position, val%kappa)
+    call pmc_mpi_unpack_real_array(buffer, position, val%abifm_m)
+    call pmc_mpi_unpack_real_array(buffer, position, val%abifm_c)
     call pmc_mpi_unpack_string_array(buffer, position, val%source_name)
     call pmc_mpi_unpack_fractal(buffer, position, val%fractal)
     call assert(188522823, &
@@ -735,6 +751,8 @@ contains
     !!     weights of aerosol species
     !!   - \b aero_kappa (unit kg/mol, dim \c aero_species): hygroscopicity
     !!     parameters of aerosol species
+    !!   - \b aero_abifm_m (dim \c aero_species): m parameter of ABIFM
+    !!   - \b aero_abifm_c (dim \c aero_species): c parameter of ABIFM
     !!   - \b fractal parameters, see \ref output_format_fractal
     !!
     !! See also:
@@ -760,6 +778,13 @@ contains
     call pmc_nc_write_real_1d(ncid, aero_data%kappa, &
          "aero_kappa", (/ dimid_aero_species /), unit="1", &
          long_name="hygroscopicity parameters (kappas) of aerosol species")
+    call pmc_nc_write_real_1d(ncid, aero_data%abifm_m, &
+         "aero_abifm_m", (/ dimid_aero_species /), unit="1", &
+         long_name="m parameter of ABIFM")
+    call pmc_nc_write_real_1d(ncid, aero_data%abifm_c, &
+         "aero_abifm_c", (/ dimid_aero_species /), unit="1", &
+         long_name="c parameter of ABIFM")
+
     call fractal_output_netcdf(aero_data%fractal, ncid)
 
   end subroutine aero_data_output_netcdf
@@ -801,6 +826,8 @@ contains
     call pmc_nc_read_integer_1d(ncid, aero_data%num_ions, "aero_num_ions")
     call pmc_nc_read_real_1d(ncid, aero_data%molec_weight, "aero_molec_weight")
     call pmc_nc_read_real_1d(ncid, aero_data%kappa, "aero_kappa")
+    call pmc_nc_read_real_1d(ncid, aero_data%abifm_m, "aero_abifm_m")
+    call pmc_nc_read_real_1d(ncid, aero_data%abifm_c, "aero_abifm_c")
 
     call pmc_nc_check(nf90_inq_varid(ncid, "aero_species", &
          varid_aero_species))
@@ -899,6 +926,8 @@ contains
     allocate(aero_data%num_ions(num_spec))
     allocate(aero_data%molec_weight(num_spec))
     allocate(aero_data%kappa(num_spec))
+    allocate(aero_data%abifm_m(num_spec))
+    allocate(aero_data%abifm_c(num_spec))
     allocate(aero_data%camp_particle_spec_id(num_spec))
 
     ! Assume no aerosol water
@@ -934,6 +963,18 @@ contains
        if (.not. property_set%get_real(prop_name, &
             aero_data%kappa(i_spec))) then
          call die_msg(944207343, "Missing kappa for aerosol species " &
+              // spec_names(i_spec)%string)
+       end if
+       prop_name = "abifm_m"
+       if (.not. property_set%get_real(prop_name, &
+            aero_data%abifm_m(i_spec))) then
+         call die_msg(944207345, "Missing abifm_m for aerosol species " &
+              // spec_names(i_spec)%string)
+       end if
+       prop_name = "abifm_c"
+       if (.not. property_set%get_real(prop_name, &
+            aero_data%abifm_c(i_spec))) then
+         call die_msg(944207346, "Missing abifm_c for aerosol species " &
               // spec_names(i_spec)%string)
        end if
        prop_name = "PartMC name"

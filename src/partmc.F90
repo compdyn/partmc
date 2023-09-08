@@ -416,6 +416,8 @@ contains
     !!   nucleation. If \c do_nucleation is \c yes, then the following
     !!   parameters must also be provided:
     !!   - \subpage input_format_nucleate
+    !! - \b do_freezing (logical): whether to perform particle
+    !!   freezing.
     !! - \b rand_init (integer): if greater than zero then use as
     !!   the seed for the random number generator, or if zero then
     !!   generate a random seed for the random number generator ---
@@ -578,6 +580,38 @@ contains
           run_part_opt%nucleate_type = NUCLEATE_TYPE_INVALID
        end if
 
+       call spec_file_read_logical(file, 'do_freezing', &
+               run_part_opt%do_freezing)
+
+       if (run_part_opt%do_freezing) then
+       
+           call spec_file_read_logical(file, 'do_freezing_CNT', &
+                   run_part_opt%do_freezing_CNT)
+
+            !if (run_part_opt%do_freezing_CNT) then
+
+            !    call spec_file_read_real(file, 'abifm_m', &
+            !           run_part_opt%abifm_m)
+            !    call spec_file_read_real(file, 'abifm_c', &
+            !           run_part_opt%abifm_c)
+            !else
+
+            if (.not. run_part_opt%do_freezing_CNT) then
+
+                call spec_file_read_real(file, 'freezing_rate', &
+                       run_part_opt%freezing_rate)
+
+            endif
+            call spec_file_read_logical(file, 'do_coating', &
+                    run_part_opt%do_coating)
+            if (run_part_opt%do_coating) then
+                call spec_file_read_string(file, 'coating_spec', &
+                        run_part_opt%coating_spec)
+                call spec_file_read_real(file, 'coating_ratio', &
+                        run_part_opt%coating_ratio)
+            endif 
+       endif
+        
        call spec_file_read_integer(file, 'rand_init', rand_init)
        call spec_file_read_logical(file, 'allow_doubling', &
             run_part_opt%allow_doubling)

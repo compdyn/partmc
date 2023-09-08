@@ -1,6 +1,6 @@
 #!/bin/bash
 
-caseName=chiexp_external
+caseName=git_trans_t1
 # exit on error
 set -e
 # turn on command echoing

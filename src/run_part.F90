@@ -22,6 +22,7 @@ module pmc_run_part
   use pmc_coagulation_dist
   use pmc_coag_kernel
   use pmc_nucleate
+  use pmc_freezing
   use pmc_mpi
   use pmc_camp_interface
   use pmc_photolysis
@@ -66,6 +67,17 @@ module pmc_run_part
      logical :: do_coagulation
      !> Whether to do nucleation.
      logical :: do_nucleation
+     !> Whether to do freezing.
+     logical :: do_freezing
+     !> Whether to do freezing using Classical Nucleation Theory
+     logical :: do_freezing_CNT
+
+     real(kind=dp) :: freezing_rate
+     !real(kind=dp) :: abifm_m, abifm_c
+     logical :: do_coating
+     character(len=300) :: coating_spec
+     real(kind=dp) :: coating_ratio
+    
      !> Allow doubling if needed.
      logical :: allow_doubling
      !> Allow halving if needed.
@@ -259,6 +271,15 @@ contains
           progress_n_nuc = progress_n_nuc + n_nuc
        end if
 
+       !print*, run_part_opt%freezing_rate
+       if (run_part_opt%do_freezing) then
+           call freeze(aero_state, aero_data, old_env_state, &
+                   env_state, run_part_opt%del_t, run_part_opt%do_freezing_CNT, run_part_opt%freezing_rate, &
+                   run_part_opt%do_coating, run_part_opt%coating_spec, run_part_opt%coating_ratio)
+
+           call unfreeze(aero_state, aero_data, old_env_state, env_state)
+       end if
+
        if (run_part_opt%do_coagulation) then
           if (run_part_opt%parallel_coag_type &
                == PARALLEL_COAG_TYPE_LOCAL) then
@@ -386,6 +407,7 @@ contains
        end if
 
     end do
+    print*, "Freeze module total run time:", freeze_module_run_time
 
     if (run_part_opt%do_mosaic) then
        call mosaic_cleanup()

@@ -634,6 +634,41 @@ contains
 
   end subroutine uuid4_str
 
+  FUNCTION pmc_random_geometric(P)
+      ! Generate a random number in geometric distribution with the probability P
+      ! Reference: https://www.ucl.ac.uk/~ucakarc/work/software/randgen.f
+      real(kind=dp) :: P, U, TINY
+      INTEGER :: pmc_random_geometric
+
+      TINY = 1.0D-12
+      pmc_random_geometric = 0
+         
+      IF (.NOT.( (P.GE.0.0D0).AND.(P.LE.1.0D0))) THEN
+          WRITE(*,*) "Range error"
+          RETURN
+      ENDIF
+
+      IF (P.GT.0.9D0) THEN
+          pmc_random_geometric = ZBQLGEO + 1 
+          U = pmc_random()
+          do while( U.GT.P )
+          !U = ZBQLU01(0.0D0)
+              pmc_random_geometric = ZBQLGEO + 1 
+              U = pmc_random()
+          enddo
+          !IF (U.GT.P) GOTO 10
+      ELSE
+          U = pmc_random()
+
+          IF (P.GT.TINY) THEN
+              pmc_random_geometric = 1 + INT( DLOG(U)/DLOG(1.0D0-P) )
+          ELSE
+              pmc_random_geometric = 1 + INT(-DLOG(U)/P)
+          ENDIF
+      ENDIF
+
+  END FUNCTION pmc_random_geometric
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 end module pmc_rand

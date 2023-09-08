@@ -2444,6 +2444,8 @@ contains
     integer :: aero_water_hyst_leg(aero_state_n_part(aero_state))
     real(kind=dp) :: aero_num_conc(aero_state_n_part(aero_state))
     integer :: aero_id(aero_state_n_part(aero_state))
+    integer :: aero_frozen(aero_state_n_part(aero_state))
+    real(kind=dp) :: aero_frozen_probability(aero_state_n_part(aero_state))
     real(kind=dp) :: aero_least_create_time(aero_state_n_part(aero_state))
     real(kind=dp) :: aero_greatest_create_time(aero_state_n_part(aero_state))
     integer :: aero_removed_id( &
@@ -2572,6 +2574,8 @@ contains
                = aero_state_particle_num_conc(aero_state, &
                aero_state%apa%particle(i_part), aero_data)
           aero_id(i_part) = aero_state%apa%particle(i_part)%id
+          aero_frozen(i_part) = aero_state%apa%particle(i_part)%frozen
+          aero_frozen_probability(i_part) = aero_state%apa%particle(i_part)%P_frozen
           aero_least_create_time(i_part) &
                = aero_state%apa%particle(i_part)%least_create_time
           aero_greatest_create_time(i_part) &
@@ -2618,6 +2622,12 @@ contains
        call pmc_nc_write_integer_1d(ncid, aero_id, &
             "aero_id", (/ dimid_aero_particle /), &
             long_name="unique ID number of each aerosol particle")
+       call pmc_nc_write_integer_1d(ncid, aero_frozen, &
+               "aero_frozen", (/ dimid_aero_particle /), &
+               long_name="flag indicating ice phase of each aerosol particle")
+       call pmc_nc_write_real_1d(ncid, aero_frozen_probability, &
+               "aero_frozen_probability", (/ dimid_aero_particle /), &
+               long_name="probability of freezing describing the group of real aerosols represented by each computational particle")
        call pmc_nc_write_real_1d(ncid, aero_least_create_time, &
             "aero_least_create_time", (/ dimid_aero_particle /), unit="s", &
             long_name="least creation time of each aerosol particle", &
@@ -2809,6 +2819,8 @@ contains
     integer, allocatable :: aero_water_hyst_leg(:)
     real(kind=dp), allocatable :: aero_num_conc(:)
     integer, allocatable :: aero_id(:)
+    integer, allocatable :: aero_frozen(:)
+    real(kind=dp), allocatable :: aero_frozen_probability(:)
     real(kind=dp), allocatable :: aero_least_create_time(:)
     real(kind=dp), allocatable :: aero_greatest_create_time(:)
     integer, allocatable :: aero_removed_id(:)
@@ -2857,6 +2869,10 @@ contains
          "aero_num_conc")
     call pmc_nc_read_integer_1d(ncid, aero_id, &
          "aero_id")
+    call pmc_nc_read_integer_1d(ncid, aero_frozen, &
+            "aero_frozen")
+    call pmc_nc_read_real_1d(ncid, aero_frozen_probability, &
+            "aero_frozen_probability", must_be_present=.false.)
     call pmc_nc_read_real_1d(ncid, aero_least_create_time, &
          "aero_least_create_time")
     call pmc_nc_read_real_1d(ncid, aero_greatest_create_time, &
@@ -2895,6 +2911,8 @@ contains
        end if
        aero_particle%water_hyst_leg = aero_water_hyst_leg(i_part)
        aero_particle%id = aero_id(i_part)
+       aero_particle%frozen = aero_frozen(i_part)
+       aero_particle%P_frozen = aero_frozen_probability(i_part)
        aero_particle%least_create_time = aero_least_create_time(i_part)
        aero_particle%greatest_create_time = aero_greatest_create_time(i_part)
 

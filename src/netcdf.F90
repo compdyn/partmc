@@ -970,7 +970,7 @@ contains
     elseif (present(dim_name)) then
        call pmc_nc_ensure_dim(ncid, dim_name, use_dimids(1), size(var), 1)
     else
-       call die_msg(464170526, "either dimids or dim_name must be present")
+       call die_msg(895894487, "either dimids or dim_name must be present")
     end if
     call pmc_nc_check(nf90_redef(ncid))
     call pmc_nc_check(nf90_def_var(ncid, name, NF90_INT64, use_dimids, varid))
@@ -1136,7 +1136,7 @@ contains
        call pmc_nc_ensure_dim(ncid, dim_name_2, use_dimids(2), size(var, 2), 2)
        call pmc_nc_ensure_dim(ncid, dim_name_3, use_dimids(3), size(var, 3), 3)
     else
-       call die_msg(669381383, &
+       call die_msg(113962002, &
             "either dimids or dim_name_1, dim_name_2 and dim_name_3" &
             // "must be present")
     end if
@@ -1196,7 +1196,7 @@ contains
        call pmc_nc_ensure_dim(ncid, dim_name_2, use_dimids(2), size(var, 2), 2)
        call pmc_nc_ensure_dim(ncid, dim_name_3, use_dimids(3), size(var, 3), 3)
     else
-       call die_msg(959111259, "either dimids or dim_name_1, dim_name_2 and " &
+       call die_msg(503513757, "either dimids or dim_name_1, dim_name_2 and " &
             // "dim_name_3 must be present")
     end if
     call pmc_nc_check(nf90_redef(ncid))
@@ -1260,7 +1260,7 @@ contains
        call pmc_nc_ensure_dim(ncid, dim_name_3, use_dimids(3), size(var, 3), 3)
        call pmc_nc_ensure_dim(ncid, dim_name_4, use_dimids(4), size(var, 4), 4)
     else
-       call die_msg(959111259, "either dimids or dim_name_1, dim_name_2 " &
+       call die_msg(464532814, "either dimids or dim_name_1, dim_name_2 " &
             // "dim_name_3 and dim_name_4 must be present")
     end if
     call pmc_nc_check(nf90_redef(ncid))

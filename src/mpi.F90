@@ -882,7 +882,7 @@ contains
             position, MPI_COMM_WORLD, ierr)
        call pmc_mpi_check_ierr(ierr)
     end if
-    call assert(640416372, &
+    call assert(755467878, &
          position - prev_position <= pmc_mpi_pack_size_complex_array(val))
 #endif
 
@@ -1048,7 +1048,7 @@ contains
             size(buffer), position, MPI_COMM_WORLD, ierr)
        call pmc_mpi_check_ierr(ierr)
     end if
-    call assert(567349745, &
+    call assert(115193783, &
          position - prev_position <= pmc_mpi_pack_size_real_array_3d(val))
 #endif
 
@@ -1086,7 +1086,7 @@ contains
             size(buffer), position, MPI_COMM_WORLD, ierr)
        call pmc_mpi_check_ierr(ierr)
     end if
-    call assert(567349745, &
+    call assert(532144807, &
          position - prev_position <= pmc_mpi_pack_size_real_array_4d(val))
 #endif
 
@@ -1126,7 +1126,7 @@ contains
             size(buffer), position, MPI_COMM_WORLD, ierr)
        call pmc_mpi_check_ierr(ierr)
     end if
-    call assert(567349745, &
+    call assert(863374914, &
          position - prev_position <= pmc_mpi_pack_size_real_array_5d(val))
 #endif
 
@@ -1474,7 +1474,7 @@ contains
             MPI_DOUBLE_PRECISION, MPI_COMM_WORLD, ierr)
        call pmc_mpi_check_ierr(ierr)
     end if
-    call assert(781681739, position - prev_position &
+    call assert(116666533, position - prev_position &
          <= pmc_mpi_pack_size_real_array_3d(val))
 #endif
 
@@ -1509,7 +1509,7 @@ contains
             MPI_DOUBLE_PRECISION, MPI_COMM_WORLD, ierr)
        call pmc_mpi_check_ierr(ierr)
     end if
-    call assert(781681739, position - prev_position &
+    call assert(392994260, position - prev_position &
          <= pmc_mpi_pack_size_real_array_4d(val))
 #endif
 
@@ -1545,7 +1545,7 @@ contains
             MPI_DOUBLE_PRECISION, MPI_COMM_WORLD, ierr)
        call pmc_mpi_check_ierr(ierr)
     end if
-    call assert(781681739, position - prev_position &
+    call assert(046688204, position - prev_position &
          <= pmc_mpi_pack_size_real_array_5d(val))
 #endif
 

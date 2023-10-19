@@ -222,7 +222,7 @@ contains
        call aero_weight_array_set_flat(aero_state%awa, &
             aero_data_n_weight_class(aero_data))
     case(AERO_STATE_WEIGHT_POWER_SPECIFIED)
-       call assert_msg(102143848, present(exponent), &
+       call assert_msg(430273501, present(exponent), &
             "exponent parameter required for AERO_STATE_WEIGHT_POWER")
        call aero_weight_array_set_power(aero_state%awa, &
             aero_data_n_weight_class(aero_data), exponent)

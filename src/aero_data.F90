@@ -760,6 +760,9 @@ contains
     call pmc_nc_write_real_1d(ncid, aero_data%kappa, &
          "aero_kappa", (/ dimid_aero_species /), unit="1", &
          long_name="hygroscopicity parameters (kappas) of aerosol species")
+    call pmc_nc_write_integer(ncid, aero_data%i_water, &
+         "aero_i_water", long_name="Index of aerosol water or " &
+         // "0 if water does not exist.")
     call fractal_output_netcdf(aero_data%fractal, ncid)
 
   end subroutine aero_data_output_netcdf
@@ -840,7 +843,7 @@ contains
     end do
     call assert(377166446, aero_source_names == "")
 
-    call aero_data_set_water_index(aero_data)
+    call pmc_nc_read_integer(ncid, aero_data%i_water, "aero_i_water")
 
     call fractal_input_netcdf(aero_data%fractal, ncid)
 

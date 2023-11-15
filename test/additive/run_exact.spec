@@ -32,3 +32,4 @@ start_day 1                     # start day of year (UTC)
 
 do_coagulation yes              # whether to do coagulation (yes/no)
 coag_kernel additive            # coagulation kernel
+additive_kernel_coeff 1000      # additive kernel constant

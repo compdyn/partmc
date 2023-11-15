@@ -536,6 +536,9 @@ contains
        if (run_part_opt%do_coagulation) then
           call spec_file_read_coag_kernel_type(file, &
                run_part_opt%coag_kernel_type)
+           if (run_part_opt%coag_kernel_type == COAG_KERNEL_TYPE_ADDITIVE) then
+             call spec_file_read_real(file, 'additive_kernel_coeff', env_state_init%beta_1)
+           end if
        else
           run_part_opt%coag_kernel_type = COAG_KERNEL_TYPE_INVALID
        end if
@@ -849,7 +852,7 @@ contains
     !! - \b do_coagulation (logical): whether to perform particle
     !!   coagulation.  If \c do_coagulation is \c yes, then the
     !!   following parameters must also be provided:
-    !!   - \subpage input_format_coag_kernel
+    !!   - \subpage input_format_coag_kernel 
     !!
     !! Example:
     !! <pre>
@@ -886,6 +889,7 @@ contains
     !!
     !! do_coagulation yes              # whether to do coagulation (yes/no)
     !! kernel additive                 # Additive coagulation kernel
+    !! additive_kernel_coeff 1000d0                   # Additive kernel constant
     !! </pre>
 
     ! only serial code here
@@ -925,6 +929,9 @@ contains
     if (run_exact_opt%do_coagulation) then
        call spec_file_read_coag_kernel_type(file, &
             run_exact_opt%coag_kernel_type)
+       if (run_exact_opt%coag_kernel_type == COAG_KERNEL_TYPE_ADDITIVE) then
+           call spec_file_read_real(file, 'additive_kernel_coeff', env_state%beta_1)
+       end if
     else
        run_exact_opt%coag_kernel_type = COAG_KERNEL_TYPE_INVALID
     end if

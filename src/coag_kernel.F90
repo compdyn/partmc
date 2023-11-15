@@ -486,6 +486,9 @@ contains
     !!     for the constant kernel; \c brown for the Brownian kernel,
     !!     or \c zero for no coagulation
     !!
+    !! If \c coag_kernel is \c additive, the kernel coefficient needs to be
+    !! provided using the \c additive_kernel_coeff parameter
+    !!
     !! See also:
     !!   - \ref spec_file_format --- the input file text format
 

@@ -334,9 +334,14 @@ contains
     !> Weight class.
     integer, optional, intent(in) :: i_class
 
+#ifdef PMC_USE_WRF
+    aero_state_total_particles_all_procs = aero_state_total_particles( &
+         aero_state, i_group, i_class)
+#else
     call pmc_mpi_allreduce_sum_integer(&
          aero_state_total_particles(aero_state, i_group, i_class), &
          aero_state_total_particles_all_procs)
+#endif
 
   end function aero_state_total_particles_all_procs
 
@@ -1810,14 +1815,9 @@ contains
     if (allow_doubling) then
        do i_group = 1,n_group
           do i_class = 1,n_class
-#ifdef PMC_USE_WRF
-             global_n_part &
-                  = aero_state_total_particles(aero_state, i_group, i_class)
-#else
              global_n_part &
                   = aero_state_total_particles_all_procs(aero_state, i_group, &
                   i_class)
-#endif
              do while ((real(global_n_part, kind=dp) &
                   < aero_state%n_part_ideal(i_group, i_class) / 2d0) &
                   .and. (global_n_part > 0))
@@ -1826,14 +1826,9 @@ contains
                         // "condition")
                 end if
                 call aero_state_double(aero_state, aero_data, i_group, i_class)
-#ifdef PMC_USE_WRF
-             global_n_part &
-                  = aero_state_total_particles(aero_state, i_group, i_class)
-#else
                 global_n_part &
                      = aero_state_total_particles_all_procs(aero_state, &
                      i_group, i_class)
-#endif
              end do
           end do
        end do
@@ -1843,15 +1838,9 @@ contains
     if (allow_halving) then
        do i_group = 1,n_group
           do i_class = 1,n_class
-#ifdef PMC_USE_WRF
              do while (real(aero_state_total_particles(aero_state, &
                   i_group, i_class), kind=dp) &
                   > aero_state%n_part_ideal(i_group, i_class) * 2d0)
-#else
-             do while (real(aero_state_total_particles_all_procs(aero_state, &
-                  i_group, i_class), kind=dp) &
-                  > aero_state%n_part_ideal(i_group, i_class) * 2d0)
-#endif
                 if (initial_state_warning) then
                    call warn_msg(661936373, &
                         "halving particles in initial condition")
@@ -3123,7 +3112,7 @@ contains
     real(kind=dp), allocatable :: aero_greatest_create_time(:)
     integer, allocatable :: aero_removed_id(:)
     integer, allocatable :: aero_removed_action(:)
-    integer, allocatable :: aero_removed_other_id(:)
+    integer(kind=8), allocatable :: aero_removed_other_id(:)
     integer, allocatable :: aero_component_particle_num(:)
     integer, allocatable :: aero_component_source_num(:)
     integer, allocatable :: aero_component_len(:)
@@ -3247,7 +3236,7 @@ contains
          "aero_removed_id", must_be_present=.false.)
     call pmc_nc_read_integer_1d(ncid, aero_removed_action, &
          "aero_removed_action", must_be_present=.false.)
-    call pmc_nc_read_integer_1d(ncid, aero_removed_other_id, &
+    call pmc_nc_read_integer64_1d(ncid, aero_removed_other_id, &
          "aero_removed_other_id", must_be_present=.false.)
 
     n_info_item = size(aero_removed_id)

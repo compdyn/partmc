@@ -225,12 +225,12 @@ contains
 
     ! emissions
     if (size(scenario%gas_emission) > 0) then
-    call gas_state_interp_1d(scenario%gas_emission, &
-         scenario%gas_emission_time, scenario%gas_emission_rate_scale, &
-         env_state%elapsed_time, emissions, emission_rate_scale)
-    call gas_state_mole_dens_to_ppb(emissions, env_state)
-    p = emission_rate_scale * delta_t / env_state%height
-    call gas_state_add_scaled(gas_state, emissions, p)
+       call gas_state_interp_1d(scenario%gas_emission, &
+            scenario%gas_emission_time, scenario%gas_emission_rate_scale, &
+            env_state%elapsed_time, emissions, emission_rate_scale)
+       call gas_state_mole_dens_to_ppb(emissions, env_state)
+       p = emission_rate_scale * delta_t / env_state%height
+       call gas_state_add_scaled(gas_state, emissions, p)
     end if
 #ifndef PMC_USE_WRF
     ! dilution

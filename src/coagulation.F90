@@ -18,7 +18,6 @@ module pmc_coagulation
   use pmc_aero_state
   use pmc_aero_weight
   use pmc_aero_weight_array
-  use pmc_aero_component
   use pmc_mpi
   use pmc_coag_kernel
   use pmc_aero_sorted

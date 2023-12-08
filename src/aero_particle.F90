@@ -937,19 +937,19 @@ contains
        i2 = 1
        i_new = 1
        allocate(new_aero_component(MAX_AERO_COMPONENT_SIZE))
-       do while  (i_new <= MAX_AERO_COMPONENT_SIZE)
+       do while (i_new <= MAX_AERO_COMPONENT_SIZE)
           if (i1 <= n_comp_1) then
              new_aero_component(i_new) = aero_particle_1%component(i1)
              i1 = i1 + 1
              i_new = i_new + 1
           end if
-          if (i_new >  MAX_AERO_COMPONENT_SIZE) cycle
+          if (i_new > MAX_AERO_COMPONENT_SIZE) cycle
           if (i2 <= n_comp_2) then
              new_aero_component(i_new) = aero_particle_2%component(i2)
              i2 = i2 + 1
              i_new = i_new + 1
           end if
-          if (i_new >  MAX_AERO_COMPONENT_SIZE) cycle
+          if (i_new > MAX_AERO_COMPONENT_SIZE) cycle
        end do
        aero_particle_new%component = new_aero_component
     else
@@ -1009,7 +1009,7 @@ contains
          + pmc_mpi_pack_size_real(val%greatest_create_time) &
          + pmc_mpi_pack_size_integer(val%num_primary_parts)
 
-    do i = 1, aero_particle_n_components(val)
+    do i = 1,aero_particle_n_components(val)
        pmc_mpi_pack_size_aero_particle = pmc_mpi_pack_size_aero_particle &
             + pmc_mpi_pack_size_aero_component(val%component(i))
     end do
@@ -1045,7 +1045,7 @@ contains
     call pmc_mpi_pack_integer64(buffer, position, val%id)
     call pmc_mpi_pack_integer(buffer, position, &
          aero_particle_n_components(val))
-    do i = 1, aero_particle_n_components(val)
+    do i = 1,aero_particle_n_components(val)
        call pmc_mpi_pack_aero_component(buffer, position, val%component(i))
     end do
     call pmc_mpi_pack_real(buffer, position, val%least_create_time)

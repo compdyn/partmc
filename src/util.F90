@@ -778,7 +778,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Convert an integer to a string format.
+  !> Convert an integer64 to a string format.
   character(len=PMC_UTIL_CONVERT_STRING_LEN) function integer64_to_string(val)
 
     !> Value to convert.

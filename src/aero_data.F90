@@ -354,7 +354,7 @@ contains
        aero_data_weight_class_by_name = 1
        return
     end if
-    aero_data_weight_class_by_name= string_array_find( &
+    aero_data_weight_class_by_name = string_array_find( &
          aero_data%weight_class_name, name)
     if (aero_data_weight_class_by_name > 0) return
     aero_data%weight_class_name = [aero_data%weight_class_name, &
@@ -962,7 +962,7 @@ contains
          :: aero_weight_class_names)
     call pmc_nc_check(nf90_get_att(ncid, varid_aero_weight_class, "names", &
          aero_weight_class_names))
-    ! aero_source_names are comma-separated, so unpack them
+    ! aero_weight_class_names are comma-separated, so unpack them
     call pmc_nc_check(nf90_inq_dimid(ncid, "aero_weight_class", &
          dimid_aero_weight_class))
     call pmc_nc_check(nf90_Inquire_Dimension(ncid, &

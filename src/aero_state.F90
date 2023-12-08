@@ -1325,7 +1325,7 @@ contains
     integer :: i_part, i_source, i_comp
 
     aero_state_num_concs_by_source = 0d0
-    num_concs =  aero_state_num_concs(aero_state, aero_data)
+    num_concs = aero_state_num_concs(aero_state, aero_data)
     do i_part = 1,aero_state_n_part(aero_state)
        do i_comp = 1,aero_particle_n_components( &
             aero_state%apa%particle(i_part))
@@ -3623,7 +3623,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Copies the one aero_state to another and assigns new particle IDs.
+  !> Copies one aero_state to another and assigns new particle IDs.
   subroutine aero_state_dup_all_particles(aero_state_from, aero_state_to)
 
     !> Aerosol state to copy from.

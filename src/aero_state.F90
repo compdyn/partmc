@@ -1548,38 +1548,7 @@ contains
     type(aero_state_t) :: aero_state_averaged
     type(bin_grid_t) :: avg_bin_grid
 
-    real(kind=dp), allocatable :: bulk_masses(:)
-    integer :: i_part
-    real(kind=dp) :: h_gamma
-
-    logical :: use_species(aero_data_n_spec(aero_data))
-    logical :: group_species(aero_data_n_spec(aero_data))
-    integer :: i_name, i_spec, n_group
-    integer :: species_group_numbers(aero_data_n_spec(aero_data))
-    real(kind=dp) :: group_mass, non_group_mass, mass
-    real(kind=dp), allocatable :: group_masses(:)
-
     ! per-particle masses need to take groups into account
-
-    if (present(include)) then
-       use_species = .false.
-       do i_name = 1, size(include)
-          i_spec = aero_data_spec_by_name(aero_data, include(i_name))
-          call assert_msg(890212002, i_spec > 0, &
-               "unknown species: " // trim(include(i_name)))
-          use_species(i_spec) = .true.
-       end do
-    else
-       use_species = .true.
-    end if
-    if (present(exclude)) then
-       do i_name = 1, size(exclude)
-          i_spec = aero_data_spec_by_name(aero_data, exclude(i_name))
-          call assert_msg(859945006, i_spec > 0, &
-               "unknown species: " // trim(exclude(i_name)))
-          use_species(i_spec) = .false.
-       end do
-    end if
 
     if (present(groups)) then
        call assert_msg(726652236, .not. present(include), &
@@ -2598,13 +2567,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Write the aero removed dimension to the given NetCDF file if it
+  !> Write the aero component dimension to the given NetCDF file if it
   !> is not already present and in any case return the associated
   !> dimid.
   subroutine aero_state_netcdf_dim_aero_components(aero_state, ncid, &
        dimid_aero_components)
 
-    !> aero_state structure.
+    !> Aero_state structure.
     type(aero_state_t), intent(in) :: aero_state
     !> NetCDF file ID, in data mode.
     integer, intent(in) :: ncid

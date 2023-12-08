@@ -162,6 +162,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Set the initial aero_component for a particle.
   subroutine aero_particle_set_component(aero_particle, i_source, create_time)
 
     !> Particle to set time for.
@@ -180,10 +181,12 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Gets the list of sources that a particle consists of.
   subroutine aero_particle_get_component_sources(aero_particle, source_list)
 
     !> Particle.
     type(aero_particle_t), intent(in) :: aero_particle
+    !> List of sources.
     integer, intent(inout) :: source_list(:)
 
     integer :: i_comp, i_source

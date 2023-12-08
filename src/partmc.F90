@@ -542,7 +542,7 @@ contains
     ! initialize the chemistry solver
     if (run_part_opt%do_camp_chem) then
 #ifdef PMC_USE_CAMP
-      call camp_core%solver_initialize()
+       call camp_core%solver_initialize()
 #endif
     end if
 
@@ -719,7 +719,7 @@ contains
     end if
 
     call spec_file_read_run_exact(file, run_exact_opt, aero_data, &
-       bin_grid, gas_data, env_state, aero_dist_init, scenario)
+         bin_grid, gas_data, env_state, aero_dist_init, scenario)
 
     call run_exact(bin_grid, scenario, env_state, aero_data, &
          aero_dist_init, gas_data, run_exact_opt)
@@ -828,7 +828,7 @@ contains
     end if
 
     call spec_file_read_run_sect(file, run_sect_opt, aero_data, bin_grid, &
-       gas_data, env_state, aero_dist_init, scenario)
+         gas_data, env_state, aero_dist_init, scenario)
 
     call run_sect(bin_grid, gas_data, aero_data, aero_dist_init, scenario, &
          env_state, run_sect_opt)

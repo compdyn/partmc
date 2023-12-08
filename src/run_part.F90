@@ -506,7 +506,7 @@ contains
        call spec_file_read_real(file, 't_progress', run_part_opt%t_progress)
 
        call spec_file_read_logical(file, 'do_camp_chem', &
-               run_part_opt%do_camp_chem)
+            run_part_opt%do_camp_chem)
        if (run_part_opt%do_camp_chem) then
 #ifdef PMC_USE_CAMP
           call spec_file_read_string(file, 'camp_config', &

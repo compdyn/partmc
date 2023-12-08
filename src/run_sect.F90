@@ -212,7 +212,7 @@ contains
     !> Bin grid.
     type(bin_grid_t), intent(out) :: bin_grid
     !> Initial aerosol state.
-    type(aero_dist_t), intent(out)  :: aero_dist_init
+    type(aero_dist_t), intent(out) :: aero_dist_init
     !> Scenario data.
     type(scenario_t), intent(out) :: scenario
     !> Environmental state.

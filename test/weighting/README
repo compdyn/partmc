@@ -6,7 +6,7 @@ This test uses the various aerosol weighting types on a single
 scenario to show that the results are the same between all the 
 different options. There are the following configurations:
 
-- run_part.spec: source class (n_class=3) with number and mass weighting (n_group=2)
+- run_part_nummass_source.spec: source class (n_class=3) with number and mass weighting (n_group=2)
 - run_part_flat_source.spec: source weighting (n_class=3) with number weighting (n_group=1)
 - run_part_flat.spec: single weight class (n_class=1) with number weighting (n_group=1)
 - run_part_numass.spec: single weight class (n_class=1) with number and mass weighting (n_group=2)

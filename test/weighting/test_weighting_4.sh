@@ -9,7 +9,7 @@ cd ${0%/*}
 # make the output directory if it doesn't exist
 mkdir -p out
 
-../../partmc run_part_flat.spec
+../../partmc run_part_nummass.spec
 
 ../../extract_aero_size --num --dmin 1e-8 --dmax 1e-3 --nbin 160 out/weighting_flat_0001
 ../../extract_sectional_aero_size --num out/weighting_exact

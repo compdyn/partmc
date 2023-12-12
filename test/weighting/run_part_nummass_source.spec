@@ -1,9 +1,10 @@
 run_type particle               # particle-resolved run
-output_prefix out/weighting # prefix of output files
+output_prefix out/weighting_nummass_source # prefix of output files
 n_repeat 1                      # number of Monte Carlo repeats
 n_part 10000                    # total number of particles
 restart no                      # whether to restart from saved state (yes/no)
-do_select_weighting no          # whether to select weighting explicitly (yes/no)
+do_select_weighting yes          # whether to select weighting explicitly (yes/no)
+weight_type nummass_source
 
 t_max 43200                     # total simulation time (s)
 del_t 60                        # timestep (s)

@@ -941,8 +941,9 @@ contains
             R = sigma - d * d_sigma
             d_2_sigma = (c_5 / v_delta**3) * (2d0 * d_v_delta**2 - v_delta * c_4)
             d_R = - d * d_2_sigma
-            f = d**6 - c_1 * d**4 / R - c_2 * d**3 + c_3  
-            df = 6d0 * d**5 - c_1 * (4d0 * d**3 * R - d**4 * d_R) / R**2 - 3d0 * c_2 * d**2
+            f = R * (d**6 - c_2 * d**3 + c_3) - c_1 * d**4
+            df = d_R * (d**6 - c_2 * d**3 + c_3) + R * (6d0 * d**5 - 3d0 * c_2 * d**2) &
+                 - 4d0 * c_1 * d**3
           end if
         end if 
         dd = f / df
@@ -978,8 +979,9 @@ contains
               R = sigma - d * d_sigma
               d_2_sigma = (c_5 / v_delta**3) * (2d0 * d_v_delta**2 - v_delta * c_4)
               d_R = - d * d_2_sigma
-              f = d**6 - c_1 * d**4 / R - c_2 * d**3 + c_3  
-              df = 6d0 * d**5 - c_1 * (4d0 * d**3 * R - d**4 * d_R) / R**2 - 3d0 * c_2 * d**2
+              f = R * (d**6 - c_2 * d**3 + c_3) - c_1 * d**4
+              df = d_R * (d**6 - c_2 * d**3 + c_3) + R * (6d0 * d**5 - 3d0 * c_2 * d**2) &
+                   - 4d0 * c_1 * d**3
             end if
           end if
           dd = f / df

@@ -273,3 +273,18 @@ particle-resolved runs) or binned data (from sectional or exact
 runs). The `extract_*` programs can read these per-timestep NetCDF
 files and output ASCII data (the `extract_sectional_*` programs are
 used for sectional and exact model output).
+
+Python bindings
+===============
+
+The [PyPartMC](https://github.com/open-atmos/PyPartMC) project offers
+pip-installable Python bindings to PartMC. Both source and binary
+packages are available and ship with all PartMC dependencies included.
+PyPartMC exposes internal components of PartMC (utility routines and 
+derived types) which then can serve as building blocks to develop PartMC 
+simulations in Python. Time stepping can be performed either using the
+internal PartMC time-stepper or externally within a Python loop. The
+latter allows to couple the simulation with external Python components
+in each timestep. PyPartMC features examples developed as Jupyter notebooks.
+Snippets of code provided in the README file depict how to use PyPartMC 
+from Julia (using PyCall.jl) and Matlab (using Matlab's built-in Python bridge).

@@ -120,6 +120,7 @@ contains
   subroutine run_part(scenario, env_state, aero_data, aero_state, gas_data, &
        gas_state, run_part_opt)
 #endif
+
     !> Environment state.
     type(scenario_t), intent(in) :: scenario
     !> Environment state.
@@ -139,9 +140,6 @@ contains
     type(camp_core_t), pointer, intent(inout), optional :: camp_core
     !> Photolysis calculator
     type(photolysis_t), pointer, intent(inout), optional :: photolysis
-
-    type(camp_state_t), pointer :: camp_state
-    type(camp_state_t), pointer :: camp_pre_aero_state, camp_post_aero_state
 #endif
 
     real(kind=dp) :: time, pre_time, pre_del_t, prop_done
@@ -158,11 +156,9 @@ contains
     logical :: do_output, do_state, do_state_netcdf, do_progress, did_coag
     real(kind=dp) :: t_start, t_wall_now, t_wall_elapsed, t_wall_remain
     type(env_state_t) :: old_env_state
-    integer :: n_time, i_time, i_time_start, pre_i_time
+    integer :: n_time, i_time, pre_i_time
     integer :: i_state, i_state_netcdf, i_output
-#ifdef PMC_USE_CAMP
-    type(camp_env_state_t) :: camp_env_state
-#endif
+    integer :: i_cur, i_next
 
     rank = pmc_mpi_rank()
     n_proc = pmc_mpi_size()
@@ -185,15 +181,6 @@ contains
          "del_t", run_part_opt%del_t)
     call check_time_multiple("t_progress", run_part_opt%t_progress, &
          "del_t", run_part_opt%del_t)
-#ifdef PMC_USE_CAMP
-    if (run_part_opt%do_camp_chem) then
-       camp_env_state%temp = env_state%temp
-       camp_env_state%pressure = env_state%pressure
-       camp_state =>  camp_core%new_state_one_cell(camp_env_state)
-       camp_pre_aero_state => camp_core%new_state_one_cell(camp_env_state)
-       camp_post_aero_state => camp_core%new_state_one_cell(camp_env_state)
-    end if
-#endif
 
     if (run_part_opt%do_mosaic) then
        call mosaic_init(env_state, aero_data, run_part_opt%del_t, &
@@ -221,7 +208,6 @@ contains
     last_output_time = time
     last_progress_time = time
     n_time = nint(run_part_opt%t_max / run_part_opt%del_t)
-    i_time_start = nint(time / run_part_opt%del_t) + 1
 
     global_n_part = aero_state_total_particles_all_procs(aero_state)
     if (rank == 0) then
@@ -241,151 +227,17 @@ contains
             global_n_part, 0, 0, 0, 0, 0, t_wall_elapsed, t_wall_remain)
     end if
 
-    do i_time = i_time_start,n_time
+    i_cur = 1
+    i_next = n_time
 
-       time = real(i_time, kind=dp) * run_part_opt%del_t
-
-       old_env_state = env_state
-       call scenario_update_env_state(scenario, env_state, time + t_start)
-
-       if (run_part_opt%do_nucleation) then
-          n_part_before = aero_state_total_particles(aero_state)
-          call nucleate(run_part_opt%nucleate_type, &
-               run_part_opt%nucleate_source, env_state, gas_data, aero_data, &
-               aero_state, gas_state, run_part_opt%del_t, &
-               run_part_opt%allow_doubling, run_part_opt%allow_halving)
-          n_nuc = aero_state_total_particles(aero_state) &
-               - n_part_before
-          progress_n_nuc = progress_n_nuc + n_nuc
-       end if
-
-       if (run_part_opt%do_coagulation) then
-          if (run_part_opt%parallel_coag_type &
-               == PARALLEL_COAG_TYPE_LOCAL) then
-             call mc_coag(run_part_opt%coag_kernel_type, env_state, &
-                  aero_data, aero_state, run_part_opt%del_t, n_samp, n_coag)
-          elseif (run_part_opt%parallel_coag_type &
-               == PARALLEL_COAG_TYPE_DIST) then
-             call mc_coag_dist(run_part_opt%coag_kernel_type, env_state, &
-                  aero_data, aero_state, run_part_opt%del_t, n_samp, n_coag)
-          else
-             call die_msg(323011762, "unknown parallel coagulation type: " &
-                  // trim(integer_to_string(run_part_opt%parallel_coag_type)))
-          end if
-          progress_n_samp = progress_n_samp + n_samp
-          progress_n_coag = progress_n_coag + n_coag
-       end if
-
-#ifdef PMC_USE_SUNDIALS
-       if (run_part_opt%do_condensation) then
-          call condense_particles(aero_state, aero_data, old_env_state, &
-               env_state, run_part_opt%del_t)
-       end if
-#endif
-
-       call scenario_update_gas_state(scenario, run_part_opt%del_t, &
-            env_state, old_env_state, gas_data, gas_state)
-       call scenario_update_aero_state(scenario, run_part_opt%del_t, &
-            env_state, old_env_state, aero_data, aero_state, n_emit, &
-            n_dil_in, n_dil_out, run_part_opt%allow_doubling, &
-            run_part_opt%allow_halving)
-       progress_n_emit = progress_n_emit + n_emit
-       progress_n_dil_in = progress_n_dil_in + n_dil_in
-       progress_n_dil_out = progress_n_dil_out + n_dil_out
-
-       if (run_part_opt%do_camp_chem) then
+    call run_part_timeblock(scenario, env_state, aero_data, aero_state, &
+         gas_data, gas_state, run_part_opt, &
 #ifdef PMC_USE_CAMP
-          call pmc_camp_interface_solve(camp_core, camp_state, &
-               camp_pre_aero_state, camp_post_aero_state, env_state, &
-               aero_data, aero_state, gas_data, gas_state, photolysis, &
-               run_part_opt%del_t)
+         camp_core, photolysis, &
 #endif
-       end if
-
-       if (run_part_opt%do_mosaic) then
-          call mosaic_timestep(env_state, aero_data, aero_state, gas_data, &
-               gas_state, run_part_opt%do_optical)
-       end if
-
-       if (run_part_opt%mix_timescale > 0d0) then
-          call aero_state_mix(aero_state, run_part_opt%del_t, &
-               run_part_opt%mix_timescale, aero_data)
-       end if
-       if (run_part_opt%gas_average) then
-          call gas_state_mix(gas_state)
-       end if
-       if (run_part_opt%gas_average) then
-          call env_state_mix(env_state)
-       end if
-
-       call aero_state_rebalance(aero_state, aero_data, &
-            run_part_opt%allow_doubling, &
-            run_part_opt%allow_halving, initial_state_warning=.false.)
-
-       ! DEBUG: enable to check consistency
-       ! call aero_state_check(aero_state, aero_data)
-       ! DEBUG: end
-
-       if (run_part_opt%t_output > 0d0) then
-          call check_event(time, run_part_opt%del_t, run_part_opt%t_output, &
-               last_output_time, do_output)
-          if (do_output) then
-             i_output = i_output + 1
-             call output_state(run_part_opt%output_prefix, &
-                  run_part_opt%output_type, aero_data, aero_state, gas_data, &
-                  gas_state, env_state, i_output, time, run_part_opt%del_t, &
-                  run_part_opt%i_repeat, run_part_opt%record_removals, &
-                  run_part_opt%do_optical, run_part_opt%uuid)
-             call aero_info_array_zero(aero_state%aero_info_array)
-          end if
-       end if
-
-       if (.not. run_part_opt%record_removals) then
-          ! If we are not recording removals then we can zero them as
-          ! often as possible to minimize the cost of maintaining
-          ! them.
-          call aero_info_array_zero(aero_state%aero_info_array)
-       end if
-
-       if (run_part_opt%t_progress > 0d0) then
-          call check_event(time, run_part_opt%del_t, &
-               run_part_opt%t_progress, last_progress_time, do_progress)
-          if (do_progress) then
-             global_n_part = aero_state_total_particles_all_procs(aero_state)
-             call pmc_mpi_reduce_sum_integer(progress_n_samp, global_n_samp)
-             call pmc_mpi_reduce_sum_integer(progress_n_coag, global_n_coag)
-             call pmc_mpi_reduce_sum_integer(progress_n_emit, global_n_emit)
-             call pmc_mpi_reduce_sum_integer(progress_n_dil_in, &
-                  global_n_dil_in)
-             call pmc_mpi_reduce_sum_integer(progress_n_dil_out, &
-                  global_n_dil_out)
-             call pmc_mpi_reduce_sum_integer(progress_n_nuc, global_n_nuc)
-             if (rank == 0) then
-                ! progress only printed from root process
-                call cpu_time(t_wall_now)
-                prop_done = (real(run_part_opt%i_repeat - 1, kind=dp) &
-                     + time / run_part_opt%t_max) &
-                     / real(run_part_opt%n_repeat, kind=dp)
-                t_wall_elapsed = t_wall_now - run_part_opt%t_wall_start
-                t_wall_remain = (1d0 - prop_done) / prop_done &
-                     * t_wall_elapsed
-                call print_part_progress(run_part_opt%i_repeat, time, &
-                     global_n_part, global_n_coag, global_n_emit, &
-                     global_n_dil_in, global_n_dil_out, global_n_nuc, &
-                     t_wall_elapsed, t_wall_remain)
-             end if
-             ! reset counters so they show information since last
-             ! progress display
-             progress_n_samp = 0
-             progress_n_coag = 0
-             progress_n_emit = 0
-             progress_n_dil_in = 0
-             progress_n_dil_out = 0
-             progress_n_nuc = 0
-          end if
-       end if
-
-    end do
+         i_cur, i_next, t_start, last_output_time, last_progress_time, &
+         i_output, progress_n_samp, progress_n_coag, progress_n_emit, &
+         progress_n_dil_in, progress_n_dil_out, progress_n_nuc)
 
     if (run_part_opt%do_mosaic) then
        call mosaic_cleanup()
@@ -618,6 +470,299 @@ contains
     end if
 
   end subroutine spec_file_read_parallel_coag_type
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Do a one particle-resolved Monte Carlo simulation timestep.
+  subroutine run_part_timestep(scenario, env_state, aero_data, aero_state, &
+       gas_data, gas_state, run_part_opt, &
+#ifdef PMC_USE_CAMP
+       camp_core, photolysis, &
+#endif
+       i_time, t_start, last_output_time, last_progress_time, i_output, &
+       progress_n_samp, progress_n_coag, progress_n_emit, progress_n_dil_in, &
+       progress_n_dil_out, progress_n_nuc)
+
+    !> Environment state.
+    type(scenario_t), intent(in) :: scenario
+    !> Environment state.
+    type(env_state_t), intent(inout) :: env_state
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol state.
+    type(aero_state_t), intent(inout) :: aero_state
+    !> Gas data.
+    type(gas_data_t), intent(in) :: gas_data
+    !> Gas state.
+    type(gas_state_t), intent(inout) :: gas_state
+    !> Monte Carlo options.
+    type(run_part_opt_t), intent(in) :: run_part_opt
+#ifdef PMC_USE_CAMP
+    !> CAMP chemistry core
+    type(camp_core_t), pointer, intent(inout), optional :: camp_core
+    !> Photolysis calculator
+    type(photolysis_t), pointer, intent(inout), optional :: photolysis
+#endif
+    !> Current simulation time.
+    integer, intent(in) :: i_time
+    ! Start time of simulation.
+    real(kind=dp), intent(in) :: t_start
+    !> Last time output was written (s).
+    real(kind=dp), intent(inout) :: last_output_time
+    !> Last time progress was output to screen (s).
+    real(kind=dp), intent(inout) :: last_progress_time
+    !> Output timestep integer for output filename.
+    integer, intent(inout) :: i_output
+    !> Total number of samples tested.
+    integer, intent(inout) :: progress_n_samp
+    !> Number of coagulation events.
+    integer, intent(inout) :: progress_n_coag
+    !> Number of particles added by emission.
+    integer, intent(inout) :: progress_n_emit
+    !> Number of particles added by dilution.
+    integer, intent(inout) :: progress_n_dil_in
+    !> Number of particles removed by dilution.
+    integer, intent(inout) :: progress_n_dil_out
+    !> Number of particles added by nucleation.
+    integer, intent(inout) :: progress_n_nuc
+
+    real(kind=dp) :: prop_done
+    integer :: n_samp, n_coag, n_emit, n_dil_in, n_dil_out, n_nuc
+    integer :: n_part_before
+    integer :: global_n_part, global_n_samp, global_n_coag
+    integer :: global_n_emit, global_n_dil_in, global_n_dil_out
+    integer :: global_n_nuc
+    logical :: do_output, do_state, do_state_netcdf, do_progress
+    real(kind=dp) :: t_wall_now, t_wall_elapsed, t_wall_remain, time
+    type(env_state_t) :: old_env_state
+#ifdef PMC_USE_CAMP
+    type(camp_state_t), pointer :: camp_state
+    type(camp_state_t), pointer :: camp_pre_aero_state, camp_post_aero_state
+    type(camp_env_state_t) :: camp_env_state
+#endif
+ 
+    time = i_time * run_part_opt%del_t
+ 
+#ifdef PMC_USE_CAMP
+    if (run_part_opt%do_camp_chem) then
+       camp_env_state%temp = env_state%temp
+       camp_env_state%pressure = env_state%pressure
+       camp_state =>  camp_core%new_state_one_cell(camp_env_state)
+       camp_pre_aero_state => camp_core%new_state_one_cell(camp_env_state)
+       camp_post_aero_state => camp_core%new_state_one_cell(camp_env_state)
+    end if
+#endif
+
+    old_env_state = env_state
+    call scenario_update_env_state(scenario, env_state, time + t_start)
+
+    if (run_part_opt%do_nucleation) then
+       n_part_before = aero_state_total_particles(aero_state)
+       call nucleate(run_part_opt%nucleate_type, &
+            run_part_opt%nucleate_source, env_state, gas_data, aero_data, &
+            aero_state, gas_state, run_part_opt%del_t, &
+            run_part_opt%allow_doubling, run_part_opt%allow_halving)
+       n_nuc = aero_state_total_particles(aero_state) &
+            - n_part_before
+       progress_n_nuc = progress_n_nuc + n_nuc
+    end if
+
+    if (run_part_opt%do_coagulation) then
+       if (run_part_opt%parallel_coag_type &
+            == PARALLEL_COAG_TYPE_LOCAL) then
+          call mc_coag(run_part_opt%coag_kernel_type, env_state, &
+               aero_data, aero_state, run_part_opt%del_t, n_samp, n_coag)
+       elseif (run_part_opt%parallel_coag_type &
+            == PARALLEL_COAG_TYPE_DIST) then
+          call mc_coag_dist(run_part_opt%coag_kernel_type, env_state, &
+               aero_data, aero_state, run_part_opt%del_t, n_samp, n_coag)
+       else
+          call die_msg(323011762, "unknown parallel coagulation type: " &
+               // trim(integer_to_string(run_part_opt%parallel_coag_type)))
+       end if
+       progress_n_samp = progress_n_samp + n_samp
+       progress_n_coag = progress_n_coag + n_coag
+    end if
+
+#ifdef PMC_USE_SUNDIALS
+    if (run_part_opt%do_condensation) then
+       call condense_particles(aero_state, aero_data, old_env_state, &
+            env_state, run_part_opt%del_t)
+    end if
+#endif
+
+    call scenario_update_gas_state(scenario, run_part_opt%del_t, &
+         env_state, old_env_state, gas_data, gas_state)
+    call scenario_update_aero_state(scenario, run_part_opt%del_t, &
+         env_state, old_env_state, aero_data, aero_state, n_emit, &
+         n_dil_in, n_dil_out, run_part_opt%allow_doubling, &
+         run_part_opt%allow_halving)
+    progress_n_emit = progress_n_emit + n_emit
+    progress_n_dil_in = progress_n_dil_in + n_dil_in
+    progress_n_dil_out = progress_n_dil_out + n_dil_out
+
+    if (run_part_opt%do_camp_chem) then
+#ifdef PMC_USE_CAMP
+       call pmc_camp_interface_solve(camp_core, camp_state, &
+            camp_pre_aero_state, camp_post_aero_state, env_state, &
+            aero_data, aero_state, gas_data, gas_state, photolysis, &
+            run_part_opt%del_t)
+#endif
+    end if
+
+    if (run_part_opt%do_mosaic) then
+       call mosaic_timestep(env_state, aero_data, aero_state, gas_data, &
+            gas_state, run_part_opt%do_optical)
+    end if
+
+    if (run_part_opt%mix_timescale > 0d0) then
+       call aero_state_mix(aero_state, run_part_opt%del_t, &
+            run_part_opt%mix_timescale, aero_data)
+    end if
+    if (run_part_opt%gas_average) then
+       call gas_state_mix(gas_state)
+    end if
+    if (run_part_opt%gas_average) then
+       call env_state_mix(env_state)
+    end if
+
+    call aero_state_rebalance(aero_state, aero_data, &
+         run_part_opt%allow_doubling, &
+         run_part_opt%allow_halving, initial_state_warning=.false.)
+
+
+    if (run_part_opt%t_output > 0d0) then
+       call check_event(time, run_part_opt%del_t, run_part_opt%t_output, &
+            last_output_time, do_output)
+       if (do_output) then
+          i_output = i_output + 1
+          call output_state(run_part_opt%output_prefix, &
+               run_part_opt%output_type, aero_data, aero_state, gas_data, &
+               gas_state, env_state, i_output, time, run_part_opt%del_t, &
+               run_part_opt%i_repeat, run_part_opt%record_removals, &
+               run_part_opt%do_optical, run_part_opt%uuid)
+          call aero_info_array_zero(aero_state%aero_info_array)
+       end if
+    end if
+
+    if (.not. run_part_opt%record_removals) then
+       ! If we are not recording removals then we can zero them as
+       ! often as possible to minimize the cost of maintaining
+       ! them.
+       call aero_info_array_zero(aero_state%aero_info_array)
+    end if
+
+    if (run_part_opt%t_progress > 0d0) then
+       call check_event(time, run_part_opt%del_t, &
+            run_part_opt%t_progress, last_progress_time, do_progress)
+       if (do_progress) then
+          global_n_part = aero_state_total_particles_all_procs(aero_state)
+          call pmc_mpi_reduce_sum_integer(progress_n_samp, global_n_samp)
+          call pmc_mpi_reduce_sum_integer(progress_n_coag, global_n_coag)
+          call pmc_mpi_reduce_sum_integer(progress_n_emit, global_n_emit)
+          call pmc_mpi_reduce_sum_integer(progress_n_dil_in, &
+               global_n_dil_in)
+          call pmc_mpi_reduce_sum_integer(progress_n_dil_out, &
+               global_n_dil_out)
+          call pmc_mpi_reduce_sum_integer(progress_n_nuc, global_n_nuc)
+          if (pmc_mpi_rank() == 0) then
+             ! progress only printed from root process
+             call cpu_time(t_wall_now)
+             prop_done = (real(run_part_opt%i_repeat - 1, kind=dp) &
+                  + time / run_part_opt%t_max) &
+                  / real(run_part_opt%n_repeat, kind=dp)
+             t_wall_elapsed = t_wall_now - run_part_opt%t_wall_start
+             t_wall_remain = (1d0 - prop_done) / prop_done &
+                  * t_wall_elapsed
+             call print_part_progress(run_part_opt%i_repeat, time, &
+                  global_n_part, global_n_coag, global_n_emit, &
+                  global_n_dil_in, global_n_dil_out, global_n_nuc, &
+                  t_wall_elapsed, t_wall_remain)
+          end if
+          ! reset counters so they show information since last
+          ! progress display
+          progress_n_samp = 0
+          progress_n_coag = 0
+          progress_n_emit = 0
+          progress_n_dil_in = 0
+          progress_n_dil_out = 0
+          progress_n_nuc = 0
+       end if
+    end if
+
+  end subroutine run_part_timestep
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Do a number of time steps of particle-reoslved Monte Carlo simulation.
+  subroutine run_part_timeblock(scenario, env_state, aero_data, aero_state, &
+       gas_data, gas_state, run_part_opt, &
+#ifdef PMC_USE_CAMP
+       camp_core, photolysis, &
+#endif
+       i_cur, i_next, t_start, last_output_time, last_progress_time, &
+       i_output, progress_n_samp, progress_n_coag, progress_n_emit, &
+       progress_n_dil_in, progress_n_dil_out, progress_n_nuc)
+
+    !> Environment state.
+    type(scenario_t), intent(in) :: scenario
+    !> Environment state.
+    type(env_state_t), intent(inout) :: env_state
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol state.
+    type(aero_state_t), intent(inout) :: aero_state
+    !> Gas data.
+    type(gas_data_t), intent(in) :: gas_data
+    !> Gas state.
+    type(gas_state_t), intent(inout) :: gas_state
+    !> Monte Carlo options.
+    type(run_part_opt_t), intent(in) :: run_part_opt
+#ifdef PMC_USE_CAMP
+    !> CAMP chemistry core
+    type(camp_core_t), pointer, intent(inout), optional :: camp_core
+    !> Photolysis calculator
+    type(photolysis_t), pointer, intent(inout), optional :: photolysis
+#endif
+    !> Current simulation timestep.
+    integer, intent(in) :: i_cur
+    ! Start time of simulation.
+    real(kind=dp), intent(in) :: t_start
+    ! End timestep to simulate.
+    integer, intent(in) :: i_next
+    !> Last time output was written (s).
+    real(kind=dp), intent(inout) :: last_output_time
+    !> Last time progress was output to screen (s).
+    real(kind=dp), intent(inout) :: last_progress_time
+    !> Output timestep integer for output filename.
+    integer, intent(inout) :: i_output
+    !> Total number of samples tested.
+    integer, intent(inout) :: progress_n_samp
+    !> Number of coagulation events.
+    integer, intent(inout) :: progress_n_coag
+    !> Number of particles added by emission.
+    integer, intent(inout) :: progress_n_emit
+    !> Number of particles added by dilution.
+    integer, intent(inout) :: progress_n_dil_in
+    !> Number of particles removed by dilution.
+    integer, intent(inout) :: progress_n_dil_out
+    !> Number of particles added by nucleation.
+    integer, intent(inout) :: progress_n_nuc
+
+    integer :: i_time
+
+    do i_time = i_cur,i_next
+       call run_part_timestep(scenario, env_state, aero_data, aero_state, &
+            gas_data, gas_state, run_part_opt, &
+#ifdef PMC_USE_CAMP
+            camp_core, photolysis, &
+#endif
+            i_time, t_start, last_output_time, last_progress_time, i_output, &
+            progress_n_samp, progress_n_coag, progress_n_emit, &
+            progress_n_dil_in, progress_n_dil_out, progress_n_nuc)
+    end do
+
+  end subroutine run_part_timeblock
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

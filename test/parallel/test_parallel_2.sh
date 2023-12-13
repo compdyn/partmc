@@ -14,6 +14,8 @@ if [ "$(uname)" == "Darwin" ]; then
 elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
     b=$(getconf _NPROCESSORS_ONLN)
 fi
+echo $(uname)
+echo $a $b
 n_proc=$(( a < b ? a : b ))
 echo $n_proc
 

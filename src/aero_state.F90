@@ -1313,6 +1313,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Returns the total number concentration associated with each aerosol
+  !> source category. The amount of concentration of each particle assigned to
+  !> a source is proportional to the number of primary componenets consisting of
+  !> that source and the total number of components. A particle may be
+  !> counted more than once for a source if the source appears more than once.
   function aero_state_num_concs_by_source(aero_state, aero_data)
 
     !> Aerosol state.
@@ -1326,16 +1331,19 @@ contains
 
     real(kind=dp) :: num_concs(aero_state_n_part(aero_state))
     integer :: i_part, i_source, i_comp
+    real(kind=dp) :: source_weighted_conc
 
     aero_state_num_concs_by_source = 0d0
     num_concs = aero_state_num_concs(aero_state, aero_data)
     do i_part = 1,aero_state_n_part(aero_state)
+       source_weighted_conc = num_concs(i_part) &
+            / aero_particle_n_components(aero_state%apa%particle(i_part))
        do i_comp = 1,aero_particle_n_components( &
             aero_state%apa%particle(i_part))
           i_source = aero_state%apa%particle(i_part)%component(i_comp)% &
                source_id
           aero_state_num_concs_by_source(i_source) = &
-               aero_state_num_concs_by_source(i_source) + num_concs(i_part)
+               aero_state_num_concs_by_source(i_source) + source_weighted_conc
        end do
     end do
 

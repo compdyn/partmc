@@ -14,6 +14,7 @@ if [ "$(uname)" == "Darwin" ]; then
 elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
     b=$(grep -c 'cpu[0-9]' /proc/stat) #(getconf _NPROCESSORS_ONLN)
 fi
+lscpu
 echo $(uname)
 echo $a $b
 n_proc=$(( a < b ? a : b ))

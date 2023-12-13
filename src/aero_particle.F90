@@ -974,7 +974,7 @@ contains
   !> Return the number of aerosol components, or -1 if uninitialized.
   elemental integer function aero_particle_n_components(particle)
 
-    !> Value to pack.
+    !> Particle.
     type(aero_particle_t), intent(in) :: particle
 
     if (allocated(particle%component)) then

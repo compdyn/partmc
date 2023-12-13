@@ -182,7 +182,7 @@ contains
 
   !> Sets the weighting functions for an \c aero_state.
   subroutine aero_state_set_weight(aero_state, aero_data, weight_type, &
-       exponent, num_weight_classes)
+       exponent)
 
     !> Aerosol to set the weights on.
     type(aero_state_t), intent(inout) :: aero_state
@@ -193,8 +193,6 @@ contains
     !> Exponent for power-law weighting (only used if \c weight_type
     !> is \c AERO_STATE_WEIGHT_POWER).
     real(kind=dp), intent(in), optional :: exponent
-    !> Number of weight classes.
-    integer, intent(in), optional :: num_weight_classes
 
     aero_state%valid_sort = .false.
     select case(weight_type)

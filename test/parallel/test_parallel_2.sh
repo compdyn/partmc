@@ -12,7 +12,7 @@ b=1
 if [ "$(uname)" == "Darwin" ]; then
     b=$(getconf _NPROCESSORS_ONLN)
 elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
-    b=$(grep -c 'cpu[0-9]' /proc/stat) #(getconf _NPROCESSORS_ONLN)
+    b=$(lscpu --parse=Core,Socket | grep --invert-match '^#' | sort -u | wc -l) #(getconf _NPROCESSORS_ONLN)
 fi
 lscpu
 echo $(uname)

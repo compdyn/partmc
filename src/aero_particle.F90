@@ -18,6 +18,9 @@ module pmc_aero_particle
   use mpi
 #endif
 
+  !> Maximum size of aero_components for a single particle.
+  integer, parameter :: MAX_AERO_COMPONENT_SIZE = 20
+
   !> Single aerosol particle data structure.
   !!
   !! The \c vol array stores the total volumes of the different

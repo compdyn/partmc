@@ -2596,7 +2596,7 @@ contains
     ! dimension not defined, so define now define it
     call pmc_nc_check(nf90_redef(ncid))
 
-    dim_size = aero_state_n_components(aero_state)
+    dim_size = aero_state_total_n_components(aero_state)
     call pmc_nc_check(nf90_def_dim(ncid, "aero_components", &
          dim_size, dimid_aero_components))
 
@@ -2657,10 +2657,12 @@ contains
          max(1, aero_info_array_n_item(aero_state%aero_info_array)))
     integer(kind=8) :: aero_removed_other_id( &
          max(1, aero_info_array_n_item(aero_state%aero_info_array)))
-    integer :: aero_component_particle_num(aero_state_n_components(aero_state))
-    integer :: aero_component_source_num(aero_state_n_components(aero_state))
-    real(kind=dp) :: aero_component_create_time(aero_state_n_components( &
+    integer :: aero_component_particle_num(aero_state_total_n_components( &
          aero_state))
+    integer :: aero_component_source_num(aero_state_total_n_components( &
+         aero_state))
+    real(kind=dp) :: aero_component_create_time( &
+         aero_state_total_n_components(aero_state))
     integer :: aero_component_len(aero_state_n_part(aero_state))
     integer :: aero_component_start_ind(aero_state_n_part(aero_state))
     integer :: aero_particle_num_primary_parts(aero_state_n_part(aero_state))
@@ -2833,7 +2835,8 @@ contains
                   = aero_state%apa%particle(i_part)%absorb_cross_sect
              aero_scatter_cross_sect(i_part,:) &
                   = aero_state%apa%particle(i_part)%scatter_cross_sect
-             aero_asymmetry(i_part,:) = aero_state%apa%particle(i_part)%asymmetry
+             aero_asymmetry(i_part,:) &
+                  = aero_state%apa%particle(i_part)%asymmetry
              aero_refract_shell_real(i_part,:) &
                   = real(aero_state%apa%particle(i_part)%refract_shell)
              aero_refract_shell_imag(i_part,:) &
@@ -3303,35 +3306,36 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Get the number of components for all particles in an aero_state.
-  elemental integer function aero_state_n_components(aero_state)
+  !> Returns the total number of components for all particles in an aero_state.
+  elemental integer function aero_state_total_n_components(aero_state)
 
     !> Aerosol state.
     type(aero_state_t), intent(in) :: aero_state
 
-    aero_state_n_components = aero_particle_array_n_components(aero_state%apa)
+    aero_state_total_n_components = aero_particle_array_n_components( &
+         aero_state%apa)
 
-  end function aero_state_n_components
+  end function aero_state_total_n_components
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Returns the number of components of all particles.
-  function aero_state_num_components(aero_state)
+  !> Returns the number of components for each particle in an aero_state.
+  function aero_state_n_components(aero_state)
 
     !> Aerosol state.
     type(aero_state_t), intent(in) :: aero_state
 
-    !> Return number concentrations array (m^{-3}).
-    real(kind=dp) :: aero_state_num_components(aero_state_n_part(aero_state))
+    !> Return number of componenets for each particle.
+    integer :: aero_state_n_components(aero_state_n_part(aero_state))
 
     integer :: i_part
 
     do i_part = 1,aero_state_n_part(aero_state)
-       aero_state_num_components(i_part) = aero_particle_n_components( &
+       aero_state_n_components(i_part) = aero_particle_n_components( &
             aero_state%apa%particle(i_part))
     end do
 
-  end function aero_state_num_components
+  end function aero_state_n_components
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

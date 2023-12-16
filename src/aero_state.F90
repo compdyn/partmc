@@ -3429,7 +3429,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Returns an array of scattering coefficients based on the bin_grid.
-  function aero_state_get_bin_scat(aero_state, aero_data, bin_grid, &
+  function aero_state_scattering_by_size(aero_state, aero_data, bin_grid, &
        i_wavelength)
 
     !> Aerosol state.
@@ -3441,14 +3441,14 @@ contains
     !> Wavelength index of interest.
     integer :: i_wavelength
 
-    real(kind=dp) :: aero_state_get_bin_scat(bin_grid_size(bin_grid))
+    real(kind=dp) :: aero_state_scattering_by_size(bin_grid_size(bin_grid))
     real(kind=dp) :: num_concs(aero_state_n_part(aero_state))
     real(kind=dp) :: dry_diameters(aero_state_n_part(aero_state))
     real(kind=dp) :: scat(aero_state_n_part(aero_state))
     logical :: is_size_range(aero_state_n_part(aero_state))
     integer :: i_bin, i_part
 
-    aero_state_get_bin_scat = 0.0d0
+    aero_state_scattering_by_size = 0.0d0
 
     num_concs = aero_state_num_concs(aero_state, aero_data)
     dry_diameters = aero_state_dry_diameters(aero_state, aero_data)
@@ -3461,16 +3461,16 @@ contains
     do i_bin = 1,bin_grid_size(bin_grid)
        is_size_range = 2 * bin_grid%edges(i_bin) < dry_diameters &
             .and. dry_diameters <= bin_grid%edges(i_bin+1) * 2
-       aero_state_get_bin_scat(i_bin) = sum(pack(num_concs * scat, &
+       aero_state_scattering_by_size(i_bin) = sum(pack(num_concs * scat, &
             is_size_range))
     end do
 
-  end function aero_state_get_bin_scat
+  end function aero_state_scattering_by_size
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Returns an array of absorption coefficients based on the bin_grid.
-  function aero_state_get_bin_abs(aero_state, aero_data, bin_grid, &
+  function aero_state_absorption_by_size(aero_state, aero_data, bin_grid, &
        i_wavelength)
 
     !> Aerosol state.
@@ -3482,14 +3482,14 @@ contains
     !> Wavelength index of interest.
     integer :: i_wavelength
 
-    real(kind=dp) :: aero_state_get_bin_abs(bin_grid_size(bin_grid))
+    real(kind=dp) :: aero_state_absorption_by_size(bin_grid_size(bin_grid))
     real(kind=dp) :: num_concs(aero_state_n_part(aero_state))
     real(kind=dp) :: dry_diameters(aero_state_n_part(aero_state))
     real(kind=dp) :: absorb(aero_state_n_part(aero_state))
     logical :: is_size_range(aero_state_n_part(aero_state))
     integer :: i_bin, i_part
 
-    aero_state_get_bin_abs = 0.0d0
+    aero_state_absorption_by_size = 0.0d0
 
     num_concs = aero_state_num_concs(aero_state, aero_data)
     dry_diameters = aero_state_dry_diameters(aero_state, aero_data)
@@ -3502,11 +3502,11 @@ contains
     do i_bin = 1,bin_grid_size(bin_grid)
        is_size_range = 2 * bin_grid%edges(i_bin) < dry_diameters &
             .and. dry_diameters <= bin_grid%edges(i_bin+1) * 2
-       aero_state_get_bin_abs(i_bin) = sum(pack(num_concs * absorb, &
+       aero_state_absorption_by_size(i_bin) = sum(pack(num_concs * absorb, &
             is_size_range))
     end do
 
-  end function aero_state_get_bin_abs
+  end function aero_state_absorption_by_size
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

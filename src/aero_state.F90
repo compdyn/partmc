@@ -3444,8 +3444,6 @@ contains
     real(kind=dp) :: aero_state_scattering_by_size(bin_grid_size(bin_grid))
     real(kind=dp) :: num_concs(aero_state_n_part(aero_state))
     real(kind=dp) :: dry_diameters(aero_state_n_part(aero_state))
-    real(kind=dp) :: scat(aero_state_n_part(aero_state))
-    logical :: is_size_range(aero_state_n_part(aero_state))
     integer :: i_bin, i_part
 
     aero_state_scattering_by_size = 0.0d0
@@ -3454,15 +3452,10 @@ contains
     dry_diameters = aero_state_dry_diameters(aero_state, aero_data)
 
     do i_part = 1,aero_state_n_part(aero_state)
-       scat(i_part) = aero_state%apa%particle(i_part)%scatter_cross_sect( &
-            i_wavelength)
-    end do
-
-    do i_bin = 1,bin_grid_size(bin_grid)
-       is_size_range = 2 * bin_grid%edges(i_bin) < dry_diameters &
-            .and. dry_diameters <= bin_grid%edges(i_bin+1) * 2
-       aero_state_scattering_by_size(i_bin) = sum(pack(num_concs * scat, &
-            is_size_range))
+       i_bin = bin_grid_find(bin_grid, dry_diameters(i_part) / 2.0d0)
+       aero_state_scattering_by_size(i_bin) = num_concs(i_part) &
+            * aero_state%apa%particle(i_part)%scatter_cross_sect( &
+            i_wavelength) + aero_state_scattering_by_size(i_bin)
     end do
 
   end function aero_state_scattering_by_size
@@ -3485,8 +3478,6 @@ contains
     real(kind=dp) :: aero_state_absorption_by_size(bin_grid_size(bin_grid))
     real(kind=dp) :: num_concs(aero_state_n_part(aero_state))
     real(kind=dp) :: dry_diameters(aero_state_n_part(aero_state))
-    real(kind=dp) :: absorb(aero_state_n_part(aero_state))
-    logical :: is_size_range(aero_state_n_part(aero_state))
     integer :: i_bin, i_part
 
     aero_state_absorption_by_size = 0.0d0
@@ -3495,15 +3486,10 @@ contains
     dry_diameters = aero_state_dry_diameters(aero_state, aero_data)
 
     do i_part = 1,aero_state_n_part(aero_state)
-       absorb(i_part) = aero_state%apa%particle(i_part)%absorb_cross_sect( &
-            i_wavelength)
-    end do
-
-    do i_bin = 1,bin_grid_size(bin_grid)
-       is_size_range = 2 * bin_grid%edges(i_bin) < dry_diameters &
-            .and. dry_diameters <= bin_grid%edges(i_bin+1) * 2
-       aero_state_absorption_by_size(i_bin) = sum(pack(num_concs * absorb, &
-            is_size_range))
+       i_bin = bin_grid_find(bin_grid, dry_diameters(i_part) / 2.0d0)
+       aero_state_absorption_by_size(i_bin) =  num_concs(i_part) &
+            * aero_state%apa%particle(i_part)%absorb_cross_sect( &
+            i_wavelength) + aero_state_absorption_by_size(i_bin)
     end do
 
   end function aero_state_absorption_by_size

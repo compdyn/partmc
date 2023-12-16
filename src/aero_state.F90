@@ -3348,9 +3348,7 @@ contains
     !> Dimid of the optical wavelength dimension.
     integer, intent(out) :: dimid_optical_wavelengths
 
-    integer :: status, i_part
-    integer :: varid_aero_particle
-    integer :: aero_particle_centers(aero_state_n_part(aero_state))
+    integer :: status
 
     ! try to get the dimension ID
     status = nf90_inq_dimid(ncid, "optical_wavelengths", &

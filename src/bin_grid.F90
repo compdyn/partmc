@@ -168,6 +168,23 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Determines if a value is in a given bin.
+  logical function bin_grid_contains(bin_grid, i_bin, val)
+
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Bin to see if it contains the value.
+    integer, intent(in) :: i_bin
+    !> Data value.
+    real(kind=dp), intent(in) :: val
+
+    bin_grid_contains = bin_grid%edges(i_bin) < val .and. &
+       bin_grid%edges(i_bin) < val
+
+  end function bin_grid_contains
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Make a histogram with of the given weighted data, scaled by the
   !> bin sizes.
   function bin_grid_histogram_1d(x_bin_grid, x_data, weight_data)

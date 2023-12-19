@@ -3541,8 +3541,7 @@ contains
     type(aero_state_t) :: aero_state_size_range
     integer :: i_bin
     real(kind=dp), allocatable :: dry_diameters(:)
-    logical, allocatable :: is_size_range(:)
-    integer :: i_name, i_spec, n_group, i_part
+    integer :: i_part
 
     if (allocated(d_alpha)) deallocate(d_alpha)
     if (allocated(d_gamma)) deallocate(d_gamma)
@@ -3558,10 +3557,9 @@ contains
     dry_diameters = aero_state_dry_diameters(aero_state, aero_data)
     do i_bin = 1,bin_grid_size(bin_grid)
        aero_state_size_range = aero_state
-       is_size_range = 2 * bin_grid%edges(i_bin) < dry_diameters &
-            .and. dry_diameters <= bin_grid%edges(i_bin+1) * 2
        do i_part = aero_state_n_part(aero_state),1,-1
-          if (.not. is_size_range(i_part)) then
+          if (.not. bin_grid_contains(bin_grid, i_bin, dry_diameters(i_part) &
+               / 2.0d0)) then
              call aero_state_remove_particle_no_info(aero_state_size_range, &
                   i_part)
           end if

@@ -3159,7 +3159,10 @@ contains
     call aero_state_set_n_part_ideal(aero_state, 0d0)
 
     do i_part = 1,n_part
+       call aero_particle_zero(aero_particle, aero_data)
        aero_particle%vol = aero_particle_mass(i_part, :) / aero_data%density
+       if (allocated(aero_particle%component)) &
+            deallocate(aero_particle%component)
        allocate(aero_particle%component(aero_component_len(i_part)))
        do i_comp = 1,aero_component_len(i_part)
           aero_particle%component(i_comp)%source_id = &
@@ -3205,7 +3208,6 @@ contains
             aero_data)))
 
        call aero_state_add_particle(aero_state, aero_particle, aero_data)
-       deallocate(aero_particle%component)
     end do
 
     next_id = maxval(aero_id) + 1
@@ -3432,9 +3434,10 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Returns an array of scattering coefficients based on the bin_grid.
-  function aero_state_scattering_by_size(aero_state, aero_data, bin_grid, &
-       i_wavelength)
+  !> Returns an array of scattering coefficients based on the bin_grid sorted
+  !> based on given array of values.
+  function aero_state_scattering_binned(aero_state, aero_data, bin_grid, &
+       bin_values, i_wavelength)
 
     !> Aerosol state.
     type(aero_state_t) :: aero_state
@@ -3442,33 +3445,36 @@ contains
     type(aero_data_t) :: aero_data
     !> Bin grid to apply.
     type(bin_grid_t) :: bin_grid
+    !> Bin values.
+    real(kind=dp), allocatable :: bin_values(:)
     !> Wavelength index of interest.
     integer :: i_wavelength
 
-    real(kind=dp) :: aero_state_scattering_by_size(bin_grid_size(bin_grid))
+    real(kind=dp) :: aero_state_scattering_binned(bin_grid_size(bin_grid))
     real(kind=dp) :: num_concs(aero_state_n_part(aero_state))
-    real(kind=dp) :: dry_diameters(aero_state_n_part(aero_state))
     integer :: i_bin, i_part
 
-    aero_state_scattering_by_size = 0.0d0
+    call assert(894840826, size(bin_values) == aero_state_n_part(aero_state))
+
+    aero_state_scattering_binned = 0.0d0
 
     num_concs = aero_state_num_concs(aero_state, aero_data)
-    dry_diameters = aero_state_dry_diameters(aero_state, aero_data)
 
     do i_part = 1,aero_state_n_part(aero_state)
-       i_bin = bin_grid_find(bin_grid, dry_diameters(i_part) / 2.0d0)
-       aero_state_scattering_by_size(i_bin) = num_concs(i_part) &
+       i_bin = bin_grid_find(bin_grid, bin_values(i_part))
+       aero_state_scattering_binned(i_bin) = num_concs(i_part) &
             * aero_state%apa%particle(i_part)%scatter_cross_sect( &
-            i_wavelength) + aero_state_scattering_by_size(i_bin)
+            i_wavelength) + aero_state_scattering_binned(i_bin)
     end do
 
-  end function aero_state_scattering_by_size
+  end function aero_state_scattering_binned
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Returns an array of absorption coefficients based on the bin_grid.
-  function aero_state_absorption_by_size(aero_state, aero_data, bin_grid, &
-       i_wavelength)
+  !> Returns an array of absorption coefficients based on the bin_grid sorted
+  !> based on given array of values.
+  function aero_state_absorption_binned(aero_state, aero_data, bin_grid, &
+       bin_values, i_wavelength)
 
     !> Aerosol state.
     type(aero_state_t) :: aero_state
@@ -3476,32 +3482,34 @@ contains
     type(aero_data_t) :: aero_data
     !> Bin grid.
     type(bin_grid_t) :: bin_grid
+    !> Values to use to bin.
+    real(kind=dp), allocatable :: bin_values(:)
     !> Wavelength index of interest.
     integer :: i_wavelength
 
-    real(kind=dp) :: aero_state_absorption_by_size(bin_grid_size(bin_grid))
+    real(kind=dp) :: aero_state_absorption_binned(bin_grid_size(bin_grid))
     real(kind=dp) :: num_concs(aero_state_n_part(aero_state))
-    real(kind=dp) :: dry_diameters(aero_state_n_part(aero_state))
     integer :: i_bin, i_part
 
-    aero_state_absorption_by_size = 0.0d0
+    call assert(448243765, size(bin_values) == aero_state_n_part(aero_state))
+
+    aero_state_absorption_binned = 0.0d0
 
     num_concs = aero_state_num_concs(aero_state, aero_data)
-    dry_diameters = aero_state_dry_diameters(aero_state, aero_data)
 
     do i_part = 1,aero_state_n_part(aero_state)
-       i_bin = bin_grid_find(bin_grid, dry_diameters(i_part) / 2.0d0)
-       aero_state_absorption_by_size(i_bin) =  num_concs(i_part) &
+       i_bin = bin_grid_find(bin_grid, bin_values(i_part))
+       aero_state_absorption_binned(i_bin) =  num_concs(i_part) &
             * aero_state%apa%particle(i_part)%absorb_cross_sect( &
-            i_wavelength) + aero_state_absorption_by_size(i_bin)
+            i_wavelength) + aero_state_absorption_binned(i_bin)
     end do
 
-  end function aero_state_absorption_by_size
+  end function aero_state_absorption_binned
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Returns arrays of mixing state metrics of the particles within given size
-  !! ranges based on a given bin grid.
+  !! ranges based on a given bin grid and given array of values to bin by.
   !!
   !! If \c include is specified then only those species are included
   !! in computing the entropies. If \c exclude is specified then all
@@ -3514,8 +3522,9 @@ contains
   !! groups can be specified, which lists several groups of
   !! species. If \c groups is provided, only species explicitly listed
   !! will be included.
-  subroutine aero_state_mixing_state_metrics_by_size(aero_state, aero_data, &
-       bin_grid, d_alpha, d_gamma, chi, include, exclude, group, groups)
+  subroutine aero_state_mixing_state_metrics_binned(aero_state, aero_data, &
+       bin_grid, bin_values, d_alpha, d_gamma, chi, include, exclude, group, &
+       groups)
 
     !> Aerosol state.
     type(aero_state_t), intent(in) :: aero_state
@@ -3523,6 +3532,8 @@ contains
     type(aero_data_t), intent(in) :: aero_data
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
+    !> Values to bin by.
+    real(kind=dp), allocatable, intent(in) :: bin_values(:)
     !> Average particle diversity.
     real(kind=dp), allocatable, intent(inout) :: d_alpha(:)
     !> Bulk diversity.
@@ -3540,8 +3551,9 @@ contains
 
     type(aero_state_t) :: aero_state_size_range
     integer :: i_bin
-    real(kind=dp), allocatable :: dry_diameters(:)
     integer :: i_part
+
+    call assert(336293361, size(bin_values) == aero_state_n_part(aero_state))
 
     if (allocated(d_alpha)) deallocate(d_alpha)
     if (allocated(d_gamma)) deallocate(d_gamma)
@@ -3554,12 +3566,11 @@ contains
     d_gamma = 1.0d0
     chi = 0.0d0
 
-    dry_diameters = aero_state_dry_diameters(aero_state, aero_data)
     do i_bin = 1,bin_grid_size(bin_grid)
        aero_state_size_range = aero_state
        do i_part = aero_state_n_part(aero_state),1,-1
-          if (.not. bin_grid_contains(bin_grid, i_bin, dry_diameters(i_part) &
-               / 2.0d0)) then
+          if (.not. bin_grid_contains(bin_grid, i_bin, bin_values(i_part) &
+               )) then
              call aero_state_remove_particle_no_info(aero_state_size_range, &
                   i_part)
           end if
@@ -3569,7 +3580,7 @@ contains
             group, groups)
     end do
 
-  end subroutine aero_state_mixing_state_metrics_by_size
+  end subroutine aero_state_mixing_state_metrics_binned
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

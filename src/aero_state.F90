@@ -822,7 +822,7 @@ contains
              call aero_particle_set_weight(aero_particle, i_group, i_class)
              call aero_particle_set_component(aero_particle, &
                   aero_dist%mode(i_mode)%source, create_time)
-             aero_particle%num_primary_parts = 1
+             aero_particle%n_primary_parts = 1
              call aero_state_add_particle(aero_state, aero_particle, aero_data)
           end do
        end do
@@ -1316,7 +1316,7 @@ contains
   !> Returns the total number concentration associated with each aerosol
   !> source category. The amount of concentration of each particle assigned to
   !> a source is proportional to the number of primary componenets consisting of
-  !> that source and the total number of components. A particle may be
+  !> that source and the total number of components. Number concentration may be
   !> counted more than once for a source if the source appears more than once.
   function aero_state_num_concs_by_source(aero_state, aero_data)
 
@@ -1336,14 +1336,14 @@ contains
     aero_state_num_concs_by_source = 0d0
     num_concs = aero_state_num_concs(aero_state, aero_data)
     do i_part = 1,aero_state_n_part(aero_state)
-       source_weighted_conc = num_concs(i_part) &
-            / aero_particle_n_components(aero_state%apa%particle(i_part))
        do i_comp = 1,aero_particle_n_components( &
             aero_state%apa%particle(i_part))
           i_source = aero_state%apa%particle(i_part)%component(i_comp)% &
                source_id
           aero_state_num_concs_by_source(i_source) = &
-               aero_state_num_concs_by_source(i_source) + source_weighted_conc
+               aero_state_num_concs_by_source(i_source) + num_concs(i_part) &
+               * (aero_state%apa%particle(i_part)%n_primary_parts &
+               / aero_particle_n_components(aero_state%apa%particle(i_part)))
        end do
     end do
 
@@ -2665,7 +2665,7 @@ contains
          aero_state_total_n_components(aero_state))
     integer :: aero_component_len(aero_state_n_part(aero_state))
     integer :: aero_component_start_ind(aero_state_n_part(aero_state))
-    integer :: aero_particle_num_primary_parts(aero_state_n_part(aero_state))
+    integer :: aero_particle_n_primary_parts(aero_state_n_part(aero_state))
     integer :: array_position, i_comp, next_start_component_ind
 
     !> \page output_format_aero_state Output File Format: Aerosol Particle State
@@ -2828,8 +2828,8 @@ contains
                = aero_state%apa%particle(i_part)%least_create_time
           aero_greatest_create_time(i_part) &
                = aero_state%apa%particle(i_part)%greatest_create_time
-          aero_particle_num_primary_parts(i_part) & 
-               =  aero_state%apa%particle(i_part)%num_primary_parts
+          aero_particle_n_primary_parts(i_part) &
+               =  aero_state%apa%particle(i_part)%n_primary_parts
           if (record_optical) then
              aero_absorb_cross_sect(i_part,:) &
                   = aero_state%apa%particle(i_part)%absorb_cross_sect
@@ -2903,8 +2903,8 @@ contains
             description="greatest (latest) creation time of any original " &
             // "constituent particles that coagulated to form each " &
             // "particle, measured from the start of the simulation")
-       call pmc_nc_write_integer_1d(ncid, aero_particle_num_primary_parts, &
-            "aero_particle_num_primary_parts", (/ dimid_aero_particle /), &
+       call pmc_nc_write_integer_1d(ncid, aero_particle_n_primary_parts, &
+            "aero_particle_n_primary_parts", (/ dimid_aero_particle /), &
             unit="1", long_name="number of primary particles that contribute" &
             // "to each particle.")
        if (record_optical) then

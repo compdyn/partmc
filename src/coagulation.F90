@@ -464,7 +464,7 @@ contains
     n_coag = rand_binomial(n_samp_total, prob_coag_mean)
     source_particle%vol = source_particle%vol &
          * (real(n_coag, kind=dp) / real(n_avg, kind=dp))
-    source_particle%num_primary_parts = source_particle%num_primary_parts &
+    source_particle%n_primary_parts = source_particle%n_primary_parts &
          * (n_coag / n_avg)
 
   end subroutine sample_source_particle

@@ -57,7 +57,7 @@ module pmc_aero_particle
      !> Last time a constituent was created (s).
      real(kind=dp) :: greatest_create_time
      !> True number of primary particles contributing to particle.
-     integer :: num_primary_parts
+     integer :: n_primary_parts
   end type aero_particle_t
 
   !> Next unique ID number to use for a particle.
@@ -96,7 +96,7 @@ contains
     aero_particle_to%least_create_time = aero_particle_from%least_create_time
     aero_particle_to%greatest_create_time = &
          aero_particle_from%greatest_create_time
-    aero_particle_to%num_primary_parts = aero_particle_from%num_primary_parts
+    aero_particle_to%n_primary_parts = aero_particle_from%n_primary_parts
 
   end subroutine aero_particle_shift
 
@@ -131,7 +131,7 @@ contains
     allocate(aero_particle%component(0))
     aero_particle%least_create_time = 0d0
     aero_particle%greatest_create_time = 0d0
-    aero_particle%num_primary_parts = 0
+    aero_particle%n_primary_parts = 0
 
   end subroutine aero_particle_zero
 
@@ -967,8 +967,8 @@ contains
          max(aero_particle_1%greatest_create_time, &
          aero_particle_2%greatest_create_time)
 
-    aero_particle_new%num_primary_parts = aero_particle_1%num_primary_parts &
-         + aero_particle_2%num_primary_parts
+    aero_particle_new%n_primary_parts = aero_particle_1%n_primary_parts &
+         + aero_particle_2%n_primary_parts
 
   end subroutine aero_particle_coagulate
 
@@ -1013,7 +1013,7 @@ contains
          + pmc_mpi_pack_size_integer(aero_particle_n_components(val)) &
          + pmc_mpi_pack_size_real(val%least_create_time) &
          + pmc_mpi_pack_size_real(val%greatest_create_time) &
-         + pmc_mpi_pack_size_integer(val%num_primary_parts)
+         + pmc_mpi_pack_size_integer(val%n_primary_parts)
 
     do i = 1,aero_particle_n_components(val)
        pmc_mpi_pack_size_aero_particle = pmc_mpi_pack_size_aero_particle &
@@ -1056,7 +1056,7 @@ contains
     end do
     call pmc_mpi_pack_real(buffer, position, val%least_create_time)
     call pmc_mpi_pack_real(buffer, position, val%greatest_create_time)
-    call pmc_mpi_pack_integer(buffer, position, val%num_primary_parts)
+    call pmc_mpi_pack_integer(buffer, position, val%n_primary_parts)
     call assert(810223998, position - prev_position &
          <= pmc_mpi_pack_size_aero_particle(val))
 #endif
@@ -1099,7 +1099,7 @@ contains
     end do
     call pmc_mpi_unpack_real(buffer, position, val%least_create_time)
     call pmc_mpi_unpack_real(buffer, position, val%greatest_create_time)
-    call pmc_mpi_unpack_integer(buffer, position, val%num_primary_parts)
+    call pmc_mpi_unpack_integer(buffer, position, val%n_primary_parts)
     call assert(287447241, position - prev_position &
          <= pmc_mpi_pack_size_aero_particle(val))
 #endif

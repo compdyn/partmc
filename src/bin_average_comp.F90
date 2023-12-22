@@ -79,8 +79,7 @@ program bin_average_comp
   call aero_state_bin_average_comp(aero_state, bin_grid, aero_data)
 
   output_type = OUTPUT_TYPE_SINGLE
-  record_removals = .false.
-  record_optical = .false.
+  record_optical = .true.
   call output_state(out_prefix, output_type, aero_data, aero_state, &
        gas_data, gas_state, env_state, index, time, del_t, i_repeat, &
        record_removals, record_optical, uuid)

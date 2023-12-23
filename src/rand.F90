@@ -506,6 +506,39 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Generates a vector of indices for a sample set from a population without
+  !> replacement.
+  subroutine sample_without_replacement(sample_size, population_size, sample)
+
+    !> Size of the sample.
+    integer, intent(in) :: sample_size
+    !> Size of the set to sample from.
+    integer, intent(in) :: population_size
+    !> Indicies sampled
+    integer, intent(out), allocatable :: sample(:)
+
+    real(kind=dp) :: r
+    integer :: t, m
+
+    if (allocated(sample)) deallocate(sample)
+    allocate(sample(sample_size))
+    t = 0
+    m = 0
+    do while (m < sample_size)
+       r = pmc_random()
+       if ((population_size - t) * r >= sample_size - m) then
+          t= t+1
+       else
+          t = t + 1
+          m = m + 1
+          sample(m) = t
+       end if
+    end do
+
+  end subroutine sample_without_replacement
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Sample the given continuous probability density function.
   !!
   !! That is, return a number k = 1,...,n such that prob(k) = pdf(k) /

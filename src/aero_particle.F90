@@ -907,10 +907,10 @@ contains
     !> Result particle.
     type(aero_particle_t), intent(inout) :: aero_particle_new
 
-    integer :: n_comp_1, n_comp_2
-    integer :: i, i1, i2, i_new
+    integer :: n_comp_1, n_comp_2, n_comp_1_new, n_comp_2_new, i
     type(aero_component_t), allocatable :: new_aero_component(:)
     integer :: n_swbands
+    integer, allocatable :: sample(:)
 
     call assert(203741686, size(aero_particle_1%vol) &
          == size(aero_particle_2%vol))
@@ -939,23 +939,18 @@ contains
     n_comp_1 = aero_particle_n_components(aero_particle_1)
     n_comp_2 = aero_particle_n_components(aero_particle_2)
     if (n_comp_1 + n_comp_2 >  MAX_AERO_COMPONENT_SIZE) then
-       i1 = 1
-       i2 = 1
-       i_new = 1
+       n_comp_1_new = prob_round(n_comp_1 / real((n_comp_1 + n_comp_2), &
+            kind=dp) *  MAX_AERO_COMPONENT_SIZE)
+       n_comp_2_new = MAX_AERO_COMPONENT_SIZE - n_comp_1_new
        allocate(new_aero_component(MAX_AERO_COMPONENT_SIZE))
-       do while (i_new <= MAX_AERO_COMPONENT_SIZE)
-          if (i1 <= n_comp_1) then
-             new_aero_component(i_new) = aero_particle_1%component(i1)
-             i1 = i1 + 1
-             i_new = i_new + 1
-          end if
-          if (i_new > MAX_AERO_COMPONENT_SIZE) cycle
-          if (i2 <= n_comp_2) then
-             new_aero_component(i_new) = aero_particle_2%component(i2)
-             i2 = i2 + 1
-             i_new = i_new + 1
-          end if
-          if (i_new > MAX_AERO_COMPONENT_SIZE) cycle
+       call sample_without_replacement(n_comp_1_new, n_comp_1, sample)
+       do i = 1,n_comp_1_new
+          new_aero_component(i) = aero_particle_1%component(sample(i))
+       end do
+       call sample_without_replacement(n_comp_2_new, n_comp_2, sample)
+       do i = 1,n_comp_2_new
+          new_aero_component(i+n_comp_1_new) = aero_particle_2%component( &
+               sample(i))
        end do
        aero_particle_new%component = new_aero_component
     else

@@ -512,7 +512,7 @@ contains
     ! work backwards for consistency with mosaic_to_partmc(), which
     ! has specific ordering requirements
     do i_part = aero_state_n_part(aero_state),1,-1
-#ifdef PMC_USE_WRF
+#ifdef PMC_USE_MOSAIC_MULTI_OPT
        aero_state%apa%particle(i_part)%absorb_cross_sect = (ext_cross(i_part,:) &
             - scat_cross(i_part,:)) / 1d4                       ! (m^2)
        aero_state%apa%particle(i_part)%scatter_cross_sect = &
@@ -632,7 +632,7 @@ contains
     aH2O = 0.01*RH_pc                         ! aH2O (aerosol water activity)
     P_atm = pr_atm                            ! P(atm)
     T_K = te                                  ! T(K)
-#ifdef PMC_USE_WRF
+#ifdef PMC_USE_MOSAIC_MULTI_OPT
     call aerosol_optical_single_wavelength
 #endif
     call mosaic_aero_optical(env_state, aero_data, &
@@ -640,6 +640,33 @@ contains
 #endif
 
   end subroutine mosaic_compute_single_aero_optical
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Fetch the wavelengths that optical cross-sections are calculated at in
+  !> MOSAIC.
+  subroutine mosaic_optical_wavelengths(aero_data)
+
+#ifdef PMC_USE_MOSAIC
+#ifdef PMC_USE_MOSAIC_MULTI_OPT
+    use module_data_mosaic_aero, only: wavelength
+#endif
+#endif
+    type(aero_data_t), intent(inout) :: aero_data
+    integer :: i
+
+    if(allocated(aero_data%wavelengths)) deallocate(aero_data%wavelengths)
+    allocate(aero_data%wavelengths(n_swbands))
+    aero_data%wavelengths = 0.0d0
+#ifdef PMC_USE_MOSAIC_MULTI_OPT
+    do i = 1,n_swbands
+       aero_data%wavelengths(i) = wavelength(i) * 1d-9
+    end do
+#else
+    aero_data%wavelengths = 550.0d0 * 1d-9
+#endif
+
+  end subroutine mosaic_optical_wavelengths
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

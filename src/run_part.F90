@@ -127,7 +127,7 @@ contains
     !> Environment state.
     type(env_state_t), intent(inout) :: env_state
     !> Aerosol data.
-    type(aero_data_t), intent(in) :: aero_data
+    type(aero_data_t), intent(inout) :: aero_data
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     !> Gas data.
@@ -203,6 +203,7 @@ contains
        if (run_part_opt%do_optical) then
           call mosaic_aero_optical_init(env_state, aero_data, &
             aero_state, gas_data, gas_state)
+          call mosaic_optical_wavelengths(aero_data)
        end if
     end if
 

@@ -2784,7 +2784,7 @@ contains
 
     ! Find a home for this
     if (record_optical) then
-       call aero_state_netcdf_dim_optical_wavelengths(aero_state, ncid, &
+       call aero_data_netcdf_dim_optical_wavelengths(aero_data, ncid, &
             dimid_optical_wavelengths)
     end if
 

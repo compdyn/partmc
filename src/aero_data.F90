@@ -28,7 +28,7 @@ module pmc_aero_data
   integer, parameter :: AERO_NAME_LEN = 50
   integer, parameter :: AERO_SOURCE_NAME_LEN = 100
   ! Number of wavelengths to compute optical properties
-#ifdef PMC_USE_WRF
+#ifdef PMC_USE_MOSAIC_MULTI_OPT
   integer, parameter :: n_swbands = 5
 #else
   integer, parameter :: n_swbands = 1
@@ -60,6 +60,8 @@ module pmc_aero_data
      !> Length \c aero_data_n_spec(aero_data), mosaic_index(i) a positive
      !> integer giving the mosaic index of species i, or 0 if there is no match.
      integer, allocatable :: mosaic_index(:)
+     !> Wavelengths used for optical properties calculations (m).
+     real(kind=dp), allocatable :: wavelengths(:)
      !> Length \c aero_data_n_spec(aero_data), densities (kg m^{-3}).
      real(kind=dp), allocatable ::  density(:)
      !> Length \c aero_data_n_spec(aero_data), number of ions in solute.
@@ -813,6 +815,39 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Write the number of wavelength dimension to the given NetCDF file if it
+  !> is not already present and in any case return the associated
+  !> dimid.
+  subroutine aero_data_netcdf_dim_optical_wavelengths(aero_data, ncid, &
+       dimid_optical_wavelengths)
+
+    !> aero_data structure.
+    type(aero_data_t), intent(in) :: aero_data
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+    !> Dimid of the optical wavelength dimension.
+    integer, intent(out) :: dimid_optical_wavelengths
+
+    integer :: status
+
+    ! try to get the dimension ID
+    status = nf90_inq_dimid(ncid, "optical_wavelengths", &
+         dimid_optical_wavelengths)
+    if (status == NF90_NOERR) return
+    if (status /= NF90_EBADDIM) call pmc_nc_check(status)
+
+    ! dimension not defined, so define now define it
+    call pmc_nc_check(nf90_redef(ncid))
+
+    call pmc_nc_check(nf90_def_dim(ncid, "optical_wavelengths", &
+         n_swbands, dimid_optical_wavelengths))
+
+    call pmc_nc_check(nf90_enddef(ncid))
+
+  end subroutine aero_data_netcdf_dim_optical_wavelengths
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Write full state.
   subroutine aero_data_output_netcdf(aero_data, ncid)
 
@@ -821,7 +856,8 @@ contains
     !> NetCDF file ID, in data mode.
     integer, intent(in) :: ncid
 
-    integer :: dimid_aero_species, dimid_aero_source, dimid_aero_weight_classes
+    integer :: dimid_aero_species, dimid_aero_source, &
+         dimid_aero_weight_classes, dimid_optical_wavelengths
 
     !> \page output_format_aero_data Output File Format: Aerosol Material Data
     !!
@@ -857,10 +893,15 @@ contains
          dimid_aero_source)
     call aero_data_netcdf_dim_aero_weight_classes(aero_data, ncid, &
          dimid_aero_weight_classes)
+    call aero_data_netcdf_dim_optical_wavelengths(aero_data, ncid, &
+       dimid_optical_wavelengths)
 
     call pmc_nc_write_integer_1d(ncid, aero_data%mosaic_index, &
          "aero_mosaic_index", (/ dimid_aero_species /), &
          long_name="MOSAIC indices of aerosol species")
+    call pmc_nc_write_real_1d(ncid, aero_data%wavelengths, &
+         "aero_optical_wavelengths", (/ dimid_optical_wavelengths /), &
+         long_name="wavelength of optical calculations", unit="m")
     call pmc_nc_write_real_1d(ncid, aero_data%density, &
          "aero_density", (/ dimid_aero_species /), unit="kg/m^3", &
          long_name="densities of aerosol species")

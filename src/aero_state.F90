@@ -2782,7 +2782,6 @@ contains
     call aero_data_netcdf_dim_aero_source(aero_data, ncid, &
          dimid_aero_source)
 
-    ! Find a home for this
     if (record_optical) then
        call aero_data_netcdf_dim_optical_wavelengths(aero_data, ncid, &
             dimid_optical_wavelengths)
@@ -3338,39 +3337,6 @@ contains
     end do
 
   end function aero_state_n_components
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Write the number of wavelength dimension to the given NetCDF file if it
-  !> is not already present and in any case return the associated
-  !> dimid.
-  subroutine aero_state_netcdf_dim_optical_wavelengths(aero_state, ncid, &
-       dimid_optical_wavelengths)
-
-    !> aero_state structure.
-    type(aero_state_t), intent(in) :: aero_state
-    !> NetCDF file ID, in data mode.
-    integer, intent(in) :: ncid
-    !> Dimid of the optical wavelength dimension.
-    integer, intent(out) :: dimid_optical_wavelengths
-
-    integer :: status
-
-    ! try to get the dimension ID
-    status = nf90_inq_dimid(ncid, "optical_wavelengths", &
-         dimid_optical_wavelengths)
-    if (status == NF90_NOERR) return
-    if (status /= NF90_EBADDIM) call pmc_nc_check(status)
-
-    ! dimension not defined, so define now define it
-    call pmc_nc_check(nf90_redef(ncid))
-
-    call pmc_nc_check(nf90_def_dim(ncid, "optical_wavelengths", &
-         n_swbands, dimid_optical_wavelengths))
-
-    call pmc_nc_check(nf90_enddef(ncid))
-
-  end subroutine aero_state_netcdf_dim_optical_wavelengths
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

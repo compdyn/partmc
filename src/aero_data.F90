@@ -489,6 +489,7 @@ contains
     ! allocate and copy over the data
     call ensure_string_array_size(aero_data%name, n_species)
     call ensure_integer_array_size(aero_data%mosaic_index, n_species)
+    call ensure_real_array_size(aero_data%wavelengths, n_swbands)
     call ensure_real_array_size(aero_data%density, n_species)
     call ensure_integer_array_size(aero_data%num_ions, n_species)
     call ensure_real_array_size(aero_data%molec_weight, n_species)
@@ -566,6 +567,7 @@ contains
          pmc_mpi_pack_size_integer(val%i_water) &
          + pmc_mpi_pack_size_string_array(val%name) &
          + pmc_mpi_pack_size_integer_array(val%mosaic_index) &
+         + pmc_mpi_pack_size_real_array(val%wavelengths) &
          + pmc_mpi_pack_size_real_array(val%density) &
          + pmc_mpi_pack_size_integer_array(val%num_ions) &
          + pmc_mpi_pack_size_real_array(val%molec_weight) &
@@ -595,6 +597,7 @@ contains
     call pmc_mpi_pack_integer(buffer, position, val%i_water)
     call pmc_mpi_pack_string_array(buffer, position, val%name)
     call pmc_mpi_pack_integer_array(buffer, position, val%mosaic_index)
+    call pmc_mpi_pack_real_array(buffer, position, val%wavelengths)
     call pmc_mpi_pack_real_array(buffer, position, val%density)
     call pmc_mpi_pack_integer_array(buffer, position, val%num_ions)
     call pmc_mpi_pack_real_array(buffer, position, val%molec_weight)
@@ -627,6 +630,7 @@ contains
     call pmc_mpi_unpack_integer(buffer, position, val%i_water)
     call pmc_mpi_unpack_string_array(buffer, position, val%name)
     call pmc_mpi_unpack_integer_array(buffer, position, val%mosaic_index)
+    call pmc_mpi_unpack_real_array(buffer, position, val%wavelengths)
     call pmc_mpi_unpack_real_array(buffer, position, val%density)
     call pmc_mpi_unpack_integer_array(buffer, position, val%num_ions)
     call pmc_mpi_unpack_real_array(buffer, position, val%molec_weight)
@@ -901,7 +905,7 @@ contains
          long_name="MOSAIC indices of aerosol species")
     call pmc_nc_write_real_1d(ncid, aero_data%wavelengths, &
          "aero_optical_wavelengths", (/ dimid_optical_wavelengths /), &
-         long_name="wavelength of optical calculations", unit="m")
+          long_name="wavelength of optical calculations", unit="m")
     call pmc_nc_write_real_1d(ncid, aero_data%density, &
          "aero_density", (/ dimid_aero_species /), unit="kg/m^3", &
          long_name="densities of aerosol species")
@@ -954,6 +958,8 @@ contains
 
     call pmc_nc_read_integer_1d(ncid, aero_data%mosaic_index, &
          "aero_mosaic_index")
+    call pmc_nc_read_real_1d(ncid, aero_data%wavelengths, &
+         "aero_optical_wavelengths")
     call pmc_nc_read_real_1d(ncid, aero_data%density, "aero_density")
     call pmc_nc_read_integer_1d(ncid, aero_data%num_ions, "aero_num_ions")
     call pmc_nc_read_real_1d(ncid, aero_data%molec_weight, "aero_molec_weight")

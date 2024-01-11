@@ -76,7 +76,13 @@ if(ENABLE_MOSAIC)
     PATHS $ENV{MOSAIC_HOME} $ENV{MOSAIC_HOME}/lib)
   include_directories(${MOSAIC_INCLUDE_DIR})
   add_definitions(-DPMC_USE_MOSAIC)
+  option(ENABLE_OPT_MULTI_WAVELENGTH
+         "Enable MOSAIC multiple wavelength for optical calculations" OFF)
+  if(ENABLE_OPT_MULTI_WAVELENGTH)
+    add_definitions(-DPMC_USE_MOSAIC_MULTI_OPT)
+  endif()
 endif()
+
 
 ######################################################################
 # CAMP

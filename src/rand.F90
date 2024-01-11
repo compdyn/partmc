@@ -407,14 +407,14 @@ contains
 
   !> Generates a normally distributed random number with the given
   !> mean and standard deviation.
-  real(kind=dp) function rand_normal(mean, stddev, threshold)
+  real(kind=dp) function rand_normal(mean, stddev, prob_threshold)
 
     !> Mean of distribution.
     real(kind=dp), intent(in) :: mean
     !> Standard deviation of distribution.
     real(kind=dp), intent(in) :: stddev
     !> Probability threshold to control sampling range - 0 accepts all values.
-    real(kind=dp), intent(in), optional :: threshold
+    real(kind=dp), intent(in), optional :: prob_threshold
 
 #ifdef PMC_USE_GSL
     real(kind=c_double) :: mean_c, stddev_c
@@ -451,8 +451,8 @@ contains
             pmc_rand_normal_gsl(mean_c, stddev_c, harvest_ptr))
        rand_normal = real(harvest, kind=dp)
        z0 = (rand_normal - mean)/ stddev
-       if (present(threshold)) then
-          if (1.0d0 - abs(erf(z0/(2.0**.5))) >= threshold) acceptable = .true.
+       if (present(prob_threshold)) then
+          if (1.0d0 - abs(erf(z0/(2.0**.5))) >= prob_threshold) acceptable = .true.
        else
           acceptable = .true.
        end if
@@ -468,8 +468,10 @@ contains
        theta = 2d0 * const%pi * u2
        z0 = r * cos(theta)
        z1 = r * sin(theta)
-       if (present(threshold)) then
-          if (1.0d0 - abs(erf(z0/(2.0**.5))) >= threshold) acceptable = .true.
+       if (present(prob_threshold)) then
+          if (1.0d0 - abs(erf(z0/(2.0**.5))) >= prob_threshold) then
+             acceptable = .true.
+          end if
        else
           acceptable = .true.
        end if

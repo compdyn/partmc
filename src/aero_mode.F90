@@ -547,7 +547,7 @@ contains
 
   !> Return a radius randomly sampled from the mode distribution.
   subroutine aero_mode_sample_radius(aero_mode, aero_data, aero_weight, &
-       radius, size_factor)
+       radius, prob_threshold)
 
     !> Aero_mode to sample radius from.
     type(aero_mode_t), intent(in) :: aero_mode
@@ -557,8 +557,8 @@ contains
     type(aero_weight_t), intent(in) :: aero_weight
     !> Sampled radius (m).
     real(kind=dp), intent(out) :: radius
-    !> Control factor to limit out of range sampling of normal distribution.
-    real(kind=dp), intent(in) :: size_factor
+    !> Threshold for out of range sampling of normal distribution.
+    real(kind=dp), intent(in) :: prob_threshold
 
     real(kind=dp) :: x_mean_prime, x0, x1, x, r, inv_nc0, inv_nc1, inv_nc
     integer :: i_sample
@@ -577,7 +577,7 @@ contains
                // trim(integer_to_string(aero_weight%type)))
        end if
        radius = 10d0**rand_normal(x_mean_prime, &
-            aero_mode%log10_std_dev_radius, size_factor)
+            aero_mode%log10_std_dev_radius, prob_threshold)
     elseif (aero_mode%type == AERO_MODE_TYPE_SAMPLED) then
        allocate(weighted_num_conc(size(aero_mode%sample_num_conc)))
        call aero_mode_weighted_sampled_num_conc(aero_mode, aero_weight, &

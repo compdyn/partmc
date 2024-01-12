@@ -590,6 +590,9 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Compute the optical properties of each aerosol particle for a single
+  !> wavelength when MOSAIC has multiple wavelengths enabled. Wavelength is
+  !> hardcoded in MOSAIC aeroptical.f90.
   subroutine mosaic_compute_single_aero_optical(env_state, aero_data, &
        aero_state, gas_data, gas_state)
 

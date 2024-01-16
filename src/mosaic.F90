@@ -301,7 +301,7 @@ contains
     type(gas_data_t), intent(in) :: gas_data
     !> Gas state.
     type(gas_state_t), intent(inout) :: gas_state
-    !>
+    !> UUID for this simulation.
     character(len=PMC_UUID_LEN), intent(in) :: uuid
 
 #ifdef PMC_USE_MOSAIC
@@ -427,7 +427,7 @@ contains
     type(gas_state_t), intent(inout) :: gas_state
     !> Whether to compute optical properties.
     logical, intent(in) :: do_optical
-    !>
+    !> UUID for this simulation.
     character(len=PMC_UUID_LEN), intent(in) :: uuid
 
 #ifdef PMC_USE_MOSAIC

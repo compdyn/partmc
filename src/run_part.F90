@@ -310,6 +310,7 @@ contains
          + pmc_mpi_pack_size_integer(val%coag_kernel_type) &
          + pmc_mpi_pack_size_integer(val%nucleate_type) &
          + pmc_mpi_pack_size_integer(val%nucleate_source) &
+         + pmc_mpi_pack_size_integer(val%nucleate_weight_class) &
          + pmc_mpi_pack_size_logical(val%do_coagulation) &
          + pmc_mpi_pack_size_logical(val%do_nucleation) &
          + pmc_mpi_pack_size_logical(val%allow_doubling) &
@@ -359,6 +360,7 @@ contains
     call pmc_mpi_pack_integer(buffer, position, val%coag_kernel_type)
     call pmc_mpi_pack_integer(buffer, position, val%nucleate_type)
     call pmc_mpi_pack_integer(buffer, position, val%nucleate_source)
+    call pmc_mpi_pack_integer(buffer, position, val%nucleate_weight_class)
     call pmc_mpi_pack_logical(buffer, position, val%do_coagulation)
     call pmc_mpi_pack_logical(buffer, position, val%do_nucleation)
     call pmc_mpi_pack_logical(buffer, position, val%allow_doubling)
@@ -411,6 +413,7 @@ contains
     call pmc_mpi_unpack_integer(buffer, position, val%coag_kernel_type)
     call pmc_mpi_unpack_integer(buffer, position, val%nucleate_type)
     call pmc_mpi_unpack_integer(buffer, position, val%nucleate_source)
+    call pmc_mpi_unpack_integer(buffer, position, val%nucleate_weight_class)
     call pmc_mpi_unpack_logical(buffer, position, val%do_coagulation)
     call pmc_mpi_unpack_logical(buffer, position, val%do_nucleation)
     call pmc_mpi_unpack_logical(buffer, position, val%allow_doubling)

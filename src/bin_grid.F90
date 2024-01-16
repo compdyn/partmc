@@ -181,8 +181,12 @@ contains
     !> Data value.
     real(kind=dp), intent(in) :: val
 
-    bin_grid_contains = .false.
+    call assert_msg(828875607, bin_grid_size(bin_grid) >= 0, "bin_grid not " &
+         // "created.")
+    call assert_msg(454111488, 0 < i_bin .and. &
+         i_bin <= bin_grid_size(bin_grid), "i_bin not a valid bin in bin_grid")
 
+    bin_grid_contains = .false.
     if (bin_grid%edges(i_bin) <= val .and. &
        val < bin_grid%edges(i_bin + 1)) then
        bin_grid_contains = .true.

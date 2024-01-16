@@ -1,3 +1,16 @@
+2.7.0 - 2023-08-11
+
+  * Add support for SUNDIALS 6+ (Alex Hirzel).
+
+  * Add wrapper around stop (Sylwester Arabas).
+
+  * Change timestepping structure in run_part (Jeff Curtis).
+
+  * Update kappa value of NaCl (Jeff Curtis).
+
+  * Remove optional communicator in photolysis.F90 (Jeff Curtis).
+
+  * Use relative tolerance for comparing water properties (Jeff Curtis).
 
 2.6.1 - 2022-02-18
 

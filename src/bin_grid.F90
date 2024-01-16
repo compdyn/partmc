@@ -178,8 +178,11 @@ contains
     !> Data value.
     real(kind=dp), intent(in) :: val
 
-    bin_grid_contains = bin_grid%edges(i_bin) < val .and. &
-       bin_grid%edges(i_bin) < val
+    bin_grid_contains = .false.
+    if (linspace_find(bin_grid%edges(i_bin), bin_grid%edges(i_bin + 1), 2, &
+         val) == 1) then
+       bin_grid_contains = .true.
+    end if
 
   end function bin_grid_contains
 

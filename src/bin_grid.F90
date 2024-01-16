@@ -169,6 +169,9 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Determines if a value is in a given bin.
+  !!
+  !! The value is contained in bin i if edge(i) <= val < edge(i+1) or when
+  !! i = bin_grid_size(), edge(i) <= val <= edge(i+1) is satisfied.
   logical function bin_grid_contains(bin_grid, i_bin, val)
 
     !> Bin grid.
@@ -179,8 +182,15 @@ contains
     real(kind=dp), intent(in) :: val
 
     bin_grid_contains = .false.
-    if (linspace_find(bin_grid%edges(i_bin), bin_grid%edges(i_bin + 1), 2, &
-         val) == 1) then
+
+    if (bin_grid%edges(i_bin) <= val .and. &
+       val < bin_grid%edges(i_bin + 1)) then
+       bin_grid_contains = .true.
+       return
+    end if
+
+    if (i_bin == bin_grid_size(bin_grid) .and. &
+         val == bin_grid%edges(i_bin + 1)) then
        bin_grid_contains = .true.
     end if
 

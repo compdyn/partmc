@@ -1085,6 +1085,7 @@ contains
 
     allocate(aero_data%name(num_spec))
     allocate(aero_data%mosaic_index(num_spec))
+    allocate(aero_data%wavelenghts(n_swbands))
     allocate(aero_data%density(num_spec))
     allocate(aero_data%num_ions(num_spec))
     allocate(aero_data%molec_weight(num_spec))

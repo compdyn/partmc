@@ -437,8 +437,14 @@ contains
        end subroutine SolarZenithAngle
        subroutine IntegrateChemistry()
        end subroutine IntegrateChemistry
+#ifdef PMC_USE_MOSAIC_MULTI_OPT
+       subroutine aerosol_optical(i_wavelength)
+         integer, optional :: i_wavelength
+       end subroutine aerosol_optical
+#else
        subroutine aerosol_optical()
        end subroutine aerosol_optical
+#endif
     end interface
 
     ! map PartMC -> MOSAIC
@@ -496,8 +502,14 @@ contains
 #ifdef PMC_USE_MOSAIC
     ! MOSAIC function interfaces
     interface
+#ifdef PMC_USE_MOSAIC_MULTI_OPT
+       subroutine aerosol_optical(i_wavelength)
+         integer, optional :: i_wavelength
+       end subroutine aerosol_optical
+#else
        subroutine aerosol_optical()
        end subroutine aerosol_optical
+#endif
     end interface
 
     integer :: i_part
@@ -570,8 +582,14 @@ contains
     interface
        subroutine load_mosaic_parameters()
        end subroutine load_mosaic_parameters
+#ifdef PMC_USE_MOSAIC_MULTI_OPT
+       subroutine aerosol_optical(i_wavelength)
+         integer, optional :: i_wavelength
+       end subroutine aerosol_optical
+#else
        subroutine aerosol_optical()
        end subroutine aerosol_optical
+#endif
     end interface
 
     call load_mosaic_parameters
@@ -591,10 +609,9 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Compute the optical properties of each aerosol particle for a single
-  !> wavelength when MOSAIC has multiple wavelengths enabled. Wavelength is
-  !> hardcoded in MOSAIC aeroptical.f90.
-  subroutine mosaic_compute_single_aero_optical(env_state, aero_data, &
-       aero_state, gas_data, gas_state)
+  !> wavelength selected by index when MOSAIC has multiple wavelengths enabled.
+  subroutine mosaic_aero_optical_single_wavelength(env_state, aero_data, &
+       aero_state, gas_data, gas_state, i_wavelength)
 
 #ifdef PMC_USE_MOSAIC
     use module_data_mosaic_main, only: RH, pr_atm, te
@@ -613,12 +630,20 @@ contains
     type(gas_data_t), intent(in) :: gas_data
     !> Gas state.
     type(gas_state_t), intent(in) :: gas_state
+    !> Wavelength index to compute properties.
+    integer, intent(in) :: i_wavelength
 
 #ifdef PMC_USE_MOSAIC
     ! MOSAIC function interfaces
     interface
+#ifdef PMC_USE_MOSAIC_MULTI_OPT
+       subroutine aerosol_optical(i_wavelength)
+         integer, optional :: i_wavelength
+       end subroutine aerosol_optical
+#else
        subroutine aerosol_optical()
        end subroutine aerosol_optical
+#endif
        subroutine load_mosaic_parameters()
        end subroutine load_mosaic_parameters
     end interface
@@ -636,18 +661,19 @@ contains
     P_atm = pr_atm                            ! P(atm)
     T_K = te                                  ! T(K)
 #ifdef PMC_USE_MOSAIC_MULTI_OPT
-    call aerosol_optical_single_wavelength
+    call aerosol_optical(i_wavelength)
 #endif
     call mosaic_aero_optical(env_state, aero_data, &
          aero_state, gas_data, gas_state)
 #endif
 
-  end subroutine mosaic_compute_single_aero_optical
+  end subroutine mosaic_aero_optical_single_wavelength
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Fetch the wavelengths that optical cross-sections are calculated at in
-  !> MOSAIC.
+  !> MOSAIC. If not using multiple wavelengths, the wavelength is the default
+  !> value of 550 nm.
   subroutine mosaic_optical_wavelengths(aero_data)
 
 #ifdef PMC_USE_MOSAIC

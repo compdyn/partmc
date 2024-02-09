@@ -369,8 +369,11 @@ contains
     real(kind=dp) :: vol_cv(aero_data_n_spec(aero_data)), vol_cv_max
     real(kind=dp) :: mean_95_conf_cv
     integer :: n_samp_remove, n_samp_extra, n_samp_total, n_avg, i_samp
-    integer :: i_unif_entry, i_part, new_bin, ct
+    integer :: i_unif_entry, i_part, new_bin, ct, i_comp, i
     integer(kind=8) :: target_id
+    integer :: n_comp_new, n_comp, sample_size
+    integer, allocatable :: sample(:)
+    type(aero_component_t), allocatable :: new_aero_component(:)
     type(aero_info_t) :: aero_info
 
     if (integer_varray_n_entry( &
@@ -464,8 +467,52 @@ contains
     n_coag = rand_binomial(n_samp_total, prob_coag_mean)
     source_particle%vol = source_particle%vol &
          * (real(n_coag, kind=dp) / real(n_avg, kind=dp))
-    source_particle%n_primary_parts = source_particle%n_primary_parts &
-         * (n_coag / n_avg)
+    source_particle%n_primary_parts = prob_round( &
+         source_particle%n_primary_parts * (real(n_coag, kind=dp) / n_avg))
+
+    n_comp = aero_particle_n_components(source_particle)
+    n_comp_new = min(source_particle%n_primary_parts, &
+         MAX_AERO_COMPONENT_SIZE)
+    if (n_comp_new < n_comp) then
+      allocate(new_aero_component(n_comp_new))
+      call sample_without_replacement(n_comp_new, n_comp, sample)
+      do i = 1,n_comp_new
+         new_aero_component(i) = source_particle%component(sample(i))
+      end do
+      call move_alloc(new_aero_component, source_particle%component)
+    else
+      if (n_comp < MAX_AERO_COMPONENT_SIZE) then
+         ! make X copies plus sampling without replacment for leftovers
+         i_comp = 1
+         allocate(new_aero_component(n_comp_new))
+         do while (i_comp <= n_comp_new)
+           if (i_comp + n_comp <=  n_comp_new) then
+              ! Append whole copy of source starting at i
+              do i = 1,n_comp
+                 new_aero_component(i_comp+i-1) = source_particle%component(i)
+              end do
+              i_comp = i_comp + n_comp
+           else
+             ! sample a subset to fill in remaining entries
+             sample_size = n_comp_new - i_comp + 1
+             call sample_without_replacement(sample_size, n_comp, sample)
+             do i = 1,sample_size
+               new_aero_component(i_comp+i-1) = &
+                    source_particle%component(sample(i))
+             end do
+             i_comp = n_comp_new + 1
+           end if
+         end do
+         call move_alloc(new_aero_component, source_particle%component)
+      end if
+    end if
+
+    n_comp = aero_particle_n_components(source_particle)
+    call assert_msg(808144130, source_particle%n_primary_parts >= &
+         n_comp, 'n_primary_parts = ' &
+         // trim(integer_to_string(source_particle%n_primary_parts)) &
+         // ' is less than n_components = '  &
+         // trim(integer_to_string(n_comp)))
 
   end subroutine sample_source_particle
 

@@ -937,10 +937,21 @@ contains
     end if
     aero_particle_new%id = 0
     n_comp_1 = aero_particle_n_components(aero_particle_1)
+    call assert_msg(465791384, aero_particle_1%n_primary_parts >= &
+         n_comp_1, 'n_primary_parts = ' &
+         // trim(integer_to_string(aero_particle_1%n_primary_parts)) &
+         // ' is less than n_components = '  &
+         // trim(integer_to_string(n_comp_1)))
     n_comp_2 = aero_particle_n_components(aero_particle_2)
+    call assert_msg(465791385, aero_particle_2%n_primary_parts >= &
+         n_comp_2, 'n_primary_parts = ' &
+         // trim(integer_to_string(aero_particle_2%n_primary_parts)) &
+         // ' is less than n_components = ' &
+         // trim(integer_to_string(n_comp_2)))
     if (n_comp_1 + n_comp_2 >  MAX_AERO_COMPONENT_SIZE) then
-       n_comp_1_new = prob_round(n_comp_1 / real((n_comp_1 + n_comp_2), &
-            kind=dp) *  MAX_AERO_COMPONENT_SIZE)
+       n_comp_1_new = prob_round(real(aero_particle_1%n_primary_parts, &
+            kind=dp) / (aero_particle_1%n_primary_parts &
+            + aero_particle_2%n_primary_parts) * MAX_AERO_COMPONENT_SIZE)
        n_comp_2_new = MAX_AERO_COMPONENT_SIZE - n_comp_1_new
        allocate(new_aero_component(MAX_AERO_COMPONENT_SIZE))
        call sample_without_replacement(n_comp_1_new, n_comp_1, sample)

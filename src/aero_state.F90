@@ -3094,6 +3094,7 @@ contains
     integer, allocatable :: aero_component_source_num(:)
     integer, allocatable :: aero_component_len(:)
     integer, allocatable :: aero_component_start_ind(:)
+    integer, allocatable :: aero_particle_n_primary_parts(:)
     real(kind=dp), allocatable :: aero_component_create_time(:)
     integer :: i_comp
 
@@ -3114,6 +3115,8 @@ contains
          "aero_particle_mass")
     call pmc_nc_read_integer_2d(ncid, aero_n_orig_part, &
          "aero_n_orig_part")
+    call pmc_nc_read_integer_1d(ncid, aero_particle_n_primary_parts, &
+         "aero_particle_n_primary_parts")
     call pmc_nc_read_integer_1d(ncid, aero_component_particle_num, &
          "aero_component_particle_num")
     call pmc_nc_read_integer_1d(ncid, aero_component_source_num, &
@@ -3160,6 +3163,7 @@ contains
     do i_part = 1,n_part
        call aero_particle_zero(aero_particle, aero_data)
        aero_particle%vol = aero_particle_mass(i_part, :) / aero_data%density
+       aero_particle%n_primary_parts = aero_particle_n_primary_parts(i_part)
        if (allocated(aero_particle%component)) &
             deallocate(aero_particle%component)
        allocate(aero_particle%component(aero_component_len(i_part)))

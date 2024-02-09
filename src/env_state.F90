@@ -40,20 +40,20 @@ module pmc_env_state
      !> Altitude (m).
      real(kind=dp) :: altitude
 #ifdef PMC_USE_WRF
-     !> Lower boundary altitude (m).
+     !> Height of lower edge of grid cell (m).
      real(kind=dp) :: z_min
-     !> Upper boundary altitude (m).
+     !> Height of upper edge of grid cell (m).
      real(kind=dp) :: z_max
-     !> Specific volume (m^3 kg^{-1}).
-     real(kind=dp) :: rrho
+     !> Inverse density (m^3 kg^{-1}).
+     real(kind=dp) :: inverse_density
      !> Grid cell volume.
      real(kind=dp) :: cell_volume
-     !> East-West index.
-     integer :: ix
-     !> North-South index.
-     integer :: iy
-     !> Top-Bottom index.
-     integer :: iz
+     !> East-West index for grid cell.
+     integer :: cell_ix
+     !> North-South index for grid cell.
+     integer :: cell_iy
+     !> Top-Bottom index for grid cell.
+     integer :: cell_iz
      !> Eddy diffusivity coefficient (m^2 s^{-2}).
      real(kind=dp) :: diff_coef
      !> Transfer probability in all directions due to advection.
@@ -371,11 +371,11 @@ contains
 #ifdef PMC_USE_WRF
          + pmc_mpi_pack_size_real(val%z_min) &
          + pmc_mpi_pack_size_real(val%z_max) &
-         + pmc_mpi_pack_size_real(val%rrho) &
+         + pmc_mpi_pack_size_real(val%inverse_density) &
          + pmc_mpi_pack_size_real(val%cell_volume) &
-         + pmc_mpi_pack_size_integer(val%ix) &
-         + pmc_mpi_pack_size_integer(val%iy) &
-         + pmc_mpi_pack_size_integer(val%iz) &
+         + pmc_mpi_pack_size_integer(val%cell_ix) &
+         + pmc_mpi_pack_size_integer(val%cell_iy) &
+         + pmc_mpi_pack_size_integer(val%cell_iz) &
          + pmc_mpi_pack_size_real(val%diff_coef) &
          + pmc_mpi_pack_size_real_array_4d(val%prob_advection) &
          + pmc_mpi_pack_size_real_array_4d(val%prob_diffusion) &
@@ -414,11 +414,11 @@ contains
 #ifdef PMC_USE_WRF
     call pmc_mpi_pack_real(buffer, position, val%z_min)
     call pmc_mpi_pack_real(buffer, position, val%z_max)
-    call pmc_mpi_pack_real(buffer, position, val%rrho)
+    call pmc_mpi_pack_real(buffer, position, val%inverse_density)
     call pmc_mpi_pack_real(buffer, position, val%cell_volume)
-    call pmc_mpi_pack_integer(buffer, position, val%ix)
-    call pmc_mpi_pack_integer(buffer, position, val%iy)
-    call pmc_mpi_pack_integer(buffer, position, val%iz)
+    call pmc_mpi_pack_integer(buffer, position, val%cell_ix)
+    call pmc_mpi_pack_integer(buffer, position, val%cell_iy)
+    call pmc_mpi_pack_integer(buffer, position, val%cell_iz)
     call pmc_mpi_pack_real(buffer, position, val%diff_coef)
     call pmc_mpi_pack_real_array_4d(buffer, position, val%prob_advection)
     call pmc_mpi_pack_real_array_4d(buffer, position, val%prob_diffusion)
@@ -460,11 +460,11 @@ contains
 #ifdef PMC_USE_WRF
     call pmc_mpi_unpack_real(buffer, position, val%z_min)
     call pmc_mpi_unpack_real(buffer, position, val%z_max)
-    call pmc_mpi_unpack_real(buffer, position, val%rrho)
+    call pmc_mpi_unpack_real(buffer, position, val%inverse_density)
     call pmc_mpi_unpack_real(buffer, position, val%cell_volume)
-    call pmc_mpi_unpack_integer(buffer, position, val%ix)
-    call pmc_mpi_unpack_integer(buffer, position, val%iy)
-    call pmc_mpi_unpack_integer(buffer, position, val%iz)
+    call pmc_mpi_unpack_integer(buffer, position, val%cell_ix)
+    call pmc_mpi_unpack_integer(buffer, position, val%cell_iy)
+    call pmc_mpi_unpack_integer(buffer, position, val%cell_iz)
     call pmc_mpi_unpack_real(buffer, position, val%diff_coef)
     call pmc_mpi_unpack_real_array_4d(buffer, position, val%prob_advection)
     call pmc_mpi_unpack_real_array_4d(buffer, position, val%prob_diffusion)
@@ -550,15 +550,15 @@ contains
          unit="m", standard_name="bottom_altitude")
     call pmc_nc_write_real(ncid, env_state%z_max, "top_boundary_altitude", &
          unit="m", standard_name="top_altitude")
-    call pmc_nc_write_real(ncid, env_state%rrho, "specific_volume", &
-         unit="m3kg-1", standard_name="specific_volume")
+    call pmc_nc_write_real(ncid, env_state%inverse_density, "inverse_density", &
+         unit="m3kg-1", standard_name="inverse_density")
     call pmc_nc_write_real(ncid, env_state%cell_volume, "cell_volume", &
          unit="m3", standard_name="cell_volume")
-    call pmc_nc_write_integer(ncid,env_state%ix,"x_index", &
+    call pmc_nc_write_integer(ncid,env_state%cell_ix,"x_index", &
          description="east-west index of WRF domain")
-    call pmc_nc_write_integer(ncid,env_state%iy,"y_index", &
+    call pmc_nc_write_integer(ncid,env_state%cell_iy,"y_index", &
          description="north-south index of WRF domain")
-    call pmc_nc_write_integer(ncid,env_state%iz,"z_index", &
+    call pmc_nc_write_integer(ncid,env_state%cell_iz,"z_index", &
          description="top-bottom index of WRF domain")
     call pmc_nc_write_real(ncid, env_state%diff_coef, "eddy_diff", &
          unit="m2s-1", description="eddy diffusion coefficient")
@@ -598,11 +598,11 @@ contains
 #ifdef PMC_USE_WRF
     call pmc_nc_read_real(ncid, env_state%z_min, "bottom_boundary_altitude")
     call pmc_nc_read_real(ncid, env_state%z_max, "top_boundary_altitude")
-    call pmc_nc_read_real(ncid, env_state%rrho, "specific_volume")
+    call pmc_nc_read_real(ncid, env_state%inverse_density, "inverse_density")
     call pmc_nc_read_real(ncid, env_state%cell_volume, "cell_volume")
-    call pmc_nc_read_integer(ncid,env_state%ix,"x_index")
-    call pmc_nc_read_integer(ncid,env_state%iy,"y_index")
-    call pmc_nc_read_integer(ncid,env_state%iz,"z_index")
+    call pmc_nc_read_integer(ncid,env_state%cell_ix,"x_index")
+    call pmc_nc_read_integer(ncid,env_state%cell_iy,"y_index")
+    call pmc_nc_read_integer(ncid,env_state%cell_iz,"z_index")
     call pmc_nc_read_real(ncid, env_state%diff_coef, "eddy_diff")
 #endif
     call pmc_nc_read_real(ncid, env_state%start_time, &

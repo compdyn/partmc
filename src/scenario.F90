@@ -328,7 +328,7 @@ contains
 
 #ifdef PMC_USE_WRF
     call aero_weight_array_scale(aero_state%awa, &
-         old_env_state%rrho * (1.0d0 / env_state%rrho))
+         old_env_state%inverse_density * (1.0d0 / env_state%inverse_density))
 #else
     ! update computational volume
     call aero_weight_array_scale(aero_state%awa, &

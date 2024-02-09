@@ -868,8 +868,8 @@ contains
     integer :: k
 
 #ifdef PMC_USE_WRF
-    write(filename,'(a,a,i3.3,a,i3.3,a,i8.8,a)') trim(prefix), &
-         '_', env_state(1)%ix, '_', env_state(1)%iy, '_', index, '.nc'
+    write(filename,'(a,a,i3.3,a,i3.3,a,i8.8,a)') trim(prefix), '_', &
+         env_state(1)%cell_ix, '_', env_state(1)%cell_iy, '_', index, '.nc'
     call pmc_nc_open_write(filename, ncid)
     call pmc_nc_write_info(ncid, uuid, &
          "WRF-PartMC version " // trim(PARTMC_VERSION), write_rank, &
@@ -881,7 +881,7 @@ contains
 
     do k = 1,nz
        call pmc_nc_check_msg(nf90_redef(ncid),'in define mode for level')
-       write(group_name,'(a,i2.2)') 'level_', env_state(k)%iz
+       write(group_name,'(a,i2.2)') 'level_', env_state(k)%cell_iz
        call pmc_nc_check_msg(nf90_def_grp(ncid, group_name, ncid_group), &
             'creating level group')
        call pmc_nc_check_msg(nf90_enddef(ncid),'end define mode for level')

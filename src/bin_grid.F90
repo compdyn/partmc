@@ -170,8 +170,10 @@ contains
 
   !> Determines if a value is in a given bin.
   !!
-  !! The value is contained in bin i if edge(i) <= val < edge(i+1) or when
-  !! i = bin_grid_size(), edge(i) <= val <= edge(i+1) is satisfied.
+  !! The value is contained in bin i if edge(i) <= val < edge(i+1).
+  !! If bin_i = 0, then we return true if val < edge(1). If bin_i =
+  !! bin_grid_size + 1, then we return true if val > edge(bin_grid_size+1).
+  !! If val = edge(bin_grid_size+1), then return true if i_bin = bin_grid_size.
   logical function bin_grid_contains(bin_grid, i_bin, val)
 
     !> Bin grid.
@@ -183,8 +185,8 @@ contains
 
     call assert_msg(828875607, bin_grid_size(bin_grid) >= 0, "bin_grid not " &
          // "created.")
-    call assert_msg(454111488, 0 < i_bin .and. &
-         i_bin <= bin_grid_size(bin_grid), "i_bin not a valid bin in bin_grid")
+    call assert_msg(454111488, 0 <= i_bin .and. &
+         i_bin <= bin_grid_size(bin_grid) + 1, "i_bin not a valid bin in bin_grid")
 
     bin_grid_contains = .false.
     if (bin_grid%edges(i_bin) <= val .and. &

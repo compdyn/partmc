@@ -876,10 +876,6 @@ contains
     integer :: n_parts_before
 
     call assert(721006962, (sample_prob >= 0d0) .and. (sample_prob <= 1d0))
-#ifndef PMC_USE_WRF
-    call aero_state_zero(aero_state_to)
-    call aero_state_copy_weight(aero_state_from, aero_state_to)
-#endif
 
     n_transfer = rand_binomial(aero_state_total_particles(aero_state_from), &
          sample_prob)

@@ -62,6 +62,8 @@ module pmc_run_part
      integer :: nucleate_type
      !> Source of nucleation.
      integer :: nucleate_source
+     !> Weight class of nucleation.
+     integer :: nucleate_weight_class
      !> Whether to do coagulation.
      logical :: do_coagulation
      !> Whether to do nucleation.
@@ -126,7 +128,7 @@ contains
     !> Environment state.
     type(env_state_t), intent(inout) :: env_state
     !> Aerosol data.
-    type(aero_data_t), intent(in) :: aero_data
+    type(aero_data_t), intent(inout) :: aero_data
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     !> Gas data.
@@ -188,6 +190,7 @@ contains
        if (run_part_opt%do_optical) then
           call mosaic_aero_optical_init(env_state, aero_data, &
             aero_state, gas_data, gas_state)
+          call mosaic_optical_wavelengths(aero_data)
        end if
     end if
 
@@ -307,6 +310,7 @@ contains
          + pmc_mpi_pack_size_integer(val%coag_kernel_type) &
          + pmc_mpi_pack_size_integer(val%nucleate_type) &
          + pmc_mpi_pack_size_integer(val%nucleate_source) &
+         + pmc_mpi_pack_size_integer(val%nucleate_weight_class) &
          + pmc_mpi_pack_size_logical(val%do_coagulation) &
          + pmc_mpi_pack_size_logical(val%do_nucleation) &
          + pmc_mpi_pack_size_logical(val%allow_doubling) &
@@ -327,6 +331,7 @@ contains
          + pmc_mpi_pack_size_logical(val%gas_average) &
          + pmc_mpi_pack_size_logical(val%env_average) &
          + pmc_mpi_pack_size_integer(val%parallel_coag_type) &
+         + pmc_mpi_pack_size_logical(val%do_camp_chem) &
          + pmc_mpi_pack_size_string(val%uuid)
 
   end function pmc_mpi_pack_size_run_part_opt
@@ -355,6 +360,7 @@ contains
     call pmc_mpi_pack_integer(buffer, position, val%coag_kernel_type)
     call pmc_mpi_pack_integer(buffer, position, val%nucleate_type)
     call pmc_mpi_pack_integer(buffer, position, val%nucleate_source)
+    call pmc_mpi_pack_integer(buffer, position, val%nucleate_weight_class)
     call pmc_mpi_pack_logical(buffer, position, val%do_coagulation)
     call pmc_mpi_pack_logical(buffer, position, val%do_nucleation)
     call pmc_mpi_pack_logical(buffer, position, val%allow_doubling)
@@ -375,6 +381,7 @@ contains
     call pmc_mpi_pack_logical(buffer, position, val%gas_average)
     call pmc_mpi_pack_logical(buffer, position, val%env_average)
     call pmc_mpi_pack_integer(buffer, position, val%parallel_coag_type)
+    call pmc_mpi_pack_logical(buffer, position, val%do_camp_chem)
     call pmc_mpi_pack_string(buffer, position, val%uuid)
     call assert(946070052, &
          position - prev_position <= pmc_mpi_pack_size_run_part_opt(val))
@@ -406,6 +413,7 @@ contains
     call pmc_mpi_unpack_integer(buffer, position, val%coag_kernel_type)
     call pmc_mpi_unpack_integer(buffer, position, val%nucleate_type)
     call pmc_mpi_unpack_integer(buffer, position, val%nucleate_source)
+    call pmc_mpi_unpack_integer(buffer, position, val%nucleate_weight_class)
     call pmc_mpi_unpack_logical(buffer, position, val%do_coagulation)
     call pmc_mpi_unpack_logical(buffer, position, val%do_nucleation)
     call pmc_mpi_unpack_logical(buffer, position, val%allow_doubling)
@@ -426,6 +434,7 @@ contains
     call pmc_mpi_unpack_logical(buffer, position, val%gas_average)
     call pmc_mpi_unpack_logical(buffer, position, val%env_average)
     call pmc_mpi_unpack_integer(buffer, position, val%parallel_coag_type)
+    call pmc_mpi_unpack_logical(buffer, position, val%do_camp_chem)
     call pmc_mpi_unpack_string(buffer, position, val%uuid)
     call assert(480118362, &
          position - prev_position <= pmc_mpi_pack_size_run_part_opt(val))
@@ -559,7 +568,8 @@ contains
     if (run_part_opt%do_nucleation) then
        n_part_before = aero_state_total_particles(aero_state)
        call nucleate(run_part_opt%nucleate_type, &
-            run_part_opt%nucleate_source, env_state, gas_data, aero_data, &
+            run_part_opt%nucleate_source, run_part_opt%nucleate_weight_class, &
+            env_state, gas_data, aero_data, &
             aero_state, gas_state, run_part_opt%del_t, &
             run_part_opt%allow_doubling, run_part_opt%allow_halving)
        n_nuc = aero_state_total_particles(aero_state) &
@@ -612,7 +622,7 @@ contains
 
     if (run_part_opt%do_mosaic) then
        call mosaic_timestep(env_state, aero_data, aero_state, gas_data, &
-            gas_state, run_part_opt%do_optical)
+            gas_state, run_part_opt%do_optical, run_part_opt%uuid)
     end if
 
     if (run_part_opt%mix_timescale > 0d0) then

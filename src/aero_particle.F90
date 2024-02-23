@@ -9,6 +9,7 @@
 module pmc_aero_particle
 
   use pmc_util
+  use pmc_aero_component
   use pmc_aero_data
   use pmc_spec_file
   use pmc_env_state
@@ -16,6 +17,9 @@ module pmc_aero_particle
 #ifdef PMC_USE_MPI
   use mpi
 #endif
+
+  !> Maximum size of aero_components for a single particle.
+  integer, parameter :: MAX_AERO_COMPONENT_SIZE = 20
 
   !> Single aerosol particle data structure.
   !!
@@ -26,37 +30,38 @@ module pmc_aero_particle
   type aero_particle_t
      !> Constituent species volumes [length aero_data_n_spec()] (m^3).
      real(kind=dp), allocatable :: vol(:)
-     !> Number of original particles from each source that coagulated
-     !> to form this one [length aero_data_n_source()].
-     integer, allocatable :: n_orig_part(:)
      !> Weighting function group number (see \c aero_weight_array_t).
      integer :: weight_group
      !> Weighting function class number (see \c aero_weight_array_t).
      integer :: weight_class
      !> Absorption cross-section (m^2).
-     real(kind=dp) :: absorb_cross_sect
+     real(kind=dp), allocatable :: absorb_cross_sect(:)
      !> Scattering cross-section (m^2).
-     real(kind=dp) :: scatter_cross_sect
+     real(kind=dp), allocatable :: scatter_cross_sect(:)
      !> Asymmetry parameter (1).
-     real(kind=dp) :: asymmetry
+     real(kind=dp), allocatable :: asymmetry(:)
      !> Refractive index of the shell (1).
-     complex(kind=dc) :: refract_shell
+     complex(kind=dc), allocatable :: refract_shell(:)
      !> Refractive index of the core (1).
-     complex(kind=dc) :: refract_core
+     complex(kind=dc), allocatable :: refract_core(:)
      !> Volume of the core (m^3).
      real(kind=dp) :: core_vol
      !> Water hysteresis curve section (0 = lower, 1 = upper)
      integer :: water_hyst_leg
      !> Unique ID number.
-     integer :: id
+     integer(kind=8) :: id
+     !> Array of aerosol components.
+     type(aero_component_t), allocatable :: component(:)
      !> First time a constituent was created (s).
      real(kind=dp) :: least_create_time
      !> Last time a constituent was created (s).
      real(kind=dp) :: greatest_create_time
+     !> True number of primary particles contributing to particle.
+     integer :: n_primary_parts
   end type aero_particle_t
 
   !> Next unique ID number to use for a particle.
-  integer, save :: next_id = 1
+  integer(kind=8), save :: next_id = 1
 
 contains
 
@@ -72,22 +77,26 @@ contains
     type(aero_particle_t), intent(inout) :: aero_particle_to
 
     call move_alloc(aero_particle_from%vol, aero_particle_to%vol)
-    call move_alloc(aero_particle_from%n_orig_part, &
-         aero_particle_to%n_orig_part)
     aero_particle_to%weight_group = aero_particle_from%weight_group
     aero_particle_to%weight_class = aero_particle_from%weight_class
-    aero_particle_to%absorb_cross_sect = aero_particle_from%absorb_cross_sect
-    aero_particle_to%scatter_cross_sect = &
-         aero_particle_from%scatter_cross_sect
-    aero_particle_to%asymmetry = aero_particle_from%asymmetry
-    aero_particle_to%refract_shell = aero_particle_from%refract_shell
-    aero_particle_to%refract_core = aero_particle_from%refract_core
+    call move_alloc(aero_particle_from%absorb_cross_sect, &
+         aero_particle_to%absorb_cross_sect)
+    call move_alloc(aero_particle_from%scatter_cross_sect, &
+         aero_particle_to%scatter_cross_sect)
+    call move_alloc(aero_particle_from%asymmetry, &
+         aero_particle_to%asymmetry)
+    call move_alloc(aero_particle_from%refract_shell, &
+         aero_particle_to%refract_shell)
+    call move_alloc(aero_particle_from%refract_core, &
+         aero_particle_to%refract_core)
     aero_particle_to%core_vol = aero_particle_from%core_vol
     aero_particle_to%water_hyst_leg = aero_particle_from%water_hyst_leg
     aero_particle_to%id = aero_particle_from%id
+    call move_alloc(aero_particle_from%component, aero_particle_to%component)
     aero_particle_to%least_create_time = aero_particle_from%least_create_time
     aero_particle_to%greatest_create_time = &
          aero_particle_from%greatest_create_time
+    aero_particle_to%n_primary_parts = aero_particle_from%n_primary_parts
 
   end subroutine aero_particle_shift
 
@@ -103,21 +112,26 @@ contains
 
     call ensure_real_array_size(aero_particle%vol, aero_data_n_spec(aero_data))
     aero_particle%vol = 0d0
-    call ensure_integer_array_size(aero_particle%n_orig_part, &
-         aero_data_n_source(aero_data))
-    aero_particle%n_orig_part = 0
     aero_particle%weight_group = 0
     aero_particle%weight_class = 0
+    call ensure_real_array_size(aero_particle%absorb_cross_sect, n_swbands)
     aero_particle%absorb_cross_sect = 0d0
+    call ensure_real_array_size(aero_particle%scatter_cross_sect, n_swbands)
     aero_particle%scatter_cross_sect = 0d0
+    call ensure_real_array_size(aero_particle%asymmetry, n_swbands)
     aero_particle%asymmetry = 0d0
+    call ensure_complex_array_size(aero_particle%refract_shell, n_swbands)
     aero_particle%refract_shell = (0d0, 0d0)
+    call ensure_complex_array_size(aero_particle%refract_core, n_swbands)
     aero_particle%refract_core = (0d0, 0d0)
     aero_particle%core_vol = 0d0
     aero_particle%water_hyst_leg = 0
     aero_particle%id = 0
+    if (allocated(aero_particle%component)) deallocate(aero_particle%component)
+    allocate(aero_particle%component(0))
     aero_particle%least_create_time = 0d0
     aero_particle%greatest_create_time = 0d0
+    aero_particle%n_primary_parts = 0
 
   end subroutine aero_particle_zero
 
@@ -144,10 +158,48 @@ contains
     !> Creation time.
     real(kind=dp), intent(in) :: create_time
 
-    aero_particle%least_create_time = create_time
+    aero_particle%component(1)%create_time = create_time
     aero_particle%greatest_create_time = create_time
 
   end subroutine aero_particle_set_create_time
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Set the initial aero_component for a particle.
+  subroutine aero_particle_set_component(aero_particle, i_source, create_time)
+
+    !> Particle to set time for.
+    type(aero_particle_t), intent(inout) :: aero_particle
+    !> Source number for the particle.
+    integer, intent(in) :: i_source
+    !> Creation time.
+    real(kind=dp), intent(in) :: create_time
+
+    if (allocated(aero_particle%component)) deallocate(aero_particle%component)
+    allocate(aero_particle%component(1))
+    call aero_particle_set_source(aero_particle, i_source)
+    call aero_particle_set_create_time(aero_particle, create_time)
+
+  end subroutine aero_particle_set_component
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Gets the list of sources that a particle consists of.
+  subroutine aero_particle_get_component_sources(aero_particle, source_list)
+
+    !> Particle.
+    type(aero_particle_t), intent(in) :: aero_particle
+    !> List of sources.
+    integer, intent(inout) :: source_list(:)
+
+    integer :: i_comp, i_source
+
+    do i_comp = 1,aero_particle_n_components(aero_particle)
+       i_source = aero_particle%component(i_comp)%source_id
+       source_list(i_source) = source_list(i_source) + 1
+    end do
+
+  end subroutine aero_particle_get_component_sources
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -173,8 +225,7 @@ contains
     !> Source number for the particle.
     integer, intent(in) :: i_source
 
-    aero_particle%n_orig_part = 0
-    aero_particle%n_orig_part(i_source) = 1
+    aero_particle%component(1)%source_id = i_source
 
   end subroutine aero_particle_set_source
 
@@ -856,15 +907,22 @@ contains
     !> Result particle.
     type(aero_particle_t), intent(inout) :: aero_particle_new
 
+    integer :: n_comp_1, n_comp_2, n_comp_1_new, n_comp_2_new, i
+    type(aero_component_t), allocatable :: new_aero_component(:)
+    integer :: n_swbands
+    integer, allocatable :: sample(:)
+
     call assert(203741686, size(aero_particle_1%vol) &
          == size(aero_particle_2%vol))
-    call assert(483452167, size(aero_particle_1%n_orig_part) &
-         == size(aero_particle_2%n_orig_part))
     aero_particle_new%vol = aero_particle_1%vol + aero_particle_2%vol
-    aero_particle_new%n_orig_part = aero_particle_1%n_orig_part &
-         + aero_particle_2%n_orig_part
     aero_particle_new%weight_group = 0
     aero_particle_new%weight_class = 0
+    n_swbands = size(aero_particle_1%absorb_cross_sect)
+    call ensure_real_array_size(aero_particle_new%absorb_cross_sect, n_swbands)
+    call ensure_real_array_size(aero_particle_new%scatter_cross_sect, n_swbands)
+    call ensure_real_array_size(aero_particle_new%asymmetry, n_swbands)
+    call ensure_complex_array_size(aero_particle_new%refract_shell, n_swbands)
+    call ensure_complex_array_size(aero_particle_new%refract_core, n_swbands)
     aero_particle_new%absorb_cross_sect = 0d0
     aero_particle_new%scatter_cross_sect = 0d0
     aero_particle_new%asymmetry = 0d0
@@ -878,14 +936,63 @@ contains
        aero_particle_new%water_hyst_leg = 0
     end if
     aero_particle_new%id = 0
-    aero_particle_new%least_create_time = &
-         min(aero_particle_1%least_create_time, &
-         aero_particle_2%least_create_time)
+    n_comp_1 = aero_particle_n_components(aero_particle_1)
+    call assert_msg(465791384, aero_particle_1%n_primary_parts >= &
+         n_comp_1, 'n_primary_parts = ' &
+         // trim(integer_to_string(aero_particle_1%n_primary_parts)) &
+         // ' is less than n_components = '  &
+         // trim(integer_to_string(n_comp_1)))
+    n_comp_2 = aero_particle_n_components(aero_particle_2)
+    call assert_msg(465791385, aero_particle_2%n_primary_parts >= &
+         n_comp_2, 'n_primary_parts = ' &
+         // trim(integer_to_string(aero_particle_2%n_primary_parts)) &
+         // ' is less than n_components = ' &
+         // trim(integer_to_string(n_comp_2)))
+    if (n_comp_1 + n_comp_2 >  MAX_AERO_COMPONENT_SIZE) then
+       n_comp_1_new = prob_round(real(aero_particle_1%n_primary_parts, &
+            kind=dp) / (aero_particle_1%n_primary_parts &
+            + aero_particle_2%n_primary_parts) * MAX_AERO_COMPONENT_SIZE)
+       n_comp_2_new = MAX_AERO_COMPONENT_SIZE - n_comp_1_new
+       allocate(new_aero_component(MAX_AERO_COMPONENT_SIZE))
+       call sample_without_replacement(n_comp_1_new, n_comp_1, sample)
+       do i = 1,n_comp_1_new
+          new_aero_component(i) = aero_particle_1%component(sample(i))
+       end do
+       call sample_without_replacement(n_comp_2_new, n_comp_2, sample)
+       do i = 1,n_comp_2_new
+          new_aero_component(i+n_comp_1_new) = aero_particle_2%component( &
+               sample(i))
+       end do
+       aero_particle_new%component = new_aero_component
+    else
+       new_aero_component = [aero_particle_1%component, &
+            aero_particle_2%component]
+       call move_alloc(new_aero_component, aero_particle_new%component)
+    end if
     aero_particle_new%greatest_create_time = &
          max(aero_particle_1%greatest_create_time, &
          aero_particle_2%greatest_create_time)
 
+    aero_particle_new%n_primary_parts = aero_particle_1%n_primary_parts &
+         + aero_particle_2%n_primary_parts
+
   end subroutine aero_particle_coagulate
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Return the number of aerosol components, or -1 if uninitialized.
+  elemental integer function aero_particle_n_components(particle)
+
+    !> Particle.
+    type(aero_particle_t), intent(in) :: particle
+
+    if (allocated(particle%component)) then
+       aero_particle_n_components = size(particle%component)
+    else
+       aero_particle_n_components = -1
+    end if
+
+  end function aero_particle_n_components
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -895,21 +1002,29 @@ contains
     !> Value to pack.
     type(aero_particle_t), intent(in) :: val
 
+    integer :: i
+
     pmc_mpi_pack_size_aero_particle = &
          pmc_mpi_pack_size_real_array(val%vol) &
-         + pmc_mpi_pack_size_integer_array(val%n_orig_part) &
          + pmc_mpi_pack_size_integer(val%weight_group) &
          + pmc_mpi_pack_size_integer(val%weight_class) &
-         + pmc_mpi_pack_size_real(val%absorb_cross_sect) &
-         + pmc_mpi_pack_size_real(val%scatter_cross_sect) &
-         + pmc_mpi_pack_size_real(val%asymmetry) &
-         + pmc_mpi_pack_size_complex(val%refract_shell) &
-         + pmc_mpi_pack_size_complex(val%refract_core) &
+         + pmc_mpi_pack_size_real_array(val%absorb_cross_sect) &
+         + pmc_mpi_pack_size_real_array(val%scatter_cross_sect) &
+         + pmc_mpi_pack_size_real_array(val%asymmetry) &
+         + pmc_mpi_pack_size_complex_array(val%refract_shell) &
+         + pmc_mpi_pack_size_complex_array(val%refract_core) &
          + pmc_mpi_pack_size_real(val%core_vol) &
          + pmc_mpi_pack_size_integer(val%water_hyst_leg) &
-         + pmc_mpi_pack_size_integer(val%id) &
+         + pmc_mpi_pack_size_integer64(val%id) &
+         + pmc_mpi_pack_size_integer(aero_particle_n_components(val)) &
          + pmc_mpi_pack_size_real(val%least_create_time) &
-         + pmc_mpi_pack_size_real(val%greatest_create_time)
+         + pmc_mpi_pack_size_real(val%greatest_create_time) &
+         + pmc_mpi_pack_size_integer(val%n_primary_parts)
+
+    do i = 1,aero_particle_n_components(val)
+       pmc_mpi_pack_size_aero_particle = pmc_mpi_pack_size_aero_particle &
+            + pmc_mpi_pack_size_aero_component(val%component(i))
+    end do
 
   end function pmc_mpi_pack_size_aero_particle
 
@@ -926,23 +1041,28 @@ contains
     type(aero_particle_t), intent(in) :: val
 
 #ifdef PMC_USE_MPI
-    integer :: prev_position
+    integer :: prev_position, i
 
     prev_position = position
     call pmc_mpi_pack_real_array(buffer, position, val%vol)
-    call pmc_mpi_pack_integer_array(buffer, position, val%n_orig_part)
     call pmc_mpi_pack_integer(buffer, position, val%weight_group)
     call pmc_mpi_pack_integer(buffer, position, val%weight_class)
-    call pmc_mpi_pack_real(buffer, position, val%absorb_cross_sect)
-    call pmc_mpi_pack_real(buffer, position, val%scatter_cross_sect)
-    call pmc_mpi_pack_real(buffer, position, val%asymmetry)
-    call pmc_mpi_pack_complex(buffer, position, val%refract_shell)
-    call pmc_mpi_pack_complex(buffer, position, val%refract_core)
+    call pmc_mpi_pack_real_array(buffer, position, val%absorb_cross_sect)
+    call pmc_mpi_pack_real_array(buffer, position, val%scatter_cross_sect)
+    call pmc_mpi_pack_real_array(buffer, position, val%asymmetry)
+    call pmc_mpi_pack_complex_array(buffer, position, val%refract_shell)
+    call pmc_mpi_pack_complex_array(buffer, position, val%refract_core)
     call pmc_mpi_pack_real(buffer, position, val%core_vol)
     call pmc_mpi_pack_integer(buffer, position, val%water_hyst_leg)
-    call pmc_mpi_pack_integer(buffer, position, val%id)
+    call pmc_mpi_pack_integer64(buffer, position, val%id)
+    call pmc_mpi_pack_integer(buffer, position, &
+         aero_particle_n_components(val))
+    do i = 1,aero_particle_n_components(val)
+       call pmc_mpi_pack_aero_component(buffer, position, val%component(i))
+    end do
     call pmc_mpi_pack_real(buffer, position, val%least_create_time)
     call pmc_mpi_pack_real(buffer, position, val%greatest_create_time)
+    call pmc_mpi_pack_integer(buffer, position, val%n_primary_parts)
     call assert(810223998, position - prev_position &
          <= pmc_mpi_pack_size_aero_particle(val))
 #endif
@@ -962,23 +1082,30 @@ contains
     type(aero_particle_t), intent(inout) :: val
 
 #ifdef PMC_USE_MPI
-    integer :: prev_position
+    integer :: prev_position, n_components, i
 
     prev_position = position
     call pmc_mpi_unpack_real_array(buffer, position, val%vol)
-    call pmc_mpi_unpack_integer_array(buffer, position, val%n_orig_part)
     call pmc_mpi_unpack_integer(buffer, position, val%weight_group)
     call pmc_mpi_unpack_integer(buffer, position, val%weight_class)
-    call pmc_mpi_unpack_real(buffer, position, val%absorb_cross_sect)
-    call pmc_mpi_unpack_real(buffer, position, val%scatter_cross_sect)
-    call pmc_mpi_unpack_real(buffer, position, val%asymmetry)
-    call pmc_mpi_unpack_complex(buffer, position, val%refract_shell)
-    call pmc_mpi_unpack_complex(buffer, position, val%refract_core)
+    call pmc_mpi_unpack_real_array(buffer, position, val%absorb_cross_sect)
+    call pmc_mpi_unpack_real_array(buffer, position, val%scatter_cross_sect)
+    call pmc_mpi_unpack_real_array(buffer, position, val%asymmetry)
+    call pmc_mpi_unpack_complex_array(buffer, position, val%refract_shell)
+    call pmc_mpi_unpack_complex_array(buffer, position, val%refract_core)
     call pmc_mpi_unpack_real(buffer, position, val%core_vol)
     call pmc_mpi_unpack_integer(buffer, position, val%water_hyst_leg)
-    call pmc_mpi_unpack_integer(buffer, position, val%id)
+    call pmc_mpi_unpack_integer64(buffer, position, val%id)
+    call pmc_mpi_unpack_integer(buffer, position, n_components)
+    if (n_components > -1) then
+       allocate(val%component(n_components))
+    end if
+    do i = 1,n_components
+       call pmc_mpi_unpack_aero_component(buffer, position, val%component(i))
+    end do
     call pmc_mpi_unpack_real(buffer, position, val%least_create_time)
     call pmc_mpi_unpack_real(buffer, position, val%greatest_create_time)
+    call pmc_mpi_unpack_integer(buffer, position, val%n_primary_parts)
     call assert(287447241, position - prev_position &
          <= pmc_mpi_pack_size_aero_particle(val))
 #endif
@@ -1005,17 +1132,6 @@ contains
           write(0, *) 'aero_data_n_spec(aero_data)', &
                aero_data_n_spec(aero_data)
           call assert(185878626, continue_on_error)
-       end if
-    end if
-    if (allocated(aero_particle%n_orig_part)) then
-       if (size(aero_particle%n_orig_part) &
-            /= aero_data_n_source(aero_data)) then
-          write(0, *) 'ERROR aero_particle A:'
-          write(0, *) 'size(aero_particle%n_orig_part)', &
-               size(aero_particle%n_orig_part)
-          write(0, *) 'aero_data_n_source(aero_data)', &
-               aero_data_n_source(aero_data)
-          call assert(625490639, continue_on_error)
        end if
     end if
 

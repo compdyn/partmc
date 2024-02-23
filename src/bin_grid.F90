@@ -168,6 +168,57 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Determines if a value is in a given bin.
+  !!
+  !! The value is contained in bin i if edge(i) <= val < edge(i+1).
+  !! If bin_i = 0, then we return true if val < edge(1). If bin_i =
+  !! bin_grid_size + 1, then we return true if val > edge(bin_grid_size+1).
+  !! If val = edge(bin_grid_size+1), then return true if i_bin = bin_grid_size.
+  logical function bin_grid_contains(bin_grid, i_bin, val)
+
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Bin to see if it contains the value.
+    integer, intent(in) :: i_bin
+    !> Data value.
+    real(kind=dp), intent(in) :: val
+
+    call assert_msg(828875607, bin_grid_size(bin_grid) >= 0, "bin_grid not " &
+         // "created.")
+    call assert_msg(454111488, 0 <= i_bin .and. &
+         i_bin <= bin_grid_size(bin_grid) + 1, "i_bin not a valid bin in bin_grid")
+
+    bin_grid_contains = .false.
+
+    if (i_bin == 0) then
+       if (val < bin_grid%edges(1)) then
+          bin_grid_contains = .true.
+       end if 
+       return
+    end if
+
+    if (i_bin == bin_grid_size(bin_grid) + 1) then
+       if (val > bin_grid%edges(bin_grid_size(bin_grid) + 1)) then
+          bin_grid_contains = .true.
+       end if
+       return
+    end if
+
+    if (bin_grid%edges(i_bin) <= val .and. &
+       val < bin_grid%edges(i_bin + 1)) then
+       bin_grid_contains = .true.
+       return
+    end if
+
+    if (i_bin == bin_grid_size(bin_grid) .and. &
+         val == bin_grid%edges(i_bin + 1)) then
+       bin_grid_contains = .true.
+    end if
+
+  end function bin_grid_contains
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Make a histogram with of the given weighted data, scaled by the
   !> bin sizes.
   function bin_grid_histogram_1d(x_bin_grid, x_data, weight_data)

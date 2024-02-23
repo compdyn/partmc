@@ -3,6 +3,7 @@ output_prefix out/chamber       # prefix of output files
 n_repeat 10                     # number of Monte Carlo repeats
 n_part 10000                    # total number of particles
 restart no                      # whether to restart from saved state (yes/no)
+do_select_weighting no          # whether to select weighting explicitly (yes/no)
 
 t_max 20160                     # total simulation time (s)
 del_t 60                        # timestep (s)
@@ -51,6 +52,5 @@ do_nucleation no                # whether to do nucleation (yes/no)
 rand_init 7                     # random initialization (0 to auto-generate)
 allow_doubling yes              # whether to allow doubling (yes/no)
 allow_halving yes               # whether to allow halving (yes/no)
-do_select_weighting no          # whether to select weighting explicitly (yes/no)
 record_removals no              # whether to record particle removals (yes/no)
 do_parallel no                  # whether to run in parallel (yes/no)

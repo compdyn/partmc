@@ -550,8 +550,8 @@ contains
          unit="m", standard_name="bottom_altitude")
     call pmc_nc_write_real(ncid, env_state%z_max, "top_boundary_altitude", &
          unit="m", standard_name="top_altitude")
-    call pmc_nc_write_real(ncid, env_state%inverse_density, "inverse_density", &
-         unit="m3kg-1", standard_name="inverse_density")
+    call pmc_nc_write_real(ncid, env_state%inverse_density, &
+         "inverse_density", unit="m3kg-1", standard_name="inverse_density")
     call pmc_nc_write_real(ncid, env_state%cell_volume, "cell_volume", &
          unit="m3", standard_name="cell_volume")
     call pmc_nc_write_integer(ncid,env_state%cell_ix,"x_index", &

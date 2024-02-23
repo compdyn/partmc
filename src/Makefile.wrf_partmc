@@ -74,7 +74,8 @@ pmc: $(PMC_MODULES)
 clean:
 	@ echo 'use the clean script'
 
-# DEPENDENCIES : only dependencies after this line (don't remove the word DEPENDENCIES)
+# DEPENDENCIES : only dependencies after this line (don't remove the word \
+     DEPENDENCIES)
 
 aero_binned.o: bin_grid.o aero_particle.o spec_file.o \
      util.o aero_dist.o mpi.o aero_data.o
@@ -115,8 +116,8 @@ aero_weight_array.o: util.o constants.o rand.o spec_file.o \
 
 bin_grid.o: constants.o util.o spec_file.o mpi.o netcdf.o
 
-camp_interface.o: aero_data.o aero_state.o aero_particle.o constants.o gas_data.o \
-     gas_state.o util.o
+camp_interface.o: aero_data.o aero_state.o aero_particle.o constants.o \
+     gas_data.o gas_state.o util.o
 
 chamber.o: aero_data.o constants.o env_state.o spec_file.o
 
@@ -156,7 +157,8 @@ coagulation.o: bin_grid.o aero_data.o util.o env_state.o \
 coagulation_dist.o: bin_grid.o aero_data.o util.o env_state.o \
      aero_state.o coagulation.o mpi.o
 
-condense.o: aero_state.o env_state.o aero_data.o util.o aero_particle.o constants.o
+condense.o: aero_state.o env_state.o aero_data.o util.o aero_particle.o \
+     constants.o
 
 constants.o:
 

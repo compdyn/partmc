@@ -525,11 +525,12 @@ contains
     ! has specific ordering requirements
     do i_part = aero_state_n_part(aero_state),1,-1
 #ifdef PMC_USE_MOSAIC_MULTI_OPT
-       aero_state%apa%particle(i_part)%absorb_cross_sect = (ext_cross(i_part,:) &
-            - scat_cross(i_part,:)) / 1d4                       ! (m^2)
+       aero_state%apa%particle(i_part)%absorb_cross_sect = &
+            (ext_cross(i_part,:) - scat_cross(i_part,:)) / 1d4 ! (m^2)
        aero_state%apa%particle(i_part)%scatter_cross_sect = &
             scat_cross(i_part,:) / 1d4 ! (m^2)
-       aero_state%apa%particle(i_part)%asymmetry = asym_particle(i_part,:) ! (1)
+       aero_state%apa%particle(i_part)%asymmetry = &
+            asym_particle(i_part,:) ! (1)
        aero_state%apa%particle(i_part)%refract_shell = &
             cmplx(ri_shell_a(i_part,:), kind=dc) ! (1)
        aero_state%apa%particle(i_part)%refract_core =&

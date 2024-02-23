@@ -186,7 +186,8 @@ contains
     call assert_msg(828875607, bin_grid_size(bin_grid) >= 0, "bin_grid not " &
          // "created.")
     call assert_msg(454111488, 0 <= i_bin .and. &
-         i_bin <= bin_grid_size(bin_grid) + 1, "i_bin not a valid bin in bin_grid")
+         i_bin <= bin_grid_size(bin_grid) + 1, "i_bin not a valid bin in " &
+         // "bin_grid")
 
     bin_grid_contains = .false.
 

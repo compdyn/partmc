@@ -919,7 +919,8 @@ contains
     aero_particle_new%weight_class = 0
     n_swbands = size(aero_particle_1%absorb_cross_sect)
     call ensure_real_array_size(aero_particle_new%absorb_cross_sect, n_swbands)
-    call ensure_real_array_size(aero_particle_new%scatter_cross_sect, n_swbands)
+    call ensure_real_array_size(aero_particle_new%scatter_cross_sect, &
+         n_swbands)
     call ensure_real_array_size(aero_particle_new%asymmetry, n_swbands)
     call ensure_complex_array_size(aero_particle_new%refract_shell, n_swbands)
     call ensure_complex_array_size(aero_particle_new%refract_core, n_swbands)

@@ -452,7 +452,9 @@ contains
        rand_normal = real(harvest, kind=dp)
        z0 = (rand_normal - mean)/ stddev
        if (present(prob_threshold)) then
-          if (1.0d0 - abs(erf(z0/(2.0**.5))) >= prob_threshold) acceptable = .true.
+          if (1.0d0 - abs(erf(z0/(2.0**.5))) >= prob_threshold) then
+             acceptable = .true.
+          end if
        else
           acceptable = .true.
        end if

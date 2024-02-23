@@ -189,6 +189,21 @@ contains
          i_bin <= bin_grid_size(bin_grid) + 1, "i_bin not a valid bin in bin_grid")
 
     bin_grid_contains = .false.
+
+    if (i_bin == 0) then
+       if (val < bin_grid%edges(1)) then
+          bin_grid_contains = .true.
+       end if 
+       return
+    end if
+
+    if (i_bin == bin_grid_size(bin_grid) + 1) then
+       if (val > bin_grid%edges(bin_grid_size(bin_grid) + 1)) then
+          bin_grid_contains = .true.
+       end if
+       return
+    end if
+
     if (bin_grid%edges(i_bin) <= val .and. &
        val < bin_grid%edges(i_bin + 1)) then
        bin_grid_contains = .true.

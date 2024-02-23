@@ -2628,8 +2628,6 @@ contains
     integer :: i_part, i_remove
     real(kind=dp) :: aero_particle_mass(aero_state_n_part(aero_state), &
          aero_data_n_spec(aero_data))
-    integer :: aero_n_orig_part(aero_state_n_part(aero_state), &
-         aero_data_n_source(aero_data))
     integer :: aero_particle_weight_group(aero_state_n_part(aero_state))
     integer :: aero_particle_weight_class(aero_state_n_part(aero_state))
     real(kind=dp) :: aero_absorb_cross_sect(aero_state_n_part(aero_state), &
@@ -2718,18 +2716,6 @@ contains
     !!   - \b aero_component_create_time (unit s,
     !!     dim <tt>aero_components</tt>): creation time for each
     !!     <tt>aero_component</tt>
-    !!   - \b aero_n_orig_part (dim <tt>aero_particle x
-    !!     aero_source</tt>): number of original particles from each
-    !!     source that formed each aerosol particle -
-    !!     <tt>aero_n_orig_part(i,s)</tt> is the number of particles
-    !!     from source \c s that contributed to particle \c i - when
-    !!     particle \c i first enters the simulation (by emissions,
-    !!     dilution, etc.) it has <tt>aero_n_orig_part(i,s) = 1</tt>
-    !!     for the source number \c s it came from (otherwise zero)
-    !!     and when two particles coagulate, their values of \c
-    !!     aero_n_orig_part are added (the number of coagulation
-    !!     events that formed each particle is thus
-    !!     <tt>sum(aero_n_orig_part(i,:)) - 1</tt>)
     !!   - \b aero_particle_weight_group (dim <tt>aero_particle</tt>):
     !!     weight group number (1 to <tt>aero_weight_group</tt>) of
     !!     each aerosol particle
@@ -2792,7 +2778,6 @@ contains
             dimid_aero_particle)
        call aero_state_netcdf_dim_aero_components(aero_state, ncid, &
             dimid_aero_components)
-       aero_n_orig_part = 0
        next_start_component_ind = 1
        do i_part = 1,aero_state_n_part(aero_state)
           aero_particle_mass(i_part, :) &
@@ -2811,8 +2796,6 @@ contains
                   = aero_state%apa%particle(i_part)%component( &
                   i_comp)%create_time
           end do
-          call aero_particle_get_component_sources( &
-               aero_state%apa%particle(i_part), aero_n_orig_part(i_part, :))
           aero_particle_weight_group(i_part) &
                = aero_state%apa%particle(i_part)%weight_group
           aero_particle_weight_class(i_part) &
@@ -2868,11 +2851,6 @@ contains
        call pmc_nc_write_real_1d(ncid, aero_component_create_time, &
             "aero_component_create_time", (/ dimid_aero_components /), &
             long_name="associated creation time for each component")
-       call pmc_nc_write_integer_2d(ncid, aero_n_orig_part, &
-            "aero_n_orig_part", (/ dimid_aero_particle, &
-            dimid_aero_source /), &
-            long_name="number of original constituent particles from " &
-            // "each source that coagulated to form each aerosol particle")
        call pmc_nc_write_integer_1d(ncid, aero_particle_weight_group, &
             "aero_particle_weight_group", (/ dimid_aero_particle /), &
             long_name="weight group number of each aerosol particle")
@@ -3071,7 +3049,6 @@ contains
     character(len=1000) :: name
 
     real(kind=dp), allocatable :: aero_particle_mass(:,:)
-    integer, allocatable :: aero_n_orig_part(:,:)
     integer, allocatable :: aero_particle_weight_group(:)
     integer, allocatable :: aero_particle_weight_class(:)
     real(kind=dp), allocatable :: aero_absorb_cross_sect(:,:)
@@ -3113,8 +3090,6 @@ contains
 
     call pmc_nc_read_real_2d(ncid, aero_particle_mass, &
          "aero_particle_mass")
-    call pmc_nc_read_integer_2d(ncid, aero_n_orig_part, &
-         "aero_n_orig_part")
     call pmc_nc_read_integer_1d(ncid, aero_particle_n_primary_parts, &
          "aero_particle_n_primary_parts")
     call pmc_nc_read_integer_1d(ncid, aero_component_particle_num, &

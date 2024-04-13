@@ -159,6 +159,7 @@ contains
     real(kind=dp), intent(in) :: create_time
 
     aero_particle%component(1)%create_time = create_time
+    aero_particle%least_create_time = create_time
     aero_particle%greatest_create_time = create_time
 
   end subroutine aero_particle_set_create_time
@@ -970,6 +971,9 @@ contains
             aero_particle_2%component]
        call move_alloc(new_aero_component, aero_particle_new%component)
     end if
+    aero_particle_new%least_create_time = &
+         min(aero_particle_1%least_create_time, &
+         aero_particle_2%least_create_time)
     aero_particle_new%greatest_create_time = &
          max(aero_particle_1%greatest_create_time, &
          aero_particle_2%greatest_create_time)

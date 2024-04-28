@@ -73,6 +73,8 @@ module pmc_aero_mode
      real(kind=dp), allocatable :: vol_frac_std(:)
      !> Source number.
      integer :: source
+     !> Class number.
+     integer :: weight_class
   end type aero_mode_t
 
 contains
@@ -545,7 +547,7 @@ contains
 
   !> Return a radius randomly sampled from the mode distribution.
   subroutine aero_mode_sample_radius(aero_mode, aero_data, aero_weight, &
-       radius)
+       radius, prob_threshold)
 
     !> Aero_mode to sample radius from.
     type(aero_mode_t), intent(in) :: aero_mode
@@ -555,6 +557,8 @@ contains
     type(aero_weight_t), intent(in) :: aero_weight
     !> Sampled radius (m).
     real(kind=dp), intent(out) :: radius
+    !> Threshold for out of range sampling of normal distribution.
+    real(kind=dp), intent(in) :: prob_threshold
 
     real(kind=dp) :: x_mean_prime, x0, x1, x, r, inv_nc0, inv_nc1, inv_nc
     integer :: i_sample
@@ -573,7 +577,7 @@ contains
                // trim(integer_to_string(aero_weight%type)))
        end if
        radius = 10d0**rand_normal(x_mean_prime, &
-            aero_mode%log10_std_dev_radius)
+            aero_mode%log10_std_dev_radius, prob_threshold)
     elseif (aero_mode%type == AERO_MODE_TYPE_SAMPLED) then
        allocate(weighted_num_conc(size(aero_mode%sample_num_conc)))
        call aero_mode_weighted_sampled_num_conc(aero_mode, aero_weight, &
@@ -659,6 +663,18 @@ contains
     vols = vols / sum(vols) * total_vol
 
   end subroutine aero_mode_sample_vols
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Get the weight class for an aero_mode.
+  integer function aero_mode_get_weight_class(aero_mode)
+
+    !> Aero_mode to get weight class for.
+    type(aero_mode_t) :: aero_mode
+
+    aero_mode_get_weight_class = aero_mode%weight_class
+
+  end function aero_mode_get_weight_class
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -862,7 +878,8 @@ contains
 
   !> Read one mode of an aerosol distribution (number concentration,
   !> volume fractions, and mode shape).
-  subroutine spec_file_read_aero_mode(file, aero_data, aero_mode, eof)
+  subroutine spec_file_read_aero_mode(file, aero_data, &
+       read_aero_weight_classes, aero_mode, eof)
 
     !> Spec file.
     type(spec_file_t), intent(inout) :: file
@@ -872,10 +889,13 @@ contains
     type(aero_mode_t), intent(inout) :: aero_mode
     !> If eof instead of reading data.
     logical :: eof
+    !> Whether the weight classes for each source are specified in inputs.
+    logical, intent(in) :: read_aero_weight_classes
 
     character(len=SPEC_LINE_MAX_VAR_LEN) :: tmp_str, mode_type, diam_type_str
     character(len=SPEC_LINE_MAX_VAR_LEN) :: mass_frac_filename
     character(len=SPEC_LINE_MAX_VAR_LEN) :: size_dist_filename
+    character(len=SPEC_LINE_MAX_VAR_LEN) :: weight_class_name
     type(spec_line_t) :: line
     type(spec_file_t) :: mass_frac_file, size_dist_file
     real(kind=dp) :: diam, temp, pressure
@@ -983,7 +1003,14 @@ contains
        tmp_str = line%data(1) ! hack to avoid gfortran warning
        aero_mode%name = tmp_str(1:AERO_MODE_NAME_LEN)
        aero_mode%source = aero_data_source_by_name(aero_data, aero_mode%name)
-
+       if (read_aero_weight_classes) then
+          call spec_file_read_string(file, 'weight_class_name', &
+               weight_class_name)
+       else
+          weight_class_name = aero_mode%name
+       end if
+       aero_mode%weight_class = aero_data_weight_class_by_name(aero_data, &
+            weight_class_name)
        call spec_file_read_string(file, 'mass_frac', mass_frac_filename)
        call spec_file_open(mass_frac_filename, mass_frac_file)
        call spec_file_read_vol_frac(mass_frac_file, aero_data, &
@@ -1113,7 +1140,8 @@ contains
          + pmc_mpi_pack_size_real(val%num_conc) &
          + pmc_mpi_pack_size_real_array(val%vol_frac) &
          + pmc_mpi_pack_size_real_array(val%vol_frac_std) &
-         + pmc_mpi_pack_size_integer(val%source)
+         + pmc_mpi_pack_size_integer(val%source) &
+         + pmc_mpi_pack_size_integer(val%weight_class)
 
   end function pmc_mpi_pack_size_aero_mode
 
@@ -1143,6 +1171,7 @@ contains
     call pmc_mpi_pack_real_array(buffer, position, val%vol_frac)
     call pmc_mpi_pack_real_array(buffer, position, val%vol_frac_std)
     call pmc_mpi_pack_integer(buffer, position, val%source)
+    call pmc_mpi_pack_integer(buffer, position, val%weight_class)
     call assert(497092471, &
          position - prev_position <= pmc_mpi_pack_size_aero_mode(val))
 #endif
@@ -1175,6 +1204,7 @@ contains
     call pmc_mpi_unpack_real_array(buffer, position, val%vol_frac)
     call pmc_mpi_unpack_real_array(buffer, position, val%vol_frac_std)
     call pmc_mpi_unpack_integer(buffer, position, val%source)
+    call pmc_mpi_unpack_integer(buffer, position, val%weight_class)
     call assert(874467577, &
          position - prev_position <= pmc_mpi_pack_size_aero_mode(val))
 #endif

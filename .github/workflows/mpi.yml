@@ -12,4 +12,4 @@ jobs:
     - name: Build the testing docker image
       run: docker build -f Dockerfile.mpi -t partmc-test . 
     - name: Run the tests in the docker container
-      run: docker run -t partmc-test bash -c 'cd /build; make test'
+      run: docker run -t partmc-test bash -c 'cd /build; CTEST_OUTPUT_ON_FAILURE=1 OMPI_MCA_rmaps_base_oversubscribe=false make test'

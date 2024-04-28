@@ -1,0 +1,210 @@
+# NOTE: This Makefile is only to be used when compiling PartMC in WRF
+
+LN      =       ln -sf
+MAKE    =       make -i -r
+RM      =       rm -f
+
+PMC_MODULES =                           \
+  aero_binned.o                 \
+  aero_component.o              \
+  aero_data.o                   \
+  aero_dist.o                   \
+  aero_info.o                   \
+  aero_info_array.o             \
+  aero_mode.o                   \
+  aero_particle.o               \
+  aero_particle_array.o         \
+  aero_state.o                  \
+  aero_sorted.o                 \
+  aero_weight.o                 \
+  aero_weight_array.o           \
+  bin_grid.o                    \
+  camp_interface.o              \
+  chamber.o                     \
+  coag_kernel.o                 \
+  coag_kernel_additive.o        \
+  coag_kernel_brown.o           \
+  coag_kernel_brown_cont.o      \
+  coag_kernel_brown_free.o      \
+  coag_kernel_constant.o        \
+  coag_kernel_sedi.o            \
+  coag_kernel_zero.o            \
+  coagulation.o                 \
+  coagulation_dist.o            \
+  condense.o                    \
+  constants.o                   \
+  env_state.o                   \
+  fractal.o                     \
+  gas_data.o                    \
+  gas_state.o                   \
+  integer_rmap.o                \
+  integer_rmap2.o               \
+  integer_varray.o              \
+  mosaic.o                      \
+  mpi.o                         \
+  netcdf.o                      \
+  nucleate.o                    \
+  output.o                      \
+  photolysis.o                  \
+  rand.o                        \
+  rand_gsl.o                    \
+  scenario.o                    \
+  spec_file.o                   \
+  spec_line.o                   \
+  stats.o                       \
+  util.o                        \
+  sort.o                        \
+  sys.o
+
+OBJS = \
+ 
+LIBTARGET    =  libpartmc.a
+TARGETDIR    =  ./
+$(LIBTARGET) :  $(MODULES) $(PMC_MODULES) $(OBJS)
+		$(AR) $(ARFLAGS) $(LIBTARGET) $(MODULES) $(PMC_MODULES) \
+		$(OBJS)
+		$(RANLIB) $(RANLIBFLAGS) $@
+
+include ../../WRFV3/configure.wrf
+
+all: pmc 
+
+pmc: $(PMC_MODULES)
+
+clean:
+	@ echo 'use the clean script'
+
+# DEPENDENCIES : only dependencies after this line (don't remove the word \
+     DEPENDENCIES)
+
+aero_binned.o: bin_grid.o aero_particle.o spec_file.o \
+     util.o aero_dist.o mpi.o aero_data.o
+
+aero_component.o: util.o mpi.o
+
+aero_data.o: spec_file.o mpi.o util.o fractal.o netcdf.o
+
+aero_dist.o: bin_grid.o util.o constants.o spec_file.o \
+     aero_data.o aero_mode.o mpi.o rand.o
+
+aero_info.o: util.o spec_file.o mpi.o
+
+aero_info_array.o: aero_info.o util.o spec_file.o mpi.o
+
+aero_mode.o: bin_grid.o util.o constants.o spec_file.o \
+     aero_data.o aero_weight.o mpi.o rand.o
+
+aero_particle.o: util.o aero_data.o spec_file.o env_state.o \
+     mpi.o aero_component.o
+
+aero_particle_array.o: aero_particle.o util.o spec_file.o mpi.o
+
+aero_sorted.o: integer_varray.o integer_rmap.o integer_rmap2.o \
+     aero_particle.o aero_particle_array.o bin_grid.o mpi.o
+
+aero_state.o: aero_particle_array.o aero_sorted.o integer_varray.o \
+     bin_grid.o aero_data.o aero_particle.o aero_dist.o \
+     util.o rand.o aero_binned.o mpi.o spec_file.o \
+     aero_info.o aero_info_array.o aero_weight.o \
+     aero_weight_array.o
+
+aero_weight.o: util.o constants.o rand.o spec_file.o \
+     aero_particle.o aero_data.o netcdf.o mpi.o
+
+aero_weight_array.o: util.o constants.o rand.o spec_file.o \
+     aero_particle.o netcdf.o mpi.o aero_weight.o aero_data.o
+
+bin_grid.o: constants.o util.o spec_file.o mpi.o netcdf.o
+
+camp_interface.o: aero_data.o aero_state.o aero_particle.o constants.o \
+     gas_data.o gas_state.o util.o
+
+chamber.o: aero_data.o constants.o env_state.o spec_file.o
+
+coag_kernel.o: env_state.o bin_grid.o aero_particle.o \
+     aero_data.o aero_weight.o aero_weight_array.o coag_kernel_sedi.o \
+     coag_kernel_additive.o coag_kernel_constant.o \
+     coag_kernel_brown.o coag_kernel_zero.o \
+     coag_kernel_brown_free.o coag_kernel_brown_cont.o
+
+coag_kernel_additive.o: bin_grid.o env_state.o util.o \
+     constants.o aero_binned.o aero_data.o aero_dist.o \
+     aero_particle.o
+
+coag_kernel_brown.o: env_state.o constants.o util.o \
+     aero_particle.o
+
+coag_kernel_brown_cont.o: env_state.o constants.o util.o \
+    aero_particle.o aero_data.o
+
+coag_kernel_brown_free.o: env_state.o constants.o util.o \
+    aero_particle.o aero_data.o
+
+coag_kernel_constant.o: env_state.o bin_grid.o util.o \
+     constants.o aero_binned.o aero_data.o aero_dist.o \
+     aero_data.o aero_particle.o
+
+coag_kernel_sedi.o: env_state.o constants.o aero_data.o \
+     aero_particle.o
+
+coag_kernel_zero.o: bin_grid.o env_state.o util.o aero_binned.o \
+     aero_dist.o aero_data.o aero_particle.o scenario.o
+
+coagulation.o: bin_grid.o aero_data.o util.o env_state.o \
+     aero_state.o aero_weight.o mpi.o coag_kernel.o stats.o \
+     aero_sorted.o
+
+coagulation_dist.o: bin_grid.o aero_data.o util.o env_state.o \
+     aero_state.o coagulation.o mpi.o
+
+condense.o: aero_state.o env_state.o aero_data.o util.o aero_particle.o \
+     constants.o
+
+constants.o:
+
+env_state.o: constants.o util.o spec_file.o mpi.o netcdf.o
+
+fractal.o: spec_file.o constants.o netcdf.o mpi.o
+
+gas_data.o: spec_file.o mpi.o util.o netcdf.o
+
+gas_state.o:util.o spec_file.o gas_data.o mpi.o netcdf.o env_state.o
+
+integer_rmap.o: integer_varray.o util.o mpi.o
+
+integer_rmap2.o: integer_varray.o util.o mpi.o
+
+integer_varray.o: util.o mpi.o
+
+mosaic.o: aero_data.o aero_state.o constants.o env_state.o \
+     gas_data.o gas_state.o output.o util.o
+
+mpi.o: util.o
+
+netcdf.o: util.o rand.o
+
+nucleate.o: env_state.o aero_state.o aero_data.o gas_data.o gas_state.o
+
+output.o: bin_grid.o aero_data.o aero_state.o aero_binned.o \
+     netcdf.o env_state.o util.o gas_data.o mpi.o
+
+photolysis.o: constants.o util.o
+
+rand.o: util.o constants.o mpi.o rand_gsl.o
+
+rand_gsl.o:
+
+scenario.o: gas_state.o aero_dist.o util.o env_state.o \
+     aero_state.o spec_file.o aero_data.o gas_data.o mpi.o chamber.o
+
+spec_file.o: spec_line.o util.o
+
+spec_line.o: util.o
+
+sort.o:
+
+stats.o:   util.o netcdf.o
+
+sys.o:
+
+util.o: constants.o sort.o sys.o

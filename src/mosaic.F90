@@ -14,6 +14,7 @@ module pmc_mosaic
   use pmc_env_state
   use pmc_gas_data
   use pmc_gas_state
+  use pmc_output
   use pmc_util
 
 contains
@@ -148,6 +149,9 @@ contains
 
 #ifdef PMC_USE_MOSAIC
     use module_data_mosaic_aero, only: nbin_a, aer, num_a, jhyst_leg, &
+#ifdef PMC_USE_WRF
+         particle_error, &
+#endif
          jtotal, water_a
 
     use module_data_mosaic_main, only: tbeg_sec, tcur_sec, tmid_sec, &
@@ -262,6 +266,9 @@ contains
           cnn(i_spec_mosaic) = gas_state%mix_rat(i_spec) * cair_mlc / ppb
        end if
     end do
+#ifdef PMC_USE_WRF
+    particle_error = .false.
+#endif
 #endif
 
   end subroutine mosaic_from_partmc
@@ -270,10 +277,13 @@ contains
 
   !> Map all data MOSAIC -> PartMC.
   subroutine mosaic_to_partmc(env_state, aero_data, aero_state, gas_data, &
-       gas_state)
+       gas_state, uuid)
 
 #ifdef PMC_USE_MOSAIC
     use module_data_mosaic_aero, only: nbin_a, aer, num_a, jhyst_leg, &
+#ifdef PMC_USE_WRF
+         particle_error, &
+#endif
          jtotal, water_a
 
     use module_data_mosaic_main, only: tbeg_sec, tcur_sec, tmid_sec, &
@@ -291,12 +301,23 @@ contains
     type(gas_data_t), intent(in) :: gas_data
     !> Gas state.
     type(gas_state_t), intent(inout) :: gas_state
+    !> UUID for this simulation.
+    character(len=PMC_UUID_LEN), intent(in) :: uuid
 
 #ifdef PMC_USE_MOSAIC
     ! local variables
     real(kind=dp) :: conv_fac(aero_data_n_spec(aero_data)), dum_var, num_conc
     integer :: i_part, i_spec, i_spec_mosaic
-    real(kind=dp) :: reweight_num_conc(aero_state_n_part(aero_state))
+    real(kind=dp), allocatable :: reweight_num_conc(:)
+
+#ifdef PMC_USE_WRF
+    if (any(particle_error) .eqv. .true.) then
+       call output_state('before_error', OUTPUT_TYPE_DIST, aero_data, &
+            aero_state, gas_data, gas_state, env_state, &
+            int(env_state%elapsed_time / dt_sec), tcur_sec, dt_sec, 1, &
+            .false., .false., uuid)
+    end if
+#endif
 
     ! compute aerosol conversion factors
     do i_spec = 1,aero_data_n_spec(aero_data)
@@ -316,10 +337,20 @@ contains
     cair_molm3 = 1d6*pr_atm/(82.056d0*te)    ! air conc [mol/m^3]
     ppb = 1d9
 
+    ! gas chemistry: map MOSAIC -> PartMC
+    do i_spec = 1,gas_data_n_spec(gas_data)
+       i_spec_mosaic = gas_data%mosaic_index(i_spec)
+       if (i_spec_mosaic > 0) then
+          ! convert molec/cc to ppbv
+          gas_state%mix_rat(i_spec) = cnn(i_spec_mosaic) / cair_mlc * ppb
+       end if
+    end do
+
     ! We're modifying particle diameters, so the bin sort is now invalid
     aero_state%valid_sort = .false.
 
     ! aerosol data: map MOSAIC -> PartMC
+    allocate(reweight_num_conc(aero_state_n_part(aero_state)))
     call aero_state_num_conc_for_reweight(aero_state, aero_data, &
          reweight_num_conc)
     do i_part = 1,aero_state_n_part(aero_state),1
@@ -339,17 +370,31 @@ contains
        aero_state%apa%particle(i_part)%vol(aero_data%i_water) = &
             water_a(i_part) / aero_data%density(aero_data%i_water) / num_conc
     end do
+
+#ifdef PMC_USE_WRF
+    if (any(particle_error) .eqv. .true.) then
+       call output_state('after_error', OUTPUT_TYPE_DIST, aero_data, &
+            aero_state, gas_data, gas_state, env_state, &
+            int(env_state%elapsed_time / dt_sec), tcur_sec, dt_sec, 1,&
+            .false., .false., uuid)
+       do i_part = aero_state_n_part(aero_state),1,-1
+          if (particle_error(i_part)) then
+             ! Move last element to the current spot if it is removed.
+             if (i_part < aero_state_n_part(aero_state)) then
+                reweight_num_conc(i_part) = reweight_num_conc( &
+                     aero_state_n_part(aero_state))
+             end if
+             call aero_state_remove_particle_no_info(aero_state, i_part)
+          end if
+       end do
+       ! Shrink the reweight_num_conc array to the number of particles
+       reweight_num_conc = reweight_num_conc(1:aero_state_n_part(aero_state))
+    end if
+#endif
+
     ! adjust particles to account for weight changes
     call aero_state_reweight(aero_state, aero_data, reweight_num_conc)
 
-    ! gas chemistry: map MOSAIC -> PartMC
-    do i_spec = 1,gas_data_n_spec(gas_data)
-       i_spec_mosaic = gas_data%mosaic_index(i_spec)
-       if (i_spec_mosaic > 0) then
-          ! convert molec/cc to ppbv
-          gas_state%mix_rat(i_spec) = cnn(i_spec_mosaic) / cair_mlc * ppb
-       end if
-    end do
 #endif
 
   end subroutine mosaic_to_partmc
@@ -364,7 +409,7 @@ contains
   !! really matters, however. Because of this mosaic_aero_optical() is
   !! currently disabled.
   subroutine mosaic_timestep(env_state, aero_data, aero_state, gas_data, &
-       gas_state, do_optical)
+       gas_state, do_optical, uuid)
 
 #ifdef PMC_USE_MOSAIC
     use module_data_mosaic_main, only: msolar
@@ -382,6 +427,8 @@ contains
     type(gas_state_t), intent(inout) :: gas_state
     !> Whether to compute optical properties.
     logical, intent(in) :: do_optical
+    !> UUID for this simulation.
+    character(len=PMC_UUID_LEN), intent(in) :: uuid
 
 #ifdef PMC_USE_MOSAIC
     ! MOSAIC function interfaces
@@ -390,8 +437,14 @@ contains
        end subroutine SolarZenithAngle
        subroutine IntegrateChemistry()
        end subroutine IntegrateChemistry
+#ifdef PMC_USE_MOSAIC_MULTI_OPT
+       subroutine aerosol_optical(i_wavelength)
+         integer, optional :: i_wavelength
+       end subroutine aerosol_optical
+#else
        subroutine aerosol_optical()
        end subroutine aerosol_optical
+#endif
     end interface
 
     ! map PartMC -> MOSAIC
@@ -414,7 +467,7 @@ contains
     end if
 
     call mosaic_to_partmc(env_state, aero_data, aero_state, gas_data, &
-         gas_state)
+         gas_state, uuid)
 #endif
 
   end subroutine mosaic_timestep
@@ -449,8 +502,14 @@ contains
 #ifdef PMC_USE_MOSAIC
     ! MOSAIC function interfaces
     interface
+#ifdef PMC_USE_MOSAIC_MULTI_OPT
+       subroutine aerosol_optical(i_wavelength)
+         integer, optional :: i_wavelength
+       end subroutine aerosol_optical
+#else
        subroutine aerosol_optical()
        end subroutine aerosol_optical
+#endif
     end interface
 
     integer :: i_part
@@ -465,6 +524,20 @@ contains
     ! work backwards for consistency with mosaic_to_partmc(), which
     ! has specific ordering requirements
     do i_part = aero_state_n_part(aero_state),1,-1
+#ifdef PMC_USE_MOSAIC_MULTI_OPT
+       aero_state%apa%particle(i_part)%absorb_cross_sect = &
+            (ext_cross(i_part,:) - scat_cross(i_part,:)) / 1d4 ! (m^2)
+       aero_state%apa%particle(i_part)%scatter_cross_sect = &
+            scat_cross(i_part,:) / 1d4 ! (m^2)
+       aero_state%apa%particle(i_part)%asymmetry = &
+            asym_particle(i_part,:) ! (1)
+       aero_state%apa%particle(i_part)%refract_shell = &
+            cmplx(ri_shell_a(i_part,:), kind=dc) ! (1)
+       aero_state%apa%particle(i_part)%refract_core =&
+            cmplx(ri_core_a(i_part,:), kind=dc) ! (1)
+       aero_state%apa%particle(i_part)%core_vol = &
+            aero_data_diam2vol(aero_data, dp_core_a(i_part)) / 1d6 ! (m^3)
+#else
        aero_state%apa%particle(i_part)%absorb_cross_sect = (ext_cross(i_part) &
             - scat_cross(i_part)) / 1d4                       ! (m^2)
        aero_state%apa%particle(i_part)%scatter_cross_sect = &
@@ -476,6 +549,7 @@ contains
             cmplx(ri_core_a(i_part), kind=dc) ! (1)
        aero_state%apa%particle(i_part)%core_vol = &
             aero_data_diam2vol(aero_data, dp_core_a(i_part)) / 1d6 ! (m^3)
+#endif
     end do
 #endif
 
@@ -509,8 +583,14 @@ contains
     interface
        subroutine load_mosaic_parameters()
        end subroutine load_mosaic_parameters
+#ifdef PMC_USE_MOSAIC_MULTI_OPT
+       subroutine aerosol_optical(i_wavelength)
+         integer, optional :: i_wavelength
+       end subroutine aerosol_optical
+#else
        subroutine aerosol_optical()
        end subroutine aerosol_optical
+#endif
     end interface
 
     call load_mosaic_parameters
@@ -526,6 +606,97 @@ contains
 #endif
 
   end subroutine mosaic_aero_optical_init
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Compute the optical properties of each aerosol particle for a single
+  !> wavelength selected by index when MOSAIC has multiple wavelengths enabled.
+  subroutine mosaic_aero_optical_single_wavelength(env_state, aero_data, &
+       aero_state, gas_data, gas_state, i_wavelength)
+
+#ifdef PMC_USE_MOSAIC
+    use module_data_mosaic_main, only: RH, pr_atm, te
+    use module_data_mosaic_aero, only: ri_shell_a, ri_core_a, &
+         ext_cross, scat_cross, asym_particle, dp_core_a, &
+         p_atm, RH_pc, aH2O, T_K
+#endif
+
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol state.
+    type(aero_state_t), intent(inout) :: aero_state
+    !> Gas data.
+    type(gas_data_t), intent(in) :: gas_data
+    !> Gas state.
+    type(gas_state_t), intent(in) :: gas_state
+    !> Wavelength index to compute properties.
+    integer, intent(in) :: i_wavelength
+
+#ifdef PMC_USE_MOSAIC
+    ! MOSAIC function interfaces
+    interface
+#ifdef PMC_USE_MOSAIC_MULTI_OPT
+       subroutine aerosol_optical(i_wavelength)
+         integer, optional :: i_wavelength
+       end subroutine aerosol_optical
+#else
+       subroutine aerosol_optical()
+       end subroutine aerosol_optical
+#endif
+       subroutine load_mosaic_parameters()
+       end subroutine load_mosaic_parameters
+    end interface
+
+    integer :: i_part
+
+    call load_mosaic_parameters
+
+    ! map PartMC -> MOSAIC
+    call mosaic_from_partmc(env_state, aero_data, aero_state, &
+         gas_data, gas_state)
+
+    RH_pc = RH                                ! RH(%)
+    aH2O = 0.01*RH_pc                         ! aH2O (aerosol water activity)
+    P_atm = pr_atm                            ! P(atm)
+    T_K = te                                  ! T(K)
+#ifdef PMC_USE_MOSAIC_MULTI_OPT
+    call aerosol_optical(i_wavelength)
+#endif
+    call mosaic_aero_optical(env_state, aero_data, &
+         aero_state, gas_data, gas_state)
+#endif
+
+  end subroutine mosaic_aero_optical_single_wavelength
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Fetch the wavelengths that optical cross-sections are calculated at in
+  !> MOSAIC. If not using multiple wavelengths, the wavelength is the default
+  !> value of 550 nm.
+  subroutine mosaic_optical_wavelengths(aero_data)
+
+#ifdef PMC_USE_MOSAIC
+#ifdef PMC_USE_MOSAIC_MULTI_OPT
+    use module_data_mosaic_aero, only: wavelength
+#endif
+#endif
+    type(aero_data_t), intent(inout) :: aero_data
+    integer :: i
+
+    if(allocated(aero_data%wavelengths)) deallocate(aero_data%wavelengths)
+    allocate(aero_data%wavelengths(n_swbands))
+    aero_data%wavelengths = 0.0d0
+#ifdef PMC_USE_MOSAIC_MULTI_OPT
+    do i = 1,n_swbands
+       aero_data%wavelengths(i) = wavelength(i) * 1d-9
+    end do
+#else
+    aero_data%wavelengths = 550.0d0 * 1d-9
+#endif
+
+  end subroutine mosaic_optical_wavelengths
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

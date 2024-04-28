@@ -62,6 +62,8 @@ module pmc_run_part
      integer :: nucleate_type
      !> Source of nucleation.
      integer :: nucleate_source
+     !> Weight class of nucleation.
+     integer :: nucleate_weight_class
      !> Whether to do coagulation.
      logical :: do_coagulation
      !> Whether to do nucleation.
@@ -126,7 +128,7 @@ contains
     !> Environment state.
     type(env_state_t), intent(inout) :: env_state
     !> Aerosol data.
-    type(aero_data_t), intent(in) :: aero_data
+    type(aero_data_t), intent(inout) :: aero_data
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     !> Gas data.
@@ -188,6 +190,7 @@ contains
        if (run_part_opt%do_optical) then
           call mosaic_aero_optical_init(env_state, aero_data, &
             aero_state, gas_data, gas_state)
+          call mosaic_optical_wavelengths(aero_data)
        end if
     end if
 
@@ -307,6 +310,7 @@ contains
          + pmc_mpi_pack_size_integer(val%coag_kernel_type) &
          + pmc_mpi_pack_size_integer(val%nucleate_type) &
          + pmc_mpi_pack_size_integer(val%nucleate_source) &
+         + pmc_mpi_pack_size_integer(val%nucleate_weight_class) &
          + pmc_mpi_pack_size_logical(val%do_coagulation) &
          + pmc_mpi_pack_size_logical(val%do_nucleation) &
          + pmc_mpi_pack_size_logical(val%allow_doubling) &
@@ -356,6 +360,7 @@ contains
     call pmc_mpi_pack_integer(buffer, position, val%coag_kernel_type)
     call pmc_mpi_pack_integer(buffer, position, val%nucleate_type)
     call pmc_mpi_pack_integer(buffer, position, val%nucleate_source)
+    call pmc_mpi_pack_integer(buffer, position, val%nucleate_weight_class)
     call pmc_mpi_pack_logical(buffer, position, val%do_coagulation)
     call pmc_mpi_pack_logical(buffer, position, val%do_nucleation)
     call pmc_mpi_pack_logical(buffer, position, val%allow_doubling)
@@ -408,6 +413,7 @@ contains
     call pmc_mpi_unpack_integer(buffer, position, val%coag_kernel_type)
     call pmc_mpi_unpack_integer(buffer, position, val%nucleate_type)
     call pmc_mpi_unpack_integer(buffer, position, val%nucleate_source)
+    call pmc_mpi_unpack_integer(buffer, position, val%nucleate_weight_class)
     call pmc_mpi_unpack_logical(buffer, position, val%do_coagulation)
     call pmc_mpi_unpack_logical(buffer, position, val%do_nucleation)
     call pmc_mpi_unpack_logical(buffer, position, val%allow_doubling)
@@ -483,6 +489,7 @@ contains
     logical, intent(out) :: do_restart
 
     integer :: i_repeat, i_group
+    logical :: read_aero_weight_classes
     character(len=PMC_MAX_FILENAME_LEN) :: restart_filename
     integer :: dummy_index, dummy_i_repeat
     real(kind=dp) :: dummy_time, dummy_del_t
@@ -498,6 +505,23 @@ contains
        call spec_file_read_logical(file, 'restart', do_restart)
        if (do_restart) then
           call spec_file_read_string(file, 'restart_file', restart_filename)
+       end if
+
+       if (.not. do_restart) then
+          call spec_file_read_logical(file, 'do_select_weighting', &
+               run_part_opt%do_select_weighting)
+          read_aero_weight_classes = .false.
+          if (run_part_opt%do_select_weighting) then
+             call spec_file_read_aero_state_weighting_type(file, &
+                  run_part_opt%weighting_type, run_part_opt%weighting_exponent)
+             if (run_part_opt%weighting_type &
+                  >= AERO_STATE_WEIGHT_FLAT_SPECIFIED)then
+                read_aero_weight_classes = .true.
+             end if
+          else
+             run_part_opt%weighting_type = AERO_STATE_WEIGHT_NUMMASS_SOURCE
+             run_part_opt%weighting_exponent = 0.0d0
+          end if
        end if
 
        call spec_file_read_real(file, 't_max', run_part_opt%t_max)
@@ -559,11 +583,13 @@ contains
 
           call spec_file_read_string(file, 'aerosol_init', sub_filename)
           call spec_file_open(sub_filename, sub_file)
-          call spec_file_read_aero_dist(sub_file, aero_data, aero_dist_init)
+          call spec_file_read_aero_dist(sub_file, aero_data, &
+               read_aero_weight_classes, aero_dist_init)
           call spec_file_close(sub_file)
        end if
 
-       call spec_file_read_scenario(file, gas_data, aero_data, scenario)
+       call spec_file_read_scenario(file, gas_data, aero_data, &
+            read_aero_weight_classes, scenario)
        call spec_file_read_env_state(file, env_state_init)
 
        call spec_file_read_logical(file, 'do_coagulation', &
@@ -608,7 +634,8 @@ contains
             run_part_opt%do_nucleation)
        if (run_part_opt%do_nucleation) then
           call spec_file_read_nucleate_type(file, aero_data, &
-               run_part_opt%nucleate_type, run_part_opt%nucleate_source)
+               run_part_opt%nucleate_type, run_part_opt%nucleate_source, &
+               run_part_opt%nucleate_weight_class)
        else
           run_part_opt%nucleate_type = NUCLEATE_TYPE_INVALID
        end if
@@ -618,17 +645,6 @@ contains
             run_part_opt%allow_doubling)
        call spec_file_read_logical(file, 'allow_halving', &
             run_part_opt%allow_halving)
-       if (.not. do_restart) then
-          call spec_file_read_logical(file, 'do_select_weighting', &
-               run_part_opt%do_select_weighting)
-          if (run_part_opt%do_select_weighting) then
-             call spec_file_read_aero_state_weighting_type(file, &
-                  run_part_opt%weighting_type, run_part_opt%weighting_exponent)
-          else
-             run_part_opt%weighting_type = AERO_STATE_WEIGHT_NUMMASS_SOURCE
-             run_part_opt%weighting_exponent = 0.0d0
-          end if
-       end if
        call spec_file_read_logical(file, 'record_removals', &
             run_part_opt%record_removals)
 
@@ -794,7 +810,8 @@ contains
     if (run_part_opt%do_nucleation) then
        n_part_before = aero_state_total_particles(aero_state)
        call nucleate(run_part_opt%nucleate_type, &
-            run_part_opt%nucleate_source, env_state, gas_data, aero_data, &
+            run_part_opt%nucleate_source, run_part_opt%nucleate_weight_class, &
+            env_state, gas_data, aero_data, &
             aero_state, gas_state, run_part_opt%del_t, &
             run_part_opt%allow_doubling, run_part_opt%allow_halving)
        n_nuc = aero_state_total_particles(aero_state) &
@@ -847,7 +864,7 @@ contains
 
     if (run_part_opt%do_mosaic) then
        call mosaic_timestep(env_state, aero_data, aero_state, gas_data, &
-            gas_state, run_part_opt%do_optical)
+            gas_state, run_part_opt%do_optical, run_part_opt%uuid)
     end if
 
     if (run_part_opt%mix_timescale > 0d0) then
@@ -935,9 +952,9 @@ contains
 #ifdef PMC_USE_CAMP
        camp_core, photolysis, &
 #endif
-       i_cur, i_next, t_start, last_output_time, last_progress_time, i_output, &
-       progress_n_samp, progress_n_coag, progress_n_emit, progress_n_dil_in, &
-       progress_n_dil_out, progress_n_nuc)
+       i_cur, i_next, t_start, last_output_time, last_progress_time, &
+       i_output, progress_n_samp, progress_n_coag, progress_n_emit, &
+       progress_n_dil_in, progress_n_dil_out, progress_n_nuc)
 
     !> Environment state.
     type(scenario_t), intent(in) :: scenario

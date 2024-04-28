@@ -212,12 +212,15 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read continuous aerosol distribution composed of several modes.
-  subroutine spec_file_read_aero_dist(file, aero_data, aero_dist)
+  subroutine spec_file_read_aero_dist(file, aero_data, &
+    read_aero_weight_classes, aero_dist)
 
     !> Spec file to read data from.
     type(spec_file_t), intent(inout) :: file
     !> Aero_data data.
     type(aero_data_t), intent(inout) :: aero_data
+    !> Whether the weight classes for each source are specified in inputs.
+    logical, intent(in) :: read_aero_weight_classes
     !> Aerosol dist.
     type(aero_dist_t), intent(inout) :: aero_dist
 
@@ -240,7 +243,8 @@ contains
     !!     of an aerosol distribution
 
     allocate(aero_dist%mode(0))
-    call spec_file_read_aero_mode(file, aero_data, aero_mode, eof)
+    call spec_file_read_aero_mode(file, aero_data, read_aero_weight_classes, &
+         aero_mode, eof)
     do while (.not. eof)
        n = size(aero_dist%mode)
        allocate(new_modes(n + 1))
@@ -261,7 +265,8 @@ contains
        ! versions of gcc (4.6.3). This will be ideal in the future as it avoids
        ! the copying of the aero_dist%mode array each loop.
        !aero_dist%mode = [aero_dist%mode, aero_mode]
-       call spec_file_read_aero_mode(file, aero_data, aero_mode, eof)
+       call spec_file_read_aero_mode(file, aero_data, &
+            read_aero_weight_classes, aero_mode, eof)
     end do
 
   end subroutine spec_file_read_aero_dist
@@ -271,12 +276,14 @@ contains
   !> Read an array of aero_dists with associated times and rates from
   !> the given file.
   subroutine spec_file_read_aero_dists_times_rates(file, aero_data, &
-       times, rates, aero_dists)
+       read_aero_weight_classes, times, rates, aero_dists)
 
     !> Spec file to read data from.
     type(spec_file_t), intent(inout) :: file
     !> Aero data.
     type(aero_data_t), intent(inout) :: aero_data
+    !> Whether the weight classes for each source are specified in inputs.
+    logical, intent(in) :: read_aero_weight_classes
     !> Times (s).
     real(kind=dp), allocatable :: times(:)
     !> Rates (s^{-1}).
@@ -383,8 +390,8 @@ contains
     allocate(aero_dists(n_time))
     do i_time = 1,n_time
        call spec_file_open(aero_dist_line%data(i_time), aero_dist_file)
-       call spec_file_read_aero_dist(aero_dist_file, &
-            aero_data, aero_dists(i_time))
+       call spec_file_read_aero_dist(aero_dist_file, aero_data, &
+            read_aero_weight_classes, aero_dists(i_time))
        call spec_file_close(aero_dist_file)
     end do
 

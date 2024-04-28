@@ -12,8 +12,10 @@ b=1
 if [ "$(uname)" == "Darwin" ]; then
     b=$(getconf _NPROCESSORS_ONLN)
 elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
-    b=$(getconf _NPROCESSORS_ONLN)
+    b=$(lscpu --parse=Core,Socket | grep --invert-match '^#' | sort -u | wc -l)
 fi
+echo $(uname)
+echo $a $b
 n_proc=$(( a < b ? a : b ))
 echo $n_proc
 

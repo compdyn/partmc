@@ -47,12 +47,12 @@ module pmc_aero_info
   !! aero_info_t structure.
   type aero_info_t
      !> Particle ID number.
-     integer :: id
+     integer(kind=8) :: id
      !> Action on this particle (from AERO_INFO_* parameters).
      integer :: action
      !> ID number of the new coagulated particle, or 0 if the new
      !> particle was not created.
-     integer :: other_id
+     integer(kind=8) :: other_id
   end type aero_info_t
 
 contains
@@ -68,9 +68,9 @@ contains
     integer :: total_size
 
     total_size = 0
-    total_size = total_size + pmc_mpi_pack_size_integer(val%id)
+    total_size = total_size + pmc_mpi_pack_size_integer64(val%id)
     total_size = total_size + pmc_mpi_pack_size_integer(val%action)
-    total_size = total_size + pmc_mpi_pack_size_integer(val%other_id)
+    total_size = total_size + pmc_mpi_pack_size_integer64(val%other_id)
     pmc_mpi_pack_size_aero_info = total_size
 
   end function pmc_mpi_pack_size_aero_info
@@ -91,9 +91,9 @@ contains
     integer :: prev_position
 
     prev_position = position
-    call pmc_mpi_pack_integer(buffer, position, val%id)
+    call pmc_mpi_pack_integer64(buffer, position, val%id)
     call pmc_mpi_pack_integer(buffer, position, val%action)
-    call pmc_mpi_pack_integer(buffer, position, val%other_id)
+    call pmc_mpi_pack_integer64(buffer, position, val%other_id)
     call assert(842929827, &
          position - prev_position <= pmc_mpi_pack_size_aero_info(val))
 #endif
@@ -116,9 +116,9 @@ contains
     integer :: prev_position
 
     prev_position = position
-    call pmc_mpi_unpack_integer(buffer, position, val%id)
+    call pmc_mpi_unpack_integer64(buffer, position, val%id)
     call pmc_mpi_unpack_integer(buffer, position, val%action)
-    call pmc_mpi_unpack_integer(buffer, position, val%other_id)
+    call pmc_mpi_unpack_integer64(buffer, position, val%other_id)
     call assert(841267392, &
          position - prev_position <= pmc_mpi_pack_size_aero_info(val))
 #endif

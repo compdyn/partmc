@@ -7,9 +7,9 @@ project(PARTMC Fortran C)
 
 set(PACKAGE_BUGREPORT "mwest@illinois.edu")
 set(PACKAGE_NAME "PartMC")
-set(PACKAGE_STRING "PartMC 2.6.1")
+set(PACKAGE_STRING "PartMC 2.8.0")
 set(PACKAGE_TARNAME "partmc")
-set(PACKAGE_VERSION "2.6.1")
+set(PACKAGE_VERSION "2.8.0")
 
 ######################################################################
 # options
@@ -76,7 +76,13 @@ if(ENABLE_MOSAIC)
     PATHS $ENV{MOSAIC_HOME} $ENV{MOSAIC_HOME}/lib)
   include_directories(${MOSAIC_INCLUDE_DIR})
   add_definitions(-DPMC_USE_MOSAIC)
+  option(ENABLE_OPT_MULTI_WAVELENGTH
+         "Enable MOSAIC multiple wavelength for optical calculations" OFF)
+  if(ENABLE_OPT_MULTI_WAVELENGTH)
+    add_definitions(-DPMC_USE_MOSAIC_MULTI_OPT)
+  endif()
 endif()
+
 
 ######################################################################
 # CAMP
@@ -169,6 +175,7 @@ add_library(partmclib src/aero_state.F90 src/integer_varray.F90
   src/netcdf.F90 src/aero_info.F90 src/aero_info_array.F90
   src/nucleate.F90 src/condense.F90 src/fractal.F90 src/chamber.F90
   src/camp_interface.F90 src/photolysis.F90 src/sys.F90
+  src/aero_component.F90
   ${SUNDIALS_SRC} ${GSL_SRC}
   ${C_SORT_SRC})
 

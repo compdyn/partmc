@@ -675,13 +675,6 @@ contains
        call spec_file_close(file)
     end if
 
-    ! initialize RNG with random seed for UUID generation
-    call pmc_srand(0, pmc_mpi_rank())
-
-    if (.not. do_restart) then
-       call uuid4_str(run_part_opt%uuid)
-    end if
-
   end subroutine spec_file_read_run_part
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -1015,6 +1008,137 @@ contains
     end do
 
   end subroutine run_part_timeblock
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Read the specification for a run_part simulation from a spec file.
+  subroutine spec_file_broadcast_run_part(run_part_opt, aero_data, &
+       aero_state_init, gas_data, gas_state_init, env_state_init, &
+       aero_dist_init, scenario, &
+#ifdef PMC_USE_CAMP
+       camp_core, photolysis, aero_state, &
+#endif
+       n_part, rand_init, do_init_equilibrate, do_restart)
+
+    !> Monte Carlo options.
+    type(run_part_opt_t), intent(inout) :: run_part_opt
+    !> Aerosol data.
+    type(aero_data_t), intent(inout) :: aero_data
+    !> Initial aerosol state.
+    type(aero_state_t), intent(inout) :: aero_state_init
+    !> Gas data.
+    type(gas_data_t), intent(inout) :: gas_data
+    !> Initial gas state.
+    type(gas_state_t), intent(inout) :: gas_state_init
+    !> Initial environmental state.
+    type(env_state_t), intent(inout) :: env_state_init
+    !> Initial aerosol distribution.
+    type(aero_dist_t), intent(inout) :: aero_dist_init
+    !> Scenario data.
+    type(scenario_t), intent(inout) :: scenario
+#ifdef PMC_USE_CAMP
+    !> CAMP core.
+    type(camp_core_t), pointer :: camp_core
+    !> Photolysis calculator.
+    type(photolysis_t), pointer :: photolysis
+    !> Aerosol state.
+    type(aero_state_t), intent(inout) :: aero_state
+#endif
+    !> Ideal number of computational particles.
+    real(kind=dp), intent(inout) :: n_part
+    !> Random number generator seed.
+    integer, intent(inout) :: rand_init
+    !> Whether to equilibrate.
+    logical, intent(inout) :: do_init_equilibrate
+    !> Whether simulation is a restart.
+    logical, intent(inout) :: do_restart
+
+    character, allocatable :: buffer(:)
+    integer :: buffer_size, max_buffer_size
+    integer :: position
+
+#ifdef PMC_USE_MPI
+    if (pmc_mpi_rank() == 0) then
+       ! root process determines size
+       max_buffer_size = 0
+       max_buffer_size = max_buffer_size &
+            + pmc_mpi_pack_size_run_part_opt(run_part_opt)
+       max_buffer_size = max_buffer_size &
+            + pmc_mpi_pack_size_real(n_part)
+       max_buffer_size = max_buffer_size &
+            + pmc_mpi_pack_size_gas_data(gas_data)
+       max_buffer_size = max_buffer_size &
+            + pmc_mpi_pack_size_gas_state(gas_state_init)
+       max_buffer_size = max_buffer_size &
+            + pmc_mpi_pack_size_aero_data(aero_data)
+       max_buffer_size = max_buffer_size &
+            + pmc_mpi_pack_size_aero_dist(aero_dist_init)
+       max_buffer_size = max_buffer_size &
+            + pmc_mpi_pack_size_scenario(scenario)
+       max_buffer_size = max_buffer_size &
+            + pmc_mpi_pack_size_env_state(env_state_init)
+       max_buffer_size = max_buffer_size &
+            + pmc_mpi_pack_size_integer(rand_init)
+       max_buffer_size = max_buffer_size &
+            + pmc_mpi_pack_size_logical(do_restart)
+       max_buffer_size = max_buffer_size &
+            + pmc_mpi_pack_size_logical(do_init_equilibrate)
+       max_buffer_size = max_buffer_size &
+            + pmc_mpi_pack_size_aero_state(aero_state_init)
+
+       allocate(buffer(max_buffer_size))
+
+       position = 0
+       call pmc_mpi_pack_run_part_opt(buffer, position, run_part_opt)
+       call pmc_mpi_pack_real(buffer, position, n_part)
+       call pmc_mpi_pack_gas_data(buffer, position, gas_data)
+       call pmc_mpi_pack_gas_state(buffer, position, gas_state_init)
+       call pmc_mpi_pack_aero_data(buffer, position, aero_data)
+       call pmc_mpi_pack_aero_dist(buffer, position, aero_dist_init)
+       call pmc_mpi_pack_scenario(buffer, position, scenario)
+       call pmc_mpi_pack_env_state(buffer, position, env_state_init)
+       call pmc_mpi_pack_integer(buffer, position, rand_init)
+       call pmc_mpi_pack_logical(buffer, position, do_restart)
+       call pmc_mpi_pack_logical(buffer, position, do_init_equilibrate)
+       call pmc_mpi_pack_aero_state(buffer, position, aero_state_init)
+       call assert(181905491, position <= max_buffer_size)
+       buffer_size = position ! might be less than we allocated
+    end if
+
+    ! tell everyone the size
+    call pmc_mpi_bcast_integer(buffer_size)
+
+    if (pmc_mpi_rank() /= 0) then
+       ! non-root processes allocate space
+       allocate(buffer(buffer_size))
+    end if
+
+    ! broadcast data to everyone
+    call pmc_mpi_bcast_packed(buffer)
+
+    if (pmc_mpi_rank() /= 0) then
+       ! non-root processes unpack data
+       position = 0
+       call pmc_mpi_unpack_run_part_opt(buffer, position, run_part_opt)
+       call pmc_mpi_unpack_real(buffer, position, n_part)
+       call pmc_mpi_unpack_gas_data(buffer, position, gas_data)
+       call pmc_mpi_unpack_gas_state(buffer, position, gas_state_init)
+       call pmc_mpi_unpack_aero_data(buffer, position, aero_data)
+       call pmc_mpi_unpack_aero_dist(buffer, position, aero_dist_init)
+       call pmc_mpi_unpack_scenario(buffer, position, scenario)
+       call pmc_mpi_unpack_env_state(buffer, position, env_state_init)
+       call pmc_mpi_unpack_integer(buffer, position, rand_init)
+       call pmc_mpi_unpack_logical(buffer, position, do_restart)
+       call pmc_mpi_unpack_logical(buffer, position, do_init_equilibrate)
+       call pmc_mpi_unpack_aero_state(buffer, position, aero_state_init)
+       call assert(143770146, position == buffer_size)
+    end if
+
+    ! free the buffer
+    deallocate(buffer)
+#endif
+
+  end subroutine spec_file_broadcast_run_part
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

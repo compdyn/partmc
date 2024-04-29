@@ -1968,6 +1968,7 @@ contains
     integer :: n_group, i_group, i_name
     real(kind=dp), allocatable :: group_fractions(:), &
         group_volume_conc(:)
+    ! Flag to control algorithm selection - false uses low-variance method.
     logical, parameter :: do_naive_algorithm = .false.
     real(kind=dp), allocatable :: cumulative_vals(:)
     real(kind=dp), allocatable :: factors_2d(:,:)

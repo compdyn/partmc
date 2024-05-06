@@ -25,6 +25,7 @@ module pmc_run_part
   use pmc_mpi
   use pmc_camp_interface
   use pmc_photolysis
+  use pmc_tchem_interface
 #ifdef PMC_USE_CAMP
   use camp_camp_core
   use camp_camp_state
@@ -617,6 +618,12 @@ contains
             camp_pre_aero_state, camp_post_aero_state, env_state, &
             aero_data, aero_state, gas_data, gas_state, photolysis, &
             run_part_opt%del_t)
+#endif
+    end if
+
+    if (.true.) then
+#ifdef PMC_USE_TCHEM
+       call pmc_tchem_interface_solve()
 #endif
     end if
 

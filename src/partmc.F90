@@ -774,6 +774,8 @@ contains
        end if
 #endif
 
+       call tchem_init(gas_data, gas_state, aero_data)
+
        if (run_part_opt%do_camp_chem) then
 #ifdef PMC_USE_CAMP
           call run_part(scenario, env_state, aero_data, aero_state, gas_data, &
@@ -786,6 +788,8 @@ contains
        end if
 
     end do
+
+    call tchem_cleanup()
 
     call pmc_rand_finalize()
 

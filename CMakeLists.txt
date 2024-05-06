@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 2.6.4)
 # http://www.cmake.org/Bug/view.php?id=8598
 # http://gcc.gnu.org/bugzilla/show_bug.cgi?id=35707
 # http://www.cmake.org/Bug/view.php?id=8408
-project(PARTMC Fortran C)
+project(PARTMC CXX Fortran C)
 
 set(PACKAGE_BUGREPORT "mwest@illinois.edu")
 set(PACKAGE_NAME "PartMC")
@@ -11,12 +11,21 @@ set(PACKAGE_STRING "PartMC 2.8.0")
 set(PACKAGE_TARNAME "partmc")
 set(PACKAGE_VERSION "2.8.0")
 
+include(FortranCInterface)
+
+# if you are working with C and Fortran
+FortranCInterface_VERIFY()
+
+# if you are working with C++ and Fortran
+FortranCInterface_VERIFY(CXX)
+
 ######################################################################
 # options
 
 option(ENABLE_GSL "Enable GSL library for random number generation" OFF)
 option(ENABLE_MOSAIC "Enable MOSAIC chemistry support" OFF)
 option(ENABLE_CAMP "Enable CAMP chemistry support" OFF)
+option(ENABLE_TCHEM "Enable TChem chemistry support" OFF)
 option(ENABLE_MPI "Enable MPI parallel support" OFF)
 option(ENABLE_SUNDIALS "Enable SUNDIALS solver for condensation support" OFF)
 option(ENABLE_C_SORT "Enable C sorting routines" OFF)
@@ -99,6 +108,31 @@ if(ENABLE_CAMP)
 endif()
 
 ######################################################################
+if(ENABLE_TCHEM)
+  find_path(TCHEM_INCLUDE_DIR TChem.hpp
+    DOC "TChem include directory"
+    PATHS $ENV{TCHEM_HOME}/include/tchem_atm/) 
+  find_library(TCHEM_LIB tchem_atm
+    DOC "TChem library"
+    PATHS $ENV{TCHEM_HOME}/lib64)
+  add_definitions(-DPMC_USE_TCHEM)
+  include_directories(${TCHEM_INCLUDE_DIR})
+  include_directories(/data/keeling/a/jcurtis2/d/tchem_oscar/build_tchem/TPLs/install/kokkos/include)
+  include_directories(/data/keeling/a/jcurtis2/d/tchem_oscar/build_tchem/HOST/RELEASE/install/tines/include/tines)
+  include_directories(/data/keeling/a/jcurtis2/d/tchem_oscar/build_tchem/TPLs/install/openblas/include)
+  include_directories(/data/keeling/a/jcurtis2/d/tchem_oscar/build_tchem/TPLs/install/sundials/include)
+  include_directories(/data/keeling/a/jcurtis2/d/tchem_oscar/build_tchem/TPLs/install/yaml/include)
+  find_library(YAML_LIB yaml-cpp
+     PATHS /data/keeling/a/jcurtis2/d/tchem_oscar/build_tchem/TPLs/install/yaml/lib)
+  find_library(KOKKOS_LIB kokkos
+     PATHS /data/keeling/a/jcurtis2/d/tchem_oscar/build_tchem/TPLs/install/kokkos/lib64)
+  find_library(TINES_LIB tines
+     PATHS /data/keeling/a/jcurtis2/d/tchem_oscar/build_tchem/HOST/RELEASE/install/tines/lib64)
+  find_library(LAPACK_LIB openblas
+     PATHS /data/keeling/a/jcurtis2/d/tchem_oscar/build_tchem/TPLs/install/openblas/lib)
+endif()
+
+######################################################################
 # MPI
 
 if(ENABLE_MPI)
@@ -175,12 +209,15 @@ add_library(partmclib src/aero_state.F90 src/integer_varray.F90
   src/netcdf.F90 src/aero_info.F90 src/aero_info_array.F90
   src/nucleate.F90 src/condense.F90 src/fractal.F90 src/chamber.F90
   src/camp_interface.F90 src/photolysis.F90 src/sys.F90
+  src/tchem_interface.F90
   src/aero_component.F90
-  ${SUNDIALS_SRC} ${GSL_SRC}
+  src/test.cpp
+  ${SUNDIALS_SRC} ${GSL_SRC} ${TCHEM_SRC}
   ${C_SORT_SRC})
 
 target_link_libraries(partmclib ${NETCDF_LIBS} ${SUNDIALS_LIBS}
-  ${MOSAIC_LIB} ${GSL_LIBS} ${CAMP_LIB})
+  ${MOSAIC_LIB} ${GSL_LIBS} ${CAMP_LIB} ${TCHEM_LIB} ${YAML_LIB}
+  ${KOKKOS_LIB} ${TINES_LIB} ${LAPACK_LIB})
 
 set_target_properties(partmclib PROPERTIES OUTPUT_NAME partmc)
 

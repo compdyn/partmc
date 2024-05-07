@@ -463,8 +463,10 @@ contains
 
     ! initialize RNG with random seed for UUID generation
     call pmc_srand(0, pmc_mpi_rank())
-    if (.not. do_restart) then
+    if (pmc_mpi_rank() == 0) then
+       if (.not. do_restart) then
           call uuid4_str(run_part_opt%uuid)
+       end if
     end if
 
     call spec_file_broadcast_run_part(run_part_opt, aero_data, &

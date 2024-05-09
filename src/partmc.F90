@@ -341,7 +341,8 @@ contains
     real(kind=dp) :: dummy_time, dummy_del_t, n_part
     character(len=PMC_MAX_FILENAME_LEN) :: sub_filename
     type(spec_file_t) :: sub_file
-    character(len=PMC_MAX_FILENAME_LEN) :: camp_config_filename
+    character(len=PMC_MAX_FILENAME_LEN) :: camp_config_filename, &
+         tchem_config_filename
 
     !> \page input_format_particle Input File Format: Particle-Resolved Simulation
     !!
@@ -499,6 +500,14 @@ contains
 #else
          call spec_file_die_msg(648994111, file, &
               'cannot do camp chem, CAMP support not compiled in')
+#endif
+       end if
+
+       call spec_file_read_logical(file, 'do_tchem', run_part_opt%do_tchem)
+       if (run_part_opt%do_tchem) then
+#ifdef PMC_USE_TCHEM
+          call spec_file_read_string(file, 'tchem_config', &
+             tchem_config_filename)
 #endif
        end if
 
@@ -730,6 +739,10 @@ contains
 #endif
     end if
 
+    if (run_part_opt%do_tchem) then
+       call tchem_initialize(tchem_config_filename, gas_data, gas_state, aero_data)
+    end if
+
     ! re-initialize RNG with the given seed
     call pmc_rand_finalize()
     call pmc_srand(rand_init, pmc_mpi_rank())
@@ -774,8 +787,6 @@ contains
        end if
 #endif
 
-       call tchem_init(gas_data, gas_state, aero_data)
-
        if (run_part_opt%do_camp_chem) then
 #ifdef PMC_USE_CAMP
           call run_part(scenario, env_state, aero_data, aero_state, gas_data, &
@@ -789,7 +800,9 @@ contains
 
     end do
 
-    call tchem_cleanup()
+    if (run_part_opt%do_tchem) then
+       call tchem_cleanup()
+    end if
 
     call pmc_rand_finalize()
 

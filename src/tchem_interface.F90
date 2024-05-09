@@ -20,22 +20,10 @@ module pmc_tchem_interface
 #endif
   use pmc_util, only : die_msg, warn_assert_msg, assert_msg
 
-#ifdef PMC_USE_TCHEM
+!#ifdef PMC_USE_TCHEM
 !    interface
-!       subroutine initialize_kokkos(nSpec) bind(c)
-!         use iso_c_binding
-!         integer(kind=c_int) :: nSpec
-!       end subroutine initialize_kokkos 
-!       subroutine cfun(a) bind(C)
-!         use iso_c_binding
-!         integer(c_int) :: a
-!       end subroutine 
-!       subroutine cfun1(a) bind(C)
-!         use iso_c_binding
-!         integer(c_int) :: a
-!       end subroutine
 !    end interface
-#endif
+!#endif
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -49,15 +37,20 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine tchem_init(gas_data, gas_state, aero_data)
+  subroutine tchem_initialize(config_filename, gas_data, gas_state, aero_data)
 
-    use iso_c_binding
-
+    character(len=*), intent(in) :: config_filename
     type(gas_data_t), intent(inout) :: gas_data
     type(gas_state_t), intent(inout) :: gas_state
     type(aero_data_t), intent(inout) :: aero_data
 
-    call initialize_kokkos()
+    integer :: nSpec
+
+    nSpec = 0
+
+    call initialize(trim(config_filename))
+
+    print*, 'in partmc', nSpec, trim(config_filename)
 
   end subroutine
 

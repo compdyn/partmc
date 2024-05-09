@@ -105,8 +105,10 @@ module pmc_run_part
      logical :: env_average
      !> Parallel coagulation method type.
      integer :: parallel_coag_type
-     !> Whether to run CAMP
+     !> Whether to run CAMP.
      logical :: do_camp_chem
+     !> Whether to run TChem.
+     logical :: do_tchem
      !> UUID for this simulation.
      character(len=PMC_UUID_LEN) :: uuid
   end type run_part_opt_t
@@ -333,6 +335,7 @@ contains
          + pmc_mpi_pack_size_logical(val%env_average) &
          + pmc_mpi_pack_size_integer(val%parallel_coag_type) &
          + pmc_mpi_pack_size_logical(val%do_camp_chem) &
+         + pmc_mpi_pack_size_logical(val%do_tchem) &
          + pmc_mpi_pack_size_string(val%uuid)
 
   end function pmc_mpi_pack_size_run_part_opt
@@ -383,6 +386,7 @@ contains
     call pmc_mpi_pack_logical(buffer, position, val%env_average)
     call pmc_mpi_pack_integer(buffer, position, val%parallel_coag_type)
     call pmc_mpi_pack_logical(buffer, position, val%do_camp_chem)
+    call pmc_mpi_pack_logical(buffer, position, val%do_tchem)
     call pmc_mpi_pack_string(buffer, position, val%uuid)
     call assert(946070052, &
          position - prev_position <= pmc_mpi_pack_size_run_part_opt(val))
@@ -436,6 +440,7 @@ contains
     call pmc_mpi_unpack_logical(buffer, position, val%env_average)
     call pmc_mpi_unpack_integer(buffer, position, val%parallel_coag_type)
     call pmc_mpi_unpack_logical(buffer, position, val%do_camp_chem)
+    call pmc_mpi_unpack_logical(buffer, position, val%do_tchem)
     call pmc_mpi_unpack_string(buffer, position, val%uuid)
     call assert(480118362, &
          position - prev_position <= pmc_mpi_pack_size_run_part_opt(val))
@@ -621,7 +626,7 @@ contains
 #endif
     end if
 
-    if (.true.) then
+    if (run_part_opt%do_tchem) then
 #ifdef PMC_USE_TCHEM
        call pmc_tchem_interface_solve()
 #endif

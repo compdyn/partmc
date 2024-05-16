@@ -11,6 +11,7 @@ t_output 600                    # output interval (0 disables) (s)
 t_progress 600                  # progress printing interval (0 disables) (s)
 
 do_camp_chem no                # whether to run the campible chemistry module
+do_tchem no
 
 gas_data gas_data.dat           # file containing gas data
 gas_init gas_init.dat           # initial gas mixing ratios

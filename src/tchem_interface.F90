@@ -70,6 +70,8 @@ contains
 
     call gas_state_set_size(gas_state, nSpec)
 
+
+    call TChem_getSpeciesNames()
     ! name of gas species
     !do i = 1,nSpec
     !   gas_data%name(i) = "H2O"

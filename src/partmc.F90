@@ -753,7 +753,7 @@ contains
     end if
 
     if (run_part_opt%do_tchem) then
-       call pmc_tchem_initialize(tchem_config_filename, gas_data, gas_state, aero_data)
+       call pmc_tchem_initialize(tchem_config_filename, gas_data, gas_state_init, aero_data)
     end if
 
     ! re-initialize RNG with the given seed

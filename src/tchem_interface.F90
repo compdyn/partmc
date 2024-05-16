@@ -20,24 +20,31 @@ module pmc_tchem_interface
 #endif
   use pmc_util, only : die_msg, warn_assert_msg, assert_msg
 
-!#ifdef PMC_USE_TCHEM
-!    interface
-!    end interface
-!#endif
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #ifdef PMC_USE_TCHEM
   !> Run the CAMP module for the current PartMC state
-  subroutine pmc_tchem_interface_solve()
+  subroutine pmc_tchem_interface_solve(env_state, aero_data, aero_state, &
+       gas_data, gas_state)
 
-       call test()
+    type(env_state_t), intent(in) :: env_state
+    type(aero_data_t), intent(in) :: aero_data
+    type(aero_state_t), intent(inout) :: aero_state
+    type(gas_data_t), intent(in) :: gas_data
+    type(gas_state_t), intent(inout) :: gas_state
+
+    call tchem_to_partmc(gas_data, gas_state)
+
+    call timestep()
+
+    call tchem_from_partmc(gas_data, gas_state)
 
   end subroutine pmc_tchem_interface_solve
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine tchem_initialize(config_filename, gas_data, gas_state, aero_data)
+  subroutine pmc_tchem_initialize(config_filename, gas_data, gas_state, aero_data)
 
     use iso_c_binding
 
@@ -53,7 +60,7 @@ contains
     real(kind=c_double), dimension(:), allocatable :: array 
 
     ! initialize the model
-    call initialize(trim(config_filename))
+    call TChem_initialize(trim(config_filename))
 
     ! feedback to PartMC
     ! what we need:
@@ -72,34 +79,55 @@ contains
  
     print*, 'in partmc', nSpec, trim(config_filename), gas_data_n_spec(gas_data)
 
-     allocate(array(nSpec))
-     array = 0.0d0
-     call TChem_getStateVector(array)
-     print*, 'in partmc'
-     print*, array
-     gas_state%mix_rat = array
-  end subroutine
+    call tchem_to_partmc(gas_data, gas_state)
+    print*, 'in partmc'
+    print*, gas_state%mix_rat 
+  
+end subroutine
 
-  subroutine tchem_cleanup()
+  subroutine pmc_tchem_cleanup()
 
-    call finalize_kokkos()
+    call finalize()
 
-  end subroutine
+  end subroutine pmc_tchem_cleanup
 
-  subroutine tchem_to_partmc()
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !>
+  subroutine tchem_to_partmc(gas_data, gas_state)
+
+    !>
+    type(gas_data_t), intent(in) :: gas_data
+    !>
+    type(gas_state_t), intent(inout) :: gas_state
+
+    integer(c_int) :: nSpec
+    real(kind=c_double), dimension(:), allocatable :: array
 
     ! Get gas array
+    nSpec = TChem_getNumberOfSpecies()
+    allocate(array(nSpec))
+    array = 0.0d0
+    call TChem_getStateVector(array)
+    gas_state%mix_rat = array
 
-  end subroutine
+  end subroutine tchem_to_partmc
 
-  subroutine tchem_from_partmc(gas_state, gas_data)
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !>
+  subroutine tchem_from_partmc(gas_data, gas_state)
+
+    !>
     type(gas_data_t), intent(in) :: gas_data
     ! FIXME: Fix intent later
     type(gas_state_t), intent(inout) :: gas_state
 
-    gas_state%mix_rat = 0.0d0
-  end subroutine
+    call TChem_setStateVector(gas_state%mix_rat)
 
+  end subroutine tchem_from_partmc
 #endif
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 end module pmc_tchem_interface

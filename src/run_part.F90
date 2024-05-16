@@ -628,7 +628,8 @@ contains
 
     if (run_part_opt%do_tchem) then
 #ifdef PMC_USE_TCHEM
-       call pmc_tchem_interface_solve()
+       call pmc_tchem_interface_solve(env_state, aero_data, aero_state, &
+            gas_data, gas_state)
 #endif
     end if
 

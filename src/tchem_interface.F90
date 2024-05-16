@@ -34,11 +34,9 @@ contains
     type(gas_data_t), intent(in) :: gas_data
     type(gas_state_t), intent(inout) :: gas_state
 
-    call tchem_to_partmc(gas_data, gas_state)
-
-    call timestep()
-
     call tchem_from_partmc(gas_data, gas_state)
+    call timestep()
+    call tchem_to_partmc(gas_data, gas_state)
 
   end subroutine pmc_tchem_interface_solve
 

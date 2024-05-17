@@ -117,19 +117,23 @@ if(ENABLE_TCHEM)
     PATHS $ENV{TCHEM_HOME}/lib64)
   add_definitions(-DPMC_USE_TCHEM)
   include_directories(${TCHEM_INCLUDE_DIR})
-  include_directories(/data/keeling/a/jcurtis2/d/tchem_oscar/build_tchem/TPLs/install/kokkos/include)
-  include_directories(/data/keeling/a/jcurtis2/d/tchem_oscar/build_tchem/HOST/RELEASE/install/tines/include/tines)
-  include_directories(/data/keeling/a/jcurtis2/d/tchem_oscar/build_tchem/TPLs/install/openblas/include)
   include_directories(/data/keeling/a/jcurtis2/d/tchem_oscar/build_tchem/TPLs/install/sundials/include)
-  include_directories(/data/keeling/a/jcurtis2/d/tchem_oscar/build_tchem/TPLs/install/yaml/include)
+  set(YAML_PATH "/data/keeling/a/jcurtis2/d/tchem_oscar/build_tchem/TPLs/install/yaml")
+  set(KOKKOS_PATH "/data/keeling/a/jcurtis2/d/tchem_oscar/build_tchem/TPLs/install/kokkos")
+  set(TINES_PATH " /data/keeling/a/jcurtis2/d/tchem_oscar/build_tchem/HOST/RELEASE/install/tines")
+  set(LAPACK_PATH "/data/keeling/a/jcurtis2/d/tchem_oscar/build_tchem/TPLs/install/openblas")
   find_library(YAML_LIB yaml-cpp
-     PATHS /data/keeling/a/jcurtis2/d/tchem_oscar/build_tchem/TPLs/install/yaml/lib)
+     PATHS ${YAML_PATH}/lib)
+  include_directories(${YAML_PATH}/include)
   find_library(KOKKOS_LIB kokkos
-     PATHS /data/keeling/a/jcurtis2/d/tchem_oscar/build_tchem/TPLs/install/kokkos/lib64)
+     PATHS ${KOKKOS_PATH}/lib64)
+  include_directories(${KOKKOS_PATH}/include)
   find_library(TINES_LIB tines
-     PATHS /data/keeling/a/jcurtis2/d/tchem_oscar/build_tchem/HOST/RELEASE/install/tines/lib64)
+     PATHS ${TINES_PATH}/lib64)
+  include_directories(${TINES_PATH}/include/tines)
   find_library(LAPACK_LIB openblas
-     PATHS /data/keeling/a/jcurtis2/d/tchem_oscar/build_tchem/TPLs/install/openblas/lib)
+     PATHS ${LAPACK_PATH}/lib)
+  include_directories(${LAPACK_PATH}/include)
 endif()
 
 ######################################################################

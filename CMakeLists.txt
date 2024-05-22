@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 2.6.4)
 # http://www.cmake.org/Bug/view.php?id=8598
 # http://gcc.gnu.org/bugzilla/show_bug.cgi?id=35707
 # http://www.cmake.org/Bug/view.php?id=8408
-project(PARTMC CXX Fortran C)
+project(PARTMC Fortran C)
 
 set(PACKAGE_BUGREPORT "mwest@illinois.edu")
 set(PACKAGE_NAME "PartMC")
@@ -14,10 +14,10 @@ set(PACKAGE_VERSION "2.8.0")
 include(FortranCInterface)
 
 # if you are working with C and Fortran
-FortranCInterface_VERIFY()
+#FortranCInterface_VERIFY()
 
 # if you are working with C++ and Fortran
-FortranCInterface_VERIFY(CXX)
+#FortranCInterface_VERIFY(CXX)
 
 ######################################################################
 # options
@@ -120,12 +120,12 @@ if(ENABLE_TCHEM)
   include_directories(/data/keeling/a/jcurtis2/d/tchem_oscar/build_tchem/TPLs/install/sundials/include)
   set(YAML_PATH "/data/keeling/a/jcurtis2/d/tchem_oscar/build_tchem/TPLs/install/yaml")
   set(KOKKOS_PATH "/data/keeling/a/jcurtis2/d/tchem_oscar/build_tchem/TPLs/install/kokkos")
-  set(TINES_PATH " /data/keeling/a/jcurtis2/d/tchem_oscar/build_tchem/HOST/RELEASE/install/tines")
+  set(TINES_PATH "/data/keeling/a/jcurtis2/d/tchem_oscar/build_tchem/HOST/RELEASE/install/tines")
   set(LAPACK_PATH "/data/keeling/a/jcurtis2/d/tchem_oscar/build_tchem/TPLs/install/openblas")
   find_library(YAML_LIB yaml-cpp
      PATHS ${YAML_PATH}/lib)
   include_directories(${YAML_PATH}/include)
-  find_library(KOKKOS_LIB kokkos
+  find_library(KOKKOS_LIB kokkoscore
      PATHS ${KOKKOS_PATH}/lib64)
   include_directories(${KOKKOS_PATH}/include)
   find_library(TINES_LIB tines

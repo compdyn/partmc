@@ -512,8 +512,10 @@ contains
        end if
 
        if (run_part_opt%do_tchem) then
+#ifdef PMC_USE_TCHEM
           call pmc_tchem_initialize(tchem_config_filename, gas_data, &
                aero_data)
+#endif
        end if
 
        if (do_restart) then
@@ -811,7 +813,9 @@ contains
     end do
 
     if (run_part_opt%do_tchem) then
+#ifdef PMC_USE_TCHEM
        call pmc_tchem_cleanup()
+#endif
     end if
 
     call pmc_rand_finalize()

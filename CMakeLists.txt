@@ -192,6 +192,9 @@ if(ENABLE_MPI)
 endif()
 add_test(test_rand ${CMAKE_BINARY_DIR}/test_run/run_test_directory.sh rand)
 add_test(test_sedi ${CMAKE_BINARY_DIR}/test_run/run_test_directory.sh sedi)
+if (ENABLE_TCHEM)
+  add_test(test_tchem ${CMAKE_BINARY_DIR}/test_run/run_test_directory.sh tchem)
+endif()
 
 ######################################################################
 # partmc library

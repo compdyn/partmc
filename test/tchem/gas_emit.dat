@@ -1,0 +1,6 @@
+# time (s)
+# rate (s^{-1})
+# emissions (mol m^{-2} s^{-1})
+time            0
+rate            1
+CO 1e-8

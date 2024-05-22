@@ -511,6 +511,11 @@ contains
 #endif
        end if
 
+       if (run_part_opt%do_tchem) then
+          call pmc_tchem_initialize(tchem_config_filename, gas_data, &
+               aero_data)
+       end if
+
        if (do_restart) then
           call input_state(restart_filename, dummy_index, dummy_time, &
                dummy_del_t, dummy_i_repeat, run_part_opt%uuid, aero_data, &
@@ -524,11 +529,7 @@ contains
             call gas_data_initialize(gas_data, camp_core)
 #endif
           else if (run_part_opt%do_tchem) then
-            ! FIXME: Replacde with something else
-            call spec_file_read_string(file, 'gas_data', sub_filename)
-            call spec_file_open(sub_filename, sub_file)
-            call spec_file_read_gas_data(sub_file, gas_data)
-            call spec_file_close(sub_file)
+            print*, 'do nothing!'
           else
             call spec_file_read_string(file, 'gas_data', sub_filename)
             call spec_file_open(sub_filename, sub_file)
@@ -750,10 +751,6 @@ contains
 #ifdef PMC_USE_CAMP
       call camp_core%solver_initialize()
 #endif
-    end if
-
-    if (run_part_opt%do_tchem) then
-       call pmc_tchem_initialize(tchem_config_filename, gas_data, gas_state_init, aero_data)
     end if
 
     ! re-initialize RNG with the given seed

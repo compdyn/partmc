@@ -172,6 +172,8 @@ contains
 
     real(kind=dp), allocatable :: stateVector(:)
     integer :: stateVecDim
+    real(kind=dp), parameter :: t_steam = 373.15 ! steam temperature (K)
+    real(kind=dp) :: a, water_vp
 
     ! Make a state vector
     ! Density
@@ -184,6 +186,14 @@ contains
     stateVector(1) = env_state_air_den(env_state)
     stateVector(2) = env_state%pressure
     stateVector(3) = env_state%temp
+
+    ! FIXME: we have to do something about water here
+    i_water = gas_data_spec_by_name(gas_data, "H2O")
+    a = 1.0 - t_steam / env_state%temp
+    a = (((-0.1299 * a - 0.6445) * a - 1.976) * a + 13.3185) * a
+    water_vp = 101325.0 * exp(a)  ! (Pa)
+    gas_state%mix_rat(i_water) = env_state%rel_humid * water_vp * 1.0e9 &
+         / env_state%pressure ! (ppb)
 
     call gas_state_ppb_to_mole_dens(gas_state, env_state)
     stateVector(4:gas_data_n_spec(gas_data)+3) = gas_state%mix_rat

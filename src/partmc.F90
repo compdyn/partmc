@@ -513,8 +513,9 @@ contains
 
        if (run_part_opt%do_tchem) then
 #ifdef PMC_USE_TCHEM
-          call pmc_tchem_initialize(tchem_config_filename, gas_data, &
-               aero_data)
+          ! FIXME: Switch to aerosols
+          call pmc_tchem_initialize(tchem_config_filename, &
+               tchem_config_filename, gas_data, aero_data)
 #endif
        end if
 

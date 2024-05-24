@@ -73,20 +73,26 @@ contains
     !> Gas state.
     type(gas_state_t), intent(inout) :: gas_state
 
-    call tchem_from_partmc(gas_data, gas_state, env_state)
+    call tchem_from_partmc(aero_data, aero_state, gas_data, gas_state, &
+         env_state)
+
     call tchem_timestep()
-    call tchem_to_partmc(gas_data, gas_state, env_state)
+
+    call tchem_to_partmc(aero_data, aero_state, gas_data, gas_state, env_state)
 
   end subroutine pmc_tchem_interface_solve
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Initialize TChem and PartMC gas and aerosol data.
-  subroutine pmc_tchem_initialize(config_filename, gas_data, aero_data)
+  subroutine pmc_tchem_initialize(gas_config_filename, aero_config_filename, &
+       gas_data, aero_data)
     use iso_c_binding
 
     !>
-    character(len=*), intent(in) :: config_filename
+    character(len=*), intent(in) :: gas_config_filename
+    !>
+    character(len=*), intent(in) :: aero_config_filename
     !> Gas data.
     type(gas_data_t), intent(inout) :: gas_data
     !> Aerosol data.
@@ -98,7 +104,7 @@ contains
     character(:), allocatable ::  val
 
     ! initialize the model
-    call TChem_initialize(trim(config_filename))
+    call TChem_initialize(trim(gas_config_filename))
 
     ! what we need:
     !  - number of gas species for gas_data
@@ -116,7 +122,12 @@ contains
     allocate(gas_data%mosaic_index(gas_data_n_spec(gas_data)))
     gas_data%mosaic_index(:) = 0
  
-    print*, 'in partmc', nSpec, trim(config_filename), gas_data_n_spec(gas_data)
+    print*, 'in partmc', nSpec, trim(gas_config_filename), &
+         gas_data_n_spec(gas_data)
+
+    ! Get aerosol data
+    ! Species names
+    ! Species properties - density, kappa, molecular weight
   
   end subroutine
 
@@ -132,8 +143,13 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Map all data TChem -> PartMC.
-  subroutine tchem_to_partmc(gas_data, gas_state, env_state)
+  subroutine tchem_to_partmc(aero_data, aero_state, gas_data, gas_state, &
+       env_state)
 
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol state.
+    type(aero_state_t), intent(inout) :: aero_state
     !> Gas data.
     type(gas_data_t), intent(in) :: gas_data
     !> Gas state.
@@ -156,13 +172,23 @@ contains
     ! Convert gas_state from mol m^-3 to ppb.
     call gas_state_mole_dens_to_ppb(gas_state, env_state)
 
+    ! Map aerosols
+    do i_part = 1,aero_state_n_part(aero_state)
+
+    end do
+
   end subroutine tchem_to_partmc
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Map all data PartMC -> TChem.
-  subroutine tchem_from_partmc(gas_data, gas_state, env_state)
+  subroutine tchem_from_partmc(aero_data, aero_state, gas_data, gas_state, &
+       env_state)
 
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol state.
+    type(aero_state_t), intent(in) :: aero_state
     !> Gas data.
     type(gas_data_t), intent(in) :: gas_data
     !> Gas State.
@@ -174,6 +200,7 @@ contains
     integer :: stateVecDim
     real(kind=dp), parameter :: t_steam = 373.15 ! steam temperature (K)
     real(kind=dp) :: a, water_vp
+    integer :: i_part
 
     ! Make a state vector
     ! Density
@@ -197,6 +224,11 @@ contains
 
     call gas_state_ppb_to_mole_dens(gas_state, env_state)
     stateVector(4:gas_data_n_spec(gas_data)+3) = gas_state%mix_rat
+
+    ! Map aerosols
+    do i_part = 1,aero_state_n_part(aero_state)
+
+    end do
 
     call TChem_setStateVector(stateVector)
 

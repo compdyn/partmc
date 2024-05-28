@@ -469,7 +469,7 @@ contains
        end if
     end if
 
-    call spec_file_broadcast_run_part(run_part_opt, aero_data, &
+    call pmc_mpi_broadcast_run_part(run_part_opt, aero_data, &
          aero_state_init, gas_data, gas_state_init, env_state_init, &
          aero_dist_init, scenario, &
 #ifdef PMC_USE_CAMP

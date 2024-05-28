@@ -1012,7 +1012,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read the specification for a run_part simulation from a spec file.
-  subroutine spec_file_broadcast_run_part(run_part_opt, aero_data, &
+  subroutine pmc_mpi_broadcast_run_part(run_part_opt, aero_data, &
        aero_state_init, gas_data, gas_state_init, env_state_init, &
        aero_dist_init, scenario, &
 #ifdef PMC_USE_CAMP
@@ -1138,7 +1138,7 @@ contains
     deallocate(buffer)
 #endif
 
-  end subroutine spec_file_broadcast_run_part
+  end subroutine pmc_mpi_broadcast_run_part
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

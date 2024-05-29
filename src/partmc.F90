@@ -450,6 +450,8 @@ contains
     !!     ensure a uniform environment
     !!   - \subpage input_format_parallel_coag
 
+    ! initialize RNG with random seed for UUID generation
+    call pmc_srand(0, pmc_mpi_rank())
 
     if (pmc_mpi_rank() == 0) then
        call spec_file_read_run_part(file, run_part_opt, aero_data, &
@@ -459,11 +461,7 @@ contains
             camp_core, photolysis, aero_state, &
 #endif
             n_part, rand_init, do_init_equilibrate, do_restart)
-    end if
 
-    ! initialize RNG with random seed for UUID generation
-    call pmc_srand(0, pmc_mpi_rank())
-    if (pmc_mpi_rank() == 0) then
        if (.not. do_restart) then
           call uuid4_str(run_part_opt%uuid)
        end if

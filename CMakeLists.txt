@@ -108,32 +108,41 @@ if(ENABLE_CAMP)
 endif()
 
 ######################################################################
+
 if(ENABLE_TCHEM)
-  find_path(TCHEM_INCLUDE_DIR TChem.hpp
+  find_path(TCHEM_INCLUDE_DIR tchem_atm/TChem.hpp
     DOC "TChem include directory"
-    PATHS $ENV{TCHEM_HOME}/include/tchem_atm/) 
+    PATHS $ENV{TCHEM_HOME}/include/) 
   find_library(TCHEM_LIB tchem_atm
     DOC "TChem library"
     PATHS $ENV{TCHEM_HOME}/lib64)
   add_definitions(-DPMC_USE_TCHEM)
   include_directories(${TCHEM_INCLUDE_DIR})
   include_directories(/data/keeling/a/jcurtis2/d/tchem_oscar/build_tchem/TPLs/install/sundials/include)
-  set(YAML_PATH "/data/keeling/a/jcurtis2/d/tchem_oscar/build_tchem/TPLs/install/yaml")
-  set(KOKKOS_PATH "/data/keeling/a/jcurtis2/d/tchem_oscar/build_tchem/TPLs/install/kokkos")
-  set(TINES_PATH "/data/keeling/a/jcurtis2/d/tchem_oscar/build_tchem/HOST/RELEASE/install/tines")
-  set(LAPACK_PATH "/data/keeling/a/jcurtis2/d/tchem_oscar/build_tchem/TPLs/install/openblas")
+  find_path(YAML_INCLUDE_DIR yaml-cpp/yaml.h 
+    DOC "TChem include directory"
+    PATHS $ENV{YAML_PATH}/include/)
   find_library(YAML_LIB yaml-cpp
-     PATHS ${YAML_PATH}/lib)
-  include_directories(${YAML_PATH}/include)
+    PATHS $ENV{YAML_PATH}/lib)
+  include_directories(${YAML_INCLUDE_DIR})
+  find_path(KOKKOS_INCLUDE_DIR Kokkos_Core.hpp
+    DOC "Kokkos include directory"
+    PATHS $ENV{KOKKOS_PATH}/include)
   find_library(KOKKOS_LIB kokkoscore
-     PATHS ${KOKKOS_PATH}/lib64)
-  include_directories(${KOKKOS_PATH}/include)
+    PATHS $ENV{KOKKOS_PATH}/lib64)
+  include_directories(${KOKKOS_INCLUDE_DIR})
+  find_path(TINES_INCLUDE_DIR tines/Tines.hpp
+    DOC "Tines include directory"
+    PATHS $ENV{TINES_PATH}/include)
   find_library(TINES_LIB tines
-     PATHS ${TINES_PATH}/lib64)
-  include_directories(${TINES_PATH}/include/tines)
+    PATHS $ENV{TINES_PATH}/lib64)
+  include_directories(${TINES_INCLUDE_DIR})
+  find_path(LAPACK_INCLUDE_DIR lapack.h 
+    DOC "LAPACK include directory"
+    PATHS $ENV{LAPACK_PATH}/include)
   find_library(LAPACK_LIB openblas
-     PATHS ${LAPACK_PATH}/lib)
-  include_directories(${LAPACK_PATH}/include)
+    PATHS $ENV{LAPACK_PATH}/lib)
+  include_directories(${LAPACK_INCLUDE_DIR})
 endif()
 
 ######################################################################

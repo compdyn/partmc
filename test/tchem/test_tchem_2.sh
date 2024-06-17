@@ -9,4 +9,4 @@ cd ${0%/*}
 # make the output directory if it doesn't exist
 mkdir -p out
 
-../../partmc run_part_chapman.spec
+../../partmc run_part.spec

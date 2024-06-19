@@ -342,7 +342,7 @@ contains
     character(len=PMC_MAX_FILENAME_LEN) :: sub_filename
     type(spec_file_t) :: sub_file
     character(len=PMC_MAX_FILENAME_LEN) :: camp_config_filename, &
-         tchem_config_filename
+         tchem_gas_filename, tchem_aero_filename, tchem_numerics_filename
 
     !> \page input_format_particle Input File Format: Particle-Resolved Simulation
     !!
@@ -506,16 +506,20 @@ contains
        call spec_file_read_logical(file, 'do_tchem', run_part_opt%do_tchem)
        if (run_part_opt%do_tchem) then
 #ifdef PMC_USE_TCHEM
-          call spec_file_read_string(file, 'tchem_config', &
-             tchem_config_filename)
+          call spec_file_read_string(file, 'tchem_gas_config', &
+             tchem_gas_filename)
+          call spec_file_read_string(file, 'tchem_aero_config', &
+             tchem_aero_filename)
+          call spec_file_read_string(file, 'tchem_numerics_config', &
+             tchem_numerics_filename)
 #endif
        end if
 
        if (run_part_opt%do_tchem) then
 #ifdef PMC_USE_TCHEM
           ! FIXME: Switch to aerosols
-          call pmc_tchem_initialize(tchem_config_filename, &
-               tchem_config_filename, gas_data, aero_data)
+          call pmc_tchem_initialize(tchem_gas_filename, &
+               tchem_aero_filename, tchem_numerics_filename, gas_data, aero_data)
 #endif
        end if
 

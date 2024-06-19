@@ -6,13 +6,15 @@ restart no                      # whether to restart from saved state (yes/no)
 do_select_weighting no          # whether to select weighting explicitly (yes/no)
 
 t_max 1000000                   # total simulation time (s)
-del_t 60                        # timestep (s)
-t_output 1200                   # output interval (0 disables) (s)
-t_progress 3600                 # progress printing interval (0 disables) (s)
+del_t 10                        # timestep (s)
+t_output 1000                   # output interval (0 disables) (s)
+t_progress 10000                # progress printing interval (0 disables) (s)
 
 do_camp_chem no                # whether to run the campible chemistry module
 do_tchem yes 
-tchem_config config_chapman.yaml
+tchem_gas_config config_chapman.yaml
+tchem_aero_config config_chapman.yaml
+tchem_numerics_config config_chapman.yaml
 
 gas_init gas_init_chapman.dat           # initial gas mixing ratios
 
@@ -20,8 +22,8 @@ aerosol_data aero_data.dat      # file containing aerosol data
 do_fractal no                   # whether to do fractal treatment
 aerosol_init aero_init_dist.dat # aerosol initial condition file
 
-temp_profile temp.dat           # temperature profile file
-pressure_profile pressure.dat   # pressure profile file
+temp_profile temp_chapman.dat           # temperature profile file
+pressure_profile pressure_chapman.dat   # pressure profile file
 height_profile height.dat       # height profile file
 gas_emissions gas_emit_empty.dat      # gas emissions file
 gas_background gas_back.dat     # background gas mixing ratios file

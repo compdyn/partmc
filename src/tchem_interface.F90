@@ -52,6 +52,12 @@ interface
   end function
   subroutine TChem_doTimestep() bind(C, name="TChem_doTimestep")
   end subroutine
+
+     subroutine TChem_getAllStateVectorHost(arg_state_vector) bind(C, &
+         name="TChem_getAllStateVectorHost")
+       use iso_c_binding, only: c_ptr
+       type(c_ptr), value :: arg_state_vector
+     end subroutine TChem_getAllStateVectorHost
 end interface
 
 contains
@@ -86,19 +92,21 @@ contains
 
   !> Initialize TChem and PartMC gas and aerosol data.
   subroutine pmc_tchem_initialize(gas_config_filename, aero_config_filename, &
-       gas_data, aero_data)
+       solver_filename, gas_data, aero_data)
     use iso_c_binding
 
     !>
     character(len=*), intent(in) :: gas_config_filename
     !>
     character(len=*), intent(in) :: aero_config_filename
+    !>
+    character(len=*), intent(in) :: solver_filename
     !> Gas data.
     type(gas_data_t), intent(inout) :: gas_data
     !> Aerosol data.
     type(aero_data_t), intent(inout) :: aero_data
 
-    integer(kind=c_int) :: nSpec
+    integer(kind=c_int) :: nSpec, nAeroSpec
     integer :: i
     real(kind=c_double), dimension(:), allocatable :: array 
     character(:), allocatable ::  val
@@ -125,11 +133,23 @@ contains
     print*, 'in partmc', nSpec, trim(gas_config_filename), &
          gas_data_n_spec(gas_data)
 
+    ! FIXME:
     ! Get aerosol data
     ! Species names
     ! Species properties - density, kappa, molecular weight
-  
-  end subroutine
+    n_species = 10
+    call ensure_string_array_size(aero_data%name, n_species)
+    call ensure_integer_array_size(aero_data%mosaic_index, n_species)
+    call ensure_real_array_size(aero_data%wavelengths, n_swbands)
+    call ensure_real_array_size(aero_data%density, n_species)
+    call ensure_integer_array_size(aero_data%num_ions, n_species)
+    call ensure_real_array_size(aero_data%molec_weight, n_species)
+    call ensure_real_array_size(aero_data%kappa, n_species)
+    do i = 1,n_species
+
+    end do 
+
+  end subroutine pmc_tchem_initialize
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -160,6 +180,8 @@ contains
     integer(c_int) :: nSpec, stateVecDim
     real(kind=c_double), dimension(:), allocatable :: stateVector 
 
+    real(c_double), dimension(:,:), allocatable, target :: state_vector
+
     ! Get gas array
     stateVecDim = TChem_getLengthOfStateVector()
     nSpec = TChem_getNumberOfSpecies()
@@ -167,11 +189,13 @@ contains
     array = 0.0d0
     call TChem_getStateVector(stateVector)
 
+    allocate(state_vector(stateVecDim, 1))
+    call TChem_getAllStateVectorHost(c_loc(state_vector))
+    gas_state%mix_rat = 0.0
     ! FIXME: adjust this range later
     gas_state%mix_rat = stateVector(4:nSpec+3)
-    ! Convert gas_state from mol m^-3 to ppb.
-    call gas_state_mole_dens_to_ppb(gas_state, env_state)
-
+    ! Convert gas_state from ppm to ppb.
+    call gas_state_scale(gas_state, 1000.d0)
     ! Map aerosols
     do i_part = 1,aero_state_n_part(aero_state)
 
@@ -221,8 +245,7 @@ contains
     water_vp = 101325.0 * exp(a)  ! (Pa)
     gas_state%mix_rat(i_water) = env_state%rel_humid * water_vp * 1.0e9 &
          / env_state%pressure ! (ppb)
-
-    call gas_state_ppb_to_mole_dens(gas_state, env_state)
+    call gas_state_scale(gas_state, 1.0d0 / 1000.d0)
     stateVector(4:gas_data_n_spec(gas_data)+3) = gas_state%mix_rat
 
     ! Map aerosols
@@ -252,8 +275,6 @@ contains
 
     !> Chemistry configuration file.
     character(kind=c_char,len=*), intent(in) :: chemFile
-
-    print*, 'in TChemDriver: ', chemFile
 
     call initialize(chemFile//c_null_char)
 

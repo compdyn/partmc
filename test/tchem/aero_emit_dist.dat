@@ -1,6 +1,0 @@
-mode_name emit1                 # name of mode source
-mass_frac aero_emit_comp.dat    # species mass fractions
-diam_type geometric             # type of diameter specified
-mode_type mono                  # type of distribution
-num_conc 1e12                   # particle number concentration (#/m^2)
-diam 6.03e-5                       # diameter (m)

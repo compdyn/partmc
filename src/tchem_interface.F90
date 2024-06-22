@@ -20,9 +20,12 @@ module pmc_tchem_interface
   use pmc_util, only : die_msg, warn_assert_msg, assert_msg
 
 interface
-  subroutine initialize(arg_chemfile) bind(c, name="initialize")
+  subroutine initialize(arg_chemfile, arg_aerofile, arg_numericsfile) &
+       bind(c, name="initialize")
     use iso_c_binding
-    character(kind=c_char) :: arg_chemfile(*)
+    character(kind=c_char), intent(in) :: arg_chemfile(*)
+    character(kind=c_char), intent(in) :: arg_aerofile(*)
+    character(kind=c_char), intent(in) :: arg_numericsfile(*)
   end subroutine initialize
   subroutine finalize() bind(c, name="finalize")
   end subroutine finalize
@@ -50,7 +53,9 @@ interface
      character(kind=c_char), intent(out) :: result(*)
      integer(kind=c_size_t), intent(in), value :: buffer_size
   end function
-  subroutine TChem_doTimestep() bind(C, name="TChem_doTimestep")
+  subroutine TChem_doTimestep(del_t) bind(C, name="TChem_doTimestep")
+     use iso_c_binding
+     real(kind=c_double), intent(in) :: del_t
   end subroutine
 
      subroutine TChem_getAllStateVectorHost(arg_state_vector) bind(C, &
@@ -66,7 +71,7 @@ contains
 #ifdef PMC_USE_TCHEM
   !> Run the CAMP module for the current PartMC state
   subroutine pmc_tchem_interface_solve(env_state, aero_data, aero_state, &
-       gas_data, gas_state)
+       gas_data, gas_state, del_t)
 
     !> Environment data.
     type(env_state_t), intent(in) :: env_state
@@ -78,11 +83,13 @@ contains
     type(gas_data_t), intent(in) :: gas_data
     !> Gas state.
     type(gas_state_t), intent(inout) :: gas_state
+    !>
+    real(kind=dp), intent(in) :: del_t
 
     call tchem_from_partmc(aero_data, aero_state, gas_data, gas_state, &
          env_state)
 
-    call tchem_timestep()
+    call tchem_timestep(del_t)
 
     call tchem_to_partmc(aero_data, aero_state, gas_data, gas_state, env_state)
 
@@ -92,7 +99,7 @@ contains
 
   !> Initialize TChem and PartMC gas and aerosol data.
   subroutine pmc_tchem_initialize(gas_config_filename, aero_config_filename, &
-       solver_filename, gas_data, aero_data)
+       solver_config_filename, gas_data, aero_data)
     use iso_c_binding
 
     !>
@@ -100,7 +107,7 @@ contains
     !>
     character(len=*), intent(in) :: aero_config_filename
     !>
-    character(len=*), intent(in) :: solver_filename
+    character(len=*), intent(in) :: solver_config_filename
     !> Gas data.
     type(gas_data_t), intent(inout) :: gas_data
     !> Aerosol data.
@@ -112,7 +119,8 @@ contains
     character(:), allocatable ::  val
 
     ! initialize the model
-    call TChem_initialize(trim(gas_config_filename))
+    call TChem_initialize(trim(gas_config_filename), &
+         trim(aero_config_filename), trim(solver_config_filename))
 
     ! what we need:
     !  - number of gas species for gas_data
@@ -260,23 +268,29 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Do a single timestep of TChem chemistry.
-  subroutine TChem_timestep()
+  subroutine TChem_timestep(del_t)
     use iso_c_binding
+    real(kind=c_double) :: del_t
 
-    call TChem_doTimestep()
+    call TChem_doTimestep(del_t)
 
   end subroutine TChem_timestep
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Initialize TChem.
-  subroutine TChem_initialize(chemFile)
+  subroutine TChem_initialize(chemFile, aeroFile, NumericsFile)
     use iso_c_binding
 
     !> Chemistry configuration file.
     character(kind=c_char,len=*), intent(in) :: chemFile
+    !> Chemistry configuration file.
+    character(kind=c_char,len=*), intent(in) :: aeroFile
+    !> Chemistry configuration file.
+    character(kind=c_char,len=*), intent(in) :: numericsFile
 
-    call initialize(chemFile//c_null_char)
+    call initialize(chemFile//c_null_char, aeroFile//c_null_char, &
+         numericsFile//c_null_char)
 
   end subroutine TChem_initialize
 

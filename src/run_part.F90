@@ -576,17 +576,17 @@ contains
 
     if (.not. do_restart) then
        env_state_init%elapsed_time = 0d0
-       if (.not. run_part_opt%do_camp_chem) then
+       if (run_part_opt%do_camp_chem) then
+#ifdef PMC_USE_CAMP
+          call gas_data_initialize(gas_data, camp_core)
+#endif
+       else if (run_part_opt%do_tchem) then
+            print*, 'do nothing!'
+       else
           call spec_file_read_string(file, 'gas_data', sub_filename)
           call spec_file_open(sub_filename, sub_file)
           call spec_file_read_gas_data(sub_file, gas_data)
           call spec_file_close(sub_file)
-       else if (run_part_opt%do_tchem) then
-            print*, 'do nothing!'
-       else
-#ifdef PMC_USE_CAMP
-          call gas_data_initialize(gas_data, camp_core)
-#endif
        end if
        call spec_file_read_string(file, 'gas_init', sub_filename)
        call spec_file_open(sub_filename, sub_file)
@@ -886,7 +886,7 @@ contains
     if (run_part_opt%do_tchem) then
 #ifdef PMC_USE_TCHEM
        call pmc_tchem_interface_solve(env_state, aero_data, aero_state, &
-            gas_data, gas_state)
+            gas_data, gas_state, run_part_opt%del_t)
 #endif
     end if
 

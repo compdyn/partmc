@@ -6,15 +6,15 @@ restart no                      # whether to restart from saved state (yes/no)
 do_select_weighting no          # whether to select weighting explicitly (yes/no)
 
 t_max 1000000                   # total simulation time (s)
-del_t 10                        # timestep (s)
+del_t 100                        # timestep (s)
 t_output 1000                   # output interval (0 disables) (s)
 t_progress 10000                # progress printing interval (0 disables) (s)
 
 do_camp_chem no                # whether to run the campible chemistry module
 do_tchem yes 
 tchem_gas_config config_chapman.yaml
-tchem_aero_config config_chapman.yaml
-tchem_numerics_config config_chapman.yaml
+tchem_aero_config config_chapman.yaml # not currently used
+tchem_numerics_config solver.yaml
 
 gas_init gas_init_chapman.dat           # initial gas mixing ratios
 

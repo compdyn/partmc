@@ -14,7 +14,7 @@ do_camp_chem no                # whether to run the campible chemistry module
 do_tchem yes 
 tchem_gas_config chem.yaml
 tchem_aero_config chem.yaml
-tchem_numerics_config chem.yaml
+tchem_numerics_config solver.yaml
 
 gas_init gas_init.dat           # initial gas mixing ratios
 

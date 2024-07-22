@@ -114,6 +114,7 @@ contains
     type(aero_data_t), intent(inout) :: aero_data
 
     integer(kind=c_int) :: nSpec, nAeroSpec
+    integer :: n_species
     integer :: i
     real(kind=c_double), dimension(:), allocatable :: array 
     character(:), allocatable ::  val
@@ -186,6 +187,7 @@ contains
     type(env_state_t), intent(in) :: env_state
 
     integer(c_int) :: nSpec, stateVecDim
+    integer :: i_part
     real(kind=c_double), dimension(:), allocatable :: stateVector 
 
     real(c_double), dimension(:,:), allocatable, target :: state_vector
@@ -194,7 +196,6 @@ contains
     stateVecDim = TChem_getLengthOfStateVector()
     nSpec = TChem_getNumberOfSpecies()
     allocate(stateVector(stateVecDim))
-    array = 0.0d0
     call TChem_getStateVector(stateVector)
 
     allocate(state_vector(stateVecDim, 1))
@@ -233,6 +234,7 @@ contains
     real(kind=dp), parameter :: t_steam = 373.15 ! steam temperature (K)
     real(kind=dp) :: a, water_vp
     integer :: i_part
+    integer :: i_water
 
     ! Make a state vector
     ! Density

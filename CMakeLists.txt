@@ -110,15 +110,14 @@ endif()
 ######################################################################
 
 if(ENABLE_TCHEM)
-  find_path(TCHEM_INCLUDE_DIR tchem_atm/TChem.hpp
+  find_path(TCHEM_INCLUDE_DIR tchem_atm/TChem_Driver.hpp
     DOC "TChem include directory"
     PATHS $ENV{TCHEM_HOME}/include/) 
   find_library(TCHEM_LIB tchem_atm
     DOC "TChem library"
-    PATHS $ENV{TCHEM_HOME}/lib64)
+    PATHS $ENV{TCHEM_HOME}/lib64 $ENV{TCHEM_HOME}/lib)
   add_definitions(-DPMC_USE_TCHEM)
   include_directories(${TCHEM_INCLUDE_DIR})
-  include_directories(/data/keeling/a/jcurtis2/d/tchem_oscar/build_tchem/TPLs/install/sundials/include)
   find_path(YAML_INCLUDE_DIR yaml-cpp/yaml.h 
     DOC "TChem include directory"
     PATHS $ENV{YAML_PATH}/include/)
@@ -129,20 +128,25 @@ if(ENABLE_TCHEM)
     DOC "Kokkos include directory"
     PATHS $ENV{KOKKOS_PATH}/include)
   find_library(KOKKOS_LIB kokkoscore
-    PATHS $ENV{KOKKOS_PATH}/lib64)
+    PATHS $ENV{KOKKOS_PATH}/lib64 $ENV{KOKKOS_PATH}/lib)
   include_directories(${KOKKOS_INCLUDE_DIR})
+  find_path(KOKKOSKERNEL_INCLUDE_DIR KokkosKernels_Utils.hpp
+    DOC "Kokkos include directory"
+    PATHS $ENV{KOKKOSKERNEL_PATH}/include)
+  find_library(KOKKOSKERNEL_LIB kokkoskernels
+    PATHS $ENV{KOKKOSKERNEL_PATH}/lib64 $ENV{KOKKOSKERNEL_PATH}/lib)
   find_path(TINES_INCLUDE_DIR tines/Tines.hpp
     DOC "Tines include directory"
     PATHS $ENV{TINES_PATH}/include)
   find_library(TINES_LIB tines
-    PATHS $ENV{TINES_PATH}/lib64)
+    PATHS $ENV{TINES_PATH}/lib64 $ENV{TINES_PATH}/lib)
   include_directories(${TINES_INCLUDE_DIR})
-  find_path(LAPACK_INCLUDE_DIR lapack.h 
-    DOC "LAPACK include directory"
-    PATHS $ENV{LAPACK_PATH}/include)
-  find_library(LAPACK_LIB openblas
-    PATHS $ENV{LAPACK_PATH}/lib)
-  include_directories(${LAPACK_INCLUDE_DIR})
+#  find_path(LAPACK_INCLUDE_DIR lapack.h
+#    DOC "LAPACK include directory"
+#    PATHS $ENV{LAPACK_PATH}/include)
+#  find_library(LAPACK_LIB openblas
+#    PATHS $ENV{LAPACK_PATH}/lib)
+#  include_directories(${LAPACK_INCLUDE_DIR})
 endif()
 
 ######################################################################
@@ -232,7 +236,7 @@ add_library(partmclib src/aero_state.F90 src/integer_varray.F90
 
 target_link_libraries(partmclib ${NETCDF_LIBS} ${SUNDIALS_LIBS}
   ${MOSAIC_LIB} ${GSL_LIBS} ${CAMP_LIB} ${TCHEM_LIB} ${YAML_LIB}
-  ${KOKKOS_LIB} ${TINES_LIB} ${LAPACK_LIB})
+  ${KOKKOS_LIB} ${KOKKOSKERNEL_LIB} ${TINES_LIB} -lstdc++) #${LAPACK_LIB})
 
 set_target_properties(partmclib PROPERTIES OUTPUT_NAME partmc)
 

@@ -141,6 +141,7 @@ if(ENABLE_TCHEM)
   find_library(TINES_LIB tines
     PATHS $ENV{TINES_PATH}/lib64 $ENV{TINES_PATH}/lib)
   include_directories(${TINES_INCLUDE_DIR})
+  set(CPP_LIB -lstdc++)
 #  find_path(LAPACK_INCLUDE_DIR lapack.h
 #    DOC "LAPACK include directory"
 #    PATHS $ENV{LAPACK_PATH}/include)
@@ -236,7 +237,7 @@ add_library(partmclib src/aero_state.F90 src/integer_varray.F90
 
 target_link_libraries(partmclib ${NETCDF_LIBS} ${SUNDIALS_LIBS}
   ${MOSAIC_LIB} ${GSL_LIBS} ${CAMP_LIB} ${TCHEM_LIB} ${YAML_LIB}
-  ${KOKKOS_LIB} ${KOKKOSKERNEL_LIB} ${TINES_LIB} -lstdc++) #${LAPACK_LIB})
+  ${KOKKOS_LIB} ${KOKKOSKERNEL_LIB} ${TINES_LIB} ${CPP_LIB}) #${LAPACK_LIB})
 
 set_target_properties(partmclib PROPERTIES OUTPUT_NAME partmc)
 

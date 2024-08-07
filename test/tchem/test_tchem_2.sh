@@ -10,5 +10,5 @@ cd ${0%/*}
 mkdir -p out
 
 ../../partmc run_part.spec
-i../../extract_gas out/tchem_0001
+../../extract_gas out/tchem_0001
 ../../numeric_diff --by col --rel-tol 0.4 out/tchem_0001_gas.txt tchem_0001_gas_saved.txt

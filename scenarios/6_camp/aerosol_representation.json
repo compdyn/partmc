@@ -8,7 +8,11 @@
               {
                       "name": "one_layer",
                       "phases": [
-                              "organic_matter"
+                              "dust",
+                              "sea_salt",
+                              "organic_matter",
+                              "black_carbon",
+                              "other_PM"
                       ],
                       "covers": "none"
               }

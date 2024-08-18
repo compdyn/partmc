@@ -3,7 +3,20 @@
     {
       "name" : "PartMC single particle",
       "type" : "AERO_REP_SINGLE_PARTICLE",
-      "maximum computational particles" : 10500
+      "maximum computational particles" : 10500,
+      "layers": [
+              {
+                      "name": "one_layer",
+                      "phases": [
+                              "dust",
+                              "sea_salt",
+                              "organic_matter",
+                              "black_carbon",
+                              "other_PM"
+                      ],
+                      "covers": "none"
+              }
+      ]
     }
   ]
 }

@@ -31,7 +31,7 @@ aero_emissions aero_emit.dat    # aerosol emissions file
 aero_background aero_back.dat   # aerosol background file
 loss_function none              # particle loss function
 
-rel_humidity 0.999              # initial relative humidity (1)
+rel_humidity 9.0034351828398e-08 # initial relative humidity (1)
 latitude 40                     # latitude (degrees, -90 to 90)
 longitude 0                     # longitude (degrees, -180 to 180)
 altitude 0                      # altitude (m)

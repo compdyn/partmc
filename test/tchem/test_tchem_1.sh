@@ -11,4 +11,4 @@ mkdir -p out
 
 ../../partmc run_part_chapman.spec
 ../../extract_gas out/tchem_chapman_0001
-../../numeric_diff --by col --rel-tol 0.4 out/tchem_chapman_0001_gas.txt tchem_chapman_gas.txt
+../../numeric_diff --by col --rel-tol 0.4 out/tchem_chapman_0001_gas.txt tchem_chapman_gas_saved.txt

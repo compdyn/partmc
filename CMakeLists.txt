@@ -3,7 +3,16 @@ cmake_minimum_required(VERSION 2.6.4)
 # http://www.cmake.org/Bug/view.php?id=8598
 # http://gcc.gnu.org/bugzilla/show_bug.cgi?id=35707
 # http://www.cmake.org/Bug/view.php?id=8408
-project(PARTMC Fortran C)
+if (ENABLE_TCHEM_GPU)
+  # Use the wrapper to nvcc for the CXX compiler
+  set(ENV{CXX} $ENV{KOKKOS_PATH}/bin/nvcc_wrapper)
+  set(CMAKE_CXX_FLAGS "-lpthread -ldl -fopenmp" CACHE STRING "" FORCE)
+  set(CMAKE_C_FLAGS "-lpthread -ldl -fopenmp" CACHE STRING "" FORCE)
+  set(CMAKE_Fortran_FLAGS "-lpthread -ldl -fopenmp" CACHE STRING "" FORCE)
+  project(PARTMC Fortran C CXX)
+else()
+  project(PARTMC Fortran C)
+endif()
 
 set(PACKAGE_BUGREPORT "mwest@illinois.edu")
 set(PACKAGE_NAME "PartMC")
@@ -142,12 +151,13 @@ if(ENABLE_TCHEM)
     PATHS $ENV{TINES_PATH}/lib64 $ENV{TINES_PATH}/lib)
   include_directories(${TINES_INCLUDE_DIR})
   set(CPP_LIB -lstdc++)
-#  find_path(LAPACK_INCLUDE_DIR lapack.h
-#    DOC "LAPACK include directory"
-#    PATHS $ENV{LAPACK_PATH}/include)
-#  find_library(LAPACK_LIB openblas
-#    PATHS $ENV{LAPACK_PATH}/lib)
-#  include_directories(${LAPACK_INCLUDE_DIR})
+  find_path(LAPACK_INCLUDE_DIR lapack.h
+    DOC "LAPACK include directory"
+    PATHS $ENV{LAPACK_PATH}/include)
+  find_library(LAPACK_LIB openblas
+    PATHS $ENV{LAPACK_PATH}/lib)
+  include_directories(${LAPACK_INCLUDE_DIR})
+  option(ENABLE_TCHEM_GPU "Enable TChem GPU chemistry support" OFF)
 endif()
 
 ######################################################################
@@ -237,9 +247,12 @@ add_library(partmclib src/aero_state.F90 src/integer_varray.F90
 
 target_link_libraries(partmclib ${NETCDF_LIBS} ${SUNDIALS_LIBS}
   ${MOSAIC_LIB} ${GSL_LIBS} ${CAMP_LIB} ${TCHEM_LIB} ${YAML_LIB}
-  ${KOKKOS_LIB} ${KOKKOSKERNEL_LIB} ${TINES_LIB} ${CPP_LIB}) #${LAPACK_LIB})
+  ${KOKKOS_LIB} ${KOKKOSKERNEL_LIB} ${TINES_LIB} ${CPP_LIB} ${LAPACK_LIB})
 
 set_target_properties(partmclib PROPERTIES OUTPUT_NAME partmc)
+if (ENABLE_TCHEM_GPU)
+   set_target_properties(partmclib PROPERTIES LINKER_LANGUAGE CXX)
+endif()
 
 ######################################################################
 # partmc executable
@@ -247,6 +260,7 @@ set_target_properties(partmclib PROPERTIES OUTPUT_NAME partmc)
 add_executable(partmc src/partmc.F90)
 
 target_link_libraries(partmc partmclib)
+set_property(TARGET partmc PROPERTY LINKER_LANGUAGE CXX)
 
 ######################################################################
 # test_bidisperse_ode

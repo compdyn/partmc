@@ -1,11 +1,11 @@
-! Copyright (C) 2017-2018 Matt Dawson
+! Copyright (C) 2024 Jeff Curtis
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
 !> \file
-!> The pmc_camp_interface module.
+!> The pmc_tchem_interface module.
 
-!> An interface between PartMC and the CAMP
+!> An interface between PartMC and TChem
 module pmc_tchem_interface
 
   use pmc_aero_data
@@ -57,12 +57,11 @@ interface
      use iso_c_binding
      real(kind=c_double), intent(in) :: del_t
   end subroutine
-
-     subroutine TChem_getAllStateVectorHost(arg_state_vector) bind(C, &
-         name="TChem_getAllStateVectorHost")
-       use iso_c_binding, only: c_ptr
-       type(c_ptr), value :: arg_state_vector
-     end subroutine TChem_getAllStateVectorHost
+  subroutine TChem_getAllStateVectorHost(arg_state_vector) bind(C, &
+      name="TChem_getAllStateVectorHost")
+    use iso_c_binding, only: c_ptr
+    type(c_ptr), value :: arg_state_vector
+  end subroutine TChem_getAllStateVectorHost
 end interface
 
 contains
@@ -83,7 +82,7 @@ contains
     type(gas_data_t), intent(in) :: gas_data
     !> Gas state.
     type(gas_state_t), intent(inout) :: gas_state
-    !>
+    !> Time step (s).
     real(kind=dp), intent(in) :: del_t
 
     call tchem_from_partmc(aero_data, aero_state, gas_data, gas_state, &
@@ -102,11 +101,11 @@ contains
        solver_config_filename, gas_data, aero_data)
     use iso_c_binding
 
-    !>
+    !> Gas configuration filename.
     character(len=*), intent(in) :: gas_config_filename
-    !>
+    !> Aerosol configuration filename.
     character(len=*), intent(in) :: aero_config_filename
-    !>
+    !> Numerical configuration filename.
     character(len=*), intent(in) :: solver_config_filename
     !> Gas data.
     type(gas_data_t), intent(inout) :: gas_data
@@ -129,20 +128,19 @@ contains
     nSpec = TChem_getNumberOfSpecies() 
     call ensure_string_array_size(gas_data%name, nSpec)
 
-    ! name of gas species
+    ! Populate gas_data with gas species from TChem
     do i = 1,nSpec
        val = TChem_species_name(i-1) 
        gas_data%name(i) = trim(val)
     end do   
 
-    ! We need this
+    ! FIXME: We need this still
     allocate(gas_data%mosaic_index(gas_data_n_spec(gas_data)))
     gas_data%mosaic_index(:) = 0
  
     print*, 'in partmc', nSpec, trim(gas_config_filename), &
          gas_data_n_spec(gas_data)
 
-    ! FIXME:
     ! Get aerosol data
     ! Species names
     ! Species properties - density, kappa, molecular weight
@@ -236,29 +234,27 @@ contains
     integer :: i_part
     integer :: i_water
 
-    ! Make a state vector
-    ! Density
-    ! Pressure
-    ! Temperature
-    ! Concentrations
-    ! get size of stateVector
+    ! Get size of stateVector
     stateVecDim = TChem_getLengthOfStateVector()
     allocate(stateVector(stateVecDim))
+    ! First three elements are density, pressure and temperature
     stateVector(1) = env_state_air_den(env_state)
     stateVector(2) = env_state%pressure
     stateVector(3) = env_state%temp
 
-    ! FIXME: we have to do something about water here
+    ! PartMC uses relative humidity and not H2O mixing ratio.
     i_water = gas_data_spec_by_name(gas_data, "H2O")
     a = 1.0 - t_steam / env_state%temp
     a = (((-0.1299 * a - 0.6445) * a - 1.976) * a + 13.3185) * a
     water_vp = 101325.0 * exp(a)  ! (Pa)
     gas_state%mix_rat(i_water) = env_state%rel_humid * water_vp * 1.0e9 &
          / env_state%pressure ! (ppb)
+    ! Convert from ppb to ppm.
     call gas_state_scale(gas_state, 1.0d0 / 1000.d0)
+    ! Add gas species to state vector.
     stateVector(4:gas_data_n_spec(gas_data)+3) = gas_state%mix_rat
 
-    ! Map aerosols
+    ! TODO: Map aerosols
     do i_part = 1,aero_state_n_part(aero_state)
 
     end do
@@ -298,7 +294,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Get i_spec species name from TChem.
+  !> Get species name from TChem for a given index.
   function TChem_species_name(i_spec) result(species_name)
     use iso_c_binding
     ! Species name.

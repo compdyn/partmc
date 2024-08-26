@@ -3,13 +3,17 @@ cmake_minimum_required(VERSION 2.6.4)
 # http://www.cmake.org/Bug/view.php?id=8598
 # http://gcc.gnu.org/bugzilla/show_bug.cgi?id=35707
 # http://www.cmake.org/Bug/view.php?id=8408
-if (ENABLE_TCHEM_GPU)
-  # Use the wrapper to nvcc for the CXX compiler
-  set(ENV{CXX} $ENV{KOKKOS_PATH}/bin/nvcc_wrapper)
-  set(CMAKE_CXX_FLAGS "-lpthread -ldl -fopenmp" CACHE STRING "" FORCE)
+if (ENABLE_TCHEM)
   set(CMAKE_C_FLAGS "-lpthread -ldl -fopenmp" CACHE STRING "" FORCE)
   set(CMAKE_Fortran_FLAGS "-lpthread -ldl -fopenmp" CACHE STRING "" FORCE)
-  project(PARTMC Fortran C CXX)
+  # Use the wrapper to nvcc for the CXX compiler
+  if (ENABLE_TCHEM_GPU)
+    set(ENV{CXX} $ENV{KOKKOS_PATH}/bin/nvcc_wrapper)
+    set(CMAKE_CXX_FLAGS "-lpthread -ldl -fopenmp" CACHE STRING "" FORCE)
+    project(PARTMC Fortran C CXX)
+  else()
+  project(PARTMC Fortran C)
+  endif()
 else()
   project(PARTMC Fortran C)
 endif()
@@ -260,7 +264,9 @@ endif()
 add_executable(partmc src/partmc.F90)
 
 target_link_libraries(partmc partmclib)
-set_property(TARGET partmc PROPERTY LINKER_LANGUAGE CXX)
+if (ENABLE_TCHEM_GPU)
+  set_property(TARGET partmc PROPERTY LINKER_LANGUAGE CXX)
+endif()
 
 ######################################################################
 # test_bidisperse_ode

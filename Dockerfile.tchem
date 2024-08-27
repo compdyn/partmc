@@ -177,6 +177,6 @@ RUN cd /build \
              -D ENABLE_SUNDIALS:BOOL=TRUE \
              -DCMAKE_C_FLAGS="-lpthread -ldl -fopenmp" \
              -DCMAKE_Fortran_FLAGS="-lpthread -ldl -fopenmp" \
-             /partmc
+             /partmc \
     && make
 WORKDIR /build

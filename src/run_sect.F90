@@ -199,6 +199,86 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Read the specification for a run_sect simulation from a spec file.
+  subroutine spec_file_read_run_sect(file, run_sect_opt, aero_data, &
+       bin_grid, gas_data, env_state, aero_dist_init, scenario)
+
+    !> Spec file.
+    type(spec_file_t), intent(inout) :: file
+    !> Options controlling the operation of run_sect().
+    type(run_sect_opt_t), intent(inout) :: run_sect_opt
+    !> Aerosol data.
+    type(aero_data_t), intent(out) :: aero_data
+    !> Bin grid.
+    type(bin_grid_t), intent(out) :: bin_grid
+    !> Initial aerosol state.
+    type(aero_dist_t), intent(out) :: aero_dist_init
+    !> Scenario data.
+    type(scenario_t), intent(out) :: scenario
+    !> Environmental state.
+    type(env_state_t), intent(out) :: env_state
+    !> Gas data.
+    type(gas_data_t), intent(out) :: gas_data
+
+    character(len=PMC_MAX_FILENAME_LEN) :: sub_filename
+    type(spec_file_t) :: sub_file
+
+    call spec_file_read_string(file, 'output_prefix', run_sect_opt%prefix)
+
+    call spec_file_read_real(file, 't_max', run_sect_opt%t_max)
+    call spec_file_read_real(file, 'del_t', run_sect_opt%del_t)
+    call spec_file_read_real(file, 't_output', run_sect_opt%t_output)
+    call spec_file_read_real(file, 't_progress', run_sect_opt%t_progress)
+
+    call spec_file_read_radius_bin_grid(file, bin_grid)
+
+    call spec_file_read_string(file, 'gas_data', sub_filename)
+    call spec_file_open(sub_filename, sub_file)
+    call spec_file_read_gas_data(sub_file, gas_data)
+    call spec_file_close(sub_file)
+
+    call spec_file_read_string(file, 'aerosol_data', sub_filename)
+    call spec_file_open(sub_filename, sub_file)
+    call spec_file_read_aero_data(sub_file, aero_data)
+    call spec_file_close(sub_file)
+
+    call spec_file_read_fractal(file, aero_data%fractal)
+
+    call spec_file_read_string(file, 'aerosol_init', sub_filename)
+    call spec_file_open(sub_filename, sub_file)
+    call spec_file_read_aero_dist(sub_file, aero_data, .false., aero_dist_init)
+    call spec_file_close(sub_file)
+
+    call spec_file_read_scenario(file, gas_data, aero_data, .false., scenario)
+    call spec_file_read_env_state(file, env_state)
+
+    call spec_file_read_logical(file, 'do_coagulation', &
+         run_sect_opt%do_coagulation)
+    if (run_sect_opt%do_coagulation) then
+       call spec_file_read_coag_kernel_type(file, &
+            run_sect_opt%coag_kernel_type)
+       if (run_sect_opt%coag_kernel_type == COAG_KERNEL_TYPE_ADDITIVE) then
+          call spec_file_read_real(file, 'additive_kernel_coeff', &
+               env_state%beta_1)
+       end if
+    else
+       run_sect_opt%coag_kernel_type = COAG_KERNEL_TYPE_INVALID
+    end if
+
+    call spec_file_close(file)
+
+    ! finished reading .spec data, now do the run
+
+    call pmc_srand(0, 0)
+
+    call uuid4_str(run_sect_opt%uuid)
+
+    call scenario_init_env_state(scenario, env_state, 0d0)
+
+  end subroutine spec_file_read_run_sect
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Collision subroutine, exponential approach.
   subroutine coad(n_bin, dt, taug, taup, taul, tauu, prod, ploss, &
        c, ima, g, r, e, ck, ec)

@@ -1,21 +1,20 @@
-
-PartMC
+![PartMC](https://raw.githubusercontent.com/wiki/compdyn/partmc/logo.svg)
 ======
 
 PartMC: Particle-resolved Monte Carlo code for atmospheric aerosol simulation
 
 [![Latest version](https://img.shields.io/github/tag/compdyn/partmc.svg?label=version)](https://github.com/compdyn/partmc/blob/master/ChangeLog.md) [![Docker build status](https://img.shields.io/docker/automated/compdyn/partmc.svg)](https://hub.docker.com/r/compdyn/partmc/builds/) [![Github Actions Status](https://github.com/compdyn/partmc/workflows/CI/badge.svg?branch=master)](https://github.com/compdyn/partmc/actions/workflows/main.yml) [![License](https://img.shields.io/github/license/compdyn/partmc.svg)](https://github.com/compdyn/partmc/blob/master/COPYING) [![DOI](https://zenodo.org/badge/24058992.svg)](https://zenodo.org/badge/latestdoi/24058992)
 
-Version 2.6.1  
-Released 2022-02-18
+Version 2.8.0  
+Released 2024-02-23
 
 **Source:** <https://github.com/compdyn/partmc>
 
 **Homepage:** <http://lagrange.mechse.illinois.edu/partmc/>
 
-**Cite as:** M. West, N. Riemer, J. Curtis, M. Michelotti, and J. Tian (2022) PartMC, [![version](https://img.shields.io/github/release/compdyn/partmc.svg?label=version)](https://github.com/compdyn/partmc), [![DOI](https://zenodo.org/badge/24058992.svg)](https://zenodo.org/badge/latestdoi/24058992)
+**Cite as:** M. West, N. Riemer, J. Curtis, M. Michelotti, and J. Tian (2024) PartMC, [![version](https://img.shields.io/github/release/compdyn/partmc.svg?label=version)](https://github.com/compdyn/partmc), [![DOI](https://zenodo.org/badge/24058992.svg)](https://zenodo.org/badge/latestdoi/24058992)
 
-Copyright (C) 2005-2022 Nicole Riemer and Matthew West  
+Copyright (C) 2005-2024 Nicole Riemer and Matthew West  
 Portions copyright (C) Andreas Bott, Richard Easter, Jeffrey Curtis,
 Matthew Michelotti, and Jian Tian  
 Licensed under the GNU General Public License version 2 or (at your
@@ -185,12 +184,12 @@ Installation
 
 2. Unpack PartMC:
 
-        tar xzvf partmc-2.6.1.tar.gz
+        tar xzvf partmc-2.8.0.tar.gz
 
 3. Change into the main PartMC directory (where this README file is
    located):
 
-        cd partmc-2.6.1
+        cd partmc-2.8.0
 
 4. Make a directory called `build` and change into it:
 
@@ -274,3 +273,18 @@ particle-resolved runs) or binned data (from sectional or exact
 runs). The `extract_*` programs can read these per-timestep NetCDF
 files and output ASCII data (the `extract_sectional_*` programs are
 used for sectional and exact model output).
+
+Python bindings
+===============
+
+The [PyPartMC](https://github.com/open-atmos/PyPartMC) project offers
+pip-installable Python bindings to PartMC. Both source and binary
+packages are available and ship with all PartMC dependencies included.
+PyPartMC exposes internal components of PartMC (utility routines and 
+derived types) which then can serve as building blocks to develop PartMC 
+simulations in Python. Time stepping can be performed either using the
+internal PartMC time-stepper or externally within a Python loop. The
+latter allows to couple the simulation with external Python components
+in each timestep. PyPartMC features examples developed as Jupyter notebooks.
+Snippets of code provided in the README file depict how to use PyPartMC 
+from Julia (using PyCall.jl) and Matlab (using Matlab's built-in Python bridge).

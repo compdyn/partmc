@@ -82,7 +82,7 @@ module pmc_output
 #endif
 
   !> PartMC verson number.
-  character(len=100), parameter :: PARTMC_VERSION = "2.6.1"
+  character(len=100), parameter :: PARTMC_VERSION = "2.8.0"
 
   !> Type code for undefined or invalid output.
   integer, parameter :: OUTPUT_TYPE_INVALID = 0
@@ -820,6 +820,147 @@ contains
     end if
 
   end subroutine spec_file_read_output_type
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Writes the current state of a column of a WRF-PartMC domain.
+  subroutine output_column_to_file(prefix, aero_data, aero_states, gas_data, &
+       gas_states, env_states, nz, index, time, del_t, i_repeat, &
+       record_removals, record_optical, uuid, write_rank, write_n_proc)
+
+    !> Prefix of state file.
+    character(len=*), intent(in) :: prefix
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Array of aerosol states.
+    type(aero_state_t), dimension(nz), intent(in) :: aero_states
+    !> Gas data.
+    type(gas_data_t), intent(in) :: gas_data
+    !> Array of gas states.
+    type(gas_state_t), dimension(nz), intent(in) :: gas_states
+    !> Array of environment states.
+    type(env_state_t), dimension(nz), intent(in) :: env_states
+    !> Number of vertical levels.
+    integer, intent(in) :: nz
+    !> Filename index.
+    integer, intent(in) :: index
+    !> Current time (s).
+    real(kind=dp), intent(in) :: time
+    !> Current timestep (s).
+    real(kind=dp), intent(in) :: del_t
+    !> Current repeat number.
+    integer, intent(in) :: i_repeat
+    !> Whether to output particle removal info.
+    logical, intent(in) :: record_removals
+    !> Whether to output aerosol optical properties.
+    logical, intent(in) :: record_optical
+    !> UUID of the simulation.
+    character(len=PMC_UUID_LEN), intent(in) :: uuid
+    !> Rank to write into file.
+    integer, intent(in), optional :: write_rank
+    !> Number of processes to write into file.
+    integer, intent(in), optional :: write_n_proc
+
+    character(len=len(prefix)+100) :: filename
+    integer :: ncid
+    character(len=50) :: group_name
+    integer :: ncid_group
+    integer :: k
+
+#ifdef PMC_USE_WRF
+    write(filename,'(a,a,i3.3,a,i3.3,a,i8.8,a)') trim(prefix), '_', &
+         env_states(1)%cell_ix, '_', env_states(1)%cell_iy, '_', index, '.nc'
+    call pmc_nc_open_write(filename, ncid)
+    call pmc_nc_write_info(ncid, uuid, &
+         "WRF-PartMC version " // trim(PARTMC_VERSION), write_rank, &
+          write_n_proc)
+    call write_time(ncid, time, del_t, index)
+
+    call gas_data_output_netcdf(gas_data, ncid)
+    call aero_data_output_netcdf(aero_data, ncid)
+
+    do k = 1,nz
+       call pmc_nc_check(nf90_redef(ncid))
+       write(group_name,'(a,i2.2)') 'level_', env_states(k)%cell_iz
+       call pmc_nc_check(nf90_def_grp(ncid, group_name, ncid_group))
+       call pmc_nc_check(nf90_enddef(ncid))
+       call env_state_output_netcdf(env_states(k), ncid_group)
+       call gas_state_output_netcdf(gas_states(k), ncid_group, gas_data)
+       call aero_state_output_netcdf(aero_states(k), ncid_group, aero_data, &
+            record_removals, record_optical)
+    end do
+
+    call pmc_nc_check(nf90_close(ncid))
+#endif
+
+  end subroutine output_column_to_file
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Reads in the current state of a column of a WRF-PartMC domain.
+  subroutine input_column_to_file(filename, index, time, del_t, i_repeat, nz, &
+       uuid, aero_data, aero_states, gas_data, gas_states, env_states)
+
+    !> Prefix of state file.
+    character(len=*), intent(in) :: filename
+    !> Aerosol data.
+    type(aero_data_t), intent(inout) :: aero_data
+    !> Array of aerosol states.
+    type(aero_state_t), dimension(nz), intent(inout) :: aero_states
+    !> Gas data.
+    type(gas_data_t), intent(inout) :: gas_data
+    !> Array of gas states.
+    type(gas_state_t), dimension(nz), intent(inout) :: gas_states
+    !> Array of environment states.
+    type(env_state_t), dimension(nz), intent(inout) :: env_states
+    !> Number of vertical levels.
+    integer, intent(in) :: nz
+    !> Filename index.
+    integer, intent(out) :: index
+    !> Current time (s).
+    real(kind=dp), intent(out) :: time
+    !> Current timestep (s).
+    real(kind=dp), intent(out) :: del_t
+    !> Current repeat number.
+    integer, intent(out) :: i_repeat
+    !> UUID of the simulation.
+    character(len=PMC_UUID_LEN), intent(out) :: uuid
+
+    integer :: ncid
+    character(len=50) :: group_name
+    integer :: ncid_group
+    integer :: n_groups
+    integer, allocatable :: ncid_groups(:)
+    integer :: k
+
+#ifdef PMC_USE_WRF
+    call pmc_nc_open_read(filename, ncid)
+
+    call pmc_nc_check(nf90_get_att(ncid, NF90_GLOBAL, "UUID", uuid))
+    call pmc_nc_read_real(ncid, time, "time")
+    call pmc_nc_read_real(ncid, del_t, "timestep")
+    call pmc_nc_read_integer(ncid, index, "timestep_index")
+
+    call gas_data_input_netcdf(gas_data, ncid)
+    call aero_data_input_netcdf(aero_data, ncid)
+
+    call pmc_nc_check(nf90_inq_grps(ncid, n_groups, ncid_groups))
+
+    call assert_msg(819739350, size(aero_states) == n_groups, &
+         "number of levels in file do not match expected number of levels")
+
+    do k = 1,nz
+       write(group_name,'(a,i2.2)') 'level_', k
+       call pmc_nc_check(nf90_inq_ncid(ncid, group_name, ncid_group))
+       call env_state_input_netcdf(env_states(k), ncid_group)
+       call gas_state_input_netcdf(gas_states(k), ncid_group, gas_data)
+       call aero_state_input_netcdf(aero_states(k), ncid_group, aero_data)
+    end do
+
+    call pmc_nc_check(nf90_close(ncid))
+#endif
+
+  end subroutine input_column_to_file
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

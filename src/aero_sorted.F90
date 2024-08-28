@@ -169,7 +169,7 @@ contains
             aero_particle_array%particle(i_part), aero_data)
        if ((i_bin < 1) .or. (i_bin > bin_grid_size(aero_sorted%bin_grid))) then
           call warn_msg(954800836, "particle ID " &
-               // trim(integer_to_string( &
+               // trim(integer64_to_string( &
                aero_particle_array%particle(i_part)%id)) &
                // " outside of bin_grid, discarding")
           call aero_particle_array_remove_particle(aero_particle_array, &

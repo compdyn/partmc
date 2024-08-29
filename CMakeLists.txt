@@ -6,13 +6,13 @@ cmake_minimum_required(VERSION 2.6.4)
 if (ENABLE_TCHEM)
   set(CMAKE_C_FLAGS "-lpthread -ldl -fopenmp" CACHE STRING "" FORCE)
   set(CMAKE_Fortran_FLAGS "-lpthread -ldl -fopenmp" CACHE STRING "" FORCE)
-  # Use the wrapper to nvcc for the CXX compiler
+  # Use the wrapper to nvcc for the CXX compiler for GPU
   if (ENABLE_TCHEM_GPU)
     set(ENV{CXX} $ENV{KOKKOS_PATH}/bin/nvcc_wrapper)
     set(CMAKE_CXX_FLAGS "-lpthread -ldl -fopenmp" CACHE STRING "" FORCE)
     project(PARTMC Fortran C CXX)
   else()
-  project(PARTMC Fortran C)
+    project(PARTMC Fortran C)
   endif()
 else()
   project(PARTMC Fortran C)
@@ -26,11 +26,12 @@ set(PACKAGE_VERSION "2.8.0")
 
 include(FortranCInterface)
 
-# if you are working with C and Fortran
-#FortranCInterface_VERIFY()
-
-# if you are working with C++ and Fortran
-#FortranCInterface_VERIFY(CXX)
+# Working with C and Fortran
+FortranCInterface_VERIFY()
+if (ENABLE_TCHEM_GPU)
+   # Working with C++ and Fortran
+   FortranCInterface_VERIFY(CXX)
+endif()
 
 ######################################################################
 # options

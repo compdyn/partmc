@@ -4,5 +4,6 @@ solver_info:
   dtmin: 1e-20
   atol_newton: 1e-3
   rtol_newton: 1e-6 
-  max_newton_iterations: 20
-  max_time_iterations: 1000000
+  max_newton_iterations: 100
+  max_time_iterations: 100000
+  jacobian_interval: 100

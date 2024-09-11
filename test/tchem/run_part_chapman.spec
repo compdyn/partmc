@@ -14,7 +14,7 @@ do_camp_chem no                # whether to run the campible chemistry module
 do_tchem yes 
 tchem_gas_config config_chapman.yaml
 tchem_aero_config config_chapman.yaml # not currently used
-tchem_numerics_config solver.yaml
+tchem_numerics_config solver_chapman.yaml
 
 gas_init gas_init_chapman.dat           # initial gas mixing ratios
 

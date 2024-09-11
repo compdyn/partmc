@@ -57,11 +57,6 @@ interface
      use iso_c_binding
      real(kind=c_double), intent(in) :: del_t
   end subroutine
-  subroutine TChem_getAllStateVectorHost(arg_state_vector) bind(C, &
-      name="TChem_getAllStateVectorHost")
-    use iso_c_binding, only: c_ptr
-    type(c_ptr), value :: arg_state_vector
-  end subroutine TChem_getAllStateVectorHost
 end interface
 
 contains
@@ -122,9 +117,7 @@ contains
     call TChem_initialize(trim(gas_config_filename), &
          trim(aero_config_filename), trim(solver_config_filename))
 
-    ! what we need:
-    !  - number of gas species for gas_data
-    !  - name of gas species to set gas_data
+    ! Get size that gas_data should be
     nSpec = TChem_getNumberOfSpecies() 
     call ensure_string_array_size(gas_data%name, nSpec)
 
@@ -134,14 +127,12 @@ contains
        gas_data%name(i) = trim(val)
     end do   
 
-    ! FIXME: We need this still
+    ! For output and MPI, this needs to be allocated (for now)
     allocate(gas_data%mosaic_index(gas_data_n_spec(gas_data)))
     gas_data%mosaic_index(:) = 0
- 
-    print*, 'in partmc', nSpec, trim(gas_config_filename), &
-         gas_data_n_spec(gas_data)
 
-    ! Get aerosol data
+    ! Aerosols
+    ! Temporarily set so PartMC can run.
     ! Species names
     ! Species properties - density, kappa, molecular weight
     n_species = 10
@@ -188,21 +179,17 @@ contains
     integer :: i_part
     real(kind=c_double), dimension(:), allocatable :: stateVector 
 
-    real(c_double), dimension(:,:), allocatable, target :: state_vector
-
     ! Get gas array
     stateVecDim = TChem_getLengthOfStateVector()
     nSpec = TChem_getNumberOfSpecies()
     allocate(stateVector(stateVecDim))
     call TChem_getStateVector(stateVector)
 
-    allocate(state_vector(stateVecDim, 1))
-    call TChem_getAllStateVectorHost(c_loc(state_vector))
     gas_state%mix_rat = 0.0
-    ! FIXME: adjust this range later
     gas_state%mix_rat = stateVector(4:nSpec+3)
     ! Convert gas_state from ppm to ppb.
     call gas_state_scale(gas_state, 1000.d0)
+
     ! Map aerosols
     do i_part = 1,aero_state_n_part(aero_state)
 
@@ -268,6 +255,8 @@ contains
   !> Do a single timestep of TChem chemistry.
   subroutine TChem_timestep(del_t)
     use iso_c_binding
+
+    !> Time step (s).
     real(kind=c_double) :: del_t
 
     call TChem_doTimestep(del_t)
@@ -297,6 +286,7 @@ contains
   !> Get species name from TChem for a given index.
   function TChem_species_name(i_spec) result(species_name)
     use iso_c_binding
+
     ! Species name.
     character(:), allocatable :: species_name
 

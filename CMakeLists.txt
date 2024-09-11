@@ -156,12 +156,12 @@ if(ENABLE_TCHEM)
     PATHS $ENV{TINES_PATH}/lib64 $ENV{TINES_PATH}/lib)
   include_directories(${TINES_INCLUDE_DIR})
   set(CPP_LIB -lstdc++)
-  find_path(LAPACK_INCLUDE_DIR lapack.h
-    DOC "LAPACK include directory"
-    PATHS $ENV{LAPACK_PATH}/include)
+#  find_path(LAPACK_INCLUDE_DIR lapack.h
+#    DOC "LAPACK include directory"
+#    PATHS $ENV{LAPACK_PATH}/include)
   find_library(LAPACK_LIB openblas
     PATHS $ENV{LAPACK_PATH}/lib)
-  include_directories(${LAPACK_INCLUDE_DIR})
+#  include_directories(${LAPACK_INCLUDE_DIR})
   option(ENABLE_TCHEM_GPU "Enable TChem GPU chemistry support" OFF)
 endif()
 

@@ -4,12 +4,9 @@ cmake_minimum_required(VERSION 2.6.4)
 # http://gcc.gnu.org/bugzilla/show_bug.cgi?id=35707
 # http://www.cmake.org/Bug/view.php?id=8408
 if (ENABLE_TCHEM)
-  set(CMAKE_C_FLAGS "-lpthread -ldl -fopenmp" CACHE STRING "" FORCE)
-  set(CMAKE_Fortran_FLAGS "-lpthread -ldl -fopenmp" CACHE STRING "" FORCE)
   # Use the wrapper to nvcc for the CXX compiler for GPU
   if (ENABLE_TCHEM_GPU)
     set(ENV{CXX} $ENV{KOKKOS_PATH}/bin/nvcc_wrapper)
-    set(CMAKE_CXX_FLAGS "-lpthread -ldl -fopenmp" CACHE STRING "" FORCE)
     project(PARTMC Fortran C CXX)
   else()
     project(PARTMC Fortran C)
@@ -26,11 +23,20 @@ set(PACKAGE_VERSION "2.8.0")
 
 include(FortranCInterface)
 
+# Following must be commented out if using -Wimplicit-interface with -Werror
 # Working with C and Fortran
-FortranCInterface_VERIFY()
-if (ENABLE_TCHEM_GPU)
-   # Working with C++ and Fortran
-   FortranCInterface_VERIFY(CXX)
+#FortranCInterface_VERIFY()
+#if (ENABLE_TCHEM_GPU)
+#   # Working with C++ and Fortran
+#   FortranCInterface_VERIFY(CXX)
+#endif()
+
+if (ENABLE_TCHEM)
+  set(CMAKE_C_FLAGS "-lpthread -ldl -fopenmp" CACHE STRING "" FORCE)
+  set(CMAKE_Fortran_FLAGS "-lpthread -ldl -fopenmp" CACHE STRING "" FORCE)
+  if (ENABLE_TCHEM_GPU)
+    set(CMAKE_CXX_FLAGS "-lpthread -ldl -fopenmp" CACHE STRING "" FORCE)
+  endif()
 endif()
 
 ######################################################################

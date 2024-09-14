@@ -21,11 +21,9 @@ RUN apt-get update \
         ca-certificates \
         less \
         tmux \
-        make \
         libnetcdf-dev \
         libnetcdff-dev \
-        libgsl-dev \
-        cmake
+        libgsl-dev
 
 # We should checkout TChem here... and the correct branch for now?
 RUN git clone https://github.com/PCLAeroParams/TChem-atm.git /tchem_dir/

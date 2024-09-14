@@ -229,6 +229,7 @@ add_test(test_rand ${CMAKE_BINARY_DIR}/test_run/run_test_directory.sh rand)
 add_test(test_sedi ${CMAKE_BINARY_DIR}/test_run/run_test_directory.sh sedi)
 if (ENABLE_TCHEM)
   add_test(test_tchem ${CMAKE_BINARY_DIR}/test_run/run_test_directory.sh tchem)
+  set_tests_properties(test_tchem PROPERTIES RUN_SERIAL TRUE)
 endif()
 add_test(test_weighting ${CMAKE_BINARY_DIR}/test_run/run_test_directory.sh weighting)
 

@@ -11,6 +11,7 @@ t_output 420                    # output interval (0 disables) (s)
 t_progress 2520                 # progress printing interval (0 disables) (s)
 
 do_camp_chem no                 # whether to use CAMP for chemistry
+do_tchem no                     # whehter ot use TChem for chemistry
 
 gas_data gas_data.dat           # file containing gas data
 gas_init gas_init.dat           # initial gas mixing ratios

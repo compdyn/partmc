@@ -20,12 +20,14 @@ module pmc_tchem_interface
   use pmc_util, only : die_msg, warn_assert_msg, assert_msg
 
 interface
-  subroutine initialize(arg_chemfile, arg_aerofile, arg_numericsfile) &
+  subroutine initialize(arg_chemfile, arg_aerofile, arg_numericsfile, &
+       n_batch) &
        bind(c, name="initialize")
     use iso_c_binding
     character(kind=c_char), intent(in) :: arg_chemfile(*)
     character(kind=c_char), intent(in) :: arg_aerofile(*)
     character(kind=c_char), intent(in) :: arg_numericsfile(*)
+    integer(c_int), intent(in), value :: n_batch
   end subroutine initialize
   subroutine finalize() bind(c, name="finalize")
   end subroutine finalize
@@ -38,13 +40,15 @@ interface
     use iso_c_binding
     integer(kind=c_int) :: TChem_getLengthOfStateVector
   end function
-  subroutine TChem_getStateVector(array) bind(c, name="TChem_getStateVector")
+  subroutine TChem_getStateVector(array, i_batch) bind(c, name="TChem_getStateVector")
     use iso_c_binding
     real(kind=c_double) :: array(*)
+    integer(c_int), value :: i_batch
   end subroutine
-  subroutine TChem_setStateVector(array) bind(c, name="TChem_setStateVector")
+  subroutine TChem_setStateVector(array, i_batch) bind(c, name="TChem_setStateVector")
     use iso_c_binding
     real(kind=c_double) :: array(*)
+    integer(c_int), value :: i_batch
   end subroutine
   integer(kind=c_size_t) function TChem_getSpeciesName(index, result, buffer_size) &
        bind(C, name="TChem_getSpeciesName")
@@ -115,7 +119,7 @@ contains
 
     ! initialize the model
     call TChem_initialize(trim(gas_config_filename), &
-         trim(aero_config_filename), trim(solver_config_filename))
+         trim(aero_config_filename), trim(solver_config_filename), 1)
 
     ! Get size that gas_data should be
     nSpec = TChem_getNumberOfSpecies() 
@@ -183,7 +187,7 @@ contains
     stateVecDim = TChem_getLengthOfStateVector()
     nSpec = TChem_getNumberOfSpecies()
     allocate(stateVector(stateVecDim))
-    call TChem_getStateVector(stateVector)
+    call TChem_getStateVector(stateVector, 0)
 
     gas_state%mix_rat = 0.0
     gas_state%mix_rat = stateVector(4:nSpec+3)
@@ -246,7 +250,7 @@ contains
 
     end do
 
-    call TChem_setStateVector(stateVector)
+    call TChem_setStateVector(stateVector, 0)
 
   end subroutine tchem_from_partmc
 
@@ -266,7 +270,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Initialize TChem.
-  subroutine TChem_initialize(chemFile, aeroFile, NumericsFile)
+  subroutine TChem_initialize(chemFile, aeroFile, NumericsFile, n_batch)
     use iso_c_binding
 
     !> Chemistry configuration file.
@@ -275,9 +279,11 @@ contains
     character(kind=c_char,len=*), intent(in) :: aeroFile
     !> Chemistry configuration file.
     character(kind=c_char,len=*), intent(in) :: numericsFile
+    !> Number of systems to solve.
+    integer(kind=c_int), intent(in) :: n_batch
 
     call initialize(chemFile//c_null_char, aeroFile//c_null_char, &
-         numericsFile//c_null_char)
+         numericsFile//c_null_char, 1)
 
   end subroutine TChem_initialize
 

@@ -601,8 +601,8 @@ contains
           call spec_file_open(sub_filename, sub_file)
           call spec_file_read_aero_data(sub_file, aero_data)
           call spec_file_close(sub_file)
+       ! FIXME: Temporary to run PartMC. Replace with initialization from TChem
        else if (run_part_opt%do_tchem) then
-          ! FIXME: Replace with something else
           call spec_file_read_string(file, 'aerosol_data', sub_filename)
           call spec_file_open(sub_filename, sub_file)
           call spec_file_read_aero_data(sub_file, aero_data)

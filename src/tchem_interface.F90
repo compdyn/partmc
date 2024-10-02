@@ -144,17 +144,16 @@ contains
     ! From TChem we need:
     !   Species names
     !   Species properties - density, kappa, molecular weight
-    ! Temporarily allocate aero_data structure so PartMC can run.
-    n_species = 10
-    call ensure_string_array_size(aero_data%name, n_species)
-    call ensure_integer_array_size(aero_data%mosaic_index, n_species)
-    call ensure_real_array_size(aero_data%wavelengths, n_swbands)
-    call ensure_real_array_size(aero_data%density, n_species)
-    call ensure_integer_array_size(aero_data%num_ions, n_species)
-    call ensure_real_array_size(aero_data%molec_weight, n_species)
-    call ensure_real_array_size(aero_data%kappa, n_species)
-    do i = 1,n_species
-    end do 
+    ! n_species = 10
+    ! call ensure_string_array_size(aero_data%name, n_species)
+    ! call ensure_integer_array_size(aero_data%mosaic_index, n_species)
+    ! call ensure_real_array_size(aero_data%wavelengths, n_swbands)
+    ! call ensure_real_array_size(aero_data%density, n_species)
+    ! call ensure_integer_array_size(aero_data%num_ions, n_species)
+    ! call ensure_real_array_size(aero_data%molec_weight, n_species)
+    ! call ensure_real_array_size(aero_data%kappa, n_species)
+    !do i = 1,n_species
+    !end do 
 
   end subroutine pmc_tchem_initialize
 

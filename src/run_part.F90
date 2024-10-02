@@ -89,7 +89,7 @@ module pmc_run_part
      integer :: i_repeat
      !> Total number of repeats.
      integer :: n_repeat
-     !> Cpu_time() of start.
+     !> Wall clock time of start.
      real(kind=dp) :: t_wall_start
      !> Whether to record particle removal information.
      logical :: record_removals
@@ -160,6 +160,7 @@ contains
     integer :: global_n_nuc
     logical :: do_output, do_state, do_state_netcdf, do_progress, did_coag
     real(kind=dp) :: t_start, t_wall_now, t_wall_elapsed, t_wall_remain
+    integer(kind=8) :: clock_count, clock_count_rate
     type(env_state_t) :: old_env_state
     integer :: n_time, i_time, pre_i_time
     integer :: i_state, i_state_netcdf, i_output
@@ -222,7 +223,8 @@ contains
           t_wall_elapsed = 0d0
           t_wall_remain = 0d0
        else
-          call cpu_time(t_wall_now)
+          call system_clock(clock_count, clock_count_rate)
+          t_wall_now = real(clock_count, kind=dp) / clock_count_rate
           prop_done = real(run_part_opt%i_repeat - 1, kind=dp) &
                / real(run_part_opt%n_repeat, kind=dp)
           t_wall_elapsed = t_wall_now - run_part_opt%t_wall_start
@@ -807,6 +809,7 @@ contains
     integer :: global_n_nuc
     logical :: do_output, do_state, do_state_netcdf, do_progress
     real(kind=dp) :: t_wall_now, t_wall_elapsed, t_wall_remain, time
+    integer(kind=8) :: clock_count, clock_count_rate
     type(env_state_t) :: old_env_state
 #ifdef PMC_USE_CAMP
     type(camp_state_t), pointer :: camp_state
@@ -948,7 +951,8 @@ contains
           call pmc_mpi_reduce_sum_integer(progress_n_nuc, global_n_nuc)
           if (pmc_mpi_rank() == 0) then
              ! progress only printed from root process
-             call cpu_time(t_wall_now)
+             call system_clock(clock_count, clock_count_rate)
+             t_wall_now = real(clock_count, kind=dp) / clock_count_rate
              prop_done = (real(run_part_opt%i_repeat - 1, kind=dp) &
                   + time / run_part_opt%t_max) &
                   / real(run_part_opt%n_repeat, kind=dp)

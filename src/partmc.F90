@@ -338,6 +338,7 @@ contains
     character(len=PMC_MAX_FILENAME_LEN) :: restart_filename
     integer :: dummy_index, dummy_i_repeat
     real(kind=dp) :: n_part
+    integer(kind=8) :: clock_count, clock_count_rate
 
     !> \page input_format_particle Input File Format: Particle-Resolved Simulation
     !!
@@ -486,7 +487,8 @@ contains
     call pmc_rand_finalize()
     call pmc_srand(rand_init, pmc_mpi_rank())
 
-    call cpu_time(run_part_opt%t_wall_start)
+    call system_clock(clock_count, clock_count_rate)
+    run_part_opt%t_wall_start = real(clock_count, kind=dp) / clock_count_rate
 
     do i_repeat = 1,run_part_opt%n_repeat
        run_part_opt%i_repeat = i_repeat

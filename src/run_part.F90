@@ -503,6 +503,7 @@ contains
     type(spec_file_t) :: sub_file
     character(len=PMC_MAX_FILENAME_LEN) :: camp_config_filename, &
          tchem_gas_filename, tchem_aero_filename, tchem_numerics_filename
+    integer :: n_grid_cells
 
     call spec_file_read_string(file, 'output_prefix', &
          run_part_opt%output_prefix)
@@ -562,9 +563,9 @@ contains
 
     if (run_part_opt%do_tchem) then
 #ifdef PMC_USE_TCHEM
-       ! FIXME: Switch to aerosols
-       call pmc_tchem_initialize(tchem_gas_filename, &
-            tchem_aero_filename, tchem_numerics_filename, gas_data, aero_data)
+       n_grid_cells = 1
+       call pmc_tchem_initialize(tchem_gas_filename, tchem_aero_filename, &
+            tchem_numerics_filename, gas_data, aero_data, n_grid_cells)
 #endif
     end if
 

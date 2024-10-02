@@ -40,18 +40,20 @@ interface
     use iso_c_binding
     integer(kind=c_int) :: TChem_getLengthOfStateVector
   end function
-  subroutine TChem_getStateVector(array, i_batch) bind(c, name="TChem_getStateVector")
+  subroutine TChem_getStateVector(array, i_batch) bind(c, &
+       name="TChem_getStateVector")
     use iso_c_binding
     real(kind=c_double) :: array(*)
     integer(c_int), value :: i_batch
   end subroutine
-  subroutine TChem_setStateVector(array, i_batch) bind(c, name="TChem_setStateVector")
+  subroutine TChem_setStateVector(array, i_batch) bind(c, &
+       name="TChem_setStateVector")
     use iso_c_binding
     real(kind=c_double) :: array(*)
     integer(c_int), value :: i_batch
   end subroutine
-  integer(kind=c_size_t) function TChem_getSpeciesName(index, result, buffer_size) &
-       bind(C, name="TChem_getSpeciesName")
+  integer(kind=c_size_t) function TChem_getSpeciesName(index, result, &
+       buffer_size) bind(C, name="TChem_getSpeciesName")
      use iso_c_binding
      integer(kind=c_int), intent(in) :: index
      character(kind=c_char), intent(out) :: result(*)
@@ -97,7 +99,7 @@ contains
 
   !> Initialize TChem and PartMC gas and aerosol data.
   subroutine pmc_tchem_initialize(gas_config_filename, aero_config_filename, &
-       solver_config_filename, gas_data, aero_data)
+       solver_config_filename, gas_data, aero_data, n_grid_cells)
     use iso_c_binding
 
     !> Gas configuration filename.
@@ -110,6 +112,8 @@ contains
     type(gas_data_t), intent(inout) :: gas_data
     !> Aerosol data.
     type(aero_data_t), intent(inout) :: aero_data
+    !> Number of cells to solve.
+    integer, intent(in) :: n_grid_cells
 
     integer(kind=c_int) :: nSpec, nAeroSpec
     integer :: n_species
@@ -119,7 +123,8 @@ contains
 
     ! initialize the model
     call TChem_initialize(trim(gas_config_filename), &
-         trim(aero_config_filename), trim(solver_config_filename), 1)
+         trim(aero_config_filename), trim(solver_config_filename), &
+         n_grid_cells)
 
     ! Get size that gas_data should be
     nSpec = TChem_getNumberOfSpecies() 
@@ -135,10 +140,11 @@ contains
     allocate(gas_data%mosaic_index(gas_data_n_spec(gas_data)))
     gas_data%mosaic_index(:) = 0
 
-    ! Aerosols
-    ! Temporarily set so PartMC can run.
-    ! Species names
-    ! Species properties - density, kappa, molecular weight
+    ! TODO: Create aero_data based on TChem input.
+    ! From TChem we need:
+    !   Species names
+    !   Species properties - density, kappa, molecular weight
+    ! Temporarily allocate aero_data structure so PartMC can run.
     n_species = 10
     call ensure_string_array_size(aero_data%name, n_species)
     call ensure_integer_array_size(aero_data%mosaic_index, n_species)
@@ -148,7 +154,6 @@ contains
     call ensure_real_array_size(aero_data%molec_weight, n_species)
     call ensure_real_array_size(aero_data%kappa, n_species)
     do i = 1,n_species
-
     end do 
 
   end subroutine pmc_tchem_initialize
@@ -283,7 +288,7 @@ contains
     integer(kind=c_int), intent(in) :: n_batch
 
     call initialize(chemFile//c_null_char, aeroFile//c_null_char, &
-         numericsFile//c_null_char, 1)
+         numericsFile//c_null_char, n_batch)
 
   end subroutine TChem_initialize
 

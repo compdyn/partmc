@@ -38,7 +38,8 @@ contains
     !> Coagulation kernel.
     real(kind=dp), intent(out) :: k
 
-    k = env_state%beta_1 * (aero_particle_volume(aero_particle_1) &
+    k = env_state%additive_kernel_coefficient &
+         * (aero_particle_volume(aero_particle_1) &
          + aero_particle_volume(aero_particle_2))
 
   end subroutine kernel_additive
@@ -61,7 +62,7 @@ contains
     !> Coagulation kernel maximum value.
     real(kind=dp), intent(out) :: k_max
 
-    k_min = env_state%beta_1 * (v1 + v2)
+    k_min = env_state%additive_kernel_coefficient * (v1 + v2)
     k_max = k_min
 
   end subroutine kernel_additive_minmax
@@ -74,8 +75,8 @@ contains
   !! Given input paramaters \f$R\f$ and \f$N_0\f$ we let the mean
   !! volume be \f$v_\mu = \frac{4\pi}{3} R^3\f$ and define the
   !! rescaled times \f$\tau = N_0 v_\mu \beta_1 t\f$ and \f$T = 1 -
-  !! e^{-\tau}\f$, where \f$\beta_1\f$ is the fixed kernel scaling
-  !! parameter. Then the solution is
+  !! e^{-\tau}\f$, where \f$\beta_1\f$ is the fixed additive kernel scaling
+  !! coefficient. Then the solution is
   !! \f[
   !!     n(D,t) \ {\rm d}\ln D
   !!     = \frac{\pi}{2} D^3
@@ -128,7 +129,7 @@ contains
                / mean_vol))
        end do
     else
-       tau = num_conc * mean_vol * env_state%beta_1 * time
+       tau = num_conc * mean_vol * env_state%additive_kernel_coefficient * time
        T = 1d0 - exp(-tau)
        do k = 1,bin_grid_size(bin_grid)
           rat_v = aero_data_rad2vol(aero_data, bin_grid%centers(k)) / mean_vol

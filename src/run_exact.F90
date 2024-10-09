@@ -144,7 +144,7 @@ contains
             run_exact_opt%coag_kernel_type)
        if (run_exact_opt%coag_kernel_type == COAG_KERNEL_TYPE_ADDITIVE) then
           call spec_file_read_real(file, 'additive_kernel_coeff', &
-               env_state%beta_1)
+               env_state%additive_kernel_coefficient)
        end if
     else
        run_exact_opt%coag_kernel_type = COAG_KERNEL_TYPE_INVALID

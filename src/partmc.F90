@@ -610,7 +610,7 @@ contains
     !! - \b do_coagulation (logical): whether to perform particle
     !!   coagulation.  If \c do_coagulation is \c yes, then the
     !!   following parameters must also be provided:
-    !!   - \subpage input_format_coag_kernel 
+    !!   - \subpage input_format_coag_kernel
     !!
     !! Example:
     !! <pre>

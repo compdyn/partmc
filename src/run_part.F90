@@ -592,6 +592,10 @@ contains
          run_part_opt%do_coagulation)
     if (run_part_opt%do_coagulation) then
        call spec_file_read_coag_kernel_type(file, run_part_opt%coag_kernel_type)
+       if (run_part_opt%coag_kernel_type == COAG_KERNEL_TYPE_ADDITIVE) then
+          call spec_file_read_real(file, 'additive_kernel_coeff', &
+               env_state_init%additive_kernel_coefficient)
+       end if
     else
        run_part_opt%coag_kernel_type = COAG_KERNEL_TYPE_INVALID
     end if

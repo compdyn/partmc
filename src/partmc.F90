@@ -647,6 +647,7 @@ contains
     !!
     !! do_coagulation yes              # whether to do coagulation (yes/no)
     !! kernel additive                 # Additive coagulation kernel
+    !! additive_kernel_coeff 1000d0                   # Additive kernel constant
     !! </pre>
 
     ! only serial code here

@@ -257,6 +257,10 @@ contains
     if (run_sect_opt%do_coagulation) then
        call spec_file_read_coag_kernel_type(file, &
             run_sect_opt%coag_kernel_type)
+       if (run_sect_opt%coag_kernel_type == COAG_KERNEL_TYPE_ADDITIVE) then
+          call spec_file_read_real(file, 'additive_kernel_coeff', &
+               env_state%additive_kernel_coefficient)
+       end if
     else
        run_sect_opt%coag_kernel_type = COAG_KERNEL_TYPE_INVALID
     end if

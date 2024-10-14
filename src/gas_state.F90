@@ -190,6 +190,20 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Convert (ppb) to (mol m^{-3}).
+  subroutine gas_state_ppb_to_mole_dens(gas_state, env_state)
+
+    !> Gas state.
+    type(gas_state_t), intent(inout) :: gas_state
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+
+    call gas_state_scale(gas_state, env_state_air_molar_den(env_state) / 1e9)
+
+  end subroutine gas_state_ppb_to_mole_dens
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 #ifdef PMC_USE_CAMP
   !> Set CAMP gas-phase species concentrations
   subroutine gas_state_set_camp_conc(gas_state, camp_state, gas_data)

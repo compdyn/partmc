@@ -11,6 +11,7 @@ t_output 5000                   # output interval (0 disables) (s)
 t_progress 1000                 # progress printing interval (0 disables) (s)
 
 do_camp_chem no                # whether to run the campible chemistry module
+do_tchem no
 
 temp_profile temp_free.dat      # temperature profile file
 pressure_profile pressure.dat   # pressure profile file

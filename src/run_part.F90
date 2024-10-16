@@ -22,7 +22,7 @@ module pmc_run_part
   use pmc_coagulation_dist
   use pmc_coag_kernel
   use pmc_nucleate
-  use pmc_freezing
+  use pmc_ice_nucleation
   use pmc_mpi
   use pmc_camp_interface
   use pmc_photolysis
@@ -68,15 +68,21 @@ module pmc_run_part
      !> Whether to do nucleation.
      logical :: do_nucleation
      !> Whether to do freezing.
-     logical :: do_freezing
+     !logical :: do_freezing
+     logical :: do_immersion_freezing
      !> Whether to do freezing using Classical Nucleation Theory
-     logical :: do_freezing_CNT
+     !logical :: do_freezing_CNT
+     character(len=300) :: immersion_freezing_scheme
 
      real(kind=dp) :: freezing_rate
      !real(kind=dp) :: abifm_m, abifm_c
      logical :: do_coating
      character(len=300) :: coating_spec
      real(kind=dp) :: coating_ratio
+
+     logical :: do_ice_shape
+     logical :: do_ice_density
+     logical :: do_ice_ventilation
     
      !> Allow doubling if needed.
      logical :: allow_doubling
@@ -252,6 +258,11 @@ contains
        call print_part_progress(run_part_opt%i_repeat, time, &
             global_n_part, 0, 0, 0, 0, 0, t_wall_elapsed, t_wall_remain)
     end if
+    ! initialize the immersion freezing temperature for Singular scheme
+    if (run_part_opt%do_immersion_freezing .and. &
+            run_part_opt%immersion_freezing_scheme .eq. 'singular') then
+        call singular_initialize(aero_state, aero_data)
+    end if
 
     do i_time = i_time_start,n_time
 
@@ -272,12 +283,12 @@ contains
        end if
 
        !print*, run_part_opt%freezing_rate
-       if (run_part_opt%do_freezing) then
-           call freeze(aero_state, aero_data, old_env_state, &
-                   env_state, run_part_opt%del_t, run_part_opt%do_freezing_CNT, run_part_opt%freezing_rate, &
+       if (run_part_opt%do_immersion_freezing) then
+           call immersion_freezing(aero_state, aero_data, old_env_state, &
+                   env_state, run_part_opt%del_t, run_part_opt%immersion_freezing_scheme, run_part_opt%freezing_rate, &
                    run_part_opt%do_coating, run_part_opt%coating_spec, run_part_opt%coating_ratio)
 
-           call unfreeze(aero_state, aero_data, old_env_state, env_state)
+           call melting(aero_state, aero_data, old_env_state, env_state)
        end if
 
        if (run_part_opt%do_coagulation) then
@@ -300,7 +311,8 @@ contains
 #ifdef PMC_USE_SUNDIALS
        if (run_part_opt%do_condensation) then
           call condense_particles(aero_state, aero_data, old_env_state, &
-               env_state, run_part_opt%del_t)
+               env_state, run_part_opt%del_t, run_part_opt%do_ice_shape, &
+               run_part_opt%do_ice_density, run_part_opt%do_ice_ventilation)
        end if
 #endif
 
@@ -408,6 +420,7 @@ contains
 
     end do
     print*, "Freeze module total run time:", freeze_module_run_time
+    write(1997, *) freeze_module_run_time
 
     if (run_part_opt%do_mosaic) then
        call mosaic_cleanup()

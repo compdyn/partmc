@@ -545,7 +545,7 @@ contains
        call spec_file_read_logical(file, 'do_condensation', &
             run_part_opt%do_condensation)
 #ifndef PMC_USE_SUNDIALS
-       call assert_msg(121370218, &
+       call assert_msg(121370218, .false., &
             run_part_opt%do_condensation .eqv. .false., &
             "cannot use condensation, SUNDIALS support is not compiled in")
 #endif
@@ -580,13 +580,13 @@ contains
           run_part_opt%nucleate_type = NUCLEATE_TYPE_INVALID
        end if
 
-       call spec_file_read_logical(file, 'do_freezing', &
-               run_part_opt%do_freezing)
+       call spec_file_read_logical(file, 'do_immersion_freezing', &
+               run_part_opt%do_immersion_freezing)
 
-       if (run_part_opt%do_freezing) then
+       if (run_part_opt%do_immersion_freezing) then
        
-           call spec_file_read_logical(file, 'do_freezing_CNT', &
-                   run_part_opt%do_freezing_CNT)
+           call spec_file_read_string(file, 'immersion_freezing_scheme', &
+                   run_part_opt%immersion_freezing_scheme)
 
             !if (run_part_opt%do_freezing_CNT) then
 
@@ -596,10 +596,19 @@ contains
             !           run_part_opt%abifm_c)
             !else
 
-            if (.not. run_part_opt%do_freezing_CNT) then
+            if (run_part_opt%immersion_freezing_scheme .eq. 'const') then
 
                 call spec_file_read_real(file, 'freezing_rate', &
                        run_part_opt%freezing_rate)
+            else if (run_part_opt%immersion_freezing_scheme .eq. 'ABIFM') then
+                continue
+
+            else if (run_part_opt%immersion_freezing_scheme .eq. 'singular') then
+                continue
+            else
+                call assert_msg(121370299, .false., &
+                    "Error type of immersion freezing scheme")
+                
 
             endif
             call spec_file_read_logical(file, 'do_coating', &
@@ -611,7 +620,15 @@ contains
                         run_part_opt%coating_ratio)
             endif 
        endif
-        
+
+       if (run_part_opt%do_immersion_freezing .and. run_part_opt%do_condensation) then 
+           call spec_file_read_logical(file, 'do_ice_shape', &
+                   run_part_opt%do_ice_shape)
+            call spec_file_read_logical(file, 'do_ice_density', &
+                   run_part_opt%do_ice_density)
+            call spec_file_read_logical(file, 'do_ice_ventilation', &
+                   run_part_opt%do_ice_ventilation)
+       endif
        call spec_file_read_integer(file, 'rand_init', rand_init)
        call spec_file_read_logical(file, 'allow_doubling', &
             run_part_opt%allow_doubling)
@@ -761,6 +778,10 @@ contains
 
     call cpu_time(run_part_opt%t_wall_start)
 
+    
+    ! Wenhan Tang: add for saving the timing results
+    open(1997, file="freezing_timing.txt")
+
     do i_repeat = 1,run_part_opt%n_repeat
        run_part_opt%i_repeat = i_repeat
 
@@ -770,6 +791,7 @@ contains
           call aero_state_set_n_part_ideal(aero_state, n_part)
        else
           call aero_state_zero(aero_state)
+          
           aero_mode_type_exp_present &
                = aero_dist_contains_aero_mode_type(aero_dist_init, &
                AERO_MODE_TYPE_EXP) &
@@ -811,6 +833,8 @@ contains
        end if
 
     end do
+    ! Wenhan Tang: add for the freezing timing
+    close(1997)
 
     call pmc_rand_finalize()
 

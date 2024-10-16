@@ -434,7 +434,7 @@ contains
        if (pmc_random() < prob_coag) then
           n_avg = n_avg + 1
           call aero_particle_coagulate(source_particle, &
-               aero_state%apa%particle(i_part), source_particle)
+               aero_state%apa%particle(i_part), source_particle, aero_data)
           vol_sq = vol_sq + aero_state%apa%particle(i_part)%vol**2
           if (i_samp <= n_samp_remove) then
              num_conc_i = aero_weight_array_num_conc(aero_state%awa, &
@@ -496,7 +496,7 @@ contains
     old_num_conc_target = aero_weight_array_num_conc(aero_state%awa, &
          aero_state%apa%particle(target_part), aero_data)
     call aero_particle_coagulate(aero_state%apa%particle(target_part), &
-         source_particle, aero_state%apa%particle(target_part))
+         source_particle, aero_state%apa%particle(target_part), aero_data)
     aero_state%apa%particle(target_part)%id = target_id
     ! assign to a randomly chosen group
     new_group = aero_weight_array_rand_group(aero_state%awa, cc, &
@@ -841,7 +841,7 @@ contains
 
     ! create a new particle and set its ID
     if (create_new) then
-       call aero_particle_coagulate(pt1, pt2, ptc)
+       call aero_particle_coagulate(pt1, pt2, ptc, aero_data)
        call aero_particle_set_weight(ptc, new_group, cc)
        if (remove_1 .and. (.not. id_1_lost)) then
           ptc%id = pt1%id

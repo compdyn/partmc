@@ -911,6 +911,7 @@ contains
        if (spec_type /= CHEM_SPEC_VARIABLE .and. &
            spec_type /= CHEM_SPEC_CONSTANT .and. &
            spec_type /= CHEM_SPEC_PSSA) cycle
+       !print*, spec_names(i_spec)%string
        if (spec_names(i_spec)%string(1:3) /= "P1.") exit
        num_spec = num_spec + 1
        tmp_spec_names(num_spec)%string = spec_names(i_spec)%string(4:)

@@ -2445,7 +2445,10 @@ contains
     real(kind=dp) :: aero_num_conc(aero_state_n_part(aero_state))
     integer :: aero_id(aero_state_n_part(aero_state))
     integer :: aero_frozen(aero_state_n_part(aero_state))
+    real(kind=dp) :: aero_imf_temperature(aero_state_n_part(aero_state))
     real(kind=dp) :: aero_frozen_probability(aero_state_n_part(aero_state))
+    real(kind=dp) :: aero_ice_density(aero_state_n_part(aero_state))
+    real(kind=dp) :: aero_ice_shape_phi(aero_state_n_part(aero_state))
     real(kind=dp) :: aero_least_create_time(aero_state_n_part(aero_state))
     real(kind=dp) :: aero_greatest_create_time(aero_state_n_part(aero_state))
     integer :: aero_removed_id( &
@@ -2575,7 +2578,12 @@ contains
                aero_state%apa%particle(i_part), aero_data)
           aero_id(i_part) = aero_state%apa%particle(i_part)%id
           aero_frozen(i_part) = aero_state%apa%particle(i_part)%frozen
+          aero_imf_temperature(i_part) &
+                = aero_state%apa%particle(i_part)%imf_temperature
           aero_frozen_probability(i_part) = aero_state%apa%particle(i_part)%P_frozen
+          aero_ice_density(i_part) = aero_state%apa%particle(i_part)%den_ice
+          aero_ice_shape_phi(i_part) &
+                = aero_state%apa%particle(i_part)%ice_shape_phi
           aero_least_create_time(i_part) &
                = aero_state%apa%particle(i_part)%least_create_time
           aero_greatest_create_time(i_part) &
@@ -2625,9 +2633,18 @@ contains
        call pmc_nc_write_integer_1d(ncid, aero_frozen, &
                "aero_frozen", (/ dimid_aero_particle /), &
                long_name="flag indicating ice phase of each aerosol particle")
+       call pmc_nc_write_real_1d(ncid, aero_imf_temperature, &
+               "aero_imf_temperature", (/ dimid_aero_particle /), &
+               long_name="immersion freezing temperature (Singular)")
        call pmc_nc_write_real_1d(ncid, aero_frozen_probability, &
                "aero_frozen_probability", (/ dimid_aero_particle /), &
                long_name="probability of freezing describing the group of real aerosols represented by each computational particle")
+       call pmc_nc_write_real_1d(ncid, aero_ice_density, &
+               "aero_ice_density", (/ dimid_aero_particle /), &
+               long_name="Ice density if the particle nucleates to ice, -9999 indicates the particle is not an ice.")
+       call pmc_nc_write_real_1d(ncid, aero_ice_shape_phi, &
+               "aero_ice_shape_phi", (/ dimid_aero_particle /), &
+               long_name="Ice shape parameter phi")
        call pmc_nc_write_real_1d(ncid, aero_least_create_time, &
             "aero_least_create_time", (/ dimid_aero_particle /), unit="s", &
             long_name="least creation time of each aerosol particle", &
@@ -2820,7 +2837,10 @@ contains
     real(kind=dp), allocatable :: aero_num_conc(:)
     integer, allocatable :: aero_id(:)
     integer, allocatable :: aero_frozen(:)
+    real(kind=dp), allocatable :: aero_imf_temperature(:)
     real(kind=dp), allocatable :: aero_frozen_probability(:)
+    real(kind=dp), allocatable :: aero_ice_density(:)
+    real(kind=dp), allocatable :: aero_ice_shape_phi(:)
     real(kind=dp), allocatable :: aero_least_create_time(:)
     real(kind=dp), allocatable :: aero_greatest_create_time(:)
     integer, allocatable :: aero_removed_id(:)
@@ -2871,8 +2891,14 @@ contains
          "aero_id")
     call pmc_nc_read_integer_1d(ncid, aero_frozen, &
             "aero_frozen")
+    call pmc_nc_read_real_1d(ncid, aero_imf_temperature, &
+            "aero_imf_temperature")
     call pmc_nc_read_real_1d(ncid, aero_frozen_probability, &
             "aero_frozen_probability", must_be_present=.false.)
+    call pmc_nc_read_real_1d(ncid, aero_ice_density, &
+            "aero_ice_density", must_be_present=.false.)
+    call pmc_nc_read_real_1d(ncid, aero_ice_shape_phi, &
+            "aero_ice_shape_phi", must_be_present=.false.)
     call pmc_nc_read_real_1d(ncid, aero_least_create_time, &
          "aero_least_create_time")
     call pmc_nc_read_real_1d(ncid, aero_greatest_create_time, &
@@ -2912,7 +2938,10 @@ contains
        aero_particle%water_hyst_leg = aero_water_hyst_leg(i_part)
        aero_particle%id = aero_id(i_part)
        aero_particle%frozen = aero_frozen(i_part)
+       aero_particle%imf_temperature = aero_imf_temperature(i_part)
        aero_particle%P_frozen = aero_frozen_probability(i_part)
+       aero_particle%den_ice = aero_ice_density(i_part)
+       aero_particle%ice_shape_phi = aero_ice_shape_phi(i_part)
        aero_particle%least_create_time = aero_least_create_time(i_part)
        aero_particle%greatest_create_time = aero_greatest_create_time(i_part)
 

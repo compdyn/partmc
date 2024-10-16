@@ -573,6 +573,70 @@ contains
     pis = exp(tmp)
   end subroutine env_state_saturated_vapor_pressure_ice
 
+  subroutine env_state_saturated_vapor_pressure_water_2(T, pvs)
+    ! compute saturated vapor pressure (units : Pa) with respective to water
+    ! Formula (10) from [Murphy & Koop, 2004]  (https://doi.org/10.1256/qj.04.94)
+
+    real(kind=dp), intent(in) :: T
+    !> saturated vapor pressure with respective to water (Pa)
+    real(kind=dp), intent(out) :: pvs
+    !> temperature (k)
+    real(kind=dp) :: tmp
+
+    if ((T <= 123) .OR. (T >= 332)) then
+        write(*, *) "Warning! the environment temperature is less then 123K or &
+        larger than 332K, the subroutine env_state_saturated_vapor_pressure_water isn't applicable"
+    end if
+
+    tmp = 54.842763 &
+        - 6763.22 / T &
+        - 4.210 * log(T) &
+        + 0.000367 * T &
+        + tanh( 0.0415 * (T - 218.8)) &
+            * (53.878 - 1331.22 / T - 9.44523 * log(T) + 0.014025 * T)
+    pvs = exp(tmp)
+  end subroutine env_state_saturated_vapor_pressure_water_2
+
+  subroutine env_state_saturated_vapor_pressure_ice_2(T, pis)
+    ! compute saturated vapor pressure (units : Pa) with respective to ice
+    ! Formula (7) from [Murphy & Koop, 2004]  (https://doi.org/10.1256/qj.04.94)
+
+    !> Environment state to read.
+    real(kind=dp), intent(in) :: T
+    !> saturated vapor pressure with respective to ice (Pa)
+    real(kind=dp), intent(out) :: pis
+    !> temperature (k)
+    real(kind=dp) :: tmp
+
+    if (T <= 110) then
+        write(*, *) "Warning! the environment temperature is less then 110K, the &
+        subroutine env_state_saturated_vapor_pressure_ice isn't applicable"
+    end if
+    tmp = 9.550426 &
+        - 5723.265 / T &
+        + 3.53068 * log(T) &
+        - 0.00728332 * T
+    pis = exp(tmp)
+  end subroutine env_state_saturated_vapor_pressure_ice_2
+
+  subroutine env_state_saturated_vapor_pressure_water_3(T, pvs)
+    ! compute saturated vapor pressure (units : Pa) with respective to water
+    ! Formula (10) from [Murphy & Koop, 2004]  (https://doi.org/10.1256/qj.04.94)
+
+    real(kind=dp), intent(in) :: T
+    !> saturated vapor pressure with respective to water (Pa)
+    real(kind=dp), intent(out) :: pvs
+    !> temperature (k)
+    real(kind=dp) :: tmp
+
+    
+    pvs = const%water_eq_vap_press &
+         * 10d0**(7.45d0 * (T - const%water_freeze_temp) &
+         / (T - 38d0))
+
+  end subroutine env_state_saturated_vapor_pressure_water_3
+
+
 
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

@@ -61,6 +61,8 @@ module pmc_constants
      real(kind=dp) :: air_std_press = 101325d0
      !> Dynamic viscosity of air (kg m^{-1} s^{-1}).
      real(kind=dp) :: air_dyn_visc = 1.78d-5
+     !> Reference ice density (Kg m^{-3}).
+     real(kind=dp) :: reference_ice_density = 920d0
   end type const_t
 
   !> Fixed variable for accessing the constant's values.

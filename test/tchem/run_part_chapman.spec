@@ -10,10 +10,10 @@ del_t 100                        # timestep (s)
 t_output 1000                   # output interval (0 disables) (s)
 t_progress 10000                # progress printing interval (0 disables) (s)
 
-do_camp_chem no                # whether to run the campible chemistry module
-do_tchem yes 
+do_camp_chem no                 # whether to use CAMP for chemistry
+do_tchem yes                    # whether to use TChem for chemistry
 tchem_gas_config config_chapman.yaml
-tchem_aero_config config_chapman.yaml # not currently used
+tchem_aero_config config_chapman.yaml
 tchem_numerics_config solver_chapman.yaml
 
 gas_init gas_init_chapman.dat           # initial gas mixing ratios

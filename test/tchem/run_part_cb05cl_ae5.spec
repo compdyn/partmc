@@ -10,8 +10,8 @@ del_t 60                        # timestep (s)
 t_output 60                   # output interval (0 disables) (s)
 t_progress 60                # progress printing interval (0 disables) (s)
 
-do_camp_chem no                # whether to run the campible chemistry module
-do_tchem yes 
+do_camp_chem no                 # whether to use CAMP for chemistry
+do_tchem yes                    # whether to use TChem for chemistry
 tchem_gas_config config_cb05cl_ae5.yaml
 tchem_aero_config config_cb05cl_ae5.yaml
 tchem_numerics_config solver_cb05cl_ae5.yaml

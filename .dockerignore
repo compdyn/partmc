@@ -11,7 +11,6 @@
 !src/
 !test/
 !tool/
-!TChem-atm
 
 # scenarios are whitelisted, but out/ subdirs are blacklisted again
 !scenarios/1_urban_plume/

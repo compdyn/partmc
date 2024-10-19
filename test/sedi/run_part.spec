@@ -10,8 +10,8 @@ del_t 5                         # timestep (s)
 t_output 300                    # output interval (0 disables) (s)
 t_progress 60                   # progress printing interval (0 disables) (s)
 
-do_camp_chem no                # whether to run the campible chemistry module
-do_tchem no
+do_camp_chem no                 # whether to use CAMP for chemistry
+do_tchem no                     # whether to use TChem for chemistry
 
 gas_data gas_data.dat           # file containing gas data
 gas_init gas_init.dat           # initial gas mixing ratios

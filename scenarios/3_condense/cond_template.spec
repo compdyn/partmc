@@ -11,7 +11,7 @@ t_output 1                      # output interval (0 disables) (s)
 t_progress 60                   # progress printing interval (0 disables) (s)
 
 do_camp_chem no                 # whether to use CAMP for chemistry
-do_tchem no                     # whehter ot use TChem for chemistry
+do_tchem no                     # whether to use TChem for chemistry 
 
 temp_profile %%TEMP_PROFILE%%   # temperature profile file
 pressure_profile pressure.dat   # pressure profile file

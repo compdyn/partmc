@@ -238,12 +238,14 @@ contains
     stateVector(3) = env_state%temp
 
     ! PartMC uses relative humidity and not H2O mixing ratio.
+    ! Equation 1.10 from Seinfeld and Pandis - Second Edition.
     i_water = gas_data_spec_by_name(gas_data, "H2O")
     a = 1.0 - t_steam / env_state%temp
     a = (((-0.1299 * a - 0.6445) * a - 1.976) * a + 13.3185) * a
     water_vp = 101325.0 * exp(a)  ! (Pa)
     gas_state%mix_rat(i_water) = env_state%rel_humid * water_vp * 1.0e9 &
          / env_state%pressure ! (ppb)
+
     ! Convert from ppb to ppm.
     call gas_state_scale(gas_state, 1.0d0 / 1000.d0)
     ! Add gas species to state vector.

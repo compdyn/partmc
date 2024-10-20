@@ -27,8 +27,6 @@ RUN apt-get update \
 
 RUN git clone https://github.com/PCLAeroParams/TChem-atm.git /tchem_dir/
 WORKDIR /tchem_dir/
-# Check out relevant TChem branch
-RUN git checkout -b coupling_partmc origin/coupling_partmc
 RUN git submodule update --init --recursive
 #COPY TChem-atm /tchem_dir/
 

@@ -23,12 +23,12 @@ RUN apt-get update \
         tmux \
         libnetcdf-dev \
         libnetcdff-dev \
-        libgsl-dev
+        libgsl-dev \
+        openssh-client
 
 RUN git clone https://github.com/PCLAeroParams/TChem-atm.git /tchem_dir/
 WORKDIR /tchem_dir/
 RUN git submodule update --init --recursive
-#COPY TChem-atm /tchem_dir/
 
 RUN cmake -S /tchem_dir/external/Tines/ext/kokkos -B /build/kokkos_build \
           -DCMAKE_INSTALL_PREFIX="/install/kokkos_install" \

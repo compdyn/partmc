@@ -25,10 +25,9 @@ RUN apt-get update \
         libnetcdff-dev \
         libgsl-dev
 
-# We should checkout TChem here... and the correct branch for now?
 RUN git clone https://github.com/PCLAeroParams/TChem-atm.git /tchem_dir/
-#RUN cp TChem-atm /tchem_dir/
 WORKDIR /tchem_dir/
+# Check out relevant TChem branch
 RUN git checkout -b coupling_partmc origin/coupling_partmc
 RUN git submodule update --init --recursive
 #COPY TChem-atm /tchem_dir/

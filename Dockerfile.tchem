@@ -28,6 +28,8 @@ RUN apt-get update \
 
 RUN git clone https://github.com/PCLAeroParams/TChem-atm.git /tchem_dir/
 WORKDIR /tchem_dir/
+RUN git fetch
+RUN git checkout -b https_kokkos_kernels origin/https_kokkos_kernels
 RUN git submodule update --init --recursive
 
 RUN cmake -S /tchem_dir/external/Tines/ext/kokkos -B /build/kokkos_build \

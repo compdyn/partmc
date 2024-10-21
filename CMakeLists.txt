@@ -33,10 +33,10 @@ include(FortranCInterface)
 
 if (ENABLE_TCHEM)
   find_package(OpenMP REQUIRED)
-  set(CMAKE_C_FLAGS "-lpthread -ldl ${OpenMP_C_FLAGS}" CACHE STRING "" FORCE)
-  set(CMAKE_Fortran_FLAGS "-lpthread -ldl ${OpenMP_Fortran_FLAGS}" CACHE STRING "" FORCE)
+  set(CMAKE_C_FLAGS "${OpenMP_C_FLAGS}" CACHE STRING "" FORCE)
+  set(CMAKE_Fortran_FLAGS "${OpenMP_Fortran_FLAGS}" CACHE STRING "" FORCE)
   if (ENABLE_TCHEM_GPU)
-    set(CMAKE_CXX_FLAGS "-lpthread -ldl ${OpenMP_CXX_FLAGS}" CACHE STRING "" FORCE)
+    set(CMAKE_CXX_FLAGS "${OpenMP_CXX_FLAGS}" CACHE STRING "" FORCE)
   endif()
 endif()
 
@@ -261,6 +261,11 @@ add_library(partmclib src/aero_state.F90 src/integer_varray.F90
 target_link_libraries(partmclib ${NETCDF_LIBS} ${SUNDIALS_LIBS}
   ${MOSAIC_LIB} ${GSL_LIBS} ${CAMP_LIB} ${TCHEM_LIB} ${YAML_LIB}
   ${KOKKOS_LIB} ${KOKKOSKERNEL_LIB} ${TINES_LIB} ${CPP_LIB} ${LAPACK_LIB})
+
+if (ENABLE_TCHEM)
+   include(FindThreads)
+   target_link_libraries(partmclib ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS})
+endif()
 
 set_target_properties(partmclib PROPERTIES OUTPUT_NAME partmc)
 if (ENABLE_TCHEM_GPU)

@@ -192,20 +192,21 @@ contains
 
 #ifdef PMC_USE_CAMP
   !> Set CAMP gas-phase species concentrations
-  subroutine gas_state_set_camp_conc(gas_state, camp_state, gas_data)
+  subroutine gas_state_set_camp_conc(gas_state, env_state, camp_state, &
+       gas_data)
 
     !> Gas state
     class(gas_state_t), intent(in) :: gas_state
+    ! Environmental state.
+    type(env_state_t), intent(in) :: env_state
     !> CAMP state
     type(camp_state_t), intent(inout) :: camp_state
     !> Gas data
     type(gas_data_t), intent(in) :: gas_data
 
-    call assert(590005048, associated(camp_state%env_states(1)%val))
-
     ! Convert relative humidity (1) to [H2O] (ppb)
     camp_state%state_var(gas_data%i_camp_water) = &
-         env_state_rel_humid_to_mix_rat(camp_state%env_states(1))
+         env_state_rel_humid_to_mix_rat(env_state)
 
     ! Convert from ppb to ppm
     camp_state%state_var(1:size(gas_state%mix_rat)) = gas_state%mix_rat(:) &

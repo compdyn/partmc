@@ -194,9 +194,8 @@ contains
     call TChem_getStateVector(stateVector, 0)
 
     gas_state%mix_rat = 0.0
-    gas_state%mix_rat = stateVector(4:nSpec+3)
-    ! Convert gas_state from ppm to ppb.
-    call gas_state_scale(gas_state, 1000.d0)
+    ! Convert from ppm to ppb.
+    gas_state%mix_rat = stateVector(4:nSpec+3) * 1000.d0
 
     ! Map aerosols
     do i_part = 1,aero_state_n_part(aero_state)
@@ -246,10 +245,8 @@ contains
     gas_state%mix_rat(i_water) = env_state%rel_humid * water_vp * 1.0e9 &
          / env_state%pressure ! (ppb)
 
-    ! Convert from ppb to ppm.
-    call gas_state_scale(gas_state, 1.0d0 / 1000.d0)
-    ! Add gas species to state vector.
-    stateVector(4:gas_data_n_spec(gas_data)+3) = gas_state%mix_rat
+    ! Add gas species to state vector. Convert from ppb to ppm.
+    stateVector(4:gas_data_n_spec(gas_data)+3) = gas_state%mix_rat / 1000.d0
 
     ! TODO: Map aerosols
     do i_part = 1,aero_state_n_part(aero_state)

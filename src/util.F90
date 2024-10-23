@@ -1979,7 +1979,7 @@ contains
     integer(kind=8) :: clock_count, clock_count_rate
 
     call system_clock(clock_count, clock_count_rate)
-    system_clock_time= real(clock_count, kind=dp) / clock_count_rate
+    system_clock_time = real(clock_count, kind=dp) / clock_count_rate
 
   end function system_clock_time
 

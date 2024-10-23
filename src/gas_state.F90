@@ -177,7 +177,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Convert (mol m^{-3}) to (ppb).
-  subroutine gas_state_mole_dens_to_ppb(gas_state, env_state)
+  subroutine gas_state_molar_conc_to_ppb(gas_state, env_state)
 
     !> Gas state.
     type(gas_state_t), intent(inout) :: gas_state
@@ -186,12 +186,12 @@ contains
 
     call gas_state_scale(gas_state, 1d9 / env_state_air_molar_den(env_state))
 
-  end subroutine gas_state_mole_dens_to_ppb
+  end subroutine gas_state_molar_conc_to_ppb
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Convert (ppb) to (mol m^{-3}).
-  subroutine gas_state_ppb_to_mole_dens(gas_state, env_state)
+  subroutine gas_state_ppb_to_molar_conc(gas_state, env_state)
 
     !> Gas state.
     type(gas_state_t), intent(inout) :: gas_state
@@ -200,7 +200,7 @@ contains
 
     call gas_state_scale(gas_state, env_state_air_molar_den(env_state) / 1e9)
 
-  end subroutine gas_state_ppb_to_mole_dens
+  end subroutine gas_state_ppb_to_molar_conc
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

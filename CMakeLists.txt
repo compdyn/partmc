@@ -31,15 +31,6 @@ include(FortranCInterface)
 #   FortranCInterface_VERIFY(CXX)
 #endif()
 
-if (ENABLE_TCHEM)
-  find_package(OpenMP REQUIRED)
-  set(CMAKE_C_FLAGS "${OpenMP_C_FLAGS}" CACHE STRING "" FORCE)
-  set(CMAKE_Fortran_FLAGS "${OpenMP_Fortran_FLAGS}" CACHE STRING "" FORCE)
-  if (ENABLE_TCHEM_GPU)
-    set(CMAKE_CXX_FLAGS "${OpenMP_CXX_FLAGS}" CACHE STRING "" FORCE)
-  endif()
-endif()
-
 ######################################################################
 # options
 
@@ -263,12 +254,19 @@ target_link_libraries(partmclib ${NETCDF_LIBS} ${SUNDIALS_LIBS}
   ${KOKKOS_LIB} ${KOKKOSKERNEL_LIB} ${TINES_LIB} ${CPP_LIB} ${LAPACK_LIB})
 
 if (ENABLE_TCHEM)
+   find_package(OpenMP REQUIRED)
+   if (ENABLE_TCHEM_GPU)
+      add_link_options(${OpenMP_CXX_FLAGS})
+   else()
+      add_link_options(${OpenMP_Fortran_FLAGS})
+   endif()
    include(FindThreads)
    target_link_libraries(partmclib ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS})
 endif()
 
 set_target_properties(partmclib PROPERTIES OUTPUT_NAME partmc)
 if (ENABLE_TCHEM_GPU)
+   add_link_options(${OpenMP_CXX_FLAGS})
    set_target_properties(partmclib PROPERTIES LINKER_LANGUAGE CXX)
 endif()
 

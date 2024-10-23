@@ -25,11 +25,11 @@ include(FortranCInterface)
 
 # Following must be commented out if using -Wimplicit-interface with -Werror
 # Working with C and Fortran
-#FortranCInterface_VERIFY()
-#if (ENABLE_TCHEM_GPU)
-#   # Working with C++ and Fortran
-#   FortranCInterface_VERIFY(CXX)
-#endif()
+FortranCInterface_VERIFY()
+if (ENABLE_TCHEM_GPU)
+   # Working with C++ and Fortran
+   FortranCInterface_VERIFY(CXX)
+endif()
 
 ######################################################################
 # options

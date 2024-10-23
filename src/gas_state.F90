@@ -201,24 +201,15 @@ contains
     !> Gas data
     type(gas_data_t), intent(in) :: gas_data
 
-    real(kind=dp), parameter :: t_steam = 373.15 ! steam temperature (K)
-    real(kind=dp) :: a, water_vp
+    call assert(590005048, associated(camp_state%env_states(1)%val))
 
+    ! Convert relative humidity (1) to [H2O] (ppb)
+    camp_state%state_var(gas_data%i_camp_water) = &
+         env_state_rel_humid_to_mix_rat(camp_state%env_states(1))
+
+    ! Convert from ppb to ppm
     camp_state%state_var(1:size(gas_state%mix_rat)) = gas_state%mix_rat(:) &
          / 1000.0d0
-
-    ! Convert relative humidity (1) to [H2O] (ppm)
-    ! From MOSAIC code - reference to Seinfeld & Pandis page 181
-    ! TODO Figure out how to have consistent RH<->ppm conversions
-    ! (There is only one environmental state for PartMC runs
-    call assert(590005048, associated(camp_state%env_states(1)%val))
-    a = 1.0 - t_steam / camp_state%env_states(1)%val%temp
-    a = (((-0.1299 * a - 0.6445) * a - 1.976) * a + 13.3185) * a
-    water_vp = 101325.0 * exp(a)  ! (Pa)
-
-    camp_state%state_var(gas_data%i_camp_water) = &
-         camp_state%env_states(1)%val%rel_humid * water_vp * 1.0e6 &
-         / camp_state%env_states(1)%val%pressure ! (ppm)
 
   end subroutine gas_state_set_camp_conc
 

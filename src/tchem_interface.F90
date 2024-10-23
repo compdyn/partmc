@@ -223,8 +223,6 @@ contains
 
     real(kind=dp), allocatable :: stateVector(:)
     integer :: stateVecDim
-    real(kind=dp), parameter :: t_steam = 373.15 ! steam temperature (K)
-    real(kind=dp) :: a, water_vp
     integer :: i_part
     integer :: i_water
 
@@ -239,12 +237,7 @@ contains
     ! PartMC uses relative humidity and not H2O mixing ratio.
     ! Equation 1.10 from Seinfeld and Pandis - Second Edition.
     i_water = gas_data_spec_by_name(gas_data, "H2O")
-    a = 1.0 - t_steam / env_state%temp
-    a = (((-0.1299 * a - 0.6445) * a - 1.976) * a + 13.3185) * a
-    water_vp = 101325.0 * exp(a)  ! (Pa)
-    gas_state%mix_rat(i_water) = env_state%rel_humid * water_vp * 1.0e9 &
-         / env_state%pressure ! (ppb)
-
+    gas_state%mix_rat(i_water) = env_state_rel_humid_to_mix_rat(env_state)
     ! Add gas species to state vector. Convert from ppb to ppm.
     stateVector(4:gas_data_n_spec(gas_data)+3) = gas_state%mix_rat / 1000.d0
 

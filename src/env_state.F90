@@ -201,6 +201,28 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Converts relative humidity (1) to water vapor mixing ratio (ppb).
+  !! 
+  !! Uses equation (1.10) of Seinfeld and Pandis Atmospheric Chemistry and
+  !! Physics From Air Pollution to Climate Change Second Edition, 2006.
+  real(kind=dp) function env_state_rel_humid_to_mix_rat(env_state)
+
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+
+    real(kind=dp), parameter :: t_steam = 373.15 ! steam temperature (K)
+    real(kind=dp) :: a, water_vp
+
+    a = 1.0 - t_steam / env_state%temp
+    a = (((-0.1299 * a - 0.6445) * a - 1.976) * a + 13.3185) * a
+    water_vp = 101325.0 * exp(a)  ! (Pa)
+    env_state_rel_humid_to_mix_rat = env_state%rel_humid * water_vp * 1.0e9 &
+         / env_state%pressure ! (ppb)
+
+  end function env_state_rel_humid_to_mix_rat
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Condensation \f$A\f$ parameter.
   real(kind=dp) function env_state_A(env_state)
 

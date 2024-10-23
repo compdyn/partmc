@@ -25,6 +25,7 @@ module pmc_run_part
   use pmc_mpi
   use pmc_camp_interface
   use pmc_photolysis
+  use pmc_tchem_interface
 #ifdef PMC_USE_CAMP
   use camp_camp_core
   use camp_camp_state
@@ -88,7 +89,7 @@ module pmc_run_part
      integer :: i_repeat
      !> Total number of repeats.
      integer :: n_repeat
-     !> Cpu_time() of start.
+     !> Wall clock time of start.
      real(kind=dp) :: t_wall_start
      !> Whether to record particle removal information.
      logical :: record_removals
@@ -104,8 +105,10 @@ module pmc_run_part
      logical :: env_average
      !> Parallel coagulation method type.
      integer :: parallel_coag_type
-     !> Whether to run CAMP
+     !> Whether to run CAMP.
      logical :: do_camp_chem
+     !> Whether to run TChem.
+     logical :: do_tchem
      !> UUID for this simulation.
      character(len=PMC_UUID_LEN) :: uuid
   end type run_part_opt_t
@@ -219,7 +222,7 @@ contains
           t_wall_elapsed = 0d0
           t_wall_remain = 0d0
        else
-          call cpu_time(t_wall_now)
+          t_wall_now = system_clock_time()
           prop_done = real(run_part_opt%i_repeat - 1, kind=dp) &
                / real(run_part_opt%n_repeat, kind=dp)
           t_wall_elapsed = t_wall_now - run_part_opt%t_wall_start
@@ -332,6 +335,7 @@ contains
          + pmc_mpi_pack_size_logical(val%env_average) &
          + pmc_mpi_pack_size_integer(val%parallel_coag_type) &
          + pmc_mpi_pack_size_logical(val%do_camp_chem) &
+         + pmc_mpi_pack_size_logical(val%do_tchem) &
          + pmc_mpi_pack_size_string(val%uuid)
 
   end function pmc_mpi_pack_size_run_part_opt
@@ -382,6 +386,7 @@ contains
     call pmc_mpi_pack_logical(buffer, position, val%env_average)
     call pmc_mpi_pack_integer(buffer, position, val%parallel_coag_type)
     call pmc_mpi_pack_logical(buffer, position, val%do_camp_chem)
+    call pmc_mpi_pack_logical(buffer, position, val%do_tchem)
     call pmc_mpi_pack_string(buffer, position, val%uuid)
     call assert(946070052, &
          position - prev_position <= pmc_mpi_pack_size_run_part_opt(val))
@@ -435,6 +440,7 @@ contains
     call pmc_mpi_unpack_logical(buffer, position, val%env_average)
     call pmc_mpi_unpack_integer(buffer, position, val%parallel_coag_type)
     call pmc_mpi_unpack_logical(buffer, position, val%do_camp_chem)
+    call pmc_mpi_unpack_logical(buffer, position, val%do_tchem)
     call pmc_mpi_unpack_string(buffer, position, val%uuid)
     call assert(480118362, &
          position - prev_position <= pmc_mpi_pack_size_run_part_opt(val))
@@ -495,7 +501,9 @@ contains
     real(kind=dp) :: dummy_time, dummy_del_t
     character(len=PMC_MAX_FILENAME_LEN) :: sub_filename
     type(spec_file_t) :: sub_file
-    character(len=PMC_MAX_FILENAME_LEN) :: camp_config_filename
+    character(len=PMC_MAX_FILENAME_LEN) :: camp_config_filename, &
+         tchem_gas_filename, tchem_aero_filename, tchem_numerics_filename
+    integer :: n_grid_cells
 
     call spec_file_read_string(file, 'output_prefix', &
          run_part_opt%output_prefix)
@@ -541,6 +549,26 @@ contains
 #endif
     end if
 
+    call spec_file_read_logical(file, 'do_tchem', run_part_opt%do_tchem)
+    if (run_part_opt%do_tchem) then
+#ifdef PMC_USE_TCHEM
+       call spec_file_read_string(file, 'tchem_gas_config', &
+            tchem_gas_filename)
+       call spec_file_read_string(file, 'tchem_aero_config', &
+            tchem_aero_filename)
+       call spec_file_read_string(file, 'tchem_numerics_config', &
+            tchem_numerics_filename)
+#endif
+    end if
+
+    if (run_part_opt%do_tchem) then
+#ifdef PMC_USE_TCHEM
+       n_grid_cells = 1
+       call pmc_tchem_initialize(tchem_gas_filename, tchem_aero_filename, &
+            tchem_numerics_filename, gas_data, aero_data, n_grid_cells)
+#endif
+    end if
+
     if (do_restart) then
        call input_state(restart_filename, dummy_index, dummy_time, &
             dummy_del_t, dummy_i_repeat, run_part_opt%uuid, aero_data, &
@@ -549,12 +577,13 @@ contains
 
     if (.not. do_restart) then
        env_state_init%elapsed_time = 0d0
-       if (.not. run_part_opt%do_camp_chem) then
+
+       if (.not. (run_part_opt%do_camp_chem .or. run_part_opt%do_tchem)) then
           call spec_file_read_string(file, 'gas_data', sub_filename)
           call spec_file_open(sub_filename, sub_file)
           call spec_file_read_gas_data(sub_file, gas_data)
           call spec_file_close(sub_file)
-       else
+       else if (run_part_opt%do_camp_chem) then
 #ifdef PMC_USE_CAMP
           call gas_data_initialize(gas_data, camp_core)
 #endif
@@ -565,6 +594,12 @@ contains
        call spec_file_close(sub_file)
 
        if (.not. run_part_opt%do_camp_chem) then
+          call spec_file_read_string(file, 'aerosol_data', sub_filename)
+          call spec_file_open(sub_filename, sub_file)
+          call spec_file_read_aero_data(sub_file, aero_data)
+          call spec_file_close(sub_file)
+       ! FIXME: Temporary to run PartMC. Replace with initialization from TChem
+       else if (run_part_opt%do_tchem) then
           call spec_file_read_string(file, 'aerosol_data', sub_filename)
           call spec_file_open(sub_filename, sub_file)
           call spec_file_read_aero_data(sub_file, aero_data)
@@ -852,6 +887,13 @@ contains
 #endif
     end if
 
+    if (run_part_opt%do_tchem) then
+#ifdef PMC_USE_TCHEM
+       call pmc_tchem_interface_solve(env_state, aero_data, aero_state, &
+            gas_data, gas_state, run_part_opt%del_t)
+#endif
+    end if
+
     if (run_part_opt%do_mosaic) then
        call mosaic_timestep(env_state, aero_data, aero_state, gas_data, &
             gas_state, run_part_opt%do_optical, run_part_opt%uuid)
@@ -909,7 +951,7 @@ contains
           call pmc_mpi_reduce_sum_integer(progress_n_nuc, global_n_nuc)
           if (pmc_mpi_rank() == 0) then
              ! progress only printed from root process
-             call cpu_time(t_wall_now)
+             t_wall_now = system_clock_time()
              prop_done = (real(run_part_opt%i_repeat - 1, kind=dp) &
                   + time / run_part_opt%t_max) &
                   / real(run_part_opt%n_repeat, kind=dp)

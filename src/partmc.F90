@@ -486,7 +486,7 @@ contains
     call pmc_rand_finalize()
     call pmc_srand(rand_init, pmc_mpi_rank())
 
-    call cpu_time(run_part_opt%t_wall_start)
+    run_part_opt%t_wall_start = system_clock_time()
 
     do i_repeat = 1,run_part_opt%n_repeat
        run_part_opt%i_repeat = i_repeat
@@ -538,6 +538,12 @@ contains
        end if
 
     end do
+
+    if (run_part_opt%do_tchem) then
+#ifdef PMC_USE_TCHEM
+       call pmc_tchem_cleanup()
+#endif
+    end if
 
     call pmc_rand_finalize()
 

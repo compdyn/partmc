@@ -10,7 +10,8 @@ del_t 100                       # timestep (s)
 t_output 5000                   # output interval (0 disables) (s)
 t_progress 1000                 # progress printing interval (0 disables) (s)
 
-do_camp_chem no                # whether to run the campible chemistry module
+do_camp_chem no                 # whether to use CAMP for chemistry
+do_tchem no                     # whether to use TChem for chemistry
 
 temp_profile temp_free.dat      # temperature profile file
 pressure_profile pressure.dat   # pressure profile file

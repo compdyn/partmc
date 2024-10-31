@@ -1972,4 +1972,17 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Returns the current system clock time in seconds.
+  real(kind=dp) function system_clock_time()
+
+    ! 64 bit integer enables hi-resolution time.
+    integer(kind=8) :: clock_count, clock_count_rate
+
+    call system_clock(clock_count, clock_count_rate)
+    system_clock_time = real(clock_count, kind=dp) / clock_count_rate
+
+  end function system_clock_time
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 end module pmc_util

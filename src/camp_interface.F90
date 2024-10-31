@@ -68,7 +68,7 @@ contains
     call env_state_set_camp_env_state(env_state, camp_state)
 
     ! Set the CAMP gas-phase species concentrations
-    call gas_state_set_camp_conc(gas_state, camp_state, gas_data)
+    call gas_state_set_camp_conc(gas_state, env_state, camp_state, gas_data)
 
     ! Recalculate the photolysis rate constants
     call photolysis%update_rate_constants()

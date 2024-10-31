@@ -12,6 +12,7 @@ t_progress 600                  # progress printing interval (0 disables) (s)
 
 do_camp_chem yes                # whether to use CAMP for chemistry
 camp_config config.json
+do_tchem no                     # whether to use TChem for chemistry 
 
 gas_init gas_init.dat           # initial gas concentrations
 

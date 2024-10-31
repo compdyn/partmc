@@ -3,7 +3,17 @@ cmake_minimum_required(VERSION 2.6.4)
 # http://www.cmake.org/Bug/view.php?id=8598
 # http://gcc.gnu.org/bugzilla/show_bug.cgi?id=35707
 # http://www.cmake.org/Bug/view.php?id=8408
-project(PARTMC Fortran C)
+if (ENABLE_TCHEM)
+  # Use the wrapper to nvcc for the CXX compiler for GPU
+  if (ENABLE_TCHEM_GPU)
+    set(ENV{CXX} $ENV{KOKKOS_PATH}/bin/nvcc_wrapper)
+    project(PARTMC Fortran C CXX)
+  else()
+    project(PARTMC Fortran C)
+  endif()
+else()
+  project(PARTMC Fortran C)
+endif()
 
 set(PACKAGE_BUGREPORT "mwest@illinois.edu")
 set(PACKAGE_NAME "PartMC")
@@ -17,6 +27,7 @@ set(PACKAGE_VERSION "2.8.0")
 option(ENABLE_GSL "Enable GSL library for random number generation" OFF)
 option(ENABLE_MOSAIC "Enable MOSAIC chemistry support" OFF)
 option(ENABLE_CAMP "Enable CAMP chemistry support" OFF)
+option(ENABLE_TCHEM "Enable TChem chemistry support" OFF)
 option(ENABLE_MPI "Enable MPI parallel support" OFF)
 option(ENABLE_SUNDIALS "Enable SUNDIALS solver for condensation support" OFF)
 option(ENABLE_C_SORT "Enable C sorting routines" OFF)
@@ -99,6 +110,50 @@ if(ENABLE_CAMP)
 endif()
 
 ######################################################################
+
+if(ENABLE_TCHEM)
+  find_path(TCHEM_INCLUDE_DIR tchem_atm/TChem_Driver.hpp
+    DOC "TChem include directory"
+    PATHS $ENV{TCHEM_HOME}/include/) 
+  find_library(TCHEM_LIB tchem_atm
+    DOC "TChem library"
+    PATHS $ENV{TCHEM_HOME}/lib64 $ENV{TCHEM_HOME}/lib)
+  add_definitions(-DPMC_USE_TCHEM)
+  include_directories(${TCHEM_INCLUDE_DIR})
+  find_path(YAML_INCLUDE_DIR yaml-cpp/yaml.h 
+    DOC "TChem include directory"
+    PATHS $ENV{YAML_PATH}/include/)
+  find_library(YAML_LIB yaml-cpp
+    PATHS $ENV{YAML_PATH}/lib)
+  include_directories(${YAML_INCLUDE_DIR})
+  find_path(KOKKOS_INCLUDE_DIR Kokkos_Core.hpp
+    DOC "Kokkos include directory"
+    PATHS $ENV{KOKKOS_PATH}/include)
+  find_library(KOKKOS_LIB kokkoscore
+    PATHS $ENV{KOKKOS_PATH}/lib64 $ENV{KOKKOS_PATH}/lib)
+  include_directories(${KOKKOS_INCLUDE_DIR})
+  find_path(KOKKOSKERNEL_INCLUDE_DIR KokkosKernels_Utils.hpp
+    DOC "Kokkos include directory"
+    PATHS $ENV{KOKKOSKERNEL_PATH}/include)
+  find_library(KOKKOSKERNEL_LIB kokkoskernels
+    PATHS $ENV{KOKKOSKERNEL_PATH}/lib64 $ENV{KOKKOSKERNEL_PATH}/lib)
+  find_path(TINES_INCLUDE_DIR tines/Tines.hpp
+    DOC "Tines include directory"
+    PATHS $ENV{TINES_PATH}/include)
+  find_library(TINES_LIB tines
+    PATHS $ENV{TINES_PATH}/lib64 $ENV{TINES_PATH}/lib)
+  include_directories(${TINES_INCLUDE_DIR})
+  set(CPP_LIB -lstdc++)
+#  find_path(LAPACK_INCLUDE_DIR lapack.h
+#    DOC "LAPACK include directory"
+#    PATHS $ENV{LAPACK_PATH}/include)
+  find_library(LAPACK_LIB openblas
+    PATHS $ENV{LAPACK_PATH}/lib)
+#  include_directories(${LAPACK_INCLUDE_DIR})
+  option(ENABLE_TCHEM_GPU "Enable TChem GPU chemistry support" OFF)
+endif()
+
+######################################################################
 # MPI
 
 if(ENABLE_MPI)
@@ -154,6 +209,9 @@ if(ENABLE_MPI)
 endif()
 add_test(test_rand ${CMAKE_BINARY_DIR}/test_run/run_test_directory.sh rand)
 add_test(test_sedi ${CMAKE_BINARY_DIR}/test_run/run_test_directory.sh sedi)
+if (ENABLE_TCHEM)
+  add_test(test_tchem ${CMAKE_BINARY_DIR}/test_run/run_test_directory.sh tchem)
+endif()
 add_test(test_weighting ${CMAKE_BINARY_DIR}/test_run/run_test_directory.sh weighting)
 
 ######################################################################
@@ -176,14 +234,31 @@ add_library(partmclib src/aero_state.F90 src/integer_varray.F90
   src/netcdf.F90 src/aero_info.F90 src/aero_info_array.F90
   src/nucleate.F90 src/condense.F90 src/fractal.F90 src/chamber.F90
   src/camp_interface.F90 src/photolysis.F90 src/sys.F90
+  src/tchem_interface.F90
   src/aero_component.F90
-  ${SUNDIALS_SRC} ${GSL_SRC}
+  ${SUNDIALS_SRC} ${GSL_SRC} ${TCHEM_SRC}
   ${C_SORT_SRC})
 
 target_link_libraries(partmclib ${NETCDF_LIBS} ${SUNDIALS_LIBS}
-  ${MOSAIC_LIB} ${GSL_LIBS} ${CAMP_LIB})
+  ${MOSAIC_LIB} ${GSL_LIBS} ${CAMP_LIB} ${TCHEM_LIB} ${YAML_LIB}
+  ${KOKKOS_LIB} ${KOKKOSKERNEL_LIB} ${TINES_LIB} ${CPP_LIB} ${LAPACK_LIB})
+
+if (ENABLE_TCHEM)
+   find_package(OpenMP REQUIRED)
+   if (ENABLE_TCHEM_GPU)
+      add_link_options(${OpenMP_CXX_FLAGS})
+   else()
+      add_link_options(${OpenMP_Fortran_FLAGS})
+   endif()
+   include(FindThreads)
+   target_link_libraries(partmclib ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS})
+endif()
 
 set_target_properties(partmclib PROPERTIES OUTPUT_NAME partmc)
+if (ENABLE_TCHEM_GPU)
+   add_link_options(${OpenMP_CXX_FLAGS})
+   set_target_properties(partmclib PROPERTIES LINKER_LANGUAGE CXX)
+endif()
 
 ######################################################################
 # partmc executable
@@ -191,6 +266,9 @@ set_target_properties(partmclib PROPERTIES OUTPUT_NAME partmc)
 add_executable(partmc src/partmc.F90)
 
 target_link_libraries(partmc partmclib)
+if (ENABLE_TCHEM_GPU)
+  set_property(TARGET partmc PROPERTY LINKER_LANGUAGE CXX)
+endif()
 
 ######################################################################
 # test_bidisperse_ode

@@ -45,18 +45,20 @@ uncomment_for_restart() {
 caseName=$1
 chi=$2
 t_max=$3
+isbin=$4
 frzDir=/data/nriemer/a/wenhant2/modeling/partmc/scenarios/7_freezing
 cd $frzDir
 
 mkdir -p $frzDir/output/$caseName
+sed -i "/output_prefix /coutput_prefix output/${caseName}/freezing_part # prefix of output files" $frzDir/run_part.spec
 cp -p $frzDir/run_part.spec $frzDir/output/$caseName
 cp -p $frzDir/*.dat $frzDir/output/$caseName
 
-sed -i "/output_prefix /coutput_prefix output/${caseName}/freezing_part # prefix of output files" $frzDir/run_part.spec
 
 sed -i "/t_max /ct_max 0                            # total simulation time (s)" $frzDir/run_part.spec
+sed -i "/restart /crestart no                      # whether to restart from saved state (yes/no)" $frzDir/run_part.spec
 ../../build/partmc run_part.spec
-$frzDir/aero_init_tools/run_setchi.py $chi $frzDir/output/${caseName}/freezing_part_0001_00000001.nc $frzDir/aero_init_comp.dat
+$frzDir/aero_init_tools/run_setchi.py $chi $frzDir/output/${caseName}/freezing_part_0001_00000001.nc $isbin #$frzDir/aero_init_comp.dat
 
 sed -i "/restart /crestart yes                     # whether to restart from saved state (yes/no)" $frzDir/run_part.spec
 sub_pound $frzDir/run_part.spec restart_file

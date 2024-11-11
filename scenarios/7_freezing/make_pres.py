@@ -64,7 +64,7 @@ if __name__ == "__main__":
             #tList = [0, 14 * min_SI, 15 * min_SI, total_time],
             #tempList  = [270 , 270 ,  225 ,  225],
             tList = [0, total_time],
-            tempList  = [100000, 100000],
+            tempList  = [50000, 50000],
 
         )
         #change_curve_file("/data/keeling/a/wenhant2/Scripts/analysis/3_freezing_BenchPlots/Mohler2008_data/Mohler2008_fig3_P_black.csv") * 100

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-caseName=git_trans_t1
+caseName=dev_test2
 # exit on error
 set -e
 # turn on command echoing
@@ -16,4 +16,6 @@ cp -p run_part.spec output/$caseName
 cp -p *.dat output/$caseName
 
 ../../build/partmc run_part.spec
+mv freezing_timing.txt output/$caseName
+
 #for i in out/freezing_part_*.nc; do ../../build/extract_aero_particles $i; done;

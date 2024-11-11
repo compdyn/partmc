@@ -4,6 +4,7 @@ import numpy as np
 from pdb import set_trace
 from scipy.interpolate import interp1d
 import pandas as pd
+from sys import argv
 
 min_SI = 60
 hour_SI = 3600
@@ -12,8 +13,13 @@ day_SI = 24 * 3600
 
 #total_hour = 24
 #timeList = np.arange(0, 3600 * (total_hour + 1), 3600)
-total_time = 3600
-dtime = 60
+if len(argv) > 1:
+    assert len(argv) == 3
+    total_time = float(argv[1])
+    dtime = float(argv[2])
+else:
+    total_time = 600
+    dtime = 1
 timeList = np.arange(0, total_time + dtime, dtime)
 Nt = len(timeList)
 
@@ -40,7 +46,7 @@ def make_file(timeList, TList, fileName = "temp.dat"):
         fw.write("#   temp    (K)\n")
         fw.write("time ")
         for time in timeList:
-            fw.write("%d    " % (time))
+            fw.write("%.3f    " % (time))
         fw.write("\n")
         fw.write("temp ")
         for T in TList:
@@ -64,11 +70,14 @@ if __name__ == "__main__":
             #tempList = [280 , 237.5 , 280 ,  237.5 , 280 ,  237.5 , 280 , 237.5 , 280 ],
             #tList = [0, 14 * min_SI, 15 * min_SI, total_time],
             #tempList  = [270 , 270 ,  225 ,  225],
+            #tList = [0, total_time/2, total_time/2 + 1, total_time],
+            #tempList  = [263.15, 243.15, 263.15, 243.15],
             tList = [0, total_time],
-            tempList  = [270, 225],
+            tempList  = [253.15, 253.15],
 
         )
         #change_curve_file("/data/keeling/a/wenhant2/Scripts/analysis/3_freezing_BenchPlots/Mohler2008_data/Mohler2008_fig3_Tg_black.csv")
+        #change_curve_file("/data/nriemer/d/wenhant2/datasets/LT_Tempfile/evaporation_temp.csv")
     ]
     TList = np.concatenate(TLists)
     assert len(timeList) == len(TList)

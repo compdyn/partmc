@@ -9,9 +9,10 @@ from pdb import set_trace
 
 class PartMC_Case(object):
 
-    def __init__(self, caseName, OutDir = "."):
+    def __init__(self, caseName, OutDir = ".", prefix = "freezing_part", disable_check_time = False):
         
-        self.prefix = "freezing_part"
+        #self.prefix = "freezing_part"
+        self.prefix = prefix
         self.caseName = caseName
         if os.path.exists(OutDir + "/" + caseName):
             self.case_output = OutDir + "/" + caseName
@@ -42,7 +43,16 @@ class PartMC_Case(object):
             else:
                 assert self.N_file_per_ensemble == len(fileList)
 
-        self.read_check_time()
+        if disable_check_time:
+            timeList = []
+            for fileName in self.ensemble_fileList[self.ensemble_nameList[0]]:
+                ncf = nc.Dataset(fileName)
+                time = float(ncf.variables["time"][0].filled(np.nan))
+                ncf.close()
+                timeList.append(time)
+            self.timeList = np.array(timeList)
+        else:
+            self.read_check_time()
         self.nTime = len(self.timeList)
         self.read_dimensions()
         
@@ -196,13 +206,52 @@ class PartMC_Case(object):
                 dry_diameter = self.aero_particle_dry_diameter(aero_particle_mass[i_time], aero_density[i_time], aero_species_name2ind)
                 dry_diameter_tList.append(dry_diameter)
 
-            dimensions = ("time", ) + dimensions
+            dimensions = ("time", ) + (dimensions[-1], )
             info = {
                 "units": "m",
             }
             self.database[ensemble_name]["dry_diameter"] = (dry_diameter_tList, dimensions, info)
         return dry_diameter_tList, dimensions, info
-            
+
+    def convert_to_ice_volume(self, ensemble_name = None):
+
+        if ensemble_name is None:
+            ensemble_name = self.default_ensemble_name
+        timeList = self.timeList
+        aero_mass_list, _, mass_info = self.get_var("aero_particle_mass", ensemble_name)
+        aero_density_list, _, _ = self.get_var("aero_density", ensemble_name = ensemble_name)
+        aero_species_ind_list, _, aero_species_info = self.get_var("aero_species", ensemble_name = ensemble_name)
+        den_ice_list, dim, info = self.get_var("aero_ice_density", ensemble_name)
+        frozen_list, dim, info = self.get_var("aero_frozen", ensemble_name)
+        aero_volume_list = []
+        for i_time in range(self.nTime):
+            aero_mass = aero_mass_list[i_time]
+            aero_density = aero_density_list[i_time]
+            aero_species_ind = aero_species_ind_list[i_time]
+            den_ice = den_ice_list[i_time]
+            frozen = frozen_list[i_time]
+            aero_species_names = aero_species_info["names"].split(",")
+            aero_species_ind2name = {ind:name for ind, name in zip(aero_species_ind - 1, aero_species_names)}
+            aero_species_name2ind = {name:ind for ind, name in zip(aero_species_ind - 1, aero_species_names)}
+            i_water = aero_species_name2ind["H2O"]
+            aero_volume = np.full(aero_mass.shape, np.nan)
+            for i_spec in range(len(aero_density)):
+                if i_spec == i_water:
+                    aero_volume[i_spec, :] = np.where(frozen == 1, aero_mass[i_spec, :] / den_ice, aero_mass[i_spec, :] / aero_density[i_spec])
+                else:
+                    aero_volume[i_spec, :] = aero_mass[i_spec, :] / aero_density[i_spec]
+            aero_volume_list.append(aero_volume)
+        #return aero_volume_list, aero_mass_list, den_ice_list, i_water
+        return aero_volume_list
+
+    def compute_ice_diameter(self, ensemble_name = None):
+        if ensemble_name is None:
+            ensemble_name = self.default_ensemble_name
+        aero_volume_list = self.convert_to_ice_volume(ensemble_name)
+        aero_volume_list = np.array(aero_volume_list)
+        Dp_ice = (6 / np.pi * aero_volume_list.sum(axis = 1)) ** (1/3.0)
+        return Dp_ice
+
     def compute_diameter(self, ensemble_name = None):
 
         if ensemble_name is None:
@@ -227,7 +276,7 @@ class PartMC_Case(object):
                 #dry_diameter = self.aero_particle_dry_diameter(aero_particle_mass[i_time], aero_density[i_time], aero_species_name2ind)
                 diameter_tList.append(diameter)
 
-            dimensions = ("time", ) + dimensions
+            dimensions = ("time", ) + (dimensions[-1],)
             info = {
                 "units": "m",
             }
@@ -373,6 +422,41 @@ class PartMC_Case(object):
             return mean_list, std_list, info_dict
         else:
             return mean_list, std_list
+
+    def compute_ensemble_max_min(self, varName, ensembles = None, getFun = None, getFun_kwargs = {}, return_info = False):
+        if ensembles is None:
+            ensembles = self.ensemble_nameList
+        max_list = []
+        min_list = []
+        for i_time in range(self.nTime):
+            combine_array = []
+            shape_check = None
+            for ensemble_name in ensembles:
+                if not(varName in self.database[ensemble_name]):
+                    if getFun is None:
+                        self.get_var(varName, ensemble_name)
+                    else:
+                        getFun(ensemble_name = ensemble_name, **getFun_kwargs)
+
+                assert varName in self.database[ensemble_name]
+                data = self.database[ensemble_name][varName][0][i_time]
+                if shape_check is None:
+                    shape_check = data.shape
+                else:
+                    assert shape_check == data.shape
+                combine_array.append(data)
+            combine_array = np.array(combine_array)
+            max_value = np.nanmax(combine_array, axis = 0)
+            min_value = np.nanmin(combine_array, axis = 0)
+            max_list.append(max_value)
+            min_list.append(min_value)
+        max_list = np.array(max_list)
+        min_list = np.array(min_list)
+        if return_info:
+            info_dict = self.database[ensemble_name][varName][2]
+            return max_list, min_list, info_dict
+        else:
+            return max_list, min_list
                 
             
             

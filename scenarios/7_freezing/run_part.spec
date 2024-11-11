@@ -1,14 +1,14 @@
 run_type particle               # particle-resolved run
-output_prefix output/git_trans_t1/freezing_part # prefix of output files
-n_repeat 10                      # number of Monte Carlo repeats
-n_part 1000                     # total number of particles
+output_prefix output/exp8/freezing_part # prefix of output files
+n_repeat 20                      # number of Monte Carlo repeats
+n_part 10000                     # total number of particles
 restart no                      # whether to restart from saved state (yes/no)
-#restart_file output/chiexp_0.15/restart.nc
+#restart_file output/chiexp_indsize_0.8/restart.nc
 
-t_max 3600                           # total simulation time (s)
-del_t 10                         # timestep (s)
+t_max 600                            # total simulation time (s)
+del_t 1                           # timestep (s)
 t_output 10                   # output interval (0 disables) (s)
-t_progress 100                  # progress printing interval (0 disables) (s)
+t_progress 10                  # progress printing interval (0 disables) (s)
 
 do_camp_chem no                 # whether to run the campible chemistry module
 
@@ -37,18 +37,16 @@ start_day 1                     # start day of year (UTC)
 
 do_coagulation no               # whether to do coagulation (yes/no)
 #coag_kernel brown
-do_condensation yes            # whether to do condensation (yes/no)
-do_init_equilibrate yes         # whether to initially equilibrate water (yes/no) 
+do_condensation no             # whether to do condensation (yes/no)
+#do_init_equilibrate yes         # whether to initially equilibrate water (yes/no) 
 do_mosaic no                    # whether to do MOSAIC (yes/no)
 do_nucleation no                # whether to do nucleation (yes/no)
-do_freezing yes                 # whether to do freezing (yes/no)
-do_freezing_CNT yes
-do_coating no
-#coating_spec OIN
-#coating_ratio 1.0
-
-#do_freezing_CNT no
+do_immersion_freezing yes                 # whether to do freezing (yes/no)
+#immersion_freezing_scheme singular
+immersion_freezing_scheme ABIFM
+#immersion_freezing_scheme const
 #freezing_rate -.01123456789 
+do_coating no
 
 rand_init 1                     # random initialization (0 to auto-generate)
 allow_doubling yes              # whether to allow doubling (yes/no)

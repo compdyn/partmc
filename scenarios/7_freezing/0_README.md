@@ -17,5 +17,6 @@ exp7: external mixture, steady cooling
 exp8: internal mixture, steady cooling
 
 1. Run 1_run.sh. This is the shell scripts for running all simulations.
-2. Run 2_draw.py. This creates the figure showing the frozen fraction time series in each simulation.
-3. Run 3_clean.sh. This deletes all files created by the processes above.
+2. Run 2_process.sh. This is the shell scripts for extract data from netcdf files.
+3. Run 3_draw.py. This creates the figure showing the frozen fraction time series in each simulation. (Reproduces the Figure 8 in Tang et al., 2025)
+4. (Optional) Run 4_clean.sh. This deletes all files created by the processes above.

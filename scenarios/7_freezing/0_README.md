@@ -1,7 +1,8 @@
 
 # Immersion freezing scenario
 
-[reference]
+Reference:
+Tang, W. (2024). Particle-resolved simulations of immersion freezing with multi-species ice nucleating particles. (Master’s thesis, University of Illinois at Urbana-Champaign). https://hdl.handle.net/2142/124611
 
 This is a scenario demonstrating how to use PartMC to simulate the immersion freezing process of multiple species INPs.
 
@@ -18,5 +19,9 @@ exp8: internal mixture, steady cooling
 
 1. Run 1_run.sh. This is the shell scripts for running all simulations.
 2. Run 2_process.sh. This is the shell scripts for extract data from netcdf files.
-3. Run 3_draw.py. This creates the figure showing the frozen fraction time series in each simulation. (Reproduces the Figure 8 in Tang et al., 2025)
+3. Run 3_draw.py. This creates the figure showing the frozen fraction time series in each simulation. 
+   (Reproduces the Figure 3.6 in the reference mentioned above, the output png file is out/TSs.png)
 4. (Optional) Run 4_clean.sh. This deletes all files created by the processes above.
+
+Figure capture of out/TSs.png:
+Simulated frozen fraction from PartMC for four different INP species and mixing states. (a) isothermal conditions, while panel (b) constant-rate cooling process. The red lines represent the temperature profiles as a function of time. The green lines correspond to simulations with 100% illite, gray lines indicate 100% Fe2O3, light blue lines are for external mixtures, and dark blue lines represent internal mixtures. Solid lines represent the average frozen fraction from 20 repeated simulations for each scenario, and the shaded areas denote the range between the maximum and minimum values.

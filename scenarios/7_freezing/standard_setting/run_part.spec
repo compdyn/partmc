@@ -1,5 +1,5 @@
 run_type particle               # particle-resolved run
-output_prefix output/pap1_exp8_acc/freezing_part # prefix of output files
+output_prefix out/freezing_part # prefix of output files
 n_repeat 20                      # number of Monte Carlo repeats
 n_part 10000                     # total number of particles
 restart no                      # whether to restart from saved state (yes/no)

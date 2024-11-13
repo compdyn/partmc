@@ -39,6 +39,7 @@ coag_kernel brown               # coagulation kernel
 do_condensation no              # whether to do condensation (yes/no)
 do_mosaic no                    # whether to do MOSAIC (yes/no)
 do_nucleation no                # whether to do nucleation (yes/no)
+do_immersion_freezing no
 
 rand_init 0                     # random initialization (0 to auto-generate)
 allow_doubling yes              # whether to allow doubling (yes/no)

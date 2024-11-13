@@ -1,6 +1,13 @@
 
-Freezing Test
-=============
+Immersion freezing Test-case
+==================================
+The initial condition is an internally mixed INPs in a constant
+temperature process. All particles initially immersed in water,
+with wet diameter of ~2.15 um in average, and dry diameter 
+of 1 um in average. The log-std of wet and dry diameter is 0.5.
+All particles contain an insoluble INP, with 50% of surface 
+covered by illite, and 50% of surface by Fe2O3. The temperature 
+is -20 degrees celsius.
 
-This test reproduces immersion freezing simulations from Alpert & Knopf 2016
-(https://doi.org/10.5194/acp-16-2083-2016).
+The theoretical frozen fraction results are calculated using 
+the equation (3.40) in Tang 2024 (https://www.ideals.illinois.edu/items/131711).

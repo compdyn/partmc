@@ -170,7 +170,7 @@ add_library(partmclib src/aero_state.F90 src/integer_varray.F90
   src/netcdf.F90 src/aero_info.F90 src/aero_info_array.F90
   src/nucleate.F90 src/condense.F90 src/fractal.F90 src/chamber.F90
   src/camp_interface.F90 src/photolysis.F90 src/sys.F90
-  src/freezing.F90
+  src/ice_nucleation.F90
   ${SUNDIALS_SRC} ${GSL_SRC}
   ${C_SORT_SRC})
 
@@ -195,6 +195,7 @@ add_executable(test_bidisperse_ode
 target_link_libraries(test_bidisperse_ode partmclib)
 
 ######################################################################
+
 # test_bidisperse_extract
 
 add_executable(test_bidisperse_extract
@@ -203,6 +204,7 @@ add_executable(test_bidisperse_extract
 target_link_libraries(test_bidisperse_extract ${NETCDF_LIBS})
 
 ######################################################################
+
 # test_nucleate_ode
 
 add_executable(test_nucleate_ode test/nucleate/test_nucleate_ode.F90
@@ -322,10 +324,34 @@ add_executable(urban_plume_process
 target_link_libraries(urban_plume_process partmclib)
 
 ######################################################################
+# scenarios/7_freezing/freezing_process
+
+add_executable(freezing_process
+  scenarios/7_freezing/freezing_process.F90)
+target_link_libraries(freezing_process partmclib)
+
+######################################################################
+
 # scenarios/4_chamber/chamber_process
 
 add_executable(chamber_process
   scenarios/4_chamber/chamber_process.F90)
 target_link_libraries(chamber_process partmclib)
 
+######################################################################
+
+# test_freezing_extract
+
+add_executable(test_freezing_extract
+  test/freezing/test_freezing_extract.F90)
+
+target_link_libraries(test_freezing_extract ${NETCDF_LIBS})
+######################################################################
+
+# test_freezing_theoretical
+
+add_executable(test_freezing_theoretical
+  test/freezing/test_freezing_theoretical.F90)
+
+target_link_libraries(test_freezing_theoretical partmclib)
 ######################################################################

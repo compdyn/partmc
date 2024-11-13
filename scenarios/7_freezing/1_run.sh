@@ -32,6 +32,6 @@ do
     sleep 1
 
     ../../build/partmc run_part.spec
-    mv freezing_timing.txt output/$caseName
+    #mv freezing_timing.txt output/$caseName
     
 done

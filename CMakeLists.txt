@@ -205,6 +205,24 @@ target_link_libraries(test_bidisperse_extract ${NETCDF_LIBS})
 
 ######################################################################
 
+# test_freezing_extract
+
+add_executable(test_freezing_extract
+  test/freezing/test_freezing_extract.F90)
+
+target_link_libraries(test_freezing_extract ${NETCDF_LIBS})
+
+######################################################################
+
+# test_freezing_theoretical
+
+add_executable(test_freezing_theoretical
+  test/freezing/test_freezing_theoretical.F90)
+
+target_link_libraries(test_freezing_theoretical partmclib)
+
+######################################################################
+
 # test_nucleate_ode
 
 add_executable(test_nucleate_ode test/nucleate/test_nucleate_ode.F90
@@ -340,18 +358,4 @@ target_link_libraries(chamber_process partmclib)
 
 ######################################################################
 
-# test_freezing_extract
 
-add_executable(test_freezing_extract
-  test/freezing/test_freezing_extract.F90)
-
-target_link_libraries(test_freezing_extract ${NETCDF_LIBS})
-######################################################################
-
-# test_freezing_theoretical
-
-add_executable(test_freezing_theoretical
-  test/freezing/test_freezing_theoretical.F90)
-
-target_link_libraries(test_freezing_theoretical partmclib)
-######################################################################

@@ -780,7 +780,7 @@ contains
 
     
     ! Wenhan Tang: add for saving the timing results
-    open(1997, file="freezing_timing.txt")
+    !open(1997, file="freezing_timing.txt")
 
     do i_repeat = 1,run_part_opt%n_repeat
        run_part_opt%i_repeat = i_repeat
@@ -834,7 +834,7 @@ contains
 
     end do
     ! Wenhan Tang: add for the freezing timing
-    close(1997)
+    !close(1997)
 
     call pmc_rand_finalize()
 

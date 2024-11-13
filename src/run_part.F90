@@ -80,9 +80,9 @@ module pmc_run_part
      character(len=300) :: coating_spec
      real(kind=dp) :: coating_ratio
 
-     logical :: do_ice_shape
-     logical :: do_ice_density
-     logical :: do_ice_ventilation
+     logical :: do_ice_shape = .False.
+     logical :: do_ice_density = .False.
+     logical :: do_ice_ventilation = .False.
     
      !> Allow doubling if needed.
      logical :: allow_doubling
@@ -419,8 +419,9 @@ contains
        end if
 
     end do
-    print*, "Freeze module total run time:", freeze_module_run_time
-    write(1997, *) freeze_module_run_time
+
+    !print*, "Freeze module total run time:", freeze_module_run_time
+    !write(1997, *) freeze_module_run_time
 
     if (run_part_opt%do_mosaic) then
        call mosaic_cleanup()

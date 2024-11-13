@@ -107,5 +107,5 @@ if __name__ == "__main__":
     fig, ax2 = draw(fig, ax2, casesName, ax_label = "(b)")
     ax2.set_xlabel("Time (min)", fontsize = xlabel_fontsize)
 
-    plt.show()
-    #plt.savefig("figs_code/TSs.png", dpi = 500)
+    #plt.show()
+    plt.savefig("out/TSs.png", dpi = 500)

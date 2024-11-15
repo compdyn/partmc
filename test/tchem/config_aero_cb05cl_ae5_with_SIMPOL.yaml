@@ -1,0 +1,147 @@
+NCAR-version:
+- absolute integration tolerance: 0.001
+  description: gas-phase product from isoprene oxidation by OH
+  molecular weight [kg mol-1]: 0.08806
+  diffusion coeff [m2 s-1]: 9.5e-06
+  name: ISOP-P1
+  notes:
+  - using diffusion coefficient from dry deposition
+  - see notes on ISOP-P1_aero species
+  type: CHEM_SPEC
+- absolute integration tolerance: 0.001
+  description: gas-phase product from isoprene oxidation by O3
+  molecular weight [kg mol-1]: 0.09003
+  name: ISOP-P2
+  diffusion coeff [m2 s-1]: 9.5e-06
+  notes:
+  - using diffusion coefficient from dry deposition
+  - see notes on ISOP-P2_aero species
+  type: CHEM_SPEC
+- absolute integration tolerance: 0.001
+  description: gas-phase product from monoterpene oxidation by OH
+  molecular weight [kg mol-1]: 0.17025
+  diffusion coeff [m2 s-1]: 9.5e-06
+  name: TERP-P1
+  notes:
+  - using diffusion coefficient from dry deposition
+  - see notes on TERP-P1_aero species
+  type: CHEM_SPEC
+- absolute integration tolerance: 0.001
+  description: gas-phase product from monoterpene oxidation by O3
+  molecular weight [kg mol-1]: 0.202162
+  diffusion coeff [m2 s-1]: 9.5e-06
+  name: TERP-P2
+  diffusion coeff [m2 s-1]: 9.5e-06
+  notes:
+  - using diffusion coefficient from dry deposition
+  - see notes on TERP-P2_aero species
+  type: CHEM_SPEC
+- absolute integration tolerance: 1.0e-05
+  density [kg m-3]: 1800.0
+  description: lumped hydrophobic particulate matter
+  kappa: 0.0
+  molecular weight [kg mol-1]: 0.41475
+  name: POA
+  note: Using C30H54 for molecular weight. TODO find best surrogate
+  num_ions: 0
+  phase: AEROSOL
+  type: CHEM_SPEC
+- absolute integration tolerance: 1.0e-05
+  density [kg m-3]: 1800.0
+  description: First isoprene SOA species in 2-product scheme
+  kappa: 0.1
+  molecular weight [kg mol-1]: 0.08806
+  name: ISOP-P1_aero
+  diffusion coeff [m2 s-1]: 9.5e-06
+  note:
+  - Using ketopropanoic acid for molecular weight. TODO find best surrogate
+  - TODO update SIMPOL parameters based on MW of new surrogate
+  num_ions: 0
+  phase: AEROSOL
+  type: CHEM_SPEC
+- absolute integration tolerance: 1.0e-05
+  density [kg m-3]: 1800.0
+  description: Second isoprene SOA species in 2-product scheme
+  kappa: 0.1
+  molecular weight [kg mol-1]: 0.09003
+  name: ISOP-P2_aero
+  diffusion coeff [m2 s-1]: 9.5e-06
+  note:
+  - Using oxalic acid for molecular weight. TODO find best surrogate
+  - TODO update SIMPOL parameters based on MW of new surrogate
+  num_ions: 0
+  phase: AEROSOL
+  type: CHEM_SPEC
+- absolute integration tolerance: 1.0e-05
+  density [kg m-3]: 1800.0
+  description: First monoterpene SOA species in 2-product scheme
+  kappa: 0.1
+  diffusion coeff [m2 s-1]: 9.5e-06
+  molecular weight [kg mol-1]: 0.17025
+  name: TERP-P1_aero
+  note:
+  - Using 2-hydroxy-3-isopropyl-6-methyl-cyclohexanone for molecular weight
+  - TODO find best surrogate
+  - TODO update SIMPOL parameters based on MW of new surrogate
+  num_ions: 0
+  phase: AEROSOL
+  type: CHEM_SPEC
+- absolute integration tolerance: 1.0e-05
+  density [kg m-3]: 1800.0
+  description: Second monoterpene SOA species in 2-product scheme
+  diffusion coeff [m2 s-1]: 9.5e-06
+  kappa: 0.1
+  molecular weight [kg mol-1]: 0.202162
+  name: TERP-P2_aero
+  note:
+  - Using 2-methyl-5-carboxy-2,4-hexodienoic acid. TODO find best surrogate
+  - TODO update SIMPOL parameters based on MW of new surrogate
+  num_ions: 0
+  phase: AEROSOL
+  type: CHEM_SPEC
+- maximum computational particles: 20 
+  name: my aero rep 2
+  type: AERO_REP_SINGLE_PARTICLE
+- name: MONARCH mod37
+  reactions:
+  - B: [3810.0, -21.3, 0.0, 0.0]
+    aerosol phase: organic_matter
+    aerosol-phase species: ISOP-P1_aero
+    gas-phase species: ISOP-P1
+    type: SIMPOL_PHASE_TRANSFER
+  - B:
+    - 3810.0
+    - -20.9
+    - 0.0
+    - 0.0
+    aerosol phase: organic_matter
+    aerosol-phase species: ISOP-P2_aero
+    gas-phase species: ISOP-P2
+    type: SIMPOL_PHASE_TRANSFER
+  - B:
+    - 2190.0
+    - -17.5
+    - 0.0
+    - 0.0
+    aerosol phase: organic_matter
+    aerosol-phase species: TERP-P1_aero
+    gas-phase species: TERP-P1
+    type: SIMPOL_PHASE_TRANSFER
+  - B:
+    - 2190.0
+    - -15.3
+    - 0.0
+    - 0.0
+    aerosol phase: organic_matter
+    aerosol-phase species: TERP-P2_aero
+    gas-phase species: TERP-P2
+    type: SIMPOL_PHASE_TRANSFER
+  type: MECHANISM
+notes:
+- 2-product SOA scheme from MONARCH model. Based on Tsigaridis and Kanakidou (2007).
+- Details in Spada et al. (2013) in prep for Geosci. Model Dev.
+- Gas-phase rate constants taken from CB05 reactions with same reactants
+- TODO the CB05 reactions should be updated/removed to avoid competition with SOA
+  scheme
+- Clausius clapyron parameters (C* and -dH/R) converted to SIMPOL.1 paramaters
+

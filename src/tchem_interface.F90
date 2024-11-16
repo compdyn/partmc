@@ -151,8 +151,7 @@ contains
     !> Number of cells to solve.
     integer, intent(in) :: n_grid_cells
 
-    integer(kind=c_int) :: nSpec, nAeroSpec
-    integer :: n_aero_spec
+    integer(kind=c_int) :: n_aero_spec, n_gas_spec
     integer :: i
     real(kind=c_double), dimension(:), allocatable :: array 
     character(:), allocatable ::  val
@@ -225,7 +224,7 @@ contains
     type(env_state_t), intent(in) :: env_state
 
     integer(c_int) :: nSpec, stateVecDim
-    integer :: i_part
+    integer :: i_part, i_spec
     real(kind=c_double), dimension(:), allocatable :: stateVector 
     integer :: n_gas_spec, n_aero_spec
 
@@ -269,7 +268,7 @@ contains
     type(env_state_t), intent(in) :: env_state
 
     real(kind=dp), allocatable :: stateVector(:), number_concentration(:)
-    integer :: stateVecDim, tchem_n_part
+    integer :: stateVecDim, tchem_n_part, i_spec
     integer :: i_part
     integer :: i_water
 

@@ -75,6 +75,11 @@ interface
     real(kind=c_double) :: array(*)
     integer(c_int), value :: i_batch
   end subroutine
+  function TChem_getNumberConcentrationVectorSize() bind(c, &
+       name="TChem_getNumberConcentrationVectorSize")
+    use iso_c_binding
+    integer(kind=c_int) :: TChem_getNumberConcentrationVectorSize
+  end function
   subroutine TChem_setNumberConcentrationVector(array, i_batch) bind(c, &
        name="TChem_setNumberConcentrationVector")
     use iso_c_binding
@@ -282,7 +287,7 @@ contains
     allocate(stateVector(stateVecDim))
 
     ! Get size of number concentration
-    tchem_n_part = 20 
+    tchem_n_part = TChem_getNumberConcentrationVectorSize()
     allocate(number_concentration(tchem_n_part))
 
     ! First three elements are density, pressure and temperature

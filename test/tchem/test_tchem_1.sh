@@ -11,4 +11,4 @@ mkdir -p out
 
 ../../partmc run_part_cb05cl_ae5_with_SIMPOL.spec
 ../../extract_gas out/tchem_cb05cl_ae5_0001
-#../../numeric_diff --by col --rel-tol 0.4 out/tchem_cb05cl_ae5_0001_gas.txt tchem_cb05cl_ae5_gas_saved.txt
+../../numeric_diff --by col --rel-tol 0.4 out/tchem_cb05cl_ae5_0001_gas.txt tchem_cb05cl_ae5_gas_saved.txt

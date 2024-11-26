@@ -311,8 +311,7 @@ contains
 #ifdef PMC_USE_SUNDIALS
        if (run_part_opt%do_condensation) then
           call condense_particles(aero_state, aero_data, old_env_state, &
-               env_state, run_part_opt%del_t, run_part_opt%do_ice_shape, &
-               run_part_opt%do_ice_density, run_part_opt%do_ice_ventilation)
+               env_state, run_part_opt%del_t)
        end if
 #endif
 

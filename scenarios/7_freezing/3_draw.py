@@ -109,3 +109,4 @@ if __name__ == "__main__":
 
     #plt.show()
     plt.savefig("out/TSs.png", dpi = 500)
+    print("The figure has been saved to out/Ts.png")

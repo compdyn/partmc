@@ -17,7 +17,7 @@ scenarios/3_condense/spec/
 scenarios/3_condense/temp/
 scenarios/3_condense/out/
 scenarios/4_chamber/out/
-scenarios/7_freezing/aero_init_tools
+scenarios/7_freezing/aero_init_tools/
 scenarios/7_freezing/draw.py
 scenarios/7_freezing/freezing_run.sh
 scenarios/7_freezing/freezing_timing.txt
@@ -30,5 +30,6 @@ scenarios/7_freezing/plot_temp1.py
 scenarios/7_freezing/run_part.spec
 scenarios/7_freezing/run_scripts 
 scenarios/7_freezing/visual_tools
+scenarios/7_freezing/out/
 *.o
 *.mod

@@ -224,13 +224,15 @@ contains
     type(gas_state_t) :: emissions, background
 
     ! emissions
-    call gas_state_interp_1d(scenario%gas_emission, &
-         scenario%gas_emission_time, scenario%gas_emission_rate_scale, &
-         env_state%elapsed_time, emissions, emission_rate_scale)
-    call gas_state_mole_dens_to_ppb(emissions, env_state)
-    p = emission_rate_scale * delta_t / env_state%height
-    call gas_state_add_scaled(gas_state, emissions, p)
-
+    if (size(scenario%gas_emission) > 0) then
+       call gas_state_interp_1d(scenario%gas_emission, &
+            scenario%gas_emission_time, scenario%gas_emission_rate_scale, &
+            env_state%elapsed_time, emissions, emission_rate_scale)
+       call gas_state_molar_conc_to_ppb(emissions, env_state)
+       p = emission_rate_scale * delta_t / env_state%height
+       call gas_state_add_scaled(gas_state, emissions, p)
+    end if
+#ifndef PMC_USE_WRF
     ! dilution
     call gas_state_interp_1d(scenario%gas_background, &
          scenario%gas_dilution_time, scenario%gas_dilution_rate, &
@@ -241,6 +243,7 @@ contains
     end if
     call gas_state_scale(gas_state, p)
     call gas_state_add_scaled(gas_state, background, 1d0 - p)
+#endif
     call gas_state_ensure_nonnegative(gas_state)
 
   end subroutine scenario_update_gas_state
@@ -280,19 +283,27 @@ contains
     !> Whether to allow halving of the population.
     logical, intent(in) :: allow_halving
 
+    real(kind=dp), parameter :: sample_timescale = 3600.0d0
+    real(kind=dp) :: characteristic_factor, sample_timescale_effective
     real(kind=dp) :: emission_rate_scale, dilution_rate, p
     type(aero_dist_t) :: emissions, background
     type(aero_state_t) :: aero_state_delta
 
-    ! emissions
-    call aero_dist_interp_1d(scenario%aero_emission, &
-         scenario%aero_emission_time, scenario%aero_emission_rate_scale, &
-         env_state%elapsed_time, emissions, emission_rate_scale)
-    p = emission_rate_scale * delta_t / env_state%height
-    call aero_state_add_aero_dist_sample(aero_state, aero_data, &
-         emissions, p, env_state%elapsed_time, allow_doubling, allow_halving, &
-         n_emit)
+    sample_timescale_effective = max(1.0, min(sample_timescale, &
+         env_state%elapsed_time))
+    characteristic_factor = sample_timescale_effective / delta_t
 
+    ! emissions
+    if (size(scenario%aero_emission) > 0) then
+       call aero_dist_interp_1d(scenario%aero_emission, &
+            scenario%aero_emission_time, scenario%aero_emission_rate_scale, &
+            env_state%elapsed_time, emissions, emission_rate_scale)
+       p = emission_rate_scale * delta_t / env_state%height
+       call aero_state_add_aero_dist_sample(aero_state, aero_data, &
+            emissions, p, characteristic_factor, env_state%elapsed_time, &
+            allow_doubling, allow_halving, n_emit)
+    end if
+#ifndef PMC_USE_WRF
     ! dilution
     call aero_dist_interp_1d(scenario%aero_background, &
          scenario%aero_dilution_time, scenario%aero_dilution_rate, &
@@ -302,22 +313,30 @@ contains
        p = p * old_env_state%height / env_state%height
     end if
     ! loss to background
+    call aero_state_zero(aero_state_delta)
+    call aero_state_copy_weight(aero_state, aero_state_delta)
     call aero_state_sample_particles(aero_state, aero_state_delta, &
          aero_data, 1d0 - p, AERO_INFO_DILUTION)
     n_dil_out = aero_state_total_particles(aero_state_delta)
     ! addition from background
     call aero_state_add_aero_dist_sample(aero_state, aero_data, &
-         background, 1d0 - p, env_state%elapsed_time, allow_doubling, &
-         allow_halving, n_dil_in)
+         background, 1d0 - p, characteristic_factor, env_state%elapsed_time, &
+         allow_doubling, allow_halving, n_dil_in)
 
     ! particle loss function
     call scenario_particle_loss(scenario, delta_t, aero_data, aero_state, &
          env_state)
-    
+#endif
+
+#ifdef PMC_USE_WRF
+    call aero_weight_array_scale(aero_state%awa, &
+         old_env_state%inverse_density * (1.0d0 / env_state%inverse_density))
+#else
     ! update computational volume
     call aero_weight_array_scale(aero_state%awa, &
          old_env_state%temp * env_state%pressure &
          / (env_state%temp * old_env_state%pressure))
+#endif
 
   end subroutine scenario_update_aero_state
 
@@ -749,7 +768,8 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read environment data from an spec file.
-  subroutine spec_file_read_scenario(file, gas_data, aero_data, scenario)
+  subroutine spec_file_read_scenario(file, gas_data, aero_data, &
+       read_aero_weight_classes, scenario)
 
     !> Spec file.
     type(spec_file_t), intent(inout) :: file
@@ -757,6 +777,8 @@ contains
     type(gas_data_t), intent(in) :: gas_data
     !> Aerosol data.
     type(aero_data_t), intent(inout) :: aero_data
+    !> Whether the weight classes for each source are specified in inputs.
+    logical, intent(in) :: read_aero_weight_classes
     !> Scenario data.
     type(scenario_t), intent(inout) :: scenario
 
@@ -845,16 +867,16 @@ contains
     call spec_file_read_string(file, "aero_emissions", sub_filename)
     call spec_file_open(sub_filename, sub_file)
     call spec_file_read_aero_dists_times_rates(sub_file, aero_data, &
-         scenario%aero_emission_time, scenario%aero_emission_rate_scale, &
-         scenario%aero_emission)
+         read_aero_weight_classes, scenario%aero_emission_time, &
+         scenario%aero_emission_rate_scale, scenario%aero_emission)
     call spec_file_close(sub_file)
 
     ! aerosol background profile
     call spec_file_read_string(file, "aero_background", sub_filename)
     call spec_file_open(sub_filename, sub_file)
     call spec_file_read_aero_dists_times_rates(sub_file, aero_data, &
-         scenario%aero_dilution_time, scenario%aero_dilution_rate, &
-         scenario%aero_background)
+         read_aero_weight_classes, scenario%aero_dilution_time, &
+         scenario%aero_dilution_rate, scenario%aero_background)
     call spec_file_close(sub_file)
 
     ! loss function

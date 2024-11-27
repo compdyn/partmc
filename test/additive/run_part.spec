@@ -3,13 +3,16 @@ output_prefix out/additive_part # prefix of output files
 n_repeat 1                      # number of Monte Carlo repeats
 n_part 100000                   # number of Monte Carlo particles
 restart no                      # whether to restart from saved state (yes/no)
+do_select_weighting yes         # whether to select weighting explicitly (yes/no)
+weight_type flat                # weighting scheme
 
 t_max 600                       # total simulation time (s)
 del_t 1                         # timestep (s)
 t_output 60                     # output interval (0 disables) (s)
 t_progress 60                   # progress printing interval (0 disables) (s)
 
-do_camp_chem no                # whether to run the campible chemistry module
+do_camp_chem no                 # whether to use CAMP for chemistry
+do_tchem no                     # whether to use TChem for chemistry
 
 gas_data gas_data.dat           # file containing gas data
 gas_init gas_init.dat           # initial gas mixing ratios
@@ -36,6 +39,7 @@ start_day 1                     # start day of year (UTC)
 
 do_coagulation yes              # whether to do coagulation (yes/no)
 coag_kernel additive            # coagulation kernel
+additive_kernel_coeff 1000      # additive kernel constant
 do_condensation no              # whether to do condensation (yes/no)
 do_mosaic no                    # whether to do MOSAIC (yes/no)
 do_nucleation no                # whether to do nucleation (yes/no)
@@ -44,7 +48,5 @@ do_immersion_freezing no        # whether to do freezing (yes/no)
 rand_init 0                     # random initialization (0 to auto-generate)
 allow_doubling yes              # whether to allow doubling (yes/no)
 allow_halving yes               # whether to allow halving (yes/no)
-do_select_weighting yes         # whether to select weighting explicitly (yes/no)
-weight_type flat                # weighting scheme
 record_removals no              # whether to record particle removals (yes/no)
 do_parallel no                  # whether to run in parallel (yes/no)

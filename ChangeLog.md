@@ -1,3 +1,34 @@
+2.8.0 - 2024-02-23
+
+  * Add `aero_component` for tracking particle source information (Jeff Curtis).
+
+  * Add weight class selection for each aerosol source to multiple sources in a
+    single weight class (Jeff Curtis).
+
+  * Add option to avoid sampling particles that are a certain number of
+    standard deviations from the mean using a sampling timescale
+    (Jeff Curtis).
+
+  * Add preprocessor flag for WRF-PartMC specific variables and code 
+    (`PMC_USE_WRF`) (Jeff Curtis).
+
+  * Fix MPI bug causing CI failure (Sylwester Arabas and Jeff Curtis).
+
+  * Fix particle reweighting when using CAMP (Jeff Curtis). 
+ 
+2.7.0 - 2023-08-11
+
+  * Add support for SUNDIALS 6+ (Alex Hirzel).
+
+  * Add wrapper around stop (Sylwester Arabas).
+
+  * Change timestepping structure in run_part (Jeff Curtis).
+
+  * Update kappa value of NaCl (Jeff Curtis).
+
+  * Remove optional communicator in photolysis.F90 (Jeff Curtis).
+
+  * Use relative tolerance for comparing water properties (Jeff Curtis).
 
 2.6.1 - 2022-02-18
 

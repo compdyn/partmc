@@ -177,7 +177,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Convert (mol m^{-3}) to (ppb).
-  subroutine gas_state_mole_dens_to_ppb(gas_state, env_state)
+  subroutine gas_state_molar_conc_to_ppb(gas_state, env_state)
 
     !> Gas state.
     type(gas_state_t), intent(inout) :: gas_state
@@ -186,39 +186,31 @@ contains
 
     call gas_state_scale(gas_state, 1d9 / env_state_air_molar_den(env_state))
 
-  end subroutine gas_state_mole_dens_to_ppb
+  end subroutine gas_state_molar_conc_to_ppb
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 #ifdef PMC_USE_CAMP
   !> Set CAMP gas-phase species concentrations
-  subroutine gas_state_set_camp_conc(gas_state, camp_state, gas_data)
+  subroutine gas_state_set_camp_conc(gas_state, env_state, camp_state, &
+       gas_data)
 
     !> Gas state
     class(gas_state_t), intent(in) :: gas_state
+    ! Environmental state.
+    type(env_state_t), intent(in) :: env_state
     !> CAMP state
     type(camp_state_t), intent(inout) :: camp_state
     !> Gas data
     type(gas_data_t), intent(in) :: gas_data
 
-    real(kind=dp), parameter :: t_steam = 373.15 ! steam temperature (K)
-    real(kind=dp) :: a, water_vp
+    ! Convert relative humidity (1) to [H2O] (ppb)
+    camp_state%state_var(gas_data%i_camp_water) = &
+         env_state_rel_humid_to_mix_rat(env_state)
 
+    ! Convert from ppb to ppm
     camp_state%state_var(1:size(gas_state%mix_rat)) = gas_state%mix_rat(:) &
          / 1000.0d0
-
-    ! Convert relative humidity (1) to [H2O] (ppm)
-    ! From MOSAIC code - reference to Seinfeld & Pandis page 181
-    ! TODO Figure out how to have consistent RH<->ppm conversions
-    ! (There is only one environmental state for PartMC runs
-    call assert(590005048, associated(camp_state%env_states(1)%val))
-    a = 1.0 - t_steam / camp_state%env_states(1)%val%temp
-    a = (((-0.1299 * a - 0.6445) * a - 1.976) * a + 13.3185) * a
-    water_vp = 101325.0 * exp(a)  ! (Pa)
-
-    camp_state%state_var(gas_data%i_camp_water) = &
-         camp_state%env_states(1)%val%rel_humid * water_vp * 1.0e6 &
-         / camp_state%env_states(1)%val%pressure ! (ppm)
 
   end subroutine gas_state_set_camp_conc
 

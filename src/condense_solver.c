@@ -59,12 +59,14 @@ static int condense_check_flag(void *flagvalue, char *funcname, int opt);
 // solver block
 
 static int condense_solver_Solve(double t, N_Vector ycur, N_Vector fcur,
-				 N_Vector r, N_Vector b, double gamma, double delta, int lr, void *user_data);
+				 N_Vector r, N_Vector b, double gamma,
+                                 double delta, int lr, void *user_data);
 
 /*******************************************************/
 
 void condense_vf_f(int neq, realtype t, double *y_f, double *ydot_f);
-void condense_jac_solve_f(int neq, double t, double *ycur_f, double *fcur_f, double *b_f, double gamma);
+void condense_jac_solve_f(int neq, double t, double *ycur_f, double *fcur_f,
+                          double *b_f, double gamma);
 
 /** \brief Call the ODE solver.
  *
@@ -272,7 +274,8 @@ static int condense_check_flag(void *flagvalue, char *funcname, int opt)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 static int condense_solver_Solve(double t, N_Vector ycur, N_Vector fcur,
-				 N_Vector b, N_Vector z, double gamma, double delta, int lr, void *user_data)
+				 N_Vector b, N_Vector z, double gamma,
+                                 double delta, int lr, void *user_data)
 {
 	realtype *b_data, *ycur_data, *fcur_data, *z_data;
 	int i, neq;

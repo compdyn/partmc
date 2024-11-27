@@ -3,13 +3,15 @@ output_prefix out/serial        # prefix of output files
 n_repeat 1                      # number of Monte Carlo repeats
 n_part 10000                    # total number of particles
 restart no                      # whether to restart from saved state (yes/no)
+do_select_weighting no          # whether to select weighting explicitly (yes/no)
 
 t_max 86400                     # total simulation time (s)
 del_t 600                       # timestep (s)
 t_output 3600                   # output interval (0 disables) (s)
 t_progress 3600                 # progress printing interval (0 disables) (s)
 
-do_camp_chem no                # whether to run the campible chemistry module
+do_camp_chem no                 # whether to use CAMP for chemistry
+do_tchem no                     # whether to use TChem for chemistry
 
 gas_data gas_data.dat           # file containing gas data
 gas_init gas_init.dat           # initial gas mixing ratios
@@ -44,6 +46,5 @@ do_immersion_freezing no        # whether to do freezing (yes/no)
 rand_init 0                     # random initialization (0 to auto-generate)
 allow_doubling yes              # whether to allow doubling (yes/no)
 allow_halving yes               # whether to allow halving (yes/no)
-do_select_weighting no          # whether to select weighting explicitly (yes/no)
 record_removals no              # whether to record particle removals (yes/no)
 do_parallel no                  # whether to run in parallel (yes/no)

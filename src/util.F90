@@ -778,6 +778,22 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Convert an integer64 to a string format.
+  character(len=PMC_UTIL_CONVERT_STRING_LEN) function integer64_to_string(val)
+
+    !> Value to convert.
+    integer(kind=8), intent(in) :: val
+
+    character(len=PMC_UTIL_CONVERT_STRING_LEN) :: ret_val
+
+    ret_val = ""
+    write(ret_val, '(i30)') val
+    integer64_to_string = adjustl(ret_val)
+
+  end function integer64_to_string
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Convert a real to a string format.
   character(len=PMC_UTIL_CONVERT_STRING_LEN) function real_to_string(val)
 
@@ -1112,6 +1128,104 @@ contains
 
   !> Allocate or reallocate the given array to ensure it is of the
   !> given size, preserving any data and/or initializing to 0.
+  subroutine ensure_real_array_3d_size(x, n1, n2, n3, only_grow)
+
+    !> Array of real numbers.
+    real(kind=dp), intent(inout), allocatable :: x(:, :, :)
+    !> Desired first size of array.
+    integer, intent(in) :: n1
+    !> Desired second size of array.
+    integer, intent(in) :: n2
+    !> Desired third size of array.
+    integer, intent(in) :: n3
+    !> Whether to only increase the array size (default .true.).
+    logical, intent(in), optional :: only_grow
+
+    integer :: new_n1, new_n2, new_n3, n1_min, n2_min, n3_min
+    real(kind=dp), allocatable :: tmp_x(:, :, :)
+
+    if (allocated(x)) then
+       new_n1 = n1
+       new_n2 = n2
+       new_n3 = n3
+       if (present(only_grow)) then
+          new_n1 = max(new_n1, size(x, 1))
+          new_n2 = max(new_n2, size(x, 2))
+          new_n3 = max(new_n3, size(x, 3))
+       end if
+       if ((size(x, 1) /= new_n1) .or. (size(x, 2) /= new_n2) &
+            .or. (size(x,3) /= new_n3)) then
+          allocate(tmp_x(new_n1, new_n2, new_n3))
+          n1_min = min(new_n1, size(x, 1))
+          n2_min = min(new_n2, size(x, 2))
+          n3_min = min(new_n3, size(x, 3))
+          tmp_x = 0d0
+          tmp_x(1:n1_min, 1:n2_min, 1:n3_min) = x(1:n1_min, 1:n2_min, 1:n3_min)
+          call move_alloc(tmp_x, x)
+       end if
+    else
+       allocate(x(n1, n2, n3))
+       x = 0d0
+    end if
+
+  end subroutine ensure_real_array_3d_size
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Allocate or reallocate the given array to ensure it is of the
+  !> given size, preserving any data and/or initializing to 0.
+  subroutine ensure_real_array_4d_size(x, n1, n2, n3, n4, only_grow)
+
+    !> Array of real numbers.
+    real(kind=dp), intent(inout), allocatable :: x(:, :, :, :)
+    !> Desired first size of array.
+    integer, intent(in) :: n1
+    !> Desired second size of array.
+    integer, intent(in) :: n2
+    !> Desired third size of array.
+    integer, intent(in) :: n3
+    !> Desired fourth size of array.
+    integer, intent(in) :: n4
+    !> Whether to only increase the array size (default .true.).
+    logical, intent(in), optional :: only_grow
+
+    integer :: new_n1, new_n2, new_n3, new_n4, n1_min, n2_min, n3_min, n4_min
+    real(kind=dp), allocatable :: tmp_x(:, :, :, :)
+
+    if (allocated(x)) then
+       new_n1 = n1
+       new_n2 = n2
+       new_n3 = n3
+       new_n4 = n4
+       if (present(only_grow)) then
+          new_n1 = max(new_n1, size(x, 1))
+          new_n2 = max(new_n2, size(x, 2))
+          new_n3 = max(new_n3, size(x, 3))
+          new_n4 = max(new_n4, size(x, 4))
+       end if
+       if ((size(x, 1) /= new_n1) .or. (size(x, 2) /= new_n2) &
+            .or. (size(x, 3) /= new_n3) .or. (size(x, 4) /= new_n4)) then
+          allocate(tmp_x(new_n1, new_n2, new_n3, new_n4))
+          n1_min = min(new_n1, size(x, 1))
+          n2_min = min(new_n2, size(x, 2))
+          n3_min = min(new_n3, size(x, 3))
+          n4_min = min(new_n4, size(x, 4))
+          tmp_x = 0d0
+          tmp_x(1:n1_min, 1:n2_min, 1:n3_min, 1:n4_min) = x(1:n1_min, &
+               1:n2_min, 1:n3_min, 1:n4_min)
+          call move_alloc(tmp_x, x)
+       end if
+    else
+       allocate(x(n1, n2, n3, n4))
+       x = 0d0
+    end if
+
+  end subroutine ensure_real_array_4d_size
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Allocate or reallocate the given array to ensure it is of the
+  !> given size, preserving any data and/or initializing to 0.
   subroutine ensure_integer_array_size(x, n, only_grow)
 
     !> Array of integer numbers.
@@ -1141,6 +1255,74 @@ contains
     end if
 
   end subroutine ensure_integer_array_size
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Allocate or reallocate the given array to ensure it is of the
+  !> given size, preserving any data and/or initializing to 0.
+  subroutine ensure_integer64_array_size(x, n, only_grow)
+
+    !> Array of integer numbers.
+    integer(kind=8), intent(inout), allocatable :: x(:)
+    !> Desired size of array.
+    integer, intent(in) :: n
+    !> Whether to only increase the array size (default .true.).
+    logical, intent(in), optional :: only_grow
+
+    integer :: new_n
+    integer(kind=8), allocatable :: tmp_x(:)
+
+    if (allocated(x)) then
+       new_n = n
+       if (present(only_grow)) then
+          new_n = max(new_n, size(x))
+       end if
+       if (size(x) /= new_n) then
+          allocate(tmp_x(new_n))
+          tmp_x = 0
+          tmp_x(1:min(new_n, size(x))) = x(1:min(new_n, size(x)))
+          call move_alloc(tmp_x, x)
+       end if
+    else
+       allocate(x(n))
+       x = 0
+    end if
+
+  end subroutine ensure_integer64_array_size
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Allocate or reallocate the given array to ensure it is of the
+  !> given size, preserving any data and/or initializing to 0.
+  subroutine ensure_complex_array_size(x, n, only_grow)
+
+    !> Array of integer numbers.
+    complex(kind=dc), intent(inout), allocatable :: x(:)
+    !> Desired size of array.
+    integer, intent(in) :: n
+    !> Whether to only increase the array size (default .true.).
+    logical, intent(in), optional :: only_grow
+
+    integer :: new_n
+    complex(kind=dc), allocatable :: tmp_x(:)
+
+    if (allocated(x)) then
+       new_n = n
+       if (present(only_grow)) then
+          new_n = max(new_n, size(x))
+       end if
+       if (size(x) /= new_n) then
+          allocate(tmp_x(new_n))
+          tmp_x = 0
+          tmp_x(1:min(new_n, size(x))) = x(1:min(new_n, size(x)))
+          call move_alloc(tmp_x, x)
+       end if
+    else
+       allocate(x(n))
+       x = 0
+    end if
+
+  end subroutine ensure_complex_array_size
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -1181,6 +1363,104 @@ contains
     end if
 
   end subroutine ensure_integer_array_2d_size
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Allocate or reallocate the given array to ensure it is of the
+  !> given size, preserving any data and/or initializing to 0.
+  subroutine ensure_integer_array_3d_size(x, n1, n2, n3, only_grow)
+
+    !> Array of integer numbers.
+    integer, intent(inout), allocatable :: x(:, :, :)
+    !> Desired first size of array.
+    integer, intent(in) :: n1
+    !> Desired second size of array.
+    integer, intent(in) :: n2
+    !> Desired third size of array.
+    integer, intent(in) :: n3
+    !> Whether to only increase the array size (default .true.).
+    logical, intent(in), optional :: only_grow
+
+    integer :: new_n1, new_n2, new_n3, n1_min, n2_min, n3_min
+    integer, allocatable :: tmp_x(:, :, :)
+
+    if (allocated(x)) then
+       new_n1 = n1
+       new_n2 = n2
+       new_n3 = n3
+       if (present(only_grow)) then
+          new_n1 = max(new_n1, size(x, 1))
+          new_n2 = max(new_n2, size(x, 2))
+          new_n3 = max(new_n2, size(x, 3))
+       end if
+       if ((size(x, 1) /= new_n1) .or. (size(x, 2) /= new_n2) &
+            .or. (size(x,3) /= new_n3)) then
+          allocate(tmp_x(new_n1, new_n2, new_n3))
+          n1_min = min(new_n1, size(x, 1))
+          n2_min = min(new_n2, size(x, 2))
+          n3_min = min(new_n3, size(x, 3))
+          tmp_x = 0
+          tmp_x(1:n1_min, 1:n2_min, 1:n3_min) = x(1:n1_min, 1:n2_min, 1:n3_min)
+          call move_alloc(tmp_x, x)
+       end if
+    else
+       allocate(x(n1, n2, n3))
+       x = 0
+    end if
+
+  end subroutine ensure_integer_array_3d_size
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Allocate or reallocate the given array to ensure it is of the
+  !> given size, preserving any data and/or initializing to 0.
+  subroutine ensure_integer_array_4d_size(x, n1, n2, n3, n4, only_grow)
+
+    !> Array of integer numbers.
+    integer, intent(inout), allocatable :: x(:, :, :, :)
+    !> Desired first size of array.
+    integer, intent(in) :: n1
+    !> Desired second size of array.
+    integer, intent(in) :: n2
+    !> Desired third size of array.
+    integer, intent(in) :: n3
+    !> Desired fourth size of array.
+    integer, intent(in) :: n4
+    !> Whether to only increase the array size (default .true.).
+    logical, intent(in), optional :: only_grow
+
+    integer :: new_n1, new_n2, new_n3, new_n4, n1_min, n2_min, n3_min, n4_min
+    integer, allocatable :: tmp_x(:, :, :, :)
+
+    if (allocated(x)) then
+       new_n1 = n1
+       new_n2 = n2
+       new_n3 = n3
+       new_n4 = n4
+       if (present(only_grow)) then
+          new_n1 = max(new_n1, size(x, 1))
+          new_n2 = max(new_n2, size(x, 2))
+          new_n3 = max(new_n3, size(x, 3))
+          new_n4 = max(new_n4, size(x, 4))
+       end if
+       if ((size(x, 1) /= new_n1) .or. (size(x, 2) /= new_n2) &
+            .or. (size(x, 3) /= new_n3) .or. (size(x, 4) /= new_n4)) then
+          allocate(tmp_x(new_n1, new_n2, new_n3, new_n4))
+          n1_min = min(new_n1, size(x, 1))
+          n2_min = min(new_n2, size(x, 2))
+          n3_min = min(new_n3, size(x, 3))
+          n4_min = min(new_n4, size(x, 4))
+          tmp_x = 0
+          tmp_x(1:n1_min, 1:n2_min, 1:n3_min, 1:n4_min) = x(1:n1_min, &
+               1:n2_min, 1:n3_min, 1:n4_min)
+          call move_alloc(tmp_x, x)
+       end if
+    else
+       allocate(x(n1, n2, n3, n4))
+       x = 0
+    end if
+
+  end subroutine ensure_integer_array_4d_size
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -1326,6 +1606,42 @@ contains
 #endif
 
   end subroutine integer_sort
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine real_sort(data, perm)
+
+    !> Data array to sort, sorted on exit.
+    real(kind=dp), intent(inout) :: data(:)
+    !> Permutation defining the sort: <tt>new_data(i) = data(perm(i))</tt>.
+    integer, intent(out) :: perm(size(data))
+
+#ifdef PMC_USE_C_SORT
+    integer(kind=c_int) :: n_c
+    real(kind=c_double), target :: data_c(size(data))
+    integer(kind=c_int), target :: perm_c(size(data))
+    type(c_ptr) :: data_ptr, perm_ptr
+
+#ifndef DOXYGEN_SKIP_DOC
+    interface
+       subroutine double_sort_c(n_c, data_ptr, perm_ptr) bind(c)
+         use iso_c_binding
+         integer(kind=c_int), value :: n_c
+         type(c_ptr), value :: data_ptr, perm_ptr
+       end subroutine double_sort_c
+    end interface
+#endif
+    data_c = real(data, kind=c_double)
+    perm_c = 0_c_int
+    n_c = int(size(data), kind=c_int)
+    data_ptr = c_loc(data_c)
+    perm_ptr = c_loc(perm_c)
+    call double_sort_c(n_c, data_ptr, perm_ptr)
+    data = real(data_c)
+    perm = int(perm_c)
+#endif
+
+  end subroutine real_sort
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -1653,6 +1969,19 @@ contains
     pow2_above = ibset(0, bit_size(n) - leadz(n - 1))
 
   end function pow2_above
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Returns the current system clock time in seconds.
+  real(kind=dp) function system_clock_time()
+
+    ! 64 bit integer enables hi-resolution time.
+    integer(kind=8) :: clock_count, clock_count_rate
+
+    call system_clock(clock_count, clock_count_rate)
+    system_clock_time = real(clock_count, kind=dp) / clock_count_rate
+
+  end function system_clock_time
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

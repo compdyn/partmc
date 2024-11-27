@@ -1,0 +1,8 @@
+
+TChemn Test-case
+===========================================
+
+- test_tchem_1.sh tests PartMC-TChem Chapman mechanism against a standalone output
+from TChem that is interpolated to the output timestep of PartMC.
+- test_test_2.s tests the cb05cl_ae5 mechanism against a standalone output from
+TChem that is interpolated to the output timestep of PartMC.

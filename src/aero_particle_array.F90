@@ -305,4 +305,23 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Returns the total number of components in the aero_particle_array.
+  elemental integer function aero_particle_array_n_components( &
+       aero_particle_array)
+
+    !> Aerosol particle array.
+    type(aero_particle_array_t), intent(in) :: aero_particle_array
+
+    integer :: i_part
+
+    aero_particle_array_n_components = 0
+    do i_part = 1,aero_particle_array_n_part(aero_particle_array)
+       aero_particle_array_n_components = aero_particle_array_n_components &
+           + aero_particle_n_components(aero_particle_array%particle(i_part))
+    end do
+
+  end function aero_particle_array_n_components
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 end module pmc_aero_particle_array

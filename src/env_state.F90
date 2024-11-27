@@ -39,6 +39,30 @@ module pmc_env_state
      real(kind=dp) :: latitude
      !> Altitude (m).
      real(kind=dp) :: altitude
+#ifdef PMC_USE_WRF
+     !> Height of lower edge of grid cell (m).
+     real(kind=dp) :: z_min
+     !> Height of upper edge of grid cell (m).
+     real(kind=dp) :: z_max
+     !> Inverse density (m^3 kg^{-1}).
+     real(kind=dp) :: inverse_density
+     !> Grid cell volume.
+     real(kind=dp) :: cell_volume
+     !> East-West index for grid cell.
+     integer :: cell_ix
+     !> North-South index for grid cell.
+     integer :: cell_iy
+     !> Top-Bottom index for grid cell.
+     integer :: cell_iz
+     !> Eddy diffusivity coefficient (m^2 s^{-2}).
+     real(kind=dp) :: diff_coef
+     !> Transfer probability in all directions due to advection.
+     real(kind=dp), allocatable :: prob_advection(:,:,:,:)
+     !> Transfer probability in all directions due to diffusion.
+     real(kind=dp), allocatable :: prob_diffusion(:,:,:,:)
+     !> Transfer probability in vertical direction due to turbulent diffusion.
+     real(kind=dp), allocatable :: prob_vert_diffusion(:,:)
+#endif
      !> Start time (s since 00:00 UTC on \c start_day).
      real(kind=dp) :: start_time
      !> Start day of year (UTC).
@@ -49,6 +73,8 @@ module pmc_env_state
      real(kind=dp) :: solar_zenith_angle
      !> Box height (m).
      real(kind=dp) :: height
+     !> Scaling coefficient for additive coagulation kernel.
+     real(kind=dp) :: additive_kernel_coefficient 
   end type env_state_t
 
 contains
@@ -172,6 +198,28 @@ contains
          / (const%univ_gas_const * env_state%temp)
 
   end function env_state_air_molar_den
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Converts relative humidity (1) to water vapor mixing ratio (ppb).
+  !! 
+  !! Uses equation (1.10) of Seinfeld and Pandis Atmospheric Chemistry and
+  !! Physics From Air Pollution to Climate Change Second Edition, 2006.
+  real(kind=dp) function env_state_rel_humid_to_mix_rat(env_state)
+
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+
+    real(kind=dp), parameter :: t_steam = 373.15 ! steam temperature (K)
+    real(kind=dp) :: a, water_vp
+
+    a = 1.0 - t_steam / env_state%temp
+    a = (((-0.1299 * a - 0.6445) * a - 1.976) * a + 13.3185) * a
+    water_vp = 101325.0 * exp(a)  ! (Pa)
+    env_state_rel_humid_to_mix_rat = env_state%rel_humid * water_vp * 1.0e9 &
+         / env_state%pressure ! (ppb)
+
+  end function env_state_rel_humid_to_mix_rat
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -344,11 +392,25 @@ contains
          + pmc_mpi_pack_size_real(val%longitude) &
          + pmc_mpi_pack_size_real(val%latitude) &
          + pmc_mpi_pack_size_real(val%altitude) &
+#ifdef PMC_USE_WRF
+         + pmc_mpi_pack_size_real(val%z_min) &
+         + pmc_mpi_pack_size_real(val%z_max) &
+         + pmc_mpi_pack_size_real(val%inverse_density) &
+         + pmc_mpi_pack_size_real(val%cell_volume) &
+         + pmc_mpi_pack_size_integer(val%cell_ix) &
+         + pmc_mpi_pack_size_integer(val%cell_iy) &
+         + pmc_mpi_pack_size_integer(val%cell_iz) &
+         + pmc_mpi_pack_size_real(val%diff_coef) &
+         + pmc_mpi_pack_size_real_array_4d(val%prob_advection) &
+         + pmc_mpi_pack_size_real_array_4d(val%prob_diffusion) &
+         + pmc_mpi_pack_size_real_array_2d(val%prob_vert_diffusion) &
+#endif
          + pmc_mpi_pack_size_real(val%start_time) &
          + pmc_mpi_pack_size_integer(val%start_day) &
          + pmc_mpi_pack_size_real(val%elapsed_time) &
          + pmc_mpi_pack_size_real(val%solar_zenith_angle) &
-         + pmc_mpi_pack_size_real(val%height)
+         + pmc_mpi_pack_size_real(val%height) &
+         + pmc_mpi_pack_size_real(val%additive_kernel_coefficient)
 
   end function pmc_mpi_pack_size_env_state
 
@@ -374,11 +436,25 @@ contains
     call pmc_mpi_pack_real(buffer, position, val%longitude)
     call pmc_mpi_pack_real(buffer, position, val%latitude)
     call pmc_mpi_pack_real(buffer, position, val%altitude)
+#ifdef PMC_USE_WRF
+    call pmc_mpi_pack_real(buffer, position, val%z_min)
+    call pmc_mpi_pack_real(buffer, position, val%z_max)
+    call pmc_mpi_pack_real(buffer, position, val%inverse_density)
+    call pmc_mpi_pack_real(buffer, position, val%cell_volume)
+    call pmc_mpi_pack_integer(buffer, position, val%cell_ix)
+    call pmc_mpi_pack_integer(buffer, position, val%cell_iy)
+    call pmc_mpi_pack_integer(buffer, position, val%cell_iz)
+    call pmc_mpi_pack_real(buffer, position, val%diff_coef)
+    call pmc_mpi_pack_real_array_4d(buffer, position, val%prob_advection)
+    call pmc_mpi_pack_real_array_4d(buffer, position, val%prob_diffusion)
+    call pmc_mpi_pack_real_array_2d(buffer, position, val%prob_vert_diffusion)
+#endif
     call pmc_mpi_pack_real(buffer, position, val%start_time)
     call pmc_mpi_pack_integer(buffer, position, val%start_day)
     call pmc_mpi_pack_real(buffer, position, val%elapsed_time)
     call pmc_mpi_pack_real(buffer, position, val%solar_zenith_angle)
     call pmc_mpi_pack_real(buffer, position, val%height)
+    call pmc_mpi_pack_real(buffer, position, val%additive_kernel_coefficient)
     call assert(464101191, &
          position - prev_position <= pmc_mpi_pack_size_env_state(val))
 #endif
@@ -407,11 +483,26 @@ contains
     call pmc_mpi_unpack_real(buffer, position, val%longitude)
     call pmc_mpi_unpack_real(buffer, position, val%latitude)
     call pmc_mpi_unpack_real(buffer, position, val%altitude)
+#ifdef PMC_USE_WRF
+    call pmc_mpi_unpack_real(buffer, position, val%z_min)
+    call pmc_mpi_unpack_real(buffer, position, val%z_max)
+    call pmc_mpi_unpack_real(buffer, position, val%inverse_density)
+    call pmc_mpi_unpack_real(buffer, position, val%cell_volume)
+    call pmc_mpi_unpack_integer(buffer, position, val%cell_ix)
+    call pmc_mpi_unpack_integer(buffer, position, val%cell_iy)
+    call pmc_mpi_unpack_integer(buffer, position, val%cell_iz)
+    call pmc_mpi_unpack_real(buffer, position, val%diff_coef)
+    call pmc_mpi_unpack_real_array_4d(buffer, position, val%prob_advection)
+    call pmc_mpi_unpack_real_array_4d(buffer, position, val%prob_diffusion)
+    call pmc_mpi_unpack_real_array_2d(buffer, position, &
+         val%prob_vert_diffusion)
+#endif
     call pmc_mpi_unpack_real(buffer, position, val%start_time)
     call pmc_mpi_unpack_integer(buffer, position, val%start_day)
     call pmc_mpi_unpack_real(buffer, position, val%elapsed_time)
     call pmc_mpi_unpack_real(buffer, position, val%solar_zenith_angle)
     call pmc_mpi_unpack_real(buffer, position, val%height)
+    call pmc_mpi_unpack_real(buffer, position, val%additive_kernel_coefficient)
     call assert(205696745, &
          position - prev_position <= pmc_mpi_pack_size_env_state(val))
 #endif
@@ -481,6 +572,24 @@ contains
          unit="degree_north", standard_name="latitude")
     call pmc_nc_write_real(ncid, env_state%altitude, "altitude", unit="m", &
          standard_name="altitude")
+#ifdef PMC_USE_WRF
+    call pmc_nc_write_real(ncid, env_state%z_min, "bottom_boundary_altitude", &
+         unit="m", standard_name="bottom_altitude")
+    call pmc_nc_write_real(ncid, env_state%z_max, "top_boundary_altitude", &
+         unit="m", standard_name="top_altitude")
+    call pmc_nc_write_real(ncid, env_state%inverse_density, &
+         "inverse_density", unit="m3kg-1", standard_name="inverse_density")
+    call pmc_nc_write_real(ncid, env_state%cell_volume, "cell_volume", &
+         unit="m3", standard_name="cell_volume")
+    call pmc_nc_write_integer(ncid,env_state%cell_ix,"x_index", &
+         description="east-west index of WRF domain")
+    call pmc_nc_write_integer(ncid,env_state%cell_iy,"y_index", &
+         description="north-south index of WRF domain")
+    call pmc_nc_write_integer(ncid,env_state%cell_iz,"z_index", &
+         description="top-bottom index of WRF domain")
+    call pmc_nc_write_real(ncid, env_state%diff_coef, "eddy_diff", &
+         unit="m2s-1", description="eddy diffusion coefficient")
+#endif
     call pmc_nc_write_real(ncid, env_state%start_time, &
          "start_time_of_day", unit="s", description="time-of-day of " &
          // "simulation start in seconds since midnight")
@@ -513,6 +622,16 @@ contains
     call pmc_nc_read_real(ncid, env_state%longitude, "longitude")
     call pmc_nc_read_real(ncid, env_state%latitude, "latitude")
     call pmc_nc_read_real(ncid, env_state%altitude, "altitude")
+#ifdef PMC_USE_WRF
+    call pmc_nc_read_real(ncid, env_state%z_min, "bottom_boundary_altitude")
+    call pmc_nc_read_real(ncid, env_state%z_max, "top_boundary_altitude")
+    call pmc_nc_read_real(ncid, env_state%inverse_density, "inverse_density")
+    call pmc_nc_read_real(ncid, env_state%cell_volume, "cell_volume")
+    call pmc_nc_read_integer(ncid,env_state%cell_ix,"x_index")
+    call pmc_nc_read_integer(ncid,env_state%cell_iy,"y_index")
+    call pmc_nc_read_integer(ncid,env_state%cell_iz,"z_index")
+    call pmc_nc_read_real(ncid, env_state%diff_coef, "eddy_diff")
+#endif
     call pmc_nc_read_real(ncid, env_state%start_time, &
          "start_time_of_day")
     call pmc_nc_read_integer(ncid, env_state%start_day, &

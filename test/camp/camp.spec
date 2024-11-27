@@ -3,6 +3,7 @@ output_prefix out/camp   # prefix of output files
 n_repeat 1                      # number of Monte Carlo repeats
 n_part 1000                   # total number of particles
 restart no                      # whether to restart from saved state (yes/no)
+do_select_weighting no          # whether to select weighting explicitly (yes/no)
 
 t_max 86400                    # total simulation time (s)
 del_t 120                        # timestep (s)
@@ -11,6 +12,7 @@ t_progress 3600                  # progress printing interval (0 disables) (s)
 
 do_camp_chem yes                # whether to use CAMP for chemistry
 camp_config config.json
+do_tchem no                     # whether to use TChem for chemistry
 
 gas_init gas_init.dat           # initial gas concentrations
 
@@ -41,6 +43,5 @@ do_nucleation no                # whether to do nucleation (yes/no)
 rand_init 0                     # random initialization (0 to use time)
 allow_doubling no             # whether to allow doubling (yes/no)
 allow_halving no               # whether to allow halving (yes/no)
-do_select_weighting no          # whether to select weighting explicitly (yes/no)
 record_removals yes             # whether to record particle removals (yes/no)
 do_parallel no                  # whether to run in parallel (yes/no)

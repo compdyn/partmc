@@ -26,6 +26,7 @@ module pmc_run_part
   use pmc_mpi
   use pmc_camp_interface
   use pmc_photolysis
+  use pmc_tchem_interface
 #ifdef PMC_USE_CAMP
   use camp_camp_core
   use camp_camp_state
@@ -63,6 +64,8 @@ module pmc_run_part
      integer :: nucleate_type
      !> Source of nucleation.
      integer :: nucleate_source
+     !> Weight class of nucleation.
+     integer :: nucleate_weight_class
      !> Whether to do coagulation.
      logical :: do_coagulation
      !> Whether to do nucleation.
@@ -104,7 +107,7 @@ module pmc_run_part
      integer :: i_repeat
      !> Total number of repeats.
      integer :: n_repeat
-     !> Cpu_time() of start.
+     !> Wall clock time of start.
      real(kind=dp) :: t_wall_start
      !> Whether to record particle removal information.
      logical :: record_removals
@@ -120,8 +123,10 @@ module pmc_run_part
      logical :: env_average
      !> Parallel coagulation method type.
      integer :: parallel_coag_type
-     !> Whether to run CAMP
+     !> Whether to run CAMP.
      logical :: do_camp_chem
+     !> Whether to run TChem.
+     logical :: do_tchem
      !> UUID for this simulation.
      character(len=PMC_UUID_LEN) :: uuid
   end type run_part_opt_t
@@ -138,12 +143,13 @@ contains
   subroutine run_part(scenario, env_state, aero_data, aero_state, gas_data, &
        gas_state, run_part_opt)
 #endif
+
     !> Environment state.
     type(scenario_t), intent(in) :: scenario
     !> Environment state.
     type(env_state_t), intent(inout) :: env_state
     !> Aerosol data.
-    type(aero_data_t), intent(in) :: aero_data
+    type(aero_data_t), intent(inout) :: aero_data
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     !> Gas data.
@@ -157,9 +163,6 @@ contains
     type(camp_core_t), pointer, intent(inout), optional :: camp_core
     !> Photolysis calculator
     type(photolysis_t), pointer, intent(inout), optional :: photolysis
-
-    type(camp_state_t), pointer :: camp_state
-    type(camp_state_t), pointer :: camp_pre_aero_state, camp_post_aero_state
 #endif
 
     real(kind=dp) :: time, pre_time, pre_del_t, prop_done
@@ -176,11 +179,9 @@ contains
     logical :: do_output, do_state, do_state_netcdf, do_progress, did_coag
     real(kind=dp) :: t_start, t_wall_now, t_wall_elapsed, t_wall_remain
     type(env_state_t) :: old_env_state
-    integer :: n_time, i_time, i_time_start, pre_i_time
+    integer :: n_time, i_time, pre_i_time
     integer :: i_state, i_state_netcdf, i_output
-#ifdef PMC_USE_CAMP
-    type(camp_env_state_t) :: camp_env_state
-#endif
+    integer :: i_cur, i_next
 
     rank = pmc_mpi_rank()
     n_proc = pmc_mpi_size()
@@ -203,15 +204,6 @@ contains
          "del_t", run_part_opt%del_t)
     call check_time_multiple("t_progress", run_part_opt%t_progress, &
          "del_t", run_part_opt%del_t)
-#ifdef PMC_USE_CAMP
-    if (run_part_opt%do_camp_chem) then
-       camp_env_state%temp = env_state%temp
-       camp_env_state%pressure = env_state%pressure
-       camp_state =>  camp_core%new_state_one_cell(camp_env_state)
-       camp_pre_aero_state => camp_core%new_state_one_cell(camp_env_state)
-       camp_post_aero_state => camp_core%new_state_one_cell(camp_env_state)
-    end if
-#endif
 
     if (run_part_opt%do_mosaic) then
        call mosaic_init(env_state, aero_data, run_part_opt%del_t, &
@@ -219,6 +211,7 @@ contains
        if (run_part_opt%do_optical) then
           call mosaic_aero_optical_init(env_state, aero_data, &
             aero_state, gas_data, gas_state)
+          call mosaic_optical_wavelengths(aero_data)
        end if
     end if
 
@@ -239,7 +232,6 @@ contains
     last_output_time = time
     last_progress_time = time
     n_time = nint(run_part_opt%t_max / run_part_opt%del_t)
-    i_time_start = nint(time / run_part_opt%del_t) + 1
 
     global_n_part = aero_state_total_particles_all_procs(aero_state)
     if (rank == 0) then
@@ -248,7 +240,7 @@ contains
           t_wall_elapsed = 0d0
           t_wall_remain = 0d0
        else
-          call cpu_time(t_wall_now)
+          t_wall_now = system_clock_time()
           prop_done = real(run_part_opt%i_repeat - 1, kind=dp) &
                / real(run_part_opt%n_repeat, kind=dp)
           t_wall_elapsed = t_wall_now - run_part_opt%t_wall_start
@@ -264,160 +256,16 @@ contains
         call singular_initialize(aero_state, aero_data)
     end if
 
-    do i_time = i_time_start,n_time
-
-       time = real(i_time, kind=dp) * run_part_opt%del_t
-
-       old_env_state = env_state
-       call scenario_update_env_state(scenario, env_state, time + t_start)
-
-       if (run_part_opt%do_nucleation) then
-          n_part_before = aero_state_total_particles(aero_state)
-          call nucleate(run_part_opt%nucleate_type, &
-               run_part_opt%nucleate_source, env_state, gas_data, aero_data, &
-               aero_state, gas_state, run_part_opt%del_t, &
-               run_part_opt%allow_doubling, run_part_opt%allow_halving)
-          n_nuc = aero_state_total_particles(aero_state) &
-               - n_part_before
-          progress_n_nuc = progress_n_nuc + n_nuc
-       end if
-
-       !print*, run_part_opt%freezing_rate
-       if (run_part_opt%do_immersion_freezing) then
-           call immersion_freezing(aero_state, aero_data, old_env_state, &
-                   env_state, run_part_opt%del_t, run_part_opt%immersion_freezing_scheme, run_part_opt%freezing_rate, &
-                   run_part_opt%do_coating, run_part_opt%coating_spec, run_part_opt%coating_ratio)
-
-           call melting(aero_state, aero_data, old_env_state, env_state)
-       end if
-
-       if (run_part_opt%do_coagulation) then
-          if (run_part_opt%parallel_coag_type &
-               == PARALLEL_COAG_TYPE_LOCAL) then
-             call mc_coag(run_part_opt%coag_kernel_type, env_state, &
-                  aero_data, aero_state, run_part_opt%del_t, n_samp, n_coag)
-          elseif (run_part_opt%parallel_coag_type &
-               == PARALLEL_COAG_TYPE_DIST) then
-             call mc_coag_dist(run_part_opt%coag_kernel_type, env_state, &
-                  aero_data, aero_state, run_part_opt%del_t, n_samp, n_coag)
-          else
-             call die_msg(323011762, "unknown parallel coagulation type: " &
-                  // trim(integer_to_string(run_part_opt%parallel_coag_type)))
-          end if
-          progress_n_samp = progress_n_samp + n_samp
-          progress_n_coag = progress_n_coag + n_coag
-       end if
-
-#ifdef PMC_USE_SUNDIALS
-       if (run_part_opt%do_condensation) then
-          call condense_particles(aero_state, aero_data, old_env_state, &
-               env_state, run_part_opt%del_t)
-       end if
-#endif
-
-       call scenario_update_gas_state(scenario, run_part_opt%del_t, &
-            env_state, old_env_state, gas_data, gas_state)
-       call scenario_update_aero_state(scenario, run_part_opt%del_t, &
-            env_state, old_env_state, aero_data, aero_state, n_emit, &
-            n_dil_in, n_dil_out, run_part_opt%allow_doubling, &
-            run_part_opt%allow_halving)
-       progress_n_emit = progress_n_emit + n_emit
-       progress_n_dil_in = progress_n_dil_in + n_dil_in
-       progress_n_dil_out = progress_n_dil_out + n_dil_out
-
-       if (run_part_opt%do_camp_chem) then
+    i_cur = 1
+    i_next = n_time
+    call run_part_timeblock(scenario, env_state, aero_data, aero_state, &
+         gas_data, gas_state, run_part_opt, &
 #ifdef PMC_USE_CAMP
-          call pmc_camp_interface_solve(camp_core, camp_state, &
-               camp_pre_aero_state, camp_post_aero_state, env_state, &
-               aero_data, aero_state, gas_data, gas_state, photolysis, &
-               run_part_opt%del_t)
+         camp_core, photolysis, &
 #endif
-       end if
-
-       if (run_part_opt%do_mosaic) then
-          call mosaic_timestep(env_state, aero_data, aero_state, gas_data, &
-               gas_state, run_part_opt%do_optical)
-       end if
-
-       if (run_part_opt%mix_timescale > 0d0) then
-          call aero_state_mix(aero_state, run_part_opt%del_t, &
-               run_part_opt%mix_timescale, aero_data)
-       end if
-       if (run_part_opt%gas_average) then
-          call gas_state_mix(gas_state)
-       end if
-       if (run_part_opt%gas_average) then
-          call env_state_mix(env_state)
-       end if
-
-       call aero_state_rebalance(aero_state, aero_data, &
-            run_part_opt%allow_doubling, &
-            run_part_opt%allow_halving, initial_state_warning=.false.)
-
-       ! DEBUG: enable to check consistency
-       ! call aero_state_check(aero_state, aero_data)
-       ! DEBUG: end
-
-       if (run_part_opt%t_output > 0d0) then
-          call check_event(time, run_part_opt%del_t, run_part_opt%t_output, &
-               last_output_time, do_output)
-          if (do_output) then
-             i_output = i_output + 1
-             call output_state(run_part_opt%output_prefix, &
-                  run_part_opt%output_type, aero_data, aero_state, gas_data, &
-                  gas_state, env_state, i_output, time, run_part_opt%del_t, &
-                  run_part_opt%i_repeat, run_part_opt%record_removals, &
-                  run_part_opt%do_optical, run_part_opt%uuid)
-             call aero_info_array_zero(aero_state%aero_info_array)
-          end if
-       end if
-
-       if (.not. run_part_opt%record_removals) then
-          ! If we are not recording removals then we can zero them as
-          ! often as possible to minimize the cost of maintaining
-          ! them.
-          call aero_info_array_zero(aero_state%aero_info_array)
-       end if
-
-       if (run_part_opt%t_progress > 0d0) then
-          call check_event(time, run_part_opt%del_t, &
-               run_part_opt%t_progress, last_progress_time, do_progress)
-          if (do_progress) then
-             global_n_part = aero_state_total_particles_all_procs(aero_state)
-             call pmc_mpi_reduce_sum_integer(progress_n_samp, global_n_samp)
-             call pmc_mpi_reduce_sum_integer(progress_n_coag, global_n_coag)
-             call pmc_mpi_reduce_sum_integer(progress_n_emit, global_n_emit)
-             call pmc_mpi_reduce_sum_integer(progress_n_dil_in, &
-                  global_n_dil_in)
-             call pmc_mpi_reduce_sum_integer(progress_n_dil_out, &
-                  global_n_dil_out)
-             call pmc_mpi_reduce_sum_integer(progress_n_nuc, global_n_nuc)
-             if (rank == 0) then
-                ! progress only printed from root process
-                call cpu_time(t_wall_now)
-                prop_done = (real(run_part_opt%i_repeat - 1, kind=dp) &
-                     + time / run_part_opt%t_max) &
-                     / real(run_part_opt%n_repeat, kind=dp)
-                t_wall_elapsed = t_wall_now - run_part_opt%t_wall_start
-                t_wall_remain = (1d0 - prop_done) / prop_done &
-                     * t_wall_elapsed
-                call print_part_progress(run_part_opt%i_repeat, time, &
-                     global_n_part, global_n_coag, global_n_emit, &
-                     global_n_dil_in, global_n_dil_out, global_n_nuc, &
-                     t_wall_elapsed, t_wall_remain)
-             end if
-             ! reset counters so they show information since last
-             ! progress display
-             progress_n_samp = 0
-             progress_n_coag = 0
-             progress_n_emit = 0
-             progress_n_dil_in = 0
-             progress_n_dil_out = 0
-             progress_n_nuc = 0
-          end if
-       end if
-
-    end do
+         i_cur, i_next, t_start, last_output_time, last_progress_time, &
+         i_output, progress_n_samp, progress_n_coag, progress_n_emit, &
+         progress_n_dil_in, progress_n_dil_out, progress_n_nuc)
 
     !print*, "Freeze module total run time:", freeze_module_run_time
     !write(1997, *) freeze_module_run_time
@@ -490,6 +338,7 @@ contains
          + pmc_mpi_pack_size_integer(val%coag_kernel_type) &
          + pmc_mpi_pack_size_integer(val%nucleate_type) &
          + pmc_mpi_pack_size_integer(val%nucleate_source) &
+         + pmc_mpi_pack_size_integer(val%nucleate_weight_class) &
          + pmc_mpi_pack_size_logical(val%do_coagulation) &
          + pmc_mpi_pack_size_logical(val%do_nucleation) &
          + pmc_mpi_pack_size_logical(val%allow_doubling) &
@@ -510,6 +359,8 @@ contains
          + pmc_mpi_pack_size_logical(val%gas_average) &
          + pmc_mpi_pack_size_logical(val%env_average) &
          + pmc_mpi_pack_size_integer(val%parallel_coag_type) &
+         + pmc_mpi_pack_size_logical(val%do_camp_chem) &
+         + pmc_mpi_pack_size_logical(val%do_tchem) &
          + pmc_mpi_pack_size_string(val%uuid)
 
   end function pmc_mpi_pack_size_run_part_opt
@@ -538,6 +389,7 @@ contains
     call pmc_mpi_pack_integer(buffer, position, val%coag_kernel_type)
     call pmc_mpi_pack_integer(buffer, position, val%nucleate_type)
     call pmc_mpi_pack_integer(buffer, position, val%nucleate_source)
+    call pmc_mpi_pack_integer(buffer, position, val%nucleate_weight_class)
     call pmc_mpi_pack_logical(buffer, position, val%do_coagulation)
     call pmc_mpi_pack_logical(buffer, position, val%do_nucleation)
     call pmc_mpi_pack_logical(buffer, position, val%allow_doubling)
@@ -558,6 +410,8 @@ contains
     call pmc_mpi_pack_logical(buffer, position, val%gas_average)
     call pmc_mpi_pack_logical(buffer, position, val%env_average)
     call pmc_mpi_pack_integer(buffer, position, val%parallel_coag_type)
+    call pmc_mpi_pack_logical(buffer, position, val%do_camp_chem)
+    call pmc_mpi_pack_logical(buffer, position, val%do_tchem)
     call pmc_mpi_pack_string(buffer, position, val%uuid)
     call assert(946070052, &
          position - prev_position <= pmc_mpi_pack_size_run_part_opt(val))
@@ -589,6 +443,7 @@ contains
     call pmc_mpi_unpack_integer(buffer, position, val%coag_kernel_type)
     call pmc_mpi_unpack_integer(buffer, position, val%nucleate_type)
     call pmc_mpi_unpack_integer(buffer, position, val%nucleate_source)
+    call pmc_mpi_unpack_integer(buffer, position, val%nucleate_weight_class)
     call pmc_mpi_unpack_logical(buffer, position, val%do_coagulation)
     call pmc_mpi_unpack_logical(buffer, position, val%do_nucleation)
     call pmc_mpi_unpack_logical(buffer, position, val%allow_doubling)
@@ -609,12 +464,316 @@ contains
     call pmc_mpi_unpack_logical(buffer, position, val%gas_average)
     call pmc_mpi_unpack_logical(buffer, position, val%env_average)
     call pmc_mpi_unpack_integer(buffer, position, val%parallel_coag_type)
+    call pmc_mpi_unpack_logical(buffer, position, val%do_camp_chem)
+    call pmc_mpi_unpack_logical(buffer, position, val%do_tchem)
     call pmc_mpi_unpack_string(buffer, position, val%uuid)
     call assert(480118362, &
          position - prev_position <= pmc_mpi_pack_size_run_part_opt(val))
 #endif
 
   end subroutine pmc_mpi_unpack_run_part_opt
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Read the specification for a run_part simulation from a spec file.
+  subroutine spec_file_read_run_part(file, run_part_opt, aero_data, &
+       aero_state_init, gas_data, gas_state_init, env_state_init, &
+       aero_dist_init, scenario, &
+#ifdef PMC_USE_CAMP
+       camp_core, photolysis, aero_state, &
+#endif
+       n_part, rand_init, do_init_equilibrate, do_restart)
+
+    !> Spec file.
+    type(spec_file_t), intent(inout) :: file
+    !> Monte Carlo options.
+    type(run_part_opt_t), intent(inout) :: run_part_opt
+    !> Aerosol data.
+    type(aero_data_t), intent(inout) :: aero_data
+    !> Initial aerosol state.
+    type(aero_state_t), intent(inout) :: aero_state_init
+    !> Gas data.
+    type(gas_data_t), intent(inout) :: gas_data
+    !> Initial gas state.
+    type(gas_state_t), intent(inout) :: gas_state_init
+    !> Initial environmental state.
+    type(env_state_t), intent(inout) :: env_state_init
+    !> Initial aerosol distribution.
+    type(aero_dist_t), intent(inout) :: aero_dist_init
+    !> Scenario data.
+    type(scenario_t), intent(inout) :: scenario
+#ifdef PMC_USE_CAMP
+    !> CAMP core.
+    type(camp_core_t), pointer :: camp_core
+    !> Photolysis calculator.
+    type(photolysis_t), pointer :: photolysis
+    !> Aerosol state.
+    type(aero_state_t), intent(inout) :: aero_state
+#endif
+    !> Ideal number of computational particles.
+    real(kind=dp), intent(inout) :: n_part
+    !> Random number generator seed.
+    integer, intent(out) :: rand_init
+    !> Whether to equilibrate.
+    logical, intent(out) :: do_init_equilibrate
+    !> Whether simulation is a restart.
+    logical, intent(out) :: do_restart
+
+    integer :: i_repeat, i_group
+    logical :: read_aero_weight_classes
+    character(len=PMC_MAX_FILENAME_LEN) :: restart_filename
+    integer :: dummy_index, dummy_i_repeat
+    real(kind=dp) :: dummy_time, dummy_del_t
+    character(len=PMC_MAX_FILENAME_LEN) :: sub_filename
+    type(spec_file_t) :: sub_file
+    character(len=PMC_MAX_FILENAME_LEN) :: camp_config_filename, &
+         tchem_gas_filename, tchem_aero_filename, tchem_numerics_filename
+    integer :: n_grid_cells
+
+    call spec_file_read_string(file, 'output_prefix', &
+         run_part_opt%output_prefix)
+    call spec_file_read_integer(file, 'n_repeat', run_part_opt%n_repeat)
+    call spec_file_read_real(file, 'n_part', n_part)
+    call spec_file_read_logical(file, 'restart', do_restart)
+    if (do_restart) then
+       call spec_file_read_string(file, 'restart_file', restart_filename)
+    end if
+
+    if (.not. do_restart) then
+       call spec_file_read_logical(file, 'do_select_weighting', &
+            run_part_opt%do_select_weighting)
+       read_aero_weight_classes = .false.
+       if (run_part_opt%do_select_weighting) then
+          call spec_file_read_aero_state_weighting_type(file, &
+               run_part_opt%weighting_type, run_part_opt%weighting_exponent)
+          if (run_part_opt%weighting_type &
+               >= AERO_STATE_WEIGHT_FLAT_SPECIFIED)then
+             read_aero_weight_classes = .true.
+          end if
+       else
+          run_part_opt%weighting_type = AERO_STATE_WEIGHT_NUMMASS_SOURCE
+          run_part_opt%weighting_exponent = 0.0d0
+       end if
+    end if
+
+    call spec_file_read_real(file, 't_max', run_part_opt%t_max)
+    call spec_file_read_real(file, 'del_t', run_part_opt%del_t)
+    call spec_file_read_real(file, 't_output', run_part_opt%t_output)
+    call spec_file_read_real(file, 't_progress', run_part_opt%t_progress)
+
+    call spec_file_read_logical(file, 'do_camp_chem', run_part_opt%do_camp_chem)
+    if (run_part_opt%do_camp_chem) then
+#ifdef PMC_USE_CAMP
+       call spec_file_read_string(file, 'camp_config', camp_config_filename)
+       camp_core => camp_core_t(camp_config_filename)
+       call camp_core%initialize()
+       photolysis => photolysis_t(camp_core)
+#else
+       call spec_file_die_msg(648994111, file, &
+            'cannot do camp chem, CAMP support not compiled in')
+#endif
+    end if
+
+    call spec_file_read_logical(file, 'do_tchem', run_part_opt%do_tchem)
+    if (run_part_opt%do_tchem) then
+#ifdef PMC_USE_TCHEM
+       call spec_file_read_string(file, 'tchem_gas_config', &
+            tchem_gas_filename)
+       call spec_file_read_string(file, 'tchem_aero_config', &
+            tchem_aero_filename)
+       call spec_file_read_string(file, 'tchem_numerics_config', &
+            tchem_numerics_filename)
+#endif
+    end if
+
+    if (run_part_opt%do_tchem) then
+#ifdef PMC_USE_TCHEM
+       n_grid_cells = 1
+       call pmc_tchem_initialize(tchem_gas_filename, tchem_aero_filename, &
+            tchem_numerics_filename, gas_data, aero_data, n_grid_cells)
+#endif
+    end if
+
+    if (do_restart) then
+       call input_state(restart_filename, dummy_index, dummy_time, &
+            dummy_del_t, dummy_i_repeat, run_part_opt%uuid, aero_data, &
+            aero_state_init, gas_data, gas_state_init, env_state_init)
+    end if
+
+    if (.not. do_restart) then
+       env_state_init%elapsed_time = 0d0
+
+       if (.not. (run_part_opt%do_camp_chem .or. run_part_opt%do_tchem)) then
+          call spec_file_read_string(file, 'gas_data', sub_filename)
+          call spec_file_open(sub_filename, sub_file)
+          call spec_file_read_gas_data(sub_file, gas_data)
+          call spec_file_close(sub_file)
+       else if (run_part_opt%do_camp_chem) then
+#ifdef PMC_USE_CAMP
+          call gas_data_initialize(gas_data, camp_core)
+#endif
+       end if
+       call spec_file_read_string(file, 'gas_init', sub_filename)
+       call spec_file_open(sub_filename, sub_file)
+       call spec_file_read_gas_state(sub_file, gas_data, gas_state_init)
+       call spec_file_close(sub_file)
+
+       if (.not. run_part_opt%do_camp_chem) then
+          call spec_file_read_string(file, 'aerosol_data', sub_filename)
+          call spec_file_open(sub_filename, sub_file)
+          call spec_file_read_aero_data(sub_file, aero_data)
+          call spec_file_close(sub_file)
+       ! FIXME: Temporary to run PartMC. Replace with initialization from TChem
+       else if (run_part_opt%do_tchem) then
+          call spec_file_read_string(file, 'aerosol_data', sub_filename)
+          call spec_file_open(sub_filename, sub_file)
+          call spec_file_read_aero_data(sub_file, aero_data)
+          call spec_file_close(sub_file)
+       else
+#ifdef PMC_USE_CAMP
+          call aero_data_initialize(aero_data, camp_core)
+          call aero_state_initialize(aero_state, aero_data, camp_core)
+#endif
+       end if
+       call spec_file_read_fractal(file, aero_data%fractal)
+
+       call spec_file_read_string(file, 'aerosol_init', sub_filename)
+       call spec_file_open(sub_filename, sub_file)
+       call spec_file_read_aero_dist(sub_file, aero_data, &
+            read_aero_weight_classes, aero_dist_init)
+       call spec_file_close(sub_file)
+    end if
+
+    call spec_file_read_scenario(file, gas_data, aero_data, &
+         read_aero_weight_classes, scenario)
+    call spec_file_read_env_state(file, env_state_init)
+
+    call spec_file_read_logical(file, 'do_coagulation', &
+         run_part_opt%do_coagulation)
+    if (run_part_opt%do_coagulation) then
+       call spec_file_read_coag_kernel_type(file, run_part_opt%coag_kernel_type)
+       if (run_part_opt%coag_kernel_type == COAG_KERNEL_TYPE_ADDITIVE) then
+          call spec_file_read_real(file, 'additive_kernel_coeff', &
+               env_state_init%additive_kernel_coefficient)
+       end if
+    else
+       run_part_opt%coag_kernel_type = COAG_KERNEL_TYPE_INVALID
+    end if
+
+    call spec_file_read_logical(file, 'do_condensation', &
+         run_part_opt%do_condensation)
+#ifndef PMC_USE_SUNDIALS
+    call assert_msg(121370218, &
+         run_part_opt%do_condensation .eqv. .false., &
+         "cannot use condensation, SUNDIALS support is not compiled in")
+#endif
+    do_init_equilibrate = .false.
+    if (run_part_opt%do_condensation) then
+       call spec_file_read_logical(file, 'do_init_equilibrate', &
+            do_init_equilibrate)
+    end if
+
+    call spec_file_read_logical(file, 'do_mosaic', run_part_opt%do_mosaic)
+    if (run_part_opt%do_mosaic .and. (.not. mosaic_support())) then
+       call spec_file_die_msg(230495365, file, &
+            'cannot use MOSAIC, support is not compiled in')
+    end if
+    if (run_part_opt%do_mosaic .and. run_part_opt%do_condensation) then
+       call spec_file_die_msg(599877804, file, &
+            'cannot use MOSAIC and condensation simultaneously')
+    end if
+    if (run_part_opt%do_mosaic) then
+       call spec_file_read_logical(file, 'do_optical', &
+            run_part_opt%do_optical)
+    else
+       run_part_opt%do_optical = .false.
+    end if
+
+    call spec_file_read_logical(file, 'do_nucleation', &
+         run_part_opt%do_nucleation)
+    if (run_part_opt%do_nucleation) then
+       call spec_file_read_nucleate_type(file, aero_data, &
+            run_part_opt%nucleate_type, run_part_opt%nucleate_source, &
+            run_part_opt%nucleate_weight_class)
+    else
+       run_part_opt%nucleate_type = NUCLEATE_TYPE_INVALID
+    end if
+    call spec_file_read_logical(file, 'do_immersion_freezing', &
+           run_part_opt%do_immersion_freezing)
+
+   if (run_part_opt%do_immersion_freezing) then
+   
+       call spec_file_read_string(file, 'immersion_freezing_scheme', &
+               run_part_opt%immersion_freezing_scheme)
+
+        !if (run_part_opt%do_freezing_CNT) then
+
+        !    call spec_file_read_real(file, 'abifm_m', &
+        !           run_part_opt%abifm_m)
+        !    call spec_file_read_real(file, 'abifm_c', &
+        !           run_part_opt%abifm_c)
+        !else
+
+        if (run_part_opt%immersion_freezing_scheme .eq. 'const') then
+
+            call spec_file_read_real(file, 'freezing_rate', &
+                   run_part_opt%freezing_rate)
+        else if (run_part_opt%immersion_freezing_scheme .eq. 'ABIFM') then
+            continue
+
+        else if (run_part_opt%immersion_freezing_scheme .eq. 'singular') then
+            continue
+        else
+            call assert_msg(121370299, .false., &
+                "Error type of immersion freezing scheme")
+            
+
+        endif
+        !call spec_file_read_logical(file, 'do_coating', &
+        !        run_part_opt%do_coating)
+        !if (run_part_opt%do_coating) then
+        !    call spec_file_read_string(file, 'coating_spec', &
+        !            run_part_opt%coating_spec)
+        !    call spec_file_read_real(file, 'coating_ratio', &
+        !            run_part_opt%coating_ratio)
+        !endif 
+   endif
+
+
+    call spec_file_read_integer(file, 'rand_init', rand_init)
+    call spec_file_read_logical(file, 'allow_doubling', &
+         run_part_opt%allow_doubling)
+    call spec_file_read_logical(file, 'allow_halving', &
+         run_part_opt%allow_halving)
+    call spec_file_read_logical(file, 'record_removals', &
+         run_part_opt%record_removals)
+
+    call spec_file_read_logical(file, 'do_parallel', run_part_opt%do_parallel)
+    if (run_part_opt%do_parallel) then
+#ifndef PMC_USE_MPI
+       call spec_file_die_msg(929006383, file, &
+            'cannot use parallel mode, support is not compiled in')
+#endif
+       call spec_file_read_output_type(file, run_part_opt%output_type)
+       call spec_file_read_real(file, 'mix_timescale', &
+            run_part_opt%mix_timescale)
+       call spec_file_read_logical(file, 'gas_average', &
+            run_part_opt%gas_average)
+       call spec_file_read_logical(file, 'env_average', &
+            run_part_opt%env_average)
+       call spec_file_read_parallel_coag_type(file, &
+            run_part_opt%parallel_coag_type)
+    else
+       run_part_opt%output_type = OUTPUT_TYPE_SINGLE
+       run_part_opt%mix_timescale = 0d0
+       run_part_opt%gas_average = .false.
+       run_part_opt%env_average = .false.
+       run_part_opt%parallel_coag_type = PARALLEL_COAG_TYPE_LOCAL
+    end if
+
+    call spec_file_close(file)
+
+  end subroutine spec_file_read_run_part
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -653,6 +812,443 @@ contains
     end if
 
   end subroutine spec_file_read_parallel_coag_type
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Do a one particle-resolved Monte Carlo simulation timestep.
+  subroutine run_part_timestep(scenario, env_state, aero_data, aero_state, &
+       gas_data, gas_state, run_part_opt, &
+#ifdef PMC_USE_CAMP
+       camp_core, photolysis, &
+#endif
+       i_time, t_start, last_output_time, last_progress_time, i_output, &
+       progress_n_samp, progress_n_coag, progress_n_emit, progress_n_dil_in, &
+       progress_n_dil_out, progress_n_nuc)
+
+    !> Environment state.
+    type(scenario_t), intent(in) :: scenario
+    !> Environment state.
+    type(env_state_t), intent(inout) :: env_state
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol state.
+    type(aero_state_t), intent(inout) :: aero_state
+    !> Gas data.
+    type(gas_data_t), intent(in) :: gas_data
+    !> Gas state.
+    type(gas_state_t), intent(inout) :: gas_state
+    !> Monte Carlo options.
+    type(run_part_opt_t), intent(in) :: run_part_opt
+#ifdef PMC_USE_CAMP
+    !> CAMP chemistry core
+    type(camp_core_t), pointer, intent(inout), optional :: camp_core
+    !> Photolysis calculator
+    type(photolysis_t), pointer, intent(inout), optional :: photolysis
+#endif
+    !> Current simulation time.
+    integer, intent(in) :: i_time
+    ! Start time of simulation.
+    real(kind=dp), intent(in) :: t_start
+    !> Last time output was written (s).
+    real(kind=dp), intent(inout) :: last_output_time
+    !> Last time progress was output to screen (s).
+    real(kind=dp), intent(inout) :: last_progress_time
+    !> Output timestep integer for output filename.
+    integer, intent(inout) :: i_output
+    !> Total number of samples tested.
+    integer, intent(inout) :: progress_n_samp
+    !> Number of coagulation events.
+    integer, intent(inout) :: progress_n_coag
+    !> Number of particles added by emission.
+    integer, intent(inout) :: progress_n_emit
+    !> Number of particles added by dilution.
+    integer, intent(inout) :: progress_n_dil_in
+    !> Number of particles removed by dilution.
+    integer, intent(inout) :: progress_n_dil_out
+    !> Number of particles added by nucleation.
+    integer, intent(inout) :: progress_n_nuc
+
+    real(kind=dp) :: prop_done
+    integer :: n_samp, n_coag, n_emit, n_dil_in, n_dil_out, n_nuc
+    integer :: n_part_before
+    integer :: global_n_part, global_n_samp, global_n_coag
+    integer :: global_n_emit, global_n_dil_in, global_n_dil_out
+    integer :: global_n_nuc
+    logical :: do_output, do_state, do_state_netcdf, do_progress
+    real(kind=dp) :: t_wall_now, t_wall_elapsed, t_wall_remain, time
+    type(env_state_t) :: old_env_state
+#ifdef PMC_USE_CAMP
+    type(camp_state_t), pointer :: camp_state
+    type(camp_state_t), pointer :: camp_pre_aero_state, camp_post_aero_state
+    type(camp_env_state_t) :: camp_env_state
+#endif
+ 
+    time = i_time * run_part_opt%del_t
+ 
+#ifdef PMC_USE_CAMP
+    if (run_part_opt%do_camp_chem) then
+       camp_env_state%temp = env_state%temp
+       camp_env_state%pressure = env_state%pressure
+       camp_state =>  camp_core%new_state_one_cell(camp_env_state)
+       camp_pre_aero_state => camp_core%new_state_one_cell(camp_env_state)
+       camp_post_aero_state => camp_core%new_state_one_cell(camp_env_state)
+    end if
+#endif
+
+    old_env_state = env_state
+    call scenario_update_env_state(scenario, env_state, time + t_start)
+
+    if (run_part_opt%do_nucleation) then
+       n_part_before = aero_state_total_particles(aero_state)
+       call nucleate(run_part_opt%nucleate_type, &
+            run_part_opt%nucleate_source, run_part_opt%nucleate_weight_class, &
+            env_state, gas_data, aero_data, &
+            aero_state, gas_state, run_part_opt%del_t, &
+            run_part_opt%allow_doubling, run_part_opt%allow_halving)
+       n_nuc = aero_state_total_particles(aero_state) &
+            - n_part_before
+       progress_n_nuc = progress_n_nuc + n_nuc
+    end if
+    if (run_part_opt%do_immersion_freezing) then
+       call immersion_freezing(aero_state, aero_data, old_env_state, &
+           env_state, run_part_opt%del_t, run_part_opt%immersion_freezing_scheme, &
+           run_part_opt%freezing_rate, run_part_opt%do_coating, run_part_opt%coating_spec, &
+           run_part_opt%coating_ratio)
+       call melting(aero_state, aero_data, old_env_state, env_state)
+    end if
+    if (run_part_opt%do_coagulation) then
+       if (run_part_opt%parallel_coag_type &
+            == PARALLEL_COAG_TYPE_LOCAL) then
+          call mc_coag(run_part_opt%coag_kernel_type, env_state, &
+               aero_data, aero_state, run_part_opt%del_t, n_samp, n_coag)
+       elseif (run_part_opt%parallel_coag_type &
+            == PARALLEL_COAG_TYPE_DIST) then
+          call mc_coag_dist(run_part_opt%coag_kernel_type, env_state, &
+               aero_data, aero_state, run_part_opt%del_t, n_samp, n_coag)
+       else
+          call die_msg(323011762, "unknown parallel coagulation type: " &
+               // trim(integer_to_string(run_part_opt%parallel_coag_type)))
+       end if
+       progress_n_samp = progress_n_samp + n_samp
+       progress_n_coag = progress_n_coag + n_coag
+    end if
+
+#ifdef PMC_USE_SUNDIALS
+    if (run_part_opt%do_condensation) then
+       call condense_particles(aero_state, aero_data, old_env_state, &
+            env_state, run_part_opt%del_t)
+    end if
+#endif
+
+    call scenario_update_gas_state(scenario, run_part_opt%del_t, &
+         env_state, old_env_state, gas_data, gas_state)
+    call scenario_update_aero_state(scenario, run_part_opt%del_t, &
+         env_state, old_env_state, aero_data, aero_state, n_emit, &
+         n_dil_in, n_dil_out, run_part_opt%allow_doubling, &
+         run_part_opt%allow_halving)
+    progress_n_emit = progress_n_emit + n_emit
+    progress_n_dil_in = progress_n_dil_in + n_dil_in
+    progress_n_dil_out = progress_n_dil_out + n_dil_out
+
+    if (run_part_opt%do_camp_chem) then
+#ifdef PMC_USE_CAMP
+       call pmc_camp_interface_solve(camp_core, camp_state, &
+            camp_pre_aero_state, camp_post_aero_state, env_state, &
+            aero_data, aero_state, gas_data, gas_state, photolysis, &
+            run_part_opt%del_t)
+#endif
+    end if
+
+    if (run_part_opt%do_tchem) then
+#ifdef PMC_USE_TCHEM
+       call pmc_tchem_interface_solve(env_state, aero_data, aero_state, &
+            gas_data, gas_state, run_part_opt%del_t)
+#endif
+    end if
+
+    if (run_part_opt%do_mosaic) then
+       call mosaic_timestep(env_state, aero_data, aero_state, gas_data, &
+            gas_state, run_part_opt%do_optical, run_part_opt%uuid)
+    end if
+
+    if (run_part_opt%mix_timescale > 0d0) then
+       call aero_state_mix(aero_state, run_part_opt%del_t, &
+            run_part_opt%mix_timescale, aero_data)
+    end if
+    if (run_part_opt%gas_average) then
+       call gas_state_mix(gas_state)
+    end if
+    if (run_part_opt%gas_average) then
+       call env_state_mix(env_state)
+    end if
+
+    call aero_state_rebalance(aero_state, aero_data, &
+         run_part_opt%allow_doubling, &
+         run_part_opt%allow_halving, initial_state_warning=.false.)
+
+
+    if (run_part_opt%t_output > 0d0) then
+       call check_event(time, run_part_opt%del_t, run_part_opt%t_output, &
+            last_output_time, do_output)
+       if (do_output) then
+          i_output = i_output + 1
+          call output_state(run_part_opt%output_prefix, &
+               run_part_opt%output_type, aero_data, aero_state, gas_data, &
+               gas_state, env_state, i_output, time, run_part_opt%del_t, &
+               run_part_opt%i_repeat, run_part_opt%record_removals, &
+               run_part_opt%do_optical, run_part_opt%uuid)
+          call aero_info_array_zero(aero_state%aero_info_array)
+       end if
+    end if
+
+    if (.not. run_part_opt%record_removals) then
+       ! If we are not recording removals then we can zero them as
+       ! often as possible to minimize the cost of maintaining
+       ! them.
+       call aero_info_array_zero(aero_state%aero_info_array)
+    end if
+
+    if (run_part_opt%t_progress > 0d0) then
+       call check_event(time, run_part_opt%del_t, &
+            run_part_opt%t_progress, last_progress_time, do_progress)
+       if (do_progress) then
+          global_n_part = aero_state_total_particles_all_procs(aero_state)
+          call pmc_mpi_reduce_sum_integer(progress_n_samp, global_n_samp)
+          call pmc_mpi_reduce_sum_integer(progress_n_coag, global_n_coag)
+          call pmc_mpi_reduce_sum_integer(progress_n_emit, global_n_emit)
+          call pmc_mpi_reduce_sum_integer(progress_n_dil_in, &
+               global_n_dil_in)
+          call pmc_mpi_reduce_sum_integer(progress_n_dil_out, &
+               global_n_dil_out)
+          call pmc_mpi_reduce_sum_integer(progress_n_nuc, global_n_nuc)
+          if (pmc_mpi_rank() == 0) then
+             ! progress only printed from root process
+             t_wall_now = system_clock_time()
+             prop_done = (real(run_part_opt%i_repeat - 1, kind=dp) &
+                  + time / run_part_opt%t_max) &
+                  / real(run_part_opt%n_repeat, kind=dp)
+             t_wall_elapsed = t_wall_now - run_part_opt%t_wall_start
+             t_wall_remain = (1d0 - prop_done) / prop_done * t_wall_elapsed
+             call print_part_progress(run_part_opt%i_repeat, time, &
+                  global_n_part, global_n_coag, global_n_emit, &
+                  global_n_dil_in, global_n_dil_out, global_n_nuc, &
+                  t_wall_elapsed, t_wall_remain)
+          end if
+          ! reset counters so they show information since last
+          ! progress display
+          progress_n_samp = 0
+          progress_n_coag = 0
+          progress_n_emit = 0
+          progress_n_dil_in = 0
+          progress_n_dil_out = 0
+          progress_n_nuc = 0
+       end if
+    end if
+
+  end subroutine run_part_timestep
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Do a number of time steps of particle-reoslved Monte Carlo simulation.
+  subroutine run_part_timeblock(scenario, env_state, aero_data, aero_state, &
+       gas_data, gas_state, run_part_opt, &
+#ifdef PMC_USE_CAMP
+       camp_core, photolysis, &
+#endif
+       i_cur, i_next, t_start, last_output_time, last_progress_time, &
+       i_output, progress_n_samp, progress_n_coag, progress_n_emit, &
+       progress_n_dil_in, progress_n_dil_out, progress_n_nuc)
+
+    !> Environment state.
+    type(scenario_t), intent(in) :: scenario
+    !> Environment state.
+    type(env_state_t), intent(inout) :: env_state
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol state.
+    type(aero_state_t), intent(inout) :: aero_state
+    !> Gas data.
+    type(gas_data_t), intent(in) :: gas_data
+    !> Gas state.
+    type(gas_state_t), intent(inout) :: gas_state
+    !> Monte Carlo options.
+    type(run_part_opt_t), intent(in) :: run_part_opt
+#ifdef PMC_USE_CAMP
+    !> CAMP chemistry core
+    type(camp_core_t), pointer, intent(inout), optional :: camp_core
+    !> Photolysis calculator
+    type(photolysis_t), pointer, intent(inout), optional :: photolysis
+#endif
+    !> Current simulation timestep.
+    integer, intent(in) :: i_cur
+    ! Start time of simulation.
+    real(kind=dp), intent(in) :: t_start
+    ! End timestep to simulate.
+    integer, intent(in) :: i_next
+    !> Last time output was written (s).
+    real(kind=dp), intent(inout) :: last_output_time
+    !> Last time progress was output to screen (s).
+    real(kind=dp), intent(inout) :: last_progress_time
+    !> Output timestep integer for output filename.
+    integer, intent(inout) :: i_output
+    !> Total number of samples tested.
+    integer, intent(inout) :: progress_n_samp
+    !> Number of coagulation events.
+    integer, intent(inout) :: progress_n_coag
+    !> Number of particles added by emission.
+    integer, intent(inout) :: progress_n_emit
+    !> Number of particles added by dilution.
+    integer, intent(inout) :: progress_n_dil_in
+    !> Number of particles removed by dilution.
+    integer, intent(inout) :: progress_n_dil_out
+    !> Number of particles added by nucleation.
+    integer, intent(inout) :: progress_n_nuc
+
+    integer :: i_time
+
+    do i_time = i_cur,i_next
+       call run_part_timestep(scenario, env_state, aero_data, aero_state, &
+            gas_data, gas_state, run_part_opt, &
+#ifdef PMC_USE_CAMP
+            camp_core, photolysis, &
+#endif
+            i_time, t_start, last_output_time, last_progress_time, i_output, &
+            progress_n_samp, progress_n_coag, progress_n_emit, &
+            progress_n_dil_in, progress_n_dil_out, progress_n_nuc)
+    end do
+
+  end subroutine run_part_timeblock
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Read the specification for a run_part simulation from a spec file.
+  subroutine pmc_mpi_broadcast_run_part(run_part_opt, aero_data, &
+       aero_state_init, gas_data, gas_state_init, env_state_init, &
+       aero_dist_init, scenario, &
+#ifdef PMC_USE_CAMP
+       camp_core, photolysis, aero_state, &
+#endif
+       n_part, rand_init, do_init_equilibrate, do_restart)
+
+    !> Monte Carlo options.
+    type(run_part_opt_t), intent(inout) :: run_part_opt
+    !> Aerosol data.
+    type(aero_data_t), intent(inout) :: aero_data
+    !> Initial aerosol state.
+    type(aero_state_t), intent(inout) :: aero_state_init
+    !> Gas data.
+    type(gas_data_t), intent(inout) :: gas_data
+    !> Initial gas state.
+    type(gas_state_t), intent(inout) :: gas_state_init
+    !> Initial environmental state.
+    type(env_state_t), intent(inout) :: env_state_init
+    !> Initial aerosol distribution.
+    type(aero_dist_t), intent(inout) :: aero_dist_init
+    !> Scenario data.
+    type(scenario_t), intent(inout) :: scenario
+#ifdef PMC_USE_CAMP
+    !> CAMP core.
+    type(camp_core_t), pointer :: camp_core
+    !> Photolysis calculator.
+    type(photolysis_t), pointer :: photolysis
+    !> Aerosol state.
+    type(aero_state_t), intent(inout) :: aero_state
+#endif
+    !> Ideal number of computational particles.
+    real(kind=dp), intent(inout) :: n_part
+    !> Random number generator seed.
+    integer, intent(inout) :: rand_init
+    !> Whether to equilibrate.
+    logical, intent(inout) :: do_init_equilibrate
+    !> Whether simulation is a restart.
+    logical, intent(inout) :: do_restart
+
+    character, allocatable :: buffer(:)
+    integer :: buffer_size, max_buffer_size
+    integer :: position
+
+#ifdef PMC_USE_MPI
+    if (pmc_mpi_rank() == 0) then
+       ! root process determines size
+       max_buffer_size = 0
+       max_buffer_size = max_buffer_size &
+            + pmc_mpi_pack_size_run_part_opt(run_part_opt)
+       max_buffer_size = max_buffer_size &
+            + pmc_mpi_pack_size_real(n_part)
+       max_buffer_size = max_buffer_size &
+            + pmc_mpi_pack_size_gas_data(gas_data)
+       max_buffer_size = max_buffer_size &
+            + pmc_mpi_pack_size_gas_state(gas_state_init)
+       max_buffer_size = max_buffer_size &
+            + pmc_mpi_pack_size_aero_data(aero_data)
+       max_buffer_size = max_buffer_size &
+            + pmc_mpi_pack_size_aero_dist(aero_dist_init)
+       max_buffer_size = max_buffer_size &
+            + pmc_mpi_pack_size_scenario(scenario)
+       max_buffer_size = max_buffer_size &
+            + pmc_mpi_pack_size_env_state(env_state_init)
+       max_buffer_size = max_buffer_size &
+            + pmc_mpi_pack_size_integer(rand_init)
+       max_buffer_size = max_buffer_size &
+            + pmc_mpi_pack_size_logical(do_restart)
+       max_buffer_size = max_buffer_size &
+            + pmc_mpi_pack_size_logical(do_init_equilibrate)
+       max_buffer_size = max_buffer_size &
+            + pmc_mpi_pack_size_aero_state(aero_state_init)
+
+       allocate(buffer(max_buffer_size))
+
+       position = 0
+       call pmc_mpi_pack_run_part_opt(buffer, position, run_part_opt)
+       call pmc_mpi_pack_real(buffer, position, n_part)
+       call pmc_mpi_pack_gas_data(buffer, position, gas_data)
+       call pmc_mpi_pack_gas_state(buffer, position, gas_state_init)
+       call pmc_mpi_pack_aero_data(buffer, position, aero_data)
+       call pmc_mpi_pack_aero_dist(buffer, position, aero_dist_init)
+       call pmc_mpi_pack_scenario(buffer, position, scenario)
+       call pmc_mpi_pack_env_state(buffer, position, env_state_init)
+       call pmc_mpi_pack_integer(buffer, position, rand_init)
+       call pmc_mpi_pack_logical(buffer, position, do_restart)
+       call pmc_mpi_pack_logical(buffer, position, do_init_equilibrate)
+       call pmc_mpi_pack_aero_state(buffer, position, aero_state_init)
+       call assert(181905491, position <= max_buffer_size)
+       buffer_size = position ! might be less than we allocated
+    end if
+
+    ! tell everyone the size
+    call pmc_mpi_bcast_integer(buffer_size)
+
+    if (pmc_mpi_rank() /= 0) then
+       ! non-root processes allocate space
+       allocate(buffer(buffer_size))
+    end if
+
+    ! broadcast data to everyone
+    call pmc_mpi_bcast_packed(buffer)
+
+    if (pmc_mpi_rank() /= 0) then
+       ! non-root processes unpack data
+       position = 0
+       call pmc_mpi_unpack_run_part_opt(buffer, position, run_part_opt)
+       call pmc_mpi_unpack_real(buffer, position, n_part)
+       call pmc_mpi_unpack_gas_data(buffer, position, gas_data)
+       call pmc_mpi_unpack_gas_state(buffer, position, gas_state_init)
+       call pmc_mpi_unpack_aero_data(buffer, position, aero_data)
+       call pmc_mpi_unpack_aero_dist(buffer, position, aero_dist_init)
+       call pmc_mpi_unpack_scenario(buffer, position, scenario)
+       call pmc_mpi_unpack_env_state(buffer, position, env_state_init)
+       call pmc_mpi_unpack_integer(buffer, position, rand_init)
+       call pmc_mpi_unpack_logical(buffer, position, do_restart)
+       call pmc_mpi_unpack_logical(buffer, position, do_init_equilibrate)
+       call pmc_mpi_unpack_aero_state(buffer, position, aero_state_init)
+       call assert(143770146, position == buffer_size)
+    end if
+
+    ! free the buffer
+    deallocate(buffer)
+#endif
+
+  end subroutine pmc_mpi_broadcast_run_part
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

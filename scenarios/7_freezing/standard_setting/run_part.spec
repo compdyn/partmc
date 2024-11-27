@@ -1,9 +1,11 @@
 run_type particle               # particle-resolved run
 output_prefix out/freezing_part # prefix of output files
-n_repeat 20                      # number of Monte Carlo repeats
+n_repeat 10                      # number of Monte Carlo repeats
 n_part 10000                     # total number of particles
 restart no                      # whether to restart from saved state (yes/no)
 #restart_file output/chiexp_indsize_0.8/restart.nc
+do_select_weighting yes          # whether to select weighting explicitly (yes/no)
+weight_type flat
 
 t_max 600                            # total simulation time (s)
 del_t 1                           # timestep (s)
@@ -11,6 +13,7 @@ t_output 10                   # output interval (0 disables) (s)
 t_progress 10                  # progress printing interval (0 disables) (s)
 
 do_camp_chem no                 # whether to run the campible chemistry module
+do_tchem no                     # whether to use TChem for chemistry 
 
 gas_data gas_data.dat           # file containing gas data
 gas_init gas_init.dat           # initial gas mixing ratios
@@ -46,12 +49,10 @@ do_immersion_freezing yes                 # whether to do freezing (yes/no)
 immersion_freezing_scheme ABIFM
 #immersion_freezing_scheme const
 #freezing_rate -.01123456789 
-do_coating no
+#do_coating no
 
 rand_init 1                     # random initialization (0 to auto-generate)
 allow_doubling yes              # whether to allow doubling (yes/no)
 allow_halving yes               # whether to allow halving (yes/no)
-do_select_weighting yes          # whether to select weighting explicitly (yes/no)
-weight_type flat
 record_removals no              # whether to record particle removals (yes/no)
 do_parallel no                  # whether to run in parallel (yes/no)

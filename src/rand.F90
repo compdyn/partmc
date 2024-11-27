@@ -698,6 +698,7 @@ contains
   FUNCTION pmc_random_geometric(P)
       ! Generate a random number in geometric distribution with the probability P
       ! Reference: https://www.ucl.ac.uk/~ucakarc/work/software/randgen.f
+      implicit none
       real(kind=dp) :: P, U, TINY
       INTEGER :: pmc_random_geometric
 
@@ -710,11 +711,11 @@ contains
       ENDIF
 
       IF (P.GT.0.9D0) THEN
-          pmc_random_geometric = ZBQLGEO + 1 
+          pmc_random_geometric = pmc_random_geometric + 1 
           U = pmc_random()
           do while( U.GT.P )
           !U = ZBQLU01(0.0D0)
-              pmc_random_geometric = ZBQLGEO + 1 
+              pmc_random_geometric = pmc_random_geometric + 1 
               U = pmc_random()
           enddo
           !IF (U.GT.P) GOTO 10

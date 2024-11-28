@@ -16,6 +16,11 @@ module pmc_ice_nucleation
 
     implicit none
 
+    integer, parameter :: IMMERSION_FREEZING_SCHEME_INVALID = 0
+    integer, parameter :: IMMERSION_FREEZING_SCHEME_CONST = 1
+    integer, parameter :: IMMERSION_FREEZING_SCHEME_SINGULAR = 2
+    integer, parameter :: IMMERSION_FREEZING_SCHEME_ABIFM = 3
+
     !> Used to record the runtime of the ice nucleation module.
     integer :: freeze_module_run_time = 0
     !> True: using the binned-tau leaping algorithm for time-dependent scheme.
@@ -32,8 +37,8 @@ contains
 
     !> Main subroutine for immersion freezing simulation.
     subroutine immersion_freezing(aero_state, aero_data, env_state_initial, &
-        env_state_final, del_t, immersion_freezing_scheme, freezing_rate, &
-        do_coating, coating_spec, coating_ratio)
+        env_state_final, del_t, immersion_freezing_scheme_type, freezing_rate)
+        !do_coating, coating_spec, coating_ratio)
         implicit none
         !> Aerosol state.
         type(aero_state_t), intent(inout) :: aero_state
@@ -47,15 +52,16 @@ contains
         !> Total time to integrate.
         real(kind=dp), intent(in) :: del_t
         !> Flag for coating effect.
-        logical ::  do_coating
+        !logical ::  do_coating
         !> Immersion freezing scheme (e.g., ABIFM, sigular, constant rate ...).
-        character(len=*), intent(in) :: immersion_freezing_scheme
+        !character(len=*), intent(in) :: immersion_freezing_scheme
+        integer, intent(in) :: immersion_freezing_scheme_type
         !> Freezing rate (only used for the constant rate scheme).
         real(kind=dp) :: freezing_rate
         !> Coating species (only used for the coating effect).
-        character(len=*), intent(in) :: coating_spec
+        !character(len=*), intent(in) :: coating_spec
         !> Surface ratio coated (only used for the coating effect).
-        real(kind=dp) :: coating_ratio
+        !real(kind=dp) :: coating_ratio
         !> Start and end time (used for timing).
         integer :: clock_start, clock_end
 
@@ -64,18 +70,19 @@ contains
 
         !> Call the immersion freezing subroutine according to the immersion
         !> freezing scheme.
-        if ((immersion_freezing_scheme .eq. 'ABIFM') &
-            .OR. (immersion_freezing_scheme .eq. 'const')) then
+        if ((immersion_freezing_scheme_type .eq. IMMERSION_FREEZING_SCHEME_ABIFM) &
+            .OR. (immersion_freezing_scheme_type .eq. IMMERSION_FREEZING_SCHEME_CONST)) then
             if (do_speedup) then
                 call immersion_freezing_time_dependent(aero_state, aero_data, env_state_initial, &
-                    env_state_final, del_t, immersion_freezing_scheme, freezing_rate, &
-                    do_coating, coating_spec, coating_ratio)
+                    env_state_final, del_t, immersion_freezing_scheme_type, freezing_rate)!, &
+                    !do_coating, coating_spec, coating_ratio)
             else
                 call immersion_freezing_time_dependent_naive(aero_state, aero_data, env_state_initial, &
-                    env_state_final, del_t, immersion_freezing_scheme, freezing_rate, &
-                    do_coating, coating_spec, coating_ratio)
+                    env_state_final, del_t, immersion_freezing_scheme_type, freezing_rate)!, &
+                    !do_coating, coating_spec, coating_ratio)
             end if
-        else if (immersion_freezing_scheme .eq. 'singular') then
+        else if (immersion_freezing_scheme_type .eq. &
+                IMMERSION_FREEZING_SCHEME_SINGULAR) then
             call immersion_freezing_singular(aero_state, aero_data, env_state_initial, &
                 env_state_final)
         else
@@ -164,8 +171,8 @@ contains
     !> deciding whether to freeze for each particle. Run in each time step.   
     !> This subroutine applys the binned-tau leaping algorithm for speeding up.
     subroutine immersion_freezing_time_dependent(aero_state, aero_data, env_state_initial, &
-        env_state_final, del_t, immersion_freezing_scheme, freezing_rate, &
-        do_coating, coating_spec, coating_ratio)
+        env_state_final, del_t, immersion_freezing_scheme_type, freezing_rate)!, &
+        !do_coating, coating_spec, coating_ratio)
 
         implicit none
         !> Aerosol state.
@@ -183,8 +190,9 @@ contains
         integer :: i_part, i_bin, i_class, n_bins, n_class
         real(kind=dp) :: tmp
         !logical :: do_freezing_CNT, do_coating
-        logical ::  do_coating
-        character(len=*), intent(in) :: immersion_freezing_scheme
+        !logical ::  do_coating
+        !character(len=*), intent(in) :: immersion_freezing_scheme
+        integer, intent(in) :: immersion_freezing_scheme_type
         real(kind=dp) :: freezing_rate
         real(kind=dp) :: a_w_ice, pis, pvs
         real(kind=dp) :: abifm_m, abifm_c
@@ -198,8 +206,8 @@ contains
         real(kind=dp) :: aerosol_dry_radius, aerosol_radius, rand
         real(kind=dp), allocatable :: H2O_masses(:), total_masses(:), &
             H2O_frac(:)
-        character(len=*), intent(in) :: coating_spec
-        real(kind=dp) :: coating_ratio
+        !character(len=*), intent(in) :: coating_spec
+        !real(kind=dp) :: coating_ratio
         integer :: i_spec_max
         real(kind=dp) :: j_het_max
         integer :: rand_geometric
@@ -218,7 +226,7 @@ contains
         call env_state_saturated_vapor_pressure_water(env_state_final, pvs)
         call env_state_saturated_vapor_pressure_ice(env_state_final, pis)
         a_w_ice = pis / pvs
-        if (immersion_freezing_scheme .eq. 'ABIFM') then
+        if (immersion_freezing_scheme_type .eq. IMMERSION_FREEZING_SCHEME_ABIFM) then
             call ABIFM_max_spec(aero_data, aero_state, a_w_ice, i_spec_max, j_het_max)
         endif
 
@@ -231,9 +239,11 @@ contains
                 n_parts_in_bin = integer_varray_n_entry(aero_state%aero_sorted%size_class%inverse(i_bin, i_class))
                 radius_max = aero_state%aero_sorted%bin_grid%edges(i_bin + 1)
                 diameter_max = radius_max * 2
-                if (immersion_freezing_scheme .eq. 'ABIFM') then
+                if (immersion_freezing_scheme_type .eq. &
+                        IMMERSION_FREEZING_SCHEME_ABIFM) then
                     call ABIFM_max(diameter_max, p_freeze_max, aero_data, j_het_max, del_t)
-                else if (immersion_freezing_scheme .eq. 'const') then
+                else if (immersion_freezing_scheme_type .eq. &
+                        IMMERSION_FREEZING_SCHEME_CONST) then
                     p_freeze_max = 1 - exp(freezing_rate * del_t)
                 endif
 
@@ -252,7 +262,8 @@ contains
                     if (H2O_frac(i_part) < 1e-2) then
                         cycle
                     end if
-                    if (immersion_freezing_scheme .eq. 'ABIFM') then
+                    if (immersion_freezing_scheme_type .eq. &
+                            IMMERSION_FREEZING_SCHEME_ABIFM) then
                         call ABIFM_particle(i_part, p_freeze, aero_state, aero_data, a_w_ice, del_t)
                         if (p_freeze > p_freeze_max) then
                             print*, "Warning! p_freeze > p_freeze_max. "&
@@ -289,8 +300,9 @@ contains
     !> deciding whether to freeze for each particle. Run in each time step.   
     !> This subroutine applys the naive algorithm for reference.
     subroutine immersion_freezing_time_dependent_naive(aero_state, aero_data, &
-        env_state_initial, env_state_final, del_t, immersion_freezing_scheme, &
-        freezing_rate, do_coating, coating_spec, coating_ratio)
+        env_state_initial, env_state_final, del_t, &
+        immersion_freezing_scheme_type, &
+        freezing_rate)!, do_coating, coating_spec, coating_ratio)
 
         !> Aerosol state.
         type(aero_state_t), intent(inout) :: aero_state
@@ -306,16 +318,17 @@ contains
 
         integer :: i_part
         real(kind=dp) :: tmp
-        logical :: do_coating
-        character(len=*), intent(in) :: immersion_freezing_scheme
+        !logical :: do_coating
+        !character(len=*), intent(in) :: immersion_freezing_scheme
+        integer, intent(in) :: immersion_freezing_scheme_type
         real(kind=dp) :: freezing_rate
         real(kind=dp) :: a_w_ice, pis, pvs
         !real(kind=dp) :: abifm_m, abifm_c
         real(kind=dp) :: p_freeze, p_frozen
         real(kind=dp), allocatable :: H2O_masses(:), total_masses(:), &
             H2O_frac(:)
-        character(len=*), intent(in) :: coating_spec
-        real(kind=dp) :: coating_ratio
+        !character(len=*), intent(in) :: coating_spec
+        !real(kind=dp) :: coating_ratio
         real(kind=dp) :: rand
         integer :: clock_start, clock_end
 
@@ -343,9 +356,11 @@ contains
             end if
             rand = pmc_random()
             
-            if (immersion_freezing_scheme .eq. 'ABIFM') then
+            if (immersion_freezing_scheme_type .eq. &
+                    IMMERSION_FREEZING_SCHEME_ABIFM) then
                 call ABIFM_particle(i_part, p_freeze, aero_state, aero_data, a_w_ice, del_t) !do_coating, coating_spec, coating_ratio)
-            else if (immersion_freezing_scheme .eq. 'const') then
+            else if (immersion_freezing_scheme_type .eq. &
+                    IMMERSION_FREEZING_SCHEME_CONST) then
                 p_freeze = 1 - exp(freezing_rate * del_t)
             end if
             p_frozen = aero_state%apa%particle(i_part)%P_frozen
@@ -508,5 +523,45 @@ contains
         P_freezing = 1 - exp(-j_het_max * immersed_surface_area  * del_t)
 
     end subroutine ABIFM_max
-    
+
+    !> Read the specification for a kernel type from a spec file and
+    !> generate it.
+    subroutine spec_file_read_immersion_freezing_scheme_type(file, immersion_freezing_scheme_type)
+
+        !> Spec file.
+        type(spec_file_t), intent(inout) :: file
+        !> Kernel type.
+        integer, intent(out) :: immersion_freezing_scheme_type
+
+        character(len=SPEC_LINE_MAX_VAR_LEN) :: imf_scheme
+
+        !> \page input_format_immersion_freezing_scheme Input File Format: Immersion freezing scheme
+        !!
+        !! The immersion freezing scheme is specified by the parameter:
+        !!   - \b immersion_freezing_scheme (string): the type of immersion freezing scheme
+        !!     must be one of: \c sedi for the gravitational sedimentation
+        !!     kernel; \c additive for the additive kernel; \c constant
+        !!     for the constant kernel; \c brown for the Brownian kernel,
+        !!     or \c zero for no immersion freezing
+        !!
+        !! If \c immersion_freezing_scheme is \c additive, the kernel coefficient needs to be
+        !! provided using the \c additive_kernel_coeff parameter
+        !!
+        !! See also:
+        !!   - \ref spec_file_format --- the input file text format
+
+        call spec_file_read_string(file, 'immersion_freezing_scheme', imf_scheme)
+        if (trim(imf_scheme) == 'const') then
+           immersion_freezing_scheme_type = IMMERSION_FREEZING_SCHEME_CONST
+        elseif (trim(imf_scheme) == 'singular') then
+           immersion_freezing_scheme_type = IMMERSION_FREEZING_SCHEME_SINGULAR
+        elseif (trim(imf_scheme) == 'ABIFM') then
+           immersion_freezing_scheme_type = IMMERSION_FREEZING_SCHEME_ABIFM
+        else
+           call spec_file_die_msg(920761229, file, &
+                "Unknown immersion freezing scheme: " // trim(imf_scheme))
+        end if
+
+    end subroutine spec_file_read_immersion_freezing_scheme_type
+
 end module pmc_ice_nucleation

@@ -75,13 +75,14 @@ module pmc_run_part
      logical :: do_immersion_freezing
      !> Whether to do freezing using Classical Nucleation Theory
      !logical :: do_freezing_CNT
-     character(len=300) :: immersion_freezing_scheme
+     !character(len=300) :: immersion_freezing_scheme
+     integer :: immersion_freezing_scheme_type
 
      real(kind=dp) :: freezing_rate
      !real(kind=dp) :: abifm_m, abifm_c
-     logical :: do_coating
-     character(len=300) :: coating_spec
-     real(kind=dp) :: coating_ratio
+     !logical :: do_coating
+     !character(len=300) :: coating_spec
+     !real(kind=dp) :: coating_ratio
 
      logical :: do_ice_shape = .False.
      logical :: do_ice_density = .False.
@@ -252,7 +253,8 @@ contains
     end if
     ! initialize the immersion freezing temperature for Singular scheme
     if (run_part_opt%do_immersion_freezing .and. &
-            run_part_opt%immersion_freezing_scheme .eq. 'singular') then
+            (run_part_opt%immersion_freezing_scheme_type .eq. &
+                IMMERSION_FREEZING_SCHEME_SINGULAR)) then
         call singular_initialize(aero_state, aero_data)
     end if
 
@@ -341,6 +343,9 @@ contains
          + pmc_mpi_pack_size_integer(val%nucleate_weight_class) &
          + pmc_mpi_pack_size_logical(val%do_coagulation) &
          + pmc_mpi_pack_size_logical(val%do_nucleation) &
+         + pmc_mpi_pack_size_logical(val%do_immersion_freezing) &
+         + pmc_mpi_pack_size_integer(val%immersion_freezing_scheme_type) &
+         + pmc_mpi_pack_size_real(val%freezing_rate) &
          + pmc_mpi_pack_size_logical(val%allow_doubling) &
          + pmc_mpi_pack_size_logical(val%allow_halving) &
          + pmc_mpi_pack_size_logical(val%do_condensation) &
@@ -392,6 +397,10 @@ contains
     call pmc_mpi_pack_integer(buffer, position, val%nucleate_weight_class)
     call pmc_mpi_pack_logical(buffer, position, val%do_coagulation)
     call pmc_mpi_pack_logical(buffer, position, val%do_nucleation)
+    call pmc_mpi_pack_logical(buffer, position, val%do_immersion_freezing)
+    call pmc_mpi_pack_integer(buffer, position, &
+            val%immersion_freezing_scheme_type)
+    call pmc_mpi_pack_real(buffer, position, val%freezing_rate)
     call pmc_mpi_pack_logical(buffer, position, val%allow_doubling)
     call pmc_mpi_pack_logical(buffer, position, val%allow_halving)
     call pmc_mpi_pack_logical(buffer, position, val%do_condensation)
@@ -446,6 +455,9 @@ contains
     call pmc_mpi_unpack_integer(buffer, position, val%nucleate_weight_class)
     call pmc_mpi_unpack_logical(buffer, position, val%do_coagulation)
     call pmc_mpi_unpack_logical(buffer, position, val%do_nucleation)
+    call pmc_mpi_unpack_logical(buffer, position, val%do_immersion_freezing)
+    call pmc_mpi_unpack_integer(buffer, position, val%immersion_freezing_scheme_type)
+    call pmc_mpi_unpack_real(buffer, position, val%freezing_rate)
     call pmc_mpi_unpack_logical(buffer, position, val%allow_doubling)
     call pmc_mpi_unpack_logical(buffer, position, val%allow_halving)
     call pmc_mpi_unpack_logical(buffer, position, val%do_condensation)
@@ -703,8 +715,10 @@ contains
 
    if (run_part_opt%do_immersion_freezing) then
    
-       call spec_file_read_string(file, 'immersion_freezing_scheme', &
-               run_part_opt%immersion_freezing_scheme)
+       !call spec_file_read_string(file, 'immersion_freezing_scheme', &
+       !        run_part_opt%immersion_freezing_scheme)
+       call spec_file_read_immersion_freezing_scheme_type(file, &
+               run_part_opt%immersion_freezing_scheme_type)
 
         !if (run_part_opt%do_freezing_CNT) then
 
@@ -714,14 +728,17 @@ contains
         !           run_part_opt%abifm_c)
         !else
 
-        if (run_part_opt%immersion_freezing_scheme .eq. 'const') then
-
+        if (run_part_opt%immersion_freezing_scheme_type .eq. &
+                IMMERSION_FREEZING_SCHEME_CONST) then
             call spec_file_read_real(file, 'freezing_rate', &
                    run_part_opt%freezing_rate)
-        else if (run_part_opt%immersion_freezing_scheme .eq. 'ABIFM') then
+
+        else if (run_part_opt%immersion_freezing_scheme_type .eq.&
+                IMMERSION_FREEZING_SCHEME_ABIFM) then
             continue
 
-        else if (run_part_opt%immersion_freezing_scheme .eq. 'singular') then
+        else if (run_part_opt%immersion_freezing_scheme_type .eq.&
+                IMMERSION_FREEZING_SCHEME_SINGULAR) then
             continue
         else
             call assert_msg(121370299, .false., &
@@ -911,9 +928,9 @@ contains
     end if
     if (run_part_opt%do_immersion_freezing) then
        call immersion_freezing(aero_state, aero_data, old_env_state, &
-           env_state, run_part_opt%del_t, run_part_opt%immersion_freezing_scheme, &
-           run_part_opt%freezing_rate, run_part_opt%do_coating, run_part_opt%coating_spec, &
-           run_part_opt%coating_ratio)
+           env_state, run_part_opt%del_t, run_part_opt%immersion_freezing_scheme_type, &
+           run_part_opt%freezing_rate)!, run_part_opt%do_coating, run_part_opt%coating_spec, &
+           !run_part_opt%coating_ratio)
        call melting(aero_state, aero_data, old_env_state, env_state)
     end if
     if (run_part_opt%do_coagulation) then

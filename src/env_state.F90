@@ -656,8 +656,8 @@ contains
 
     T = env_state%temp
     if ((T <= 123) .OR. (T >= 332)) then
-        write(*, *) "Warning! the environment temperature is less then 123K or &
-        larger than 332K, the subroutine env_state_saturated_vapor_pressure_water isn't applicable"
+        write(*, *) "Warning! the environment temperature is less then 123K or"&
+        ," larger than 332K, the subroutine env_state_saturated_vapor_pressure_water isn't applicable"
     end if
 
     tmp = 54.842763 &
@@ -682,8 +682,8 @@ contains
 
     T = env_state%temp
     if (T <= 110) then
-        write(*, *) "Warning! the environment temperature is less then 110K, the &
-        subroutine env_state_saturated_vapor_pressure_ice isn't applicable"
+        write(*, *) "Warning! the environment temperature is less then 110K, the"&
+        , "subroutine env_state_saturated_vapor_pressure_ice isn't applicable"
     end if
     tmp = 9.550426 &
         - 5723.265 / T &
@@ -703,8 +703,8 @@ contains
     real(kind=dp) :: tmp
 
     if ((T <= 123) .OR. (T >= 332)) then
-        write(*, *) "Warning! the environment temperature is less then 123K or &
-        larger than 332K, the subroutine env_state_saturated_vapor_pressure_water isn't applicable"
+        write(*, *) "Warning! the environment temperature is less then 123K or" &
+        ," larger than 332K, the subroutine env_state_saturated_vapor_pressure_water isn't applicable"
     end if
 
     tmp = 54.842763 &
@@ -728,8 +728,8 @@ contains
     real(kind=dp) :: tmp
 
     if (T <= 110) then
-        write(*, *) "Warning! the environment temperature is less then 110K, the &
-        subroutine env_state_saturated_vapor_pressure_ice isn't applicable"
+        write(*, *) "Warning! the environment temperature is less then 110K, the "&
+        "subroutine env_state_saturated_vapor_pressure_ice isn't applicable"
     end if
     tmp = 9.550426 &
         - 5723.265 / T &

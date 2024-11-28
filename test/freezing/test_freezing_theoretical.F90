@@ -35,19 +35,21 @@ program theoretical_freezing
 
     close(out_unit)
 
+    contains
 
+    subroutine compute_Jhet_ABIFM(T, abifm_m, abifm_c, Jhet)
+        use pmc_env_state
+        use pmc_constants
+        implicit none
+        real(kind=dp), intent(in) :: T, abifm_m, abifm_c
+        real(kind=dp), intent(out) :: Jhet
+        real(kind=dp) :: es, ei, a_w_ice
+        call env_state_saturated_vapor_pressure_water_2(T, es)
+        call env_state_saturated_vapor_pressure_ice_2(T, ei)
+        a_w_ice = ei / es
+        Jhet = 10 ** (abifm_m  * (1 - a_w_ice) + abifm_c) * 10000
+
+    end subroutine compute_Jhet_ABIFM
 end program theoretical_freezing
 
-subroutine compute_Jhet_ABIFM(T, abifm_m, abifm_c, Jhet)
-    use pmc_env_state
-    use pmc_constants
-    implicit none
-    real(kind=dp), intent(in) :: T, abifm_m, abifm_c
-    real(kind=dp), intent(out) :: Jhet
-    real(kind=dp) :: es, ei, a_w_ice
-    call env_state_saturated_vapor_pressure_water_2(T, es)
-    call env_state_saturated_vapor_pressure_ice_2(T, ei)
-    a_w_ice = ei / es
-    Jhet = 10 ** (abifm_m  * (1 - a_w_ice) + abifm_c) * 10000
 
-end subroutine compute_Jhet_ABIFM

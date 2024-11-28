@@ -131,6 +131,11 @@ contains
         real(kind=dp), allocatable :: H2O_masses(:), total_masses(:), &
             H2O_frac(:)
         integer :: i_part, i_bin, i_class, n_bins, n_class
+        
+        allocate(total_masses(aero_state_n_part(aero_state)))
+        allocate(H2O_masses(aero_state_n_part(aero_state)))
+        allocate(H2O_frac(aero_state_n_part(aero_state)))
+
         total_masses = aero_state_masses(aero_state, aero_data)
         H2O_masses = aero_state_masses(aero_state, aero_data, include=(/"H2O"/))
         H2O_frac = H2O_masses / total_masses
@@ -149,6 +154,10 @@ contains
                 aero_state%apa%particle(i_part)%ice_shape_phi = 1d0
             end if
         end do
+        deallocate(total_masses)
+        deallocate(H2O_masses)
+        deallocate(H2O_frac)
+
     end subroutine immersion_freezing_singular
 
     !> Simulation for time-dependent scheme (e.g., ABIFM, constant rate),
@@ -193,8 +202,14 @@ contains
         real(kind=dp) :: coating_ratio
         integer :: i_spec_max
         real(kind=dp) :: j_het_max
+        integer :: rand_geometric
 
         integer :: loop_count = 0
+        
+        allocate(total_masses(aero_state_n_part(aero_state)))
+        allocate(H2O_masses(aero_state_n_part(aero_state)))
+        allocate(H2O_frac(aero_state_n_part(aero_state)))
+
         call aero_state_sort(aero_state, aero_data)
 
         total_masses = aero_state_masses(aero_state, aero_data)
@@ -224,8 +239,8 @@ contains
 
                 k_th = n_parts_in_bin + 1
                 loop_choosed_particles: do while(.TRUE.)
-                    rand = pmc_random_geometric(p_freeze_max)
-                    k_th = k_th - rand
+                    rand_geometric = pmc_random_geometric(p_freeze_max)
+                    k_th = k_th - rand_geometric
                     if (k_th <= 0) then
                         EXIT loop_choosed_particles
                     endif
@@ -240,8 +255,8 @@ contains
                     if (immersion_freezing_scheme .eq. 'ABIFM') then
                         call ABIFM_particle(i_part, p_freeze, aero_state, aero_data, a_w_ice, del_t)
                         if (p_freeze > p_freeze_max) then
-                            print*, "Warning! p_freeze > p_freeze_max. &
-                            p_freeze = ", p_freeze, "; p_freeze_max = "&
+                            print*, "Warning! p_freeze > p_freeze_max. "&
+                            ,"p_freeze = ", p_freeze, "; p_freeze_max = "&
                             , p_freeze_max
                         endif
                         rand = pmc_random()
@@ -264,6 +279,9 @@ contains
             enddo loop_classes
          enddo loop_bins
 
+         deallocate(total_masses)
+         deallocate(H2O_masses)
+         deallocate(H2O_frac)
        
     end subroutine immersion_freezing_time_dependent
 
@@ -302,6 +320,11 @@ contains
         integer :: clock_start, clock_end
 
         call system_clock(clock_start)
+
+        allocate(total_masses(aero_state_n_part(aero_state)))
+        allocate(H2O_masses(aero_state_n_part(aero_state)))
+        allocate(H2O_frac(aero_state_n_part(aero_state)))
+
         total_masses = aero_state_masses(aero_state, aero_data)
         H2O_masses = aero_state_masses(aero_state, aero_data, include=(/"H2O"/))
         H2O_frac = H2O_masses / total_masses
@@ -336,6 +359,11 @@ contains
                 aero_state%apa%particle(i_part)%ice_shape_phi = 1d0
             end if
         end do
+
+        deallocate(total_masses)
+        deallocate(H2O_masses)
+        deallocate(H2O_frac)
+
         call system_clock(clock_end)
         freeze_module_run_time = freeze_module_run_time + clock_end - clock_start
 

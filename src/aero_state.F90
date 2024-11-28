@@ -2807,7 +2807,11 @@ contains
                = aero_state_particle_num_conc(aero_state, &
                aero_state%apa%particle(i_part), aero_data)
           aero_id(i_part) = aero_state%apa%particle(i_part)%id
-          aero_frozen(i_part) = aero_state%apa%particle(i_part)%frozen
+          if (aero_state%apa%particle(i_part)%frozen) then
+               aero_frozen(i_part) = 1
+          else
+               aero_frozen(i_part) = 0
+          end if
           aero_imf_temperature(i_part) &
                 = aero_state%apa%particle(i_part)%imf_temperature
           aero_frozen_probability(i_part) = aero_state%apa%particle(i_part)%P_frozen
@@ -3216,7 +3220,11 @@ contains
        end if
        aero_particle%water_hyst_leg = aero_water_hyst_leg(i_part)
        aero_particle%id = aero_id(i_part)
-       aero_particle%frozen = aero_frozen(i_part)
+       if (aero_frozen(i_part) .eq. 1) then
+           aero_particle%frozen = .True.
+       else
+           aero_particle%frozen = .False.
+       end if
        aero_particle%imf_temperature = aero_imf_temperature(i_part)
        aero_particle%P_frozen = aero_frozen_probability(i_part)
        aero_particle%den_ice = aero_ice_density(i_part)

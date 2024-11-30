@@ -3,7 +3,6 @@ output_prefix out/freezing_part # prefix of output files
 n_repeat 10                      # number of Monte Carlo repeats
 n_part 10000                     # total number of particles
 restart no                      # whether to restart from saved state (yes/no)
-#restart_file output/chiexp_indsize_0.8/restart.nc
 do_select_weighting yes          # whether to select weighting explicitly (yes/no)
 weight_type flat
 
@@ -39,9 +38,7 @@ start_time 0                    # start time (s since 00:00 UTC)
 start_day 1                     # start day of year (UTC)
 
 do_coagulation no               # whether to do coagulation (yes/no)
-#coag_kernel brown
 do_condensation no             # whether to do condensation (yes/no)
-#do_init_equilibrate yes         # whether to initially equilibrate water (yes/no) 
 do_mosaic no                    # whether to do MOSAIC (yes/no)
 do_nucleation no                # whether to do nucleation (yes/no)
 do_immersion_freezing yes                 # whether to do freezing (yes/no)
@@ -49,7 +46,6 @@ do_immersion_freezing yes                 # whether to do freezing (yes/no)
 immersion_freezing_scheme ABIFM
 #immersion_freezing_scheme const
 #freezing_rate -.01123456789 
-#do_coating no
 
 rand_init 1                     # random initialization (0 to auto-generate)
 allow_doubling yes              # whether to allow doubling (yes/no)

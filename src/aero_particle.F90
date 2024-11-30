@@ -56,22 +56,18 @@ module pmc_aero_particle
      real(kind=dp) :: least_create_time
      !> Last time a constituent was created (s).
      real(kind=dp) :: greatest_create_time
-!<<<<<<< HEAD
-     !> ice-phase flag
+     !> Ice-phase flag.
      logical :: frozen
-     !> immersion freezing temperature
+     !> Immersion freezing temperature (K).
      real(kind=dp) :: imf_temperature
-     !> ice-phase probability
+     !> Ice-phase probability (1).
      real(kind=dp) :: P_frozen
-     !> ice density
+     !> Ice density (kg m^{-3}).
      real(kind=dp) :: den_ice
-     !> ice shape
+     !> Ice shape.
      real(kind=dp) :: ice_shape_phi
-
-!=======
      !> True number of primary particles contributing to particle.
      integer :: n_primary_parts
-!>>>>>>> 2341ef410d6f49f3169b8461b5fa8c89dbd3c7a2
   end type aero_particle_t
 
   !> Next unique ID number to use for a particle.
@@ -110,15 +106,12 @@ contains
     aero_particle_to%least_create_time = aero_particle_from%least_create_time
     aero_particle_to%greatest_create_time = &
          aero_particle_from%greatest_create_time
-!<<<<<<< HEAD
     aero_particle_to%frozen = aero_particle_from%frozen
     aero_particle_to%imf_temperature = aero_particle_from%imf_temperature
     aero_particle_to%P_frozen = aero_particle_from%P_frozen
     aero_particle_to%den_ice = aero_particle_from%den_ice
     aero_particle_to%ice_shape_phi = aero_particle_from%ice_shape_phi
-!=======
     aero_particle_to%n_primary_parts = aero_particle_from%n_primary_parts
-!>>>>>>> 2341ef410d6f49f3169b8461b5fa8c89dbd3c7a2
 
   end subroutine aero_particle_shift
 

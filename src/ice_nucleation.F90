@@ -287,9 +287,6 @@ contains
             enddo loop_classes
          enddo loop_bins
 
-         deallocate(total_masses)
-         deallocate(H2O_masses)
-         deallocate(H2O_frac)
        
     end subroutine immersion_freezing_time_dependent
 

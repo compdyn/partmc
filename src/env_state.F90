@@ -651,7 +651,6 @@ contains
     type(env_state_t), intent(in) :: env_state
     !> saturated vapor pressure with respective to water (Pa)
     real(kind=dp), intent(out) :: pvs
-    !> temperature (k)
     real(kind=dp) :: T, tmp
 
     T = env_state%temp

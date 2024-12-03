@@ -916,9 +916,8 @@ contains
     end if
     if (run_part_opt%do_immersion_freezing) then
        call immersion_freezing(aero_state, aero_data, old_env_state, &
-           env_state, run_part_opt%del_t, run_part_opt%immersion_freezing_scheme_type, &
-           run_part_opt%freezing_rate)!, run_part_opt%do_coating, run_part_opt%coating_spec, &
-           !run_part_opt%coating_ratio)
+            env_state, run_part_opt%del_t, run_part_opt%immersion_freezing_scheme_type, &
+            run_part_opt%freezing_rate)
        call melting(aero_state, aero_data, old_env_state, env_state)
     end if
     if (run_part_opt%do_coagulation) then

@@ -744,7 +744,6 @@ contains
         endif
    endif
 
-
     call spec_file_read_integer(file, 'rand_init', rand_init)
     call spec_file_read_logical(file, 'allow_doubling', &
          run_part_opt%allow_doubling)

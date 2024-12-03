@@ -490,10 +490,6 @@ contains
 
     run_part_opt%t_wall_start = system_clock_time()
 
-    
-    ! Wenhan Tang: add for saving the timing results
-    !open(1997, file="freezing_timing.txt")
-
     do i_repeat = 1,run_part_opt%n_repeat
        run_part_opt%i_repeat = i_repeat
 

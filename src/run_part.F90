@@ -71,7 +71,6 @@ module pmc_run_part
      !> Whether to do nucleation.
      logical :: do_nucleation
      !> Whether to do freezing.
-     !logical :: do_freezing
      logical :: do_immersion_freezing
      !> Whether to do freezing using Classical Nucleation Theory
      !logical :: do_freezing_CNT

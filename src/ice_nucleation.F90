@@ -102,6 +102,7 @@ contains
         type(aero_state_t), intent(inout) :: aero_state
         !> Aerosol data.
         type(aero_data_t), intent(in) :: aero_data
+
         integer :: i_part
         real(kind=dp) :: a_INAS, b_INAS, p, S, T0, temp
         real(kind=dp) :: aerosol_diameter

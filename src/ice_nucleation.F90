@@ -303,7 +303,7 @@ contains
     subroutine immersion_freezing_time_dependent_naive(aero_state, aero_data, &
         env_state_initial, env_state_final, del_t, &
         immersion_freezing_scheme_type, &
-        freezing_rate)!, do_coating, coating_spec, coating_ratio)
+        freezing_rate)
 
         !> Aerosol state.
         type(aero_state_t), intent(inout) :: aero_state

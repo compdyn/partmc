@@ -78,10 +78,6 @@ module pmc_run_part
      integer :: immersion_freezing_scheme_type
 
      real(kind=dp) :: freezing_rate
-     !real(kind=dp) :: abifm_m, abifm_c
-     !logical :: do_coating
-     !character(len=300) :: coating_spec
-     !real(kind=dp) :: coating_ratio
 
      logical :: do_ice_shape = .False.
      logical :: do_ice_density = .False.

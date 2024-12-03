@@ -540,8 +540,6 @@ contains
        end if
 
     end do
-    ! Wenhan Tang: add for the freezing timing
-    !close(1997)
 
     if (run_part_opt%do_tchem) then
 #ifdef PMC_USE_TCHEM

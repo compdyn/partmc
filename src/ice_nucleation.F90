@@ -117,7 +117,6 @@ contains
             temp = (log(1 - p) + exp(-S * exp(-a_INAS * T0 + b_INAS))) / (-S)
             aero_state%apa%particle(i_part)%imf_temperature = T0 + (log(temp) &
                      - b_INAS) / a_INAS
-            !print*, aerosol_diameter, aero_state%apa%particle(i_part)%imf_temperature
         end do
     end subroutine singular_initialize
 

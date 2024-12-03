@@ -23,10 +23,8 @@ module pmc_ice_nucleation
 
     !> Used to record the runtime of the ice nucleation module.
     integer :: freeze_module_run_time = 0
-    !> True: using the binned-tau leaping algorithm for time-dependent scheme.
-    logical :: do_speedup = .True.
-    !> False: using the naive algorithm for time-dependent scheme.
-    !logical :: do_speedup = .False.
+    !> Whether to use the binned-tau leaping algorithm for time-dependent scheme.
+    logical :: do_speedup = .true.
 
     interface ABIFM
         module procedure ABIFM_particle

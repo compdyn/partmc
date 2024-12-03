@@ -1,0 +1,90 @@
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage[margin=2cm]{geometry}
+\usepackage{longtable}
+\usepackage{comment}
+
+\begin{document}
+
+\section{Symbol list}
+\label{sec:symbol-list}
+
+\newcommand{\rr}{\raggedright}
+\newcommand{\tn}{\tabularnewline\hline}
+\renewcommand{\arraystretch}{1.5}
+\begin{longtable}{|l|p{5.5cm}|l|l|p{4.5cm}|}
+\hline \textbf{Symbol} & \textbf{Meaning}                                                       & \textbf{Type} & \textbf{Units}                        &  \textbf{Reference}                                \tn
+\hline \endhead
+\(i\) & species index. & index & discrete & \tn
+\( A_j \) & The total surface area of the INP. & function & $m^2$ & \tn
+\( A_j^\text{(i)} \) & Surface area of \( i \)th species. & function & $m^2$ & \tn
+\( a_{\text{w}} \) & Water activity of the droplet in which the INP is immersed. & function & 1 & eq.~\ref{eq:4}\tn
+\( a_\text{w}^\text{ice} \) & Water activity in equilibrium with ice.  & function & 1 & eq.~\ref{eq:5} \tn
+\(a_\text{INAS}\) & INAS parameter for singular scheme. & constant & $K^{-1}$ & Niemand et al., 2012 \tn
+\(b_\text{INAS}\) & INAS parameter for singular scheme. & constant & 1 & Niemand et al., 2012 \tn
+\( \Delta t \) & Time interval.  & function & $s$ & \tn
+\( e_\text{s} \) & Saturated vapor pressure with respect to water. & function & Pa & eq.~\ref{eq:2} \tn
+\( e_\text{s}^\text{ice} \) & Saturated vapor pressure with respect to ice. & function & Pa & eq.~\ref{eq:3} \tn
+\( H \) & Relative humidity with respect to water. & dynamics & 1 & \tn
+\( J_{\text{het}} \) & A constant heterogeneous freezing rate for all particles (for the constant nucleation rate scheme only) & constant &  $m^{-2}s^{-1}$ & \tn
+\( J_{\text{het}}^{(i)} \) & Heterogeneous freezing rate coefficients of the \( i \)th species. & function & $m^{-2}s^{-1}$ & eq.~\ref{eq:6} \tn
+\( m_i, c_i \) & ABIFM parameters of \( i^\text{th} \) species. & constant & 1 & Knopf et al., 2013 \tn
+\(n_0\) & An unit constant (=1 $m^{-2}$). & constant & $m^{-2}$ & \tn
+\( N_\text{s} \) & The total number of species covering the surface of the INP. & constant & 1 & \tn
+\( P_{\text{frz,}j} (\Delta t)\) & The freezing probability of $j^\text{th}$ particle within a time interval of $\Delta t$. & function & 1 & eq.~\ref{eq:1},eq.~\ref{eq:7} \tn
+\(p_j\) & A random number uniformly distributed in [0,1] regarding the sampling of $j^\text{th}$ particle. & function & 1 & eq.~\ref{eq:8} \tn
+\(T\) & Current environmental temperature & prescribed & $K$ & \tn
+\(T_0\) & Water freezing temperature & constant & K & \verb+env_state%temp+ \tn
+\(T_{\text{m,}j}\) & The freezing temperature of the $j^\text{th}$ particle. & function & K & eq.~\ref{eq:9} \tn
+
+\end{longtable}
+
+\begin{comment}
+\( J_{\text{het}}^{(i)} \) & Heterogeneous freezing rate coefficients of the \( i \)th species. \\
+        \( A_i \) & Surface area of \( i \)th species. \\
+        \( A \) & The total surface area of the INP. \\
+        \( \Delta t \) & Time interval. \\
+        \( a_{\text{w}} \) & Water activity of the droplet in which the INP is immersed. \\
+        \( a_\text{w}^\text{ice} \) & Water activity in equilibrium with ice. \\
+        \( RH \) & Relative humidity with respect to water. \\
+        \( e_\text{s} \) & Saturated vapor pressure with respect to water. \\
+        \( e_\text{s}^\text{ice} \) & Saturated vapor pressure with respect to ice. \\
+        \( m_i, c_i \) & ABIFM parameters of \( i^\text{th} \) species. \\
+        \( N_\text{s} \) & The total number of species covering the surface of the INP. \\
+        \hline
+\end{comment}
+
+\section{Equations}
+\label{sec:equations}
+
+\subsection{Time-dependent scheme with a constant nucleation rate}
+\begin{equation}
+    P_{\text{frz,}j}(\Delta t) = 1 - \exp\left(J_{\text{het}} \cdot A_j \cdot \Delta t \right) \label{eq:1}
+\end{equation}
+
+\subsection{Time-dependent ABIFM scheme}
+\begin{equation}
+    \begin{split}
+        e_\text{s}(T) &= \exp \left\{ 54.842763 - \frac{6763.22}{T} - 4.21 * \ln{T} + 0.000367T \right.\\
+        &+ \left. \tanh \left[{0.0415 \cdot (T - 218.8) \cdot (53.878 - \frac{1331.22}{T} - 9.44523 \ln{T} + 0.014025T)}\right] \right\} \label{eq:2}
+    \end{split}
+\end{equation}
+\begin{equation}
+    e_\text{s}^\text{ice} (T) = \exp \left( 9.550426 - \frac{5723.265}{T} + 3.53068 \cdot \ln{T} - 0.00728332T\right). \label{eq:3}
+\end{equation}
+\begin{align}
+  a_{\text{w}} &= 1 \label{eq:4} \\
+  a_\text{w}^\text{ice} &= \frac{e_\text{s}^\text{ice}(T)}{e_\text{s}(T)} \label{eq:5} \\
+  \log_{10}J_{\text{het}}^{(i)} &= m_{\text{i}} \cdot (a_{\text{w}} - a_\text{w}^\text{ice}) + c_i \label{eq:6} \\
+  P_{\text{frz,}j}(\Delta t) &= 1 - \exp\left[ -\sum_{i=1}^{N_{\text{s}}} (A_j^\text{(i)} \cdot J_{\text{het}}^{(i)}) \cdot \Delta t \right] \label{eq:7}
+\end{align}
+
+\subsection{Singular scheme}
+\begin{equation}
+    p_j = random() \in [0,1] \label{eq:8}
+\end{equation}
+
+\begin{equation}
+    T_{\text{m,}j} = T_0 + \frac{1}{a_\text{INAS}} \left[\ln{\left( \frac{\ln{(1-p_j)} + \exp{\left(-A_j n_0 \exp{\left(-a_\text{INAS} T_0 + b_\text{INAS}\right)}\right)}}{-A_j n_0} \right)} - b_\text{INAS}\right] \label{eq:9}
+\end{equation}
+\end{document}

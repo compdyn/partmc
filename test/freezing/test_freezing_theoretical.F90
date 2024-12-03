@@ -2,7 +2,6 @@
 program theoretical_freezing
     use pmc_env_state
     implicit none
-    !integer, parameter :: dp = kind(0.d0)
     integer, parameter :: out_unit = 65
     real(kind=dp), parameter :: temperature = 253.15
     real(kind=dp), parameter :: total_time = 600

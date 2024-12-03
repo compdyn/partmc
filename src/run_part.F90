@@ -71,7 +71,6 @@ module pmc_run_part
      !> Whether to do nucleation.
      logical :: do_nucleation
      !> Whether to do freezing.
-     !logical :: do_freezing
      logical :: do_immersion_freezing
      !> Whether to do freezing using Classical Nucleation Theory
      !logical :: do_freezing_CNT
@@ -79,10 +78,6 @@ module pmc_run_part
      integer :: immersion_freezing_scheme_type
 
      real(kind=dp) :: freezing_rate
-     !real(kind=dp) :: abifm_m, abifm_c
-     !logical :: do_coating
-     !character(len=300) :: coating_spec
-     !real(kind=dp) :: coating_ratio
 
      logical :: do_ice_shape = .False.
      logical :: do_ice_density = .False.
@@ -268,9 +263,6 @@ contains
          i_cur, i_next, t_start, last_output_time, last_progress_time, &
          i_output, progress_n_samp, progress_n_coag, progress_n_emit, &
          progress_n_dil_in, progress_n_dil_out, progress_n_nuc)
-
-    !print*, "Freeze module total run time:", freeze_module_run_time
-    !write(1997, *) freeze_module_run_time
 
     if (run_part_opt%do_mosaic) then
        call mosaic_cleanup()
@@ -746,16 +738,7 @@ contains
             
 
         endif
-        !call spec_file_read_logical(file, 'do_coating', &
-        !        run_part_opt%do_coating)
-        !if (run_part_opt%do_coating) then
-        !    call spec_file_read_string(file, 'coating_spec', &
-        !            run_part_opt%coating_spec)
-        !    call spec_file_read_real(file, 'coating_ratio', &
-        !            run_part_opt%coating_ratio)
-        !endif 
    endif
-
 
     call spec_file_read_integer(file, 'rand_init', rand_init)
     call spec_file_read_logical(file, 'allow_doubling', &
@@ -928,9 +911,8 @@ contains
     end if
     if (run_part_opt%do_immersion_freezing) then
        call immersion_freezing(aero_state, aero_data, old_env_state, &
-           env_state, run_part_opt%del_t, run_part_opt%immersion_freezing_scheme_type, &
-           run_part_opt%freezing_rate)!, run_part_opt%do_coating, run_part_opt%coating_spec, &
-           !run_part_opt%coating_ratio)
+            env_state, run_part_opt%del_t, run_part_opt%immersion_freezing_scheme_type, &
+            run_part_opt%freezing_rate)
        call melting(aero_state, aero_data, old_env_state, env_state)
     end if
     if (run_part_opt%do_coagulation) then

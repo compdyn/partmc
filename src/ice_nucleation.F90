@@ -23,10 +23,8 @@ module pmc_ice_nucleation
 
     !> Used to record the runtime of the ice nucleation module.
     integer :: freeze_module_run_time = 0
-    !> True: using the binned-tau leaping algorithm for time-dependent scheme.
-    logical :: do_speedup = .True.
-    !> False: using the naive algorithm for time-dependent scheme.
-    !logical :: do_speedup = .False.
+    !> Whether to use the binned-tau leaping algorithm for time-dependent scheme.
+    logical :: do_speedup = .true.
 
     interface ABIFM
         module procedure ABIFM_particle
@@ -104,6 +102,7 @@ contains
         type(aero_state_t), intent(inout) :: aero_state
         !> Aerosol data.
         type(aero_data_t), intent(in) :: aero_data
+
         integer :: i_part
         real(kind=dp) :: a_INAS, b_INAS, p, S, T0, temp
         real(kind=dp) :: aerosol_diameter
@@ -118,7 +117,6 @@ contains
             temp = (log(1 - p) + exp(-S * exp(-a_INAS * T0 + b_INAS))) / (-S)
             aero_state%apa%particle(i_part)%imf_temperature = T0 + (log(temp) &
                      - b_INAS) / a_INAS
-            !print*, aerosol_diameter, aero_state%apa%particle(i_part)%imf_temperature
         end do
     end subroutine singular_initialize
 
@@ -135,6 +133,7 @@ contains
         !> Environment state at the end of the timestep. The rel_humid
         !> value will be ignored and overwritten with a new value.
         type(env_state_t), intent(inout) :: env_state_final
+
         real(kind=dp), allocatable :: H2O_masses(:), total_masses(:), &
             H2O_frac(:)
         integer :: i_part, i_bin, i_class, n_bins, n_class
@@ -304,7 +303,7 @@ contains
     subroutine immersion_freezing_time_dependent_naive(aero_state, aero_data, &
         env_state_initial, env_state_final, del_t, &
         immersion_freezing_scheme_type, &
-        freezing_rate)!, do_coating, coating_spec, coating_ratio)
+        freezing_rate)
 
         !> Aerosol state.
         type(aero_state_t), intent(inout) :: aero_state
@@ -401,6 +400,7 @@ contains
         !> Environment state at the end of the timestep. The rel_humid
         !> value will be ignored and overwritten with a new value.
         type(env_state_t), intent(inout) :: env_state_final
+
         integer :: i_part 
 
         if (env_state_final%temp > const%water_freeze_temp) then

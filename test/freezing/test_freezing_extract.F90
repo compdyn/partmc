@@ -15,7 +15,7 @@ program extract_freezing
     integer :: xtype, ndims, nAtts
     character(len=1000) :: tmp_str
     real(kind=dp), allocatable :: aero_num_conc(:)
-    integer(kind=dp), allocatable :: aero_frozen(:)
+    integer, allocatable :: aero_frozen(:)
     real(kind=dp) :: time
     real(kind=dp) :: frozen_fraction, frozen_fraction_total
     real(kind=dp) :: frozen_fraction_mean

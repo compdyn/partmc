@@ -490,10 +490,6 @@ contains
 
     run_part_opt%t_wall_start = system_clock_time()
 
-    
-    ! Wenhan Tang: add for saving the timing results
-    !open(1997, file="freezing_timing.txt")
-
     do i_repeat = 1,run_part_opt%n_repeat
        run_part_opt%i_repeat = i_repeat
 
@@ -503,7 +499,6 @@ contains
           call aero_state_set_n_part_ideal(aero_state, n_part)
        else
           call aero_state_zero(aero_state)
-          
           aero_mode_type_exp_present &
                = aero_dist_contains_aero_mode_type(aero_dist_init, &
                AERO_MODE_TYPE_EXP) &
@@ -545,8 +540,6 @@ contains
        end if
 
     end do
-    ! Wenhan Tang: add for the freezing timing
-    !close(1997)
 
     if (run_part_opt%do_tchem) then
 #ifdef PMC_USE_TCHEM

@@ -742,14 +742,6 @@ contains
             
 
         endif
-        !call spec_file_read_logical(file, 'do_coating', &
-        !        run_part_opt%do_coating)
-        !if (run_part_opt%do_coating) then
-        !    call spec_file_read_string(file, 'coating_spec', &
-        !            run_part_opt%coating_spec)
-        !    call spec_file_read_real(file, 'coating_ratio', &
-        !            run_part_opt%coating_ratio)
-        !endif 
    endif
 
 

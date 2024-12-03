@@ -161,6 +161,7 @@ contains
                 aero_state%apa%particle(i_part)%ice_shape_phi = 1d0
             end if
         end do
+
         deallocate(total_masses)
         deallocate(H2O_masses)
         deallocate(H2O_frac)
@@ -214,6 +215,10 @@ contains
 
         integer :: loop_count = 0
         
+
+        allocate(total_masses(aero_state_n_part(aero_state)))
+        allocate(H2O_masses(aero_state_n_part(aero_state)))
+        allocate(H2O_frac(aero_state_n_part(aero_state)))
 
         call aero_state_sort(aero_state, aero_data)
 
@@ -286,7 +291,10 @@ contains
                 enddo loop_choosed_particles
             enddo loop_classes
          enddo loop_bins
-
+        
+         deallocate(total_masses)
+         deallocate(H2O_masses)
+         deallocate(H2O_frac)
        
     end subroutine immersion_freezing_time_dependent
 

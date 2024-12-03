@@ -499,7 +499,6 @@ contains
           call aero_state_set_n_part_ideal(aero_state, n_part)
        else
           call aero_state_zero(aero_state)
-          
           aero_mode_type_exp_present &
                = aero_dist_contains_aero_mode_type(aero_dist_init, &
                AERO_MODE_TYPE_EXP) &

@@ -702,7 +702,6 @@ contains
       ! Reference: https://www.ucl.ac.uk/~ucakarc/work/software/randgen.f
       implicit none
       real(kind=dp) :: P, U, TINY
-      INTEGER :: pmc_random_geometric
 
       TINY = 1.0D-12
       pmc_random_geometric = 0

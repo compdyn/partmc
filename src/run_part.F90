@@ -268,9 +268,6 @@ contains
          i_output, progress_n_samp, progress_n_coag, progress_n_emit, &
          progress_n_dil_in, progress_n_dil_out, progress_n_nuc)
 
-    !print*, "Freeze module total run time:", freeze_module_run_time
-    !write(1997, *) freeze_module_run_time
-
     if (run_part_opt%do_mosaic) then
        call mosaic_cleanup()
     end if

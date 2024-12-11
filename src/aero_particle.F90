@@ -60,8 +60,6 @@ module pmc_aero_particle
      logical :: frozen
      !> Immersion freezing temperature (K).
      real(kind=dp) :: imf_temperature
-     !> Ice-phase probability (1).
-     real(kind=dp) :: P_frozen
      !> Ice density (kg m^{-3}).
      real(kind=dp) :: den_ice
      !> Ice shape.
@@ -108,7 +106,6 @@ contains
          aero_particle_from%greatest_create_time
     aero_particle_to%frozen = aero_particle_from%frozen
     aero_particle_to%imf_temperature = aero_particle_from%imf_temperature
-    aero_particle_to%P_frozen = aero_particle_from%P_frozen
     aero_particle_to%den_ice = aero_particle_from%den_ice
     aero_particle_to%ice_shape_phi = aero_particle_from%ice_shape_phi
     aero_particle_to%n_primary_parts = aero_particle_from%n_primary_parts
@@ -148,7 +145,6 @@ contains
     aero_particle%greatest_create_time = 0d0
     aero_particle%frozen = .FALSE.
     aero_particle%imf_temperature = 0d0
-    aero_particle%P_frozen = 0d0
     aero_particle%den_ice = -9999d0
     aero_particle%ice_shape_phi = -9999d0
     aero_particle%n_primary_parts = 0
@@ -1005,8 +1001,6 @@ contains
     !!! Not true, need further discussion
     aero_particle_new%imf_temperature = max(aero_particle_1%imf_temperature, &
             aero_particle_2%imf_temperature)
-    aero_particle_new%P_frozen = 1 - (1 - aero_particle_1%P_frozen) &
-    * (1 -  aero_particle_2%P_frozen)
 
     if (aero_particle_new%frozen) then
         ice_vol_1 = aero_particle_1%vol(aero_data%i_water)
@@ -1076,13 +1070,10 @@ contains
          + pmc_mpi_pack_size_integer(aero_particle_n_components(val)) &
          + pmc_mpi_pack_size_real(val%least_create_time) &
          + pmc_mpi_pack_size_real(val%greatest_create_time) &
-!<<<<<<< HEAD
          + pmc_mpi_pack_size_logical(val%frozen) &
          + pmc_mpi_pack_size_real(val%imf_temperature) &
-         + pmc_mpi_pack_size_real(val%P_frozen) &
          + pmc_mpi_pack_size_real(val%den_ice) &
          + pmc_mpi_pack_size_real(val%ice_shape_phi) &
-!=======
          + pmc_mpi_pack_size_integer(val%n_primary_parts)
 
     do i = 1,aero_particle_n_components(val)
@@ -1127,15 +1118,11 @@ contains
     end do
     call pmc_mpi_pack_real(buffer, position, val%least_create_time)
     call pmc_mpi_pack_real(buffer, position, val%greatest_create_time)
-!<<<<<<< HEAD
     call pmc_mpi_pack_logical(buffer, position, val%frozen)
     call pmc_mpi_pack_real(buffer, position, val%imf_temperature)
-    call pmc_mpi_pack_real(buffer, position, val%P_frozen)
     call pmc_mpi_pack_real(buffer, position, val%den_ice)
     call pmc_mpi_pack_real(buffer, position, val%ice_shape_phi)
-!=======
     call pmc_mpi_pack_integer(buffer, position, val%n_primary_parts)
-!>>>>>>> 2341ef410d6f49f3169b8461b5fa8c89dbd3c7a2
     call assert(810223998, position - prev_position &
          <= pmc_mpi_pack_size_aero_particle(val))
 #endif
@@ -1178,15 +1165,11 @@ contains
     end do
     call pmc_mpi_unpack_real(buffer, position, val%least_create_time)
     call pmc_mpi_unpack_real(buffer, position, val%greatest_create_time)
-!<<<<<<< HEAD
     call pmc_mpi_unpack_logical(buffer, position, val%frozen)
     call pmc_mpi_unpack_real(buffer, position, val%imf_temperature)
-    call pmc_mpi_unpack_real(buffer, position, val%P_frozen)
     call pmc_mpi_unpack_real(buffer, position, val%den_ice)
     call pmc_mpi_unpack_real(buffer, position, val%ice_shape_phi)
-!=======
     call pmc_mpi_unpack_integer(buffer, position, val%n_primary_parts)
-!>>>>>>> 2341ef410d6f49f3169b8461b5fa8c89dbd3c7a2
     call assert(287447241, position - prev_position &
          <= pmc_mpi_pack_size_aero_particle(val))
 #endif

@@ -364,9 +364,6 @@ contains
                     IMMERSION_FREEZING_SCHEME_CONST) then
                 p_freeze = 1 - exp(freezing_rate * del_t)
             end if
-            p_frozen = aero_state%apa%particle(i_part)%P_frozen
-            aero_state%apa%particle(i_part)%P_frozen = 1 - (1 - p_frozen) &
-                * (1 - p_freeze)
 
             if (rand < p_freeze) then
                 aero_state%apa%particle(i_part)%frozen = .TRUE.

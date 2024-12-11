@@ -6,7 +6,7 @@ Tang, W. (2024). Particle-resolved simulations of immersion freezing with multi-
 
 This is a scenario demonstrating how to use PartMC to simulate the immersion freezing process of multiple species INPs.
 
-There are a total of 4*2=8 simulation groups, consisting of four types of INP populations and two temperature curve scenarios. The four types of INPs are 100% illite, 100% Fe2O3, a 50% illite and 50% Fe2O3 external mixture, and an internal mixture. The two temperature curves are a constant -20 degrees Celsius and a steady cooling from -10 to -30 degrees Celsius. The simulation time for each is 10 minutes.
+There are a total of 4*2=8 simulation groups, consisting of four types of INP populations and two temperature curve scenarios. The four types of INPs are 100% illite, 100% Fe2O3, a 50% illite and 50% Fe2O3 external mixture, and an internal mixture. The two temperature curves are a constant -20 degrees Celsius and a steady cooling from -10 to -30 degrees Celsius. The simulation time for each is 10 minutes. All immersion freezing simulations are using the ABIFM scheme.
 
 exp1: 100% illite, constant temperature
 exp2: 100% Fe2O3, constant temperature

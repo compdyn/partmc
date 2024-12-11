@@ -72,17 +72,10 @@ module pmc_run_part
      logical :: do_nucleation
      !> Whether to do freezing.
      logical :: do_immersion_freezing
-     !> Whether to do freezing using Classical Nucleation Theory
-     !logical :: do_freezing_CNT
-     !character(len=300) :: immersion_freezing_scheme
+     !> The immersion freezing scheme options.
      integer :: immersion_freezing_scheme_type
-
+     !> The freezing rate parameter for "const" scheme.
      real(kind=dp) :: freezing_rate
-
-     logical :: do_ice_shape = .False.
-     logical :: do_ice_density = .False.
-     logical :: do_ice_ventilation = .False.
-    
      !> Allow doubling if needed.
      logical :: allow_doubling
      !> Allow halving if needed.
@@ -707,18 +700,8 @@ contains
 
    if (run_part_opt%do_immersion_freezing) then
    
-       !call spec_file_read_string(file, 'immersion_freezing_scheme', &
-       !        run_part_opt%immersion_freezing_scheme)
        call spec_file_read_immersion_freezing_scheme_type(file, &
                run_part_opt%immersion_freezing_scheme_type)
-
-        !if (run_part_opt%do_freezing_CNT) then
-
-        !    call spec_file_read_real(file, 'abifm_m', &
-        !           run_part_opt%abifm_m)
-        !    call spec_file_read_real(file, 'abifm_c', &
-        !           run_part_opt%abifm_c)
-        !else
 
         if (run_part_opt%immersion_freezing_scheme_type .eq. &
                 IMMERSION_FREEZING_SCHEME_CONST) then

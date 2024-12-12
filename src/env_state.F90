@@ -643,21 +643,24 @@ contains
 
   end subroutine env_state_input_netcdf
 
-  subroutine env_state_saturated_vapor_pressure_water(env_state, pvs)
-    ! compute saturated vapor pressure (units : Pa) with respective to water
-    ! Formula (10) from [Murphy & Koop, 2004]  (https://doi.org/10.1256/qj.04.94)
 
-    !> Environment state to read.
-    type(env_state_t), intent(in) :: env_state
-    !> saturated vapor pressure with respective to water (Pa)
-    real(kind=dp), intent(out) :: pvs
-    real(kind=dp) :: T, tmp
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-    T = env_state%temp
-    if ((T <= 123) .OR. (T >= 332)) then
-        write(*, *) "Warning! the environment temperature is less then 123K or"&
-        ," larger than 332K, the subroutine env_state_saturated_vapor_pressure_water isn't applicable"
-    end if
+  !> compute saturated vapor pressure (units : Pa) with respective to water
+  !> Formula (10) from [Murphy & Koop, 2004]  (https://doi.org/10.1256/qj.04.94)
+  real(kind=dp) function env_state_saturated_vapor_pressure_water(T)
+
+
+    !> temperature (k)
+    real(kind=dp), intent(in) :: T
+
+    real(kind=dp) :: tmp
+
+
+    call warn_assert_msg(500123156, (T > 123) .and. (T < 332), &
+            "The environment temperature is less then 123K or larger than "&
+            "332K, the subroutine env_state_saturated_vapor_pressure_water"&
+            " isn't applicable")
 
     tmp = 54.842763 &
         - 6763.22 / T &
@@ -665,95 +668,51 @@ contains
         + 0.000367 * T &
         + tanh( 0.0415 * (T - 218.8)) &
             * (53.878 - 1331.22 / T - 9.44523 * log(T) + 0.014025 * T)
-    pvs = exp(tmp)
-  end subroutine env_state_saturated_vapor_pressure_water
+    env_state_saturated_vapor_pressure_water = exp(tmp)
 
-  subroutine env_state_saturated_vapor_pressure_ice(env_state, pis)
-    ! compute saturated vapor pressure (units : Pa) with respective to ice
-    ! Formula (7) from [Murphy & Koop, 2004]  (https://doi.org/10.1256/qj.04.94)
+  end function env_state_saturated_vapor_pressure_water
 
-    !> Environment state to read.
-    type(env_state_t), intent(in) :: env_state
-    !> saturated vapor pressure with respective to ice (Pa)
-    real(kind=dp), intent(out) :: pis
-    real(kind=dp) :: T, tmp
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-    T = env_state%temp
-    if (T <= 110) then
-        write(*, *) "Warning! the environment temperature is less then 110K, the"&
-        , "subroutine env_state_saturated_vapor_pressure_ice isn't applicable"
-    end if
+  !> Compute saturated vapor pressure (units : Pa) with respective to ice
+  !> Formula (7) from [Murphy & Koop, 2004]  (https://doi.org/10.1256/qj.04.94)
+  real(kind=dp) function env_state_saturated_vapor_pressure_ice(T)
+    
+
+    !> temperature (k)
+    real(kind=dp), intent(in) :: T
+
+    real(kind=dp) :: tmp
+
+    call warn_assert_msg(500123157, T > 110, &
+         "The environment temperature is less then 110K, "&
+         "the subroutine env_state_saturated_vapor_pressure_water"&
+         " isn't applicable")
+
     tmp = 9.550426 &
         - 5723.265 / T &
         + 3.53068 * log(T) &
         - 0.00728332 * T
-    pis = exp(tmp)
-  end subroutine env_state_saturated_vapor_pressure_ice
+    env_state_saturated_vapor_pressure_ice = exp(tmp)
 
-  subroutine env_state_saturated_vapor_pressure_water_2(T, pvs)
-    ! compute saturated vapor pressure (units : Pa) with respective to water
-    ! Formula (10) from [Murphy & Koop, 2004]  (https://doi.org/10.1256/qj.04.94)
+  end function env_state_saturated_vapor_pressure_ice
 
-    real(kind=dp), intent(in) :: T
-    !> saturated vapor pressure with respective to water (Pa)
-    real(kind=dp), intent(out) :: pvs
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> compute saturated vapor pressure (units : Pa) with respective to water
+  real(kind=dp) function env_state_saturated_vapor_pressure_water_2(T)
+
     !> temperature (k)
-    real(kind=dp) :: tmp
-
-    if ((T <= 123) .OR. (T >= 332)) then
-        write(*, *) "Warning! the environment temperature is less then 123K or" &
-        ," larger than 332K, the subroutine env_state_saturated_vapor_pressure_water isn't applicable"
-    end if
-
-    tmp = 54.842763 &
-        - 6763.22 / T &
-        - 4.210 * log(T) &
-        + 0.000367 * T &
-        + tanh( 0.0415 * (T - 218.8)) &
-            * (53.878 - 1331.22 / T - 9.44523 * log(T) + 0.014025 * T)
-    pvs = exp(tmp)
-  end subroutine env_state_saturated_vapor_pressure_water_2
-
-  subroutine env_state_saturated_vapor_pressure_ice_2(T, pis)
-    ! compute saturated vapor pressure (units : Pa) with respective to ice
-    ! Formula (7) from [Murphy & Koop, 2004]  (https://doi.org/10.1256/qj.04.94)
-
-    !> Environment state to read.
     real(kind=dp), intent(in) :: T
-    !> saturated vapor pressure with respective to ice (Pa)
-    real(kind=dp), intent(out) :: pis
-    !> temperature (k)
-    real(kind=dp) :: tmp
 
-    if (T <= 110) then
-        write(*, *) "Warning! the environment temperature is less then 110K, the "&
-        "subroutine env_state_saturated_vapor_pressure_ice isn't applicable"
-    end if
-    tmp = 9.550426 &
-        - 5723.265 / T &
-        + 3.53068 * log(T) &
-        - 0.00728332 * T
-    pis = exp(tmp)
-  end subroutine env_state_saturated_vapor_pressure_ice_2
-
-  subroutine env_state_saturated_vapor_pressure_water_3(T, pvs)
-    ! compute saturated vapor pressure (units : Pa) with respective to water
-    ! Formula (10) from [Murphy & Koop, 2004]  (https://doi.org/10.1256/qj.04.94)
-
-    real(kind=dp), intent(in) :: T
-    !> saturated vapor pressure with respective to water (Pa)
-    real(kind=dp), intent(out) :: pvs
-    !> temperature (k)
     real(kind=dp) :: tmp
 
     
-    pvs = const%water_eq_vap_press &
+    env_state_saturated_vapor_pressure_water_2 = const%water_eq_vap_press &
          * 10d0**(7.45d0 * (T - const%water_freeze_temp) &
          / (T - 38d0))
 
-  end subroutine env_state_saturated_vapor_pressure_water_3
-
-
+  end function env_state_saturated_vapor_pressure_water_2
 
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

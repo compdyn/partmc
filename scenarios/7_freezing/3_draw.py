@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 
 import numpy as np
+import glob
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 import matplotlib.ticker as ticker
+from pdb import set_trace
 
 cmap = plt.cm.Blues
 colors = cmap(np.linspace(0.4, 1, 10))  
@@ -14,7 +16,7 @@ chi_colors = chi_colors[::-1]
 xlabel_fontsize = 15
 ylabel_fontsize = 15
 
-def read_expFile(caseName):
+def bck_read_expFile(caseName):
     fileName = "out/freezing_part_data_" + caseName + ".txt"
     timeList = []
     tempList = []
@@ -36,6 +38,35 @@ def read_expFile(caseName):
     ice_ratio_min = np.array(ice_ratio_min)
     return timeList, tempList, ice_ratio_mean, ice_ratio_max, ice_ratio_min
 
+def read_expFile(caseName):
+    fileNameList = glob.glob("out/" + caseName + "/freezing_part_*_aero_time.txt")
+    timeList = []
+    tempList = []
+    ice_ratio_mean = []
+    ice_ratio_max = []
+    ice_ratio_min = []
+    ice_ratio = []
+
+    for i_file, fileName in enumerate(fileNameList):
+        ice_ratio_i_file = []
+        with open(fileName, "r") as fr:
+            for iline in fr:
+                time, temp, ff = iline.strip().split()
+                if i_file == 0:
+                    timeList.append(float(time))
+                    tempList.append(float(temp))
+                ice_ratio_i_file.append(float(ff))
+        ice_ratio.append(ice_ratio_i_file)
+
+    timeList = np.array(timeList)
+    tempList = np.array(tempList)
+    ice_ratio = np.array(ice_ratio)
+
+    ice_ratio_mean = ice_ratio.mean(axis = 0)
+    ice_ratio_max = ice_ratio.max(axis = 0)
+    ice_ratio_min = ice_ratio.min(axis = 0)
+    return timeList, tempList, ice_ratio_mean, ice_ratio_max, ice_ratio_min
+
         
 
 
@@ -49,6 +80,17 @@ def draw(fig, ax, casesName, ax_label):
 
     for caseName in casesName:
         timeList, tempList, ice_ratio_mean, ice_ratio_max, ice_ratio_min = read_expFile(caseName)
+        #timeList_, tempList_, ice_ratio_mean_, ice_ratio_max_, ice_ratio_min_ = bck_read_expFile(caseName)
+
+        #assert np.max(np.abs(ice_ratio_mean - ice_ratio_mean_)) < 1e-10
+        #assert np.max(np.abs(ice_ratio_max - ice_ratio_max_)) < 1e-10
+        #assert np.max(np.abs(ice_ratio_min - ice_ratio_min_)) < 1e-10
+        #assert np.max(np.abs(timeList - timeList_)) < 1e-15
+        #try:
+        #    assert np.max(np.abs(tempList - tempList_)) < 1e-5
+        #except:
+        #    set_trace()
+
         CaseDict = {"timeList": timeList, "tempList": tempList, "ice_ratio_mean": ice_ratio_mean,
                     "ice_ratio_max": ice_ratio_max, "ice_ratio_min": ice_ratio_min}
         casesDict[caseName] = CaseDict

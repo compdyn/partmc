@@ -1347,6 +1347,39 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Returns the frozen fraction (unitless) for whole aerosol population..
+  !> frozen fraction = number concentration of frozen particles /
+  !> total number concentration.
+  real(kind=dp) function aero_state_frozen_fraction(aero_state, aero_data)
+    !> Aerosol state.
+    type(aero_state_t), intent(in) :: aero_state
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+
+    !> Number concentration array (m^{-3}).
+    real(kind=dp) :: particle_num_concs(aero_state_n_part(aero_state))
+    !> Freezing state of each particle (1: frozen, 2: unfrozen).
+    integer :: particle_frozen(aero_state_n_part(aero_state))
+
+    integer :: i_part
+
+    particle_num_concs = aero_state_num_concs(aero_state, aero_data)
+
+    do i_part = 1,aero_state_n_part(aero_state)
+       if (aero_state%apa%particle(i_part)%frozen) then
+          particle_frozen(i_part) = 1
+       else
+          particle_frozen(i_part) = 0
+       end if
+    end do
+    aero_state_frozen_fraction = sum(particle_num_concs * particle_frozen) /&
+         sum(particle_num_concs)
+
+  end function aero_state_frozen_fraction
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Returns the number concentration of a given weight group and class.
   real(kind=dp) function aero_state_group_class_num_conc(aero_state, &
        aero_data, i_group, i_class)

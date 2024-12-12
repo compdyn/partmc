@@ -1,138 +1,136 @@
-! ---
+!! Copyright (C) 2009-2012 Matthew West
+! Licensed under the GNU General Public License version 2 or (at your
+! option) any later version. See the file COPYING for details.
 
-program extract_freezing
-    use netcdf
-    implicit none
-    integer, parameter :: dp = kind(0.d0)
-    integer, parameter :: out_unit = 65
-    character(len=*), parameter :: in_dir = "out"
-    character(len=*), parameter :: in_prefix = "freezing_part_"
-    character(len=*), parameter :: out_prefix = "out/freezing_part_data_"
-    character(len=1000) :: in_filename
-    character(len=1000) :: out_filename
-    integer :: ncid
-    integer :: varid_time, varid_temperature, dimid_aero_particle
-    integer :: varid_aero_num_conc, varid_aero_frozen
-    integer :: n_aero_particle
-    integer :: xtype, ndims, nAtts
-    character(len=1000) :: tmp_str
-    real(kind=dp), allocatable :: aero_num_conc(:)
-    integer(kind=dp), allocatable :: aero_frozen(:)
-    real(kind=dp) :: time, temperature
-    real(kind=dp) :: frozen_fraction
-    real(kind=dp) :: frozen_fraction_total, frozen_fraction_mean
-    real(kind=dp) :: frozen_fraction_max, frozen_fraction_min
-    integer, dimension(nf90_max_var_dims) :: dimids
-    integer :: i_time, i_ens, status, ios
-    character(len=1000) :: caseName
+!> \file
+!> The freezing_process program.
 
-    call get_command_argument(1, caseName)
-    write(out_filename, '(a,a,a)') trim(out_prefix), trim(caseName), ".txt"
-    ! open output
-    open(unit=out_unit, file=out_filename, iostat=ios)
-    if (ios /= 0) then
-        write(0,'(a,a,a,i4)') 'ERROR: unable to open file ', &
-          trim(out_filename), ' for writing: ', ios
-        stop 1
-    end if
+!> Read NetCDF output files and write out the time evolution of
+!> temperature and frozen fraction in text format.
+program freezing_process
 
-    i_time = 0
-    do while(.true.)
-        i_time = i_time + 1
-        !do i_ens = 1, 10
-        i_ens = 0
-        frozen_fraction_total = 0d0
-        frozen_fraction_max = -9999d0
-        frozen_fraction_min = 9999d0
-        do while(.true.)
-            i_ens = i_ens + 1
-            write(in_filename,'(a,a,a,a,a,i4.4, a, i8.8,a)') &
-                 trim(in_dir), "/", trim(caseName), "/", trim(in_prefix), i_ens, "_", i_time, ".nc"
-            !print*, in_filename
-            status = nf90_open(trim(in_filename), NF90_NOWRITE, ncid)
-            if (status /= NF90_NOERR) then
-                exit
-            end if
-            !print*, trim(in_filename)
+  use pmc_aero_state
+  use pmc_aero_particle
+  use pmc_output
+  use pmc_mpi
+  use getopt_m
 
-            call nc_check(nf90_inq_varid(ncid, "time", varid_time))
-            !call nc_check(nf90_inq_varid(ncid, "time", varid_time))
-            call nc_check(nf90_get_var(ncid, varid_time, time))
-            call nc_check(nf90_inq_varid(ncid, "temperature", varid_temperature))
-            !call nc_check(nf90_inq_varid(ncid, "temperature", varid_temperature))
-            call nc_check(nf90_get_var(ncid, varid_temperature, temperature))
+  character(len=PMC_MAX_FILENAME_LEN) :: in_prefix, out_filename
+  character(len=PMC_MAX_FILENAME_LEN), allocatable :: filename_list(:)
+  character(len=1000) :: tmp_str
+  type(aero_data_t) :: aero_data
+  type(aero_state_t) :: aero_state
+  type(env_state_t) :: env_state
+  integer :: index, i_repeat, i_spec, out_unit
+  integer :: i_file, n_file
+  real(kind=dp) :: time, del_t
+  character(len=PMC_UUID_LEN) :: uuid, run_uuid
+  real(kind=dp), allocatable :: times(:), temperatures(:), frozen_fractions(:)
+  type(option_s) :: opts(2)
 
-            call nc_check(nf90_inq_dimid(ncid, "aero_particle", &
-                        dimid_aero_particle))
-            call nc_check(nf90_Inquire_Dimension(ncid, dimid_aero_particle, &
-                        tmp_str, n_aero_particle))
-            call nc_check(nf90_inq_varid(ncid, "aero_num_conc", &
-                        varid_aero_num_conc))
-            call nc_check(nf90_Inquire_Variable(ncid, varid_aero_num_conc, &
-                        tmp_str, xtype, ndims, dimids, nAtts))
-            if ((ndims /= 1) &
-                        .or. (dimids(1) /= dimid_aero_particle)) then
-                write(*,*) "ERROR: unexpected aero_num_conc dimids"
-                stop 1
-            end if
-            allocate(aero_num_conc(n_aero_particle))
-            call nc_check(nf90_get_var(ncid, varid_aero_num_conc, &
-                        aero_num_conc))
+  call pmc_mpi_init()
 
-            call nc_check(nf90_inq_varid(ncid, "aero_frozen", &
-                        varid_aero_frozen))
-            call nc_check(nf90_Inquire_Variable(ncid, varid_aero_frozen, &
-                        tmp_str, xtype, ndims, dimids, nAtts))
-            if ((ndims /= 1) &
-                        .or. (dimids(1) /= dimid_aero_particle)) then
-                write(*,*) "ERROR: unexpected aero_frozen dimids"
-                stop 1
-            end if
-            allocate(aero_frozen(n_aero_particle))
-            call nc_check(nf90_get_var(ncid, varid_aero_frozen, &
-                        aero_frozen))
+  opts(1) = option_s("help", .false., 'h')
+  opts(2) = option_s("output", .true., 'o')
 
-            call nc_check(nf90_close(ncid))
-            frozen_fraction = sum(aero_frozen * aero_num_conc) / & 
-                    sum(aero_num_conc)
-            frozen_fraction_total = frozen_fraction_total + &
-                    frozen_fraction
-            if (frozen_fraction .gt. frozen_fraction_max) then
-                frozen_fraction_max = frozen_fraction
-            end if
-            if (frozen_fraction .lt. frozen_fraction_min) then
-                frozen_fraction_min = frozen_fraction
-            end if
-            
-            !print*, time, frozen_fraction, frozen_fraction_max, &
-            !    frozen_fraction_min
-            deallocate(aero_num_conc)
-            deallocate(aero_frozen)
-        end do
-        if (i_ens .eq. 1) then
-            exit
-        end if
-        frozen_fraction_mean = frozen_fraction_total / (i_ens - 1)
-        write(out_unit,'(f12.6,f12.6,e20.10,e20.10,e20.10)') time, temperature,&
-                frozen_fraction_mean, frozen_fraction_max, frozen_fraction_min
-            
-    end do
+  out_filename = ""
 
-    close(out_unit)
+  do
+     select case(getopt("ho:", opts))
+     case(char(0))
+        exit
+     case('h')
+        call print_help()
+        stop
+     case('o')
+        out_filename = optarg
+     case( '?' )
+        call print_help()
+        call die_msg(514364550, 'unknown option: ' // trim(optopt))
+     case default
+        call print_help()
+        call die_msg(603100341, 'unhandled option: ' // trim(optopt))
+     end select
+  end do
+
+  if (optind /= command_argument_count()) then
+     call print_help()
+     call die_msg(967032896, 'expected exactly one non-option prefix argument')
+  end if
+
+  call get_command_argument(optind, in_prefix)
+
+  if (out_filename == "") then
+     out_filename = trim(in_prefix) // "_aero_time.txt"
+  end if
+
+  allocate(filename_list(0))
+  call input_filename_list(in_prefix, filename_list)
+  n_file = size(filename_list)
+  call assert_msg(323514871, n_file > 0, &
+       "no NetCDF files found with prefix: " // trim(in_prefix))
+
+  call input_state(filename_list(1), index, time, del_t, i_repeat, uuid, &
+       aero_data=aero_data, aero_state=aero_state, env_state=env_state)
+  run_uuid = uuid
+
+  allocate(times(n_file))
+  allocate(temperatures(n_file))
+  allocate(frozen_fractions(n_file))
+
+  do i_file = 1,n_file
+     call input_state(filename_list(i_file), index, time, del_t, i_repeat, &
+          uuid, aero_data=aero_data, aero_state=aero_state, env_state=env_state)
+
+     call assert_msg(397906326, uuid == run_uuid, &
+          "UUID mismatch between " // trim(filename_list(1)) // " and " &
+          // trim(filename_list(i_file)))
+
+     times(i_file) = time
+     temperatures(i_file) = env_state%temp
+     frozen_fractions(i_file) = aero_state_frozen_fraction(aero_state, aero_data)
+     
+  end do
+
+  write(*,'(a,a)') "Output file: ", trim(out_filename)
+  write(*,'(a)') "  Each row of output is one time."
+  write(*,'(a)') "  The columns of output are:"
+  write(*,'(a)') "    column  1: time (s)"
+  write(*,'(a)') "    column  2: temperature (K)"
+  write(*,'(a)') "    column  3: frozen fraction (unitless)"
+
+  call open_file_write(out_filename, out_unit)
+  do i_file = 1,n_file
+     write(out_unit, '(e30.15e3)', advance='no') times(i_file)
+     write(out_unit, '(e30.15e3)', advance='no') temperatures(i_file)
+     write(out_unit, '(e30.15e3)', advance='no') frozen_fractions(i_file)
+     write(out_unit, '(a)') ''
+  end do
+  call close_file(out_unit)
+
+  deallocate(times)
+  deallocate(temperatures)
+  deallocate(frozen_fractions)
+  deallocate(filename_list)
+
+  call pmc_mpi_finalize()
+
 contains
-    !> Check return status of NetCDF function calls.
-    subroutine nc_check(status)
 
-        !> Status return value.
-        integer, intent(in) :: status
+  subroutine print_help()
 
-        if (status /= NF90_NOERR) then
-           write(0,*) nf90_strerror(status)
-           stop 1
-        end if
+    write(*,'(a)') 'Usage: freezing_process [options] <netcdf_prefix>'
+    write(*,'(a)') ''
+    write(*,'(a)') 'options are:'
+    write(*,'(a)') '  -h, --help        Print this help message.'
+    write(*,'(a)') '  -o, --out <file>  Output filename.'
+    write(*,'(a)') ''
+    write(*,'(a)') 'Examples:'
+    write(*,'(a)') '  freezing_process freezing_part_0001'
+    write(*,'(a)') ''
 
-    end subroutine nc_check
-end program extract_freezing
+  end subroutine print_help
 
-   
+end program freezing_process
+
 

@@ -293,9 +293,9 @@ target_link_libraries(test_bidisperse_extract ${NETCDF_LIBS})
 # test_freezing_extract
 
 add_executable(test_freezing_extract
-  test/freezing/test_freezing_extract.F90)
+  test/freezing/test_freezing_extract.F90 src/getopt.F90)
 
-target_link_libraries(test_freezing_extract ${NETCDF_LIBS})
+target_link_libraries(test_freezing_extract ${NETCDF_LIBS} partmclib)
 
 ######################################################################
 # test_freezing_theoretical
@@ -428,7 +428,7 @@ target_link_libraries(urban_plume_process partmclib)
 # scenarios/7_freezing/freezing_process
 
 add_executable(freezing_process
-  scenarios/7_freezing/freezing_process.F90)
+  scenarios/7_freezing/freezing_process.F90 src/getopt.F90)
 target_link_libraries(freezing_process partmclib)
 
 ######################################################################

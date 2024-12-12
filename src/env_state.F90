@@ -657,7 +657,7 @@ contains
     real(kind=dp) :: tmp
 
 
-    call warn_assert_msg(500123156, (T > 123) .and. (T < 332), &
+    call warn_assert_msg(571128376, (T > 123) .and. (T < 332), &
             "The environment temperature is less then 123K or larger than "&
             "332K, the subroutine env_state_saturated_vapor_pressure_water"&
             " isn't applicable")
@@ -684,7 +684,7 @@ contains
 
     real(kind=dp) :: tmp
 
-    call warn_assert_msg(500123157, T > 110, &
+    call warn_assert_msg(482130832, T > 110, &
          "The environment temperature is less then 110K, "&
          "the subroutine env_state_saturated_vapor_pressure_water"&
          " isn't applicable")

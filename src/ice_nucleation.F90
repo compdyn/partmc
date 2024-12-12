@@ -253,7 +253,7 @@ contains
              if (immersion_freezing_scheme_type .eq. &
                   IMMERSION_FREEZING_SCHEME_ABIFM) then
                 call ABIFM_particle(i_part, p_freeze, aero_state, aero_data, a_w_ice, del_t)
-                call warn_assert_msg(123456789, p_freeze .le. p_freeze_max,&
+                call warn_assert_msg(301184565, p_freeze .le. p_freeze_max,&
                      "p_freeze > p_freeze_max.")
                 rand = pmc_random()
                 if (rand < p_freeze / p_freeze_max) then

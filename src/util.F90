@@ -422,8 +422,13 @@ contains
     real(kind=dp), parameter :: tolerance = 1d-6
 
     real(kind=dp) closest_interval_time
+    logical :: increment
 
-    if (.not. present(do_increment)) do_increment = .false.
+    if (present(do_increment)) then
+       increment = do_increment
+    else
+       increment = .false.
+    end if
 
     ! if we are at time 0 then do the event unconditionally
     if (time .eq. 0d0) then
@@ -451,7 +456,7 @@ contains
        end if
     end if
 
-    if (do_increment) then
+    if (increment) then
        if (do_event) then
           last_time = time
        end if

@@ -404,7 +404,7 @@ contains
   !! the next call is guaranteed to do the event. Otherwise the
   !! timestep is used to guess whether to do the event.
   subroutine check_event(time, timestep, interval, last_time, &
-       do_event)
+       do_event, do_increment)
 
     !> Current time.
     real(kind=dp), intent(in) :: time
@@ -416,11 +416,14 @@ contains
     real(kind=dp), intent(inout) :: last_time
     !> Whether the event should be done.
     logical, intent(out) :: do_event
-
+    !> Whether to increment the event or just check it.
+    logical, intent(in), optional :: do_increment
     !> Fuzz for event occurance.
     real(kind=dp), parameter :: tolerance = 1d-6
 
     real(kind=dp) closest_interval_time
+
+    if (.not. present(do_increment)) do_increment = .false.
 
     ! if we are at time 0 then do the event unconditionally
     if (time .eq. 0d0) then
@@ -448,8 +451,10 @@ contains
        end if
     end if
 
-    if (do_event) then
-       last_time = time
+    if (do_increment) then
+       if (do_event) then
+          last_time = time
+       end if
     end if
 
   end subroutine check_event

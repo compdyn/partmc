@@ -101,6 +101,11 @@ module pmc_output
   !> Internal-use variable only.
   integer, parameter :: TAG_OUTPUT_STATE_SINGLE  = 4342
 
+#ifdef PMC_ML_OUTPUT
+    integer, save :: ncid_ml
+    logical, save :: do_ml_output
+#endif
+
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -961,6 +966,79 @@ contains
 #endif
 
   end subroutine input_column_to_file
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Output desired env_state data to a NetCDF group.
+  subroutine output_ml_env_state(env_state, ncid_group)
+
+    !> Environmental state.
+    type(env_state_t), intent(in) :: env_state
+    !> NetCDF group ID.
+    integer, intent(in) :: ncid_group
+
+    call env_state_output_netcdf(env_state, ncid_group)
+
+  end subroutine output_ml_env_state
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Output desired gas_state outputs to a NetCDF group.
+  subroutine output_ml_gas_state(gas_state, gas_data, ncid_group)
+
+    !> Gas state.
+    type(gas_state_t), intent(in) :: gas_state
+    !> Gas data.
+    type(gas_data_t), intent(in) :: gas_data
+    !> NetCDF group ID.
+    integer, intent(in) :: ncid_group
+
+    call gas_state_output_netcdf(gas_state, ncid_group, gas_data)
+
+  end subroutine output_ml_gas_state
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Output desired aero_state outputs to a NetCDF group.
+  subroutine output_ml_aero_state(aero_state, aero_data, ncid_group)
+
+    !> Aerosol state.
+    type(aero_state_t), intent(in) :: aero_state
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> NetCDF group ID.
+    integer, intent(in) :: ncid_group
+
+    real(kind=dp), allocatable :: aero_num_conc(:)
+    real(kind=dp), allocatable :: aero_particle_mass(:,:)
+    integer :: dimid_aero_species, dimid_aero_particle
+    integer :: i_part
+
+    ! only need masses and number concentration
+    call aero_data_netcdf_dim_aero_species(aero_data, ncid_group, &
+         dimid_aero_species)
+    call aero_state_netcdf_dim_aero_particle(aero_state, ncid_group, &
+         dimid_aero_particle)
+
+    aero_num_conc = aero_state_num_concs(aero_state, aero_data)
+    allocate(aero_particle_mass(aero_state_n_part(aero_state), &
+         aero_data_n_spec(aero_data)))
+    aero_particle_mass = 0.0d0
+    do i_part = 1,aero_state_n_part(aero_state)
+       aero_particle_mass(i_part, :) &
+            = aero_state%apa%particle(i_part)%vol * aero_data%density
+    end do
+
+    call pmc_nc_write_real_2d(ncid_group, aero_particle_mass, &
+         "aero_particle_mass", (/ dimid_aero_particle, &
+         dimid_aero_species /), unit="kg", &
+         long_name="constituent masses of each aerosol particle")
+
+    call pmc_nc_write_real_1d(ncid_group, aero_num_conc, &
+         "aero_num_conc", (/ dimid_aero_particle /), unit="m^{-3}", &
+         long_name="number concentration for each particle")
+
+  end subroutine output_ml_aero_state
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

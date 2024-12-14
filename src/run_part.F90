@@ -816,7 +816,8 @@ contains
     type(camp_state_t), pointer :: camp_pre_aero_state, camp_post_aero_state
     type(camp_env_state_t) :: camp_env_state
 #endif
- 
+    character(len=PMC_MAX_FILENAME_LEN) :: filename, group_name
+
     time = i_time * run_part_opt%del_t
  
 #ifdef PMC_USE_CAMP
@@ -844,6 +845,22 @@ contains
        progress_n_nuc = progress_n_nuc + n_nuc
     end if
 
+#ifdef PMC_ML_OUTPUT
+    call check_event(time, run_part_opt%del_t, run_part_opt%t_output, &
+            last_output_time, do_ml_output, .false.)
+    if (do_ml_output) then
+       call make_filename(filename, 'ml', ".nc", i_output, 1, 0, 0)
+       call pmc_nc_open_write(filename, ncid_ml)
+       call pmc_nc_check(nf90_redef(ncid_ml))
+       write(group_name,'(a)') '1_before_coagulation'
+       call pmc_nc_check(nf90_def_grp(ncid_ml, group_name, ncid_group_ml))
+       call pmc_nc_check(nf90_enddef(ncid_ml))
+       call output_ml_env_state(env_state, ncid_group_ml)
+       call output_ml_gas_state(gas_state, gas_data, ncid_group_ml)
+       call output_ml_aero_state(aero_state, aero_data, ncid_group_ml)
+    end if
+#endif
+
     if (run_part_opt%do_coagulation) then
        if (run_part_opt%parallel_coag_type &
             == PARALLEL_COAG_TYPE_LOCAL) then
@@ -860,6 +877,17 @@ contains
        progress_n_samp = progress_n_samp + n_samp
        progress_n_coag = progress_n_coag + n_coag
     end if
+
+
+#ifdef PMC_ML_OUTPUT
+    if (do_ml_output) then
+       call pmc_nc_check(nf90_redef(ncid_ml))
+       write(group_name,'(a)') '2_after_coagulation'
+       call pmc_nc_check(nf90_def_grp(ncid_ml, group_name, ncid_group_ml))
+       call pmc_nc_check(nf90_enddef(ncid_ml))
+       call output_ml_aero_state(aero_state, aero_data, ncid_group_ml)
+    end if
+#endif
 
 #ifdef PMC_USE_SUNDIALS
     if (run_part_opt%do_condensation) then
@@ -972,6 +1000,12 @@ contains
           progress_n_nuc = 0
        end if
     end if
+
+#ifdef PMC_ML_OUTPUT
+    if (do_ml_output) then
+  call pmc_nc_check(nf90_close(ncid_ml))
+  end if
+#endif
 
   end subroutine run_part_timestep
 

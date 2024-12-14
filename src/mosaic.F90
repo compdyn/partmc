@@ -310,6 +310,9 @@ contains
     integer :: i_part, i_spec, i_spec_mosaic
     real(kind=dp), allocatable :: reweight_num_conc(:)
 
+    character(len=PMC_MAX_FILENAME_LEN) :: group_name
+    integer :: ncid_group_ml
+
 #ifdef PMC_USE_WRF
     if (any(particle_error) .eqv. .true.) then
        call output_state('before_error', OUTPUT_TYPE_DIST, aero_data, &
@@ -392,6 +395,17 @@ contains
     end if
 #endif
 
+#ifdef PMC_ML_OUTPUT
+    if (do_ml_output) then
+       call pmc_nc_check(nf90_redef(ncid_ml))
+       write(group_name,'(a)') '4_after_aero_chemistry'
+       call pmc_nc_check(nf90_def_grp(ncid_ml, group_name, ncid_group_ml))
+       call pmc_nc_check(nf90_enddef(ncid_ml))
+       call output_ml_gas_state(gas_state, gas_data, ncid_group_ml)
+       call output_ml_aero_state(aero_state, aero_data, ncid_group_ml)
+    end if
+#endif
+
     ! adjust particles to account for weight changes
     call aero_state_reweight(aero_state, aero_data, reweight_num_conc)
 
@@ -409,10 +423,11 @@ contains
   !! really matters, however. Because of this mosaic_aero_optical() is
   !! currently disabled.
   subroutine mosaic_timestep(env_state, aero_data, aero_state, gas_data, &
-       gas_state, do_optical, uuid)
+       gas_state, do_optical, uuid, do_process_output)
 
 #ifdef PMC_USE_MOSAIC
-    use module_data_mosaic_main, only: msolar
+    use module_data_mosaic_main, only: msolar, dt_sec, &
+        cair_mlc, cnn, pr_atm, te, avogad
 #endif
 
     !> Environment state.
@@ -429,6 +444,10 @@ contains
     logical, intent(in) :: do_optical
     !> UUID for this simulation.
     character(len=PMC_UUID_LEN), intent(in) :: uuid
+    !> Whether to output intermidiate data for learning.
+    logical, intent(in), optional :: do_process_output
+
+    character(len=PMC_MAX_FILENAME_LEN) :: group_name
 
 #ifdef PMC_USE_MOSAIC
     ! MOSAIC function interfaces
@@ -437,6 +456,14 @@ contains
        end subroutine SolarZenithAngle
        subroutine IntegrateChemistry()
        end subroutine IntegrateChemistry
+       subroutine GasChemistry(t_in, t_out)
+         use module_data_mosaic_kind, only:  r8
+         real(kind=r8) :: t_in, t_out
+       end subroutine
+       subroutine AerChemistry(t_in, t_out)
+         use module_data_mosaic_kind, only:  r8
+         real(kind=r8) :: t_in, t_out
+       end subroutine
 #ifdef PMC_USE_MOSAIC_MULTI_OPT
        subroutine aerosol_optical(i_wavelength)
          integer, optional :: i_wavelength
@@ -447,6 +474,10 @@ contains
 #endif
     end interface
 
+#ifdef PMC_ML_OUTPUT
+    integer :: i_spec, i_spec_mosaic, ncid_group_ml
+#endif
+
     ! map PartMC -> MOSAIC
     call mosaic_from_partmc(env_state, aero_data, aero_state, gas_data, &
          gas_state)
@@ -455,7 +486,31 @@ contains
       call SolarZenithAngle
     end if
 
-    call IntegrateChemistry
+!    call IntegrateChemistry
+
+    call GasChemistry(0d0, dt_sec)
+
+#ifdef PMC_ML_OUTPUT
+    if (do_ml_output) then
+       ! Map back to gas_state and utput changed gas_state
+       cair_mlc = avogad*pr_atm/(82.056d0*te)   ! air conc [molec/cc]
+       ! gas chemistry: map MOSAIC -> PartMC
+       do i_spec = 1,gas_data_n_spec(gas_data)
+          i_spec_mosaic = gas_data%mosaic_index(i_spec)
+          if (i_spec_mosaic > 0) then
+             ! convert molec/cc to ppbv
+             gas_state%mix_rat(i_spec) = cnn(i_spec_mosaic) / cair_mlc * 1d9
+          end if
+       end do
+       call pmc_nc_check(nf90_redef(ncid_ml))
+       write(group_name,'(a)') '3_after_gas_chemistry'
+       call pmc_nc_check(nf90_def_grp(ncid_ml, group_name, ncid_group_ml))
+       call pmc_nc_check(nf90_enddef(ncid_ml))
+       call output_ml_gas_state(gas_state, gas_data, ncid_group_ml)
+    end if
+#endif
+
+    call AerChemistry(0d0, dt_sec)
 
     ! map MOSAIC -> PartMC
     if (do_optical) then

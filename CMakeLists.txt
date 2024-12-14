@@ -31,6 +31,7 @@ option(ENABLE_TCHEM "Enable TChem chemistry support" OFF)
 option(ENABLE_MPI "Enable MPI parallel support" OFF)
 option(ENABLE_SUNDIALS "Enable SUNDIALS solver for condensation support" OFF)
 option(ENABLE_C_SORT "Enable C sorting routines" OFF)
+option(ENABLE_ML_PROCESS_OUTPUT "Enable output of data after each physical process" OFF)
 
 ######################################################################
 # CPack
@@ -177,6 +178,13 @@ if(ENABLE_SUNDIALS)
   set(SUNDIALS_SRC src/condense_solver.c)
   include_directories(${SUNDIALS_INCLUDE_DIR})
   add_definitions(-DPMC_USE_SUNDIALS)
+endif()
+
+######################################################################
+# Output intermediate data during timestep for ML
+
+if(ENABLE_ML_PROCESS_OUTPUT)
+  add_definitions(-DPMC_ML_OUTPUT)
 endif()
 
 ######################################################################

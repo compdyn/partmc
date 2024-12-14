@@ -427,7 +427,7 @@ contains
     if (present(do_increment)) then
        increment = do_increment
     else
-       increment = .false.
+       increment = .true.
     end if
 
     ! if we are at time 0 then do the event unconditionally

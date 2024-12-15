@@ -417,6 +417,8 @@ contains
     !!   nucleation. If \c do_nucleation is \c yes, then the following
     !!   parameters must also be provided:
     !!   - \subpage input_format_nucleate
+    !! - \b do_freezing (logical): whether to perform particle
+    !!   freezing.
     !! - \b rand_init (integer): if greater than zero then use as
     !!   the seed for the random number generator, or if zero then
     !!   generate a random seed for the random number generator ---

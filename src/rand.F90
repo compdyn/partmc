@@ -696,5 +696,38 @@ contains
   end subroutine uuid4_str
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    ! Generate a random number in geometric distribution with the probability P
+    ! Reference: https://www.ucl.ac.uk/~ucakarc/work/software/randgen.f
+    integer function pmc_random_geometric(P)
+      
+        implicit none
+      real(kind=dp) :: P, U, TINY
+
+      TINY = 1.0D-12
+      pmc_random_geometric = 0
+         
+      call assert_msg(927129543, (P.GE.0.0D0).AND.(P.LE.1.0D0),&
+              "Range error")
+
+      IF (P.GT.0.9D0) THEN
+          pmc_random_geometric = pmc_random_geometric + 1 
+          U = pmc_random()
+          do while( U.GT.P )
+              pmc_random_geometric = pmc_random_geometric + 1 
+              U = pmc_random()
+          enddo
+      ELSE
+          U = pmc_random()
+
+          IF (P.GT.TINY) THEN
+              pmc_random_geometric = 1 + INT( DLOG(U)/DLOG(1.0D0-P) )
+          ELSE
+              pmc_random_geometric = 1 + INT(-DLOG(U)/P)
+          ENDIF
+      ENDIF
+
+  END FUNCTION pmc_random_geometric
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 end module pmc_rand

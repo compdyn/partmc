@@ -83,6 +83,7 @@ program extract_aero_particles
           trim(aero_data%name(i_spec)), ' mass (kg) - density = ', &
           aero_data%density(i_spec), ' (kg/m^3)'
   end do
+  write(*,'(a,i2,a)') '    column ', aero_data_n_spec(aero_data) + 4 + 1,': frozen flag'
 
   call open_file_write(out_filename, out_unit)
   do i_part = 1,aero_state_n_part(aero_state)
@@ -97,6 +98,11 @@ program extract_aero_particles
              aero_particle_species_mass(aero_state%apa%particle(i_part), &
              i_spec, aero_data)
      end do
+     if (aero_state%apa%particle(i_part)%frozen) then
+         write(out_unit, '(a,i1)', advance='no') '   ', 1
+     else
+         write(out_unit, '(a,i1)', advance='no') '   ', 0
+     end if
      write(out_unit, *) ''
   end do
   call close_file(out_unit)

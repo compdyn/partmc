@@ -2837,9 +2837,9 @@ contains
                aero_state%apa%particle(i_part), aero_data)
           aero_id(i_part) = aero_state%apa%particle(i_part)%id
           if (aero_state%apa%particle(i_part)%frozen) then
-               aero_frozen(i_part) = 1
+             aero_frozen(i_part) = 1
           else
-               aero_frozen(i_part) = 0
+             aero_frozen(i_part) = 0
           end if
           aero_imf_temperature(i_part) &
                = aero_state%apa%particle(i_part)%imf_temperature

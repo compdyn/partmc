@@ -678,7 +678,7 @@ contains
   real(kind=dp) function env_state_saturated_vapor_pressure_ice(T)
     
 
-    !> temperature (k)
+    !> Temperature (K)
     real(kind=dp), intent(in) :: T
 
     real(kind=dp) :: tmp

@@ -1357,7 +1357,6 @@ contains
     type(aero_data_t), intent(in) :: aero_data
 
     real(kind=dp) :: particle_num_concs(aero_state_n_part(aero_state))
-    !> Freezing state of each particle (1: frozen, 2: unfrozen).
     integer :: particle_frozen(aero_state_n_part(aero_state))
 
     integer :: i_part

@@ -374,7 +374,7 @@ contains
 
     if (env_state_final%temp > const%water_freeze_temp) then
        do i_part = 1, aero_state_n_part(aero_state)
-         aero_state%apa%particle(i_part)%frozen = .FALSE.
+         aero_state%apa%particle(i_part)%frozen = .false.
          aero_state%apa%particle(i_part)%den_ice = -9999d0
          aero_state%apa%particle(i_part)%ice_shape_phi = -9999d0
        end do

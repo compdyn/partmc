@@ -1377,7 +1377,6 @@ contains
 
   end function aero_state_frozen_fraction
 
-
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Returns the number concentration of a given weight group and class.

@@ -1080,7 +1080,6 @@ contains
        pmc_mpi_pack_size_aero_particle = pmc_mpi_pack_size_aero_particle &
             + pmc_mpi_pack_size_aero_component(val%component(i))
     end do
-!>>>>>>> 2341ef410d6f49f3169b8461b5fa8c89dbd3c7a2
 
   end function pmc_mpi_pack_size_aero_particle
 

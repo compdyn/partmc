@@ -696,7 +696,8 @@ contains
   end subroutine uuid4_str
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    ! Generate a random number in geometric distribution with the probability P
+
+    !> Generate a random number in geometric distribution with the probability P
     ! Reference: https://www.ucl.ac.uk/~ucakarc/work/software/randgen.f
     integer function pmc_random_geometric(P)
       

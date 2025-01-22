@@ -325,12 +325,8 @@ contains
     a_w_ice = pis / pvs
 
     do i_part = 1, aero_state_n_part(aero_state)
-       if (aero_state%apa%particle(i_part)%frozen) then
-          cycle
-       end if
-       if (H2O_frac(i_part) < 1e-2) then
-          cycle
-       end if
+       if (aero_state%apa%particle(i_part)%frozen) cycle
+       if (H2O_frac(i_part) < 1e-2) cycle
        rand = pmc_random()
        
        if (immersion_freezing_scheme_type .eq. &

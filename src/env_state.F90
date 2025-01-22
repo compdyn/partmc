@@ -701,7 +701,7 @@ contains
   !> compute saturated vapor pressure (units : Pa) with respective to water
   real(kind=dp) function env_state_saturated_vapor_pressure_water_2(T)
 
-    !> temperature (k)
+    !> Temperature (K)
     real(kind=dp), intent(in) :: T
 
     real(kind=dp) :: tmp

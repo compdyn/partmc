@@ -3242,10 +3242,10 @@ contains
        end if
        aero_particle%water_hyst_leg = aero_water_hyst_leg(i_part)
        aero_particle%id = aero_id(i_part)
-       if (aero_frozen(i_part) .eq. 1) then
-           aero_particle%frozen = .True.
+       if (aero_frozen(i_part) == 1) then
+          aero_particle%frozen = .true.
        else
-           aero_particle%frozen = .False.
+          aero_particle%frozen = .false.
        end if
        aero_particle%imf_temperature = aero_imf_temperature(i_part)
        aero_particle%den_ice = aero_ice_density(i_part)

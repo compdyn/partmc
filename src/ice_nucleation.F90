@@ -281,7 +281,7 @@ contains
 
   !> Simulation for time-dependent scheme (e.g., ABIFM, constant rate),
   !> deciding whether to freeze for each particle. Run in each time step.   
-  !> This subroutine applys the naive algorithm for reference.
+  !> This subroutine applies the naive algorithm that checks each particle.
   subroutine immersion_freezing_time_dependent_naive(aero_state, aero_data, &
     env_state_initial, env_state_final, del_t, &
     immersion_freezing_scheme_type, &

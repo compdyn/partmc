@@ -143,7 +143,7 @@ contains
     allocate(aero_particle%component(0))
     aero_particle%least_create_time = 0d0
     aero_particle%greatest_create_time = 0d0
-    aero_particle%frozen = .FALSE.
+    aero_particle%frozen = .false.
     aero_particle%imf_temperature = 0d0
     aero_particle%den_ice = -9999d0
     aero_particle%ice_shape_phi = -9999d0

@@ -650,7 +650,7 @@ contains
   !> Formula (10) from [Murphy & Koop, 2004]  (https://doi.org/10.1256/qj.04.94)
   real(kind=dp) function env_state_saturated_vapor_pressure_water(T)
 
-    !> temperature (k)
+    !> Temperature (K)
     real(kind=dp), intent(in) :: T
 
     real(kind=dp) :: tmp

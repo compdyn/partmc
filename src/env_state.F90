@@ -707,7 +707,6 @@ contains
 
     real(kind=dp) :: tmp
 
-    
     env_state_saturated_vapor_pressure_water_2 = const%water_eq_vap_press &
          * 10d0**(7.45d0 * (T - const%water_freeze_temp) &
          / (T - 38d0))

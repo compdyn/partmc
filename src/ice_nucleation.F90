@@ -199,9 +199,6 @@ contains
     real(kind=dp) :: j_het_max
     integer :: rand_geometric
 
-    integer :: loop_count = 0
-    
-
     allocate(total_masses(aero_state_n_part(aero_state)))
     allocate(H2O_masses(aero_state_n_part(aero_state)))
     allocate(H2O_frac(aero_state_n_part(aero_state)))

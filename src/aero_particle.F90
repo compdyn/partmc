@@ -145,8 +145,8 @@ contains
     aero_particle%greatest_create_time = 0d0
     aero_particle%frozen = .false.
     aero_particle%imf_temperature = 0d0
-    aero_particle%den_ice = -9999d0
-    aero_particle%ice_shape_phi = -9999d0
+    aero_particle%den_ice = const%nan
+    aero_particle%ice_shape_phi = const%nan
     aero_particle%n_primary_parts = 0
 
   end subroutine aero_particle_zero
@@ -921,10 +921,11 @@ contains
     type(aero_particle_t), intent(in) :: aero_particle_1
     !> Second particle.
     type(aero_particle_t), intent(in) :: aero_particle_2
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
     !> Result particle.
     type(aero_particle_t), intent(inout) :: aero_particle_new
 
-    type(aero_data_t), intent(in) :: aero_data
 
     real(kind=dp) :: ice_vol_1, ice_vol_2
     integer :: n_comp_1, n_comp_2, n_comp_1_new, n_comp_2_new, i
@@ -1003,24 +1004,24 @@ contains
             aero_particle_2%imf_temperature)
 
     if (aero_particle_new%frozen) then
-        ice_vol_1 = aero_particle_1%vol(aero_data%i_water)
-        ice_vol_2 = aero_particle_2%vol(aero_data%i_water)
+       ice_vol_1 = aero_particle_1%vol(aero_data%i_water)
+       ice_vol_2 = aero_particle_2%vol(aero_data%i_water)
 
-        if (aero_particle_1%frozen .and. aero_particle_2%frozen) then
-            ice_vol_1 = aero_particle_1%vol(aero_data%i_water) * &
-                    const%water_density / aero_particle_1%den_ice
-            ice_vol_2 = aero_particle_2%vol(aero_data%i_water) * &
-                    const%water_density / aero_particle_2%den_ice
-            aero_particle_new%den_ice = (aero_particle_1%den_ice * ice_vol_1 + &
-                    aero_particle_2%den_ice * ice_vol_2) / (ice_vol_1 + ice_vol_2)
-        else if(aero_particle_1%frozen) then
-            aero_particle_new%den_ice = aero_particle_1%den_ice
-        else
-            aero_particle_new%den_ice = aero_particle_2%den_ice
-        end if
-        aero_particle_new%ice_shape_phi = 1d0
+       if (aero_particle_1%frozen .and. aero_particle_2%frozen) then
+          ice_vol_1 = aero_particle_1%vol(aero_data%i_water) * &
+               const%water_density / aero_particle_1%den_ice
+          ice_vol_2 = aero_particle_2%vol(aero_data%i_water) * &
+               const%water_density / aero_particle_2%den_ice
+          aero_particle_new%den_ice = (aero_particle_1%den_ice * ice_vol_1 + &
+               aero_particle_2%den_ice * ice_vol_2) / (ice_vol_1 + ice_vol_2)
+       else if(aero_particle_1%frozen) then
+          aero_particle_new%den_ice = aero_particle_1%den_ice
+       else
+          aero_particle_new%den_ice = aero_particle_2%den_ice
+       end if
+       aero_particle_new%ice_shape_phi = 1d0
     else
-        aero_particle_new%den_ice = -9999d0
+       aero_particle_new%den_ice = const%nan
     end if
 
 

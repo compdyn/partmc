@@ -3184,13 +3184,13 @@ contains
     call pmc_nc_read_integer64_1d(ncid, aero_id, &
          "aero_id")
     call pmc_nc_read_integer_1d(ncid, aero_frozen, &
-            "aero_frozen")
+         "aero_frozen")
     call pmc_nc_read_real_1d(ncid, aero_imf_temperature, &
-            "aero_imf_temperature")
+         "aero_imf_temperature")
     call pmc_nc_read_real_1d(ncid, aero_ice_density, &
-            "aero_ice_density", must_be_present=.false.)
+         "aero_ice_density", must_be_present=.true.)
     call pmc_nc_read_real_1d(ncid, aero_ice_shape_phi, &
-            "aero_ice_shape_phi", must_be_present=.false.)
+         "aero_ice_shape_phi", must_be_present=.true.)
     call pmc_nc_read_real_1d(ncid, aero_least_create_time, &
          "aero_least_create_time")
     call pmc_nc_read_real_1d(ncid, aero_greatest_create_time, &

@@ -241,9 +241,9 @@ contains
     end if
     ! initialize the immersion freezing temperature for Singular scheme
     if (run_part_opt%do_immersion_freezing .and. &
-            (run_part_opt%immersion_freezing_scheme_type .eq. &
-                IMMERSION_FREEZING_SCHEME_SINGULAR)) then
-        call singular_initialize(aero_state, aero_data)
+         (run_part_opt%immersion_freezing_scheme_type .eq. &
+         IMMERSION_FREEZING_SCHEME_SINGULAR)) then
+       call ice_nucleation_singular_initialize(aero_state, aero_data)
     end if
 
     i_cur = 1
@@ -698,30 +698,28 @@ contains
     call spec_file_read_logical(file, 'do_immersion_freezing', &
            run_part_opt%do_immersion_freezing)
 
-   if (run_part_opt%do_immersion_freezing) then
+    if (run_part_opt%do_immersion_freezing) then
    
        call spec_file_read_immersion_freezing_scheme_type(file, &
-               run_part_opt%immersion_freezing_scheme_type)
+            run_part_opt%immersion_freezing_scheme_type)
 
-        if (run_part_opt%immersion_freezing_scheme_type .eq. &
-                IMMERSION_FREEZING_SCHEME_CONST) then
-            call spec_file_read_real(file, 'freezing_rate', &
-                   run_part_opt%freezing_rate)
+       if (run_part_opt%immersion_freezing_scheme_type .eq. &
+            IMMERSION_FREEZING_SCHEME_CONST) then
+          call spec_file_read_real(file, 'freezing_rate', &
+               run_part_opt%freezing_rate)
 
-        else if (run_part_opt%immersion_freezing_scheme_type .eq.&
-                IMMERSION_FREEZING_SCHEME_ABIFM) then
-            continue
+       else if (run_part_opt%immersion_freezing_scheme_type .eq.&
+            IMMERSION_FREEZING_SCHEME_ABIFM) then
+          continue
 
-        else if (run_part_opt%immersion_freezing_scheme_type .eq.&
-                IMMERSION_FREEZING_SCHEME_SINGULAR) then
-            continue
-        else
-            call assert_msg(121370299, .false., &
-                "Error type of immersion freezing scheme")
-            
-
-        endif
-   endif
+       else if (run_part_opt%immersion_freezing_scheme_type .eq.&
+            IMMERSION_FREEZING_SCHEME_SINGULAR) then
+          continue
+       else
+          call assert_msg(121370299, .false., &
+               "Error type of immersion freezing scheme")
+       endif
+    endif
 
     call spec_file_read_integer(file, 'rand_init', rand_init)
     call spec_file_read_logical(file, 'allow_doubling', &
@@ -893,10 +891,10 @@ contains
        progress_n_nuc = progress_n_nuc + n_nuc
     end if
     if (run_part_opt%do_immersion_freezing) then
-       call immersion_freezing(aero_state, aero_data, old_env_state, &
-            env_state, run_part_opt%del_t, run_part_opt%immersion_freezing_scheme_type, &
+       call ice_nucleation_immersion_freezing(aero_state, aero_data, env_state, &
+            run_part_opt%del_t, run_part_opt%immersion_freezing_scheme_type, &
             run_part_opt%freezing_rate)
-       call melting(aero_state, aero_data, old_env_state, env_state)
+       call ice_nucleation_melting(aero_state, aero_data, env_state)
     end if
     if (run_part_opt%do_coagulation) then
        if (run_part_opt%parallel_coag_type &

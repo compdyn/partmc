@@ -97,7 +97,7 @@ program extract_aero_particles
              aero_particle_species_mass(aero_state%apa%particle(i_part), &
              i_spec, aero_data)
      end do
-     write(out_unit, *) ''
+     write(out_unit, '(a)') ''
   end do
   call close_file(out_unit)
 

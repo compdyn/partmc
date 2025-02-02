@@ -17,21 +17,21 @@
 program theoretical_freezing
     use pmc_env_state
     implicit none
-    !> Temperature (unit: Kelvin)
+    ! Temperature (unit: Kelvin)
     real(kind=dp), parameter :: temperature = 253.15
-    !> Time duration (unit: s)
+    ! Time duration (unit: s)
     real(kind=dp), parameter :: total_time = 600
-    !> Output time interval (unit: s)
+    ! Output time interval (unit: s)
     real(kind=dp), parameter :: out_dt = 10
-    !> ABIFM parameters (m and c) for species 1.
+    ! ABIFM parameters (m and c) for species 1.
     real(kind=dp), parameter :: abifm_m_1 = 17.62106, abifm_c_1 = 1.42411
-    !> ABIFM parameters (m and c) for species 2.
+    ! ABIFM parameters (m and c) for species 2.
     real(kind=dp), parameter :: abifm_m_2 = 54.48075, abifm_c_2 = -10.66873
-    !> The ratio of total surface for species 1 and 2.
+    ! The ratio of total surface for species 1 and 2.
     real(kind=dp), parameter :: s_ratio_1 = 0.5, s_ratio_2 = 0.5
-    !> Dry diameter of INPs (unit: m)
+    ! Dry diameter of INPs (unit: m)
     real(kind=dp), parameter :: Dp_dry = 1d-6
-    !> The name of output file
+    ! The name of output file
     character(len=*), parameter :: out_filename = "out/freezing_theoretical_data.txt"
     integer, parameter :: out_unit = 65
     real(kind=dp) :: time, Jhet_1, Jhet_2, Jhet_mean, Phi_mean, frozen_fraction

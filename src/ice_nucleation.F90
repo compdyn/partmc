@@ -232,7 +232,7 @@ contains
              end if
              if (immersion_freezing_scheme_type .eq. &
                   IMMERSION_FREEZING_SCHEME_ABIFM) then
-                p_freeze = ABIFM_Pfrz_particle(i_part, aero_state, aero_data, a_w_ice, del_t)
+                p_freeze = ABIFM_Pfrz_particle(aero_state%apa%particle(i_part), aero_data, a_w_ice, del_t)
                 call warn_assert_msg(301184565, p_freeze .le. p_freeze_max,&
                      "p_freeze > p_freeze_max.")
                 rand = pmc_random()
@@ -310,7 +310,7 @@ contains
        
        if (immersion_freezing_scheme_type .eq. &
             IMMERSION_FREEZING_SCHEME_ABIFM) then
-          p_freeze = ABIFM_Pfrz_particle(i_part, aero_state, aero_data, a_w_ice, del_t)
+          p_freeze = ABIFM_Pfrz_particle(aero_state%apa%particle(i_part), aero_data, a_w_ice, del_t)
        else if (immersion_freezing_scheme_type .eq. &
             IMMERSION_FREEZING_SCHEME_CONST) then
           p_freeze = 1 - exp(freezing_rate * del_t)
@@ -361,16 +361,14 @@ contains
 
   !> Calculating the freezing probability for the particle (i_part) using ABIFM 
   !> method (Knopf et al.,2013)
-  real(kind=dp) function ABIFM_Pfrz_particle(i_part, aero_state, aero_data, &
+  real(kind=dp) function ABIFM_Pfrz_particle(aero_particle, aero_data, &
       a_w_ice, del_t)
     
     implicit none
-    !> The index of particle to be calculated.
-    integer, intent(in) :: i_part
+    !> Aerosol particle.
+    type(aero_particle_t), intent(in) :: aero_particle
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
-    !> Aerosol state.
-    type(aero_state_t), intent(in) :: aero_state
     !> The water activity w.r.t. ice.
     real(kind=dp), intent(in) :: a_w_ice
     !> Time interval.
@@ -384,7 +382,8 @@ contains
     real(kind=dp) :: j_het, j_het_x_aera
     integer :: i_spec
      
-    aerosol_diameter =  aero_particle_dry_diameter(aero_state%apa%particle(i_part), aero_data)
+    !aerosol_diameter =  aero_particle_dry_diameter(aero_state%apa%particle(i_part), aero_data)
+    aerosol_diameter =  aero_particle_dry_diameter(aero_particle, aero_data)
      
     immersed_surface_area = const%pi * aerosol_diameter **2
 
@@ -394,7 +393,8 @@ contains
        if (i_spec == aero_data%i_water) then
           cycle
        end if
-       total_vol = total_vol + aero_state%apa%particle(i_part)%vol(i_spec)
+       !total_vol = total_vol + aero_state%apa%particle(i_part)%vol(i_spec)
+       total_vol = total_vol + aero_particle%vol(i_spec)
     end do
 
     j_het_x_aera = 0d0
@@ -406,7 +406,7 @@ contains
 
 
        j_het = 10 ** (abifm_m  * (1 - a_w_ice) + abifm_c) * 10000
-       surface_ratio = aero_state%apa%particle(i_part)%vol(i_spec) / total_vol
+       surface_ratio = aero_particle%vol(i_spec) / total_vol
        j_het_x_aera = j_het_x_aera + j_het * immersed_surface_area * &
             surface_ratio
       

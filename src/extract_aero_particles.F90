@@ -103,7 +103,7 @@ program extract_aero_particles
      else
          write(out_unit, '(a,i1)', advance='no') '   ', 0
      end if
-     write(out_unit, *) ''
+     write(out_unit, '(a)') ''
   end do
   call close_file(out_unit)
 

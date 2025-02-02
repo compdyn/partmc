@@ -1357,21 +1357,18 @@ contains
     type(aero_data_t), intent(in) :: aero_data
 
     real(kind=dp) :: particle_num_concs(aero_state_n_part(aero_state))
-    integer :: particle_frozen(aero_state_n_part(aero_state))
+    logical :: particle_frozen(aero_state_n_part(aero_state))
 
     integer :: i_part
 
     particle_num_concs = aero_state_num_concs(aero_state, aero_data)
 
     do i_part = 1,aero_state_n_part(aero_state)
-       if (aero_state%apa%particle(i_part)%frozen) then
-          particle_frozen(i_part) = 1
-       else
-          particle_frozen(i_part) = 0
-       end if
+       particle_frozen(i_part) = aero_state%apa%particle(i_part)%frozen
     end do
-    aero_state_frozen_fraction = sum(particle_num_concs * particle_frozen) /&
-         sum(particle_num_concs)
+
+    aero_state_frozen_fraction = sum(pack(particle_num_concs, particle_frozen)) &
+         / sum(particle_num_concs)
 
   end function aero_state_frozen_fraction
 

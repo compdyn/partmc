@@ -181,7 +181,8 @@ contains
          H2O_frac(:)
     integer :: i_spec_max
     real(kind=dp) :: j_het_max
-    integer :: rand_geometric
+    integer :: rand_geo
+
 
     allocate(total_masses(aero_state_n_part(aero_state)))
     allocate(H2O_masses(aero_state_n_part(aero_state)))
@@ -218,8 +219,8 @@ contains
 
           k_th = n_parts_in_bin + 1
           loop_choosed_particles: do while(.TRUE.)
-             rand_geometric = pmc_random_geometric(p_freeze_max)
-             k_th = k_th - rand_geometric
+             rand_geo = rand_geometric(p_freeze_max)
+             k_th = k_th - rand_geo
              if (k_th <= 0) then
                 EXIT loop_choosed_particles
              endif

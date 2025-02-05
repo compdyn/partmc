@@ -697,38 +697,75 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-    !> Generate a random number in geometric distribution with the probability P
-    ! Reference: https://www.ucl.ac.uk/~ucakarc/work/software/randgen.f
-    integer function pmc_random_geometric(P)
-      
-        implicit none
-      real(kind=dp) :: P, U, TINY
+  !> Generate a Geometric-distributed random number with the given 
+  !> probability.
+  !!
+  !! See https://en.wikipedia.org/wiki/Geometric_distribution and
+  !! https://www.ucl.ac.uk/~ucakarc/work/software/randgen.f for 
+  !! more details
 
-      TINY = 1.0D-12
-      pmc_random_geometric = 0
+  integer function rand_geometric(p)
+    implicit none
+    !> Sample probability.
+    real(kind=dp), intent(in) :: p
+
+#ifdef PMC_USE_GSL
+    real(kind=c_double) :: p_c
+    integer(kind=c_int), target :: harvest
+    type(c_ptr) :: harvest_ptr
+    logical :: acceptable
+#else
+    real(kind=dp) :: U, TINY
+#endif
+
+#ifdef PMC_USE_GSL
+    interface
+       integer(kind=c_int) function pmc_rand_geometric_gsl(p, harvest) bind(c)
+         use iso_c_binding
+         real(kind=c_double), value :: p
+         type(c_ptr), value :: harvest
+       end function pmc_rand_geometric_gsl
+    end interface
+#endif
+    call assert(386975305, p >= 0d0)
+    call assert(667756333, p <= 1d0)
+#ifdef PMC_USE_GSL
+    p_c = real(p, kind=c_double)
+    harvest_ptr = c_loc(harvest)
+    acceptable = .false.
+    do while(.not. acceptable)
+       call rand_check_gsl(218328792, &
+            pmc_rand_geometric_gsl(p_c, harvest_ptr))
+       rand_geometric = int(harvest)
+       if (rand_geometric .ge. 1) then
+          acceptable = .true.
+       end if
+    end do
+#else
+    TINY = 1.0D-12
+    rand_geometric = 0
          
-      call assert_msg(927129543, (P.GE.0.0D0).AND.(P.LE.1.0D0),&
-              "Range error")
+    call assert_msg(927129543, (P.ge.0.0D0).and.(P.le.1.0D0),&
+         "Range error")
 
-      IF (P.GT.0.9D0) THEN
-          pmc_random_geometric = pmc_random_geometric + 1 
+    if (P.gt.0.9D0) then
+       rand_geometric = rand_geometric + 1 
+       U = pmc_random()
+       do while( U.gt.P )
+          rand_geometric = rand_geometric + 1 
           U = pmc_random()
-          do while( U.GT.P )
-              pmc_random_geometric = pmc_random_geometric + 1 
-              U = pmc_random()
-          enddo
-      ELSE
-          U = pmc_random()
+       enddo
+    else
+       U = pmc_random()
 
-          IF (P.GT.TINY) THEN
-              pmc_random_geometric = 1 + INT( DLOG(U)/DLOG(1.0D0-P) )
-          ELSE
-              pmc_random_geometric = 1 + INT(-DLOG(U)/P)
-          ENDIF
-      ENDIF
-
-  END FUNCTION pmc_random_geometric
-
+       if (P.gt.TINY) then
+          rand_geometric = 1 + INT( DLOG(U)/DLOG(1.0D0-P) )
+       else
+          rand_geometric = 1 + INT(-DLOG(U)/P)
+       endif
+    endif
+#endif
+  end function rand_geometric
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 end module pmc_rand

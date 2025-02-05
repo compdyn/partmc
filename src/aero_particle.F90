@@ -999,7 +999,9 @@ contains
          aero_particle_2%greatest_create_time)
     aero_particle_new%frozen = aero_particle_1%frozen .OR. &
             aero_particle_2%frozen
-    !!! Not true, need further discussion
+
+    ! Assumption: If two particles coagulate, the overall freezing temperature
+    ! is determined by the particle with higher freezing temperature.
     aero_particle_new%imf_temperature = max(aero_particle_1%imf_temperature, &
             aero_particle_2%imf_temperature)
 

@@ -35,7 +35,6 @@ contains
   !> Main subroutine for immersion freezing simulation.
   subroutine ice_nucleation_immersion_freezing(aero_state, aero_data, &
     env_state, del_t, immersion_freezing_scheme_type, freezing_rate)
-    !do_coating, coating_spec, coating_ratio)
     implicit none
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
@@ -48,7 +47,7 @@ contains
     !> Immersion freezing scheme type.
     integer, intent(in) :: immersion_freezing_scheme_type
     !> Freezing rate (only used for the constant rate scheme).
-    real(kind=dp) :: freezing_rate
+    real(kind=dp), intent(in) :: freezing_rate
 
 
     !> Call the immersion freezing subroutine according to the immersion
@@ -89,9 +88,9 @@ contains
     real(kind=dp) :: aerosol_diameter
 
     T0 = const%water_freeze_temp
+    a_INAS = -0.517 
+    b_INAS = 8.934
     do i_part = 1, aero_state_n_part(aero_state)
-       a_INAS = -0.517 
-       b_INAS = 8.934
        aerosol_diameter = aero_particle_dry_diameter(aero_state%apa%particle(i_part), aero_data)
        S = const%pi * aerosol_diameter **2
        p = pmc_random()
@@ -166,10 +165,11 @@ contains
     type(env_state_t), intent(inout) :: env_state
     !> Total time to integrate.
     real(kind=dp), intent(in) :: del_t
+    !> Freezing rate (only used for the constant rate scheme).
+    real(kind=dp), intent(in) :: freezing_rate
 
     integer :: i_part, i_bin, i_class, n_bins, n_class
     integer, intent(in) :: immersion_freezing_scheme_type
-    real(kind=dp) :: freezing_rate
     real(kind=dp) :: a_w_ice, pis, pvs
     real(kind=dp) :: p_freeze
 
@@ -266,10 +266,8 @@ contains
   !> Simulation for time-dependent scheme (e.g., ABIFM, constant rate),
   !> deciding whether to freeze for each particle. Run in each time step.   
   !> This subroutine applies the naive algorithm that checks each particle.
-  subroutine ice_nucleation_immersion_freezing_time_dependent_naive(aero_state, aero_data, &
-      env_state, del_t, &
-    immersion_freezing_scheme_type, &
-    freezing_rate)
+  subroutine ice_nucleation_immersion_freezing_time_dependent_naive(aero_state,&
+       aero_data, env_state, del_t, immersion_freezing_scheme_type, freezing_rate)
 
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
@@ -281,9 +279,10 @@ contains
     real(kind=dp), intent(in) :: del_t
     !> Type of the immersion freezing scheme
     integer, intent(in) :: immersion_freezing_scheme_type
+    !> Freezing rate (only used for the constant rate scheme).
+    real(kind=dp), intent(in) :: freezing_rate
 
     integer :: i_part
-    real(kind=dp) :: freezing_rate
     real(kind=dp) :: a_w_ice, pis, pvs
     real(kind=dp) :: p_freeze = 0
     real(kind=dp), allocatable :: H2O_masses(:), total_masses(:), &
@@ -383,35 +382,21 @@ contains
     real(kind=dp) :: j_het, j_het_x_aera
     integer :: i_spec
      
-    !aerosol_diameter =  aero_particle_dry_diameter(aero_state%apa%particle(i_part), aero_data)
     aerosol_diameter =  aero_particle_dry_diameter(aero_particle, aero_data)
-     
     immersed_surface_area = const%pi * aerosol_diameter **2
-
     
     total_vol = 0d0
-    do i_spec = 1,aero_data_n_spec(aero_data)
-       if (i_spec == aero_data%i_water) then
-          cycle
-       end if
-       !total_vol = total_vol + aero_state%apa%particle(i_part)%vol(i_spec)
-       total_vol = total_vol + aero_particle%vol(i_spec)
-    end do
+    total_vol = aero_particle_dry_volume(aero_particle, aero_data)
 
     j_het_x_aera = 0d0
     do i_spec = 1,aero_data_n_spec(aero_data)
        if (i_spec == aero_data%i_water) cycle
-      
        abifm_m = aero_data%abifm_m(i_spec)
        abifm_c = aero_data%abifm_c(i_spec)
-
-
        j_het = 10 ** (abifm_m  * (1 - a_w_ice) + abifm_c) * 10000
        surface_ratio = aero_particle%vol(i_spec) / total_vol
        j_het_x_aera = j_het_x_aera + j_het * immersed_surface_area * &
             surface_ratio
-      
-
     end do
       
     ABIFM_Pfrz_particle = 1 - exp(-j_het_x_aera * del_t)

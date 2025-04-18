@@ -226,9 +226,12 @@ contains
           t_wall_remain = (1d0 - prop_done) / prop_done &
                * t_wall_elapsed
        end if
-       call print_part_progress(run_part_opt%i_repeat, time, &
+       if (run_part_opt%t_progress > 0d0) then
+         call print_part_progress(run_part_opt%i_repeat, time, &
             global_n_part, 0, 0, 0, 0, 0, t_wall_elapsed, t_wall_remain)
-    end if
+       
+       end if
+       end if
 
     i_cur = 1
     i_next = n_time
@@ -794,8 +797,8 @@ contains
     end if
 #endif
 
-    old_env_state = env_state
-    call scenario_update_env_state(scenario, env_state, time + t_start)
+    !old_env_state = env_state
+    !call scenario_update_env_state(scenario, env_state, time + t_start)
 
     if (run_part_opt%do_nucleation) then
        n_part_before = aero_state_total_particles(aero_state)
@@ -833,12 +836,12 @@ contains
     end if
 #endif
 
-    call scenario_update_gas_state(scenario, run_part_opt%del_t, &
-         env_state, old_env_state, gas_data, gas_state)
-    call scenario_update_aero_state(scenario, run_part_opt%del_t, &
-         env_state, old_env_state, aero_data, aero_state, n_emit, &
-         n_dil_in, n_dil_out, run_part_opt%allow_doubling, &
-         run_part_opt%allow_halving)
+    !call scenario_update_gas_state(scenario, run_part_opt%del_t, &
+    !     env_state, old_env_state, gas_data, gas_state)
+    !call scenario_update_aero_state(scenario, run_part_opt%del_t, &
+    !     env_state, old_env_state, aero_data, aero_state, n_emit, &
+    !     n_dil_in, n_dil_out, run_part_opt%allow_doubling, &
+    !     run_part_opt%allow_halving)
     progress_n_emit = progress_n_emit + n_emit
     progress_n_dil_in = progress_n_dil_in + n_dil_in
     progress_n_dil_out = progress_n_dil_out + n_dil_out

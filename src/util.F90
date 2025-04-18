@@ -387,9 +387,11 @@ contains
     real(kind=dp) :: ratio
 
     ratio = first_time / second_time
+    if (first_time > 0d0) then
     if (abs(ratio - aint(ratio)) > 1d-6) then
        call warn_msg(952299377, trim(first_name) &
             // " is not an integer multiple of " // trim(second_name))
+    end if
     end if
 
   end subroutine check_time_multiple

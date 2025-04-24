@@ -191,7 +191,6 @@ RUN cd /build \
              -DCMAKE_Fortran_FLAGS_RELEASE="-O2 -g -Werror -fimplicit-none -Wall -Wextra -Wconversion -Wunderflow -Wimplicit-interface -Wno-compare-reals -Wno-unused -Wno-unused-parameter -Wno-unused-dummy-argument -fbounds-check" \
              -D ENABLE_GSL:BOOL=TRUE \
              -D ENABLE_TCHEM:BOOL=TRUE  \
-             -D ENABLE_SUNDIALS:BOOL=TRUE \
              -DCMAKE_C_FLAGS="-lpthread -ldl -fopenmp" \
              -DCMAKE_Fortran_FLAGS="-lpthread -ldl -fopenmp" \
              /partmc \

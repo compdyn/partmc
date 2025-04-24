@@ -232,6 +232,7 @@ contains
     integer :: i_part, i_spec
     real(kind=c_double), dimension(:), allocatable :: stateVector 
     integer :: n_gas_spec, n_aero_spec
+    real(kind=dp) :: reweight_num_conc(aero_state_n_part(aero_state))
 
     n_gas_spec = gas_data_n_spec(gas_data)
     n_aero_spec = aero_data_n_spec(aero_data)
@@ -245,6 +246,9 @@ contains
     ! Convert from ppm to ppb.
     gas_state%mix_rat = stateVector(4:n_gas_spec+3) * 1000.d0
 
+    call aero_state_num_conc_for_reweight(aero_state, aero_data, &
+         reweight_num_conc)
+
     do i_part = 1,aero_state_n_part(aero_state)
        do i_spec = 1,n_aero_spec
           aero_state%apa%particle(i_part)%vol(i_spec) = stateVector( &
@@ -252,6 +256,8 @@ contains
                / aero_data%density(i_spec)
        end do
     end do
+
+    call aero_state_reweight(aero_state, aero_data, reweight_num_conc)
 
   end subroutine tchem_to_partmc
 
@@ -282,11 +288,11 @@ contains
     n_gas_spec = gas_data_n_spec(gas_data)
     n_aero_spec = aero_data_n_spec(aero_data)
 
-    ! Get size of stateVector
+    ! Get size of state vector in TChem
     stateVecDim = TChem_getLengthOfStateVector()
     allocate(stateVector(stateVecDim))
 
-    ! Get size of number concentration
+    ! Get size of number concentration vector in TChem
     tchem_n_part = TChem_getNumberConcentrationVectorSize()
     allocate(number_concentration(tchem_n_part))
 
@@ -311,11 +317,10 @@ contains
             aero_state, aero_state%apa%particle(i_part), aero_data)
     end do
 
-    ! FIXME: What do we have to do here for this to work well?
     do i_part = aero_state_n_part(aero_state)+1,tchem_n_part
        do i_spec = 1,n_aero_spec
           stateVector(n_gas_spec + 3 + i_spec + (i_part-1) * n_aero_spec) = &
-1d-10
+             1d-10
        end do
        number_concentration(i_part) = 0.0d0
     end do

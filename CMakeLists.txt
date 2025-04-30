@@ -154,7 +154,8 @@ if(ENABLE_TCHEM)
     find_library(LAPACK_LIB openblas)
   endif()
 
-  find_package(SUNDIALS REQUIRED PATHS $ENV{SUNDIALS_HOME}/lib64/cmake/sundials)
+  find_package(SUNDIALS REQUIRED PATHS $ENV{SUNDIALS_HOME}/lib64/cmake/sundials
+      $ENV{SUNDIALS_HOME}/lib/cmake/sundial)
   set(SUNDIALS_LIBS SUNDIALS::cvode)
   include_directories(${SUNDIALS_INCLUDE_DIR})
 

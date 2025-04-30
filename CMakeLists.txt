@@ -153,22 +153,26 @@ if(ENABLE_TCHEM)
   option(ENABLE_TCHEM_GPU "Enable TChem GPU chemistry support" OFF)
 
 
-  find_path(SUNDIALS_INCLUDE_DIR cvode/cvode.h
-    DOC "SUNDIALS include directory (must have cvode/, sundials/, nvector/ subdirs)"
-    PATHS $ENV{SUNDIALS_HOME}/include /opt/local/include /usr/local/include)
-  find_library(SUNDIALS_NVECSERIAL_LIB sundials_nvecserial
-    DOC "SUNDIALS serial vector library"
-    PATHS $ENV{SUNDIALS_HOME}/lib /opt/local/lib /usr/local/lib)
-  find_library(SUNDIALS_CVODE_LIB sundials_cvode
-    DOC "SUNDIALS CVODE library"
-    PATHS $ENV{SUNDIALS_HOME}/lib /opt/local/lib /usr/local/lib)
+#  find_path(SUNDIALS_INCLUDE_DIR cvode/cvode.h
+#    DOC "SUNDIALS include directory (must have cvode/, sundials/, nvector/ subdirs)"
+#    PATHS $ENV{SUNDIALS_HOME}/include /opt/local/include /usr/local/include)
+#  find_library(SUNDIALS_NVECSERIAL_LIB sundials_nvecserial
+#    DOC "SUNDIALS serial vector library"
+#    PATHS $ENV{SUNDIALS_HOME}/lib /opt/local/lib /usr/local/lib)
+#  find_library(SUNDIALS_CVODE_LIB sundials_cvode
+#    DOC "SUNDIALS CVODE library"
+#    PATHS $ENV{SUNDIALS_HOME}/lib /opt/local/lib /usr/local/lib)
 
-  find_library(SUNDIALS_CORE_LIB sundials_core
-    DOC "SUNDIALS core library"
-    PATHS $ENV{SUNDIALS_HOME}/lib /opt/local/lib /usr/local/lib)
+#  find_library(SUNDIALS_CORE_LIB sundials_core
+#    DOC "SUNDIALS core library"
+#    PATHS $ENV{SUNDIALS_HOME}/lib /opt/local/lib /usr/local/lib)
 
-  set(SUNDIALS_LIBS ${SUNDIALS_NVECSERIAL_LIB} ${SUNDIALS_CVODE_LIB} ${SUNDIALS_CORE_LIB})
+  find_package(SUNDIALS REQUIRED PATHS $ENV{SUNDIALS_HOME}/lib64/cmake/sundials)
+  set(SUNDIALS_LIBS SUNDIALS::cvode)
   include_directories(${SUNDIALS_INCLUDE_DIR})
+
+#  set(SUNDIALS_LIBS ${SUNDIALS_NVECSERIAL_LIB} ${SUNDIALS_CVODE_LIB} ${SUNDIALS_CORE_LIB})
+#  include_directories(${SUNDIALS_INCLUDE_DIR})
 
 endif()
 

@@ -155,7 +155,7 @@ if(ENABLE_TCHEM)
   endif()
 
   find_package(SUNDIALS REQUIRED PATHS $ENV{SUNDIALS_HOME}/lib64/cmake/sundials
-      $ENV{SUNDIALS_HOME}/lib/cmake/sundial)
+      $ENV{SUNDIALS_HOME}/lib/cmake/sundials)
   set(SUNDIALS_LIBS SUNDIALS::cvode)
   include_directories(${SUNDIALS_INCLUDE_DIR})
 

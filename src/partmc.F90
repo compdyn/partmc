@@ -300,6 +300,8 @@ contains
        call partmc_exact(file)
     elseif (trim(run_type) == 'sectional') then
        call partmc_sect(file)
+    elseif (trim(run_type) == 'modal') then
+       call partmc_modal(file)
     else
        call die_msg(719261940, "unknown run_type: " // trim(run_type))
     end if
@@ -779,6 +781,75 @@ contains
     call pmc_rand_finalize()
 
   end subroutine partmc_sect
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+!> Run a modal code simulation.
+  subroutine partmc_modal(file)
+
+    !> Spec file
+    type(spec_file_t), intent(inout) :: file
+
+    type(run_modal_opt_t) :: run_modal_opt
+    type(aero_data_t) :: aero_data
+    type(aero_dist_t) :: aero_dist_init
+    type(scenario_t) :: scenario
+    type(env_state_t) :: env_state
+    type(bin_grid_t) :: bin_grid
+    type(gas_data_t) :: gas_data
+    character(len=PMC_MAX_FILENAME_LEN) :: sub_filename
+    type(spec_file_t) :: sub_file
+
+    ! only serial code here
+    if (pmc_mpi_rank() /= 0) then
+      return
+    end if
+
+    call spec_file_read_string(file, 'output_prefix', run_modal_opt%prefix)
+
+    call spec_file_read_real(file, 't_max', run_modal_opt%t_max)
+    call spec_file_read_real(file, 'del_t', run_modal_opt%del_t)
+    call spec_file_read_real(file, 't_output', run_modal_opt%t_output)
+    call spec_file_read_real(file, 't_progress', run_modal_opt%t_progress)
+
+    call spec_file_read_radius_bin_grid(file, bin_grid)
+
+    call spec_file_read_string(file, 'gas_data', sub_filename)
+    call spec_file_open(sub_filename, sub_file)
+    call spec_file_read_gas_data(sub_file, gas_data)
+    call spec_file_close(sub_file)
+
+    call spec_file_read_string(file, 'aerosol_data', sub_filename)
+    call spec_file_open(sub_filename, sub_file)
+    call spec_file_read_aero_data(sub_file, aero_data)
+    call spec_file_close(sub_file)
+
+    call spec_file_read_fractal(file, aero_data%fractal)
+
+    call spec_file_read_string(file,'aerosol_init', sub_filename)
+    call spec_file_open(sub_filename, sub_file)
+    call spec_file_read_aero_dist(sub_file, aero_data, aero_dist_init)
+    call spec_file_close(sub_file)
+
+    call spec_file_read_scenario(file, gas_data, aero_data, scenario)
+    call spec_file_read_env_state(file, env_state)
+
+    call spec_file_close(file)
+
+    ! All data from spec file read. Do the modal run.
+
+    call pmc_srand(0,0)
+
+    call uuid4_str(run_modal_opt%uuid)
+
+    call scenario_init_env_state(scenario, env_state, 0d0)
+
+    call run_modal(aero_data, aero_dist_init, scenario, &
+        env_state, gas_data, bin_grid, run_modal_opt)
+
+    call pmc_rand_finalize()
+
+  end subroutine partmc_modal
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

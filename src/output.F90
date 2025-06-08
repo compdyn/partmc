@@ -784,6 +784,151 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Write the current modal data.
+  subroutine output_modal(prefix, aero_binned, aero_dist, aero_data, &
+                          env_state, gas_data, gas_state, bin_grid, &
+                          scenario, index, time, del_t, uuid)
+
+    !> Prefix of filename to write.
+    character(len=*), intent(in) :: prefix
+    !> Binned aerosol distribution.
+    type(aero_binned_t), intent(in) :: aero_binned
+    !> Aerosol distribution.
+    type(aero_dist_t), intent(in) :: aero_dist
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+    !> Gas data.
+    type(gas_data_t), intent(in) :: gas_data
+    !> Gas state.
+    type(gas_state_t), intent(in) :: gas_state
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Scenario data.
+    type(scenario_t), intent(in) :: scenario
+    !> Filename index.
+    integer, intent(in) :: index
+    !> Current time (s).
+    real(kind=dp), intent(in) :: time
+    !> Current output timestep (s).
+    real(kind=dp), intent(in) :: del_t
+    !> UUID of the simulation.
+    character(len=PMC_UUID_LEN), intent(in) :: uuid
+
+    integer :: ncid
+    character(len=len(prefix)+100) :: filename
+
+    write(filename, '(a,a,i8.8,a)') trim(prefix), &
+         '_', index, '.nc'
+    call pmc_nc_open_write(filename, ncid)
+    call pmc_nc_write_info(ncid, uuid, &
+         "PartMC version " // trim(PARTMC_VERSION))
+    call write_time(ncid, time, del_t, index)
+
+    ! Write data.
+    call aero_binned_output_netcdf(aero_binned, ncid, bin_grid, aero_data)
+    call aero_dist_output_netcdf(aero_dist, ncid)
+    call env_state_output_netcdf(env_state, ncid)
+    call gas_data_output_netcdf(gas_data, ncid)
+    call gas_state_output_netcdf(gas_state, ncid, gas_data)
+    call aero_data_output_netcdf(aero_data, ncid)
+
+    if (scenario%loss_function_type == SCENARIO_LOSS_FUNCTION_DRYDEP) then
+       call scenario_output_drydep_param(scenario, ncid)
+    end if
+
+    call pmc_nc_check(nf90_close(ncid))
+
+  end subroutine output_modal
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Input modal data.
+  subroutine input_modal(filename, index, time, del_t, uuid, aero_dist, &
+                         aero_binned, aero_data, env_state, gas_data, &
+                         gas_state, bin_grid, scenario)
+
+    !> Filename to read.
+    character(len=*), intent(in) :: filename
+    !> Filename index.
+    integer, intent(out) :: index
+    !> Current time (s).
+    real(kind=dp), intent(out) :: time
+    !> Current output timestep.
+    real(kind=dp), intent(out) :: del_t
+    !> UUID of the simulation.
+    character(len=PMC_UUID_LEN), intent(out) :: uuid
+    !> Aerosol distribution
+    type(aero_dist_t), optional, intent(inout) :: aero_dist
+    !> Binned aerosol distribution.
+    type(aero_binned_t), optional, intent(inout) :: aero_binned
+    !> Aerosol data.
+    type(aero_data_t), optional, intent(inout) :: aero_data
+    !> Environment state.
+    type(env_state_t), optional, intent(inout) :: env_state
+    !> Gas data.
+    type(gas_data_t), optional, intent(inout) :: gas_data
+    !> Gas state.
+    type(gas_state_t), optional, intent(inout) :: gas_state
+    !> Bin grid.
+    type(bin_grid_t), optional, intent(inout) :: bin_grid
+    !> Scenario data.
+    type(scenario_t), optional, intent(inout) :: scenario
+
+    integer :: ncid
+
+    call assert_msg(348927561, pmc_mpi_rank() == 0, &
+         "can only call from process 0")
+
+    call pmc_nc_open_read(filename, ncid)
+
+    call pmc_nc_check(nf90_get_att(ncid, NF90_GLOBAL, "UUID", uuid))
+
+    call pmc_nc_read_real(ncid, time, "time")
+    call pmc_nc_read_real(ncid, del_t, "timestep")
+    call pmc_nc_read_integer(ncid, index, "timestep_index")
+
+    if (present(aero_data)) then
+      call aero_data_input_netcdf(aero_data, ncid)
+    end if
+
+    if (present(aero_dist)) then
+      call aero_dist_input_netcdf(aero_dist, ncid)
+    end if
+
+    if (present(env_state)) then
+      call env_state_input_netcdf(env_state, ncid)
+    end if
+
+    if (present(gas_data)) then
+      call gas_data_input_netcdf(gas_data, ncid)
+      if (present(gas_state)) then
+        call gas_state_input_netcdf(gas_state, ncid, gas_data)
+      end if
+    else
+      call assert_msg(739182654, present(gas_state) .eqv. .false., &
+           "cannot input gas_state without gas_data")
+    end if
+
+    if (present(bin_grid)) then
+      call bin_grid_input_netcdf(bin_grid, ncid, "diam")
+      if (present(aero_binned)) then
+        call aero_binned_input_netcdf(aero_binned, ncid, bin_grid, aero_data)
+      end if
+    else
+      call assert_msg(582491376, present(aero_binned) .eqv. .false., &
+           "cannot input aero_binned without bin_grid")
+    end if
+
+    if (present(scenario)) then
+      call scenario_input_drydep_param(scenario, ncid)
+    end if
+
+  end subroutine input_modal
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Read the specification for an output type from a spec file and
   !> generate it.
   subroutine spec_file_read_output_type(file, output_type)

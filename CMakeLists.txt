@@ -233,7 +233,7 @@ add_library(partmclib src/aero_state.F90 src/integer_varray.F90
   src/aero_particle.F90 src/aero_particle_array.F90 src/mpi.F90
   src/netcdf.F90 src/aero_info.F90 src/aero_info_array.F90
   src/nucleate.F90 src/condense.F90 src/fractal.F90 src/chamber.F90
-  src/camp_interface.F90 src/photolysis.F90 src/sys.F90
+  src/camp_interface.F90 src/photolysis.F90 src/sys.F90 src/run_modal.F90
   src/tchem_interface.F90
   src/aero_component.F90
   ${SUNDIALS_SRC} ${GSL_SRC} ${TCHEM_SRC}

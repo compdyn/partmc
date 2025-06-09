@@ -117,7 +117,7 @@ contains
              env_state, aero_data%density(1), scenario, removed)
 
         call check_event(time, run_modal_opt%del_t, run_modal_opt%t_output, &
-             last_output, do_output)
+             last_output_time, do_output)
         if (do_output) then
           i_summary = i_summary + 1
           call aero_binned_add_aero_dist(aero_binned, bin_grid, aero_data, &
@@ -129,7 +129,7 @@ contains
         end if
 
         call check_event(time, run_modal_opt%del_t, run_modal_opt%t_progress, &
-             last_progress, do_progress)
+             last_progress_time, do_progress)
         if (do_progress) then
           write(*, '(a6,a8)') 'step', 'time'
           write(*, '(i6,f8.1)') i_time, time

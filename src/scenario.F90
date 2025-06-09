@@ -35,6 +35,11 @@ module pmc_scenario
   !> Type code for a loss rate function for chamber experiments.
   integer, parameter :: SCENARIO_LOSS_FUNCTION_CHAMBER  = 5
 
+  !> Type code for Zhang et al., 2001 dry deposition parameterization.
+  integer, parameter :: SCENARIO_DRYDEP_ZHANG   = 0
+  !> Type code for Emeroson et al., 2020 dry deposition parameterization.
+  integer, parameter :: SCENARIO_DRYDEP_EMERSON = 1
+
   !> Parameter to switch between algorithms for particle loss.
   !! A value of 0 will always use the naive algorithm, and
   !! a value of 1 will always use the accept-reject algorithm.
@@ -97,6 +102,8 @@ module pmc_scenario
 
      !> Type of loss rate function.
      integer :: loss_function_type
+     !> Parameterization for dry deposition.
+     integer :: drydep_param
      !> Chamber parameters for wall loss and sedimentation.
      type(chamber_t) :: chamber
   end type scenario_t
@@ -394,6 +401,81 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  subroutine scenario_update_aero_modes(aero_dist, del_t, env_state, density, &
+                                        scenario, removed)
+
+    !> Aerosol distribution.
+    type(aero_dist_t), intent(inout) :: aero_dist
+    !> Timestep.
+    real(kind=dp), intent(in) :: del_t
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+    !> Density for each mode.
+    real(kind=dp), intent(in) :: density
+    !> Scenario
+    type(scenario_t), intent(inout) :: scenario
+    !> Removed (third moment)
+    real(kind=dp), intent(inout) :: removed
+
+    !> Current mode
+    type(aero_mode_t) :: aero_mode
+
+    real(kind=dp) :: N, d_pg, ln_sigma_g
+    real(kind=dp) :: m_0_rate, m_3_rate
+    real(kind=dp) :: M, new_M
+    real(kind=dp) :: new_N, new_d_pg
+    integer :: i_mode
+
+    if (scenario%loss_function_type == SCENARIO_LOSS_FUNCTION_INVALID) then
+       return
+    else if (scenario%loss_function_type == SCENARIO_LOSS_FUNCTION_NONE) then
+       return
+    else if (scenario%loss_function_type == SCENARIO_LOSS_FUNCTION_CONSTANT) then
+       return
+    else if (scenario%loss_function_type == SCENARIO_LOSS_FUNCTION_DRYDEP) then
+      ! loss
+      do i_mode = 1,aero_dist_n_mode(aero_dist)
+          aero_mode = aero_dist%mode(i_mode)
+          N = aero_mode%num_conc
+
+          if (N == 0d0) then
+             cycle
+          end if
+
+       d_pg = aero_mode%char_radius * 2.0d0
+       ln_sigma_g = aero_mode%log10_std_dev_radius / log10(exp(1.0d0))
+
+       ! Integrated deposition rate for the 0-th moment (exactly equal to number conc.)
+       m_0_rate = -1.0d0 * scenario_integrated_loss_rate_dry_dep(scenario, aero_mode, &
+          0.0d0, density, env_state)
+       new_N = N * exp(m_0_rate * del_t)
+
+       if (new_N < 1d0) then
+          aero_dist%mode(i_mode)%num_conc = 0d0
+          aero_dist%mode(i_mode)%char_radius = 0d0
+          cycle
+       end if
+
+       aero_dist%mode(i_mode)%num_conc = new_N
+
+       ! Integrated deposition rate for the 3-rd moment (proportional to volume conc.)
+       m_3_rate = -1.0d0 * scenario_integrated_loss_rate_dry_dep(scenario, aero_mode, 3.0d0, &
+          density, env_state)
+       M = N * d_pg**3.0d0 * exp((3.0d0**2.0d0)/2.0d0 * (ln_sigma_g**2.0d0))
+       new_M = M * exp(m_3_rate * del_t)
+       ! Added variables for debugging
+       removed = removed + (M - new_M)
+
+       ! New geometric mean diameter
+       new_d_pg = (new_M / new_N * exp(-(3.0d0**2.0d0)/2.0d0 * (ln_sigma_g**2.0d0)))**(1.0d0/3.0d0)
+       aero_dist%mode(i_mode)%char_radius = new_d_pg / 2.0d0
+      end do
+    end if
+
+  end subroutine scenario_update_aero_modes
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Evaluate a loss rate function.
   real(kind=dp) function scenario_loss_rate(scenario, vol, density, &
        aero_data, env_state)
@@ -536,6 +618,158 @@ contains
     scenario_loss_rate_dry_dep = V_d / env_state%height
 
   end function scenario_loss_rate_dry_dep
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Compute and return the integrated dry deposition rate for a given
+  !> lognormal aerosol mode.
+  real(kind=dp) function scenario_integrated_loss_rate_dry_dep(scenario, &
+      aero_mode, moment, density, env_state)
+
+    !> Scenario data.
+    type(scenario_t), intent(in) :: scenario
+    !> Aerosol mode.
+    type(aero_mode_t), intent(in) :: aero_mode
+    !> Moment to calculate loss rate for.
+    real(kind=dp), intent(in) :: moment
+    !> Particle density assumed for entire mode (kg m^-3).
+    real(kind=dp), intent(in) :: density
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+
+    real(kind=dp) :: V_d_hat, V_g_hat
+    real(kind=dp) :: V_g_bar
+    real(kind=dp) :: d_pg, ln_sigma_g
+    real(kind=dp) :: density_air
+    real(kind=dp) :: visc_d, visc_k
+    real(kind=dp) :: gas_speed, gas_mean_free_path
+    real(kind=dp) :: knud
+    real(kind=dp) :: alpha, beta, gamma, A, eps_0, nu
+    real(kind=dp) :: D_bar, D_hat
+    real(kind=dp) :: St, Sc
+    real(kind=dp) :: u_mean, u_star, z_ref, z_rough
+    real(kind=dp) :: R_a, R_s
+    real(kind=dp) :: E_B, E_IN, E_IM, R1
+    real(kind=dp) :: C_B, C_IN, C_IM
+
+    ! Hardcoded meteorological variables and
+    ! parameterization-dependent LUC values.
+    z_ref = 20.0d0 ! Reference height
+    u_mean = 5.0d0 ! Mean wind speed at reference height
+    ! LUC 7 (crops, mixed farming) from Zhang et al., 2001
+    z_rough = 1.05d0
+    A = 5.0d0 / 1000.0d0
+    alpha = .8d0
+    eps_0 = 3.0d0
+
+    if (scenario%drydep_param == SCENARIO_DRYDEP_EMERSON) then
+       gamma = 2.0d0 / 3.0d0 ! Not dependent on LUC
+       C_B = .2d0
+       C_IN = 2.5d0
+       C_IM = .4d0
+       nu = .8d0
+       beta = 1.7d0
+    else if (scenario%drydep_param == SCENARIO_DRYDEP_ZHANG) then
+       gamma = .56d0 ! LUC-dependent for Zhang.
+       C_B = 1.0d0
+       C_IN = .5d0
+       C_IM = 1.0d0
+       nu = 2.0d0
+       beta = 2.0d0
+    end if
+
+    ! particle diameter equal to geometric mean diameter
+    d_pg = aero_mode%char_radius * 2.0d0
+    ! natural log of geometric standard deviation
+    ln_sigma_g = aero_mode%log10_std_dev_radius / log10(exp(1.0d0))
+    ! density of air
+    density_air = (const%air_molec_weight * env_state%pressure) &
+         / (const%univ_gas_const * env_state%temp)
+    ! dynamic viscosity
+    visc_d = 1.8325d-5 * (416.16 / (env_state%temp + 120.0d0)) &
+         * (env_state%temp / 296.16)**1.5d0
+    ! kinematic viscosity
+    visc_k = visc_d / density_air
+    ! gas speed
+    gas_speed = &
+         sqrt((8.0d0 * const%boltzmann * env_state%temp * const%avagadro) / &
+         (const%pi * const%air_molec_weight))
+    ! gas mean free path
+    gas_mean_free_path = (2.0d0 * visc_d) / (density_air * gas_speed)
+    ! Knudsen number
+    knud = (2.0d0 * gas_mean_free_path) / d_pg
+    ! Settling velcoity
+    V_g_bar = (density * d_pg**2.0d0 * const%std_grav) / (18.0d0 * visc_d)
+    ! Compute integrated settling velocity
+    V_g_hat = V_g_bar * (exp((4.0d0 * moment + 4.0d0) / 2.0d0 * ln_sigma_g**2.0d0) + 1.246d0 * &
+          knud * exp((2.0d0 * moment + 1.0d0) / 2.0d0 * ln_sigma_g**2.0d0))
+
+    ! Aerodynamic resistance (assuming neutral stability)
+    u_star = 0.4d0 * u_mean / log(z_ref / z_rough)
+    R_a = (1.0d0 / (0.4d0 * u_star)) * log(z_ref / z_rough)
+
+    ! Brownian diffusivity
+    D_bar = (const%boltzmann * env_state%temp) / &
+         (3.0d0 * const%pi * visc_d * d_pg)
+    ! Compute integrated Brownian diffusivity
+    D_hat = D_bar * ((exp((-2.0d0 * moment + 1.0d0) / 2.0d0 * ln_sigma_g**2.0d0) + 1.246d0 * &
+          knud * exp((-4.0d0 * moment + 4.0d0) / 2.0d0 * ln_sigma_g**2.0d0)))
+    ! Schmidt number based on integrated diffusivity
+    Sc = visc_k / D_hat
+    ! Collection efficiency due to Brownian diffusion
+    E_B = C_B * Sc**(-gamma)
+
+    ! Collection efficiency due to interception
+    E_IN = C_IN * (d_pg / A)**nu
+
+    ! Stokes number based on integrated settling velocity
+    St = (V_g_hat * u_star) / (const%std_grav * A)
+    ! Collection efficiency due to impaction
+    E_IM = C_IM * (St / (alpha + St))**beta
+
+    ! Rebound correction
+    R1 = exp(-St**0.5d0)
+
+    ! Surface resistance
+    R_s = 1.0d0 / (eps_0 * u_star * (E_B + E_IN + E_IM) * R1)
+
+    ! Integrated deposition velocity
+    V_d_hat = V_g_hat + (1.0d0 / (R_a + R_s + R_a * R_s * V_g_hat))
+
+    ! Loss rate
+    scenario_integrated_loss_rate_dry_dep = V_d_hat / env_state%height
+
+  end function scenario_integrated_loss_rate_dry_dep
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Updates a given array to contain the integrated deposition rates for the
+  !> given moment of each aerosol mode in the distribution.
+  subroutine scenario_modal_dry_dep_rates(scenario, aero_dist, moment, &
+      density, env_state, rates)
+
+    !> Scenario data.
+    type(scenario_t), intent(in) :: scenario
+    !> Aerosol distribution.
+    type(aero_dist_t), intent(in) :: aero_dist
+    !> Moment to compute rate for.
+    real(kind=dp), intent(in) :: moment
+    !> Density for the mode.
+    real(kind=dp), intent(in) :: density
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+    !> Rates.
+    real(kind=dp), intent(inout) :: rates(:)
+
+    integer :: i_mode, n_mode
+
+    do i_mode = 1,size(rates)
+       rates(i_mode) = scenario_integrated_loss_rate_dry_dep( &
+          scenario, aero_dist%mode(i_mode), moment, density, env_state) &
+          * env_state%height
+    end do
+
+  end subroutine
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -889,6 +1123,15 @@ contains
        scenario%loss_function_type = SCENARIO_LOSS_FUNCTION_VOLUME
     else if (trim(function_name) == 'drydep') then
        scenario%loss_function_type = SCENARIO_LOSS_FUNCTION_DRYDEP
+       call spec_file_read_string(file, "dry_dep param", function_name)
+       if (trim(function_name) == 'Zhang_2001') then
+          scenario%drydep_param = SCENARIO_DRYDEP_ZHANG
+       else if (trim(function_name) == 'Emerson_2020') then
+          scenario%drydep_param = SCENARIO_DRYDEP_EMERSON
+       else
+          call die_msg(395827406, "Unknown dry deposition parameterization: " &
+            // trim(function_name))
+       end if
     else if (trim(function_name) == 'chamber') then
        scenario%loss_function_type = SCENARIO_LOSS_FUNCTION_CHAMBER
        call spec_file_read_chamber(file, scenario%chamber)
@@ -999,6 +1242,35 @@ contains
   !!   - \ref spec_file_format --- the input file text format
   !!   - \ref input_format_scenario --- the environment data
   !!     containing the mixing layer height profile
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Output the dry deposition parameterization to NetCDF file.
+  subroutine scenario_output_drydep_param(scenario, ncid)
+
+    !> Scenario data.
+    type(scenario_t), intent(in) :: scenario
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+
+    call pmc_nc_write_integer(ncid, scenario%drydep_param, &
+         "drydep_param")
+
+  end subroutine scenario_output_drydep_param
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Input the dry deposition parameterization to NetCDF file.
+  subroutine scenario_input_drydep_param(scenario, ncid)
+
+    !> Scenario data.
+    type(scenario_t), intent(inout) :: scenario
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+
+    call pmc_nc_read_integer(ncid, scenario%drydep_param, "drydep_param")
+
+  end subroutine scenario_input_drydep_param
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

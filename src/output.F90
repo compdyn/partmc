@@ -76,6 +76,7 @@ module pmc_output
   use pmc_env_state
   use pmc_util
   use pmc_gas_data
+  use pmc_scenario
   use pmc_mpi
 #ifdef PMC_USE_MPI
   use mpi

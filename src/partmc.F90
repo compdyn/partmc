@@ -226,6 +226,7 @@ program partmc
   use pmc_run_part
   use pmc_run_exact
   use pmc_run_sect
+  use pmc_run_modal
   use pmc_spec_file
   use pmc_gas_data
   use pmc_gas_state
@@ -828,10 +829,10 @@ contains
 
     call spec_file_read_string(file,'aerosol_init', sub_filename)
     call spec_file_open(sub_filename, sub_file)
-    call spec_file_read_aero_dist(sub_file, aero_data, aero_dist_init)
+    call spec_file_read_aero_dist(sub_file, aero_data, .false., aero_dist_init)
     call spec_file_close(sub_file)
 
-    call spec_file_read_scenario(file, gas_data, aero_data, scenario)
+    call spec_file_read_scenario(file, gas_data, aero_data, .false., scenario)
     call spec_file_read_env_state(file, env_state)
 
     call spec_file_close(file)

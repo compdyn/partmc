@@ -379,7 +379,7 @@ contains
     real(kind=dp) :: total_vol
     real(kind=dp) :: surface_ratio
     real(kind=dp) :: abifm_m, abifm_c
-    real(kind=dp) :: j_het, j_het_x_aera
+    real(kind=dp) :: j_het, j_het_x_area
     integer :: i_spec
      
     aerosol_diameter =  aero_particle_dry_diameter(aero_particle, aero_data)
@@ -388,18 +388,18 @@ contains
     total_vol = 0d0
     total_vol = aero_particle_dry_volume(aero_particle, aero_data)
 
-    j_het_x_aera = 0d0
+    j_het_x_area = 0d0
     do i_spec = 1,aero_data_n_spec(aero_data)
        if (i_spec == aero_data%i_water) cycle
        abifm_m = aero_data%abifm_m(i_spec)
        abifm_c = aero_data%abifm_c(i_spec)
        j_het = 10 ** (abifm_m  * (1 - a_w_ice) + abifm_c) * 10000
        surface_ratio = aero_particle%vol(i_spec) / total_vol
-       j_het_x_aera = j_het_x_aera + j_het * immersed_surface_area * &
+       j_het_x_area = j_het_x_area + j_het * immersed_surface_area * &
             surface_ratio
     end do
       
-    ABIFM_Pfrz_particle = 1 - exp(-j_het_x_aera * del_t)
+    ABIFM_Pfrz_particle = 1 - exp(-j_het_x_area * del_t)
 
   end function ABIFM_Pfrz_particle
 

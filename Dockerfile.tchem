@@ -28,7 +28,6 @@ RUN apt-get update \
 
 RUN git clone https://github.com/PCLAeroParams/TChem-atm.git /tchem_dir/
 WORKDIR /tchem_dir/
-RUN git checkout -b add_aerosol_driver_new origin/add_aerosol_driver_new
 RUN git submodule update --init --recursive
 
 RUN cmake -S /tchem_dir/external/Tines/ext/kokkos -B /build/kokkos_build \

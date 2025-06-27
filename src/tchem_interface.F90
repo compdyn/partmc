@@ -1,4 +1,4 @@
-! Copyright (C) 2024 Jeff Curtis
+! Copyright (C) 2024-2025 Jeff Curtis
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -110,7 +110,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #ifdef PMC_USE_TCHEM
-  !> Run the CAMP module for the current PartMC state
+  !> Run chemistry using TChem for the current PartMC state.
   subroutine pmc_tchem_interface_solve(env_state, aero_data, aero_state, &
        gas_data, gas_state, del_t)
 
@@ -141,7 +141,6 @@ contains
   !> Initialize TChem and PartMC gas and aerosol data.
   subroutine pmc_tchem_initialize(gas_config_filename, aero_config_filename, &
        solver_config_filename, gas_data, aero_data, n_grid_cells)
-    use iso_c_binding
 
     !> Gas configuration filename.
     character(len=*), intent(in) :: gas_config_filename
@@ -157,33 +156,32 @@ contains
     integer, intent(in) :: n_grid_cells
 
     integer(kind=c_int) :: n_aero_spec, n_gas_spec
-    integer :: i
     real(kind=c_double), dimension(:), allocatable :: array 
     character(:), allocatable ::  val
+    integer :: i_spec
+    logical :: is_gas
 
     ! initialize the model
     call TChem_initialize(trim(gas_config_filename), &
          trim(aero_config_filename), trim(solver_config_filename), &
          n_grid_cells)
 
-    ! Get size that gas_data should be
+    ! Get size of gas_data from TChem
     n_gas_spec = TChem_getNumberOfSpecies()
     call ensure_string_array_size(gas_data%name, n_gas_spec)
 
-    ! Populate gas_data with gas species from TChem
-    do i = 1,n_gas_spec
-       val = TChem_species_name(i-1, .true.)
-       gas_data%name(i) = trim(val)
+    ! Set gas_data with gas species from TChem
+    is_gas = .true.
+    do i_spec = 1,n_gas_spec
+       val = TChem_species_name(i_spec - 1, is_gas)
+       gas_data%name(i_spec) = trim(val)
     end do   
 
     ! For output and MPI, this needs to be allocated (for now)
     allocate(gas_data%mosaic_index(n_gas_spec))
     gas_data%mosaic_index(:) = 0
 
-    ! TODO: Create aero_data based on TChem input.
-    ! From TChem we need:
-    !   Species names
-    !   Species properties - density, kappa, molecular weight
+    ! Get size of aero_data from TChem
     n_aero_spec = TChem_getNumberOfAeroSpecies()
     call ensure_string_array_size(aero_data%name, n_aero_spec)
     call ensure_integer_array_size(aero_data%mosaic_index, n_aero_spec)
@@ -192,12 +190,14 @@ contains
     call ensure_integer_array_size(aero_data%num_ions, n_aero_spec)
     call ensure_real_array_size(aero_data%molec_weight, n_aero_spec)
     call ensure_real_array_size(aero_data%kappa, n_aero_spec)
-    do i = 1,n_aero_spec
-       val = TChem_species_name(i-1, .false.)
-       aero_data%name(i) =  trim(val)
-       aero_data%density(i) = TChem_getAerosolSpeciesDensity(i-1)
-       aero_data%molec_weight(i) = TChem_getAerosolSpeciesMW(i-1)
-       aero_data%kappa(i) = TChem_getAerosolSpeciesKappa(i-1)
+
+    is_gas = .false.
+    do i_spec = 1,n_aero_spec
+       val = TChem_species_name(i_spec - 1, is_gas)
+       aero_data%name(i_spec) =  trim(val)
+       aero_data%density(i_spec) = TChem_getAerosolSpeciesDensity(i_spec - 1)
+       aero_data%molec_weight(i_spec) = TChem_getAerosolSpeciesMW(i_spec - 1)
+       aero_data%kappa(i_spec) = TChem_getAerosolSpeciesKappa(i_spec - 1)
     end do
 
   end subroutine pmc_tchem_initialize
@@ -282,7 +282,6 @@ contains
     integer :: stateVecDim, tchem_n_part, i_spec
     integer :: i_part
     integer :: i_water
-
     integer :: n_gas_spec, n_aero_spec
 
     n_gas_spec = gas_data_n_spec(gas_data)
@@ -291,6 +290,7 @@ contains
     ! Get size of state vector in TChem
     stateVecDim = TChem_getLengthOfStateVector()
     allocate(stateVector(stateVecDim))
+    stateVector = 0.0d0
 
     ! Get size of number concentration vector in TChem
     tchem_n_part = TChem_getNumberConcentrationVectorSize()
@@ -320,7 +320,7 @@ contains
     do i_part = aero_state_n_part(aero_state)+1,tchem_n_part
        do i_spec = 1,n_aero_spec
           stateVector(n_gas_spec + 3 + i_spec + (i_part-1) * n_aero_spec) = &
-             1d-10
+            1d-10
        end do
        number_concentration(i_part) = 0.0d0
     end do
@@ -335,7 +335,6 @@ contains
 
   !> Do a single timestep of TChem chemistry.
   subroutine TChem_timestep(del_t)
-    use iso_c_binding
 
     !> Time step (s).
     real(kind=c_double) :: del_t
@@ -348,7 +347,6 @@ contains
 
   !> Initialize TChem.
   subroutine TChem_initialize(chemFile, aeroFile, NumericsFile, n_batch)
-    use iso_c_binding
 
     !> Chemistry configuration file.
     character(kind=c_char,len=*), intent(in) :: chemFile
@@ -368,11 +366,10 @@ contains
 
   !> Get species name from TChem for a given index.
   function TChem_species_name(i_spec, is_gas) result(species_name)
-    use iso_c_binding
 
     !> Index of species.
     integer(kind=c_int), intent(in) :: i_spec
-    !> Logical for if the species is a gas
+    !> Logical for if the species is a gas.
     logical :: is_gas
     !> Species name.
     character(:), allocatable :: species_name

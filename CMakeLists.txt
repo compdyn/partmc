@@ -31,7 +31,7 @@ option(ENABLE_TCHEM "Enable TChem chemistry support" OFF)
 option(ENABLE_MPI "Enable MPI parallel support" OFF)
 option(ENABLE_SUNDIALS "Enable SUNDIALS solver for condensation support" OFF)
 option(ENABLE_C_SORT "Enable C sorting routines" OFF)
-option(ENABLE_QUADPACK "Enable QUADPACK for numerical integration" OFF)
+option(ENABLE_QUADPACK "Enable QUADPACK for numerical integration (dry dep)" OFF)
 
 ######################################################################
 # CPack
@@ -190,13 +190,13 @@ if (ENABLE_QUADPACK)
   find_library(QUADPACK_LIB quadpack
     DOC "QUADPACK library"
     PATHS $ENV{QUADPACK_HOME}/lib)
-    if(EXISTS "${QUADPACK_INCLUDE_DIR}/quadpack.mod" AND EXISTS "${QUADPACK_LIB}")
-        include_directories(${QUADPACK_INCLUDE_DIR})
-        add_definitions(-DPMC_USE_QUADPACK)
-    else()
-        message(WARNING "QUADPACK library not found - disabling QUADPACK support")
-        set(ENABLE_QUADPACK OFF)
-    endif()
+  if(EXISTS "${QUADPACK_INCLUDE_DIR}/quadpack.mod" AND EXISTS "${QUADPACK_LIB}")
+      include_directories(${QUADPACK_INCLUDE_DIR})
+      add_definitions(-DPMC_USE_QUADPACK)
+  else()
+      message(WARNING "QUADPACK library not found - disabling QUADPACK support")
+      set(ENABLE_QUADPACK OFF)
+  endif()
 endif()
 
 ######################################################################
@@ -435,8 +435,8 @@ target_link_libraries(chamber_process partmclib)
 ######################################################################
 # scenarios/7_dry_dep/dry_dep_modal_process
 
-add_executable(dry_dep_modal_process
-  scenarios/7_dry_dep/dry_dep_modal_process.F90)
-target_link_libraries(dry_dep_modal_process partmclib)
+# add_executable(dry_dep_modal_process
+#   scenarios/7_dry_dep/dry_dep_modal_process.F90)
+# target_link_libraries(dry_dep_modal_process partmclib)
 
 ######################################################################

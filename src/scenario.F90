@@ -21,6 +21,9 @@ module pmc_scenario
 #ifdef PMC_USE_MPI
   use mpi
 #endif
+#ifdef PMC_USE_QUADPACK
+  use quadpack_double, only: dqagse
+#endif
 
   !> Type code for an undefined or invalid loss function.
   integer, parameter :: SCENARIO_LOSS_FUNCTION_INVALID  = 0
@@ -401,8 +404,8 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine scenario_update_aero_modes(aero_dist, del_t, env_state, density, &
-                                        scenario, removed)
+  subroutine scenario_update_aero_modes(aero_dist, del_t, env_state, &
+                                        density, scenario)
 
     !> Aerosol distribution.
     type(aero_dist_t), intent(inout) :: aero_dist
@@ -414,8 +417,6 @@ contains
     real(kind=dp), intent(in) :: density
     !> Scenario
     type(scenario_t), intent(inout) :: scenario
-    !> Removed (third moment)
-    real(kind=dp), intent(inout) :: removed
 
     !> Current mode
     type(aero_mode_t) :: aero_mode
@@ -445,9 +446,9 @@ contains
        d_pg = aero_mode%char_radius * 2.0d0
        ln_sigma_g = aero_mode%log10_std_dev_radius / log10(exp(1.0d0))
 
-       ! Integrated deposition rate for the 0-th moment (exactly equal to number conc.)
+       ! Integrated deposition rate for the 0-th moment (num. conc.)
        m_0_rate = -1.0d0 * scenario_integrated_loss_rate_dry_dep(scenario, aero_mode, &
-          0.0d0, density, env_state)
+                   0.0d0, density, env_state)
        new_N = N * exp(m_0_rate * del_t)
 
        if (new_N < 1d0) then
@@ -463,8 +464,6 @@ contains
           density, env_state)
        M = N * d_pg**3.0d0 * exp((3.0d0**2.0d0)/2.0d0 * (ln_sigma_g**2.0d0))
        new_M = M * exp(m_3_rate * del_t)
-       ! Added variables for debugging
-       removed = removed + (M - new_M)
 
        ! New geometric mean diameter
        new_d_pg = (new_M / new_N * exp(-(3.0d0**2.0d0)/2.0d0 * (ln_sigma_g**2.0d0)))**(1.0d0/3.0d0)
@@ -622,7 +621,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Compute and return the integrated dry deposition rate for a given
-  !> lognormal aerosol mode.
+  !> lognormal aerosol mode (modal approximation).
   real(kind=dp) function scenario_integrated_loss_rate_dry_dep(scenario, &
       aero_mode, moment, density, env_state)
 
@@ -652,30 +651,37 @@ contains
     real(kind=dp) :: E_B, E_IN, E_IM, R1
     real(kind=dp) :: C_B, C_IN, C_IM
 
+#ifdef PMC_USE_QUADPACK
+     ! Do numerical integration when QUADPACK is available
+     scenario_integrated_loss_rate_dry_dep = scenario_integrated_loss_rate_dry_dep_quadpack( &
+                                              scenario, aero_mode, moment, density, env_state)
+     return
+#endif
+
     ! Hardcoded meteorological variables and
     ! parameterization-dependent LUC values.
     z_ref = 20.0d0 ! Reference height
     u_mean = 5.0d0 ! Mean wind speed at reference height
     ! LUC 7 (crops, mixed farming) from Zhang et al., 2001
-    z_rough = 1.05d0
-    A = 5.0d0 / 1000.0d0
-    alpha = .8d0
+    z_rough = .8d0
+    A = 2.0d0 / 1000.0d0
+    alpha = 1.0d0
     eps_0 = 3.0d0
 
     if (scenario%drydep_param == SCENARIO_DRYDEP_EMERSON) then
-       gamma = 2.0d0 / 3.0d0 ! Not dependent on LUC
-       C_B = .2d0
-       C_IN = 2.5d0
-       C_IM = .4d0
-       nu = .8d0
-       beta = 1.7d0
-    else if (scenario%drydep_param == SCENARIO_DRYDEP_ZHANG) then
        gamma = .56d0 ! LUC-dependent for Zhang.
-       C_B = 1.0d0
-       C_IN = .5d0
-       C_IM = 1.0d0
-       nu = 2.0d0
-       beta = 2.0d0
+     C_B = .2d0
+     C_IN = 2.5d0
+     C_IM = .4d0
+     nu = .8d0
+     beta = 1.7d0
+    else if (scenario%drydep_param == SCENARIO_DRYDEP_ZHANG) then
+     gamma = .56d0 ! LUC-dependent for Zhang.
+     C_B = 1.0d0
+     C_IN = .5d0
+     C_IM = 1.0d0
+     nu = 2.0d0
+     beta = 2.0d0
     end if
 
     ! particle diameter equal to geometric mean diameter
@@ -684,16 +690,15 @@ contains
     ln_sigma_g = aero_mode%log10_std_dev_radius / log10(exp(1.0d0))
     ! density of air
     density_air = (const%air_molec_weight * env_state%pressure) &
-         / (const%univ_gas_const * env_state%temp)
+                / (const%univ_gas_const * env_state%temp)
     ! dynamic viscosity
     visc_d = 1.8325d-5 * (416.16 / (env_state%temp + 120.0d0)) &
-         * (env_state%temp / 296.16)**1.5d0
+           * (env_state%temp / 296.16)**1.5d0
     ! kinematic viscosity
     visc_k = visc_d / density_air
     ! gas speed
-    gas_speed = &
-         sqrt((8.0d0 * const%boltzmann * env_state%temp * const%avagadro) / &
-         (const%pi * const%air_molec_weight))
+    gas_speed = sqrt((8.0d0 * const%boltzmann * env_state%temp * const%avagadro) / &
+                     (const%pi * const%air_molec_weight))
     ! gas mean free path
     gas_mean_free_path = (2.0d0 * visc_d) / (density_air * gas_speed)
     ! Knudsen number
@@ -702,7 +707,7 @@ contains
     V_g_bar = (density * d_pg**2.0d0 * const%std_grav) / (18.0d0 * visc_d)
     ! Compute integrated settling velocity
     V_g_hat = V_g_bar * (exp((4.0d0 * moment + 4.0d0) / 2.0d0 * ln_sigma_g**2.0d0) + 1.246d0 * &
-          knud * exp((2.0d0 * moment + 1.0d0) / 2.0d0 * ln_sigma_g**2.0d0))
+                 knud * exp((2.0d0 * moment + 1.0d0) / 2.0d0 * ln_sigma_g**2.0d0))
 
     ! Aerodynamic resistance (assuming neutral stability)
     u_star = 0.4d0 * u_mean / log(z_ref / z_rough)
@@ -710,10 +715,10 @@ contains
 
     ! Brownian diffusivity
     D_bar = (const%boltzmann * env_state%temp) / &
-         (3.0d0 * const%pi * visc_d * d_pg)
+            (3.0d0 * const%pi * visc_d * d_pg)
     ! Compute integrated Brownian diffusivity
     D_hat = D_bar * ((exp((-2.0d0 * moment + 1.0d0) / 2.0d0 * ln_sigma_g**2.0d0) + 1.246d0 * &
-          knud * exp((-4.0d0 * moment + 4.0d0) / 2.0d0 * ln_sigma_g**2.0d0)))
+             knud * exp((-4.0d0 * moment + 4.0d0) / 2.0d0 * ln_sigma_g**2.0d0)))
     ! Schmidt number based on integrated diffusivity
     Sc = visc_k / D_hat
     ! Collection efficiency due to Brownian diffusion
@@ -734,12 +739,174 @@ contains
     R_s = 1.0d0 / (eps_0 * u_star * (E_B + E_IN + E_IM) * R1)
 
     ! Integrated deposition velocity
-    V_d_hat = V_g_hat + (1.0d0 / (R_a + R_s + R_a * R_s * V_g_hat))
+    V_d_hat = V_g_hat + (1.0d0 / (R_a + R_s))
 
     ! Loss rate
     scenario_integrated_loss_rate_dry_dep = V_d_hat / env_state%height
 
   end function scenario_integrated_loss_rate_dry_dep
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+#ifdef PMC_USE_QUADPACK
+  real(kind=dp) function scenario_integrated_loss_rate_dry_dep_quadpack(scenario, &
+      aero_mode, moment, density, env_state)
+
+    !> Scenario data.
+    type(scenario_t), intent(in) :: scenario
+    !> Aerosol mode.
+    type(aero_mode_t), intent(in) :: aero_mode
+    !> Moment to calculate loss rate for.
+    real(kind=dp), intent(in) :: moment
+    !> Particle density assumed for entire mode (kg m^-3).
+    real(kind=dp), intent(in) :: density
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+
+    real(kind=dp) :: d_pg, ln_sigma_g
+    real(kind=dp) :: density_air
+    real(kind=dp) :: visc_d, visc_k
+    real(kind=dp) :: gas_speed, gas_mean_free_path
+    real(kind=dp) :: alpha, beta, gamma, A, eps_0, nu
+    real(kind=dp) :: u_mean, u_star, z_ref, z_rough
+    real(kind=dp) :: C_B, C_IN, C_IM, M_k
+    real(kind=dp) :: lower, upper, epsabs, epsrel, result, abserr, ref
+    integer :: limit, neval, ier, last
+    real(kind=dp), allocatable :: alist(:), blist(:), rlist(:), elist(:)
+    integer, allocatable :: iord(:)
+
+    ! Hardcoded meteorological variables and
+    ! parameterization-dependent LUC values.
+    z_ref = 20.0d0 ! Reference height
+    u_mean = 5.0d0 ! Mean wind speed at reference height
+    ! LUC 7 (crops, mixed farming) from Zhang et al., 2001
+    z_rough = .8d0
+    A = 2.0d0 / 1000.0d0
+    alpha = 1.0d0
+    eps_0 = 3.0d0
+
+    if (scenario%drydep_param == SCENARIO_DRYDEP_EMERSON) then
+     gamma = .56d0 ! LUC-dependent for Zhang.
+     C_B = .2d0
+     C_IN = 2.5d0
+     C_IM = .4d0
+     nu = .8d0
+     beta = 1.7d0
+    else if (scenario%drydep_param == SCENARIO_DRYDEP_ZHANG) then
+     gamma = .56d0 ! LUC-dependent for Zhang.
+     C_B = 1.0d0
+     C_IN = .5d0
+     C_IM = 1.0d0
+     nu = 2.0d0
+     beta = 2.0d0
+    end if
+
+    ! particle diameter equal to geometric mean diameter
+    d_pg = aero_mode%char_radius * 2.0d0
+    ! natural log of geometric standard deviation
+    ln_sigma_g = aero_mode%log10_std_dev_radius / log10(exp(1.0d0))
+    ! density of air
+    density_air = (const%air_molec_weight * env_state%pressure) &
+                / (const%univ_gas_const * env_state%temp)
+    ! dynamic viscosity
+    visc_d = 1.8325d-5 * (416.16 / (env_state%temp + 120.0d0)) &
+           * (env_state%temp / 296.16)**1.5d0
+    ! kinematic viscosity
+    visc_k = visc_d / density_air
+    ! gas speed
+    gas_speed = sqrt((8.0d0 * const%boltzmann * env_state%temp * const%avagadro) / &
+                     (const%pi * const%air_molec_weight))
+    ! gas mean free path
+    gas_mean_free_path = (2.0d0 * visc_d) / (density_air * gas_speed)
+
+    ref = exp(log(d_pg) + moment*ln_sigma_g**2)
+    lower = ref / (exp(ln_sigma_g)*10.0)
+    upper = ref * exp(ln_sigma_g)*10.0
+
+    ! Set integration parameters
+    limit = 1000
+    epsabs = 1.0d-10
+    epsrel = 1.0d-6
+
+    ! Allocate arrays for QUADPACK integration
+    allocate(alist(limit), blist(limit), rlist(limit), elist(limit), iord(limit))
+
+    ! Call QUADPACK integration routine
+    call dqagse(dep_vel_integrand, lower, upper, epsabs, epsrel, limit, &
+                result, abserr, neval, ier, alist, blist, rlist, elist, iord, last)
+
+    if (ier > 0) then
+     call die_msg(837465, "QUADPACK integration failed (error code: " &
+                         // trim(integer_to_string(ier)))
+    endif
+
+    M_k = d_pg**moment * exp(moment**2 * ln_sigma_g**2 / 2.0d0)
+
+    ! Integration result
+    scenario_integrated_loss_rate_dry_dep_quadpack = 1.0d0 / M_k * result / env_state%height
+
+    ! Clean up
+    deallocate(alist, blist, rlist, elist, iord)
+
+  contains
+
+  real(kind=dp) function dep_vel_integrand(d_p)
+    real(kind=dp), intent(in) :: d_p
+
+    ! Local variables
+    real(kind=dp) :: V_d, V_s
+    real(kind=dp) :: knud_local, cunning
+    real(kind=dp) :: diff_p, Sc, St
+    real(kind=dp) :: u_star, R_a, R_s
+    real(kind=dp) :: E_B, E_IN, E_IM, R1
+    real(kind=dp) :: ln_dp, ln_dp_g, n_ddp
+
+    ! Knudsen number for this diameter
+    knud_local = (2.0d0 * gas_mean_free_path) / d_p
+
+    ! Cunningham correction factor
+    cunning = 1.0d0 + knud_local * (1.257d0 + 0.4d0 * exp(-1.1d0 / knud_local))
+
+    ! Settling velocity
+    V_s = (density * d_p**2.0d0 * const%std_grav * cunning) / (18.0d0 * visc_d)
+
+    ! Friction velocity and aerodynamic resistance
+    u_star = 0.4d0 * u_mean / log(z_ref / z_rough)
+    R_a = (1.0d0 / (0.4d0 * u_star)) * log(z_ref / z_rough)
+
+    ! Particle diffusivity and Schmidt number
+    diff_p = (const%boltzmann * env_state%temp * cunning) / &
+         (3.0d0 * const%pi * visc_d * d_p)
+    Sc = visc_k / diff_p
+
+    ! Collection efficiencies
+    E_B = C_B * Sc**(-gamma)
+    E_IN = C_IN * (d_p / A)**nu
+
+    ! Stokes number and impaction efficiency
+    St = (V_s * u_star) / (const%std_grav * A)
+    E_IM = C_IM * (St / (alpha + St))**beta
+
+    ! Rebound correction
+    R1 = exp(-St**0.5d0)
+
+    ! Surface resistance
+    R_s = 1.0d0 / (eps_0 * u_star * (E_B + E_IN + E_IM) * R1)
+
+    ! Deposition velocity
+    V_d = V_s + (1.0d0 / (R_a + R_s))
+
+    ! Log-normal size distribution
+    ln_dp = log(d_p)
+    ln_dp_g = log(d_pg)
+    n_ddp = (1.0d0/(sqrt(2.0d0 * const%pi) * d_p * ln_sigma_g)) * &
+            exp(-((ln_dp - ln_dp_g)**2) / (2.0d0 * ln_sigma_g**2))
+
+     ! Final integrand
+     dep_vel_integrand = d_p**moment * V_d * n_ddp
+  end function dep_vel_integrand
+  end function scenario_integrated_loss_rate_dry_dep_quadpack
+#endif
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -1123,7 +1290,7 @@ contains
        scenario%loss_function_type = SCENARIO_LOSS_FUNCTION_VOLUME
     else if (trim(function_name) == 'drydep') then
        scenario%loss_function_type = SCENARIO_LOSS_FUNCTION_DRYDEP
-       call spec_file_read_string(file, "dry_dep param", function_name)
+       call spec_file_read_string(file, "dry_dep_param", function_name)
        if (trim(function_name) == 'Zhang_2001') then
           scenario%drydep_param = SCENARIO_DRYDEP_ZHANG
        else if (trim(function_name) == 'Emerson_2020') then

@@ -27,8 +27,6 @@ module pmc_run_modal
       real(kind=dp) :: t_output
       !> Progress interval (0 disables) (s).
       real(kind=dp) :: t_progress
-      !> Whether to do emissions and dilution.
-      logical :: do_emissions
       !> Output prefix.
       character(len=300) :: prefix
       !> UUID of the simulation.

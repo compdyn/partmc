@@ -923,7 +923,7 @@ contains
            "cannot input aero_binned without bin_grid")
     end if
 
-    if (present(scenario)) then
+    if (present(scenario) .and. scenario%loss_function_type == SCENARIO_LOSS_FUNCTION_DRYDEP) then
       call scenario_input_drydep_param(scenario, ncid)
     end if
 

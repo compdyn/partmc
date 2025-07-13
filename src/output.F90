@@ -834,6 +834,7 @@ contains
     call gas_data_output_netcdf(gas_data, ncid)
     call gas_state_output_netcdf(gas_state, ncid, gas_data)
     call aero_data_output_netcdf(aero_data, ncid)
+    call bin_grid_output_netcdf(bin_grid, ncid, "diam", unit="m")
 
     if (scenario%loss_function_type == SCENARIO_LOSS_FUNCTION_DRYDEP) then
        call scenario_output_drydep_param(scenario, ncid)

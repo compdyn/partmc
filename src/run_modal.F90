@@ -62,7 +62,7 @@ contains
       type(gas_state_t) :: gas_state
       type(aero_binned_t) :: aero_binned
 
-      real(kind=dp) time, last_output_time, last_progress_time, removed
+      real(kind=dp) time, last_output_time, last_progress_time
 
       integer i, i_time, n_time, i_summary, i_mode, mode
       logical do_output, do_progress
@@ -87,7 +87,6 @@ contains
       last_output_time = 0d0
       last_progress_time = 0d0
       i_summary = 1
-      removed = 0d0
 
       ! initial output
       call check_event(time, run_modal_opt%del_t, run_modal_opt%t_output, &
@@ -114,7 +113,7 @@ contains
         call scenario_update_gas_state(scenario, run_modal_opt%del_t, &
              env_state, old_env_state, gas_data, gas_state)
         call scenario_update_aero_modes(aero_dist, run_modal_opt%del_t, &
-             env_state, aero_data%density(1), scenario, removed)
+             env_state, aero_data%density(1), scenario)
 
         call check_event(time, run_modal_opt%del_t, run_modal_opt%t_output, &
              last_output_time, do_output)

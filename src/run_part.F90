@@ -699,7 +699,7 @@ contains
            run_part_opt%do_immersion_freezing)
 
     if (run_part_opt%do_immersion_freezing) then
-   
+
        call spec_file_read_immersion_freezing_scheme_type(file, &
             run_part_opt%immersion_freezing_scheme_type)
 

@@ -52,22 +52,24 @@ contains
 
     !> Call the immersion freezing subroutine according to the immersion
     !> freezing scheme.
-    if ((immersion_freezing_scheme_type .eq. IMMERSION_FREEZING_SCHEME_ABIFM) &
-       .OR. (immersion_freezing_scheme_type .eq. IMMERSION_FREEZING_SCHEME_CONST)) then
-       if (do_speedup) then
-          call ice_nucleation_immersion_freezing_time_dependent(aero_state, aero_data, &
-            env_state, del_t, immersion_freezing_scheme_type, freezing_rate)
+    if (env_state%temp .le. const%water_freeze_temp) then
+       if ((immersion_freezing_scheme_type .eq. IMMERSION_FREEZING_SCHEME_ABIFM) &
+          .OR. (immersion_freezing_scheme_type .eq. IMMERSION_FREEZING_SCHEME_CONST)) then
+          if (do_speedup) then
+             call ice_nucleation_immersion_freezing_time_dependent(aero_state, aero_data, &
+               env_state, del_t, immersion_freezing_scheme_type, freezing_rate)
+          else
+             call ice_nucleation_immersion_freezing_time_dependent_naive(aero_state, aero_data, &
+               env_state, del_t, immersion_freezing_scheme_type, freezing_rate)
+          end if
+       else if (immersion_freezing_scheme_type .eq. &
+           IMMERSION_FREEZING_SCHEME_SINGULAR) then
+          call ice_nucleation_immersion_freezing_singular(aero_state, aero_data, &
+             env_state)
        else
-          call ice_nucleation_immersion_freezing_time_dependent_naive(aero_state, aero_data, &
-            env_state, del_t, immersion_freezing_scheme_type, freezing_rate)
-       end if
-    else if (immersion_freezing_scheme_type .eq. &
-        IMMERSION_FREEZING_SCHEME_SINGULAR) then
-       call ice_nucleation_immersion_freezing_singular(aero_state, aero_data, &
-          env_state)
-    else
-       call assert_msg(121370299, .false., &
-            'Error type of immersion freezing scheme')
+          call assert_msg(121370299, .false., &
+               'Error type of immersion freezing scheme')
+       endif
     endif
 
   end subroutine ice_nucleation_immersion_freezing

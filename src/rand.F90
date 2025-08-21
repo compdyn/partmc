@@ -697,11 +697,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Generate a Geometric-distributed random number with the given 
+  !> Generate a Geometric-distributed random number with the given
   !> probability.
   !!
   !! See https://en.wikipedia.org/wiki/Geometric_distribution and
-  !! https://www.ucl.ac.uk/~ucakarc/work/software/randgen.f for 
+  !! https://www.ucl.ac.uk/~ucakarc/work/software/randgen.f for
   !! more details
 
   integer function rand_geometric(p)
@@ -744,15 +744,15 @@ contains
 #else
     TINY = 1.0D-12
     rand_geometric = 0
-         
+
     call assert_msg(927129543, (P.ge.0.0D0).and.(P.le.1.0D0),&
          "Range error")
 
     if (P.gt.0.9D0) then
-       rand_geometric = rand_geometric + 1 
+       rand_geometric = rand_geometric + 1
        U = pmc_random()
        do while( U.gt.P )
-          rand_geometric = rand_geometric + 1 
+          rand_geometric = rand_geometric + 1
           U = pmc_random()
        enddo
     else

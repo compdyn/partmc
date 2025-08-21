@@ -676,7 +676,7 @@ contains
   !> Compute saturated vapor pressure (units : Pa) with respective to ice
   !> Formula (7) from [Murphy & Koop, 2004]  (https://doi.org/10.1256/qj.04.94)
   real(kind=dp) function env_state_saturated_vapor_pressure_ice(T)
-    
+
     !> Temperature (K)
     real(kind=dp), intent(in) :: T
 

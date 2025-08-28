@@ -15,3 +15,5 @@ jobs:
       run: docker run -t partmc-test bash -c 'export CTEST_PARALLEL_LEVEL=4; cd /build; make test'
     - name: Generate and upload coverage report
       uses: ./.github/actions/codecov
+      with:
+        codecov_token: ${{ secrets.CODECOV_TOKEN }}

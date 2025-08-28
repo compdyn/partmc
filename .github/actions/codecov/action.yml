@@ -1,6 +1,11 @@
 name: 'Upload Coverage Report'
 description: 'Generates and uploads code coverage to Codecov'
 
+inputs:
+  codecov_token:
+    description: 'Codecov upload token'
+    required: true
+
 runs:
   using: "composite"
   steps:
@@ -11,6 +16,6 @@ runs:
     - name: Upload coverage report to codecov.io
       uses: codecov/codecov-action@v5.5.0
       with:
-        token: ${{ secrets.CODECOV_TOKEN }}
+        token: ${{ inputs.codecov_token }}
         fail_ci_if_error: true
 

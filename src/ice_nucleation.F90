@@ -34,8 +34,8 @@ contains
 
   !> Main subroutine for immersion freezing simulation.
   subroutine ice_nucleation_immersion_freezing(aero_state, aero_data, &
-    env_state, del_t, immersion_freezing_scheme_type, freezing_rate)
-    implicit none
+       env_state, del_t, immersion_freezing_scheme_type, freezing_rate)
+
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     !> Aerosol data.
@@ -49,23 +49,24 @@ contains
     !> Freezing rate (only used for the constant rate scheme).
     real(kind=dp), intent(in) :: freezing_rate
 
-
     !> Call the immersion freezing subroutine according to the immersion
     !> freezing scheme.
-    if (env_state%temp .le. const%water_freeze_temp) then
-       if ((immersion_freezing_scheme_type .eq. IMMERSION_FREEZING_SCHEME_ABIFM) &
-          .OR. (immersion_freezing_scheme_type .eq. IMMERSION_FREEZING_SCHEME_CONST)) then
+    if (env_state%temp <= const%water_freeze_temp) then
+       if ((immersion_freezing_scheme_type == IMMERSION_FREEZING_SCHEME_ABIFM) &
+            .OR. (immersion_freezing_scheme_type == IMMERSION_FREEZING_SCHEME_CONST)) then
           if (do_speedup) then
-             call ice_nucleation_immersion_freezing_time_dependent(aero_state, aero_data, &
-               env_state, del_t, immersion_freezing_scheme_type, freezing_rate)
+             call ice_nucleation_immersion_freezing_time_dependent( &
+                  aero_state, aero_data, env_state, del_t, &
+                  immersion_freezing_scheme_type, freezing_rate)
           else
-             call ice_nucleation_immersion_freezing_time_dependent_naive(aero_state, aero_data, &
-               env_state, del_t, immersion_freezing_scheme_type, freezing_rate)
+             call ice_nucleation_immersion_freezing_time_dependent_naive( &
+                  aero_state, aero_data, env_state, del_t, &
+                  immersion_freezing_scheme_type, freezing_rate)
           end if
-       else if (immersion_freezing_scheme_type .eq. &
-           IMMERSION_FREEZING_SCHEME_SINGULAR) then
-          call ice_nucleation_immersion_freezing_singular(aero_state, aero_data, &
-             env_state)
+       else if (immersion_freezing_scheme_type == &
+            IMMERSION_FREEZING_SCHEME_SINGULAR) then
+          call ice_nucleation_immersion_freezing_singular(aero_state, &
+               aero_data, env_state)
        else
           call assert_msg(121370299, .false., &
                'Error type of immersion freezing scheme')
@@ -79,7 +80,7 @@ contains
   !> Initialization for the sigular scheme, sampling the freezing temperature
   !> for each particles.
   subroutine ice_nucleation_singular_initialize(aero_state, aero_data)
-    implicit none
+
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     !> Aerosol data.
@@ -93,7 +94,8 @@ contains
     a_INAS = -0.517
     b_INAS = 8.934
     do i_part = 1, aero_state_n_part(aero_state)
-       aerosol_diameter = aero_particle_dry_diameter(aero_state%apa%particle(i_part), aero_data)
+       aerosol_diameter = aero_particle_dry_diameter( &
+            aero_state%apa%particle(i_part), aero_data)
        S = const%pi * aerosol_diameter **2
        p = pmc_random()
        temp = (log(1 - p) + exp(-S * exp(-a_INAS * T0 + b_INAS))) / (-S)
@@ -108,7 +110,7 @@ contains
   !> particle. Run in each time step.
   subroutine ice_nucleation_immersion_freezing_singular(aero_state, aero_data,&
        env_state)
-    implicit none
+
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     !> Aerosol data.
@@ -126,7 +128,7 @@ contains
     allocate(H2O_frac(aero_state_n_part(aero_state)))
 
     total_masses = aero_state_masses(aero_state, aero_data)
-    H2O_masses = aero_state_masses(aero_state, aero_data, include=(/"H2O"/))
+    H2O_masses = aero_state_masses(aero_state, aero_data, include=["H2O"])
     H2O_frac = H2O_masses / total_masses
     do i_part = 1, aero_state_n_part(aero_state)
        if (aero_state%apa%particle(i_part)%frozen) then
@@ -135,7 +137,7 @@ contains
        if (H2O_frac(i_part) < const%imf_water_threshold) then
           cycle
        end if
-       if (env_state%temp .le. &
+       if (env_state%temp <= &
             aero_state%apa%particle(i_part)%imf_temperature) then
           aero_state%apa%particle(i_part)%frozen = .TRUE.
           aero_state%apa%particle(i_part)%den_ice = &
@@ -155,10 +157,10 @@ contains
   !> Simulation for time-dependent scheme (e.g., ABIFM, constant rate),
   !> deciding whether to freeze for each particle. Run in each time step.
   !> This subroutine applys the binned-tau leaping algorithm for speeding up.
-  subroutine ice_nucleation_immersion_freezing_time_dependent(aero_state, aero_data,&
-       env_state, del_t, immersion_freezing_scheme_type, freezing_rate)
+  subroutine ice_nucleation_immersion_freezing_time_dependent(aero_state, &
+       aero_data, env_state, del_t, immersion_freezing_scheme_type, &
+       freezing_rate)
 
-    implicit none
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     !> Aerosol data.
@@ -193,12 +195,12 @@ contains
     call aero_state_sort(aero_state, aero_data)
 
     total_masses = aero_state_masses(aero_state, aero_data)
-    H2O_masses = aero_state_masses(aero_state, aero_data, include=(/"H2O"/))
+    H2O_masses = aero_state_masses(aero_state, aero_data, include=["H2O"])
     H2O_frac = H2O_masses / total_masses
     pvs = env_state_saturated_vapor_pressure_water(env_state%temp)
     pis = env_state_saturated_vapor_pressure_ice(env_state%temp)
     a_w_ice = pis / pvs
-    if (immersion_freezing_scheme_type .eq. IMMERSION_FREEZING_SCHEME_ABIFM) then
+    if (immersion_freezing_scheme_type == IMMERSION_FREEZING_SCHEME_ABIFM) then
        call ABIFM_max_spec(aero_data, a_w_ice, i_spec_max, j_het_max)
     endif
 
@@ -211,10 +213,11 @@ contains
                aero_state%aero_sorted%size_class%inverse(i_bin, i_class))
           radius_max = aero_state%aero_sorted%bin_grid%edges(i_bin + 1)
           diameter_max = radius_max * 2
-          if (immersion_freezing_scheme_type .eq. &
+          if (immersion_freezing_scheme_type == &
                IMMERSION_FREEZING_SCHEME_ABIFM) then
-             p_freeze_max = ABIFM_Pfrz_max(diameter_max, aero_data, j_het_max, del_t)
-          else if (immersion_freezing_scheme_type .eq. &
+             p_freeze_max = ABIFM_Pfrz_max(diameter_max, aero_data, j_het_max, &
+                   del_t)
+          else if (immersion_freezing_scheme_type == &
                IMMERSION_FREEZING_SCHEME_CONST) then
              p_freeze_max = 1 - exp(freezing_rate * del_t)
           endif
@@ -226,17 +229,19 @@ contains
              if (k_th <= 0) then
                 EXIT loop_choosed_particles
              endif
-             i_part = aero_state%aero_sorted%size_class%inverse(i_bin, i_class)%entry(k_th)
+             i_part = aero_state%aero_sorted%size_class &
+                  %inverse(i_bin, i_class)%entry(k_th)
              if (aero_state%apa%particle(i_part)%frozen) then
                 cycle
              end if
              if (H2O_frac(i_part) < const%imf_water_threshold) then
                 cycle
              end if
-             if (immersion_freezing_scheme_type .eq. &
+             if (immersion_freezing_scheme_type == &
                   IMMERSION_FREEZING_SCHEME_ABIFM) then
-                p_freeze = ABIFM_Pfrz_particle(aero_state%apa%particle(i_part), aero_data, a_w_ice, del_t)
-                call warn_assert_msg(301184565, p_freeze .le. p_freeze_max,&
+                p_freeze = ABIFM_Pfrz_particle( & 
+                     aero_state%apa%particle(i_part), aero_data, a_w_ice, del_t)
+                call warn_assert_msg(301184565, p_freeze <= p_freeze_max,&
                      "p_freeze > p_freeze_max.")
                 rand = pmc_random()
                 if (rand < p_freeze / p_freeze_max) then
@@ -268,8 +273,9 @@ contains
   !> Simulation for time-dependent scheme (e.g., ABIFM, constant rate),
   !> deciding whether to freeze for each particle. Run in each time step.
   !> This subroutine applies the naive algorithm that checks each particle.
-  subroutine ice_nucleation_immersion_freezing_time_dependent_naive(aero_state,&
-       aero_data, env_state, del_t, immersion_freezing_scheme_type, freezing_rate)
+  subroutine ice_nucleation_immersion_freezing_time_dependent_naive( &
+       aero_state, aero_data, env_state, del_t, &
+       immersion_freezing_scheme_type, freezing_rate)
 
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
@@ -298,7 +304,7 @@ contains
     allocate(H2O_frac(aero_state_n_part(aero_state)))
 
     total_masses = aero_state_masses(aero_state, aero_data)
-    H2O_masses = aero_state_masses(aero_state, aero_data, include=(/"H2O"/))
+    H2O_masses = aero_state_masses(aero_state, aero_data, include=["H2O"])
     H2O_frac = H2O_masses / total_masses
 
     pvs = env_state_saturated_vapor_pressure_water(env_state%temp)
@@ -310,10 +316,11 @@ contains
        if (H2O_frac(i_part) < const%imf_water_threshold) cycle
        rand = pmc_random()
 
-       if (immersion_freezing_scheme_type .eq. &
+       if (immersion_freezing_scheme_type == &
             IMMERSION_FREEZING_SCHEME_ABIFM) then
-          p_freeze = ABIFM_Pfrz_particle(aero_state%apa%particle(i_part), aero_data, a_w_ice, del_t)
-       else if (immersion_freezing_scheme_type .eq. &
+          p_freeze = ABIFM_Pfrz_particle(aero_state%apa%particle(i_part), &
+               aero_data, a_w_ice, del_t)
+       else if (immersion_freezing_scheme_type == &
             IMMERSION_FREEZING_SCHEME_CONST) then
           p_freeze = 1 - exp(freezing_rate * del_t)
        end if
@@ -330,7 +337,6 @@ contains
     deallocate(H2O_masses)
     deallocate(H2O_frac)
 
-
   end subroutine ice_nucleation_immersion_freezing_time_dependent_naive
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -339,7 +345,7 @@ contains
   !> for each particle once the temperature is higher than water freezing
   !> tempearture)
   subroutine ice_nucleation_melting(aero_state, aero_data, env_state)
-    implicit none
+
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     !> Aerosol data.
@@ -364,9 +370,8 @@ contains
   !> Calculating the freezing probability for the particle (i_part) using ABIFM
   !> method (Knopf et al.,2013)
   real(kind=dp) function ABIFM_Pfrz_particle(aero_particle, aero_data, &
-      a_w_ice, del_t)
+       a_w_ice, del_t)
 
-    implicit none
     !> Aerosol particle.
     type(aero_particle_t), intent(in) :: aero_particle
     !> Aerosol data.
@@ -410,7 +415,7 @@ contains
   !> Calculating the heterogeneous ice nucleation rate coefficient
   !> for each species, and fining the species having the largest rate.
   subroutine ABIFM_max_spec(aero_data, a_w_ice, i_spec_max, j_het_max)
-    implicit none
+
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
     !> The water activity w.r.t. ice.
@@ -443,8 +448,9 @@ contains
   !> Calculating the maximum freezing probability for particles in
   !> one bin using ABIFM method (Knopf et al.,2013). Only used by
   !> the binned-tau leaping algorithm.
-  real(kind=dp) function ABIFM_Pfrz_max(diameter_max, aero_data, j_het_max, del_t)
-    implicit none
+  real(kind=dp) function ABIFM_Pfrz_max(diameter_max, aero_data, j_het_max, &
+       del_t)
+
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
     !> Maximum diameter.
@@ -465,7 +471,8 @@ contains
 
   !> Read the specification for a kernel type from a spec file and
   !> generate it.
-  subroutine spec_file_read_immersion_freezing_scheme_type(file, immersion_freezing_scheme_type)
+  subroutine spec_file_read_immersion_freezing_scheme_type(file, &
+       immersion_freezing_scheme_type)
 
     !> Spec file.
     type(spec_file_t), intent(inout) :: file

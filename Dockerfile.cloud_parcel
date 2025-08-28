@@ -8,6 +8,7 @@ RUN dnf -y update \
         sundials-devel \
         gsl-devel \
         cmake \
+        lcov \
     && dnf clean all
 
 # NOTE: Modify .dockerignore to whitelist files/directories to copy.

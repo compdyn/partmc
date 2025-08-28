@@ -1,0 +1,16 @@
+name: 'Upload Coverage Report'
+description: 'Generates and uploads code coverage to Codecov'
+
+runs:
+  using: "composite"
+  steps:
+    - name: Generate coverage report
+      run: lcov --capture --directory /build --output-file coverage.info --no-external
+      shell: bash
+
+    - name: Upload coverage report to codecov.io
+      uses: codecov/codecov-action@v5.5.0
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        fail_ci_if_error: true
+

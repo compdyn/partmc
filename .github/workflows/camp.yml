@@ -13,3 +13,6 @@ jobs:
       run: docker build -f Dockerfile.camp -t partmc-test .
     - name: Run the tests in the docker container
       run: docker run -t partmc-test bash -c 'cd /build; make test'
+    - name: Generate and upload coverage report
+      uses: ./.github/actions/upload-coverage
+

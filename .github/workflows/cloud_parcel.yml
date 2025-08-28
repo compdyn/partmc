@@ -13,3 +13,5 @@ jobs:
       run: docker build -f Dockerfile.cloud_parcel -t partmc-cloud-parcel .
     - name: Run the tests in the docker container
       run: docker run -t partmc-cloud-parcel bash -c 'cd /build; make test'
+    - name: Generate and upload coverage report
+      uses: ./.github/actions/upload-coverage

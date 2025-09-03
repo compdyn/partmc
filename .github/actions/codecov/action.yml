@@ -11,7 +11,7 @@ runs:
   steps:
     - name: Generate coverage report
       run: |
-        docker run -t partmc-test bash -c "find / -name \\*.gcda"
+        docker run -t partmc-test bash -c "find / -name *.gcda"
         docker run -t partmc-test bash -c "lcov --capture --directory /build/CMakeFiles/partmc.dir/src --output-file coverage.info --no-external"
       shell: bash
 

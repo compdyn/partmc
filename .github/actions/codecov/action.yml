@@ -11,7 +11,7 @@ runs:
   steps:
     - name: Generate coverage report
       run: |
-        find /build
+        docker run -t partmc-test bash -c "find /build"
         docker run -t partmc-test bash -c "lcov --capture --directory /build --output-file coverage.info --no-external"
       shell: bash
 

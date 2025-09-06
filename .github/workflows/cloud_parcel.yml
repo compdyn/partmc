@@ -10,6 +10,10 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: Build the testing docker image
-      run: docker build -f Dockerfile.cloud_parcel -t partmc-cloud-parcel .
+      run: docker build -f Dockerfile.cloud_parcel -t partmc-test .
     - name: Run the tests in the docker container
-      run: docker run -t partmc-cloud-parcel bash -c 'cd /build; make test'
+      run: docker run -v shared-data:/build  -t partmc-test bash -c 'cd /build; make test'
+    - name: Generate and upload coverage report
+      uses: ./.github/actions/codecov
+      with:
+        codecov_token: ${{ secrets.CODECOV_TOKEN }}

@@ -836,10 +836,6 @@ contains
     call aero_data_output_netcdf(aero_data, ncid)
     call bin_grid_output_netcdf(bin_grid, ncid, "diam", unit="m")
 
-    if (scenario%loss_function_type == SCENARIO_LOSS_FUNCTION_DRYDEP) then
-       call scenario_output_drydep_param(scenario, ncid)
-    end if
-
     call pmc_nc_check(nf90_close(ncid))
 
   end subroutine output_modal
@@ -921,10 +917,6 @@ contains
     else
       call assert_msg(582491376, present(aero_binned) .eqv. .false., &
            "cannot input aero_binned without bin_grid")
-    end if
-
-    if (present(scenario) .and. scenario%loss_function_type == SCENARIO_LOSS_FUNCTION_DRYDEP) then
-      call scenario_input_drydep_param(scenario, ncid)
     end if
 
   end subroutine input_modal

@@ -38,15 +38,38 @@ module pmc_scenario
   !> Type code for a loss rate function for chamber experiments.
   integer, parameter :: SCENARIO_LOSS_FUNCTION_CHAMBER  = 5
 
-  !> Type code for Zhang et al., 2001 dry deposition parameterization.
-  integer, parameter :: SCENARIO_DRYDEP_ZHANG   = 0
-  !> Type code for Emeroson et al., 2020 dry deposition parameterization.
-  integer, parameter :: SCENARIO_DRYDEP_EMERSON = 1
-
   !> Parameter to switch between algorithms for particle loss.
   !! A value of 0 will always use the naive algorithm, and
   !! a value of 1 will always use the accept-reject algorithm.
   real(kind=dp), parameter :: SCENARIO_LOSS_ALG_THRESHOLD = 1.0d0
+
+  !> Parameters for simulating dry deposition
+  type drydep_params_t
+     !> Reference height
+     real(kind=dp) :: z_ref = 20.0d0
+     !> Mean wind speed at reference height
+     real(kind=dp) :: u_mean = 5.0d0
+     !> Roughness length (land-use category dependent)
+     real(kind=dp) :: z_rough = 0.8d0 ! crops, mixed farming (LUC 7 from Zhang et al., 2001)
+     !> Characteristic radius of collectors (land-use category dependent)
+     real(kind=dp) :: A = 2.0d0 / 1000.0d0
+     !> Impaction parameter
+     real(kind=dp) :: alpha = 1.0d0
+     !> Surface resistance parameter
+     real(kind=dp) :: eps_0 = 3.0d0
+     !> Diffusivity paramter
+     real(kind=dp) :: gamma = 0.56d0 ! LUC-dependent for Zhang et al., 2001
+     !> Brownian diffusion coefficient
+     real(kind=dp) :: C_B = 1.0d0
+     !> Interception coefficient
+     real(kind=dp) :: C_IN = 0.5d0
+     !> Impaction coefficient
+     real(kind=dp) :: C_IM = 1.0d0
+     !> Interception exponent
+     real(kind=dp) :: nu = 2.0d0
+     !> Impaction exponent
+     real(kind=dp) :: beta = 2.0d0
+  end type drydep_params_t
 
   !> Scenario data.
   !!
@@ -105,8 +128,8 @@ module pmc_scenario
 
      !> Type of loss rate function.
      integer :: loss_function_type
-     !> Parameterization for dry deposition.
-     integer :: drydep_param
+     !> Dry deposition parameters
+     type(drydep_params_t) :: drydep
      !> Chamber parameters for wall loss and sedimentation.
      type(chamber_t) :: chamber
   end type scenario_t
@@ -503,7 +526,7 @@ contains
     else if (scenario%loss_function_type == SCENARIO_LOSS_FUNCTION_DRYDEP) &
          then
        scenario_loss_rate = scenario_loss_rate_dry_dep(vol, density, &
-            aero_data, env_state)
+            aero_data, env_state, scenario)
     else if (scenario%loss_function_type == SCENARIO_LOSS_FUNCTION_CHAMBER) &
          then
        scenario_loss_rate = chamber_loss_rate_wall(scenario%chamber, vol, &
@@ -523,7 +546,7 @@ contains
   !! All equations used here are written in detail in the file
   !! \c doc/deposition/deposition.tex.
   real(kind=dp) function scenario_loss_rate_dry_dep(vol, density, aero_data, &
-      env_state)
+      env_state, scenario)
 
     !> Particle volume (m^3).
     real(kind=dp), intent(in) :: vol
@@ -533,6 +556,8 @@ contains
     type(aero_data_t), intent(in) :: aero_data
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
+    !> Scenario data.
+    type(scenario_t), intent(in) :: scenario
 
     real(kind=dp) :: V_d
     real(kind=dp) :: V_s
@@ -543,22 +568,25 @@ contains
     real(kind=dp) :: knud, cunning
     real(kind=dp) :: grav
     real(kind=dp) :: R_s, R_a
-    real(kind=dp) :: alpha, beta, gamma, A, eps_0
+   !  real(kind=dp) :: alpha, beta, gamma, A, eps_0
     real(kind=dp) :: diff_p
     real(kind=dp) :: von_karman
     real(kind=dp) :: St, Sc, u_star
     real(kind=dp) :: E_B, E_IM, E_IN, R1
-    real(kind=dp) :: u_mean, z_ref, z_rough
+   !  real(kind=dp) :: u_mean, z_ref, z_rough
+    type(drydep_params_t) :: drydep_params
 
-    ! User set variables
-    u_mean = 5.0d0 ! Mean wind speed at reference height
-    z_ref =  20.0d0 ! Reference height
-    ! Setting for LUC = 7, SC = 1 - See Table 3
-    z_rough = .1d0 ! According to land category
-    A = 2.0d0 / 1000.0d0 ! Dependent on land type
-    alpha = 1.2d0 ! From table
-    beta = 2.0d0 ! From text
-    gamma = .54d0 ! From table
+    drydep_params = scenario%drydep
+
+   !  ! User set variables
+   !  u_mean = 5.0d0 ! Mean wind speed at reference height
+   !  z_ref =  20.0d0 ! Reference height
+   !  ! Setting for LUC = 7, SC = 1 - See Table 3
+   !  z_rough = .1d0 ! According to land category
+   !  A = 2.0d0 / 1000.0d0 ! Dependent on land type
+   !  alpha = 1.2d0 ! From table
+   !  beta = 2.0d0 ! From text
+   !  gamma = .54d0 ! From table
 
     ! particle diameter
     d_p = aero_data_vol2diam(aero_data, vol)
@@ -587,28 +615,27 @@ contains
 
     ! Aerodynamic resistance
     ! For neutral stability
-    u_star = .4d0 * u_mean / log(z_ref / z_rough)
-    R_a = (1.0d0 / (.4d0 * u_star)) * log(z_ref / z_rough)
+    u_star = .4d0 * drydep_params%u_mean / log(drydep_params%z_ref / drydep_params%z_rough)
+    R_a = (1.0d0 / (.4d0 * u_star)) * log(drydep_params%z_ref / drydep_params%z_rough)
     ! Brownian diffusion efficiency
     diff_p = (const%boltzmann * env_state%temp * cunning) / &
          (3.d0 * const%pi * visc_d * d_p)
     Sc = visc_k / diff_p
-    E_B = Sc**(-gamma)
+    E_B = drydep_params%C_B * Sc**(-drydep_params%gamma)
 
     ! Interception efficiency
     ! Characteristic radius of large collectors
-    E_IN = .5d0 * (d_p / A)**2.0d0
+    E_IN = drydep_params%C_IN * (d_p / drydep_params%A)**2.0d0
 
     ! Impaction efficiency
-    St = (V_s * u_star) / (grav * A)
-    E_IM = (St / (alpha + St))**beta
+    St = (V_s * u_star) / (grav * drydep_params%A)
+    E_IM = drydep_params%C_IM * (St / (drydep_params%alpha + St))**drydep_params%beta
 
     ! Rebound correction
     R1 = exp(-St**.5d0)
 
     ! Surface resistance
-    eps_0 = 3.0d0 ! Taken to be 3
-    R_s = 1.0d0 / (eps_0 * u_star * (E_B + E_IN + E_IM) * R1)
+    R_s = 1.0d0 / (drydep_params%eps_0 * u_star * (E_B + E_IN + E_IM) * R1)
 
     ! Dry deposition
     V_d = V_s + (1.0d0 / (R_a + R_s + R_a * R_s * V_s))
@@ -643,13 +670,14 @@ contains
     real(kind=dp) :: visc_d, visc_k
     real(kind=dp) :: gas_speed, gas_mean_free_path
     real(kind=dp) :: knud
-    real(kind=dp) :: alpha, beta, gamma, A, eps_0, nu
+   !  real(kind=dp) :: alpha, beta, gamma, A, eps_0, nu
     real(kind=dp) :: D_bar, D_hat
     real(kind=dp) :: St, Sc
-    real(kind=dp) :: u_mean, u_star, z_ref, z_rough
+    real(kind=dp) :: u_star
     real(kind=dp) :: R_a, R_s
     real(kind=dp) :: E_B, E_IN, E_IM, R1
-    real(kind=dp) :: C_B, C_IN, C_IM
+   !  real(kind=dp) :: C_B, C_IN, C_IM
+    type(drydep_params_t) :: drydep_params
 
 #ifdef PMC_USE_QUADPACK
      ! Do numerical integration when QUADPACK is available
@@ -658,31 +686,37 @@ contains
      return
 #endif
 
-    ! Hardcoded meteorological variables and
-    ! parameterization-dependent LUC values.
-    z_ref = 20.0d0 ! Reference height
-    u_mean = 5.0d0 ! Mean wind speed at reference height
-    ! LUC 7 (crops, mixed farming) from Zhang et al., 2001
-    z_rough = .8d0
-    A = 2.0d0 / 1000.0d0
-    alpha = 1.0d0
-    eps_0 = 3.0d0
+   !  ! Hardcoded meteorological variables and
+   !  ! parameterization-dependent LUC values.
+   !  z_ref = 20.0d0 ! Reference height
+   !  u_mean = 5.0d0 ! Mean wind speed at reference height
+   !  ! LUC 7 (crops, mixed farming) from Zhang et al., 2001
+   !  z_rough = .8d0
+   !  A = 2.0d0 / 1000.0d0
+   !  alpha = 1.0d0
+   !  eps_0 = 3.0d0
 
-    if (scenario%drydep_param == SCENARIO_DRYDEP_EMERSON) then
-       gamma = .56d0 ! LUC-dependent for Zhang.
-     C_B = .2d0
-     C_IN = 2.5d0
-     C_IM = .4d0
-     nu = .8d0
-     beta = 1.7d0
-    else if (scenario%drydep_param == SCENARIO_DRYDEP_ZHANG) then
-     gamma = .56d0 ! LUC-dependent for Zhang.
-     C_B = 1.0d0
-     C_IN = .5d0
-     C_IM = 1.0d0
-     nu = 2.0d0
-     beta = 2.0d0
-    end if
+   !  if (scenario%drydep_param == SCENARIO_DRYDEP_EMERSON) then
+   !     gamma = .56d0 ! LUC-dependent for Zhang.
+   !   C_B = .2d0
+   !   C_IN = 2.5d0
+   !   C_IM = .4d0
+   !   nu = .8d0
+   !   beta = 1.7d0
+   !  else if (scenario%drydep_param == SCENARIO_DRYDEP_ZHANG) then
+   !   gamma = .56d0 ! LUC-dependent for Zhang.
+   !   C_B = 1.0d0
+   !   C_IN = .5d0
+   !   C_IM = 1.0d0
+   !   nu = 2.0d0
+   !   beta = 2.0d0
+   !  end if
+    drydep_params = scenario%drydep
+
+    print*, drydep_params%z_ref, drydep_params%u_mean, drydep_params%z_rough, &
+            drydep_params%A, drydep_params%alpha, drydep_params%eps_0, &
+            drydep_params%gamma, drydep_params%C_B, drydep_params%C_IN, &
+            drydep_params%C_IM, drydep_params%nu, drydep_params%beta
 
     ! particle diameter equal to geometric mean diameter
     d_pg = aero_mode%char_radius * 2.0d0
@@ -710,8 +744,8 @@ contains
                  knud * exp((2.0d0 * moment + 1.0d0) / 2.0d0 * ln_sigma_g**2.0d0))
 
     ! Aerodynamic resistance (assuming neutral stability)
-    u_star = 0.4d0 * u_mean / log(z_ref / z_rough)
-    R_a = (1.0d0 / (0.4d0 * u_star)) * log(z_ref / z_rough)
+    u_star = 0.4d0 * drydep_params%u_mean / log(drydep_params%z_ref / drydep_params%z_rough)
+    R_a = (1.0d0 / (0.4d0 * u_star)) * log(drydep_params%z_ref / drydep_params%z_rough)
 
     ! Brownian diffusivity
     D_bar = (const%boltzmann * env_state%temp) / &
@@ -722,21 +756,21 @@ contains
     ! Schmidt number based on integrated diffusivity
     Sc = visc_k / D_hat
     ! Collection efficiency due to Brownian diffusion
-    E_B = C_B * Sc**(-gamma)
+    E_B = drydep_params%C_B * Sc**(-drydep_params%gamma)
 
     ! Collection efficiency due to interception
-    E_IN = C_IN * (d_pg / A)**nu
+    E_IN = drydep_params%C_IN * (d_pg / drydep_params%A)**drydep_params%nu
 
     ! Stokes number based on integrated settling velocity
-    St = (V_g_hat * u_star) / (const%std_grav * A)
+    St = (V_g_hat * u_star) / (const%std_grav * drydep_params%A)
     ! Collection efficiency due to impaction
-    E_IM = C_IM * (St / (alpha + St))**beta
+    E_IM = drydep_params%C_IM * (St / (drydep_params%alpha + St))**drydep_params%beta
 
     ! Rebound correction
     R1 = exp(-St**0.5d0)
 
     ! Surface resistance
-    R_s = 1.0d0 / (eps_0 * u_star * (E_B + E_IN + E_IM) * R1)
+    R_s = 1.0d0 / (drydep_params%eps_0 * u_star * (E_B + E_IN + E_IM) * R1)
 
     ! Integrated deposition velocity
     V_d_hat = V_g_hat + (1.0d0 / (R_a + R_s))
@@ -767,39 +801,42 @@ contains
     real(kind=dp) :: density_air
     real(kind=dp) :: visc_d, visc_k
     real(kind=dp) :: gas_speed, gas_mean_free_path
-    real(kind=dp) :: alpha, beta, gamma, A, eps_0, nu
-    real(kind=dp) :: u_mean, u_star, z_ref, z_rough
-    real(kind=dp) :: C_B, C_IN, C_IM, M_k
+    real(kind=dp) :: u_star
+    real(kind=dp) :: M_k
     real(kind=dp) :: lower, upper, epsabs, epsrel, result, abserr, ref
     integer :: limit, neval, ier, last
     real(kind=dp), allocatable :: alist(:), blist(:), rlist(:), elist(:)
     integer, allocatable :: iord(:)
 
-    ! Hardcoded meteorological variables and
-    ! parameterization-dependent LUC values.
-    z_ref = 20.0d0 ! Reference height
-    u_mean = 5.0d0 ! Mean wind speed at reference height
-    ! LUC 7 (crops, mixed farming) from Zhang et al., 2001
-    z_rough = .8d0
-    A = 2.0d0 / 1000.0d0
-    alpha = 1.0d0
-    eps_0 = 3.0d0
+    type(drydep_params_t) :: drydep_params
 
-    if (scenario%drydep_param == SCENARIO_DRYDEP_EMERSON) then
-     gamma = .56d0 ! LUC-dependent for Zhang.
-     C_B = .2d0
-     C_IN = 2.5d0
-     C_IM = .4d0
-     nu = .8d0
-     beta = 1.7d0
-    else if (scenario%drydep_param == SCENARIO_DRYDEP_ZHANG) then
-     gamma = .56d0 ! LUC-dependent for Zhang.
-     C_B = 1.0d0
-     C_IN = .5d0
-     C_IM = 1.0d0
-     nu = 2.0d0
-     beta = 2.0d0
-    end if
+    drydep_params = scenario%drydep
+
+   !  ! Hardcoded meteorological variables and
+   !  ! parameterization-dependent LUC values.
+   !  z_ref = 20.0d0 ! Reference height
+   !  u_mean = 5.0d0 ! Mean wind speed at reference height
+   !  ! LUC 7 (crops, mixed farming) from Zhang et al., 2001
+   !  z_rough = .8d0
+   !  A = 2.0d0 / 1000.0d0
+   !  alpha = 1.0d0
+   !  eps_0 = 3.0d0
+
+   !  if (scenario%drydep_param == SCENARIO_DRYDEP_EMERSON) then
+   !   gamma = .56d0 ! LUC-dependent for Zhang.
+   !   C_B = .2d0
+   !   C_IN = 2.5d0
+   !   C_IM = .4d0
+   !   nu = .8d0
+   !   beta = 1.7d0
+   !  else if (scenario%drydep_param == SCENARIO_DRYDEP_ZHANG) then
+   !   gamma = .56d0 ! LUC-dependent for Zhang.
+   !   C_B = 1.0d0
+   !   C_IN = .5d0
+   !   C_IM = 1.0d0
+   !   nu = 2.0d0
+   !   beta = 2.0d0
+   !  end if
 
     ! particle diameter equal to geometric mean diameter
     d_pg = aero_mode%char_radius * 2.0d0
@@ -871,8 +908,8 @@ contains
     V_s = (density * d_p**2.0d0 * const%std_grav * cunning) / (18.0d0 * visc_d)
 
     ! Friction velocity and aerodynamic resistance
-    u_star = 0.4d0 * u_mean / log(z_ref / z_rough)
-    R_a = (1.0d0 / (0.4d0 * u_star)) * log(z_ref / z_rough)
+    u_star = 0.4d0 * drydep_params%u_mean / log(drydep_params%z_ref / drydep_params%z_rough)
+    R_a = (1.0d0 / (0.4d0 * u_star)) * log(drydep_params%z_ref / drydep_params%z_rough)
 
     ! Particle diffusivity and Schmidt number
     diff_p = (const%boltzmann * env_state%temp * cunning) / &
@@ -880,18 +917,18 @@ contains
     Sc = visc_k / diff_p
 
     ! Collection efficiencies
-    E_B = C_B * Sc**(-gamma)
-    E_IN = C_IN * (d_p / A)**nu
+    E_B = drydep_params%C_B * Sc**(-drydep_params%gamma)
+    E_IN = drydep_params%C_IN * (d_p / drydep_params%A)**drydep_params%nu
 
     ! Stokes number and impaction efficiency
-    St = (V_s * u_star) / (const%std_grav * A)
-    E_IM = C_IM * (St / (alpha + St))**beta
+    St = (V_s * u_star) / (const%std_grav * drydep_params%A)
+    E_IM = C_IM * (St / (drydep_params%alpha + St))**drydep_params%beta
 
     ! Rebound correction
     R1 = exp(-St**0.5d0)
 
     ! Surface resistance
-    R_s = 1.0d0 / (eps_0 * u_star * (E_B + E_IN + E_IM) * R1)
+    R_s = 1.0d0 / (drydep_params%eps_0 * u_star * (E_B + E_IN + E_IM) * R1)
 
     ! Deposition velocity
     V_d = V_s + (1.0d0 / (R_a + R_s))
@@ -1186,6 +1223,7 @@ contains
     character(len=PMC_MAX_FILENAME_LEN) :: sub_filename
     type(spec_file_t) :: sub_file
     character(len=SPEC_LINE_MAX_VAR_LEN) :: function_name
+    type(spec_line_t) :: line
 
     ! note that we have to hard-code the list for doxygen below
 
@@ -1290,15 +1328,27 @@ contains
        scenario%loss_function_type = SCENARIO_LOSS_FUNCTION_VOLUME
     else if (trim(function_name) == 'drydep') then
        scenario%loss_function_type = SCENARIO_LOSS_FUNCTION_DRYDEP
-       call spec_file_read_string(file, "dry_dep_param", function_name)
-       if (trim(function_name) == 'Zhang_2001') then
-          scenario%drydep_param = SCENARIO_DRYDEP_ZHANG
-       else if (trim(function_name) == 'Emerson_2020') then
-          scenario%drydep_param = SCENARIO_DRYDEP_EMERSON
-       else
-          call die_msg(395827406, "Unknown dry deposition parameterization: " &
-            // trim(function_name))
+       
+       call spec_file_read_line_no_eof(file, line)
+       call spec_file_unread_line(file)
+       if (line%name /= 'drydep_params') then
+          call warn_msg(735291468, "using default dry deposition parameters")
+       else 
+          call spec_file_read_string(file, 'drydep_params', sub_filename)
+          call spec_file_open(sub_filename, sub_file)
+          call spec_file_read_drydep_params(sub_file, scenario%drydep)
+          call spec_file_close(sub_file)
        end if
+   
+      !  call spec_file_read_string(file, "dry_dep_param", function_name)
+      !  if (trim(function_name) == 'Zhang_2001') then
+      !     scenario%drydep_param = SCENARIO_DRYDEP_ZHANG
+      !  else if (trim(function_name) == 'Emerson_2020') then
+      !     scenario%drydep_param = SCENARIO_DRYDEP_EMERSON
+      !  else
+      !     call die_msg(395827406, "Unknown dry deposition parameterization: " &
+      !       // trim(function_name))
+      !  end if
     else if (trim(function_name) == 'chamber') then
        scenario%loss_function_type = SCENARIO_LOSS_FUNCTION_CHAMBER
        call spec_file_read_chamber(file, scenario%chamber)
@@ -1412,32 +1462,62 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Output the dry deposition parameterization to NetCDF file.
-  subroutine scenario_output_drydep_param(scenario, ncid)
+  !> Read dry deposition parameters from a spec file.
+  subroutine spec_file_read_drydep_params(file, dry_dep_params)
 
-    !> Scenario data.
-    type(scenario_t), intent(in) :: scenario
-    !> NetCDF file ID, in data mode.
-    integer, intent(in) :: ncid
+    !> Spec file.
+    type(spec_file_t), intent(inout) :: file
+    !> Dry deposition parameters.
+    type(drydep_params_t), intent(inout) :: dry_dep_params
 
-    call pmc_nc_write_integer(ncid, scenario%drydep_param, &
-         "drydep_param")
+    !> \page input_format_chamber Input File Format: Dry Deposition Parameters
+    !!
+    !! Dry deposition is simulatied using the specified parameters:
+    !! - \b drydep_param (integer): flag for the dry deposition parameterization
+    !! - \b z_ref (real, unit m): the reference height \f$z_{\rm ref}\f$ used 
+    !!   in the calculation of aerodynamic resistance \f$R_a\f$
+    !! - \b u_mean (real, unit m s^{-1}): the wind speed at the reference
+    !!   height
+    !! - \b z_rough (real, unit m): the roughness length associated with 
+    !!   the surface
+    !! - \b A (real, unit m): the characteristic radius of collectors
+    !!   associated with the surface
+    !! - \b alpha (real, dimensionless): the parameter \f$\alpha\f$ used in the 
+    !!   calculation of impaction efficiency \f$E_{\rm IM}\f$
+    !! - \b eps_0 (real, dimensionless): the empirical constant used in the 
+    !!   calculation of surface resistance \f$R_s\f$
+    !! - \b gamma (real, dimensionless): the exponent \f$\gamma\f$ used in the
+    !!   calculation of Brownian diffusion collection efficiency \f$E_{\rm B}\f$
+    !! - \b C_B (real, dimensionless): the coefficient for Brownian diffusion
+    !!   collection efficiency \f$E_{\rm B}\f$
+    !! - \b C_IN (real, dimensionless): the coefficient for interception
+    !!   collection efficiency \f$E_{\rm IN}\f$
+    !! - \b C_IM (real, dimensionless): the coefficient for impaction collection
+    !!   efficiency \f$E_{\rm IM}\f$
+    !! - \b nu (real, dimensionless): the exponent \f$\nu\f$ used in the calculation
+    !!   of interception collection efficiency \f$E_{\rm IN}\f$
+    !! - \b beta (real, dimensionless): the exponent \f$\beta\f$ used in the
+    !!   calculation of impaction collection efficiency \f$E_{\rm IM}\f$
+    !!
+    !! See also:
+    !!   - \ref spec_file_format --- the input file text format
+    !!   - \ref input_format_scenario --- the prescribed profiles of
+    !!     other environment data
 
-  end subroutine scenario_output_drydep_param
+    call spec_file_read_real(file, "z_ref", dry_dep_params%z_ref)
+    call spec_file_read_real(file, "u_mean", dry_dep_params%u_mean)
+    call spec_file_read_real(file, "z_rough", dry_dep_params%z_rough)
+    call spec_file_read_real(file, "A", dry_dep_params%A)
+    call spec_file_read_real(file, "alpha", dry_dep_params%alpha)
+    call spec_file_read_real(file, "eps_0", dry_dep_params%eps_0)
+    call spec_file_read_real(file, "gamma", dry_dep_params%gamma)
+    call spec_file_read_real(file, "C_B", dry_dep_params%C_B)
+    call spec_file_read_real(file, "C_IN", dry_dep_params%C_IN)
+    call spec_file_read_real(file, "C_IM", dry_dep_params%C_IM)
+    call spec_file_read_real(file, "nu", dry_dep_params%nu)
+    call spec_file_read_real(file, "beta", dry_dep_params%beta)
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Input the dry deposition parameterization to NetCDF file.
-  subroutine scenario_input_drydep_param(scenario, ncid)
-
-    !> Scenario data.
-    type(scenario_t), intent(inout) :: scenario
-    !> NetCDF file ID, in data mode.
-    integer, intent(in) :: ncid
-
-    call pmc_nc_read_integer(ncid, scenario%drydep_param, "drydep_param")
-
-  end subroutine scenario_input_drydep_param
+   end subroutine spec_file_read_drydep_params
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

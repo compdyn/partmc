@@ -459,12 +459,12 @@ contains
     else if (scenario%loss_function_type == SCENARIO_LOSS_FUNCTION_DRYDEP) then
       ! loss
       do i_mode = 1,aero_dist_n_mode(aero_dist)
-          aero_mode = aero_dist%mode(i_mode)
-          N = aero_mode%num_conc
+       aero_mode = aero_dist%mode(i_mode)
+       N = aero_mode%num_conc
 
-          if (N == 0d0) then
-             cycle
-          end if
+       if (N == 0d0) then
+          cycle
+       end if
 
        d_pg = aero_mode%char_radius * 2.0d0
        ln_sigma_g = aero_mode%log10_std_dev_radius / log10(exp(1.0d0))
@@ -484,7 +484,7 @@ contains
 
        ! Integrated deposition rate for the 3-rd moment (proportional to volume conc.)
        m_3_rate = -1.0d0 * scenario_integrated_loss_rate_dry_dep(scenario, aero_mode, 3.0d0, &
-          density, env_state)
+                                                                 density, env_state)
        M = N * d_pg**3.0d0 * exp((3.0d0**2.0d0)/2.0d0 * (ln_sigma_g**2.0d0))
        new_M = M * exp(m_3_rate * del_t)
 
@@ -568,25 +568,13 @@ contains
     real(kind=dp) :: knud, cunning
     real(kind=dp) :: grav
     real(kind=dp) :: R_s, R_a
-   !  real(kind=dp) :: alpha, beta, gamma, A, eps_0
     real(kind=dp) :: diff_p
     real(kind=dp) :: von_karman
     real(kind=dp) :: St, Sc, u_star
     real(kind=dp) :: E_B, E_IM, E_IN, R1
-   !  real(kind=dp) :: u_mean, z_ref, z_rough
     type(drydep_params_t) :: drydep_params
 
     drydep_params = scenario%drydep
-
-   !  ! User set variables
-   !  u_mean = 5.0d0 ! Mean wind speed at reference height
-   !  z_ref =  20.0d0 ! Reference height
-   !  ! Setting for LUC = 7, SC = 1 - See Table 3
-   !  z_rough = .1d0 ! According to land category
-   !  A = 2.0d0 / 1000.0d0 ! Dependent on land type
-   !  alpha = 1.2d0 ! From table
-   !  beta = 2.0d0 ! From text
-   !  gamma = .54d0 ! From table
 
     ! particle diameter
     d_p = aero_data_vol2diam(aero_data, vol)
@@ -670,13 +658,11 @@ contains
     real(kind=dp) :: visc_d, visc_k
     real(kind=dp) :: gas_speed, gas_mean_free_path
     real(kind=dp) :: knud
-   !  real(kind=dp) :: alpha, beta, gamma, A, eps_0, nu
     real(kind=dp) :: D_bar, D_hat
     real(kind=dp) :: St, Sc
     real(kind=dp) :: u_star
     real(kind=dp) :: R_a, R_s
     real(kind=dp) :: E_B, E_IN, E_IM, R1
-   !  real(kind=dp) :: C_B, C_IN, C_IM
     type(drydep_params_t) :: drydep_params
 
 #ifdef PMC_USE_QUADPACK
@@ -686,37 +672,7 @@ contains
      return
 #endif
 
-   !  ! Hardcoded meteorological variables and
-   !  ! parameterization-dependent LUC values.
-   !  z_ref = 20.0d0 ! Reference height
-   !  u_mean = 5.0d0 ! Mean wind speed at reference height
-   !  ! LUC 7 (crops, mixed farming) from Zhang et al., 2001
-   !  z_rough = .8d0
-   !  A = 2.0d0 / 1000.0d0
-   !  alpha = 1.0d0
-   !  eps_0 = 3.0d0
-
-   !  if (scenario%drydep_param == SCENARIO_DRYDEP_EMERSON) then
-   !     gamma = .56d0 ! LUC-dependent for Zhang.
-   !   C_B = .2d0
-   !   C_IN = 2.5d0
-   !   C_IM = .4d0
-   !   nu = .8d0
-   !   beta = 1.7d0
-   !  else if (scenario%drydep_param == SCENARIO_DRYDEP_ZHANG) then
-   !   gamma = .56d0 ! LUC-dependent for Zhang.
-   !   C_B = 1.0d0
-   !   C_IN = .5d0
-   !   C_IM = 1.0d0
-   !   nu = 2.0d0
-   !   beta = 2.0d0
-   !  end if
     drydep_params = scenario%drydep
-
-    print*, drydep_params%z_ref, drydep_params%u_mean, drydep_params%z_rough, &
-            drydep_params%A, drydep_params%alpha, drydep_params%eps_0, &
-            drydep_params%gamma, drydep_params%C_B, drydep_params%C_IN, &
-            drydep_params%C_IM, drydep_params%nu, drydep_params%beta
 
     ! particle diameter equal to geometric mean diameter
     d_pg = aero_mode%char_radius * 2.0d0
@@ -811,32 +767,6 @@ contains
     type(drydep_params_t) :: drydep_params
 
     drydep_params = scenario%drydep
-
-   !  ! Hardcoded meteorological variables and
-   !  ! parameterization-dependent LUC values.
-   !  z_ref = 20.0d0 ! Reference height
-   !  u_mean = 5.0d0 ! Mean wind speed at reference height
-   !  ! LUC 7 (crops, mixed farming) from Zhang et al., 2001
-   !  z_rough = .8d0
-   !  A = 2.0d0 / 1000.0d0
-   !  alpha = 1.0d0
-   !  eps_0 = 3.0d0
-
-   !  if (scenario%drydep_param == SCENARIO_DRYDEP_EMERSON) then
-   !   gamma = .56d0 ! LUC-dependent for Zhang.
-   !   C_B = .2d0
-   !   C_IN = 2.5d0
-   !   C_IM = .4d0
-   !   nu = .8d0
-   !   beta = 1.7d0
-   !  else if (scenario%drydep_param == SCENARIO_DRYDEP_ZHANG) then
-   !   gamma = .56d0 ! LUC-dependent for Zhang.
-   !   C_B = 1.0d0
-   !   C_IN = .5d0
-   !   C_IM = 1.0d0
-   !   nu = 2.0d0
-   !   beta = 2.0d0
-   !  end if
 
     ! particle diameter equal to geometric mean diameter
     d_pg = aero_mode%char_radius * 2.0d0
@@ -947,7 +877,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Updates a given array to contain the integrated deposition rates for the
+  !> Updates an array to contain the integrated deposition rates for the
   !> given moment of each aerosol mode in the distribution.
   subroutine scenario_modal_dry_dep_rates(scenario, aero_dist, moment, &
       density, env_state, rates)
@@ -1328,7 +1258,6 @@ contains
        scenario%loss_function_type = SCENARIO_LOSS_FUNCTION_VOLUME
     else if (trim(function_name) == 'drydep') then
        scenario%loss_function_type = SCENARIO_LOSS_FUNCTION_DRYDEP
-       
        call spec_file_read_line_no_eof(file, line)
        call spec_file_unread_line(file)
        if (line%name /= 'drydep_params') then
@@ -1339,16 +1268,6 @@ contains
           call spec_file_read_drydep_params(sub_file, scenario%drydep)
           call spec_file_close(sub_file)
        end if
-   
-      !  call spec_file_read_string(file, "dry_dep_param", function_name)
-      !  if (trim(function_name) == 'Zhang_2001') then
-      !     scenario%drydep_param = SCENARIO_DRYDEP_ZHANG
-      !  else if (trim(function_name) == 'Emerson_2020') then
-      !     scenario%drydep_param = SCENARIO_DRYDEP_EMERSON
-      !  else
-      !     call die_msg(395827406, "Unknown dry deposition parameterization: " &
-      !       // trim(function_name))
-      !  end if
     else if (trim(function_name) == 'chamber') then
        scenario%loss_function_type = SCENARIO_LOSS_FUNCTION_CHAMBER
        call spec_file_read_chamber(file, scenario%chamber)

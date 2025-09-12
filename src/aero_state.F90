@@ -1347,6 +1347,33 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Returns the frozen fraction (unitless) for whole aerosol population..
+  !> frozen fraction = number concentration of frozen particles /
+  !> total number concentration.
+  real(kind=dp) function aero_state_frozen_fraction(aero_state, aero_data)
+    !> Aerosol state.
+    type(aero_state_t), intent(in) :: aero_state
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+
+    real(kind=dp) :: particle_num_concs(aero_state_n_part(aero_state))
+    logical :: particle_frozen(aero_state_n_part(aero_state))
+
+    integer :: i_part
+
+    particle_num_concs = aero_state_num_concs(aero_state, aero_data)
+
+    do i_part = 1,aero_state_n_part(aero_state)
+       particle_frozen(i_part) = aero_state%apa%particle(i_part)%frozen
+    end do
+
+    aero_state_frozen_fraction = sum(pack(particle_num_concs, particle_frozen)) &
+         / sum(particle_num_concs)
+
+  end function aero_state_frozen_fraction
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Returns the number concentration of a given weight group and class.
   real(kind=dp) function aero_state_group_class_num_conc(aero_state, &
        aero_data, i_group, i_class)
@@ -2643,6 +2670,10 @@ contains
     integer :: aero_water_hyst_leg(aero_state_n_part(aero_state))
     real(kind=dp) :: aero_num_conc(aero_state_n_part(aero_state))
     integer(kind=8) :: aero_id(aero_state_n_part(aero_state))
+    integer :: aero_frozen(aero_state_n_part(aero_state))
+    real(kind=dp) :: aero_imf_temperature(aero_state_n_part(aero_state))
+    real(kind=dp) :: aero_ice_density(aero_state_n_part(aero_state))
+    real(kind=dp) :: aero_ice_shape_phi(aero_state_n_part(aero_state))
     real(kind=dp) :: aero_least_create_time(aero_state_n_part(aero_state))
     real(kind=dp) :: aero_greatest_create_time(aero_state_n_part(aero_state))
     integer(kind=8) :: aero_removed_id( &
@@ -2802,6 +2833,16 @@ contains
                = aero_state_particle_num_conc(aero_state, &
                aero_state%apa%particle(i_part), aero_data)
           aero_id(i_part) = aero_state%apa%particle(i_part)%id
+          if (aero_state%apa%particle(i_part)%frozen) then
+             aero_frozen(i_part) = 1
+          else
+             aero_frozen(i_part) = 0
+          end if
+          aero_imf_temperature(i_part) &
+               = aero_state%apa%particle(i_part)%imf_temperature
+          aero_ice_density(i_part) = aero_state%apa%particle(i_part)%den_ice
+          aero_ice_shape_phi(i_part) &
+               = aero_state%apa%particle(i_part)%ice_shape_phi
           aero_least_create_time(i_part) &
                = aero_state%apa%particle(i_part)%least_create_time
           aero_greatest_create_time(i_part) &
@@ -2863,6 +2904,18 @@ contains
        call pmc_nc_write_integer64_1d(ncid, aero_id, &
             "aero_id", (/ dimid_aero_particle /), &
             long_name="unique ID number of each aerosol particle")
+       call pmc_nc_write_integer_1d(ncid, aero_frozen, &
+               "aero_frozen", (/ dimid_aero_particle /), &
+               long_name="flag indicating ice phase of each aerosol particle")
+       call pmc_nc_write_real_1d(ncid, aero_imf_temperature, &
+               "aero_imf_temperature", (/ dimid_aero_particle /), &
+               long_name="immersion freezing temperature (Singular)")
+       call pmc_nc_write_real_1d(ncid, aero_ice_density, &
+               "aero_ice_density", (/ dimid_aero_particle /), &
+               long_name="Ice density if the particle nucleates to ice, -9999 indicates the particle is not an ice.")
+       call pmc_nc_write_real_1d(ncid, aero_ice_shape_phi, &
+               "aero_ice_shape_phi", (/ dimid_aero_particle /), &
+               long_name="Ice shape parameter phi")
        call pmc_nc_write_real_1d(ncid, aero_least_create_time, &
             "aero_least_create_time", (/ dimid_aero_particle /), unit="s", &
             long_name="least creation time of each aerosol particle", &
@@ -3057,6 +3110,10 @@ contains
     real(kind=dp), allocatable :: aero_core_vol(:)
     integer, allocatable :: aero_water_hyst_leg(:)
     real(kind=dp), allocatable :: aero_num_conc(:)
+    integer, allocatable :: aero_frozen(:)
+    real(kind=dp), allocatable :: aero_imf_temperature(:)
+    real(kind=dp), allocatable :: aero_ice_density(:)
+    real(kind=dp), allocatable :: aero_ice_shape_phi(:)
     integer(kind=8), allocatable :: aero_id(:)
     real(kind=dp), allocatable :: aero_least_create_time(:)
     real(kind=dp), allocatable :: aero_greatest_create_time(:)
@@ -3123,6 +3180,14 @@ contains
          "aero_num_conc")
     call pmc_nc_read_integer64_1d(ncid, aero_id, &
          "aero_id")
+    call pmc_nc_read_integer_1d(ncid, aero_frozen, &
+         "aero_frozen")
+    call pmc_nc_read_real_1d(ncid, aero_imf_temperature, &
+         "aero_imf_temperature")
+    call pmc_nc_read_real_1d(ncid, aero_ice_density, &
+         "aero_ice_density", must_be_present=.true.)
+    call pmc_nc_read_real_1d(ncid, aero_ice_shape_phi, &
+         "aero_ice_shape_phi", must_be_present=.true.)
     call pmc_nc_read_real_1d(ncid, aero_least_create_time, &
          "aero_least_create_time")
     call pmc_nc_read_real_1d(ncid, aero_greatest_create_time, &
@@ -3174,6 +3239,14 @@ contains
        end if
        aero_particle%water_hyst_leg = aero_water_hyst_leg(i_part)
        aero_particle%id = aero_id(i_part)
+       if (aero_frozen(i_part) == 1) then
+          aero_particle%frozen = .true.
+       else
+          aero_particle%frozen = .false.
+       end if
+       aero_particle%imf_temperature = aero_imf_temperature(i_part)
+       aero_particle%den_ice = aero_ice_density(i_part)
+       aero_particle%ice_shape_phi = aero_ice_shape_phi(i_part)
        aero_particle%least_create_time = aero_least_create_time(i_part)
        aero_particle%greatest_create_time = aero_greatest_create_time(i_part)
 

@@ -56,6 +56,14 @@ module pmc_aero_particle
      real(kind=dp) :: least_create_time
      !> Last time a constituent was created (s).
      real(kind=dp) :: greatest_create_time
+     !> Ice-phase flag.
+     logical :: frozen
+     !> Immersion freezing temperature (K).
+     real(kind=dp) :: imf_temperature
+     !> Ice density (kg m^{-3}).
+     real(kind=dp) :: den_ice
+     !> Ice shape.
+     real(kind=dp) :: ice_shape_phi
      !> True number of primary particles contributing to particle.
      integer :: n_primary_parts
   end type aero_particle_t
@@ -96,6 +104,10 @@ contains
     aero_particle_to%least_create_time = aero_particle_from%least_create_time
     aero_particle_to%greatest_create_time = &
          aero_particle_from%greatest_create_time
+    aero_particle_to%frozen = aero_particle_from%frozen
+    aero_particle_to%imf_temperature = aero_particle_from%imf_temperature
+    aero_particle_to%den_ice = aero_particle_from%den_ice
+    aero_particle_to%ice_shape_phi = aero_particle_from%ice_shape_phi
     aero_particle_to%n_primary_parts = aero_particle_from%n_primary_parts
 
   end subroutine aero_particle_shift
@@ -131,6 +143,10 @@ contains
     allocate(aero_particle%component(0))
     aero_particle%least_create_time = 0d0
     aero_particle%greatest_create_time = 0d0
+    aero_particle%frozen = .false.
+    aero_particle%imf_temperature = 0d0
+    aero_particle%den_ice = const%nan
+    aero_particle%ice_shape_phi = const%nan
     aero_particle%n_primary_parts = 0
 
   end subroutine aero_particle_zero
@@ -899,15 +915,19 @@ contains
   !> Coagulate two particles together to make a new one. The new
   !> particle will not have its ID set.
   subroutine aero_particle_coagulate(aero_particle_1, &
-       aero_particle_2, aero_particle_new)
+       aero_particle_2, aero_particle_new, aero_data)
 
     !> First particle.
     type(aero_particle_t), intent(in) :: aero_particle_1
     !> Second particle.
     type(aero_particle_t), intent(in) :: aero_particle_2
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
     !> Result particle.
     type(aero_particle_t), intent(inout) :: aero_particle_new
 
+
+    real(kind=dp) :: ice_vol_1, ice_vol_2
     integer :: n_comp_1, n_comp_2, n_comp_1_new, n_comp_2_new, i
     type(aero_component_t), allocatable :: new_aero_component(:)
     integer :: n_swbands
@@ -977,6 +997,35 @@ contains
     aero_particle_new%greatest_create_time = &
          max(aero_particle_1%greatest_create_time, &
          aero_particle_2%greatest_create_time)
+    aero_particle_new%frozen = aero_particle_1%frozen .OR. &
+            aero_particle_2%frozen
+
+    ! Assumption: If two particles coagulate, the overall freezing temperature
+    ! is determined by the particle with higher freezing temperature.
+    aero_particle_new%imf_temperature = max(aero_particle_1%imf_temperature, &
+            aero_particle_2%imf_temperature)
+
+    if (aero_particle_new%frozen) then
+       ice_vol_1 = aero_particle_1%vol(aero_data%i_water)
+       ice_vol_2 = aero_particle_2%vol(aero_data%i_water)
+
+       if (aero_particle_1%frozen .and. aero_particle_2%frozen) then
+          ice_vol_1 = aero_particle_1%vol(aero_data%i_water) * &
+               const%water_density / aero_particle_1%den_ice
+          ice_vol_2 = aero_particle_2%vol(aero_data%i_water) * &
+               const%water_density / aero_particle_2%den_ice
+          aero_particle_new%den_ice = (aero_particle_1%den_ice * ice_vol_1 + &
+               aero_particle_2%den_ice * ice_vol_2) / (ice_vol_1 + ice_vol_2)
+       else if(aero_particle_1%frozen) then
+          aero_particle_new%den_ice = aero_particle_1%den_ice
+       else
+          aero_particle_new%den_ice = aero_particle_2%den_ice
+       end if
+       aero_particle_new%ice_shape_phi = 1d0
+    else
+       aero_particle_new%den_ice = const%nan
+    end if
+
 
     aero_particle_new%n_primary_parts = aero_particle_1%n_primary_parts &
          + aero_particle_2%n_primary_parts
@@ -1024,6 +1073,10 @@ contains
          + pmc_mpi_pack_size_integer(aero_particle_n_components(val)) &
          + pmc_mpi_pack_size_real(val%least_create_time) &
          + pmc_mpi_pack_size_real(val%greatest_create_time) &
+         + pmc_mpi_pack_size_logical(val%frozen) &
+         + pmc_mpi_pack_size_real(val%imf_temperature) &
+         + pmc_mpi_pack_size_real(val%den_ice) &
+         + pmc_mpi_pack_size_real(val%ice_shape_phi) &
          + pmc_mpi_pack_size_integer(val%n_primary_parts)
 
     do i = 1,aero_particle_n_components(val)
@@ -1067,6 +1120,10 @@ contains
     end do
     call pmc_mpi_pack_real(buffer, position, val%least_create_time)
     call pmc_mpi_pack_real(buffer, position, val%greatest_create_time)
+    call pmc_mpi_pack_logical(buffer, position, val%frozen)
+    call pmc_mpi_pack_real(buffer, position, val%imf_temperature)
+    call pmc_mpi_pack_real(buffer, position, val%den_ice)
+    call pmc_mpi_pack_real(buffer, position, val%ice_shape_phi)
     call pmc_mpi_pack_integer(buffer, position, val%n_primary_parts)
     call assert(810223998, position - prev_position &
          <= pmc_mpi_pack_size_aero_particle(val))
@@ -1110,6 +1167,10 @@ contains
     end do
     call pmc_mpi_unpack_real(buffer, position, val%least_create_time)
     call pmc_mpi_unpack_real(buffer, position, val%greatest_create_time)
+    call pmc_mpi_unpack_logical(buffer, position, val%frozen)
+    call pmc_mpi_unpack_real(buffer, position, val%imf_temperature)
+    call pmc_mpi_unpack_real(buffer, position, val%den_ice)
+    call pmc_mpi_unpack_real(buffer, position, val%ice_shape_phi)
     call pmc_mpi_unpack_integer(buffer, position, val%n_primary_parts)
     call assert(287447241, position - prev_position &
          <= pmc_mpi_pack_size_aero_particle(val))

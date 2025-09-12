@@ -25,3 +25,4 @@ scenarios/4_chamber/out
 scenarios/5_coag_brownian/out
 !scenarios/6_camp
 scenarios/6_camp/out
+!scenarios/7_freezing

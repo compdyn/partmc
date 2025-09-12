@@ -1,4 +1,4 @@
 #     dens (kg/m^3)   ions in soln (1)    molec wght (kg/mole)   kappa (1)
-SI            10000                0                   18d-3      0
-SB              100                0                   18d-3      0
-SE             1500                0                   18d-3      0
+SI            10000                0                   18d-3      0        0 0
+SB              100                0                   18d-3      0        0 0
+SE             1500                0                   18d-3      0        0 0

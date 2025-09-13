@@ -1464,6 +1464,7 @@ contains
          + pmc_mpi_pack_size_real_array(val%aero_dilution_time) &
          + pmc_mpi_pack_size_real_array(val%aero_dilution_rate) &
          + pmc_mpi_pack_size_integer(val%loss_function_type) &
+         + pmc_mpi_pack_size_drydep(val%drydep) &
          + pmc_mpi_pack_size_chamber(val%chamber)
     if (allocated(val%gas_emission_time)) then
        do i = 1,size(val%gas_emission)
@@ -1526,6 +1527,7 @@ contains
     call pmc_mpi_pack_real_array(buffer, position, val%aero_dilution_time)
     call pmc_mpi_pack_real_array(buffer, position, val%aero_dilution_rate)
     call pmc_mpi_pack_integer(buffer, position, val%loss_function_type)
+    call pmc_mpi_pack_drydep(buffer, position, val%drydep)
     call pmc_mpi_pack_chamber(buffer, position, val%chamber)
     if (allocated(val%gas_emission_time)) then
        do i = 1,size(val%gas_emission)
@@ -1586,6 +1588,7 @@ contains
     call pmc_mpi_unpack_real_array(buffer, position, val%aero_dilution_time)
     call pmc_mpi_unpack_real_array(buffer, position, val%aero_dilution_rate)
     call pmc_mpi_unpack_integer(buffer, position, val%loss_function_type)
+    call pmc_mpi_unpack_drydep(buffer, position, val%drydep)
     call pmc_mpi_unpack_chamber(buffer, position, val%chamber)
     if (allocated(val%gas_emission)) deallocate(val%gas_emission)
     if (allocated(val%gas_background)) deallocate(val%gas_background)
@@ -1622,6 +1625,100 @@ contains
 #endif
 
   end subroutine pmc_mpi_unpack_scenario
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Determines the number of bytes required to pack the given value.
+  integer function pmc_mpi_pack_size_drydep(val)
+
+    !> Value to pack.
+    type(drydep_params_t), intent(in) :: val
+
+    integer :: total_size, i, N
+
+    pmc_mpi_pack_size_drydep = &
+         pmc_mpi_pack_size_real(val%z_ref) &
+         + pmc_mpi_pack_size_real(val%u_mean) &
+         + pmc_mpi_pack_size_real(val%z_rough) &
+         + pmc_mpi_pack_size_real(val%A) &
+         + pmc_mpi_pack_size_real(val%alpha) &
+         + pmc_mpi_pack_size_real(val%eps_0) &
+         + pmc_mpi_pack_size_real(val%gamma) &
+         + pmc_mpi_pack_size_real(val%C_B) &
+         + pmc_mpi_pack_size_real(val%C_IN) &
+         + pmc_mpi_pack_size_real(val%C_IM) &
+         + pmc_mpi_pack_size_real(val%nu) &
+         + pmc_mpi_pack_size_real(val%beta)
+
+   end function pmc_mpi_pack_size_drydep
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Packs the given value into the buffer, advancing position.
+  subroutine pmc_mpi_pack_drydep(buffer, position, val)
+
+    !> Memory buffer.
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position.
+    integer, intent(inout) :: position
+    !> Value to pack.
+    type(drydep_params_t), intent(in) :: val
+
+#ifdef PMC_USE_MPI
+      integer :: prev_position
+
+      prev_position = position
+      call pmc_mpi_pack_real(buffer, position, val%z_ref)
+      call pmc_mpi_pack_real(buffer, position, val%u_mean)
+      call pmc_mpi_pack_real(buffer, position, val%z_rough)
+      call pmc_mpi_pack_real(buffer, position, val%A)
+      call pmc_mpi_pack_real(buffer, position, val%alpha)
+      call pmc_mpi_pack_real(buffer, position, val%eps_0)
+      call pmc_mpi_pack_real(buffer, position, val%gamma)
+      call pmc_mpi_pack_real(buffer, position, val%C_B)
+      call pmc_mpi_pack_real(buffer, position, val%C_IN)
+      call pmc_mpi_pack_real(buffer, position, val%C_IM)
+      call pmc_mpi_pack_real(buffer, position, val%nu)
+      call pmc_mpi_pack_real(buffer, position, val%beta)
+      call assert(371592468, &
+            position - prev_position <= pmc_mpi_pack_size_drydep(val))
+#endif
+
+   end subroutine pmc_mpi_pack_drydep
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Unpacks the given value from the buffer, advancing position.
+  subroutine pmc_mpi_unpack_drydep(buffer, position, val)
+
+    !> Memory buffer.
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position.
+    integer, intent(inout) :: position
+    !> Value to pack.
+    type(drydep_params_t), intent(inout) :: val
+
+#ifdef PMC_USE_MPI
+      integer :: prev_position
+
+    prev_position = position
+    call pmc_mpi_unpack_real(buffer, position, val%z_ref)
+    call pmc_mpi_unpack_real(buffer, position, val%u_mean)
+    call pmc_mpi_unpack_real(buffer, position, val%z_rough)
+    call pmc_mpi_unpack_real(buffer, position, val%A)
+    call pmc_mpi_unpack_real(buffer, position, val%alpha)
+    call pmc_mpi_unpack_real(buffer, position, val%eps_0)
+    call pmc_mpi_unpack_real(buffer, position, val%gamma)
+    call pmc_mpi_unpack_real(buffer, position, val%C_B)
+    call pmc_mpi_unpack_real(buffer, position, val%C_IN)
+    call pmc_mpi_unpack_real(buffer, position, val%C_IM)
+    call pmc_mpi_unpack_real(buffer, position, val%nu)
+    call pmc_mpi_unpack_real(buffer, position, val%beta)
+    call assert(582741936, &
+          position - prev_position <= pmc_mpi_pack_size_drydep(val))
+#endif
+
+  end subroutine pmc_mpi_unpack_drydep
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

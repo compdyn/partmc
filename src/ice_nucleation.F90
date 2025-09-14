@@ -79,28 +79,28 @@ contains
 
   !> Initialization for the sigular scheme, sampling the freezing temperature
   !> for each particles.
-  subroutine ice_nucleation_singular_initialize(aero_state, aero_data)
-
+  subroutine ice_nucleation_singular_initialize(aero_state, aero_data, &
+       INAS_a, INAS_b)
+    implicit none
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
+    real(kind=dp), intent(in) :: INAS_a, INAS_b
 
     integer :: i_part
-    real(kind=dp) :: a_INAS, b_INAS, p, S, T0, temp
+    real(kind=dp) :: p, S, T0, temp
     real(kind=dp) :: aerosol_diameter
 
     T0 = const%water_freeze_temp
-    a_INAS = -0.517
-    b_INAS = 8.934
     do i_part = 1, aero_state_n_part(aero_state)
        aerosol_diameter = aero_particle_dry_diameter( &
             aero_state%apa%particle(i_part), aero_data)
        S = const%pi * aerosol_diameter **2
        p = pmc_random()
-       temp = (log(1 - p) + exp(-S * exp(-a_INAS * T0 + b_INAS))) / (-S)
+       temp = (log(1 - p) + exp(-S * exp(-INAS_a * T0 + INAS_b))) / (-S)
        aero_state%apa%particle(i_part)%imf_temperature = T0 + (log(temp) &
-          - b_INAS) / a_INAS
+          - INAS_b) / INAS_a
     end do
   end subroutine ice_nucleation_singular_initialize
 

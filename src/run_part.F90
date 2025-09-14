@@ -74,6 +74,9 @@ module pmc_run_part
      logical :: do_immersion_freezing
      !> The immersion freezing scheme options.
      integer :: immersion_freezing_scheme_type
+     !> The INAS parameters for "singular" scheme.
+     real(kind=dp) :: INAS_a
+     real(kind=dp) :: INAS_b
      !> The freezing rate parameter for "const" scheme.
      real(kind=dp) :: freezing_rate
      !> Allow doubling if needed.
@@ -243,7 +246,8 @@ contains
     if (run_part_opt%do_immersion_freezing .and. &
          (run_part_opt%immersion_freezing_scheme_type .eq. &
          IMMERSION_FREEZING_SCHEME_SINGULAR)) then
-       call ice_nucleation_singular_initialize(aero_state, aero_data)
+       call ice_nucleation_singular_initialize(aero_state, aero_data, &
+               run_part_opt%INAS_a, run_part_opt%INAS_b)
     end if
 
     i_cur = 1
@@ -330,6 +334,8 @@ contains
          + pmc_mpi_pack_size_logical(val%do_nucleation) &
          + pmc_mpi_pack_size_logical(val%do_immersion_freezing) &
          + pmc_mpi_pack_size_integer(val%immersion_freezing_scheme_type) &
+         + pmc_mpi_pack_size_real(val%INAS_a) &
+         + pmc_mpi_pack_size_real(val%INAS_b) &
          + pmc_mpi_pack_size_real(val%freezing_rate) &
          + pmc_mpi_pack_size_logical(val%allow_doubling) &
          + pmc_mpi_pack_size_logical(val%allow_halving) &
@@ -385,6 +391,9 @@ contains
     call pmc_mpi_pack_logical(buffer, position, val%do_immersion_freezing)
     call pmc_mpi_pack_integer(buffer, position, &
             val%immersion_freezing_scheme_type)
+
+    call pmc_mpi_pack_real(buffer, position, val%INAS_a)
+    call pmc_mpi_pack_real(buffer, position, val%INAS_b)
     call pmc_mpi_pack_real(buffer, position, val%freezing_rate)
     call pmc_mpi_pack_logical(buffer, position, val%allow_doubling)
     call pmc_mpi_pack_logical(buffer, position, val%allow_halving)
@@ -442,6 +451,8 @@ contains
     call pmc_mpi_unpack_logical(buffer, position, val%do_nucleation)
     call pmc_mpi_unpack_logical(buffer, position, val%do_immersion_freezing)
     call pmc_mpi_unpack_integer(buffer, position, val%immersion_freezing_scheme_type)
+    call pmc_mpi_unpack_real(buffer, position, val%INAS_a)
+    call pmc_mpi_unpack_real(buffer, position, val%INAS_b)
     call pmc_mpi_unpack_real(buffer, position, val%freezing_rate)
     call pmc_mpi_unpack_logical(buffer, position, val%allow_doubling)
     call pmc_mpi_unpack_logical(buffer, position, val%allow_halving)
@@ -714,7 +725,8 @@ contains
 
        else if (run_part_opt%immersion_freezing_scheme_type .eq.&
             IMMERSION_FREEZING_SCHEME_SINGULAR) then
-          continue
+          call spec_file_read_real(file, 'INAS_a', run_part_opt%INAS_a)
+          call spec_file_read_real(file, 'INAS_b', run_part_opt%INAS_b)
        else
           call assert_msg(121370299, .false., &
                "Error type of immersion freezing scheme")

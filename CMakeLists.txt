@@ -433,10 +433,11 @@ add_executable(chamber_process
 target_link_libraries(chamber_process partmclib)
 
 ######################################################################
-# scenarios/7_dry_dep/dry_dep_modal_process
+# scenarios/7_drydep/drydep_modal_process
 
-# add_executable(dry_dep_modal_process
-#   scenarios/7_dry_dep/dry_dep_modal_process.F90)
-# target_link_libraries(dry_dep_modal_process partmclib)
+add_executable(drydep_modal_process
+  scenarios/7_drydep/drydep_modal_process.F90
+  scenarios/7_drydep/drydep_modal_process.F90)
+target_link_libraries(drydep_modal_process partmclib)
 
 ######################################################################

@@ -470,7 +470,7 @@ contains
        ln_sigma_g = aero_mode%log10_std_dev_radius / log10(exp(1.0d0))
 
        ! Integrated deposition rate for the 0-th moment (num. conc.)
-       m_0_rate = -1.0d0 * scenario_integrated_loss_rate_dry_dep(scenario, aero_mode, &
+       m_0_rate = -1.0d0 * scenario_integrated_loss_rate_drydep(scenario, aero_mode, &
                    0.0d0, density, env_state)
        new_N = N * exp(m_0_rate * del_t)
 
@@ -483,7 +483,7 @@ contains
        aero_dist%mode(i_mode)%num_conc = new_N
 
        ! Integrated deposition rate for the 3-rd moment (proportional to volume conc.)
-       m_3_rate = -1.0d0 * scenario_integrated_loss_rate_dry_dep(scenario, aero_mode, 3.0d0, &
+       m_3_rate = -1.0d0 * scenario_integrated_loss_rate_drydep(scenario, aero_mode, 3.0d0, &
                                                                  density, env_state)
        M = N * d_pg**3.0d0 * exp((3.0d0**2.0d0)/2.0d0 * (ln_sigma_g**2.0d0))
        new_M = M * exp(m_3_rate * del_t)
@@ -525,7 +525,7 @@ contains
        scenario_loss_rate = 1d15*vol
     else if (scenario%loss_function_type == SCENARIO_LOSS_FUNCTION_DRYDEP) &
          then
-       scenario_loss_rate = scenario_loss_rate_dry_dep(vol, density, &
+       scenario_loss_rate = scenario_loss_rate_drydep(vol, density, &
             aero_data, env_state, scenario)
     else if (scenario%loss_function_type == SCENARIO_LOSS_FUNCTION_CHAMBER) &
          then
@@ -545,7 +545,7 @@ contains
   !> Compute and return the dry deposition rate for a given particle.
   !! All equations used here are written in detail in the file
   !! \c doc/deposition/deposition.tex.
-  real(kind=dp) function scenario_loss_rate_dry_dep(vol, density, aero_data, &
+  real(kind=dp) function scenario_loss_rate_drydep(vol, density, aero_data, &
       env_state, scenario)
 
     !> Particle volume (m^3).
@@ -629,15 +629,15 @@ contains
     V_d = V_s + (1.0d0 / (R_a + R_s + R_a * R_s * V_s))
 
     ! The loss rate
-    scenario_loss_rate_dry_dep = V_d / env_state%height
+    scenario_loss_rate_drydep = V_d / env_state%height
 
-  end function scenario_loss_rate_dry_dep
+  end function scenario_loss_rate_drydep
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Compute and return the integrated dry deposition rate for a given
   !> lognormal aerosol mode (modal approximation).
-  real(kind=dp) function scenario_integrated_loss_rate_dry_dep(scenario, &
+  real(kind=dp) function scenario_integrated_loss_rate_drydep(scenario, &
       aero_mode, moment, density, env_state)
 
     !> Scenario data.
@@ -667,7 +667,7 @@ contains
 
 #ifdef PMC_USE_QUADPACK
      ! Do numerical integration when QUADPACK is available
-     scenario_integrated_loss_rate_dry_dep = scenario_integrated_loss_rate_dry_dep_quadpack( &
+     scenario_integrated_loss_rate_drydep = scenario_integrated_loss_rate_drydep_quadpack( &
                                               scenario, aero_mode, moment, density, env_state)
      return
 #endif
@@ -732,14 +732,14 @@ contains
     V_d_hat = V_g_hat + (1.0d0 / (R_a + R_s))
 
     ! Loss rate
-    scenario_integrated_loss_rate_dry_dep = V_d_hat / env_state%height
+    scenario_integrated_loss_rate_drydep = V_d_hat / env_state%height
 
-  end function scenario_integrated_loss_rate_dry_dep
+  end function scenario_integrated_loss_rate_drydep
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 #ifdef PMC_USE_QUADPACK
-  real(kind=dp) function scenario_integrated_loss_rate_dry_dep_quadpack(scenario, &
+  real(kind=dp) function scenario_integrated_loss_rate_drydep_quadpack(scenario, &
       aero_mode, moment, density, env_state)
 
     !> Scenario data.
@@ -810,7 +810,7 @@ contains
     M_k = d_pg**moment * exp(moment**2 * ln_sigma_g**2 / 2.0d0)
 
     ! Integration result
-    scenario_integrated_loss_rate_dry_dep_quadpack = 1.0d0 / M_k * result / env_state%height
+    scenario_integrated_loss_rate_drydep_quadpack = 1.0d0 / M_k * result / env_state%height
 
     ! Clean up
     deallocate(alist, blist, rlist, elist, iord)
@@ -872,14 +872,14 @@ contains
      ! Final integrand
      dep_vel_integrand = d_p**moment * V_d * n_ddp
   end function dep_vel_integrand
-  end function scenario_integrated_loss_rate_dry_dep_quadpack
+  end function scenario_integrated_loss_rate_drydep_quadpack
 #endif
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Updates an array to contain the integrated deposition rates for the
   !> given moment of each aerosol mode in the distribution.
-  subroutine scenario_modal_dry_dep_rates(scenario, aero_dist, moment, &
+  subroutine scenario_modal_drydep_rates(scenario, aero_dist, moment, &
       density, env_state, rates)
 
     !> Scenario data.
@@ -898,7 +898,7 @@ contains
     integer :: i_mode, n_mode
 
     do i_mode = 1,size(rates)
-       rates(i_mode) = scenario_integrated_loss_rate_dry_dep( &
+       rates(i_mode) = scenario_integrated_loss_rate_drydep( &
           scenario, aero_dist%mode(i_mode), moment, density, env_state) &
           * env_state%height
     end do
@@ -1382,12 +1382,12 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read dry deposition parameters from a spec file.
-  subroutine spec_file_read_drydep_params(file, dry_dep_params)
+  subroutine spec_file_read_drydep_params(file, drydep_params)
 
     !> Spec file.
     type(spec_file_t), intent(inout) :: file
     !> Dry deposition parameters.
-    type(drydep_params_t), intent(inout) :: dry_dep_params
+    type(drydep_params_t), intent(inout) :: drydep_params
 
     !> \page input_format_chamber Input File Format: Dry Deposition Parameters
     !!
@@ -1423,18 +1423,18 @@ contains
     !!   - \ref input_format_scenario --- the prescribed profiles of
     !!     other environment data
 
-    call spec_file_read_real(file, "z_ref", dry_dep_params%z_ref)
-    call spec_file_read_real(file, "u_mean", dry_dep_params%u_mean)
-    call spec_file_read_real(file, "z_rough", dry_dep_params%z_rough)
-    call spec_file_read_real(file, "A", dry_dep_params%A)
-    call spec_file_read_real(file, "alpha", dry_dep_params%alpha)
-    call spec_file_read_real(file, "eps_0", dry_dep_params%eps_0)
-    call spec_file_read_real(file, "gamma", dry_dep_params%gamma)
-    call spec_file_read_real(file, "C_B", dry_dep_params%C_B)
-    call spec_file_read_real(file, "C_IN", dry_dep_params%C_IN)
-    call spec_file_read_real(file, "C_IM", dry_dep_params%C_IM)
-    call spec_file_read_real(file, "nu", dry_dep_params%nu)
-    call spec_file_read_real(file, "beta", dry_dep_params%beta)
+    call spec_file_read_real(file, "z_ref", drydep_params%z_ref)
+    call spec_file_read_real(file, "u_mean", drydep_params%u_mean)
+    call spec_file_read_real(file, "z_rough", drydep_params%z_rough)
+    call spec_file_read_real(file, "A", drydep_params%A)
+    call spec_file_read_real(file, "alpha", drydep_params%alpha)
+    call spec_file_read_real(file, "eps_0", drydep_params%eps_0)
+    call spec_file_read_real(file, "gamma", drydep_params%gamma)
+    call spec_file_read_real(file, "C_B", drydep_params%C_B)
+    call spec_file_read_real(file, "C_IN", drydep_params%C_IN)
+    call spec_file_read_real(file, "C_IM", drydep_params%C_IM)
+    call spec_file_read_real(file, "nu", drydep_params%nu)
+    call spec_file_read_real(file, "beta", drydep_params%beta)
 
    end subroutine spec_file_read_drydep_params
 

@@ -53,10 +53,10 @@ program process
     if (.not. allocated(rates_0)) allocate(rates_0(aero_dist_n_mode(aero_dist)))
     if (.not. allocated(rates_3)) allocate(rates_3(aero_dist_n_mode(aero_dist)))
 
-    call scenario_modal_dry_dep_rates(scenario, aero_dist, 0.0d0, density, &
+    call scenario_modal_drydep_rates(scenario, aero_dist, 0.0d0, density, &
       env_state, rates_0)
     call stats_1d_add(stats_rates_0, rates_0)
-    call scenario_modal_dry_dep_rates(scenario, aero_dist, 3.0d0, density, &
+    call scenario_modal_drydep_rates(scenario, aero_dist, 3.0d0, density, &
       env_state, rates_3)
     call stats_1d_add(stats_rates_3, rates_3)
 

@@ -436,7 +436,6 @@ target_link_libraries(chamber_process partmclib)
 # scenarios/7_drydep/drydep_modal_process
 
 add_executable(drydep_modal_process
-  scenarios/7_drydep/drydep_modal_process.F90
   scenarios/7_drydep/drydep_modal_process.F90)
 target_link_libraries(drydep_modal_process partmclib)
 

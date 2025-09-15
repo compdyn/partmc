@@ -468,8 +468,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Read the specification for a kernel type from a spec file and
-  !> generate it.
+  !> Read the specification for immersion freezing scheme.
   subroutine spec_file_read_immersion_freezing_scheme_type(file, &
        immersion_freezing_scheme_type)
 

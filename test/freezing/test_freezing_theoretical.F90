@@ -68,8 +68,8 @@ program theoretical_freezing
         real(kind=dp), intent(in) :: T, abifm_m, abifm_c
         real(kind=dp), intent(out) :: Jhet
         real(kind=dp) :: es, ei, a_w_ice
-        es = env_state_saturated_vapor_pressure_water(T)
-        ei = env_state_saturated_vapor_pressure_ice(T)
+        es = env_state_saturated_vapor_pressure_wrt_water(T)
+        ei = env_state_saturated_vapor_pressure_wrt_ice(T)
         a_w_ice = ei / es
         Jhet = 10 ** (abifm_m  * (1 - a_w_ice) + abifm_c) * 10000
 

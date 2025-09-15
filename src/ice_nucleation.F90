@@ -197,8 +197,8 @@ contains
     total_masses = aero_state_masses(aero_state, aero_data)
     H2O_masses = aero_state_masses(aero_state, aero_data, include=["H2O"])
     H2O_frac = H2O_masses / total_masses
-    pvs = env_state_saturated_vapor_pressure_water(env_state%temp)
-    pis = env_state_saturated_vapor_pressure_ice(env_state%temp)
+    pvs = env_state_saturated_vapor_pressure_wrt_water(env_state%temp)
+    pis = env_state_saturated_vapor_pressure_wrt_ice(env_state%temp)
     a_w_ice = pis / pvs
     if (immersion_freezing_scheme_type == IMMERSION_FREEZING_SCHEME_ABIFM) then
        call ABIFM_max_spec(aero_data, a_w_ice, i_spec_max, j_het_max)
@@ -307,8 +307,8 @@ contains
     H2O_masses = aero_state_masses(aero_state, aero_data, include=["H2O"])
     H2O_frac = H2O_masses / total_masses
 
-    pvs = env_state_saturated_vapor_pressure_water(env_state%temp)
-    pis = env_state_saturated_vapor_pressure_ice(env_state%temp)
+    pvs = env_state_saturated_vapor_pressure_wrt_water(env_state%temp)
+    pis = env_state_saturated_vapor_pressure_wrt_ice(env_state%temp)
     a_w_ice = pis / pvs
 
     do i_part = 1, aero_state_n_part(aero_state)
@@ -411,8 +411,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Calculating the heterogeneous ice nucleation rate coefficient
-  !> for each species, and fining the species having the largest rate.
+  !> Finding the maximum heterogeneous ice nucleation rate coefficient.
   subroutine ABIFM_max_spec(aero_data, a_w_ice, i_spec_max, j_het_max)
 
     !> Aerosol data.

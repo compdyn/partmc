@@ -697,21 +697,4 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> compute saturated vapor pressure (units : Pa) with respective to water
-  real(kind=dp) function env_state_saturated_vapor_pressure_wrt_water_2(T)
-
-    !> Temperature (K)
-    real(kind=dp), intent(in) :: T
-
-    real(kind=dp) :: tmp
-
-    env_state_saturated_vapor_pressure_wrt_water_2 = const%water_eq_vap_press &
-         * 10d0**(7.45d0 * (T - const%water_freeze_temp) &
-         / (T - 38d0))
-
-  end function env_state_saturated_vapor_pressure_wrt_water_2
-
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
 end module pmc_env_state

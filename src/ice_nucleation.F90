@@ -341,9 +341,8 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> This subroutine simulates the melting process.(Set frozen = .False.
-  !> for each particle once the temperature is higher than water freezing
-  !> tempearture)
+  !> Simulates melting: if the environmental temperature is above the freezing
+  !> temperature of water, all particles are set to be unfrozen.
   subroutine ice_nucleation_melting(aero_state, aero_data, env_state)
 
     !> Aerosol state.

@@ -10,7 +10,7 @@ runs:
   using: "composite"
   steps:
     - name: Generate coverage report
-      run: docker run -v shared-data:/build -v $(pwd):/codecov -t partmc-test bash -c "lcov --debug --capture --directory /build/CMakeFiles/partmclib.dir/src --output-file /codecov/coverage_partmclib.info --no-external --base-directory=/partmc; lcov --debug --capture --directory /build/CMakeFiles/partmc.dir/src --output-file /codecov/coverage_partmc.info --no-external --base-directory=/partmc; lcov --debug --add-tracefile /codecov/coverage_partmc.info --add-tracefile /codecov/coverage_partmclib.info --output-file /codecov/coverage.info; lcov --debug --list /codecov/coverage.info"
+      run: docker run -v shared-data:/build -v $(pwd):/codecov -t partmc-test bash -c "lcov --capture --directory /build/CMakeFiles/partmclib.dir/src --output-file /codecov/coverage_partmclib.info --no-external --base-directory=/partmc; lcov --capture --directory /build/CMakeFiles/partmc.dir/src --output-file /codecov/coverage_partmc.info --no-external --base-directory=/partmc; lcov --add-tracefile /codecov/coverage_partmc.info --add-tracefile /codecov/coverage_partmclib.info --output-file /codecov/coverage.info; lcov --list /codecov/coverage.info"
       shell: bash
 
     - name: Upload coverage report to codecov.io

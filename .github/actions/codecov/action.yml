@@ -10,7 +10,7 @@ runs:
   using: "composite"
   steps:
     - name: Generate coverage report
-      run: docker run -v shared-data:/build -v $(pwd):/codecov -t partmc-test bash -c "lcov --capture --directory /build/src --output-file /codecov/coverage.info --no-external; lcov --list /codecov/coverage.info"
+      run: docker run -v shared-data:/build -v $(pwd):/codecov -t partmc-test bash -c "lcov --capture --directory /build/*/src --output-file /codecov/coverage.info --no-external; lcov --list /codecov/coverage.info"
       shell: bash
 
     - name: Upload coverage report to codecov.io

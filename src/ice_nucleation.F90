@@ -171,9 +171,9 @@ contains
     real(kind=dp), intent(in) :: del_t
     !> Freezing rate (only used for the constant rate scheme).
     real(kind=dp), intent(in) :: freezing_rate
+    integer, intent(in) :: immersion_freezing_scheme_type
 
     integer :: i_part, i_bin, i_class, n_bins, n_class
-    integer, intent(in) :: immersion_freezing_scheme_type
     real(kind=dp) :: a_w_ice, pis, pvs
     real(kind=dp) :: p_freeze
 

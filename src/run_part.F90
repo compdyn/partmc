@@ -720,17 +720,11 @@ contains
                run_part_opt%freezing_rate)
 
        else if (run_part_opt%immersion_freezing_scheme_type .eq.&
-            IMMERSION_FREEZING_SCHEME_ABIFM) then
-          continue
-
-       else if (run_part_opt%immersion_freezing_scheme_type .eq.&
             IMMERSION_FREEZING_SCHEME_SINGULAR) then
           call spec_file_read_real(file, 'INAS_a', run_part_opt%INAS_a)
           call spec_file_read_real(file, 'INAS_b', run_part_opt%INAS_b)
-       else
-          call assert_msg(121370299, .false., &
-               "Error type of immersion freezing scheme")
        endif
+       
     endif
 
     call spec_file_read_integer(file, 'rand_init', rand_init)

@@ -481,14 +481,14 @@ contains
     !> \page input_format_immersion_freezing_scheme Input File Format: Immersion freezing scheme
     !!
     !! The immersion freezing scheme is specified by the parameter:
-    !!   - \b immersion_freezing_scheme (string): the type of immersion freezing scheme
-    !!   must be one of: \c sedi for the gravitational sedimentation
-    !!   kernel; \c additive for the additive kernel; \c constant
-    !!   for the constant kernel; \c brown for the Brownian kernel,
-    !!   or \c zero for no immersion freezing
+    !!   - \b immersion_freezing_scheme (string): the type of 
+    !!   immersion freezing scheme  must be one of: 
+    !!   \c const for freezing with a constant freezing rate;
+    !!   \c singular for the INAS scheme based on singular perspective;
+    !!   \c ABIFM for the ABIFM scheme based on CNT perspetive.
     !!
-    !! If \c immersion_freezing_scheme is \c additive, the kernel coefficient needs to be
-    !! provided using the \c additive_kernel_coeff parameter
+    !! If \c immersion_freezing_scheme is \c singular, the parameters INAS_a
+    !! and INAS_b need to be provided. 
     !!
     !! See also:
     !!   - \ref spec_file_format --- the input file text format

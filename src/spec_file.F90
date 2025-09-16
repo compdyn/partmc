@@ -465,6 +465,25 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Set the line number and file read pointer back one entry.
+  subroutine spec_file_unread_line(file)
+
+    !> Spec file.
+    type(spec_file_t), intent(inout) :: file
+
+    integer :: ios
+
+    file%line_num = file%line_num - 1
+    backspace(file%unit, iostat=ios)
+    if (ios /= 0) then
+       call spec_file_die_msg(362985714, file, &
+            'error backspacing: IOSTAT = ' // trim(integer_to_string(ios)))
+    end if
+
+  end subroutine spec_file_unread_line
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Convert a string to an integer.
   integer function spec_file_string_to_integer(file, string)
 

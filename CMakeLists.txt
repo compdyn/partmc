@@ -352,6 +352,13 @@ add_executable(bin_average_comp src/bin_average_comp.F90)
 target_link_libraries(bin_average_comp partmclib)
 
 ######################################################################
+# bin_deaverage_comp
+
+add_executable(bin_deaverage_comp src/bin_deaverage_comp.F90)
+
+target_link_libraries(bin_deaverage_comp partmclib)
+
+######################################################################
 # bin_average_size
 
 add_executable(bin_average_size src/bin_average_size.F90)

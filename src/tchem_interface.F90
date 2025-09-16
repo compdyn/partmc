@@ -1,4 +1,4 @@
-! Copyright (C) 2024 Jeff Curtis
+! Copyright (C) 2024-2025 Jeff Curtis
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -35,6 +35,29 @@ interface
     use iso_c_binding
     integer(kind=c_int) :: TChem_getNumberOfSpecies
   end function
+  function TChem_getNumberOfAeroSpecies() bind(c, &
+       name="TChem_getNumberOfAeroSpecies")
+    use iso_c_binding
+    integer(kind=c_int) :: TChem_getNumberOfAeroSpecies
+  end function
+  function TChem_getAerosolSpeciesDensity(i_spec) bind(c, &
+       name="TChem_getAerosolSpeciesDensity")
+    use iso_c_binding
+    integer(kind=c_int) :: i_spec
+    real(kind=c_double) :: TChem_getAerosolSpeciesDensity
+  end function
+  function TChem_getAerosolSpeciesMW(i_spec) bind(c, &
+       name="TChem_getAerosolSpeciesMW")
+    use iso_c_binding
+    integer(kind=c_int) :: i_spec
+    real(kind=c_double) :: TChem_getAerosolSpeciesMW
+  end function
+  function TChem_getAerosolSpeciesKappa(i_spec) bind(c, &
+       name="TChem_getAerosolSpeciesKappa")
+    use iso_c_binding
+    integer(kind=c_int) :: i_spec
+    real(kind=c_double) :: TChem_getAerosolSpeciesKappa
+  end function
   function TChem_getLengthOfStateVector() bind(c, &
       name="TChem_getLengthOfStateVector")
     use iso_c_binding
@@ -52,8 +75,26 @@ interface
     real(kind=c_double) :: array(*)
     integer(c_int), value :: i_batch
   end subroutine
+  function TChem_getNumberConcentrationVectorSize() bind(c, &
+       name="TChem_getNumberConcentrationVectorSize")
+    use iso_c_binding
+    integer(kind=c_int) :: TChem_getNumberConcentrationVectorSize
+  end function
+  subroutine TChem_setNumberConcentrationVector(array, i_batch) bind(c, &
+       name="TChem_setNumberConcentrationVector")
+    use iso_c_binding
+    real(kind=c_double) :: array(*)
+    integer(c_int), value :: i_batch
+  end subroutine
   integer(kind=c_size_t) function TChem_getSpeciesName(index, result, &
        buffer_size) bind(C, name="TChem_getSpeciesName")
+     use iso_c_binding
+     integer(kind=c_int), intent(in) :: index
+     character(kind=c_char), intent(out) :: result(*)
+     integer(kind=c_size_t), intent(in), value :: buffer_size
+  end function
+  integer(kind=c_size_t) function TChem_getAerosolSpeciesName(index, result, &
+       buffer_size) bind(C, name="TChem_getAerosolSpeciesName")
      use iso_c_binding
      integer(kind=c_int), intent(in) :: index
      character(kind=c_char), intent(out) :: result(*)
@@ -69,7 +110,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #ifdef PMC_USE_TCHEM
-  !> Run the CAMP module for the current PartMC state
+  !> Run chemistry using TChem for the current PartMC state.
   subroutine pmc_tchem_interface_solve(env_state, aero_data, aero_state, &
        gas_data, gas_state, del_t)
 
@@ -100,7 +141,6 @@ contains
   !> Initialize TChem and PartMC gas and aerosol data.
   subroutine pmc_tchem_initialize(gas_config_filename, aero_config_filename, &
        solver_config_filename, gas_data, aero_data, n_grid_cells)
-    use iso_c_binding
 
     !> Gas configuration filename.
     character(len=*), intent(in) :: gas_config_filename
@@ -115,45 +155,50 @@ contains
     !> Number of cells to solve.
     integer, intent(in) :: n_grid_cells
 
-    integer(kind=c_int) :: nSpec, nAeroSpec
-    integer :: n_species
-    integer :: i
+    integer(kind=c_int) :: n_aero_spec, n_gas_spec
     real(kind=c_double), dimension(:), allocatable :: array 
     character(:), allocatable ::  val
+    integer :: i_spec
+    logical :: is_gas
 
     ! initialize the model
     call TChem_initialize(trim(gas_config_filename), &
          trim(aero_config_filename), trim(solver_config_filename), &
          n_grid_cells)
 
-    ! Get size that gas_data should be
-    nSpec = TChem_getNumberOfSpecies() 
-    call ensure_string_array_size(gas_data%name, nSpec)
+    ! Get size of gas_data from TChem
+    n_gas_spec = TChem_getNumberOfSpecies()
+    call ensure_string_array_size(gas_data%name, n_gas_spec)
 
-    ! Populate gas_data with gas species from TChem
-    do i = 1,nSpec
-       val = TChem_species_name(i-1) 
-       gas_data%name(i) = trim(val)
+    ! Set gas_data with gas species from TChem
+    is_gas = .true.
+    do i_spec = 1,n_gas_spec
+       val = TChem_species_name(i_spec - 1, is_gas)
+       gas_data%name(i_spec) = trim(val)
     end do   
 
     ! For output and MPI, this needs to be allocated (for now)
-    allocate(gas_data%mosaic_index(gas_data_n_spec(gas_data)))
+    allocate(gas_data%mosaic_index(n_gas_spec))
     gas_data%mosaic_index(:) = 0
 
-    ! TODO: Create aero_data based on TChem input.
-    ! From TChem we need:
-    !   Species names
-    !   Species properties - density, kappa, molecular weight
-    ! n_species = 10
-    ! call ensure_string_array_size(aero_data%name, n_species)
-    ! call ensure_integer_array_size(aero_data%mosaic_index, n_species)
-    ! call ensure_real_array_size(aero_data%wavelengths, n_swbands)
-    ! call ensure_real_array_size(aero_data%density, n_species)
-    ! call ensure_integer_array_size(aero_data%num_ions, n_species)
-    ! call ensure_real_array_size(aero_data%molec_weight, n_species)
-    ! call ensure_real_array_size(aero_data%kappa, n_species)
-    !do i = 1,n_species
-    !end do 
+    ! Get size of aero_data from TChem
+    n_aero_spec = TChem_getNumberOfAeroSpecies()
+    call ensure_string_array_size(aero_data%name, n_aero_spec)
+    call ensure_integer_array_size(aero_data%mosaic_index, n_aero_spec)
+    call ensure_real_array_size(aero_data%wavelengths, n_swbands)
+    call ensure_real_array_size(aero_data%density, n_aero_spec)
+    call ensure_integer_array_size(aero_data%num_ions, n_aero_spec)
+    call ensure_real_array_size(aero_data%molec_weight, n_aero_spec)
+    call ensure_real_array_size(aero_data%kappa, n_aero_spec)
+
+    is_gas = .false.
+    do i_spec = 1,n_aero_spec
+       val = TChem_species_name(i_spec - 1, is_gas)
+       aero_data%name(i_spec) =  trim(val)
+       aero_data%density(i_spec) = TChem_getAerosolSpeciesDensity(i_spec - 1)
+       aero_data%molec_weight(i_spec) = TChem_getAerosolSpeciesMW(i_spec - 1)
+       aero_data%kappa(i_spec) = TChem_getAerosolSpeciesKappa(i_spec - 1)
+    end do
 
   end subroutine pmc_tchem_initialize
 
@@ -184,23 +229,35 @@ contains
     type(env_state_t), intent(in) :: env_state
 
     integer(c_int) :: nSpec, stateVecDim
-    integer :: i_part
+    integer :: i_part, i_spec
     real(kind=c_double), dimension(:), allocatable :: stateVector 
+    integer :: n_gas_spec, n_aero_spec
+    real(kind=dp) :: reweight_num_conc(aero_state_n_part(aero_state))
+
+    n_gas_spec = gas_data_n_spec(gas_data)
+    n_aero_spec = aero_data_n_spec(aero_data)
 
     ! Get gas array
     stateVecDim = TChem_getLengthOfStateVector()
-    nSpec = TChem_getNumberOfSpecies()
     allocate(stateVector(stateVecDim))
     call TChem_getStateVector(stateVector, 0)
 
     gas_state%mix_rat = 0.0
     ! Convert from ppm to ppb.
-    gas_state%mix_rat = stateVector(4:nSpec+3) * 1000.d0
+    gas_state%mix_rat = stateVector(4:n_gas_spec+3) * 1000.d0
 
-    ! Map aerosols
+    call aero_state_num_conc_for_reweight(aero_state, aero_data, &
+         reweight_num_conc)
+
     do i_part = 1,aero_state_n_part(aero_state)
-
+       do i_spec = 1,n_aero_spec
+          aero_state%apa%particle(i_part)%vol(i_spec) = stateVector( &
+               n_gas_spec + 3 + i_spec + (i_part -1) * n_aero_spec) &
+               / aero_data%density(i_spec)
+       end do
     end do
+
+    call aero_state_reweight(aero_state, aero_data, reweight_num_conc)
 
   end subroutine tchem_to_partmc
 
@@ -221,32 +278,56 @@ contains
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
 
-    real(kind=dp), allocatable :: stateVector(:)
-    integer :: stateVecDim
+    real(kind=dp), allocatable :: stateVector(:), number_concentration(:)
+    integer :: stateVecDim, tchem_n_part, i_spec
     integer :: i_part
     integer :: i_water
+    integer :: n_gas_spec, n_aero_spec
 
-    ! Get size of stateVector
+    n_gas_spec = gas_data_n_spec(gas_data)
+    n_aero_spec = aero_data_n_spec(aero_data)
+
+    ! Get size of state vector in TChem
     stateVecDim = TChem_getLengthOfStateVector()
     allocate(stateVector(stateVecDim))
+    stateVector = 0.0d0
+
+    ! Get size of number concentration vector in TChem
+    tchem_n_part = TChem_getNumberConcentrationVectorSize()
+    allocate(number_concentration(tchem_n_part))
+
     ! First three elements are density, pressure and temperature
     stateVector(1) = env_state_air_den(env_state)
     stateVector(2) = env_state%pressure
     stateVector(3) = env_state%temp
 
     ! PartMC uses relative humidity and not H2O mixing ratio.
-    ! Equation 1.10 from Seinfeld and Pandis - Second Edition.
     i_water = gas_data_spec_by_name(gas_data, "H2O")
     gas_state%mix_rat(i_water) = env_state_rel_humid_to_mix_rat(env_state)
     ! Add gas species to state vector. Convert from ppb to ppm.
-    stateVector(4:gas_data_n_spec(gas_data)+3) = gas_state%mix_rat / 1000.d0
+    stateVector(4:n_gas_spec + 3) = gas_state%mix_rat / 1000.d0
 
-    ! TODO: Map aerosols
     do i_part = 1,aero_state_n_part(aero_state)
+      do i_spec = 1,n_aero_spec
+         stateVector(n_gas_spec + 3 + i_spec + (i_part - 1) * n_aero_spec) = &
+              aero_particle_species_mass(aero_state%apa%particle(i_part), &
+              i_spec, aero_data)
+      end do
+      number_concentration(i_part) = aero_state_particle_num_conc( &
+            aero_state, aero_state%apa%particle(i_part), aero_data)
+    end do
 
+    do i_part = aero_state_n_part(aero_state)+1,tchem_n_part
+       do i_spec = 1,n_aero_spec
+          stateVector(n_gas_spec + 3 + i_spec + (i_part-1) * n_aero_spec) = &
+            1d-10
+       end do
+       number_concentration(i_part) = 0.0d0
     end do
 
     call TChem_setStateVector(stateVector, 0)
+
+    call TChem_setNumberConcentrationVector(number_concentration, 0)
 
   end subroutine tchem_from_partmc
 
@@ -254,7 +335,6 @@ contains
 
   !> Do a single timestep of TChem chemistry.
   subroutine TChem_timestep(del_t)
-    use iso_c_binding
 
     !> Time step (s).
     real(kind=c_double) :: del_t
@@ -267,7 +347,6 @@ contains
 
   !> Initialize TChem.
   subroutine TChem_initialize(chemFile, aeroFile, NumericsFile, n_batch)
-    use iso_c_binding
 
     !> Chemistry configuration file.
     character(kind=c_char,len=*), intent(in) :: chemFile
@@ -286,19 +365,25 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Get species name from TChem for a given index.
-  function TChem_species_name(i_spec) result(species_name)
-    use iso_c_binding
+  function TChem_species_name(i_spec, is_gas) result(species_name)
 
-    ! Species name.
+    !> Index of species.
+    integer(kind=c_int), intent(in) :: i_spec
+    !> Logical for if the species is a gas.
+    logical :: is_gas
+    !> Species name.
     character(:), allocatable :: species_name
 
-    integer(kind=c_int), intent(in) :: i_spec
     character(kind=c_char, len=:), allocatable :: cbuf
     integer(kind=c_size_t) :: N
 
     allocate(character(256) :: cbuf)
     N = len(cbuf)
-    N = TChem_getSpeciesName(i_spec, cbuf, N)
+    if (is_gas) then
+       N = TChem_getSpeciesName(i_spec, cbuf, N)
+    else
+       N = TChem_getAerosolSpeciesName(i_spec, cbuf, N)
+    end if
     allocate(character(N) :: species_name)
     species_name = cbuf(:N)
 

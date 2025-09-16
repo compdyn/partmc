@@ -144,13 +144,27 @@ if(ENABLE_TCHEM)
     PATHS $ENV{TINES_PATH}/lib64 $ENV{TINES_PATH}/lib)
   include_directories(${TINES_INCLUDE_DIR})
   set(CPP_LIB -lstdc++)
-#  find_path(LAPACK_INCLUDE_DIR lapack.h
-#    DOC "LAPACK include directory"
-#    PATHS $ENV{LAPACK_PATH}/include)
   find_library(LAPACK_LIB openblas
-    PATHS $ENV{LAPACK_PATH}/lib)
-#  include_directories(${LAPACK_INCLUDE_DIR})
-  option(ENABLE_TCHEM_GPU "Enable TChem GPU chemistry support" OFF)
+    PATHS $ENV{LAPACK_PATH}/lib  $ENV{LAPACK_PATH}/lib64)
+  find_path(SUNDIALS_INCLUDE_DIR cvode/cvode.h
+    DOC "SUNDIALS include directory (must have cvode/, sundials/, nvector/ subdirs)"
+    PATHS $ENV{SUNDIALS_HOME}/include /opt/local/include /usr/local/include)
+  find_library(SUNDIALS_NVECSERIAL_LIB sundials_nvecserial
+    DOC "SUNDIALS serial vector library"
+    PATHS $ENV{SUNDIALS_HOME}/lib $ENV{SUNDIALS_HOME}/lib64 /opt/local/lib /usr/local/lib)
+  find_library(SUNDIALS_CVODE_LIB sundials_cvode
+    DOC "SUNDIALS CVODE library"
+    PATHS $ENV{SUNDIALS_HOME}/lib $ENV{SUNDIALS_HOME}/lib64 /opt/local/lib /usr/local/lib)
+  find_library(SUNDIALS_CORE_LIB sundials_core
+    DOC "SUNDIALS core library"
+    PATHS $ENV{SUNDIALS_HOME}/lib $ENV{SUNDIALS_HOME}/lib64 /opt/local/lib /usr/local/lib)
+  set(SUNDIALS_LIBS ${SUNDIALS_NVECSERIAL_LIB} ${SUNDIALS_CVODE_LIB} ${SUNDIALS_CORE_LIB})
+  include_directories(${SUNDIALS_INCLUDE_DIR})
+
+  if (NOT DEFINED ENABLE_TCHEM_GPU)
+    option(ENABLE_TCHEM_GPU "Enable TChem GPU chemistry support" OFF)
+  endif()
+
 endif()
 
 ######################################################################
@@ -239,9 +253,9 @@ add_library(partmclib src/aero_state.F90 src/integer_varray.F90
   ${SUNDIALS_SRC} ${GSL_SRC} ${TCHEM_SRC}
   ${C_SORT_SRC})
 
-target_link_libraries(partmclib ${NETCDF_LIBS} ${SUNDIALS_LIBS}
+target_link_libraries(partmclib ${NETCDF_LIBS}
   ${MOSAIC_LIB} ${GSL_LIBS} ${CAMP_LIB} ${TCHEM_LIB} ${YAML_LIB}
-  ${KOKKOS_LIB} ${KOKKOSKERNEL_LIB} ${TINES_LIB} ${CPP_LIB} ${LAPACK_LIB})
+  ${KOKKOS_LIB} ${KOKKOSKERNEL_LIB} ${TINES_LIB} ${CPP_LIB} ${LAPACK_LIB} ${SUNDIALS_LIBS})
 
 if (ENABLE_TCHEM)
    find_package(OpenMP REQUIRED)

@@ -198,12 +198,13 @@ if(ENABLE_SUNDIALS)
 endif()
 add_test(test_emission ${CMAKE_BINARY_DIR}/test_run/run_test_directory.sh emission)
 add_test(test_fractal ${CMAKE_BINARY_DIR}/test_run/run_test_directory.sh fractal)
+add_test(test_freezing ${CMAKE_BINARY_DIR}/test_run/run_test_directory.sh freezing)
 add_test(test_loss ${CMAKE_BINARY_DIR}/test_run/run_test_directory.sh loss)
-add_test(test_nucleate ${CMAKE_BINARY_DIR}/test_run/run_test_directory.sh nucleate)
 add_test(test_mixing_state ${CMAKE_BINARY_DIR}/test_run/run_test_directory.sh mixing_state)
 if(ENABLE_MOSAIC)
   add_test(test_mosaic ${CMAKE_BINARY_DIR}/test_run/run_test_directory.sh mosaic)
 endif()
+add_test(test_nucleate ${CMAKE_BINARY_DIR}/test_run/run_test_directory.sh nucleate)
 if(ENABLE_MPI)
   add_test(test_parallel ${CMAKE_BINARY_DIR}/test_run/run_test_directory.sh parallel)
 endif()
@@ -213,6 +214,7 @@ if (ENABLE_TCHEM)
   add_test(test_tchem ${CMAKE_BINARY_DIR}/test_run/run_test_directory.sh tchem)
 endif()
 add_test(test_weighting ${CMAKE_BINARY_DIR}/test_run/run_test_directory.sh weighting)
+#>>>>>>> 2341ef410d6f49f3169b8461b5fa8c89dbd3c7a2
 
 ######################################################################
 # partmc library
@@ -234,6 +236,7 @@ add_library(partmclib src/aero_state.F90 src/integer_varray.F90
   src/netcdf.F90 src/aero_info.F90 src/aero_info_array.F90
   src/nucleate.F90 src/condense.F90 src/fractal.F90 src/chamber.F90
   src/camp_interface.F90 src/photolysis.F90 src/sys.F90
+  src/ice_nucleation.F90
   src/tchem_interface.F90
   src/aero_component.F90
   ${SUNDIALS_SRC} ${GSL_SRC} ${TCHEM_SRC}
@@ -285,6 +288,22 @@ add_executable(test_bidisperse_extract
   test/bidisperse/test_bidisperse_extract.F90)
 
 target_link_libraries(test_bidisperse_extract ${NETCDF_LIBS})
+
+######################################################################
+# test_freezing_extract
+
+add_executable(test_freezing_extract
+  test/freezing/test_freezing_extract.F90 src/getopt.F90)
+
+target_link_libraries(test_freezing_extract ${NETCDF_LIBS} partmclib)
+
+######################################################################
+# test_freezing_theoretical
+
+add_executable(test_freezing_theoretical
+  test/freezing/test_freezing_theoretical.F90)
+
+target_link_libraries(test_freezing_theoretical partmclib)
 
 ######################################################################
 # test_nucleate_ode
@@ -404,6 +423,13 @@ add_executable(numeric_average src/numeric_average.F90)
 add_executable(urban_plume_process
   scenarios/1_urban_plume/urban_plume_process.F90)
 target_link_libraries(urban_plume_process partmclib)
+
+######################################################################
+# scenarios/7_freezing/freezing_process
+
+add_executable(freezing_process
+  scenarios/7_freezing/freezing_process.F90 src/getopt.F90)
+target_link_libraries(freezing_process partmclib)
 
 ######################################################################
 # scenarios/4_chamber/chamber_process

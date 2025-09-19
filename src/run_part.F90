@@ -79,6 +79,9 @@ module pmc_run_part
      real(kind=dp) :: INAS_b
      !> The freezing rate parameter for "const" scheme.
      real(kind=dp) :: freezing_rate
+     !> Whether to use the naive algorithm for time-dependent scheme.
+     !> (If false, use the binned tau-leaping algorithm.)
+     logical :: do_freezing_naive
      !> Allow doubling if needed.
      logical :: allow_doubling
      !> Allow halving if needed.
@@ -337,6 +340,7 @@ contains
          + pmc_mpi_pack_size_real(val%INAS_a) &
          + pmc_mpi_pack_size_real(val%INAS_b) &
          + pmc_mpi_pack_size_real(val%freezing_rate) &
+         + pmc_mpi_pack_size_logical(val%do_freezing_naive) &
          + pmc_mpi_pack_size_logical(val%allow_doubling) &
          + pmc_mpi_pack_size_logical(val%allow_halving) &
          + pmc_mpi_pack_size_logical(val%do_condensation) &
@@ -395,6 +399,7 @@ contains
     call pmc_mpi_pack_real(buffer, position, val%INAS_a)
     call pmc_mpi_pack_real(buffer, position, val%INAS_b)
     call pmc_mpi_pack_real(buffer, position, val%freezing_rate)
+    call pmc_mpi_pack_logical(buffer, position, val%do_freezing_naive)
     call pmc_mpi_pack_logical(buffer, position, val%allow_doubling)
     call pmc_mpi_pack_logical(buffer, position, val%allow_halving)
     call pmc_mpi_pack_logical(buffer, position, val%do_condensation)
@@ -454,6 +459,7 @@ contains
     call pmc_mpi_unpack_real(buffer, position, val%INAS_a)
     call pmc_mpi_unpack_real(buffer, position, val%INAS_b)
     call pmc_mpi_unpack_real(buffer, position, val%freezing_rate)
+    call pmc_mpi_unpack_logical(buffer, position, val%do_freezing_naive)
     call pmc_mpi_unpack_logical(buffer, position, val%allow_doubling)
     call pmc_mpi_unpack_logical(buffer, position, val%allow_halving)
     call pmc_mpi_unpack_logical(buffer, position, val%do_condensation)
@@ -718,8 +724,18 @@ contains
             IMMERSION_FREEZING_SCHEME_CONST) then
           call spec_file_read_real(file, 'freezing_rate', &
                run_part_opt%freezing_rate)
+       endif
 
-       else if (run_part_opt%immersion_freezing_scheme_type .eq.&
+       if ((run_part_opt%immersion_freezing_scheme_type .eq. &
+            IMMERSION_FREEZING_SCHEME_ABIFM) .or. &
+            (run_part_opt%immersion_freezing_scheme_type .eq. &
+            IMMERSION_FREEZING_SCHEME_CONST)) then
+          call spec_file_read_logical(file, 'do_freezing_naive', &
+               run_part_opt%do_freezing_naive)
+       endif
+          
+
+       if (run_part_opt%immersion_freezing_scheme_type .eq.&
             IMMERSION_FREEZING_SCHEME_SINGULAR) then
           call spec_file_read_real(file, 'INAS_a', run_part_opt%INAS_a)
           call spec_file_read_real(file, 'INAS_b', run_part_opt%INAS_b)
@@ -899,7 +915,7 @@ contains
     if (run_part_opt%do_immersion_freezing) then
        call ice_nucleation_immersion_freezing(aero_state, aero_data, env_state, &
             run_part_opt%del_t, run_part_opt%immersion_freezing_scheme_type, &
-            run_part_opt%freezing_rate)
+            run_part_opt%freezing_rate, run_part_opt%do_freezing_naive)
        call ice_nucleation_melting(aero_state, aero_data, env_state)
     end if
     if (run_part_opt%do_coagulation) then

@@ -25,16 +25,14 @@ module pmc_ice_nucleation
   !> Type code for the ABIFM immersion freezing scheme.
   integer, parameter :: IMMERSION_FREEZING_SCHEME_ABIFM = 3
 
-  !> Whether to use the binned-tau leaping algorithm for time-dependent scheme.
-  logical :: do_speedup = .true.
-
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Main subroutine for immersion freezing simulation.
   subroutine ice_nucleation_immersion_freezing(aero_state, aero_data, &
-       env_state, del_t, immersion_freezing_scheme_type, freezing_rate)
+       env_state, del_t, immersion_freezing_scheme_type, &
+       freezing_rate, do_freezing_naive)
 
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
@@ -48,18 +46,21 @@ contains
     integer, intent(in) :: immersion_freezing_scheme_type
     !> Freezing rate (only used for the constant rate scheme).
     real(kind=dp), intent(in) :: freezing_rate
+    !> Whether to use the naive algorithm for time-dependent scheme.
+    !> (If false, use the binned tau-leaping algorithm.)
+    logical, intent(in) :: do_freezing_naive
 
     !> Call the immersion freezing subroutine according to the immersion
     !> freezing scheme.
     if (env_state%temp <= const%water_freeze_temp) then
        if ((immersion_freezing_scheme_type == IMMERSION_FREEZING_SCHEME_ABIFM) &
             .OR. (immersion_freezing_scheme_type == IMMERSION_FREEZING_SCHEME_CONST)) then
-          if (do_speedup) then
-             call ice_nucleation_immersion_freezing_time_dependent( &
+          if (do_freezing_naive) then
+             call ice_nucleation_immersion_freezing_time_dependent_naive( &
                   aero_state, aero_data, env_state, del_t, &
                   immersion_freezing_scheme_type, freezing_rate)
           else
-             call ice_nucleation_immersion_freezing_time_dependent_naive( &
+             call ice_nucleation_immersion_freezing_time_dependent( &
                   aero_state, aero_data, env_state, del_t, &
                   immersion_freezing_scheme_type, freezing_rate)
           end if
@@ -489,6 +490,10 @@ contains
     !!
     !! If \c immersion_freezing_scheme is \c singular, the parameters INAS_a
     !! and INAS_b need to be provided. 
+    !! If \c immersion_freezing_scheme is \c const, the parameter freezing_rate
+    !! need to be provided.
+    !! If \c immersion_freezing_scheme is \c ABIFM or const, a logical variable
+    !! \c do_freezing_naive need to be provided.
     !!
     !! See also:
     !!   - \ref spec_file_format --- the input file text format

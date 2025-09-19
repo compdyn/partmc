@@ -44,6 +44,7 @@ do_mosaic no                    # whether to do MOSAIC (yes/no)
 do_nucleation no                # whether to do nucleation (yes/no)
 do_immersion_freezing yes                 # whether to do freezing (yes/no)
 immersion_freezing_scheme ABIFM
+do_freezing_naive no            # whether to use naive algorithm (yes/no)
 
 rand_init 1                     # random initialization (0 to auto-generate)
 allow_doubling yes              # whether to allow doubling (yes/no)

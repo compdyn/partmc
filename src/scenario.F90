@@ -1392,7 +1392,6 @@ contains
     !> \page input_format_chamber Input File Format: Dry Deposition Parameters
     !!
     !! Dry deposition is simulatied using the specified parameters:
-    !! - \b drydep_param (integer): flag for the dry deposition parameterization
     !! - \b z_ref (real, unit m): the reference height \f$z_{\rm ref}\f$ used 
     !!   in the calculation of aerodynamic resistance \f$R_a\f$
     !! - \b u_mean (real, unit m s^{-1}): the wind speed at the reference

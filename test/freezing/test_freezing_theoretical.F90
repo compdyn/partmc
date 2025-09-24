@@ -25,7 +25,7 @@ program theoretical_freezing
     ! Time duration (unit: s)
     real(kind=dp), parameter :: total_time = 600
     ! Output time interval (unit: s)
-    real(kind=dp), parameter :: out_dt = 10
+    real(kind=dp), parameter :: out_dt = 60
     ! ABIFM parameters (m and c) for species 1.
     real(kind=dp), parameter :: abifm_m_1 = 17.62106, abifm_c_1 = 1.42411
     ! ABIFM parameters (m and c) for species 2.

@@ -15,7 +15,7 @@ program extract_freezing
   use pmc_mpi
   use getopt_m
 
-  integer, parameter :: N_ensemble = 10
+  integer :: n_ensemble
   character(len=PMC_MAX_FILENAME_LEN) :: in_prefix, in_prefix_ensemble, out_filename
   character(len=PMC_MAX_FILENAME_LEN), allocatable :: filename_list(:)
   character(len=1000) :: tmp_str
@@ -66,12 +66,13 @@ program extract_freezing
      out_filename = trim(in_prefix) // "_frozen_fraction_ensemble_mean.txt"
   end if
 
-  
+ 
+  call input_n_files(in_prefix, n_ensemble, n_file)
+ 
   allocate(filename_list(0))
 
   write(in_prefix_ensemble, "(a,a,i4.4)") trim(in_prefix), "_", 1
   call input_filename_list(in_prefix_ensemble, filename_list)
-  n_file = size(filename_list)
 
   allocate(frozen_fractions(n_file))
   allocate(frozen_fractions_mean(n_file))

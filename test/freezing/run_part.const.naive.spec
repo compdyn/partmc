@@ -1,7 +1,7 @@
 run_type particle               # particle-resolved run
 output_prefix out/const_naive/freezing_part # prefix of output files
 n_repeat 10                      # number of Monte Carlo repeats
-n_part 10000                     # total number of particles
+n_part 1000                     # total number of particles
 restart no                      # whether to restart from saved state (yes/no)
 do_select_weighting yes          # whether to select weighting explicitly (yes/no)
 weight_type flat
@@ -10,7 +10,7 @@ weight_type flat
 t_max 600                            # total simulation time (s)
 del_t 1                           # timestep (s)
 t_output 10                   # output interval (0 disables) (s)
-t_progress 10                  # progress printing interval (0 disables) (s)
+t_progress 100                  # progress printing interval (0 disables) (s)
 
 do_camp_chem no                 # whether to run the campible chemistry module
 do_tchem no                     # whether to use TChem for chemistry

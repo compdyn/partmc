@@ -46,7 +46,7 @@ do_immersion_freezing yes                 # whether to do freezing (yes/no)
 immersion_freezing_scheme ABIFM
 do_freezing_naive yes           # whether to use naive algorithm (yes/no)
 
-rand_init 1                     # random initialization (0 to auto-generate)
+rand_init 0                     # random initialization (0 to auto-generate)
 allow_doubling yes              # whether to allow doubling (yes/no)
 allow_halving yes               # whether to allow halving (yes/no)
 record_removals no              # whether to record particle removals (yes/no)

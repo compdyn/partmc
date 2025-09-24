@@ -47,7 +47,7 @@ immersion_freezing_scheme singular
 INAS_a -0.517
 INAS_b 8.934
 
-rand_init 1                     # random initialization (0 to auto-generate)
+rand_init 0                     # random initialization (0 to auto-generate)
 allow_doubling yes              # whether to allow doubling (yes/no)
 allow_halving yes               # whether to allow halving (yes/no)
 record_removals no              # whether to record particle removals (yes/no)

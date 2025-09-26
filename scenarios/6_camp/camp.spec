@@ -1,7 +1,7 @@
 run_type particle               # particle-resolved run
 output_prefix out/camp   # prefix of output files
 n_repeat 1                      # number of Monte Carlo repeats
-n_part 10000                   # total number of particles
+n_part 100                     # total number of particles
 restart no                      # whether to restart from saved state (yes/no)
 do_select_weighting no          # whether to select weighting explicitly (yes/no)
 

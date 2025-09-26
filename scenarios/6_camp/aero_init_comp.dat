@@ -1,2 +1,4 @@
 #                      mass fractions
-organic_matter.POA  1.0
+one_layer.organic_matter.POA  0.4
+two_layer.organic_matter.POA  0.3
+three_layer.organic_matter.POA 0.3

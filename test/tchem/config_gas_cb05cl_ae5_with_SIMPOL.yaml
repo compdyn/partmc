@@ -262,21 +262,27 @@ initial_state:
     initial_value: [780800.0]
     units: mol m-3
 constant_species:
-- description: methane
-  name: CH4
-- description: M 
-  name: M 
-- description: molecular oxygen
-  name: O2
-- description: water vapor
-  name: H2O
-- description: molecular hydrogen
-  name: H2
 - description: third body
   name: M
+- description: molecular oxygen
+  name: O2
 - description: N2
   name: N2
+- description: methane
+  name: CH4
+- description: molecular hydrogen
+  name: H2
+- description: water vapor
+  name: H2O
 species:
+- description: gas-phase product from isoprene oxidation by OH
+  name: ISOP-P1
+- description: gas-phase product from isoprene oxidation by O3
+  name: ISOP-P2
+- description: gas-phase product from monoterpene oxidation by OH
+  name: TERP-P1
+- description: gas-phase product from monoterpene oxidation by O3
+  name: TERP-P2
 - description: acetic and higher carboxylic acids
   name: AACD
 - description: acetaldehyde
@@ -430,6 +436,42 @@ species:
 - description: not sure what this is
   name: DUMMY
 reactions:
+- type: ARRHENIUS
+  reactants:
+    OH: 1
+    ISOP: 1
+  products:
+    ISOP-P1: 0.192
+  coefficients:
+    A: 2.54e-11
+    C: 407.6
+- type: ARRHENIUS
+  reactants:
+    O3: 1
+    ISOP: 1
+  products:
+    ISOP-P2: 0.215
+  coefficients:
+    A: 7.86e-15
+    C: -1912.0
+- type: ARRHENIUS
+  reactants:
+    OH: 1
+    TERP: 1
+  products:
+    TERP-P1: 0.0288
+  coefficients:
+    A: 1.5e-11
+    C: 449.0
+- type: ARRHENIUS
+  reactants:
+    O3: 1
+    TERP: 1
+  products:
+    TERP-P2: 0.232
+  coefficients:
+    A: 1.2e-15
+    C: -821.0
 - MUSICA_name: R1
   reactants:
     NO2: 1

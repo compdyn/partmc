@@ -3,6 +3,7 @@ name: CI
 on:
   push:
     branches: [doxygen]
+  pull_request:
 
 jobs:
   build:
@@ -23,6 +24,7 @@ jobs:
     - name: Copy docs from container to local workspace
       run: docker cp partmc-doc-container:/partmc/doc/html ./doc/html
     - name: Deploy to GitHub Pages
+      if: github.event_name == 'push'
       uses: JamesIves/github-pages-deploy-action@v4
       with:
          branch: gh-pages

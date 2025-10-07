@@ -1,0 +1,220 @@
+\_form#0=66x14:$ dN(r)/d\ln r $
+\_form#1=79x14:$ dM(r,s)/d\ln r $
+\_form#2=10x10:$V$
+\_form#3=24x14:$R_{\rm geo}$
+\_form#4=25x14:$D_{\rm geo}$
+\_form#5=11x10:$N$
+\_form#6=23x13:$R_{\rm me}$
+\_form#7=19x11:$\rm s^{-1}$
+\_form#8=30x13:$N_{\rm back}$
+\_form#9=96x15:$\dot{N} = r N_{\rm back} - r N$
+\_form#10=8x6:$r$
+\_form#11=9x11:$t_i$
+\_form#12=10x9:$r_i$
+\_form#13=10x9:$a_i$
+\_form#14=64x11:$i = 1,\ldots,n$
+\_form#15=21x13:$t_{i+1}$
+\_form#16=21x9:$r_i a_i$
+\_form#17=10x11:$t_1$
+\_form#18=24x9:$r_1 a_1$
+\_form#19=11x11:$t_n$
+\_form#20=26x9:$r_n a_n$
+\_form#21=216x26:\[ n(v) = \frac{1}{\rm mean-vol} \exp(- v / {\rm mean-vol}) \]
+\_form#22=33x11:$N + 1$
+\_form#23=75x14:$D_1,\ldots,D_{N+1}$
+\_form#24=56x14:$D_i < D_{i+1}$
+\_form#25=60x13:$C_1,\ldots,C_N$
+\_form#26=13x13:$C_i$
+\_form#27=53x14:$[D_i, D_{i+1}]$
+\_form#28=344x34:\[ n(\log D) {\rm d}\log D = \frac{N_{\rm total}}{\sqrt{2\pi} \log \sigma_{\rm g}} \exp\left(\frac{(\log D - \log D_{\rm gn})^2}{2 \log ^2 \sigma_{\rm g}}\right) {\rm d}\log D \]
+\_form#29=30x13:$N_{\rm total}$
+\_form#30=21x14:$D_{\rm gn}$
+\_form#31=28x14:$\log_{10}$
+\_form#32=13x10:$\sigma_{\rm g}$
+\_form#33=171x33:\[ n(v) {\rm d}v = \frac{N_{\rm total}}{v_{\rm \mu}} \exp\left(- \frac{v}{v_{\rm \mu}}\right) {\rm d}v \]
+\_form#34=16x14:$D_{\rm \mu}$
+\_form#35=56x16:$v_{\rm \mu} = \frac{\pi}{6} D^3_{\rm \mu}$
+\_form#36=15x13:$D_0$
+\_form#37=14x13:$R_0$
+\_form#38=53x13:$D_0 = 2 R_0$
+\_form#39=26x14:$f(D)$
+\_form#40=174x16:\[ f(D) = D^6 + c_4 D^4 + c_3 D^3 + c_0, \]
+\_form#41=34x11:$c_4 < 0$
+\_form#42=34x11:$c_3 < 0$
+\_form#43=34x11:$c_0 > 0$
+\_form#44=53x14:$D > D_{\rm dry}$
+\_form#45=359x16:\[ f'(D) = 6 D^5 + 4 c_4 D^3 + 3 c_3 D^2 = (3 D^2 + 4 c_4) D^3 + (D^3 + c_3) 3 D^2. \]
+\_form#46=91x16:$D > (-4 c_4 / 3)^{1/2}$
+\_form#47=73x16:$D > (-c_3)^{1/3}$
+\_form#48=183x16:\[ D_0 = max((-4 c_4 / 3)^{1/2}, (-c_3)^{1/3}) \]
+\_form#49=54x14:$f'(D) > 0$
+\_form#50=43x13:$D > D_0$
+\_form#51=381x16:\[ f''(D) = 30 D^4 + 12 c_4 D^2 + 6 c_3 D = (5 D^2 + 4 c_4) 3 D^2 + (5 D^3 + 2 c_3) 3 D, \]
+\_form#52=56x14:$f''(D) > 0$
+\_form#53=91x16:$D > (-4 c_4 / 5)^{1/2}$
+\_form#54=91x16:$D > (-2 c_3 / 5)^{1/3}$
+\_form#55=28x14:$n(D)$
+\_form#56=100x14:\[ n(D) = w(D) c(D) \]
+\_form#57=30x14:$w(D)$
+\_form#58=25x14:$c(D)$
+\_form#59=10x10:$D$
+\_form#60=53x14:$w(D) = 1$
+\_form#61=64x14:$w(D) = D^\alpha$
+\_form#62=70x15:$w(D) = D^{-3}$
+\_form#63=8x6:$\alpha$
+\_form#64=96x14:$w(D) = (D/D_0)^\alpha$
+\_form#65=103x15:$w(D) = (D/D_0)^{-3}$
+\_form#66=23x9:$n_{\rm bin}$
+\_form#67=9x9:$c_i$
+\_form#68=78x11:$i = 1,\ldots,n_{\rm bin}$
+\_form#69=9x9:$e_i$
+\_form#70=108x14:$i = 1,\ldots,(n_{\rm bin} + 1)$
+\_form#71=38x14:$e_{i+1}/e_i$
+\_form#72=94x16:$c_i/e_i = \sqrt{e_{i+1}/e_i}$
+\_form#73=30x14:$\ln(e_i)$
+\_form#74=30x14:$\ln(c_i)$
+\_form#75=10x9:$e_1$
+\_form#76=36x10:$e_{n_{\rm bin} + 1}$
+\_form#77=14x13:$k_{\rm D}$
+\_form#78=85x14:$ \delta = k_{\rm D}(D/D_0)^a $
+\_form#79=6x10:$ \delta $
+\_form#80=6x6:$a$
+\_form#81=10x10:$R$
+\_form#82=15x13:$N_0$
+\_form#83=59x16:$v_\mu = \frac{4\pi}{3} R^3$
+\_form#84=70x14:$\tau = N_0 v_\mu \beta_1 t$
+\_form#85=68x9:$T = 1 - e^{-\tau}$
+\_form#86=13x13:$\beta_1$
+\_form#87=386x31:\[ n(D,t) \ {\rm d}\ln D = \frac{\pi}{2} D^3 \frac{N_0}{v} \frac{1 - T}{\sqrt{T}} \exp\left(-(1 + T) \frac{v}{v_\mu}\right) I_1\left(2 \frac{v}{v_\mu} \sqrt{T}\right) {\rm d}\ln D \]
+\_form#88=28x14:$I_1(x)$
+\_form#89=49x16:$v = \frac{\pi}{6} D^3$
+\_form#90=8x6:$x$
+\_form#91=54x15:$I_1(x) \approx \frac{x}{2}$
+\_form#92=238x33:\[ n(D,t) \ {\rm d}\ln D = \frac{\pi}{2} D^3 \frac{N_0}{v_\mu} \exp\left(-\frac{v}{v_\mu}\right) {\rm d}\ln D \]
+\_form#93=28x14:$ I_1(x) $
+\_form#94=58x13:$\tau = N_0 \beta_0 t$
+\_form#95=13x13:$\beta_0$
+\_form#96=29x10:$\lambda = 1$
+\_form#97=399x31:\[ n(D,t) \ {\rm d}\ln D = \frac{\pi}{2} D^3 \frac{N_0}{v_\mu} \frac{4}{(\tau + 2)^2} \exp\left(-\frac{v}{v_\mu} \frac{2}{\tau + 2} \exp(-\lambda \tau) - \lambda \tau\right) {\rm d}\ln D \]
+\_form#98=38x14:$n(D,t)$
+\_form#99=5x9:$t$
+\_form#100=363x28:\[ \frac{d n(D,t)}{dt} = k_{\rm emit} n_{\rm emit}(D) + (k_{\rm dilute} + k_{\rm loss}(D)) (n_{\rm back}(D) - n(D,t)) \]
+\_form#101=90x14:$ n(D,0) = n_0(D) $
+\_form#102=48x14:$n_{\rm emit}(D)$
+\_form#103=49x14:$n_{\rm back}(D)$
+\_form#104=25x13:$k_{\rm emit}$
+\_form#105=31x13:$k_{\rm dilute}$
+\_form#106=43x14:$k_{\rm loss}(D)$
+\_form#107=29x9:$t = 0$
+\_form#108=350x14:\[ n(D,t) = n_{\infty}(D) + (n_0(D) - n_{\infty}(D)) \exp( -(k_{\rm dilute} + k_{\rm loss}(D)) t) \]
+\_form#109=323x30:\[ n_{\infty}(D) = n(D,\infty) = n_{\rm back}(D) + \frac{k_{\rm emit}}{k_{\rm dilute} + k_{\rm loss}(D)} n_{\rm emit}(D) \]
+\_form#110=10x9:$ T $
+\_form#111=8x9:$ p $
+\_form#112=14x13:$ D_i $
+\_form#113=11x10:$ H $
+\_form#114=86x14:$ (D_1,\ldots,D_n,H) $
+\_form#115=76x14:$(I - \gamma J) x = b$
+\_form#116=8x10:$J$
+\_form#117=9x9:$\gamma$
+\_form#118=5x10:$b$
+\_form#119=10x10:$A$
+\_form#120=10x13:$Q$
+\_form#121=6x6:$z$
+\_form#122=10x13:$d_{\rm f}$
+\_form#123=14x13:$R_{\rm 0}$
+\_form#124=8x13:$f$
+\_form#125=10x13:$d_{\rm s}$
+\_form#126=21x13:$S_{\rm acc}$
+\_form#127=23x13:$h_{\rm KR}$
+\_form#128=30x14:$R_{\rm me,c}$
+\_form#129=20x13:$R_{\rm eff}$
+\_form#130=49x14:$C(R_eff)$
+\_form#131=10x9:$g_i$
+\_form#132=20x9:$r_i g_i$
+\_form#133=23x9:$r_1 g_1$
+\_form#134=26x9:$r_n g_n$
+\_form#135=38x13:$\rm H_2SO_4$
+\_form#136=21x13:$\rm SO_2$
+\_form#137=123x11:$4\times 10^{-9}\rm\ mol\ m^{-2}\ s^{-1}$
+\_form#138=130x11:$2.8\times 10^{-9}\rm\ mol\ m^{-2}\ s^{-1}$
+\_form#139=121x11:$5\times 10^{-9}\rm\ mol\ m^{-2}\ s^{-1}$
+\_form#140=5x9:$i$
+\_form#141=6x11:$j$
+\_form#142=6x10:$k$
+\_form#143=61x10:$\mathbb{Z} \to \mathbb{Z} \times \mathbb{Z}$
+\_form#144=61x14:$\{1, \ldots, N_{\rm d}\}$
+\_form#145=35x14:$(j_1,j_2)$
+\_form#146=146x14:$\{1, \ldots, N_{\rm r,1} \times \{1, \ldots, N_{\rm r,2}\}$
+\_form#147=35x14:$(j_1, j_2)$
+\_form#148=53x11:$ J = K H^2 $
+\_form#149=11x10:$H$
+\_form#150=38x13:$ \rm H_2SO_4 $
+\_form#151=11x10:$K$
+\_form#152=120x14:\[ | A_1 - A_2 |_2 < \verb+abs_tol+ \]
+\_form#153=135x31:\[ \frac{| A_1 - A_2 |_2}{| A_1 |_2 + | A_2 |_2} < \verb+rel_tol+ \]
+\_form#154=44x11:$np \le 10$
+\_form#155=75x14:$n(1-p) \le 10$
+\_form#156=25x14:$[0,1)$
+\_form#157=25x14:$[1,n]$
+\_form#158=19x14:$e(t)$
+\_form#159=20x14:$h(t)$
+\_form#160=20x14:$r(t)$
+\_form#161=19x14:$c(t)$
+\_form#162=95x26:\[ c(t) = c(0) + \frac{r t}{h} e. \]
+\_form#163=20x14:$\lambda(t)$
+\_form#164=110x34:\[ \lambda_{\rm eff}(t) = \lambda(t) + \frac{\dot{h}(t)}{h(t)} \]
+\_form#165=101x14:\[ \dot{c}(t) = - \lambda_{\rm eff}(t) c(t). \]
+\_form#166=178x33:\[ \frac{c(t)}{c(0)} = \frac{h(0)}{h(t)} \exp\left( - \int_0^t \lambda(t)\,dt\right). \]
+\_form#167=70x14:$p = c(t)/c(0)$
+\_form#168=154x14:\[ c(t) = p(t) c(0) + (1 - p(t)) b. \]
+\_form#169=8x10:$\lambda$
+\_form#170=173x31:\[ p(t) = \min\left(1, \frac{h(0)}{h(t)}\right) \exp(-\lambda t). \]
+\_form#171=46x9:$m_1 = x_1$
+\_form#172=35x11:$v_1 = 0$
+\_form#173=31x9:$n = 1$
+\_form#174=31x11:$n \ge 2$
+\_form#175=143x24:\[ m_n = m_{n-1} + \frac{x_n - m_{n-1}}{n} \]
+\_form#176=184x29:\[ v_n = \frac{n - 2}{n - 1} v_{n-1} + \frac{(x_n - m_{n-1})^2}{n}. \]
+\_form#177=19x9:$m_n$
+\_form#178=14x9:$v_n$
+\_form#179=66x14:$\{x_1,\ldots,x_n\}$
+\_form#180=9x6:$n$
+\_form#181=59x35:\[ t_n = \sum_{i=1}^n x_i \]
+\_form#182=109x35:\[ s_n = \sum_{i=1}^n (x_i - m_n)^2. \]
+\_form#183=48x16:$m_n = \frac{t_n}{n}$
+\_form#184=105x16:$p_n = \frac{1}{n} \left( s_n - n m_n^2 \right)$
+\_form#185=118x16:$v_n = \frac{1}{n - 1} \left( s_n - n m_n^2 \right)$
+\_form#186=101x35:\[ s_n = \sum_{i=1}^n x_i^2 - n m_n^2 \]
+\_form#187=179x26:\[ s_n = s_{n-1} + \frac{n - 1}{n} (x_n - m_{n-1})^2. \]
+\_form#188=430x28:\[ p_n = \frac{n-1}{n} p_{n-1} + \frac{(x_n - m_n)(x_n - m_{n-1})}{n} = \frac{n-1}{n} p_{n-1} + \frac{n-1}{n^2} (x_n - m_{n-1})^2. \]
+\_form#189=11x9:$s_n$
+\_form#190=21x6:$n \kappa \epsilon$
+\_form#191=5x6:$\epsilon$
+\_form#192=8x6:$\kappa$
+\_form#193=164x38:\[ \kappa = \frac{\|x\|_2}{\sqrt{s_n}} = \sqrt{1 + \frac{m_n^2}{p_n}} \approx \frac{m_n}{p_n}. \]
+\_form#194=30x9:$m_{n-1}$
+\_form#195=25x9:$v_{n-1}$
+\_form#196=14x9:$x_n$
+\_form#197=9x9:$\mu$
+\_form#198=8x6:$\sigma$
+\_form#199=133x14:$[\mu - r\sigma/\sqrt{n}, \mu + r\sigma/\sqrt{n}]$
+\_form#200=71x14:$f(\nu) = t_{0.95,\nu}$
+\_form#201=51x9:$\nu = n - 1$
+\_form#202=89x14:$g(\nu) = f(\nu) - L$
+\_form#203=85x15:$L = \Phi^{-1}(0.975)$
+\_form#204=9x10:$\Phi$
+\_form#205=60x14:$g'(\nu) < -1$
+\_form#206=63x14:$g'(\nu) \to -1$
+\_form#207=39x8:$\nu \to \infty$
+\_form#208=24x14:$g(\nu)$
+\_form#209=24x14:$A/\nu$
+\_form#210=75x14:$g(\nu^*) = A^*/\nu$
+\_form#211=69x14:$g(\nu) < A^*/\nu$
+\_form#212=35x11:$\nu > \nu^*$
+\_form#213=163x14:$f(\nu) \le (f(\nu^*) - L) (\nu^* / \nu) + L$
+\_form#214=35x13:$\nu \ge \nu^*$
+\_form#215=56x14:$(\nu^*, f(\nu^*))$
+\_form#216=4x10:$l$
+\_form#217=11x13:$ \ell_1 $
+\_form#218=36x13:$ - p \ln p$
+\_form#219=8x9:$p$

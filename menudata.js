@@ -87,9 +87,9 @@ var menudata={children:[
 {text:"s",url:"namespacemembers_vars.html#index_s"},
 {text:"t",url:"namespacemembers_vars.html#index_t"},
 {text:"u",url:"namespacemembers_vars.html#index_u"}]}]}]},
-{text:"Data Types",url:"annotated.html",children:[
+{text:"Data Types List",url:"annotated.html",children:[
 {text:"Data Types List",url:"annotated.html"},
-{text:"Data Type Index",url:"classes.html"},
+{text:"Data Types",url:"classes.html"},
 {text:"Data Fields",url:"functions.html",children:[
 {text:"All",url:"functions.html",children:[
 {text:"a",url:"functions.html#index_a"},

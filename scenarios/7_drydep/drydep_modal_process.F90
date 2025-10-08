@@ -8,7 +8,7 @@ program process
   use pmc_scenario
 
   character(len=PMC_MAX_FILENAME_LEN), parameter :: prefix & 
-= "out/modal_test"
+= "data/modal_dpg_00001000000000000000_sig_2_5_emerson_grass"
 
   character(len=PMC_MAX_FILENAME_LEN) :: in_filename, out_filename
   type(bin_grid_t) :: bin_grid
@@ -93,7 +93,7 @@ program process
   call make_filename(out_filename, prefix, "_process.nc")
   write(*,*) "Writing " // trim(out_filename)
   call pmc_nc_open_write(out_filename, ncid)
-  call pmc_nc_write_info(ncid, uuid, "1_urban_plume modal process")
+  call pmc_nc_write_info(ncid, uuid, "7_drydep modal process")
   call pmc_nc_write_real_1d(ncid, times, "time", dim_name="time", unit="s")
   call stats_1d_output_netcdf(stats_tot_num_conc, ncid, "tot_num_conc", &
       dim_name="time", unit="m^{-3}")

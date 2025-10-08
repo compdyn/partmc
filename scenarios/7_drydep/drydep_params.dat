@@ -2,11 +2,11 @@ z_ref 10.0   # reference height (m)
 u_mean 2.0   # mean wind speed at the reference height (m)
 z_rough 3.8  # surface roughness length (m)
 A 0.0024     # characteristic radius of collectors (m)
-alpha 5.0
-eps_0 6.0
-gamma .756
-C_B 0.82
-C_IN 92.5
-C_IM 10.4
-nu 11.8
-beta 12.7
+alpha 5.0    # parameter used in impaction efficiency
+eps_0 6.0    # emprical constant used in surface resistance
+gamma .756   # exponent for Brownian diffusion collection efficiency
+C_B 0.82     # coefficient for Brownian diffusion
+C_IN 92.5    # coefficient for interception
+C_IM 10.4    # coefficient for impaction
+nu 11.8      # exponent for interception collection efficiency
+beta 12.7    # exponent for impaction collection efficiency

@@ -303,7 +303,7 @@ contains
     call pmc_nc_write_real_1d(ncid, num_concs, "num_conc_modes", dim_name="num_modes", &
                               long_name="number concentration for each mode", &
                               unit="m^-3")
-    call pmc_nc_write_integer(ncid, aero_dist_n_mode(aero_dist), "num_modes", &
+    call pmc_nc_write_integer(ncid, aero_dist_n_mode(aero_dist), "n_mode", &
          description="total number of modes")
 
     deallocate(char_rads, log10_std_dev_rads, num_concs)
@@ -324,7 +324,7 @@ contains
     type(aero_mode_t), allocatable :: modes(:)
     real(kind=dp), allocatable :: char_rads(:), log10_std_dev_rads(:), num_concs(:)
 
-    call pmc_nc_read_integer(ncid, n_mode, "num_modes")
+    call pmc_nc_read_integer(ncid, n_mode, "n_mode")
 
     if (allocated(modes)) deallocate(modes)
     allocate(modes(n_mode))

@@ -3,5 +3,5 @@ mass_frac aero_init_comp.dat      # composition proportions of species
 diam_type geometric               # type of diameter specified
 mode_type log_normal              # type of distribution
 num_conc 3.2e9                    # particle number concentration (#/m^3)
-geom_mean_diam .00000001000000000000
-log10_geom_std_dev .04139268515822504074
+geom_mean_diam 1e-8               # geometric mean diameter (m)
+log10_geom_std_dev 0.041          # log_10 of geometric std dev of diameter

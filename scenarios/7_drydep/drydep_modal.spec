@@ -1,5 +1,5 @@
 run_type modal                       # modal run
-output_prefix out/drydep_modal       # prefix for output files
+output_prefix data/modal_dpg_00001000000000000000_sig_2_5_emerson_grass
 
 t_max 28800                          # total simulation time (s)
 del_t 60                             # timestep (s)
@@ -7,8 +7,8 @@ t_output 3600                        # output interval (0 disables) (s)
 t_progress 0                         # progress printing interval (0 disables) (s)
 
 n_bin 1000                           # number of bins (for processing purposes)
-d_min .00000040000000000000e-1
-d_max .00025000000000000000e1
+d_min 4e-8                           # minimum diameter (m)
+d_max 2.5e-3                         # maximum diameter (m)
 
 gas_data gas_data.dat                # file containing gas data
 aerosol_data aero_data.dat           # file containing aerosol data
@@ -23,7 +23,7 @@ gas_background gas_back.dat          # background gas concentrations file
 aero_emissions aero_emit.dat         # aerosol emissions file
 aero_background aero_back.dat        # aerosol background file
 loss_function drydep                 # loss function specification
-drydep_params drydep_params.dat      # dry deposition parameters
+drydep_params drydep_grass_emerson.dat
 
 rel_humidity 0.95                    # initial relative humidity (1)
 latitude 0                           # latitude (degrees, -90 to 90)

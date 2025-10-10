@@ -18,5 +18,6 @@ scenarios/3_condense/temp/
 scenarios/3_condense/out/
 scenarios/4_chamber/out/
 scenarios/7_freezing/out/
+scenarios/7_freezing
 *.o
 *.mod

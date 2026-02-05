@@ -290,6 +290,7 @@ contains
     integer :: i_water
     integer :: n_gas_spec, n_aero_spec
     integer :: aero_offset
+    real(kind=dp), parameter :: SMALL_MASS_PLACEHOLDER = 1.0d-10
 
     n_gas_spec = gas_data_n_spec(gas_data)
     n_aero_spec = aero_data_n_spec(aero_data)
@@ -330,7 +331,7 @@ contains
     do i_part = n_part+1,tchem_n_part
        do i_spec = 1,n_aero_spec
           state_vector(aero_offset + i_spec + (i_part-1) * n_aero_spec) = &
-               1d-10
+               SMALL_MASS_PLACEHOLDER
        end do
        number_concentration(i_part) = 0.0d0
     end do
@@ -387,8 +388,12 @@ contains
     character(kind=c_char, len=:), allocatable :: cbuf
     integer(kind=c_size_t) :: N
 
-    allocate(character(256) :: cbuf)
-    N = len(cbuf)
+    if (is_gas) then
+       N = GAS_NAME_LEN
+    else
+       N = AERO_NAME_LEN
+    end if
+    allocate(character(N) :: cbuf)
     if (is_gas) then
        N = TChem_getSpeciesName(i_spec, cbuf, N)
     else

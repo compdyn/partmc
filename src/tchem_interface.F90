@@ -14,10 +14,14 @@ module pmc_tchem_interface
   use pmc_constants
   use pmc_gas_data
   use pmc_gas_state
+  use pmc_env_state
 #ifdef PMC_USE_TCHEM
   use iso_c_binding
 #endif
   use pmc_util, only : die_msg, warn_assert_msg, assert_msg
+
+  integer, parameter :: STATE_VEC_ENV_OFFSET = 3  ! density, pressure, temp
+  real(kind=dp), parameter :: PPM_TO_PPB = 1000.0d0
 
 interface
   subroutine initialize(arg_chemfile, arg_aerofile, arg_numericsfile, &
@@ -156,7 +160,6 @@ contains
     integer, intent(in) :: n_grid_cells
 
     integer(kind=c_int) :: n_aero_spec, n_gas_spec
-    real(kind=c_double), dimension(:), allocatable :: array 
     character(:), allocatable ::  val
     integer :: i_spec
     logical :: is_gas
@@ -228,11 +231,12 @@ contains
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
 
-    integer(c_int) :: nSpec, stateVecDim
+    integer(c_int) :: stateVecDim
     integer :: i_part, i_spec
     real(kind=c_double), dimension(:), allocatable :: stateVector 
     integer :: n_gas_spec, n_aero_spec
     real(kind=dp) :: reweight_num_conc(aero_state_n_part(aero_state))
+    integer :: aero_offset
 
     n_gas_spec = gas_data_n_spec(gas_data)
     n_aero_spec = aero_data_n_spec(aero_data)
@@ -242,17 +246,19 @@ contains
     allocate(stateVector(stateVecDim))
     call TChem_getStateVector(stateVector, 0)
 
-    gas_state%mix_rat = 0.0
     ! Convert from ppm to ppb.
-    gas_state%mix_rat = stateVector(4:n_gas_spec+3) * 1000.d0
+    gas_state%mix_rat = &
+       stateVector(STATE_VEC_ENV_OFFSET+1:n_gas_spec+STATE_VEC_ENV_OFFSET) &
+       * PPM_TO_PPB
 
     call aero_state_num_conc_for_reweight(aero_state, aero_data, &
          reweight_num_conc)
-
+         
+    aero_offset = n_gas_spec + STATE_VEC_ENV_OFFSET
     do i_part = 1,aero_state_n_part(aero_state)
        do i_spec = 1,n_aero_spec
           aero_state%apa%particle(i_part)%vol(i_spec) = stateVector( &
-               n_gas_spec + 3 + i_spec + (i_part -1) * n_aero_spec) &
+               aero_offset + i_spec + (i_part - 1) * n_aero_spec) &
                / aero_data%density(i_spec)
        end do
     end do
@@ -280,12 +286,14 @@ contains
 
     real(kind=dp), allocatable :: stateVector(:), number_concentration(:)
     integer :: stateVecDim, tchem_n_part, i_spec
-    integer :: i_part
+    integer :: i_part, n_part
     integer :: i_water
     integer :: n_gas_spec, n_aero_spec
+    integer :: aero_offset
 
     n_gas_spec = gas_data_n_spec(gas_data)
     n_aero_spec = aero_data_n_spec(aero_data)
+    n_part = aero_state_n_part(aero_state)
 
     ! Get size of state vector in TChem
     stateVecDim = TChem_getLengthOfStateVector()
@@ -305,22 +313,24 @@ contains
     i_water = gas_data_spec_by_name(gas_data, "H2O")
     gas_state%mix_rat(i_water) = env_state_rel_humid_to_mix_rat(env_state)
     ! Add gas species to state vector. Convert from ppb to ppm.
-    stateVector(4:n_gas_spec + 3) = gas_state%mix_rat / 1000.d0
+    stateVector(STATE_VEC_ENV_OFFSET+1:n_gas_spec + STATE_VEC_ENV_OFFSET) = &
+         gas_state%mix_rat / PPM_TO_PPB
 
-    do i_part = 1,aero_state_n_part(aero_state)
-      do i_spec = 1,n_aero_spec
-         stateVector(n_gas_spec + 3 + i_spec + (i_part - 1) * n_aero_spec) = &
-              aero_particle_species_mass(aero_state%apa%particle(i_part), &
-              i_spec, aero_data)
-      end do
-      number_concentration(i_part) = aero_state_particle_num_conc( &
+    aero_offset = n_gas_spec + STATE_VEC_ENV_OFFSET
+    do i_part = 1,n_part
+       do i_spec = 1,n_aero_spec
+          stateVector(aero_offset + i_spec + (i_part - 1) * n_aero_spec) = &
+               aero_particle_species_mass(aero_state%apa%particle(i_part), &
+               i_spec, aero_data)
+       end do
+       number_concentration(i_part) = aero_state_particle_num_conc( &
             aero_state, aero_state%apa%particle(i_part), aero_data)
     end do
 
-    do i_part = aero_state_n_part(aero_state)+1,tchem_n_part
+    do i_part = n_part+1,tchem_n_part
        do i_spec = 1,n_aero_spec
-          stateVector(n_gas_spec + 3 + i_spec + (i_part-1) * n_aero_spec) = &
-            1d-10
+          stateVector(aero_offset + i_spec + (i_part-1) * n_aero_spec) = &
+               1d-10
        end do
        number_concentration(i_part) = 0.0d0
     end do
@@ -337,7 +347,7 @@ contains
   subroutine TChem_timestep(del_t)
 
     !> Time step (s).
-    real(kind=c_double) :: del_t
+    real(kind=c_double), intent(in) :: del_t
 
     call TChem_doTimestep(del_t)
 
@@ -346,13 +356,13 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Initialize TChem.
-  subroutine TChem_initialize(chemFile, aeroFile, NumericsFile, n_batch)
+  subroutine TChem_initialize(chemFile, aeroFile, numericsFile, n_batch)
 
-    !> Chemistry configuration file.
+    !> Gas chemistry configuration file.
     character(kind=c_char,len=*), intent(in) :: chemFile
-    !> Chemistry configuration file.
+    !> Aerosol chemistry configuration file.
     character(kind=c_char,len=*), intent(in) :: aeroFile
-    !> Chemistry configuration file.
+    !> Numerics configuration file.
     character(kind=c_char,len=*), intent(in) :: numericsFile
     !> Number of systems to solve.
     integer(kind=c_int), intent(in) :: n_batch
@@ -370,7 +380,7 @@ contains
     !> Index of species.
     integer(kind=c_int), intent(in) :: i_spec
     !> Logical for if the species is a gas.
-    logical :: is_gas
+    logical, intent(in) :: is_gas
     !> Species name.
     character(:), allocatable :: species_name
 

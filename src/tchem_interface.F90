@@ -22,6 +22,7 @@ module pmc_tchem_interface
 
   integer, parameter :: STATE_VEC_ENV_OFFSET = 3  ! density, pressure, temp
   real(kind=dp), parameter :: PPM_TO_PPB = 1000.0d0
+  integer, parameter :: DEFAULT_BATCH_INDEX = 0
 
 interface
   subroutine initialize(arg_chemfile, arg_aerofile, arg_numericsfile, &
@@ -244,7 +245,7 @@ contains
     ! Get gas array
     state_vec_dim = TChem_getLengthOfStateVector()
     allocate(state_vector(state_vec_dim))
-    call TChem_getStateVector(state_vector, 0)
+    call TChem_getStateVector(state_vector, DEFAULT_BATCH_INDEX)
 
     ! Convert from ppm to ppb.
     gas_state%mix_rat = &
@@ -336,9 +337,10 @@ contains
        number_concentration(i_part) = 0.0d0
     end do
 
-    call TChem_setStateVector(state_vector, 0)
+    call TChem_setStateVector(state_vector, DEFAULT_BATCH_INDEX)
 
-    call TChem_setNumberConcentrationVector(number_concentration, 0)
+    call TChem_setNumberConcentrationVector(number_concentration, &
+         DEFAULT_BATCH_INDEX)
 
   end subroutine tchem_from_partmc
 

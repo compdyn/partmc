@@ -164,6 +164,9 @@ if(ENABLE_TCHEM)
   if (NOT DEFINED ENABLE_TCHEM_GPU)
     option(ENABLE_TCHEM_GPU "Enable TChem GPU chemistry support" OFF)
   endif()
+  if (DEFINED ENABLE_TCHEM_GPU)
+    set(TCHEM_GPU_BACKEND "CUDA" CACHE STRING "GPU backend: CUDA or HIP")
+  endif()
 
 endif()
 
@@ -253,24 +256,31 @@ add_library(partmclib src/aero_state.F90 src/integer_varray.F90
   ${SUNDIALS_SRC} ${GSL_SRC} ${TCHEM_SRC}
   ${C_SORT_SRC})
 
-target_link_libraries(partmclib ${NETCDF_LIBS}
+target_link_libraries(partmclib PUBLIC ${NETCDF_LIBS}
   ${MOSAIC_LIB} ${GSL_LIBS} ${CAMP_LIB} ${TCHEM_LIB} ${YAML_LIB}
   ${KOKKOS_LIB} ${KOKKOSKERNEL_LIB} ${TINES_LIB} ${CPP_LIB} ${LAPACK_LIB} ${SUNDIALS_LIBS})
 
 if (ENABLE_TCHEM)
-   find_package(OpenMP REQUIRED)
-   if (ENABLE_TCHEM_GPU)
-      add_link_options(${OpenMP_CXX_FLAGS})
-   else()
-      add_link_options(${OpenMP_Fortran_FLAGS})
-   endif()
-   include(FindThreads)
-   target_link_libraries(partmclib ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS})
+  find_package(OpenMP REQUIRED)
+  find_package(Threads REQUIRED)
+  if (ENABLE_TCHEM_GPU)
+    target_link_libraries(partmclib PRIVATE OpenMP::OpenMP_CXX)
+    if(TCHEM_GPU_BACKEND STREQUAL "CUDA")
+      find_package(CUDAToolkit REQUIRED)
+      target_link_libraries(partmclib PRIVATE CUDA::cuda_driver)
+    elseif(TCHEM_GPU_BACKEND STREQUAL "HIP")
+      find_package(hip REQUIRED)
+      target_link_libraries(partmclib PRIVATE hip::host)
+    endif()
+  else()
+    target_link_libraries(partmclib PRIVATE OpenMP::OpenMP_Fortran)
+  endif()
+  target_link_libraries(partmclib PRIVATE ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS})
 endif()
 
 set_target_properties(partmclib PROPERTIES OUTPUT_NAME partmc)
 if (ENABLE_TCHEM_GPU)
-   add_link_options(${OpenMP_CXX_FLAGS})
+   target_link_options(partmclib PRIVATE ${OpenMP_CXX_FLAGS})
    set_target_properties(partmclib PROPERTIES LINKER_LANGUAGE CXX)
 endif()
 

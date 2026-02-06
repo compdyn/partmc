@@ -168,8 +168,8 @@ RUN cd /build \
     && cmake -DCMAKE_BUILD_TYPE=release \
              -DCMAKE_C_COMPILER=gcc \
              -DCMAKE_Fortran_COMPILER=gfortran \ 
-             -DCMAKE_C_FLAGS_RELEASE="-O2 -g -Werror -Wall -Wextra" \
-             -DCMAKE_Fortran_FLAGS_RELEASE="-O2 -g -Werror -fimplicit-none -Wall -Wextra -Wconversion -Wunderflow -Wimplicit-interface -Wno-compare-reals -Wno-unused -Wno-unused-parameter -Wno-unused-dummy-argument -fbounds-check" \
+             -DCMAKE_C_FLAGS_RELEASE="-O2 -g -Werror -Wall -Wextra --coverage" \
+             -DCMAKE_Fortran_FLAGS_RELEASE="-O2 -g -Werror -fimplicit-none -Wall -Wextra -Wconversion -Wunderflow -Wimplicit-interface -Wno-compare-reals -Wno-unused -Wno-unused-parameter -Wno-unused-dummy-argument -fbounds-check --coverage" \
              -D ENABLE_GSL:BOOL=TRUE \
              -D ENABLE_TCHEM:BOOL=TRUE  \
              -DCMAKE_C_FLAGS="-lpthread -ldl -fopenmp" \

@@ -32,7 +32,7 @@ interface
     character(kind=c_char), intent(in) :: arg_chemfile(*)
     character(kind=c_char), intent(in) :: arg_aerofile(*)
     character(kind=c_char), intent(in) :: arg_numericsfile(*)
-    integer(c_int), intent(in), value :: n_batch
+    integer(kind=c_int), intent(in), value :: n_batch
   end subroutine initialize
   subroutine finalize() bind(c, name="finalize")
   end subroutine finalize
@@ -64,7 +64,7 @@ interface
     real(kind=c_double) :: TChem_getAerosolSpeciesKappa
   end function
   function TChem_getLengthOfStateVector() bind(c, &
-      name="TChem_getLengthOfStateVector")
+       name="TChem_getLengthOfStateVector")
     use iso_c_binding
     integer(kind=c_int) :: TChem_getLengthOfStateVector
   end function
@@ -72,13 +72,13 @@ interface
        name="TChem_getStateVector")
     use iso_c_binding
     real(kind=c_double) :: array(*)
-    integer(c_int), value :: i_batch
+    integer(kind=c_int), value :: i_batch
   end subroutine
   subroutine TChem_setStateVector(array, i_batch) bind(c, &
        name="TChem_setStateVector")
     use iso_c_binding
     real(kind=c_double) :: array(*)
-    integer(c_int), value :: i_batch
+    integer(kind=c_int), value :: i_batch
   end subroutine
   function TChem_getNumberConcentrationVectorSize() bind(c, &
        name="TChem_getNumberConcentrationVectorSize")
@@ -89,25 +89,25 @@ interface
        name="TChem_setNumberConcentrationVector")
     use iso_c_binding
     real(kind=c_double) :: array(*)
-    integer(c_int), value :: i_batch
+    integer(kind=c_int), value :: i_batch
   end subroutine
   integer(kind=c_size_t) function TChem_getSpeciesName(index, result, &
-       buffer_size) bind(C, name="TChem_getSpeciesName")
-     use iso_c_binding
-     integer(kind=c_int), intent(in) :: index
-     character(kind=c_char), intent(out) :: result(*)
-     integer(kind=c_size_t), intent(in), value :: buffer_size
+       buffer_size) bind(c, name="TChem_getSpeciesName")
+    use iso_c_binding
+    integer(kind=c_int), intent(in) :: index
+    character(kind=c_char), intent(out) :: result(*)
+    integer(kind=c_size_t), intent(in), value :: buffer_size
   end function
   integer(kind=c_size_t) function TChem_getAerosolSpeciesName(index, result, &
-       buffer_size) bind(C, name="TChem_getAerosolSpeciesName")
-     use iso_c_binding
-     integer(kind=c_int), intent(in) :: index
-     character(kind=c_char), intent(out) :: result(*)
-     integer(kind=c_size_t), intent(in), value :: buffer_size
+       buffer_size) bind(c, name="TChem_getAerosolSpeciesName")
+    use iso_c_binding
+    integer(kind=c_int), intent(in) :: index
+    character(kind=c_char), intent(out) :: result(*)
+    integer(kind=c_size_t), intent(in), value :: buffer_size
   end function
-  subroutine TChem_doTimestep(del_t) bind(C, name="TChem_doTimestep")
-     use iso_c_binding
-     real(kind=c_double), intent(in) :: del_t
+  subroutine TChem_doTimestep(del_t) bind(c, name="TChem_doTimestep")
+    use iso_c_binding
+    real(kind=c_double), intent(in) :: del_t
   end subroutine
 end interface
 
@@ -161,12 +161,12 @@ contains
     integer, intent(in) :: n_grid_cells
 
     integer(kind=c_int) :: n_aero_spec, n_gas_spec
-    character(:), allocatable ::  val
+    character(:), allocatable :: val
     integer :: i_spec
     logical :: is_gas
 
     ! initialize the model
-    call TChem_initialize(trim(gas_config_filename), &
+    call tchem_initialize(trim(gas_config_filename), &
          trim(aero_config_filename), trim(solver_config_filename), &
          n_grid_cells)
 
@@ -177,9 +177,9 @@ contains
     ! Set gas_data with gas species from TChem
     is_gas = .true.
     do i_spec = 1,n_gas_spec
-       val = TChem_species_name(i_spec - 1, is_gas)
+       val = tchem_species_name(i_spec - 1, is_gas)
        gas_data%name(i_spec) = trim(val)
-    end do   
+    end do
 
     ! For output and MPI, this needs to be allocated (for now)
     allocate(gas_data%mosaic_index(n_gas_spec))
@@ -197,8 +197,8 @@ contains
 
     is_gas = .false.
     do i_spec = 1,n_aero_spec
-       val = TChem_species_name(i_spec - 1, is_gas)
-       aero_data%name(i_spec) =  trim(val)
+       val = tchem_species_name(i_spec - 1, is_gas)
+       aero_data%name(i_spec) = trim(val)
        aero_data%density(i_spec) = TChem_getAerosolSpeciesDensity(i_spec - 1)
        aero_data%molec_weight(i_spec) = TChem_getAerosolSpeciesMW(i_spec - 1)
        aero_data%kappa(i_spec) = TChem_getAerosolSpeciesKappa(i_spec - 1)
@@ -232,9 +232,9 @@ contains
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
 
-    integer(c_int) :: state_vec_dim
+    integer(kind=c_int) :: state_vec_dim
     integer :: i_part, i_spec
-    real(kind=c_double), dimension(:), allocatable :: state_vector 
+    real(kind=c_double), allocatable :: state_vector(:)
     integer :: n_gas_spec, n_aero_spec
     real(kind=dp) :: reweight_num_conc(aero_state_n_part(aero_state))
     integer :: aero_offset
@@ -280,7 +280,7 @@ contains
     type(aero_state_t), intent(in) :: aero_state
     !> Gas data.
     type(gas_data_t), intent(in) :: gas_data
-    !> Gas State.
+    !> Gas state.
     type(gas_state_t), intent(inout) :: gas_state
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
@@ -347,19 +347,19 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Do a single timestep of TChem chemistry.
-  subroutine TChem_timestep(del_t)
+  subroutine tchem_timestep(del_t)
 
     !> Time step (s).
     real(kind=c_double), intent(in) :: del_t
 
     call TChem_doTimestep(del_t)
 
-  end subroutine TChem_timestep
+  end subroutine tchem_timestep
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Initialize TChem.
-  subroutine TChem_initialize(chem_file, aero_file, numerics_file, n_batch)
+  subroutine tchem_initialize(chem_file, aero_file, numerics_file, n_batch)
 
     !> Gas chemistry configuration file.
     character(kind=c_char,len=*), intent(in) :: chem_file
@@ -373,12 +373,12 @@ contains
     call initialize(chem_file//c_null_char, aero_file//c_null_char, &
          numerics_file//c_null_char, n_batch)
 
-  end subroutine TChem_initialize
+  end subroutine tchem_initialize
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Get species name from TChem for a given index.
-  function TChem_species_name(i_spec, is_gas) result(species_name)
+  function tchem_species_name(i_spec, is_gas) result(species_name)
 
     !> Index of species.
     integer(kind=c_int), intent(in) :: i_spec
@@ -404,7 +404,7 @@ contains
     allocate(character(N) :: species_name)
     species_name = cbuf(:N)
 
-  end function TChem_species_name
+  end function tchem_species_name
 #endif
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

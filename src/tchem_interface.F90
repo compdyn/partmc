@@ -25,7 +25,7 @@ module pmc_tchem_interface
   integer, parameter :: DEFAULT_BATCH_INDEX = 0
 
 interface
-  subroutine initialize(arg_chemfile, arg_aerofile, arg_numericsfile, &
+  subroutine tchem_c_initialize(arg_chemfile, arg_aerofile, arg_numericsfile, &
        n_batch) &
        bind(c, name="initialize")
     use iso_c_binding
@@ -33,9 +33,9 @@ interface
     character(kind=c_char), intent(in) :: arg_aerofile(*)
     character(kind=c_char), intent(in) :: arg_numericsfile(*)
     integer(kind=c_int), intent(in), value :: n_batch
-  end subroutine initialize
-  subroutine finalize() bind(c, name="finalize")
-  end subroutine finalize
+  end subroutine tchem_c_initialize
+  subroutine tchem_c_finalize() bind(c, name="finalize")
+  end subroutine tchem_c_finalize
   function TChem_getNumberOfSpecies() bind(c, name="TChem_getNumberOfSpecies")
     use iso_c_binding
     integer(kind=c_int) :: TChem_getNumberOfSpecies
@@ -166,7 +166,7 @@ contains
     logical :: is_gas
 
     ! initialize the model
-    call tchem_initialize(trim(gas_config_filename), &
+    call tchem_c_initialize(trim(gas_config_filename), &
          trim(aero_config_filename), trim(solver_config_filename), &
          n_grid_cells)
 
@@ -211,7 +211,7 @@ contains
   !> Clean up TChem.
   subroutine pmc_tchem_cleanup()
 
-    call finalize()
+    call tchem_c_finalize()
 
   end subroutine pmc_tchem_cleanup
 
@@ -370,7 +370,7 @@ contains
     !> Number of systems to solve.
     integer(kind=c_int), intent(in) :: n_batch
 
-    call initialize(chem_file//c_null_char, aero_file//c_null_char, &
+    call tchem_c_initialize(chem_file//c_null_char, aero_file//c_null_char, &
          numerics_file//c_null_char, n_batch)
 
   end subroutine tchem_initialize

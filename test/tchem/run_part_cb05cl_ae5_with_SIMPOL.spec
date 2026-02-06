@@ -1,7 +1,7 @@
 run_type particle               # particle-resolved run
 output_prefix out/tchem_cb05cl_ae5         # prefix of output files
 n_repeat 1                      # number of Monte Carlo repeats
-n_part 10                    # total number of particles
+n_part 20                    # total number of particles
 restart no                      # whether to restart from saved state (yes/no)
 do_select_weighting no          # whether to select weighting explicitly (yes/no)
 

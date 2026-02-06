@@ -99,7 +99,7 @@ NCAR-version:
   num_ions: 0
   phase: AEROSOL
   type: CHEM_SPEC
-- maximum computational particles: 100 
+- maximum computational particles: 40
   name: my aero rep 2
   type: AERO_REP_SINGLE_PARTICLE
 - name: MONARCH mod37

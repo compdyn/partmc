@@ -24,92 +24,93 @@ module pmc_tchem_interface
   real(kind=dp), parameter :: PPM_TO_PPB = 1000.0d0
   integer, parameter :: DEFAULT_BATCH_INDEX = 0
 
-interface
-  subroutine tchem_c_initialize(arg_chemfile, arg_aerofile, arg_numericsfile, &
-       n_batch) &
-       bind(c, name="initialize")
-    use iso_c_binding
-    character(kind=c_char), intent(in) :: arg_chemfile(*)
-    character(kind=c_char), intent(in) :: arg_aerofile(*)
-    character(kind=c_char), intent(in) :: arg_numericsfile(*)
-    integer(kind=c_int), intent(in), value :: n_batch
-  end subroutine tchem_c_initialize
-  subroutine tchem_c_finalize() bind(c, name="finalize")
-  end subroutine tchem_c_finalize
-  function TChem_getNumberOfSpecies() bind(c, name="TChem_getNumberOfSpecies")
-    use iso_c_binding
-    integer(kind=c_int) :: TChem_getNumberOfSpecies
-  end function
-  function TChem_getNumberOfAeroSpecies() bind(c, &
-       name="TChem_getNumberOfAeroSpecies")
-    use iso_c_binding
-    integer(kind=c_int) :: TChem_getNumberOfAeroSpecies
-  end function
-  function TChem_getAerosolSpeciesDensity(i_spec) bind(c, &
-       name="TChem_getAerosolSpeciesDensity")
-    use iso_c_binding
-    integer(kind=c_int) :: i_spec
-    real(kind=c_double) :: TChem_getAerosolSpeciesDensity
-  end function
-  function TChem_getAerosolSpeciesMW(i_spec) bind(c, &
-       name="TChem_getAerosolSpeciesMW")
-    use iso_c_binding
-    integer(kind=c_int) :: i_spec
-    real(kind=c_double) :: TChem_getAerosolSpeciesMW
-  end function
-  function TChem_getAerosolSpeciesKappa(i_spec) bind(c, &
-       name="TChem_getAerosolSpeciesKappa")
-    use iso_c_binding
-    integer(kind=c_int) :: i_spec
-    real(kind=c_double) :: TChem_getAerosolSpeciesKappa
-  end function
-  function TChem_getLengthOfStateVector() bind(c, &
-       name="TChem_getLengthOfStateVector")
-    use iso_c_binding
-    integer(kind=c_int) :: TChem_getLengthOfStateVector
-  end function
-  subroutine TChem_getStateVector(array, i_batch) bind(c, &
-       name="TChem_getStateVector")
-    use iso_c_binding
-    real(kind=c_double) :: array(*)
-    integer(kind=c_int), value :: i_batch
-  end subroutine
-  subroutine TChem_setStateVector(array, i_batch) bind(c, &
-       name="TChem_setStateVector")
-    use iso_c_binding
-    real(kind=c_double) :: array(*)
-    integer(kind=c_int), value :: i_batch
-  end subroutine
-  function TChem_getNumberConcentrationVectorSize() bind(c, &
-       name="TChem_getNumberConcentrationVectorSize")
-    use iso_c_binding
-    integer(kind=c_int) :: TChem_getNumberConcentrationVectorSize
-  end function
-  subroutine TChem_setNumberConcentrationVector(array, i_batch) bind(c, &
-       name="TChem_setNumberConcentrationVector")
-    use iso_c_binding
-    real(kind=c_double) :: array(*)
-    integer(kind=c_int), value :: i_batch
-  end subroutine
-  integer(kind=c_size_t) function TChem_getSpeciesName(index, result, &
-       buffer_size) bind(c, name="TChem_getSpeciesName")
-    use iso_c_binding
-    integer(kind=c_int), intent(in) :: index
-    character(kind=c_char), intent(out) :: result(*)
-    integer(kind=c_size_t), intent(in), value :: buffer_size
-  end function
-  integer(kind=c_size_t) function TChem_getAerosolSpeciesName(index, result, &
-       buffer_size) bind(c, name="TChem_getAerosolSpeciesName")
-    use iso_c_binding
-    integer(kind=c_int), intent(in) :: index
-    character(kind=c_char), intent(out) :: result(*)
-    integer(kind=c_size_t), intent(in), value :: buffer_size
-  end function
-  subroutine TChem_doTimestep(del_t) bind(c, name="TChem_doTimestep")
-    use iso_c_binding
-    real(kind=c_double), intent(in) :: del_t
-  end subroutine
-end interface
+  interface
+    subroutine tchem_c_initialize(arg_chemfile, arg_aerofile, &
+         arg_numericsfile, n_batch) &
+         bind(c, name="initialize")
+      use iso_c_binding
+      character(kind=c_char), intent(in) :: arg_chemfile(*)
+      character(kind=c_char), intent(in) :: arg_aerofile(*)
+      character(kind=c_char), intent(in) :: arg_numericsfile(*)
+      integer(kind=c_int), intent(in), value :: n_batch
+    end subroutine tchem_c_initialize
+    subroutine tchem_c_finalize() bind(c, name="finalize")
+    end subroutine tchem_c_finalize
+    function TChem_getNumberOfSpecies() bind(c, &
+         name="TChem_getNumberOfSpecies")
+      use iso_c_binding
+      integer(kind=c_int) :: TChem_getNumberOfSpecies
+    end function
+    function TChem_getNumberOfAeroSpecies() bind(c, &
+         name="TChem_getNumberOfAeroSpecies")
+      use iso_c_binding
+      integer(kind=c_int) :: TChem_getNumberOfAeroSpecies
+    end function
+    function TChem_getAerosolSpeciesDensity(i_spec) bind(c, &
+         name="TChem_getAerosolSpeciesDensity")
+      use iso_c_binding
+      integer(kind=c_int) :: i_spec
+      real(kind=c_double) :: TChem_getAerosolSpeciesDensity
+    end function
+    function TChem_getAerosolSpeciesMW(i_spec) bind(c, &
+         name="TChem_getAerosolSpeciesMW")
+      use iso_c_binding
+      integer(kind=c_int) :: i_spec
+      real(kind=c_double) :: TChem_getAerosolSpeciesMW
+    end function
+    function TChem_getAerosolSpeciesKappa(i_spec) bind(c, &
+         name="TChem_getAerosolSpeciesKappa")
+      use iso_c_binding
+      integer(kind=c_int) :: i_spec
+      real(kind=c_double) :: TChem_getAerosolSpeciesKappa
+    end function
+    function TChem_getLengthOfStateVector() bind(c, &
+         name="TChem_getLengthOfStateVector")
+      use iso_c_binding
+      integer(kind=c_int) :: TChem_getLengthOfStateVector
+    end function
+    subroutine TChem_getStateVector(array, i_batch) bind(c, &
+         name="TChem_getStateVector")
+      use iso_c_binding
+      real(kind=c_double) :: array(*)
+      integer(kind=c_int), value :: i_batch
+    end subroutine
+    subroutine TChem_setStateVector(array, i_batch) bind(c, &
+         name="TChem_setStateVector")
+      use iso_c_binding
+      real(kind=c_double) :: array(*)
+      integer(kind=c_int), value :: i_batch
+    end subroutine
+    function TChem_getNumberConcentrationVectorSize() bind(c, &
+         name="TChem_getNumberConcentrationVectorSize")
+      use iso_c_binding
+      integer(kind=c_int) :: TChem_getNumberConcentrationVectorSize
+    end function
+    subroutine TChem_setNumberConcentrationVector(array, i_batch) bind(c, &
+         name="TChem_setNumberConcentrationVector")
+      use iso_c_binding
+      real(kind=c_double) :: array(*)
+      integer(kind=c_int), value :: i_batch
+    end subroutine
+    integer(kind=c_size_t) function TChem_getSpeciesName(index, result, &
+         buffer_size) bind(c, name="TChem_getSpeciesName")
+      use iso_c_binding
+      integer(kind=c_int), intent(in) :: index
+      character(kind=c_char), intent(out) :: result(*)
+      integer(kind=c_size_t), intent(in), value :: buffer_size
+    end function
+    integer(kind=c_size_t) function TChem_getAerosolSpeciesName(index, &
+         result, buffer_size) bind(c, name="TChem_getAerosolSpeciesName")
+      use iso_c_binding
+      integer(kind=c_int), intent(in) :: index
+      character(kind=c_char), intent(out) :: result(*)
+      integer(kind=c_size_t), intent(in), value :: buffer_size
+    end function
+    subroutine TChem_doTimestep(del_t) bind(c, name="TChem_doTimestep")
+      use iso_c_binding
+      real(kind=c_double), intent(in) :: del_t
+    end subroutine
+  end interface
 
 contains
 
@@ -254,7 +255,7 @@ contains
 
     call aero_state_num_conc_for_reweight(aero_state, aero_data, &
          reweight_num_conc)
-         
+
     aero_offset = n_gas_spec + STATE_VEC_ENV_OFFSET
     do i_part = 1,aero_state_n_part(aero_state)
        do i_spec = 1,n_aero_spec

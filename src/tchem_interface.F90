@@ -24,6 +24,7 @@ module pmc_tchem_interface
   real(kind=dp), parameter :: PPM_TO_PPB = 1000.0d0
   integer, parameter :: DEFAULT_BATCH_INDEX = 0
 
+#ifdef PMC_USE_TCHEM
   interface
     subroutine tchem_c_initialize(arg_chemfile, arg_aerofile, &
          arg_numericsfile, n_batch) &
@@ -111,6 +112,7 @@ module pmc_tchem_interface
       real(kind=c_double), intent(in) :: del_t
     end subroutine
   end interface
+#endif
 
 contains
 

@@ -593,18 +593,12 @@ contains
        call spec_file_read_gas_state(sub_file, gas_data, gas_state_init)
        call spec_file_close(sub_file)
 
-       if (.not. run_part_opt%do_camp_chem) then
+       if (.not. (run_part_opt%do_camp_chem .or. run_part_opt%do_tchem)) then
           call spec_file_read_string(file, 'aerosol_data', sub_filename)
           call spec_file_open(sub_filename, sub_file)
           call spec_file_read_aero_data(sub_file, aero_data)
           call spec_file_close(sub_file)
-       ! FIXME: Temporary to run PartMC. Replace with initialization from TChem
-       else if (run_part_opt%do_tchem) then
-          call spec_file_read_string(file, 'aerosol_data', sub_filename)
-          call spec_file_open(sub_filename, sub_file)
-          call spec_file_read_aero_data(sub_file, aero_data)
-          call spec_file_close(sub_file)
-       else
+       else if (run_part_opt%do_camp_chem) then
 #ifdef PMC_USE_CAMP
           call aero_data_initialize(aero_data, camp_core)
           call aero_state_initialize(aero_state, aero_data, camp_core)

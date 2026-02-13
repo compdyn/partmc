@@ -220,7 +220,7 @@ contains
                    del_t)
           else if (immersion_freezing_scheme_type == &
                IMMERSION_FREEZING_SCHEME_CONST) then
-             p_freeze_max = 1 - exp(freezing_rate * del_t)
+             p_freeze_max = 1d0 - exp(freezing_rate * del_t)
           endif
 
           k_th = n_parts_in_bin + 1

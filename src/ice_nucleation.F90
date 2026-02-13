@@ -298,7 +298,6 @@ contains
          H2O_frac(:)
     real(kind=dp) :: rand
 
-
     ! FIXME: Do this to avoid compiler warning/error, fix it in the future.
     allocate(total_masses(aero_state_n_part(aero_state)))
     allocate(H2O_masses(aero_state_n_part(aero_state)))

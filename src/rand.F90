@@ -222,7 +222,7 @@ contains
        prob_round = floor(val)
     else
        prob_round = ceiling(val)
-    endif
+    end if
 
   end function prob_round
 
@@ -754,7 +754,7 @@ contains
        do while( U.gt.P )
           rand_geometric = rand_geometric + 1
           U = pmc_random()
-       enddo
+       end do
     else
        U = pmc_random()
 
@@ -762,8 +762,8 @@ contains
           rand_geometric = 1 + INT( DLOG(U)/DLOG(1.0D0-P) )
        else
           rand_geometric = 1 + INT(-DLOG(U)/P)
-       endif
-    endif
+       end if
+    end if
 #endif
   end function rand_geometric
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

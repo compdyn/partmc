@@ -724,7 +724,7 @@ contains
             IMMERSION_FREEZING_SCHEME_CONST) then
           call spec_file_read_real(file, 'freezing_rate', &
                run_part_opt%freezing_rate)
-       endif
+       end if
 
        if ((run_part_opt%immersion_freezing_scheme_type .eq. &
             IMMERSION_FREEZING_SCHEME_ABIFM) .or. &
@@ -732,16 +732,16 @@ contains
             IMMERSION_FREEZING_SCHEME_CONST)) then
           call spec_file_read_logical(file, 'do_freezing_naive', &
                run_part_opt%do_freezing_naive)
-       endif
+       end if
           
 
        if (run_part_opt%immersion_freezing_scheme_type .eq.&
             IMMERSION_FREEZING_SCHEME_SINGULAR) then
           call spec_file_read_real(file, 'INAS_a', run_part_opt%INAS_a)
           call spec_file_read_real(file, 'INAS_b', run_part_opt%INAS_b)
-       endif
+       end if
        
-    endif
+    end if
 
     call spec_file_read_integer(file, 'rand_init', rand_init)
     call spec_file_read_logical(file, 'allow_doubling', &

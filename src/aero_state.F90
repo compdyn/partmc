@@ -1367,7 +1367,7 @@ contains
        particle_frozen(i_part) = aero_state%apa%particle(i_part)%frozen
     end do
 
-    aero_state_frozen_fraction = sum(pack(particle_num_concs, particle_frozen)) &
+    aero_state_frozen_fraction = sum(particle_num_concs, mask=particle_frozen) &
          / sum(particle_num_concs)
 
   end function aero_state_frozen_fraction

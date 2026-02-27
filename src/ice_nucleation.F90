@@ -71,8 +71,8 @@ contains
        else
           call assert_msg(121370299, .false., &
                'Error type of immersion freezing scheme')
-       endif
-    endif
+       end if
+    end if
 
   end subroutine ice_nucleation_immersion_freezing
 
@@ -99,18 +99,19 @@ contains
             aero_state%apa%particle(i_part), aero_data)
        S = const%pi * aerosol_diameter **2
        p = pmc_random()
-       temp = (log(1 - p) + exp(-S * exp(-INAS_a * T0 + INAS_b))) / (-S)
+       temp = (log(1d0 - p) + exp(-S * exp(-INAS_a * T0 + INAS_b))) / (-S)
        aero_state%apa%particle(i_part)%imf_temperature = T0 + (log(temp) &
           - INAS_b) / INAS_a
     end do
+    
   end subroutine ice_nucleation_singular_initialize
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Simulation for singular scheme, deciding whether to freeze for each
   !> particle. Run in each time step.
-  subroutine ice_nucleation_immersion_freezing_singular(aero_state, aero_data,&
-       env_state)
+  subroutine ice_nucleation_immersion_freezing_singular(aero_state, &
+       aero_data, env_state)
 
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
@@ -216,8 +217,8 @@ contains
           diameter_max = radius_max * 2
           if (immersion_freezing_scheme_type == &
                IMMERSION_FREEZING_SCHEME_ABIFM) then
-             p_freeze_max = ABIFM_Pfrz_max(diameter_max, aero_data, j_het_max, &
-                   del_t)
+             p_freeze_max = ABIFM_Pfrz_max(diameter_max, aero_data, &
+                   j_het_max, del_t)
           else if (immersion_freezing_scheme_type == &
                IMMERSION_FREEZING_SCHEME_CONST) then
              p_freeze_max = 1d0 - exp(freezing_rate * del_t)

@@ -31,6 +31,7 @@ option(ENABLE_TCHEM "Enable TChem chemistry support" OFF)
 option(ENABLE_MPI "Enable MPI parallel support" OFF)
 option(ENABLE_SUNDIALS "Enable SUNDIALS solver for condensation support" OFF)
 option(ENABLE_C_SORT "Enable C sorting routines" OFF)
+option(ENABLE_QUADPACK "Enable QUADPACK for numerical integration (dry dep)" OFF)
 
 ######################################################################
 # CPack
@@ -180,6 +181,25 @@ if(ENABLE_SUNDIALS)
 endif()
 
 ######################################################################
+# QUADPACK
+
+if (ENABLE_QUADPACK)
+  find_path(QUADPACK_INCLUDE_DIR quadpack_double.mod
+    DOC "QUADPACK include directory"
+    PATHS $ENV{QUADPACK_HOME}/include)
+  find_library(QUADPACK_LIB quadpack
+    DOC "QUADPACK library"
+    PATHS $ENV{QUADPACK_HOME}/lib)
+  if(EXISTS "${QUADPACK_INCLUDE_DIR}/quadpack.mod" AND EXISTS "${QUADPACK_LIB}")
+      include_directories(${QUADPACK_INCLUDE_DIR})
+      add_definitions(-DPMC_USE_QUADPACK)
+  else()
+      message(WARNING "QUADPACK library not found - disabling QUADPACK support")
+      set(ENABLE_QUADPACK OFF)
+  endif()
+endif()
+
+######################################################################
 # tests
 
 enable_testing()
@@ -233,7 +253,7 @@ add_library(partmclib src/aero_state.F90 src/integer_varray.F90
   src/aero_particle.F90 src/aero_particle_array.F90 src/mpi.F90
   src/netcdf.F90 src/aero_info.F90 src/aero_info_array.F90
   src/nucleate.F90 src/condense.F90 src/fractal.F90 src/chamber.F90
-  src/camp_interface.F90 src/photolysis.F90 src/sys.F90
+  src/camp_interface.F90 src/photolysis.F90 src/sys.F90 src/run_modal.F90
   src/tchem_interface.F90
   src/aero_component.F90
   ${SUNDIALS_SRC} ${GSL_SRC} ${TCHEM_SRC}
@@ -241,7 +261,7 @@ add_library(partmclib src/aero_state.F90 src/integer_varray.F90
 
 target_link_libraries(partmclib ${NETCDF_LIBS} ${SUNDIALS_LIBS}
   ${MOSAIC_LIB} ${GSL_LIBS} ${CAMP_LIB} ${TCHEM_LIB} ${YAML_LIB}
-  ${KOKKOS_LIB} ${KOKKOSKERNEL_LIB} ${TINES_LIB} ${CPP_LIB} ${LAPACK_LIB})
+  ${KOKKOS_LIB} ${KOKKOSKERNEL_LIB} ${TINES_LIB} ${CPP_LIB} ${LAPACK_LIB} ${QUADPACK_LIB})
 
 if (ENABLE_TCHEM)
    find_package(OpenMP REQUIRED)
@@ -411,5 +431,12 @@ target_link_libraries(urban_plume_process partmclib)
 add_executable(chamber_process
   scenarios/4_chamber/chamber_process.F90)
 target_link_libraries(chamber_process partmclib)
+
+######################################################################
+# scenarios/7_drydep/drydep_modal_process
+
+add_executable(drydep_modal_process
+  scenarios/7_drydep/drydep_modal_process.F90)
+target_link_libraries(drydep_modal_process partmclib)
 
 ######################################################################

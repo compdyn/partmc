@@ -21,6 +21,9 @@ module pmc_scenario
 #ifdef PMC_USE_MPI
   use mpi
 #endif
+#ifdef PMC_USE_QUADPACK
+  use quadpack_double, only: dqagse
+#endif
 
   !> Type code for an undefined or invalid loss function.
   integer, parameter :: SCENARIO_LOSS_FUNCTION_INVALID  = 0
@@ -39,6 +42,34 @@ module pmc_scenario
   !! A value of 0 will always use the naive algorithm, and
   !! a value of 1 will always use the accept-reject algorithm.
   real(kind=dp), parameter :: SCENARIO_LOSS_ALG_THRESHOLD = 1.0d0
+
+  !> Parameters for simulating dry deposition
+  type drydep_params_t
+     !> Reference height
+     real(kind=dp) :: z_ref = 20.0d0
+     !> Mean wind speed at reference height
+     real(kind=dp) :: u_mean = 5.0d0
+     !> Roughness length (land-use category dependent)
+     real(kind=dp) :: z_rough = 0.8d0 ! crops, mixed farming (LUC 7 from Zhang et al., 2001)
+     !> Characteristic radius of collectors (land-use category dependent)
+     real(kind=dp) :: A = 2.0d0 / 1000.0d0
+     !> Impaction parameter
+     real(kind=dp) :: alpha = 1.0d0
+     !> Surface resistance parameter
+     real(kind=dp) :: eps_0 = 3.0d0
+     !> Diffusivity paramter
+     real(kind=dp) :: gamma = 0.56d0 ! LUC-dependent for Zhang et al., 2001
+     !> Brownian diffusion coefficient
+     real(kind=dp) :: C_B = 1.0d0
+     !> Interception coefficient
+     real(kind=dp) :: C_IN = 0.5d0
+     !> Impaction coefficient
+     real(kind=dp) :: C_IM = 1.0d0
+     !> Interception exponent
+     real(kind=dp) :: nu = 2.0d0
+     !> Impaction exponent
+     real(kind=dp) :: beta = 2.0d0
+  end type drydep_params_t
 
   !> Scenario data.
   !!
@@ -97,6 +128,8 @@ module pmc_scenario
 
      !> Type of loss rate function.
      integer :: loss_function_type
+     !> Dry deposition parameters
+     type(drydep_params_t) :: drydep
      !> Chamber parameters for wall loss and sedimentation.
      type(chamber_t) :: chamber
   end type scenario_t
@@ -394,6 +427,77 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  subroutine scenario_update_aero_modes(aero_dist, del_t, env_state, &
+                                        density, scenario)
+
+    !> Aerosol distribution.
+    type(aero_dist_t), intent(inout) :: aero_dist
+    !> Timestep.
+    real(kind=dp), intent(in) :: del_t
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+    !> Density for each mode.
+    real(kind=dp), intent(in) :: density
+    !> Scenario
+    type(scenario_t), intent(inout) :: scenario
+
+    !> Current mode
+    type(aero_mode_t) :: aero_mode
+
+    real(kind=dp) :: N, d_pg, ln_sigma_g
+    real(kind=dp) :: m_0_rate, m_3_rate
+    real(kind=dp) :: M, new_M
+    real(kind=dp) :: new_N, new_d_pg
+    integer :: i_mode
+
+    if (scenario%loss_function_type == SCENARIO_LOSS_FUNCTION_INVALID) then
+       return
+    else if (scenario%loss_function_type == SCENARIO_LOSS_FUNCTION_NONE) then
+       return
+    else if (scenario%loss_function_type == SCENARIO_LOSS_FUNCTION_CONSTANT) then
+       return
+    else if (scenario%loss_function_type == SCENARIO_LOSS_FUNCTION_DRYDEP) then
+      ! loss
+      do i_mode = 1,aero_dist_n_mode(aero_dist)
+       aero_mode = aero_dist%mode(i_mode)
+       N = aero_mode%num_conc
+
+       if (N == 0d0) then
+          cycle
+       end if
+
+       d_pg = aero_mode%char_radius * 2.0d0
+       ln_sigma_g = aero_mode%log10_std_dev_radius / log10(exp(1.0d0))
+
+       ! Integrated deposition rate for the 0-th moment (num. conc.)
+       m_0_rate = -1.0d0 * scenario_integrated_loss_rate_drydep(scenario, aero_mode, &
+                   0.0d0, density, env_state)
+       new_N = N * exp(m_0_rate * del_t)
+
+       if (new_N < 1d0) then
+          aero_dist%mode(i_mode)%num_conc = 0d0
+          aero_dist%mode(i_mode)%char_radius = 0d0
+          cycle
+       end if
+
+       aero_dist%mode(i_mode)%num_conc = new_N
+
+       ! Integrated deposition rate for the 3-rd moment (proportional to volume conc.)
+       m_3_rate = -1.0d0 * scenario_integrated_loss_rate_drydep(scenario, aero_mode, 3.0d0, &
+                                                                 density, env_state)
+       M = N * d_pg**3.0d0 * exp((3.0d0**2.0d0)/2.0d0 * (ln_sigma_g**2.0d0))
+       new_M = M * exp(m_3_rate * del_t)
+
+       ! New geometric mean diameter
+       new_d_pg = (new_M / new_N * exp(-(3.0d0**2.0d0)/2.0d0 * (ln_sigma_g**2.0d0)))**(1.0d0/3.0d0)
+       aero_dist%mode(i_mode)%char_radius = new_d_pg / 2.0d0
+      end do
+    end if
+
+  end subroutine scenario_update_aero_modes
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Evaluate a loss rate function.
   real(kind=dp) function scenario_loss_rate(scenario, vol, density, &
        aero_data, env_state)
@@ -421,8 +525,8 @@ contains
        scenario_loss_rate = 1d15*vol
     else if (scenario%loss_function_type == SCENARIO_LOSS_FUNCTION_DRYDEP) &
          then
-       scenario_loss_rate = scenario_loss_rate_dry_dep(vol, density, &
-            aero_data, env_state)
+       scenario_loss_rate = scenario_loss_rate_drydep(vol, density, &
+            aero_data, env_state, scenario)
     else if (scenario%loss_function_type == SCENARIO_LOSS_FUNCTION_CHAMBER) &
          then
        scenario_loss_rate = chamber_loss_rate_wall(scenario%chamber, vol, &
@@ -441,8 +545,8 @@ contains
   !> Compute and return the dry deposition rate for a given particle.
   !! All equations used here are written in detail in the file
   !! \c doc/deposition/deposition.tex.
-  real(kind=dp) function scenario_loss_rate_dry_dep(vol, density, aero_data, &
-      env_state)
+  real(kind=dp) function scenario_loss_rate_drydep(vol, density, aero_data, &
+      env_state, scenario)
 
     !> Particle volume (m^3).
     real(kind=dp), intent(in) :: vol
@@ -452,6 +556,8 @@ contains
     type(aero_data_t), intent(in) :: aero_data
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
+    !> Scenario data.
+    type(scenario_t), intent(in) :: scenario
 
     real(kind=dp) :: V_d
     real(kind=dp) :: V_s
@@ -462,22 +568,13 @@ contains
     real(kind=dp) :: knud, cunning
     real(kind=dp) :: grav
     real(kind=dp) :: R_s, R_a
-    real(kind=dp) :: alpha, beta, gamma, A, eps_0
     real(kind=dp) :: diff_p
     real(kind=dp) :: von_karman
     real(kind=dp) :: St, Sc, u_star
     real(kind=dp) :: E_B, E_IM, E_IN, R1
-    real(kind=dp) :: u_mean, z_ref, z_rough
+    type(drydep_params_t) :: drydep_params
 
-    ! User set variables
-    u_mean = 5.0d0 ! Mean wind speed at reference height
-    z_ref =  20.0d0 ! Reference height
-    ! Setting for LUC = 7, SC = 1 - See Table 3
-    z_rough = .1d0 ! According to land category
-    A = 2.0d0 / 1000.0d0 ! Dependent on land type
-    alpha = 1.2d0 ! From table
-    beta = 2.0d0 ! From text
-    gamma = .54d0 ! From table
+    drydep_params = scenario%drydep
 
     ! particle diameter
     d_p = aero_data_vol2diam(aero_data, vol)
@@ -506,36 +603,307 @@ contains
 
     ! Aerodynamic resistance
     ! For neutral stability
-    u_star = .4d0 * u_mean / log(z_ref / z_rough)
-    R_a = (1.0d0 / (.4d0 * u_star)) * log(z_ref / z_rough)
+    u_star = .4d0 * drydep_params%u_mean / log(drydep_params%z_ref / drydep_params%z_rough)
+    R_a = (1.0d0 / (.4d0 * u_star)) * log(drydep_params%z_ref / drydep_params%z_rough)
     ! Brownian diffusion efficiency
     diff_p = (const%boltzmann * env_state%temp * cunning) / &
          (3.d0 * const%pi * visc_d * d_p)
     Sc = visc_k / diff_p
-    E_B = Sc**(-gamma)
+    E_B = drydep_params%C_B * Sc**(-drydep_params%gamma)
 
     ! Interception efficiency
     ! Characteristic radius of large collectors
-    E_IN = .5d0 * (d_p / A)**2.0d0
+    E_IN = drydep_params%C_IN * (d_p / drydep_params%A)**2.0d0
 
     ! Impaction efficiency
-    St = (V_s * u_star) / (grav * A)
-    E_IM = (St / (alpha + St))**beta
+    St = (V_s * u_star) / (grav * drydep_params%A)
+    E_IM = drydep_params%C_IM * (St / (drydep_params%alpha + St))**drydep_params%beta
 
     ! Rebound correction
     R1 = exp(-St**.5d0)
 
     ! Surface resistance
-    eps_0 = 3.0d0 ! Taken to be 3
-    R_s = 1.0d0 / (eps_0 * u_star * (E_B + E_IN + E_IM) * R1)
+    R_s = 1.0d0 / (drydep_params%eps_0 * u_star * (E_B + E_IN + E_IM) * R1)
 
     ! Dry deposition
     V_d = V_s + (1.0d0 / (R_a + R_s + R_a * R_s * V_s))
 
     ! The loss rate
-    scenario_loss_rate_dry_dep = V_d / env_state%height
+    scenario_loss_rate_drydep = V_d / env_state%height
 
-  end function scenario_loss_rate_dry_dep
+  end function scenario_loss_rate_drydep
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Compute and return the integrated dry deposition rate for a given
+  !> lognormal aerosol mode (modal approximation).
+  real(kind=dp) function scenario_integrated_loss_rate_drydep(scenario, &
+      aero_mode, moment, density, env_state)
+
+    !> Scenario data.
+    type(scenario_t), intent(in) :: scenario
+    !> Aerosol mode.
+    type(aero_mode_t), intent(in) :: aero_mode
+    !> Moment to calculate loss rate for.
+    real(kind=dp), intent(in) :: moment
+    !> Particle density assumed for entire mode (kg m^-3).
+    real(kind=dp), intent(in) :: density
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+
+    real(kind=dp) :: V_d_hat, V_g_hat
+    real(kind=dp) :: V_g_bar
+    real(kind=dp) :: d_pg, ln_sigma_g
+    real(kind=dp) :: density_air
+    real(kind=dp) :: visc_d, visc_k
+    real(kind=dp) :: gas_speed, gas_mean_free_path
+    real(kind=dp) :: knud
+    real(kind=dp) :: D_bar, D_hat
+    real(kind=dp) :: St, Sc
+    real(kind=dp) :: u_star
+    real(kind=dp) :: R_a, R_s
+    real(kind=dp) :: E_B, E_IN, E_IM, R1
+    type(drydep_params_t) :: drydep_params
+
+#ifdef PMC_USE_QUADPACK
+     ! Do numerical integration when QUADPACK is available
+     scenario_integrated_loss_rate_drydep = scenario_integrated_loss_rate_drydep_quadpack( &
+                                              scenario, aero_mode, moment, density, env_state)
+     return
+#endif
+
+    drydep_params = scenario%drydep
+
+    ! particle diameter equal to geometric mean diameter
+    d_pg = aero_mode%char_radius * 2.0d0
+    ! natural log of geometric standard deviation
+    ln_sigma_g = aero_mode%log10_std_dev_radius / log10(exp(1.0d0))
+    ! density of air
+    density_air = (const%air_molec_weight * env_state%pressure) &
+                / (const%univ_gas_const * env_state%temp)
+    ! dynamic viscosity
+    visc_d = 1.8325d-5 * (416.16 / (env_state%temp + 120.0d0)) &
+           * (env_state%temp / 296.16)**1.5d0
+    ! kinematic viscosity
+    visc_k = visc_d / density_air
+    ! gas speed
+    gas_speed = sqrt((8.0d0 * const%boltzmann * env_state%temp * const%avagadro) / &
+                     (const%pi * const%air_molec_weight))
+    ! gas mean free path
+    gas_mean_free_path = (2.0d0 * visc_d) / (density_air * gas_speed)
+    ! Knudsen number
+    knud = (2.0d0 * gas_mean_free_path) / d_pg
+    ! Settling velcoity
+    V_g_bar = (density * d_pg**2.0d0 * const%std_grav) / (18.0d0 * visc_d)
+    ! Compute integrated settling velocity
+    V_g_hat = V_g_bar * (exp((4.0d0 * moment + 4.0d0) / 2.0d0 * ln_sigma_g**2.0d0) + 1.246d0 * &
+                 knud * exp((2.0d0 * moment + 1.0d0) / 2.0d0 * ln_sigma_g**2.0d0))
+
+    ! Aerodynamic resistance (assuming neutral stability)
+    u_star = 0.4d0 * drydep_params%u_mean / log(drydep_params%z_ref / drydep_params%z_rough)
+    R_a = (1.0d0 / (0.4d0 * u_star)) * log(drydep_params%z_ref / drydep_params%z_rough)
+
+    ! Brownian diffusivity
+    D_bar = (const%boltzmann * env_state%temp) / &
+            (3.0d0 * const%pi * visc_d * d_pg)
+    ! Compute integrated Brownian diffusivity
+    D_hat = D_bar * ((exp((-2.0d0 * moment + 1.0d0) / 2.0d0 * ln_sigma_g**2.0d0) + 1.246d0 * &
+             knud * exp((-4.0d0 * moment + 4.0d0) / 2.0d0 * ln_sigma_g**2.0d0)))
+    ! Schmidt number based on integrated diffusivity
+    Sc = visc_k / D_hat
+    ! Collection efficiency due to Brownian diffusion
+    E_B = drydep_params%C_B * Sc**(-drydep_params%gamma)
+
+    ! Collection efficiency due to interception
+    E_IN = drydep_params%C_IN * (d_pg / drydep_params%A)**drydep_params%nu
+
+    ! Stokes number based on integrated settling velocity
+    St = (V_g_hat * u_star) / (const%std_grav * drydep_params%A)
+    ! Collection efficiency due to impaction
+    E_IM = drydep_params%C_IM * (St / (drydep_params%alpha + St))**drydep_params%beta
+
+    ! Rebound correction
+    R1 = exp(-St**0.5d0)
+
+    ! Surface resistance
+    R_s = 1.0d0 / (drydep_params%eps_0 * u_star * (E_B + E_IN + E_IM) * R1)
+
+    ! Integrated deposition velocity
+    V_d_hat = V_g_hat + (1.0d0 / (R_a + R_s))
+
+    ! Loss rate
+    scenario_integrated_loss_rate_drydep = V_d_hat / env_state%height
+
+  end function scenario_integrated_loss_rate_drydep
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+#ifdef PMC_USE_QUADPACK
+  real(kind=dp) function scenario_integrated_loss_rate_drydep_quadpack(scenario, &
+      aero_mode, moment, density, env_state)
+
+    !> Scenario data.
+    type(scenario_t), intent(in) :: scenario
+    !> Aerosol mode.
+    type(aero_mode_t), intent(in) :: aero_mode
+    !> Moment to calculate loss rate for.
+    real(kind=dp), intent(in) :: moment
+    !> Particle density assumed for entire mode (kg m^-3).
+    real(kind=dp), intent(in) :: density
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+
+    real(kind=dp) :: d_pg, ln_sigma_g
+    real(kind=dp) :: density_air
+    real(kind=dp) :: visc_d, visc_k
+    real(kind=dp) :: gas_speed, gas_mean_free_path
+    real(kind=dp) :: u_star
+    real(kind=dp) :: M_k
+    real(kind=dp) :: lower, upper, epsabs, epsrel, result, abserr, ref
+    integer :: limit, neval, ier, last
+    real(kind=dp), allocatable :: alist(:), blist(:), rlist(:), elist(:)
+    integer, allocatable :: iord(:)
+
+    type(drydep_params_t) :: drydep_params
+
+    drydep_params = scenario%drydep
+
+    ! particle diameter equal to geometric mean diameter
+    d_pg = aero_mode%char_radius * 2.0d0
+    ! natural log of geometric standard deviation
+    ln_sigma_g = aero_mode%log10_std_dev_radius / log10(exp(1.0d0))
+    ! density of air
+    density_air = (const%air_molec_weight * env_state%pressure) &
+                / (const%univ_gas_const * env_state%temp)
+    ! dynamic viscosity
+    visc_d = 1.8325d-5 * (416.16 / (env_state%temp + 120.0d0)) &
+           * (env_state%temp / 296.16)**1.5d0
+    ! kinematic viscosity
+    visc_k = visc_d / density_air
+    ! gas speed
+    gas_speed = sqrt((8.0d0 * const%boltzmann * env_state%temp * const%avagadro) / &
+                     (const%pi * const%air_molec_weight))
+    ! gas mean free path
+    gas_mean_free_path = (2.0d0 * visc_d) / (density_air * gas_speed)
+
+    ref = exp(log(d_pg) + moment*ln_sigma_g**2)
+    lower = ref / (exp(ln_sigma_g)*10.0)
+    upper = ref * exp(ln_sigma_g)*10.0
+
+    ! Set integration parameters
+    limit = 1000
+    epsabs = 1.0d-10
+    epsrel = 1.0d-6
+
+    ! Allocate arrays for QUADPACK integration
+    allocate(alist(limit), blist(limit), rlist(limit), elist(limit), iord(limit))
+
+    ! Call QUADPACK integration routine
+    call dqagse(dep_vel_integrand, lower, upper, epsabs, epsrel, limit, &
+                result, abserr, neval, ier, alist, blist, rlist, elist, iord, last)
+
+    if (ier > 0) then
+     call die_msg(837465, "QUADPACK integration failed (error code: " &
+                         // trim(integer_to_string(ier)))
+    endif
+
+    M_k = d_pg**moment * exp(moment**2 * ln_sigma_g**2 / 2.0d0)
+
+    ! Integration result
+    scenario_integrated_loss_rate_drydep_quadpack = 1.0d0 / M_k * result / env_state%height
+
+    ! Clean up
+    deallocate(alist, blist, rlist, elist, iord)
+
+  contains
+
+  real(kind=dp) function dep_vel_integrand(d_p)
+    real(kind=dp), intent(in) :: d_p
+
+    ! Local variables
+    real(kind=dp) :: V_d, V_s
+    real(kind=dp) :: knud_local, cunning
+    real(kind=dp) :: diff_p, Sc, St
+    real(kind=dp) :: u_star, R_a, R_s
+    real(kind=dp) :: E_B, E_IN, E_IM, R1
+    real(kind=dp) :: ln_dp, ln_dp_g, n_ddp
+
+    ! Knudsen number for this diameter
+    knud_local = (2.0d0 * gas_mean_free_path) / d_p
+
+    ! Cunningham correction factor
+    cunning = 1.0d0 + knud_local * (1.257d0 + 0.4d0 * exp(-1.1d0 / knud_local))
+
+    ! Settling velocity
+    V_s = (density * d_p**2.0d0 * const%std_grav * cunning) / (18.0d0 * visc_d)
+
+    ! Friction velocity and aerodynamic resistance
+    u_star = 0.4d0 * drydep_params%u_mean / log(drydep_params%z_ref / drydep_params%z_rough)
+    R_a = (1.0d0 / (0.4d0 * u_star)) * log(drydep_params%z_ref / drydep_params%z_rough)
+
+    ! Particle diffusivity and Schmidt number
+    diff_p = (const%boltzmann * env_state%temp * cunning) / &
+         (3.0d0 * const%pi * visc_d * d_p)
+    Sc = visc_k / diff_p
+
+    ! Collection efficiencies
+    E_B = drydep_params%C_B * Sc**(-drydep_params%gamma)
+    E_IN = drydep_params%C_IN * (d_p / drydep_params%A)**drydep_params%nu
+
+    ! Stokes number and impaction efficiency
+    St = (V_s * u_star) / (const%std_grav * drydep_params%A)
+    E_IM = C_IM * (St / (drydep_params%alpha + St))**drydep_params%beta
+
+    ! Rebound correction
+    R1 = exp(-St**0.5d0)
+
+    ! Surface resistance
+    R_s = 1.0d0 / (drydep_params%eps_0 * u_star * (E_B + E_IN + E_IM) * R1)
+
+    ! Deposition velocity
+    V_d = V_s + (1.0d0 / (R_a + R_s))
+
+    ! Log-normal size distribution
+    ln_dp = log(d_p)
+    ln_dp_g = log(d_pg)
+    n_ddp = (1.0d0/(sqrt(2.0d0 * const%pi) * d_p * ln_sigma_g)) * &
+            exp(-((ln_dp - ln_dp_g)**2) / (2.0d0 * ln_sigma_g**2))
+
+     ! Final integrand
+     dep_vel_integrand = d_p**moment * V_d * n_ddp
+  end function dep_vel_integrand
+  end function scenario_integrated_loss_rate_drydep_quadpack
+#endif
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Updates an array to contain the integrated deposition rates for the
+  !> given moment of each aerosol mode in the distribution.
+  subroutine scenario_modal_drydep_rates(scenario, aero_dist, moment, &
+      density, env_state, rates)
+
+    !> Scenario data.
+    type(scenario_t), intent(in) :: scenario
+    !> Aerosol distribution.
+    type(aero_dist_t), intent(in) :: aero_dist
+    !> Moment to compute rate for.
+    real(kind=dp), intent(in) :: moment
+    !> Density for the mode.
+    real(kind=dp), intent(in) :: density
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+    !> Rates.
+    real(kind=dp), intent(inout) :: rates(:)
+
+    integer :: i_mode, n_mode
+
+    do i_mode = 1,size(rates)
+       rates(i_mode) = scenario_integrated_loss_rate_drydep( &
+          scenario, aero_dist%mode(i_mode), moment, density, env_state) &
+          * env_state%height
+    end do
+
+  end subroutine
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -785,6 +1153,7 @@ contains
     character(len=PMC_MAX_FILENAME_LEN) :: sub_filename
     type(spec_file_t) :: sub_file
     character(len=SPEC_LINE_MAX_VAR_LEN) :: function_name
+    type(spec_line_t) :: line
 
     ! note that we have to hard-code the list for doxygen below
 
@@ -889,6 +1258,16 @@ contains
        scenario%loss_function_type = SCENARIO_LOSS_FUNCTION_VOLUME
     else if (trim(function_name) == 'drydep') then
        scenario%loss_function_type = SCENARIO_LOSS_FUNCTION_DRYDEP
+       call spec_file_read_line_no_eof(file, line)
+       call spec_file_unread_line(file)
+       if (line%name /= 'drydep_params') then
+          call warn_msg(735291468, "using default dry deposition parameters")
+       else 
+          call spec_file_read_string(file, 'drydep_params', sub_filename)
+          call spec_file_open(sub_filename, sub_file)
+          call spec_file_read_drydep_params(sub_file, scenario%drydep)
+          call spec_file_close(sub_file)
+       end if
     else if (trim(function_name) == 'chamber') then
        scenario%loss_function_type = SCENARIO_LOSS_FUNCTION_CHAMBER
        call spec_file_read_chamber(file, scenario%chamber)
@@ -1002,6 +1381,64 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Read dry deposition parameters from a spec file.
+  subroutine spec_file_read_drydep_params(file, drydep_params)
+
+    !> Spec file.
+    type(spec_file_t), intent(inout) :: file
+    !> Dry deposition parameters.
+    type(drydep_params_t), intent(inout) :: drydep_params
+
+    !> \page input_format_chamber Input File Format: Dry Deposition Parameters
+    !!
+    !! Dry deposition is simulatied using the specified parameters:
+    !! - \b z_ref (real, unit m): the reference height \f$z_{\rm ref}\f$ used 
+    !!   in the calculation of aerodynamic resistance \f$R_a\f$
+    !! - \b u_mean (real, unit m s^{-1}): the wind speed at the reference
+    !!   height
+    !! - \b z_rough (real, unit m): the roughness length associated with 
+    !!   the surface
+    !! - \b A (real, unit m): the characteristic radius of collectors
+    !!   associated with the surface
+    !! - \b alpha (real, dimensionless): the parameter \f$\alpha\f$ used in the 
+    !!   calculation of impaction efficiency \f$E_{\rm IM}\f$
+    !! - \b eps_0 (real, dimensionless): the empirical constant used in the 
+    !!   calculation of surface resistance \f$R_s\f$
+    !! - \b gamma (real, dimensionless): the exponent \f$\gamma\f$ used in the
+    !!   calculation of Brownian diffusion collection efficiency \f$E_{\rm B}\f$
+    !! - \b C_B (real, dimensionless): the coefficient for Brownian diffusion
+    !!   collection efficiency \f$E_{\rm B}\f$
+    !! - \b C_IN (real, dimensionless): the coefficient for interception
+    !!   collection efficiency \f$E_{\rm IN}\f$
+    !! - \b C_IM (real, dimensionless): the coefficient for impaction collection
+    !!   efficiency \f$E_{\rm IM}\f$
+    !! - \b nu (real, dimensionless): the exponent \f$\nu\f$ used in the calculation
+    !!   of interception collection efficiency \f$E_{\rm IN}\f$
+    !! - \b beta (real, dimensionless): the exponent \f$\beta\f$ used in the
+    !!   calculation of impaction collection efficiency \f$E_{\rm IM}\f$
+    !!
+    !! See also:
+    !!   - \ref spec_file_format --- the input file text format
+    !!   - \ref input_format_scenario --- the prescribed profiles of
+    !!     other environment data
+
+    call spec_file_read_real(file, "z_ref", drydep_params%z_ref)
+    call spec_file_read_real(file, "u_mean", drydep_params%u_mean)
+    call spec_file_read_real(file, "z_rough", drydep_params%z_rough)
+    call spec_file_read_real(file, "A", drydep_params%A)
+    call spec_file_read_real(file, "alpha", drydep_params%alpha)
+    call spec_file_read_real(file, "eps_0", drydep_params%eps_0)
+    call spec_file_read_real(file, "gamma", drydep_params%gamma)
+    call spec_file_read_real(file, "C_B", drydep_params%C_B)
+    call spec_file_read_real(file, "C_IN", drydep_params%C_IN)
+    call spec_file_read_real(file, "C_IM", drydep_params%C_IM)
+    call spec_file_read_real(file, "nu", drydep_params%nu)
+    call spec_file_read_real(file, "beta", drydep_params%beta)
+
+   end subroutine spec_file_read_drydep_params
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Determines the number of bytes required to pack the given value.
   integer function pmc_mpi_pack_size_scenario(val)
 
@@ -1026,6 +1463,7 @@ contains
          + pmc_mpi_pack_size_real_array(val%aero_dilution_time) &
          + pmc_mpi_pack_size_real_array(val%aero_dilution_rate) &
          + pmc_mpi_pack_size_integer(val%loss_function_type) &
+         + pmc_mpi_pack_size_drydep(val%drydep) &
          + pmc_mpi_pack_size_chamber(val%chamber)
     if (allocated(val%gas_emission_time)) then
        do i = 1,size(val%gas_emission)
@@ -1088,6 +1526,7 @@ contains
     call pmc_mpi_pack_real_array(buffer, position, val%aero_dilution_time)
     call pmc_mpi_pack_real_array(buffer, position, val%aero_dilution_rate)
     call pmc_mpi_pack_integer(buffer, position, val%loss_function_type)
+    call pmc_mpi_pack_drydep(buffer, position, val%drydep)
     call pmc_mpi_pack_chamber(buffer, position, val%chamber)
     if (allocated(val%gas_emission_time)) then
        do i = 1,size(val%gas_emission)
@@ -1148,6 +1587,7 @@ contains
     call pmc_mpi_unpack_real_array(buffer, position, val%aero_dilution_time)
     call pmc_mpi_unpack_real_array(buffer, position, val%aero_dilution_rate)
     call pmc_mpi_unpack_integer(buffer, position, val%loss_function_type)
+    call pmc_mpi_unpack_drydep(buffer, position, val%drydep)
     call pmc_mpi_unpack_chamber(buffer, position, val%chamber)
     if (allocated(val%gas_emission)) deallocate(val%gas_emission)
     if (allocated(val%gas_background)) deallocate(val%gas_background)
@@ -1184,6 +1624,100 @@ contains
 #endif
 
   end subroutine pmc_mpi_unpack_scenario
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Determines the number of bytes required to pack the given value.
+  integer function pmc_mpi_pack_size_drydep(val)
+
+    !> Value to pack.
+    type(drydep_params_t), intent(in) :: val
+
+    integer :: total_size, i, N
+
+    pmc_mpi_pack_size_drydep = &
+         pmc_mpi_pack_size_real(val%z_ref) &
+         + pmc_mpi_pack_size_real(val%u_mean) &
+         + pmc_mpi_pack_size_real(val%z_rough) &
+         + pmc_mpi_pack_size_real(val%A) &
+         + pmc_mpi_pack_size_real(val%alpha) &
+         + pmc_mpi_pack_size_real(val%eps_0) &
+         + pmc_mpi_pack_size_real(val%gamma) &
+         + pmc_mpi_pack_size_real(val%C_B) &
+         + pmc_mpi_pack_size_real(val%C_IN) &
+         + pmc_mpi_pack_size_real(val%C_IM) &
+         + pmc_mpi_pack_size_real(val%nu) &
+         + pmc_mpi_pack_size_real(val%beta)
+
+   end function pmc_mpi_pack_size_drydep
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Packs the given value into the buffer, advancing position.
+  subroutine pmc_mpi_pack_drydep(buffer, position, val)
+
+    !> Memory buffer.
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position.
+    integer, intent(inout) :: position
+    !> Value to pack.
+    type(drydep_params_t), intent(in) :: val
+
+#ifdef PMC_USE_MPI
+      integer :: prev_position
+
+      prev_position = position
+      call pmc_mpi_pack_real(buffer, position, val%z_ref)
+      call pmc_mpi_pack_real(buffer, position, val%u_mean)
+      call pmc_mpi_pack_real(buffer, position, val%z_rough)
+      call pmc_mpi_pack_real(buffer, position, val%A)
+      call pmc_mpi_pack_real(buffer, position, val%alpha)
+      call pmc_mpi_pack_real(buffer, position, val%eps_0)
+      call pmc_mpi_pack_real(buffer, position, val%gamma)
+      call pmc_mpi_pack_real(buffer, position, val%C_B)
+      call pmc_mpi_pack_real(buffer, position, val%C_IN)
+      call pmc_mpi_pack_real(buffer, position, val%C_IM)
+      call pmc_mpi_pack_real(buffer, position, val%nu)
+      call pmc_mpi_pack_real(buffer, position, val%beta)
+      call assert(371592468, &
+            position - prev_position <= pmc_mpi_pack_size_drydep(val))
+#endif
+
+   end subroutine pmc_mpi_pack_drydep
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Unpacks the given value from the buffer, advancing position.
+  subroutine pmc_mpi_unpack_drydep(buffer, position, val)
+
+    !> Memory buffer.
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position.
+    integer, intent(inout) :: position
+    !> Value to pack.
+    type(drydep_params_t), intent(inout) :: val
+
+#ifdef PMC_USE_MPI
+      integer :: prev_position
+
+    prev_position = position
+    call pmc_mpi_unpack_real(buffer, position, val%z_ref)
+    call pmc_mpi_unpack_real(buffer, position, val%u_mean)
+    call pmc_mpi_unpack_real(buffer, position, val%z_rough)
+    call pmc_mpi_unpack_real(buffer, position, val%A)
+    call pmc_mpi_unpack_real(buffer, position, val%alpha)
+    call pmc_mpi_unpack_real(buffer, position, val%eps_0)
+    call pmc_mpi_unpack_real(buffer, position, val%gamma)
+    call pmc_mpi_unpack_real(buffer, position, val%C_B)
+    call pmc_mpi_unpack_real(buffer, position, val%C_IN)
+    call pmc_mpi_unpack_real(buffer, position, val%C_IM)
+    call pmc_mpi_unpack_real(buffer, position, val%nu)
+    call pmc_mpi_unpack_real(buffer, position, val%beta)
+    call assert(582741936, &
+          position - prev_position <= pmc_mpi_pack_size_drydep(val))
+#endif
+
+  end subroutine pmc_mpi_unpack_drydep
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

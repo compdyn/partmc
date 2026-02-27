@@ -214,7 +214,6 @@ if (ENABLE_TCHEM)
   add_test(test_tchem ${CMAKE_BINARY_DIR}/test_run/run_test_directory.sh tchem)
 endif()
 add_test(test_weighting ${CMAKE_BINARY_DIR}/test_run/run_test_directory.sh weighting)
-#>>>>>>> 2341ef410d6f49f3169b8461b5fa8c89dbd3c7a2
 
 ######################################################################
 # partmc library

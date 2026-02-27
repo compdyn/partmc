@@ -301,7 +301,6 @@ contains
     real(kind=dp), allocatable :: H2O_masses(:), total_masses(:), &
          H2O_frac(:)
     real(kind=dp) :: rand
-    logical :: is_abifm
 
     ! FIXME: Do this to avoid compiler warning/error, fix it in the future.
     allocate(total_masses(aero_state_n_part(aero_state)))
@@ -315,8 +314,6 @@ contains
     pvs = env_state_saturated_vapor_pressure_wrt_water(env_state%temp)
     pis = env_state_saturated_vapor_pressure_wrt_ice(env_state%temp)
     a_w_ice = pis / pvs
-    is_abifm = immersion_freezing_scheme_type == &
-         IMMERSION_FREEZING_SCHEME_ABIFM
 
     if (immersion_freezing_scheme_type == IMMERSION_FREEZING_SCHEME_CONST) then
        p_freeze = 1 - exp(freezing_rate * del_t)
@@ -329,7 +326,8 @@ contains
        if (H2O_frac(i_part) < const%imf_water_threshold) cycle
        rand = pmc_random()
 
-       if (is_abifm) then
+       if (immersion_freezing_scheme_type == &
+            IMMERSION_FREEZING_SCHEME_ABIFM) then
           p_freeze = ABIFM_Pfrz_particle(aero_state%apa%particle(i_part), &
                aero_data, a_w_ice, del_t)
        end if

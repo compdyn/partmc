@@ -425,13 +425,6 @@ add_executable(urban_plume_process
 target_link_libraries(urban_plume_process partmclib)
 
 ######################################################################
-# scenarios/7_freezing/freezing_process
-
-add_executable(freezing_process
-  scenarios/7_freezing/freezing_process.F90 src/getopt.F90)
-target_link_libraries(freezing_process partmclib)
-
-######################################################################
 # scenarios/4_chamber/chamber_process
 
 add_executable(chamber_process

@@ -297,7 +297,7 @@ contains
 
     integer :: i_part
     real(kind=dp) :: a_w_ice, pis, pvs
-    real(kind=dp) :: p_freeze = 0
+    real(kind=dp) :: p_freeze
     real(kind=dp), allocatable :: H2O_masses(:), total_masses(:), &
          H2O_frac(:)
     real(kind=dp) :: rand

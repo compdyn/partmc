@@ -399,7 +399,7 @@ contains
        if (i_spec == aero_data%i_water) cycle
        abifm_m = aero_data%abifm_m(i_spec)
        abifm_c = aero_data%abifm_c(i_spec)
-       j_het = 10 ** (abifm_m  * (1 - a_w_ice) + abifm_c) * 10000
+       j_het = 10d0 ** (abifm_m  * (1d0 - a_w_ice) + abifm_c) * 10000
        surface_ratio = aero_particle%vol(i_spec) / total_vol
        j_het_x_area = j_het_x_area + j_het * immersed_surface_area * &
             surface_ratio

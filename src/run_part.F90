@@ -22,6 +22,7 @@ module pmc_run_part
   use pmc_coagulation_dist
   use pmc_coag_kernel
   use pmc_nucleate
+  use pmc_ice_nucleation
   use pmc_mpi
   use pmc_camp_interface
   use pmc_photolysis
@@ -69,6 +70,18 @@ module pmc_run_part
      logical :: do_coagulation
      !> Whether to do nucleation.
      logical :: do_nucleation
+     !> Whether to do freezing.
+     logical :: do_immersion_freezing
+     !> The immersion freezing scheme options.
+     integer :: immersion_freezing_scheme_type
+     !> The INAS parameters for "singular" scheme.
+     real(kind=dp) :: INAS_a
+     real(kind=dp) :: INAS_b
+     !> The freezing rate parameter for "const" scheme.
+     real(kind=dp) :: freezing_rate
+     !> Whether to use the naive algorithm for time-dependent scheme.
+     !> (If false, use the binned tau-leaping algorithm.)
+     logical :: do_freezing_naive
      !> Allow doubling if needed.
      logical :: allow_doubling
      !> Allow halving if needed.
@@ -232,10 +245,16 @@ contains
        call print_part_progress(run_part_opt%i_repeat, time, &
             global_n_part, 0, 0, 0, 0, 0, t_wall_elapsed, t_wall_remain)
     end if
+    ! initialize the immersion freezing temperature for Singular scheme
+    if (run_part_opt%do_immersion_freezing .and. &
+         (run_part_opt%immersion_freezing_scheme_type .eq. &
+         IMMERSION_FREEZING_SCHEME_SINGULAR)) then
+       call ice_nucleation_singular_initialize(aero_state, aero_data, &
+               run_part_opt%INAS_a, run_part_opt%INAS_b)
+    end if
 
     i_cur = 1
     i_next = n_time
-
     call run_part_timeblock(scenario, env_state, aero_data, aero_state, &
          gas_data, gas_state, run_part_opt, &
 #ifdef PMC_USE_CAMP
@@ -316,6 +335,12 @@ contains
          + pmc_mpi_pack_size_integer(val%nucleate_weight_class) &
          + pmc_mpi_pack_size_logical(val%do_coagulation) &
          + pmc_mpi_pack_size_logical(val%do_nucleation) &
+         + pmc_mpi_pack_size_logical(val%do_immersion_freezing) &
+         + pmc_mpi_pack_size_integer(val%immersion_freezing_scheme_type) &
+         + pmc_mpi_pack_size_real(val%INAS_a) &
+         + pmc_mpi_pack_size_real(val%INAS_b) &
+         + pmc_mpi_pack_size_real(val%freezing_rate) &
+         + pmc_mpi_pack_size_logical(val%do_freezing_naive) &
          + pmc_mpi_pack_size_logical(val%allow_doubling) &
          + pmc_mpi_pack_size_logical(val%allow_halving) &
          + pmc_mpi_pack_size_logical(val%do_condensation) &
@@ -367,6 +392,14 @@ contains
     call pmc_mpi_pack_integer(buffer, position, val%nucleate_weight_class)
     call pmc_mpi_pack_logical(buffer, position, val%do_coagulation)
     call pmc_mpi_pack_logical(buffer, position, val%do_nucleation)
+    call pmc_mpi_pack_logical(buffer, position, val%do_immersion_freezing)
+    call pmc_mpi_pack_integer(buffer, position, &
+            val%immersion_freezing_scheme_type)
+
+    call pmc_mpi_pack_real(buffer, position, val%INAS_a)
+    call pmc_mpi_pack_real(buffer, position, val%INAS_b)
+    call pmc_mpi_pack_real(buffer, position, val%freezing_rate)
+    call pmc_mpi_pack_logical(buffer, position, val%do_freezing_naive)
     call pmc_mpi_pack_logical(buffer, position, val%allow_doubling)
     call pmc_mpi_pack_logical(buffer, position, val%allow_halving)
     call pmc_mpi_pack_logical(buffer, position, val%do_condensation)
@@ -421,6 +454,12 @@ contains
     call pmc_mpi_unpack_integer(buffer, position, val%nucleate_weight_class)
     call pmc_mpi_unpack_logical(buffer, position, val%do_coagulation)
     call pmc_mpi_unpack_logical(buffer, position, val%do_nucleation)
+    call pmc_mpi_unpack_logical(buffer, position, val%do_immersion_freezing)
+    call pmc_mpi_unpack_integer(buffer, position, val%immersion_freezing_scheme_type)
+    call pmc_mpi_unpack_real(buffer, position, val%INAS_a)
+    call pmc_mpi_unpack_real(buffer, position, val%INAS_b)
+    call pmc_mpi_unpack_real(buffer, position, val%freezing_rate)
+    call pmc_mpi_unpack_logical(buffer, position, val%do_freezing_naive)
     call pmc_mpi_unpack_logical(buffer, position, val%allow_doubling)
     call pmc_mpi_unpack_logical(buffer, position, val%allow_halving)
     call pmc_mpi_unpack_logical(buffer, position, val%do_condensation)
@@ -673,6 +712,36 @@ contains
     else
        run_part_opt%nucleate_type = NUCLEATE_TYPE_INVALID
     end if
+    call spec_file_read_logical(file, 'do_immersion_freezing', &
+           run_part_opt%do_immersion_freezing)
+
+    if (run_part_opt%do_immersion_freezing) then
+
+       call spec_file_read_immersion_freezing_scheme_type(file, &
+            run_part_opt%immersion_freezing_scheme_type)
+
+       if (run_part_opt%immersion_freezing_scheme_type .eq. &
+            IMMERSION_FREEZING_SCHEME_CONST) then
+          call spec_file_read_real(file, 'freezing_rate', &
+               run_part_opt%freezing_rate)
+       end if
+
+       if ((run_part_opt%immersion_freezing_scheme_type .eq. &
+            IMMERSION_FREEZING_SCHEME_ABIFM) .or. &
+            (run_part_opt%immersion_freezing_scheme_type .eq. &
+            IMMERSION_FREEZING_SCHEME_CONST)) then
+          call spec_file_read_logical(file, 'do_freezing_naive', &
+               run_part_opt%do_freezing_naive)
+       end if
+          
+
+       if (run_part_opt%immersion_freezing_scheme_type .eq.&
+            IMMERSION_FREEZING_SCHEME_SINGULAR) then
+          call spec_file_read_real(file, 'INAS_a', run_part_opt%INAS_a)
+          call spec_file_read_real(file, 'INAS_b', run_part_opt%INAS_b)
+       end if
+       
+    end if
 
     call spec_file_read_integer(file, 'rand_init', rand_init)
     call spec_file_read_logical(file, 'allow_doubling', &
@@ -843,7 +912,12 @@ contains
             - n_part_before
        progress_n_nuc = progress_n_nuc + n_nuc
     end if
-
+    if (run_part_opt%do_immersion_freezing) then
+       call ice_nucleation_immersion_freezing(aero_state, aero_data, env_state, &
+            run_part_opt%del_t, run_part_opt%immersion_freezing_scheme_type, &
+            run_part_opt%freezing_rate, run_part_opt%do_freezing_naive)
+       call ice_nucleation_melting(aero_state, aero_data, env_state)
+    end if
     if (run_part_opt%do_coagulation) then
        if (run_part_opt%parallel_coag_type &
             == PARALLEL_COAG_TYPE_LOCAL) then

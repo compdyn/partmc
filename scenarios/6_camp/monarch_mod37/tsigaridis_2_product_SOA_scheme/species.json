@@ -58,6 +58,8 @@
       "description" : "lumped hydrophobic particulate matter",
       "num_ions" : 0,
       "kappa" : 0.0,
+      "abifm_m": 0,
+      "abifm_c": 0,
       "note" : "Using C30H54 for molecular weight. TODO find best surrogate"
     },
     {
@@ -70,6 +72,8 @@
       "description" : "First isoprene SOA species in 2-product scheme",
       "num_ions" : 0,
       "kappa" : 0.1,
+      "abifm_m": 0,
+      "abifm_c": 0,
       "note" : [
         "Using ketopropanoic acid for molecular weight. TODO find best surrogate",
         "TODO update SIMPOL parameters based on MW of new surrogate"
@@ -85,6 +89,8 @@
       "description" : "Second isoprene SOA species in 2-product scheme",
       "num_ions" : 0,
       "kappa" : 0.1,
+      "abifm_m": 0,
+      "abifm_c": 0,
       "note" : [
         "Using oxalic acid for molecular weight. TODO find best surrogate",
         "TODO update SIMPOL parameters based on MW of new surrogate"
@@ -100,6 +106,8 @@
       "description" : "First monoterpene SOA species in 2-product scheme",
       "num_ions" : 0,
       "kappa" : 0.1,
+      "abifm_m": 0,
+      "abifm_c": 0,
       "note" : [
         "Using 2-hydroxy-3-isopropyl-6-methyl-cyclohexanone for molecular weight",
         "TODO find best surrogate",
@@ -116,6 +124,8 @@
       "description" : "Second monoterpene SOA species in 2-product scheme",
       "num_ions" : 0,
       "kappa" : 0.1,
+      "abifm_m": 0,
+      "abifm_c": 0,
       "note" : [
         "Using 2-methyl-5-carboxy-2,4-hexodienoic acid. TODO find best surrogate",
         "TODO update SIMPOL parameters based on MW of new surrogate"

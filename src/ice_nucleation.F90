@@ -392,7 +392,6 @@ contains
     aerosol_diameter =  aero_particle_dry_diameter(aero_particle, aero_data)
     immersed_surface_area = const%pi * aerosol_diameter **2
 
-    total_vol = 0d0
     total_vol = aero_particle_dry_volume(aero_particle, aero_data)
 
     j_het_x_area = 0d0

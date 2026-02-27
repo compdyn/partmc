@@ -124,7 +124,8 @@ contains
         H2O_frac(:)
     integer :: i_part
 
-    ! FIXME: Do this to avoid compiler warning/error, fix it in the future.
+    ! Workaround: explicit allocate required before assignment to suppress
+    ! false-positive -Wuninitialized warnings from GCC
     allocate(total_masses(aero_state_n_part(aero_state)))
     allocate(H2O_masses(aero_state_n_part(aero_state)))
     allocate(H2O_frac(aero_state_n_part(aero_state)))
@@ -147,10 +148,6 @@ contains
           aero_state%apa%particle(i_part)%ice_shape_phi = 1d0
        end if
     end do
-
-    deallocate(total_masses)
-    deallocate(H2O_masses)
-    deallocate(H2O_frac)
 
   end subroutine ice_nucleation_immersion_freezing_singular
 
@@ -189,7 +186,8 @@ contains
     real(kind=dp) :: j_het_max
     integer :: rand_geo
 
-
+    ! Workaround: explicit allocate required before assignment to suppress
+    ! false-positive -Wuninitialized warnings from GCC
     allocate(total_masses(aero_state_n_part(aero_state)))
     allocate(H2O_masses(aero_state_n_part(aero_state)))
     allocate(H2O_frac(aero_state_n_part(aero_state)))
@@ -267,10 +265,6 @@ contains
        end do loop_classes
     end do loop_bins
 
-    deallocate(total_masses)
-    deallocate(H2O_masses)
-    deallocate(H2O_frac)
-
   end subroutine ice_nucleation_immersion_freezing_time_dependent
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -302,7 +296,8 @@ contains
          H2O_frac(:)
     real(kind=dp) :: rand
 
-    ! FIXME: Do this to avoid compiler warning/error, fix it in the future.
+    ! Workaround: explicit allocate required before assignment to suppress
+    ! false-positive -Wuninitialized warnings from GCC
     allocate(total_masses(aero_state_n_part(aero_state)))
     allocate(H2O_masses(aero_state_n_part(aero_state)))
     allocate(H2O_frac(aero_state_n_part(aero_state)))
@@ -339,10 +334,6 @@ contains
           aero_state%apa%particle(i_part)%ice_shape_phi = 1d0
        end if
     end do
-
-    deallocate(total_masses)
-    deallocate(H2O_masses)
-    deallocate(H2O_frac)
 
   end subroutine ice_nucleation_immersion_freezing_time_dependent_naive
 

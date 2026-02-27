@@ -1,17 +1,21 @@
-![PartMC](https://raw.githubusercontent.com/wiki/compdyn/partmc/logo.svg)
-======
-
 PartMC: Particle-resolved Monte Carlo code for atmospheric aerosol simulation
+======
+![PartMC](https://raw.githubusercontent.com/wiki/compdyn/partmc/logo.svg)
 
-[![Latest version](https://img.shields.io/github/tag/compdyn/partmc.svg?label=version)](https://github.com/compdyn/partmc/blob/master/ChangeLog.md) [![Docker build status](https://img.shields.io/docker/automated/compdyn/partmc.svg)](https://hub.docker.com/r/compdyn/partmc/builds/) [![Github Actions Status](https://github.com/compdyn/partmc/workflows/CI/badge.svg?branch=master)](https://github.com/compdyn/partmc/actions/workflows/main.yml) [![License](https://img.shields.io/github/license/compdyn/partmc.svg)](https://github.com/compdyn/partmc/blob/master/COPYING) [![DOI](https://zenodo.org/badge/24058992.svg)](https://zenodo.org/badge/latestdoi/24058992) [![Coverage Status](https://codecov.io/gh/compdyn/partmc/branch/master/graph/badge.svg)](https://app.codecov.io/gh/compdyn/partmc)    
-
+[![Latest version](https://img.shields.io/github/tag/compdyn/partmc.svg?label=version)](https://github.com/compdyn/partmc/blob/master/ChangeLog.md) [![Documentation](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://compdyn.github.io/partmc/) [![Docker build status](https://img.shields.io/docker/automated/compdyn/partmc.svg)](https://hub.docker.com/r/compdyn/partmc/builds/) [![Github Actions Status](https://github.com/compdyn/partmc/workflows/CI/badge.svg?branch=master)](https://github.com/compdyn/partmc/actions/workflows/main.yml) [![License](https://img.shields.io/github/license/compdyn/partmc.svg)](https://github.com/compdyn/partmc/blob/master/COPYING) [![DOI](https://zenodo.org/badge/24058992.svg)](https://zenodo.org/badge/latestdoi/24058992) [![Coverage Status](https://codecov.io/gh/compdyn/partmc/branch/master/graph/badge.svg)](https://app.codecov.io/gh/compdyn/partmc)    
 
 Version 2.8.0  
 Released 2024-02-23
 
-**Source:** <https://github.com/compdyn/partmc>
+**Repository:** <https://github.com/compdyn/partmc>
 
-**Homepage:** <http://lagrange.mechse.illinois.edu/partmc/>
+**Documentation:**:
+- [Homepage](https://compdyn.github.io/partmc);
+- [Input file format description](/partmc/input_format.html);
+- [Output file format description](/partmc/output_format.html);
+- [Diagram of modules and dependencies](/partmc/module_diagram.html);
+- [Description of code conventions and style](/partmc/coding_style.html);
+- [Publications about PartMC](/partmc/publications.html).
 
 **Cite as:** M. West, N. Riemer, J. Curtis, M. Michelotti, and J. Tian (2024) PartMC, [![version](https://img.shields.io/github/release/compdyn/partmc.svg?label=version)](https://github.com/compdyn/partmc), [![DOI](https://zenodo.org/badge/24058992.svg)](https://zenodo.org/badge/latestdoi/24058992)
 
@@ -23,7 +27,7 @@ option) any later version.
 For details see the file COPYING or
 <http://www.gnu.org/licenses/old-licenses/gpl-2.0.html>.
 
-**References:**
+**Selected references:**
 
    * N. Riemer, M. West, R. A. Zaveri, and R. C. Easter (2009)
      Simulating the evolution of soot mixing state with a

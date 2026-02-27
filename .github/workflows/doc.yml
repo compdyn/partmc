@@ -1,13 +1,33 @@
-name: CI
+name: Doxygen Build and Deploy
 
-on: [push, pull_request]
+on:
+  push:
+    branches: [master]
+  pull_request:
 
 jobs:
   build:
 
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: write
+
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v3
     - name: Build the testing docker image
       run: docker build -t partmc-doc -f Dockerfile.doc .
+    - name: Run container to generate docs
+      run: docker run --name partmc-doc-container partmc-doc
+    - name: Create docs directory
+      run: mkdir -p doc
+    - name: Copy docs from container to local workspace
+      run: docker cp partmc-doc-container:/partmc/doc/html ./doc/html
+    - name: Deploy to GitHub Pages
+      if: github.event_name == 'push'
+      uses: JamesIves/github-pages-deploy-action@v4
+      with:
+         branch: gh-pages
+         folder: doc/html
+    - name: Clean up container
+      run: docker rm partmc-doc-container

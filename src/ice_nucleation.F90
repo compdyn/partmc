@@ -78,8 +78,8 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Initialization for the sigular scheme, sampling the freezing temperature
-  !> for each particles.
+  !> Initialization for the singular scheme, sampling the freezing
+  !> temperature for each particle.
   subroutine ice_nucleation_singular_initialize(aero_state, aero_data, &
        INAS_a, INAS_b)
     implicit none

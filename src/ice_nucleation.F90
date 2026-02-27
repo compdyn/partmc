@@ -204,7 +204,7 @@ contains
     a_w_ice = pis / pvs
     if (immersion_freezing_scheme_type == IMMERSION_FREEZING_SCHEME_ABIFM) then
        call ABIFM_max_spec(aero_data, a_w_ice, i_spec_max, j_het_max)
-    endif
+    end if
 
     n_bins = aero_sorted_n_bin(aero_state%aero_sorted)
     n_class = aero_sorted_n_class(aero_state%aero_sorted)
@@ -222,7 +222,7 @@ contains
           else if (immersion_freezing_scheme_type == &
                IMMERSION_FREEZING_SCHEME_CONST) then
              p_freeze_max = 1d0 - exp(freezing_rate * del_t)
-          endif
+          end if
 
           k_th = n_parts_in_bin + 1
           loop_choosed_particles: do while(.TRUE.)
@@ -230,7 +230,7 @@ contains
              k_th = k_th - rand_geo
              if (k_th <= 0) then
                 EXIT loop_choosed_particles
-             endif
+             end if
              i_part = aero_state%aero_sorted%size_class &
                   %inverse(i_bin, i_class)%entry(k_th)
              if (aero_state%apa%particle(i_part)%frozen) then
@@ -252,17 +252,17 @@ contains
                         const%reference_ice_density
                    aero_state%apa%particle(i_part)%ice_shape_phi = 1d0
 
-                endif
+                end if
              else
                 aero_state%apa%particle(i_part)%frozen = .TRUE.
                 aero_state%apa%particle(i_part)%den_ice = &
                      const%reference_ice_density
                 aero_state%apa%particle(i_part)%ice_shape_phi = 1d0
-             endif
+             end if
 
-          enddo loop_choosed_particles
-       enddo loop_classes
-    enddo loop_bins
+          end do loop_choosed_particles
+       end do loop_classes
+    end do loop_bins
 
     deallocate(total_masses)
     deallocate(H2O_masses)

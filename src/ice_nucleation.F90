@@ -209,6 +209,12 @@ contains
     n_bins = aero_sorted_n_bin(aero_state%aero_sorted)
     n_class = aero_sorted_n_class(aero_state%aero_sorted)
 
+    if (immersion_freezing_scheme_type == IMMERSION_FREEZING_SCHEME_CONST) then
+        p_freeze_max = 1d0 - exp(freezing_rate * del_t)
+    else 
+        p_freeze_max = const%nan
+    end if
+
     loop_bins: do i_bin = 1, n_bins
        loop_classes: do i_class = 1, n_class
           n_parts_in_bin = integer_varray_n_entry(&
@@ -219,9 +225,6 @@ contains
                IMMERSION_FREEZING_SCHEME_ABIFM) then
              p_freeze_max = ABIFM_Pfrz_max(diameter_max, aero_data, &
                    j_het_max, del_t)
-          else if (immersion_freezing_scheme_type == &
-               IMMERSION_FREEZING_SCHEME_CONST) then
-             p_freeze_max = 1d0 - exp(freezing_rate * del_t)
           end if
 
           k_th = n_parts_in_bin + 1
@@ -312,6 +315,12 @@ contains
     pis = env_state_saturated_vapor_pressure_wrt_ice(env_state%temp)
     a_w_ice = pis / pvs
 
+    if (immersion_freezing_scheme_type == IMMERSION_FREEZING_SCHEME_CONST) then
+       p_freeze = 1 - exp(freezing_rate * del_t)
+    else
+       p_freeze = const%nan
+    end if
+
     do i_part = 1, aero_state_n_part(aero_state)
        if (aero_state%apa%particle(i_part)%frozen) cycle
        if (H2O_frac(i_part) < const%imf_water_threshold) cycle
@@ -321,9 +330,6 @@ contains
             IMMERSION_FREEZING_SCHEME_ABIFM) then
           p_freeze = ABIFM_Pfrz_particle(aero_state%apa%particle(i_part), &
                aero_data, a_w_ice, del_t)
-       else if (immersion_freezing_scheme_type == &
-            IMMERSION_FREEZING_SCHEME_CONST) then
-          p_freeze = 1 - exp(freezing_rate * del_t)
        end if
 
        if (rand < p_freeze) then

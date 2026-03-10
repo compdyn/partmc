@@ -273,6 +273,82 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Write distribution parameters for each mode in the aerosol distribution.
+  subroutine aero_dist_output_netcdf(aero_dist, ncid)
+
+    !> Aerosol distribution to write.
+    type(aero_dist_t), intent(in) :: aero_dist
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+
+    integer :: i_mode, n_mode
+    real(kind=dp), allocatable :: char_rads(:), log10_std_dev_rads(:), num_concs(:)
+
+    n_mode = aero_dist_n_mode(aero_dist)
+
+    allocate(char_rads(n_mode), log10_std_dev_rads(n_mode), num_concs(n_mode))
+
+    do i_mode = 1,n_mode
+      char_rads(i_mode) = aero_dist%mode(i_mode)%char_radius
+      log10_std_dev_rads(i_mode) = aero_dist%mode(i_mode)%log10_std_dev_radius
+      num_concs(i_mode) = aero_dist%mode(i_mode)%num_conc
+    end do
+
+    call pmc_nc_write_real_1d(ncid, char_rads, "char_radius_modes", dim_name="num_modes", &
+                              long_name="characteristic radius of each mode", &
+                              unit="m")
+    call pmc_nc_write_real_1d(ncid, log10_std_dev_rads, "std_dev_radius_modes", dim_name="num_modes", &
+                             long_name="log_10 of geometric std dev for each mode", &
+                             unit="1")
+    call pmc_nc_write_real_1d(ncid, num_concs, "num_conc_modes", dim_name="num_modes", &
+                              long_name="number concentration for each mode", &
+                              unit="m^-3")
+    call pmc_nc_write_integer(ncid, aero_dist_n_mode(aero_dist), "n_mode", &
+         description="total number of modes")
+
+    deallocate(char_rads, log10_std_dev_rads, num_concs)
+
+  end subroutine aero_dist_output_netcdf
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Read distribution parameters for each mode in the aerosol distribution.
+  subroutine aero_dist_input_netcdf(aero_dist, ncid)
+
+    !> Aerosol distribution to read.
+    type(aero_dist_t), intent(inout) :: aero_dist
+    !> NetCDF file ID, in data mode
+    integer, intent(in) :: ncid
+
+    integer :: i_mode, n_mode
+    type(aero_mode_t), allocatable :: modes(:)
+    real(kind=dp), allocatable :: char_rads(:), log10_std_dev_rads(:), num_concs(:)
+
+    call pmc_nc_read_integer(ncid, n_mode, "n_mode")
+
+    if (allocated(modes)) deallocate(modes)
+    allocate(modes(n_mode))
+
+    allocate(char_rads(n_mode), log10_std_dev_rads(n_mode), num_concs(n_mode))
+
+    call pmc_nc_read_real_1d(ncid, char_rads, "char_radius_modes")
+    call pmc_nc_read_real_1d(ncid, log10_std_dev_rads, "std_dev_radius_modes")
+    call pmc_nc_read_real_1d(ncid, num_concs, "num_conc_modes")
+
+    do i_mode = 1, n_mode
+      modes(i_mode)%char_radius = char_rads(i_mode)
+      modes(i_mode)%log10_std_dev_radius = log10_std_dev_rads(i_mode)
+      modes(i_mode)%num_conc = num_concs(i_mode)
+    end do
+
+    aero_dist%mode = modes
+
+    deallocate(char_rads, log10_std_dev_rads, num_concs)
+
+  end subroutine aero_dist_input_netcdf
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Read an array of aero_dists with associated times and rates from
   !> the given file.
   subroutine spec_file_read_aero_dists_times_rates(file, aero_data, &

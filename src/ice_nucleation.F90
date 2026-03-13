@@ -208,7 +208,7 @@ contains
     n_class = aero_sorted_n_class(aero_state%aero_sorted)
 
     if (immersion_freezing_scheme_type == IMMERSION_FREEZING_SCHEME_CONST) then
-        p_freeze_max = 1d0 - exp(freezing_rate * del_t)
+        p_freeze_max = 1d0 - exp(-freezing_rate * del_t)
     else 
         p_freeze_max = const%nan
     end if
@@ -311,7 +311,7 @@ contains
     a_w_ice = pis / pvs
 
     if (immersion_freezing_scheme_type == IMMERSION_FREEZING_SCHEME_CONST) then
-       p_freeze = 1 - exp(freezing_rate * del_t)
+       p_freeze = 1 - exp(-freezing_rate * del_t)
     else
        p_freeze = const%nan
     end if

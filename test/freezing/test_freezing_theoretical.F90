@@ -85,7 +85,7 @@ program theoretical_freezing
           write(out_unit,'(e20.10)') frozen_fraction
           time = time + out_dt
        end do
-    elseif (immersion_freezing_scheme_type == &
+    else if (immersion_freezing_scheme_type == &
          IMMERSION_FREEZING_SCHEME_SINGULAR) then
        time = 0
        do while(time .le. total_time)

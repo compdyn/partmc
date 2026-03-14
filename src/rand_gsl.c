@@ -150,3 +150,18 @@ int pmc_rand_binomial_gsl(int n, double p, int *harvest)
         *harvest = gsl_ran_binomial(pmc_rand_gsl_rng, p, u);
         return PMC_RAND_GSL_SUCCESS;
 }
+
+/** \brief Generate a Geometric-distributed random integer.
+ *
+ * \param p The sample probability for the distribution.
+ * \param harvest A pointer to the generated random number.
+ * \return PMC_RAND_GSL_SUCCESS on success, otherwise an error code.
+ */
+int pmc_rand_geometric_gsl(double p, int *harvest)
+{
+        if (!pmc_rand_gsl_rng) {
+                return PMC_RAND_GSL_NOT_INIT;
+        }
+        *harvest = gsl_ran_geometric(pmc_rand_gsl_rng, p);
+        return PMC_RAND_GSL_SUCCESS;
+}

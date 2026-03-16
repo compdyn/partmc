@@ -82,7 +82,6 @@ contains
   !> temperature for each particle.
   subroutine ice_nucleation_singular_initialize(aero_state, aero_data, &
        INAS_a, INAS_b)
-    implicit none
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     !> Aerosol data.

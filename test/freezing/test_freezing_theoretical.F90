@@ -106,7 +106,7 @@ program theoretical_freezing
           write(out_unit,'(e20.10)') frozen_fraction
           time = time + out_dt
        end do
-    endif
+    end if
 
     close(out_unit)
 

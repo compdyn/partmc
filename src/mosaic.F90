@@ -41,17 +41,19 @@ contains
     use module_data_mosaic_aero, only: alpha_ASTEM, rtol_eqb_ASTEM, &
          ptol_mol_ASTEM, mGAS_AER_XFER, mDYNAMIC_SOLVER
 
-    use module_data_mosaic_main, only: & 
+    use module_data_mosaic_main, only: &
          mgas, maer, mcld, maeroptic, mshellcore, &
          msolar, mphoto, &
-         naerbin, &
+         naerbin, naer_tot, &
          m_partmc_mosaic, &
-         ngas_max, ntot_max
+         ngas_max, ntot_max, naer_max
     use module_data_mosaic_boxmod, only: mmode, lun_aeroptic, &
         tbeg_sec, dt_sec, rlon, rlat, zalt_m, &
         RH, te, pr_atm, cair_mlc, cair_molm3, ppb
-    use module_data_mosaic_aero, only: mcoag_flag1
+    use module_data_mosaic_aero, only: mcoag_flag1, nbin_a_max, &
+         mSIZE_FRAMEWORK, mhyst_method, mUNSTRUCTURED, mhyst_uporlo_jhyst
     use module_data_mosaic_constants, only: avogad
+    use module_mosaic_init_aerpar, only: mosaic_init_aer_params
 #endif
 
     !> Environment state.
@@ -75,21 +77,25 @@ contains
         end subroutine
     end interface
 
-    m_partmc_mosaic = 100 
+    m_partmc_mosaic = 100
 
     call init_data_modules  ! initialize indices and vars
 
-    ! allocate one aerosol bin
-    print*, 'ngas_max', ngas_max, ntot_max
-    ntot_max = ngas_max + 10000*24
+    ! allocate aerosol bins
     naerbin = 10000
+    naer_max = naer_tot * naerbin
+    ntot_max = ngas_max + naer_max
+    nbin_a_max = naerbin
     call mosaic_allocate_memory()
+    call mosaic_init_aer_params  ! initialize mw_aer_mac, dens_aer_mac, etc.
 
     ! parameters
     mmode = 1               ! 1 = time integration, 2 = parametric analysis
     mgas = 1                ! 1 = gas chem on, 0 = gas chem off
     maer = 1               ! 1 = aer chem on, 0 = aer chem off
     mcoag_flag1 = 0
+    mSIZE_FRAMEWORK = mUNSTRUCTURED ! particle-resolved (unstructured bins)
+    mhyst_method = mhyst_uporlo_jhyst ! use jhyst_leg for hysteresis
     mcld = 0                ! 1 = cld chem on, 0 = cld chem off
     if (do_optical) then
        maeroptic = 1        ! 1 = aer_optical on, 0 = aer_optical off
@@ -174,11 +180,14 @@ contains
         tbeg_sec, dt_sec, rlon, rlat, zalt_m, &
         RH, te, pr_atm, cair_mlc, cair_molm3, ppb, &
         cnn, &
-        dt_min, tcur_sec, tmid_sec
-     use module_data_mosaic_main, only: naerbin, naer_tot, ngas_max
+        dt_min, tcur_sec, tmid_sec, told_sec, &
+        lun_aer, lun_aer_status, aer_output, species, emission, emit
+     use module_data_mosaic_main, only: naerbin, naer_tot, ngas_max, naer_max, ntot_max, &
+          ntot_used, naerbin_used
+     use module_data_mosaic_aero, only: nbin_a_max
      use module_data_mosaic_constants, only: avogad
   use module_data_mosaic_boxmod, only:  &
-      knum_a, kjhyst_a, kwater_a, kdpdry_a
+      knum_a, kjhyst_a, kwater_a, kdpdry_a, ksigmag_a
 #endif
 
     !> Environment state.
@@ -200,6 +209,7 @@ contains
     integer :: i_part, i_spec, i_spec_mosaic
     real(kind=dp) :: num_conc
     integer :: offset
+    real(kind=dp) :: V_dry       ! total dry volume per particle (m^3)
 
     ! MOSAIC function interfaces
     interface
@@ -214,6 +224,7 @@ contains
     tmar21_sec = real((79*24 + 12)*3600, kind=dp)    ! noon, mar 21, UTC
     tcur_sec = real(tbeg_sec, kind=dp) + env_state%elapsed_time
     ! current (old) time since the beg of year 00:00, UTC (s)
+    told_sec = tcur_sec - dt_sec   ! start of current timestep
 
     time_UTC = env_state%start_time/3600d0  ! 24-hr UTC clock time (hr)
     time_UTC = time_UTC + dt_sec/3600d0
@@ -252,9 +263,21 @@ contains
 
     ! aerosol data: map PartMC -> MOSAIC
     nbin_a = aero_state_total_particles(aero_state)
+    naerbin_used = nbin_a
+    ntot_used = ngas_max + nbin_a * naer_tot
     if (nbin_a > naerbin) then
-!       call DeallocateMemory()
+       ! deallocate before reallocating with larger size
+       if (allocated(cnn))            deallocate(cnn)
+       if (allocated(lun_aer))        deallocate(lun_aer)
+       if (allocated(lun_aer_status)) deallocate(lun_aer_status)
+       if (allocated(aer_output))     deallocate(aer_output)
+       if (allocated(species))        deallocate(species)
+       if (allocated(emission))       deallocate(emission)
+       if (allocated(emit))           deallocate(emit)
        naerbin = nbin_a
+       naer_max = naer_tot * naerbin
+       ntot_max = ngas_max + naer_max
+       nbin_a_max = naerbin
        call mosaic_allocate_memory()
     end if
     cnn = 0d0    ! initialize to zero
@@ -282,7 +305,19 @@ contains
             * aero_data%density(aero_data%i_water) * num_conc
 !       num_a(i_part) = 1d-6 * num_conc ! num conc (#/cc(air))
         cnn(offset + knum_a) = 1d-6 * num_conc
-        cnn(offset + kdpdry_a) = 1d-6
+        ! compute dry diameter (µm) from total dry volume
+        V_dry = 0.0d0
+        do i_spec = 1, aero_data_n_spec(aero_data)
+           if (i_spec /= aero_data%i_water) then
+              V_dry = V_dry + aero_state%apa%particle(i_part)%vol(i_spec)
+           end if
+        end do
+        if (V_dry > 0.0d0) then
+           cnn(offset + kdpdry_a) = (6.0d0 * V_dry / const%pi)**(1.0d0/3.0d0) * 1.0d6
+        else
+           cnn(offset + kdpdry_a) = 1.0d-3  ! 1 nm default for negligible mass
+        end if
+        cnn(offset + ksigmag_a) = 1.0d0  ! monodisperse (unstructured/particle-resolved)
 !       jhyst_leg(i_part) = aero_state%apa%particle(i_part)%water_hyst_leg
         cnn(offset +  kjhyst_a) = aero_state%apa%particle(i_part)%water_hyst_leg
     end do
@@ -458,8 +493,9 @@ contains
     use module_data_mosaic_kind,  only: r8
     use module_data_mosaic_aero,  only: nbin_a_max, mosaic_vars_aa_type, naer, ngas_aerchtot
     use module_mosaic_box_aerchem
-!    use module_mosaic_aerdynam_intr,  only: aerosoldynamics
-    use module_data_mosaic_boxmod, only: cnn
+    use module_mosaic_aerdynam_intr,  only: aerosoldynamics
+    use module_data_mosaic_boxmod, only: cnn, pr_atm, rh, te, cair_molm3, &
+         told_sec, tcur_sec
 #endif
 
     !> Environment state.
@@ -483,7 +519,6 @@ contains
   integer :: mfreq_aeroptic, it
   integer, dimension(nbin_a_max) :: jaerosolstate
   integer, dimension(nbin_a_max) :: iter_MESA
-  real(kind=dp) :: pr_atm, rh, te, cair_mol_m3
   real(kind=dp), dimension(nbin_a_max) :: dp_wet_a
   real(kind=dp), dimension(nbin_a_max) :: aH2O_a, gam_ratio
 
@@ -502,28 +537,8 @@ contains
        end subroutine IntegrateChemistry
        subroutine gaschemistry(dt_in, dt_out)
         use module_data_mosaic_kind,  only: r8
-        use module_data_mosaic_aero,  only: nbin_a_max
            real(r8) :: dt_in, dt_out
        end subroutine gaschemistry
-       subroutine aerosoldynamics(it, t_in, t_out , &
-          pr_atm, rh, te, cair_mol_m3,        &
-          cnn, jaerosolstate, dp_wet_a,       & !intent-inouts
-          aH2O_a, gam_ratio, iter_MESA        ) !intent-outs
-
-          use module_data_mosaic_kind,  only: r8
-          use module_data_mosaic_aero,  only: nbin_a_max
-          use module_data_mosaic_main, only: ntot_max
-    integer, intent(in) :: it
-    real(r8), intent(in) :: t_out, t_in
-    real(r8), intent(in) :: pr_atm, rh, te, cair_mol_m3
-
-    real(r8), intent(inout), dimension(ntot_max) :: cnn
-    integer, intent(inout), dimension(nbin_a_max) :: jaerosolstate
-    real(r8), intent(inout), dimension(nbin_a_max) :: dp_wet_a
-
-    real(r8), intent(out), dimension(nbin_a_max) :: aH2O_a, gam_ratio
-    integer, intent(out), dimension(nbin_a_max) :: iter_MESA
-       end subroutine aerosoldynamics
 !#ifdef PMC_USE_MOSAIC_MULTI_OPT
 !       subroutine aerosol_optical(i_wavelength)
 !         integer, optional :: i_wavelength
@@ -546,15 +561,15 @@ contains
      jaerosolstate = 0 
 !     print
 !     call time_integration_mode(gam_ratio, iter_MESA, aH2O_a)
-     call IntegrateChemistry( it,          & !intent-ins
-          jaerosolstate, dp_wet_a,         & !intent-inouts
-          aH2O_a, gam_ratio, iter_mesa     ) !intent-outs
-!     call GasChemistry( 0.0d0, 300.0d0 )
-
-!     call aerosoldynamics( it, 0.0d0, 300.0d0,   & !intent-ins
-!          pr_atm, rh, te, cair_mol_m3,        &
-!          cnn, jaerosolstate, dp_wet_a,       & !intent-inouts
-!          aH2O_a, gam_ratio, iter_mesa        ) !intent-outs
+!     call IntegrateChemistry( it,          & !intent-ins
+!         jaerosolstate, dp_wet_a,         & !intent-inouts
+!          aH2O_a, gam_ratio, iter_mesa     ) !intent-outs
+     call GasChemistry( told_sec, tcur_sec )
+     
+     call aerosoldynamics( it, tcur_sec, told_sec,  & !intent-ins (t_out, t_in)
+          pr_atm, rh, te, cair_molm3,          &
+          cnn, jaerosolstate, dp_wet_a,         & !intent-inouts
+          aH2O_a, gam_ratio, iter_mesa          ) !intent-outs
 
     ! map MOSAIC -> PartMC
     if (do_optical) then

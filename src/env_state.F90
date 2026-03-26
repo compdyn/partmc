@@ -646,8 +646,8 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> compute saturated vapor pressure (units : Pa) with respective to water
-  !> Formula (10) from [Murphy & Koop, 2004]  (https://doi.org/10.1256/qj.04.94)
+  !> Computes saturated vapor pressure (Pa) with respect to water using Eq.
+  !> (10) from [Murphy & Koop, 2004] (https://doi.org/10.1256/qj.04.94)
   real(kind=dp) function env_state_saturated_vapor_pressure_wrt_water(T)
 
     !> Temperature (K)
@@ -655,26 +655,25 @@ contains
 
     real(kind=dp) :: tmp
 
-
-    call warn_assert_msg(571128376, (T > 123) .and. (T < 332), &
-            "The environment temperature is less then 123K or larger than "&
+    call warn_assert_msg(571128376, (T > 123d0) .and. (T < 332d0), &
+            "The environment temperature is less than 123K or larger than "&
             "332K, the subroutine env_state_saturated_vapor_pressure_wrt_water"&
             " isn't applicable")
 
-    tmp = 54.842763 &
-        - 6763.22 / T &
-        - 4.210 * log(T) &
-        + 0.000367 * T &
-        + tanh( 0.0415 * (T - 218.8)) &
-            * (53.878 - 1331.22 / T - 9.44523 * log(T) + 0.014025 * T)
+    tmp = 54.842763d0 &
+        - 6763.22d0 / T &
+        - 4.210d0 * log(T) &
+        + 0.000367d0 * T &
+        + tanh( 0.0415d0 * (T - 218.8d0)) &
+            * (53.878d0 - 1331.22d0 / T - 9.44523d0 * log(T) + 0.014025d0 * T)
     env_state_saturated_vapor_pressure_wrt_water = exp(tmp)
 
   end function env_state_saturated_vapor_pressure_wrt_water
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Compute saturated vapor pressure (units : Pa) with respective to ice
-  !> Formula (7) from [Murphy & Koop, 2004]  (https://doi.org/10.1256/qj.04.94)
+  !> Computes saturated vapor pressure (Pa) with respect to ice using Eq. (7)
+  !> from [Murphy & Koop, 2004] (https://doi.org/10.1256/qj.04.94).
   real(kind=dp) function env_state_saturated_vapor_pressure_wrt_ice(T)
 
     !> Temperature (K)
@@ -682,15 +681,15 @@ contains
 
     real(kind=dp) :: tmp
 
-    call warn_assert_msg(482130832, T > 110, &
-         "The environment temperature is less then 110K, "&
+    call warn_assert_msg(482130832, T > 110d0, &
+         "The environment temperature is less than 110K, "&
          "the subroutine env_state_saturated_vapor_pressure_wrt_ice"&
          " isn't applicable")
 
-    tmp = 9.550426 &
-        - 5723.265 / T &
-        + 3.53068 * log(T) &
-        - 0.00728332 * T
+    tmp = 9.550426d0 &
+        - 5723.265d0 / T &
+        + 3.53068d0 * log(T) &
+        - 0.00728332d0 * T
     env_state_saturated_vapor_pressure_wrt_ice = exp(tmp)
 
   end function env_state_saturated_vapor_pressure_wrt_ice

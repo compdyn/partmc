@@ -18,7 +18,8 @@ module pmc_ice_nucleation
 
   !> Type code for an undefined or invalid immersion freezing scheme.
   integer, parameter :: IMMERSION_FREEZING_SCHEME_INVALID = 0
-  !> Type code for constant ice nucleation rate (J_het) immersion freezing scheme.
+  !> Type code for constant ice nucleation rate (J_het) immersion freezing
+  !> scheme.
   integer, parameter :: IMMERSION_FREEZING_SCHEME_CONST = 1
   !> Type code for the singular (INAS) immersion freezing scheme.
   integer, parameter :: IMMERSION_FREEZING_SCHEME_SINGULAR = 2
@@ -54,7 +55,8 @@ contains
     !> freezing scheme.
     if (env_state%temp <= const%water_freeze_temp) then
        if ((immersion_freezing_scheme_type == IMMERSION_FREEZING_SCHEME_ABIFM) &
-            .OR. (immersion_freezing_scheme_type == IMMERSION_FREEZING_SCHEME_CONST)) then
+            .OR. (immersion_freezing_scheme_type == &
+            IMMERSION_FREEZING_SCHEME_CONST)) then
           if (do_freezing_naive) then
              call ice_nucleation_immersion_freezing_time_dependent_naive( &
                   aero_state, aero_data, env_state, del_t, &
@@ -478,7 +480,7 @@ contains
 
     character(len=SPEC_LINE_MAX_VAR_LEN) :: imf_scheme
 
-    !> \page input_format_immersion_freezing_scheme Input File Format: Immersion freezing scheme
+    !> \page input_format_imf_scheme Input File Format: Immersion Freezing Scheme
     !!
     !! The immersion freezing scheme is specified by the parameter:
     !!   - \b immersion_freezing_scheme (string): the type of 

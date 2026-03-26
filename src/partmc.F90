@@ -420,7 +420,7 @@ contains
     !! - \b do_freezing (logical): whether to perform particle
     !!   freezing. If \c do_freezing is \c yes, then the following
     !!   parameters must also be provided:
-         - \subpage input_format_imf_scheme
+    !!   - \subpage input_format_imf_scheme
     !! - \b rand_init (integer): if greater than zero then use as
     !!   the seed for the random number generator, or if zero then
     !!   generate a random seed for the random number generator ---

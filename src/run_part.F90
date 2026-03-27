@@ -74,8 +74,9 @@ module pmc_run_part
      logical :: do_immersion_freezing
      !> The immersion freezing scheme options.
      integer :: immersion_freezing_scheme_type
-     !> The INAS parameters for "singular" scheme.
+     !> Slope parameter for the INAS parameterization (singular scheme only).
      real(kind=dp) :: INAS_a
+     !> Intercept parameter for the INAS parameterization (singular scheme only).
      real(kind=dp) :: INAS_b
      !> The freezing rate parameter for "const" scheme.
      real(kind=dp) :: freezing_rate
@@ -244,13 +245,6 @@ contains
        end if
        call print_part_progress(run_part_opt%i_repeat, time, &
             global_n_part, 0, 0, 0, 0, 0, t_wall_elapsed, t_wall_remain)
-    end if
-    ! initialize the immersion freezing temperature for Singular scheme
-    if (run_part_opt%do_immersion_freezing .and. &
-         (run_part_opt%immersion_freezing_scheme_type .eq. &
-         IMMERSION_FREEZING_SCHEME_SINGULAR)) then
-       call ice_nucleation_singular_initialize(aero_state, aero_data, &
-               run_part_opt%INAS_a, run_part_opt%INAS_b)
     end if
 
     i_cur = 1
@@ -915,7 +909,8 @@ contains
     if (run_part_opt%do_immersion_freezing) then
        call ice_nucleation_immersion_freezing(aero_state, aero_data, env_state, &
             run_part_opt%del_t, run_part_opt%immersion_freezing_scheme_type, &
-            run_part_opt%freezing_rate, run_part_opt%do_freezing_naive)
+            run_part_opt%freezing_rate, run_part_opt%do_freezing_naive, &
+            run_part_opt%INAS_a, run_part_opt%INAS_b)
        call ice_nucleation_melting(aero_state, aero_data, env_state)
     end if
     if (run_part_opt%do_coagulation) then

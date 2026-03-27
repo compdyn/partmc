@@ -33,7 +33,7 @@ contains
   !> Main subroutine for immersion freezing simulation.
   subroutine ice_nucleation_immersion_freezing(aero_state, aero_data, &
        env_state, del_t, immersion_freezing_scheme_type, &
-       freezing_rate, do_freezing_naive)
+       freezing_rate, do_freezing_naive, INAS_a, INAS_b)
 
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
@@ -50,6 +50,10 @@ contains
     !> Whether to use the naive algorithm for time-dependent scheme.
     !> (If false, use the binned tau-leaping algorithm.)
     logical, intent(in) :: do_freezing_naive
+    !> Slope parameter for the INAS parameterization (singular scheme only).
+    real(kind=dp), intent(in) :: INAS_a
+    !> Intercept parameter for the INAS parameterization (singular scheme only).
+    real(kind=dp), intent(in) :: INAS_b
 
     !> Call the immersion freezing subroutine according to the immersion
     !> freezing scheme.
@@ -68,6 +72,8 @@ contains
           end if
        else if (immersion_freezing_scheme_type == &
             IMMERSION_FREEZING_SCHEME_SINGULAR) then
+          call ice_nucleation_singular_initialize(aero_state, aero_data, &
+               INAS_a, INAS_b)
           call ice_nucleation_immersion_freezing_singular(aero_state, &
                aero_data, env_state)
        else
@@ -100,13 +106,15 @@ contains
 
     T0 = const%water_freeze_temp
     do i_part = 1, aero_state_n_part(aero_state)
-       aerosol_diameter = aero_particle_dry_diameter( &
-            aero_state%apa%particle(i_part), aero_data)
-       S = const%pi * aerosol_diameter**2
-       p = pmc_random()
-       temp = (log(1d0 - p) + exp(-S * exp(-INAS_a * T0 + INAS_b))) / (-S)
-       aero_state%apa%particle(i_part)%imf_temperature = T0 + (log(temp) &
-          - INAS_b) / INAS_a
+       if (aero_state%apa%particle(i_part)%imf_temperature == 0d0) then
+          aerosol_diameter = aero_particle_dry_diameter( &
+               aero_state%apa%particle(i_part), aero_data)
+          S = const%pi * aerosol_diameter**2
+          p = pmc_random()
+          temp = (log(1d0 - p) + exp(-S * exp(-INAS_a * T0 + INAS_b))) / (-S)
+          aero_state%apa%particle(i_part)%imf_temperature = T0 + (log(temp) &
+             - INAS_b) / INAS_a
+       end if
     end do
 
   end subroutine ice_nucleation_singular_initialize

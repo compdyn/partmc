@@ -16,6 +16,7 @@
 
 program theoretical_freezing
     use pmc_env_state
+    use pmc_constants
     implicit none
 
     ! Temperature (unit: Kelvin)
@@ -35,7 +36,7 @@ program theoretical_freezing
     ! INAS parameters (a and b) for mineral dust. (for singular only)
     real(kind=dp), parameter :: inas_a = -0.517d0, inas_b = 8.934d0
     ! Constant freezing rate. (for const only)
-    real(kind=dp), parameter :: freezing_rate = -0.01123456789d0
+    real(kind=dp), parameter :: freezing_rate = 0.01123456789d0
     ! Dry diameter of INPs (unit: m)
     real(kind=dp), parameter :: Dp_dry = 1d-6
     character(len=100) :: out_filename, imf_scheme
@@ -98,7 +99,7 @@ program theoretical_freezing
          IMMERSION_FREEZING_SCHEME_CONST) then
         time = 0d0
         do while(time .le. total_time)
-            frozen_fraction = 1d0 - exp(freezing_rate * time)
+            frozen_fraction = 1d0 - exp(-freezing_rate * time)
             write(out_unit,'(e20.10)') frozen_fraction
             time = time + out_dt
         end do
@@ -109,12 +110,9 @@ program theoretical_freezing
     contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
+    !> Calculate J_het value using ABIFM method (Knopf et al., 2013)
     subroutine compute_Jhet_ABIFM(T, abifm_m, abifm_c, Jhet)
-        ! Calculate J_het value using ABIFM method (Knopf et al., 2013)
-        use pmc_env_state
-        use pmc_constants
-        implicit none
+
         real(kind=dp), intent(in) :: T, abifm_m, abifm_c
         real(kind=dp), intent(out) :: Jhet
         real(kind=dp) :: es, ei, a_w_ice
@@ -129,7 +127,7 @@ program theoretical_freezing
 
     subroutine compute_INAS(T, inas_a, inas_b, ns)
         ! Calculate the INAS density (Niemand et al., 2012)
-        implicit none
+
         real(kind=dp), intent(in) :: T, inas_a, inas_b
         real(kind=dp), intent(out) :: ns
         ns = exp(inas_a * (T - T0) + inas_b)

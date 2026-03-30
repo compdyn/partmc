@@ -643,6 +643,57 @@ contains
 
   end subroutine env_state_input_netcdf
 
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Computes saturated vapor pressure (Pa) with respect to water using Eq.
+  !> (10) from [Murphy & Koop, 2004] (https://doi.org/10.1256/qj.04.94)
+  real(kind=dp) function env_state_saturated_vapor_pressure_wrt_water(T)
+
+    !> Temperature (K)
+    real(kind=dp), intent(in) :: T
+
+    real(kind=dp) :: tmp
+
+    call warn_assert_msg(571128376, (T > 123d0) .and. (T < 332d0), &
+            "The environment temperature is less than 123K or larger than "&
+            "332K, the subroutine env_state_saturated_vapor_pressure_wrt_water"&
+            " isn't applicable")
+
+    tmp = 54.842763d0 &
+        - 6763.22d0 / T &
+        - 4.210d0 * log(T) &
+        + 0.000367d0 * T &
+        + tanh( 0.0415d0 * (T - 218.8d0)) &
+            * (53.878d0 - 1331.22d0 / T - 9.44523d0 * log(T) + 0.014025d0 * T)
+    env_state_saturated_vapor_pressure_wrt_water = exp(tmp)
+
+  end function env_state_saturated_vapor_pressure_wrt_water
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Computes saturated vapor pressure (Pa) with respect to ice using Eq. (7)
+  !> from [Murphy & Koop, 2004] (https://doi.org/10.1256/qj.04.94).
+  real(kind=dp) function env_state_saturated_vapor_pressure_wrt_ice(T)
+
+    !> Temperature (K)
+    real(kind=dp), intent(in) :: T
+
+    real(kind=dp) :: tmp
+
+    call warn_assert_msg(482130832, T > 110d0, &
+         "The environment temperature is less than 110K, "&
+         "the subroutine env_state_saturated_vapor_pressure_wrt_ice"&
+         " isn't applicable")
+
+    tmp = 9.550426d0 &
+        - 5723.265d0 / T &
+        + 3.53068d0 * log(T) &
+        - 0.00728332d0 * T
+    env_state_saturated_vapor_pressure_wrt_ice = exp(tmp)
+
+  end function env_state_saturated_vapor_pressure_wrt_ice
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 end module pmc_env_state

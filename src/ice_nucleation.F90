@@ -55,8 +55,8 @@ contains
     !> Intercept parameter for the INAS parameterization (singular scheme only).
     real(kind=dp), intent(in) :: INAS_b
 
-    !> Call the immersion freezing subroutine according to the immersion
-    !> freezing scheme.
+    ! Call the immersion freezing subroutine according to the immersion
+    ! freezing scheme.
     if (env_state%temp <= const%water_freeze_temp) then
        if ((immersion_freezing_scheme_type == IMMERSION_FREEZING_SCHEME_ABIFM) &
             .OR. (immersion_freezing_scheme_type == &
@@ -78,7 +78,7 @@ contains
                aero_data, env_state)
        else
           call assert_msg(121370299, .false., &
-               'Error type of immersion freezing scheme')
+               'Invalid immersion freezing scheme type')
        end if
     end if
 
@@ -256,7 +256,7 @@ contains
              end if
              if (immersion_freezing_scheme_type == &
                   IMMERSION_FREEZING_SCHEME_ABIFM) then
-                p_freeze = ABIFM_Pfrz_particle( & 
+                p_freeze = ABIFM_Pfrz_particle( &
                      aero_state%apa%particle(i_part), aero_data, a_w_ice, del_t)
                 call warn_assert_msg(301184565, p_freeze <= p_freeze_max,&
                      "p_freeze > p_freeze_max.")
@@ -484,7 +484,7 @@ contains
 
     !> Spec file.
     type(spec_file_t), intent(inout) :: file
-    !> Kernel type.
+    !> Immersion freezing scheme type.
     integer, intent(out) :: immersion_freezing_scheme_type
 
     character(len=SPEC_LINE_MAX_VAR_LEN) :: imf_scheme
@@ -492,8 +492,8 @@ contains
     !> \page input_format_imf_scheme Input File Format: Immersion Freezing Scheme
     !!
     !! The immersion freezing scheme is specified by the parameter:
-    !!   - \b immersion_freezing_scheme (string): the type of 
-    !!   immersion freezing scheme  must be one of: 
+    !!   - \b immersion_freezing_scheme (string): the type of
+    !!   immersion freezing scheme must be one of: 
     !!   \c const for freezing with a constant freezing rate;
     !!   \c singular for the INAS scheme based on singular perspective;
     !!   \c ABIFM for the ABIFM scheme based on CNT perspective.
@@ -501,9 +501,9 @@ contains
     !! If \c immersion_freezing_scheme is \c singular, the parameters INAS_a
     !! and INAS_b need to be provided. 
     !! If \c immersion_freezing_scheme is \c const, the parameter freezing_rate
-    !! need to be provided.
-    !! If \c immersion_freezing_scheme is \c ABIFM or const, a logical variable
-    !! \c do_freezing_naive need to be provided.
+    !! needs to be provided.
+    !! If \c immersion_freezing_scheme is \c ABIFM or \c const, a logical
+    !! variable \c do_freezing_naive needs to be provided.
     !!
     !! See also:
     !!   - \ref spec_file_format --- the input file text format

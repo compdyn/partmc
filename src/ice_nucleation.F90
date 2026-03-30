@@ -105,7 +105,7 @@ contains
     real(kind=dp) :: aerosol_diameter
 
     T0 = const%water_freeze_temp
-    do i_part = 1, aero_state_n_part(aero_state)
+    do i_part = 1,aero_state_n_part(aero_state)
        if (aero_state%apa%particle(i_part)%imf_temperature == 0d0) then
           aerosol_diameter = aero_particle_dry_diameter( &
                aero_state%apa%particle(i_part), aero_data)
@@ -146,7 +146,7 @@ contains
     total_masses = aero_state_masses(aero_state, aero_data)
     H2O_masses = aero_state_masses(aero_state, aero_data, include=["H2O"])
     H2O_frac = H2O_masses / total_masses
-    do i_part = 1, aero_state_n_part(aero_state)
+    do i_part = 1,aero_state_n_part(aero_state)
        if (aero_state%apa%particle(i_part)%frozen) then
           cycle
        end if
@@ -227,8 +227,8 @@ contains
        p_freeze_max = const%nan
     end if
 
-    loop_bins: do i_bin = 1, n_bins
-       loop_classes: do i_class = 1, n_class
+    loop_bins: do i_bin = 1,n_bins
+       loop_classes: do i_class = 1,n_class
           n_parts_in_bin = integer_varray_n_entry(&
                aero_state%aero_sorted%size_class%inverse(i_bin, i_class))
           radius_max = aero_state%aero_sorted%bin_grid%edges(i_bin + 1)
@@ -330,7 +330,7 @@ contains
        p_freeze = const%nan
     end if
 
-    do i_part = 1, aero_state_n_part(aero_state)
+    do i_part = 1,aero_state_n_part(aero_state)
        if (aero_state%apa%particle(i_part)%frozen) cycle
        if (H2O_frac(i_part) < const%imf_water_threshold) cycle
        rand = pmc_random()
@@ -367,7 +367,7 @@ contains
     integer :: i_part
 
     if (env_state%temp > const%water_freeze_temp) then
-       do i_part = 1, aero_state_n_part(aero_state)
+       do i_part = 1,aero_state_n_part(aero_state)
           aero_state%apa%particle(i_part)%frozen = .false.
           aero_state%apa%particle(i_part)%den_ice = const%nan
           aero_state%apa%particle(i_part)%ice_shape_phi = const%nan

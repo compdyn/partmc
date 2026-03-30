@@ -108,6 +108,9 @@ Functions</h2></td></tr>
 <tr class="memitem:adcb7d321156cb41cb199de0be4bd90ee"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rand__gsl_8c.html#adcb7d321156cb41cb199de0be4bd90ee">pmc_rand_binomial_gsl</a> (int n, double p, int *harvest)</td></tr>
 <tr class="memdesc:adcb7d321156cb41cb199de0be4bd90ee"><td class="mdescLeft">&#160;</td><td class="mdescRight">Generate a Binomial-distributed random integer.  <a href="rand__gsl_8c.html#adcb7d321156cb41cb199de0be4bd90ee">More...</a><br /></td></tr>
 <tr class="separator:adcb7d321156cb41cb199de0be4bd90ee"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a185824ec9cb951953d0f51381a4e9c84"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rand__gsl_8c.html#a185824ec9cb951953d0f51381a4e9c84">pmc_rand_geometric_gsl</a> (double p, int *harvest)</td></tr>
+<tr class="memdesc:a185824ec9cb951953d0f51381a4e9c84"><td class="mdescLeft">&#160;</td><td class="mdescRight">Generate a Geometric-distributed random integer.  <a href="rand__gsl_8c.html#a185824ec9cb951953d0f51381a4e9c84">More...</a><br /></td></tr>
+<tr class="separator:a185824ec9cb951953d0f51381a4e9c84"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="var-members"></a>
 Variables</h2></td></tr>
@@ -260,6 +263,46 @@ Variables</h2></td></tr>
 <dl class="section return"><dt>Returns</dt><dd>PMC_RAND_GSL_SUCCESS on success, otherwise an error code. </dd></dl>
 
 <p class="definition">Definition at line <a class="el" href="rand__gsl_8c_source.html#l00065">65</a> of file <a class="el" href="rand__gsl_8c_source.html">rand_gsl.c</a>.</p>
+
+</div>
+</div>
+<a id="a185824ec9cb951953d0f51381a4e9c84"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a185824ec9cb951953d0f51381a4e9c84">&#9670;&nbsp;</a></span>pmc_rand_geometric_gsl()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int pmc_rand_geometric_gsl </td>
+          <td>(</td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>p</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&#160;</td>
+          <td class="paramname"><em>harvest</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Generate a Geometric-distributed random integer. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">p</td><td>The sample probability for the distribution. </td></tr>
+    <tr><td class="paramname">harvest</td><td>A pointer to the generated random number. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>PMC_RAND_GSL_SUCCESS on success, otherwise an error code. </dd></dl>
+
+<p class="definition">Definition at line <a class="el" href="rand__gsl_8c_source.html#l00160">160</a> of file <a class="el" href="rand__gsl_8c_source.html">rand_gsl.c</a>.</p>
 
 </div>
 </div>

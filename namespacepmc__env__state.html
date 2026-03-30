@@ -109,6 +109,12 @@ Functions/Subroutines</h2></td></tr>
 <tr class="memitem:a0d8b675986137899087a12f1c7abe24b"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepmc__env__state.html#a0d8b675986137899087a12f1c7abe24b">env_state_input_netcdf</a> (env_state, <a class="el" href="fractal_8_f90.html#a4e89f3f850921ff84a6dfce8b166ad50">ncid</a>)</td></tr>
 <tr class="memdesc:a0d8b675986137899087a12f1c7abe24b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read full state.  <a href="namespacepmc__env__state.html#a0d8b675986137899087a12f1c7abe24b">More...</a><br /></td></tr>
 <tr class="separator:a0d8b675986137899087a12f1c7abe24b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8096274fe5e46cf93f9651840abb93ad"><td class="memItemLeft" align="right" valign="top">real(kind=dp) function&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepmc__env__state.html#a8096274fe5e46cf93f9651840abb93ad">env_state_saturated_vapor_pressure_wrt_water</a> (T)</td></tr>
+<tr class="memdesc:a8096274fe5e46cf93f9651840abb93ad"><td class="mdescLeft">&#160;</td><td class="mdescRight">Computes saturated vapor pressure (Pa) with respect to water using Eq. (10) from <a href="https://doi.org/10.1256/qj.04.94">Murphy &amp; Koop, 2004</a>  <a href="namespacepmc__env__state.html#a8096274fe5e46cf93f9651840abb93ad">More...</a><br /></td></tr>
+<tr class="separator:a8096274fe5e46cf93f9651840abb93ad"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1003d9e656e4a8c60b05219ccce0a898"><td class="memItemLeft" align="right" valign="top">real(kind=dp) function&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepmc__env__state.html#a1003d9e656e4a8c60b05219ccce0a898">env_state_saturated_vapor_pressure_wrt_ice</a> (T)</td></tr>
+<tr class="memdesc:a1003d9e656e4a8c60b05219ccce0a898"><td class="mdescLeft">&#160;</td><td class="mdescRight">Computes saturated vapor pressure (Pa) with respect to ice using Eq. (7) from <a href="https://doi.org/10.1256/qj.04.94">Murphy &amp; Koop, 2004</a>.  <a href="namespacepmc__env__state.html#a1003d9e656e4a8c60b05219ccce0a898">More...</a><br /></td></tr>
+<tr class="separator:a1003d9e656e4a8c60b05219ccce0a898"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>The <a class="el" href="structpmc__env__state_1_1env__state__t.html" title="Current environment state.">env_state_t</a> structure and associated subroutines. </p>
@@ -501,6 +507,62 @@ Functions/Subroutines</h2></td></tr>
 </dl>
 
 <p class="definition">Definition at line <a class="el" href="env__state_8_f90_source.html#l00165">165</a> of file <a class="el" href="env__state_8_f90_source.html">env_state.F90</a>.</p>
+
+</div>
+</div>
+<a id="a1003d9e656e4a8c60b05219ccce0a898"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1003d9e656e4a8c60b05219ccce0a898">&#9670;&nbsp;</a></span>env_state_saturated_vapor_pressure_wrt_ice()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">real(kind=dp) function pmc_env_state::env_state_saturated_vapor_pressure_wrt_ice </td>
+          <td>(</td>
+          <td class="paramtype">real(kind=dp), intent(in)&#160;</td>
+          <td class="paramname"><em>T</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Computes saturated vapor pressure (Pa) with respect to ice using Eq. (7) from <a href="https://doi.org/10.1256/qj.04.94">Murphy &amp; Koop, 2004</a>. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">t</td><td>Temperature (K) </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="env__state_8_f90_source.html#l00677">677</a> of file <a class="el" href="env__state_8_f90_source.html">env_state.F90</a>.</p>
+
+</div>
+</div>
+<a id="a8096274fe5e46cf93f9651840abb93ad"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8096274fe5e46cf93f9651840abb93ad">&#9670;&nbsp;</a></span>env_state_saturated_vapor_pressure_wrt_water()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">real(kind=dp) function pmc_env_state::env_state_saturated_vapor_pressure_wrt_water </td>
+          <td>(</td>
+          <td class="paramtype">real(kind=dp), intent(in)&#160;</td>
+          <td class="paramname"><em>T</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Computes saturated vapor pressure (Pa) with respect to water using Eq. (10) from <a href="https://doi.org/10.1256/qj.04.94">Murphy &amp; Koop, 2004</a> </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">t</td><td>Temperature (K) </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="env__state_8_f90_source.html#l00651">651</a> of file <a class="el" href="env__state_8_f90_source.html">env_state.F90</a>.</p>
 
 </div>
 </div>

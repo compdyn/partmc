@@ -466,372 +466,376 @@ $(function() {
 <div class="line"><a name="l00417"></a><span class="lineno">  417</span>&#160;<span class="comment">    !!   nucleation. If \c do_nucleation is \c yes, then the following</span></div>
 <div class="line"><a name="l00418"></a><span class="lineno">  418</span>&#160;<span class="comment">    !!   parameters must also be provided:</span></div>
 <div class="line"><a name="l00419"></a><span class="lineno">  419</span>&#160;<span class="comment">    !!   - \subpage input_format_nucleate</span></div>
-<div class="line"><a name="l00420"></a><span class="lineno">  420</span>&#160;<span class="comment">    !! - \b rand_init (integer): if greater than zero then use as</span></div>
-<div class="line"><a name="l00421"></a><span class="lineno">  421</span>&#160;<span class="comment">    !!   the seed for the random number generator, or if zero then</span></div>
-<div class="line"><a name="l00422"></a><span class="lineno">  422</span>&#160;<span class="comment">    !!   generate a random seed for the random number generator ---</span></div>
-<div class="line"><a name="l00423"></a><span class="lineno">  423</span>&#160;<span class="comment">    !!   two simulations on the same machine with the same seed</span></div>
-<div class="line"><a name="l00424"></a><span class="lineno">  424</span>&#160;<span class="comment">    !!   (greater than 0) will produce identical output</span></div>
-<div class="line"><a name="l00425"></a><span class="lineno">  425</span>&#160;<span class="comment">    !! - \b allow_doubling (logical): if \c yes, then whenever the</span></div>
-<div class="line"><a name="l00426"></a><span class="lineno">  426</span>&#160;<span class="comment">    !!   number of simulated particles falls below &lt;tt&gt;n_part /</span></div>
-<div class="line"><a name="l00427"></a><span class="lineno">  427</span>&#160;<span class="comment">    !!   2&lt;/tt&gt;, every particle is duplicated to give better</span></div>
-<div class="line"><a name="l00428"></a><span class="lineno">  428</span>&#160;<span class="comment">    !!   statistics</span></div>
-<div class="line"><a name="l00429"></a><span class="lineno">  429</span>&#160;<span class="comment">    !! - \b allow_halving (logical): if \c yes, then whenever the</span></div>
-<div class="line"><a name="l00430"></a><span class="lineno">  430</span>&#160;<span class="comment">    !!   number of simulated particles rises above &lt;tt&gt;n_part *</span></div>
-<div class="line"><a name="l00431"></a><span class="lineno">  431</span>&#160;<span class="comment">    !!   2&lt;/tt&gt;, half of the particles are removed (chosen randomly)</span></div>
-<div class="line"><a name="l00432"></a><span class="lineno">  432</span>&#160;<span class="comment">    !!   to reduce the computational expense</span></div>
-<div class="line"><a name="l00433"></a><span class="lineno">  433</span>&#160;<span class="comment">    !! - \b record_removals (logical): whether to record information</span></div>
-<div class="line"><a name="l00434"></a><span class="lineno">  434</span>&#160;<span class="comment">    !!   about aerosol particles removed from the simulation --- see</span></div>
-<div class="line"><a name="l00435"></a><span class="lineno">  435</span>&#160;<span class="comment">    !!   \ref output_format_aero_removed</span></div>
-<div class="line"><a name="l00436"></a><span class="lineno">  436</span>&#160;<span class="comment">    !! - \b do_parallel (logical): whether to run in parallel mode</span></div>
-<div class="line"><a name="l00437"></a><span class="lineno">  437</span>&#160;<span class="comment">    !!   (requires MPI support to be compiled in). If \c do_parallel</span></div>
-<div class="line"><a name="l00438"></a><span class="lineno">  438</span>&#160;<span class="comment">    !!   is \c yes, then the following parameters must also be</span></div>
-<div class="line"><a name="l00439"></a><span class="lineno">  439</span>&#160;<span class="comment">    !!   provided:</span></div>
-<div class="line"><a name="l00440"></a><span class="lineno">  440</span>&#160;<span class="comment">    !!   - \subpage input_format_output</span></div>
-<div class="line"><a name="l00441"></a><span class="lineno">  441</span>&#160;<span class="comment">    !!   - \b mix_timescale (real, unit s): timescale on which to mix</span></div>
-<div class="line"><a name="l00442"></a><span class="lineno">  442</span>&#160;<span class="comment">    !!     aerosol particle information amongst processes in an</span></div>
-<div class="line"><a name="l00443"></a><span class="lineno">  443</span>&#160;<span class="comment">    !!     attempt to keep the aerosol state consistent (the mixing</span></div>
-<div class="line"><a name="l00444"></a><span class="lineno">  444</span>&#160;<span class="comment">    !!     rate is inverse to \c mix_timescale)</span></div>
-<div class="line"><a name="l00445"></a><span class="lineno">  445</span>&#160;<span class="comment">    !!   - \b gas_average (logical): whether to average the gas state</span></div>
-<div class="line"><a name="l00446"></a><span class="lineno">  446</span>&#160;<span class="comment">    !!     amongst processes each timestep, to ensure uniform gas</span></div>
-<div class="line"><a name="l00447"></a><span class="lineno">  447</span>&#160;<span class="comment">    !!     concentrations</span></div>
-<div class="line"><a name="l00448"></a><span class="lineno">  448</span>&#160;<span class="comment">    !!   - \b env_average (logical): whether to average the</span></div>
-<div class="line"><a name="l00449"></a><span class="lineno">  449</span>&#160;<span class="comment">    !!     environment state amongst processes each timestep, to</span></div>
-<div class="line"><a name="l00450"></a><span class="lineno">  450</span>&#160;<span class="comment">    !!     ensure a uniform environment</span></div>
-<div class="line"><a name="l00451"></a><span class="lineno">  451</span>&#160;<span class="comment">    !!   - \subpage input_format_parallel_coag</span></div>
-<div class="line"><a name="l00452"></a><span class="lineno">  452</span>&#160; </div>
-<div class="line"><a name="l00453"></a><span class="lineno">  453</span>&#160;    <span class="comment">! initialize RNG with random seed for UUID generation</span></div>
-<div class="line"><a name="l00454"></a><span class="lineno">  454</span>&#160;    <span class="keyword">call </span><a class="code" href="namespacepmc__rand.html#a40da4da741045a9a9ee1ac71aaa17733">pmc_srand</a>(0, <a class="code" href="namespacepmc__mpi.html#a1ac93b34387cb8dec130a10c4f959e9b">pmc_mpi_rank</a>())</div>
-<div class="line"><a name="l00455"></a><span class="lineno">  455</span>&#160; </div>
-<div class="line"><a name="l00456"></a><span class="lineno">  456</span>&#160;    <span class="keywordflow">if</span> (<a class="code" href="namespacepmc__mpi.html#a1ac93b34387cb8dec130a10c4f959e9b">pmc_mpi_rank</a>() == 0) <span class="keywordflow">then</span></div>
-<div class="line"><a name="l00457"></a><span class="lineno">  457</span>&#160;       <span class="keyword">call </span><a class="code" href="namespacepmc__run__part.html#a4d453335589ac21fa1b8832f325a92ab">spec_file_read_run_part</a>(file, run_part_opt, aero_data, &amp;</div>
-<div class="line"><a name="l00458"></a><span class="lineno">  458</span>&#160;            aero_state_init, gas_data, gas_state_init, env_state_init, &amp;</div>
-<div class="line"><a name="l00459"></a><span class="lineno">  459</span>&#160;            aero_dist_init, scenario, &amp;</div>
-<div class="line"><a name="l00460"></a><span class="lineno">  460</span>&#160;<span class="preprocessor">#ifdef PMC_USE_CAMP</span></div>
-<div class="line"><a name="l00461"></a><span class="lineno">  461</span>&#160;<span class="preprocessor"></span>            camp_core, photolysis, aero_state, &amp;</div>
-<div class="line"><a name="l00462"></a><span class="lineno">  462</span>&#160;<span class="preprocessor">#endif</span></div>
-<div class="line"><a name="l00463"></a><span class="lineno">  463</span>&#160;<span class="preprocessor"></span>            n_part, rand_init, do_init_equilibrate, do_restart)</div>
-<div class="line"><a name="l00464"></a><span class="lineno">  464</span>&#160; </div>
-<div class="line"><a name="l00465"></a><span class="lineno">  465</span>&#160;       <span class="keywordflow">if</span> (.not. do_restart) <span class="keywordflow">then</span></div>
-<div class="line"><a name="l00466"></a><span class="lineno">  466</span>&#160;          <span class="keyword">call </span><a class="code" href="namespacepmc__rand.html#a2412b4291de3a49c6583e04382762cad">uuid4_str</a>(run_part_opt%uuid)</div>
-<div class="line"><a name="l00467"></a><span class="lineno">  467</span>&#160;<span class="keywordflow">       end if</span></div>
-<div class="line"><a name="l00468"></a><span class="lineno">  468</span>&#160;<span class="keywordflow">    end if</span></div>
-<div class="line"><a name="l00469"></a><span class="lineno">  469</span>&#160; </div>
-<div class="line"><a name="l00470"></a><span class="lineno">  470</span>&#160;    <span class="keyword">call </span><a class="code" href="namespacepmc__run__part.html#a1e3abb3fb2e6429e2912deb5d0d13256">pmc_mpi_broadcast_run_part</a>(run_part_opt, aero_data, &amp;</div>
-<div class="line"><a name="l00471"></a><span class="lineno">  471</span>&#160;         aero_state_init, gas_data, gas_state_init, env_state_init, &amp;</div>
-<div class="line"><a name="l00472"></a><span class="lineno">  472</span>&#160;         aero_dist_init, scenario, &amp;</div>
-<div class="line"><a name="l00473"></a><span class="lineno">  473</span>&#160;<span class="preprocessor">#ifdef PMC_USE_CAMP</span></div>
-<div class="line"><a name="l00474"></a><span class="lineno">  474</span>&#160;<span class="preprocessor"></span>         camp_core, photolysis, aero_state, &amp;</div>
-<div class="line"><a name="l00475"></a><span class="lineno">  475</span>&#160;<span class="preprocessor">#endif</span></div>
-<div class="line"><a name="l00476"></a><span class="lineno">  476</span>&#160;<span class="preprocessor"></span>         n_part, rand_init, do_init_equilibrate, do_restart)</div>
-<div class="line"><a name="l00477"></a><span class="lineno">  477</span>&#160; </div>
-<div class="line"><a name="l00478"></a><span class="lineno">  478</span>&#160;    <span class="comment">! initialize the chemistry solver</span></div>
-<div class="line"><a name="l00479"></a><span class="lineno">  479</span>&#160;    <span class="keywordflow">if</span> (run_part_opt%do_camp_chem) <span class="keywordflow">then</span></div>
-<div class="line"><a name="l00480"></a><span class="lineno">  480</span>&#160;<span class="preprocessor">#ifdef PMC_USE_CAMP</span></div>
-<div class="line"><a name="l00481"></a><span class="lineno">  481</span>&#160;<span class="preprocessor"></span>       <span class="keyword">call </span>camp_core%solver_initialize()</div>
-<div class="line"><a name="l00482"></a><span class="lineno">  482</span>&#160;<span class="preprocessor">#endif</span></div>
-<div class="line"><a name="l00483"></a><span class="lineno">  483</span>&#160;<span class="preprocessor"></span><span class="keywordflow">    end if</span></div>
-<div class="line"><a name="l00484"></a><span class="lineno">  484</span>&#160; </div>
-<div class="line"><a name="l00485"></a><span class="lineno">  485</span>&#160;    <span class="comment">! re-initialize RNG with the given seed</span></div>
-<div class="line"><a name="l00486"></a><span class="lineno">  486</span>&#160;    <span class="keyword">call </span><a class="code" href="namespacepmc__rand.html#a48ab8c38095e258be9faafc7bd59ee35">pmc_rand_finalize</a>()</div>
-<div class="line"><a name="l00487"></a><span class="lineno">  487</span>&#160;    <span class="keyword">call </span><a class="code" href="namespacepmc__rand.html#a40da4da741045a9a9ee1ac71aaa17733">pmc_srand</a>(rand_init, <a class="code" href="namespacepmc__mpi.html#a1ac93b34387cb8dec130a10c4f959e9b">pmc_mpi_rank</a>())</div>
+<div class="line"><a name="l00420"></a><span class="lineno">  420</span>&#160;<span class="comment">    !! - \b do_freezing (logical): whether to perform particle</span></div>
+<div class="line"><a name="l00421"></a><span class="lineno">  421</span>&#160;<span class="comment">    !!   freezing. If \c do_freezing is \c yes, then the following</span></div>
+<div class="line"><a name="l00422"></a><span class="lineno">  422</span>&#160;<span class="comment">    !!   parameters must also be provided:</span></div>
+<div class="line"><a name="l00423"></a><span class="lineno">  423</span>&#160;<span class="comment">    !!   - \subpage input_format_imf_scheme</span></div>
+<div class="line"><a name="l00424"></a><span class="lineno">  424</span>&#160;<span class="comment">    !! - \b rand_init (integer): if greater than zero then use as</span></div>
+<div class="line"><a name="l00425"></a><span class="lineno">  425</span>&#160;<span class="comment">    !!   the seed for the random number generator, or if zero then</span></div>
+<div class="line"><a name="l00426"></a><span class="lineno">  426</span>&#160;<span class="comment">    !!   generate a random seed for the random number generator ---</span></div>
+<div class="line"><a name="l00427"></a><span class="lineno">  427</span>&#160;<span class="comment">    !!   two simulations on the same machine with the same seed</span></div>
+<div class="line"><a name="l00428"></a><span class="lineno">  428</span>&#160;<span class="comment">    !!   (greater than 0) will produce identical output</span></div>
+<div class="line"><a name="l00429"></a><span class="lineno">  429</span>&#160;<span class="comment">    !! - \b allow_doubling (logical): if \c yes, then whenever the</span></div>
+<div class="line"><a name="l00430"></a><span class="lineno">  430</span>&#160;<span class="comment">    !!   number of simulated particles falls below &lt;tt&gt;n_part /</span></div>
+<div class="line"><a name="l00431"></a><span class="lineno">  431</span>&#160;<span class="comment">    !!   2&lt;/tt&gt;, every particle is duplicated to give better</span></div>
+<div class="line"><a name="l00432"></a><span class="lineno">  432</span>&#160;<span class="comment">    !!   statistics</span></div>
+<div class="line"><a name="l00433"></a><span class="lineno">  433</span>&#160;<span class="comment">    !! - \b allow_halving (logical): if \c yes, then whenever the</span></div>
+<div class="line"><a name="l00434"></a><span class="lineno">  434</span>&#160;<span class="comment">    !!   number of simulated particles rises above &lt;tt&gt;n_part *</span></div>
+<div class="line"><a name="l00435"></a><span class="lineno">  435</span>&#160;<span class="comment">    !!   2&lt;/tt&gt;, half of the particles are removed (chosen randomly)</span></div>
+<div class="line"><a name="l00436"></a><span class="lineno">  436</span>&#160;<span class="comment">    !!   to reduce the computational expense</span></div>
+<div class="line"><a name="l00437"></a><span class="lineno">  437</span>&#160;<span class="comment">    !! - \b record_removals (logical): whether to record information</span></div>
+<div class="line"><a name="l00438"></a><span class="lineno">  438</span>&#160;<span class="comment">    !!   about aerosol particles removed from the simulation --- see</span></div>
+<div class="line"><a name="l00439"></a><span class="lineno">  439</span>&#160;<span class="comment">    !!   \ref output_format_aero_removed</span></div>
+<div class="line"><a name="l00440"></a><span class="lineno">  440</span>&#160;<span class="comment">    !! - \b do_parallel (logical): whether to run in parallel mode</span></div>
+<div class="line"><a name="l00441"></a><span class="lineno">  441</span>&#160;<span class="comment">    !!   (requires MPI support to be compiled in). If \c do_parallel</span></div>
+<div class="line"><a name="l00442"></a><span class="lineno">  442</span>&#160;<span class="comment">    !!   is \c yes, then the following parameters must also be</span></div>
+<div class="line"><a name="l00443"></a><span class="lineno">  443</span>&#160;<span class="comment">    !!   provided:</span></div>
+<div class="line"><a name="l00444"></a><span class="lineno">  444</span>&#160;<span class="comment">    !!   - \subpage input_format_output</span></div>
+<div class="line"><a name="l00445"></a><span class="lineno">  445</span>&#160;<span class="comment">    !!   - \b mix_timescale (real, unit s): timescale on which to mix</span></div>
+<div class="line"><a name="l00446"></a><span class="lineno">  446</span>&#160;<span class="comment">    !!     aerosol particle information amongst processes in an</span></div>
+<div class="line"><a name="l00447"></a><span class="lineno">  447</span>&#160;<span class="comment">    !!     attempt to keep the aerosol state consistent (the mixing</span></div>
+<div class="line"><a name="l00448"></a><span class="lineno">  448</span>&#160;<span class="comment">    !!     rate is inverse to \c mix_timescale)</span></div>
+<div class="line"><a name="l00449"></a><span class="lineno">  449</span>&#160;<span class="comment">    !!   - \b gas_average (logical): whether to average the gas state</span></div>
+<div class="line"><a name="l00450"></a><span class="lineno">  450</span>&#160;<span class="comment">    !!     amongst processes each timestep, to ensure uniform gas</span></div>
+<div class="line"><a name="l00451"></a><span class="lineno">  451</span>&#160;<span class="comment">    !!     concentrations</span></div>
+<div class="line"><a name="l00452"></a><span class="lineno">  452</span>&#160;<span class="comment">    !!   - \b env_average (logical): whether to average the</span></div>
+<div class="line"><a name="l00453"></a><span class="lineno">  453</span>&#160;<span class="comment">    !!     environment state amongst processes each timestep, to</span></div>
+<div class="line"><a name="l00454"></a><span class="lineno">  454</span>&#160;<span class="comment">    !!     ensure a uniform environment</span></div>
+<div class="line"><a name="l00455"></a><span class="lineno">  455</span>&#160;<span class="comment">    !!   - \subpage input_format_parallel_coag</span></div>
+<div class="line"><a name="l00456"></a><span class="lineno">  456</span>&#160; </div>
+<div class="line"><a name="l00457"></a><span class="lineno">  457</span>&#160;    <span class="comment">! initialize RNG with random seed for UUID generation</span></div>
+<div class="line"><a name="l00458"></a><span class="lineno">  458</span>&#160;    <span class="keyword">call </span><a class="code" href="namespacepmc__rand.html#a40da4da741045a9a9ee1ac71aaa17733">pmc_srand</a>(0, <a class="code" href="namespacepmc__mpi.html#a1ac93b34387cb8dec130a10c4f959e9b">pmc_mpi_rank</a>())</div>
+<div class="line"><a name="l00459"></a><span class="lineno">  459</span>&#160; </div>
+<div class="line"><a name="l00460"></a><span class="lineno">  460</span>&#160;    <span class="keywordflow">if</span> (<a class="code" href="namespacepmc__mpi.html#a1ac93b34387cb8dec130a10c4f959e9b">pmc_mpi_rank</a>() == 0) <span class="keywordflow">then</span></div>
+<div class="line"><a name="l00461"></a><span class="lineno">  461</span>&#160;       <span class="keyword">call </span><a class="code" href="namespacepmc__run__part.html#a4d453335589ac21fa1b8832f325a92ab">spec_file_read_run_part</a>(file, run_part_opt, aero_data, &amp;</div>
+<div class="line"><a name="l00462"></a><span class="lineno">  462</span>&#160;            aero_state_init, gas_data, gas_state_init, env_state_init, &amp;</div>
+<div class="line"><a name="l00463"></a><span class="lineno">  463</span>&#160;            aero_dist_init, scenario, &amp;</div>
+<div class="line"><a name="l00464"></a><span class="lineno">  464</span>&#160;<span class="preprocessor">#ifdef PMC_USE_CAMP</span></div>
+<div class="line"><a name="l00465"></a><span class="lineno">  465</span>&#160;<span class="preprocessor"></span>            camp_core, photolysis, aero_state, &amp;</div>
+<div class="line"><a name="l00466"></a><span class="lineno">  466</span>&#160;<span class="preprocessor">#endif</span></div>
+<div class="line"><a name="l00467"></a><span class="lineno">  467</span>&#160;<span class="preprocessor"></span>            n_part, rand_init, do_init_equilibrate, do_restart)</div>
+<div class="line"><a name="l00468"></a><span class="lineno">  468</span>&#160; </div>
+<div class="line"><a name="l00469"></a><span class="lineno">  469</span>&#160;       <span class="keywordflow">if</span> (.not. do_restart) <span class="keywordflow">then</span></div>
+<div class="line"><a name="l00470"></a><span class="lineno">  470</span>&#160;          <span class="keyword">call </span><a class="code" href="namespacepmc__rand.html#a2412b4291de3a49c6583e04382762cad">uuid4_str</a>(run_part_opt%uuid)</div>
+<div class="line"><a name="l00471"></a><span class="lineno">  471</span>&#160;<span class="keywordflow">       end if</span></div>
+<div class="line"><a name="l00472"></a><span class="lineno">  472</span>&#160;<span class="keywordflow">    end if</span></div>
+<div class="line"><a name="l00473"></a><span class="lineno">  473</span>&#160; </div>
+<div class="line"><a name="l00474"></a><span class="lineno">  474</span>&#160;    <span class="keyword">call </span><a class="code" href="namespacepmc__run__part.html#a1e3abb3fb2e6429e2912deb5d0d13256">pmc_mpi_broadcast_run_part</a>(run_part_opt, aero_data, &amp;</div>
+<div class="line"><a name="l00475"></a><span class="lineno">  475</span>&#160;         aero_state_init, gas_data, gas_state_init, env_state_init, &amp;</div>
+<div class="line"><a name="l00476"></a><span class="lineno">  476</span>&#160;         aero_dist_init, scenario, &amp;</div>
+<div class="line"><a name="l00477"></a><span class="lineno">  477</span>&#160;<span class="preprocessor">#ifdef PMC_USE_CAMP</span></div>
+<div class="line"><a name="l00478"></a><span class="lineno">  478</span>&#160;<span class="preprocessor"></span>         camp_core, photolysis, aero_state, &amp;</div>
+<div class="line"><a name="l00479"></a><span class="lineno">  479</span>&#160;<span class="preprocessor">#endif</span></div>
+<div class="line"><a name="l00480"></a><span class="lineno">  480</span>&#160;<span class="preprocessor"></span>         n_part, rand_init, do_init_equilibrate, do_restart)</div>
+<div class="line"><a name="l00481"></a><span class="lineno">  481</span>&#160; </div>
+<div class="line"><a name="l00482"></a><span class="lineno">  482</span>&#160;    <span class="comment">! initialize the chemistry solver</span></div>
+<div class="line"><a name="l00483"></a><span class="lineno">  483</span>&#160;    <span class="keywordflow">if</span> (run_part_opt%do_camp_chem) <span class="keywordflow">then</span></div>
+<div class="line"><a name="l00484"></a><span class="lineno">  484</span>&#160;<span class="preprocessor">#ifdef PMC_USE_CAMP</span></div>
+<div class="line"><a name="l00485"></a><span class="lineno">  485</span>&#160;<span class="preprocessor"></span>       <span class="keyword">call </span>camp_core%solver_initialize()</div>
+<div class="line"><a name="l00486"></a><span class="lineno">  486</span>&#160;<span class="preprocessor">#endif</span></div>
+<div class="line"><a name="l00487"></a><span class="lineno">  487</span>&#160;<span class="preprocessor"></span><span class="keywordflow">    end if</span></div>
 <div class="line"><a name="l00488"></a><span class="lineno">  488</span>&#160; </div>
-<div class="line"><a name="l00489"></a><span class="lineno">  489</span>&#160;    run_part_opt%t_wall_start = <a class="code" href="namespacepmc__util.html#ad3723654701f3b031bc1ab8e5cbc3378">system_clock_time</a>()</div>
-<div class="line"><a name="l00490"></a><span class="lineno">  490</span>&#160; </div>
-<div class="line"><a name="l00491"></a><span class="lineno">  491</span>&#160;    <span class="keywordflow">do</span> i_repeat = 1,run_part_opt%n_repeat</div>
-<div class="line"><a name="l00492"></a><span class="lineno">  492</span>&#160;       run_part_opt%i_repeat = i_repeat</div>
-<div class="line"><a name="l00493"></a><span class="lineno">  493</span>&#160; </div>
-<div class="line"><a name="l00494"></a><span class="lineno">  494</span>&#160;       gas_state = gas_state_init</div>
-<div class="line"><a name="l00495"></a><span class="lineno">  495</span>&#160;       <span class="keywordflow">if</span> (do_restart) <span class="keywordflow">then</span></div>
-<div class="line"><a name="l00496"></a><span class="lineno">  496</span>&#160;          aero_state = aero_state_init</div>
-<div class="line"><a name="l00497"></a><span class="lineno">  497</span>&#160;          <span class="keyword">call </span><a class="code" href="namespacepmc__aero__state.html#a82d688a836cb8ed88c46dd010247d3c1">aero_state_set_n_part_ideal</a>(aero_state, n_part)</div>
-<div class="line"><a name="l00498"></a><span class="lineno">  498</span>&#160;       <span class="keywordflow">else</span></div>
-<div class="line"><a name="l00499"></a><span class="lineno">  499</span>&#160;          <span class="keyword">call </span><a class="code" href="namespacepmc__aero__state.html#a748f903f70f90956fc02765c46f5e541">aero_state_zero</a>(aero_state)</div>
-<div class="line"><a name="l00500"></a><span class="lineno">  500</span>&#160;          aero_mode_type_exp_present &amp;</div>
-<div class="line"><a name="l00501"></a><span class="lineno">  501</span>&#160;               = <a class="code" href="namespacepmc__aero__dist.html#acb52a306c5fd713a1a76f66ef21b22d9">aero_dist_contains_aero_mode_type</a>(aero_dist_init, &amp;</div>
-<div class="line"><a name="l00502"></a><span class="lineno">  502</span>&#160;               aero_mode_type_exp) &amp;</div>
-<div class="line"><a name="l00503"></a><span class="lineno">  503</span>&#160;               .or. <a class="code" href="namespacepmc__scenario.html#afaea66be4e0e1ec9a4b80a2fda61f972">scenario_contains_aero_mode_type</a>(scenario, &amp;</div>
-<div class="line"><a name="l00504"></a><span class="lineno">  504</span>&#160;               aero_mode_type_exp)</div>
-<div class="line"><a name="l00505"></a><span class="lineno">  505</span>&#160;          <span class="keywordflow">if</span> (aero_mode_type_exp_present) <span class="keywordflow">then</span></div>
-<div class="line"><a name="l00506"></a><span class="lineno">  506</span>&#160;             <span class="keyword">call </span><a class="code" href="namespacepmc__util.html#a249b73ad660e5e17ec4e4ad2ff743546">warn_msg</a>(245301880, <span class="stringliteral">&quot;using flat weighting only due to &quot;</span> &amp;</div>
-<div class="line"><a name="l00507"></a><span class="lineno">  507</span>&#160;                  // <span class="stringliteral">&quot;presence of exp aerosol mode&quot;</span>)</div>
-<div class="line"><a name="l00508"></a><span class="lineno">  508</span>&#160;             <span class="keyword">call </span><a class="code" href="namespacepmc__aero__state.html#ae949175272a73f61c851a2ac4a58c712">aero_state_set_weight</a>(aero_state, aero_data, &amp;</div>
-<div class="line"><a name="l00509"></a><span class="lineno">  509</span>&#160;                  <a class="code" href="namespacepmc__aero__state.html#a72b0c9b3118a486936fe3c50c4d908f6">aero_state_weight_flat</a>)</div>
-<div class="line"><a name="l00510"></a><span class="lineno">  510</span>&#160;          <span class="keywordflow">else</span></div>
-<div class="line"><a name="l00511"></a><span class="lineno">  511</span>&#160;             <span class="keyword">call </span><a class="code" href="namespacepmc__aero__state.html#ae949175272a73f61c851a2ac4a58c712">aero_state_set_weight</a>(aero_state, aero_data, &amp;</div>
-<div class="line"><a name="l00512"></a><span class="lineno">  512</span>&#160;                  run_part_opt%weighting_type, run_part_opt%weighting_exponent)</div>
-<div class="line"><a name="l00513"></a><span class="lineno">  513</span>&#160;<span class="keywordflow">          end if</span></div>
-<div class="line"><a name="l00514"></a><span class="lineno">  514</span>&#160;          <span class="keyword">call </span><a class="code" href="namespacepmc__aero__state.html#a82d688a836cb8ed88c46dd010247d3c1">aero_state_set_n_part_ideal</a>(aero_state, n_part)</div>
-<div class="line"><a name="l00515"></a><span class="lineno">  515</span>&#160;          <span class="keyword">call </span><a class="code" href="namespacepmc__aero__state.html#a8b33803d5600e98870a4ac58b78ab34a">aero_state_add_aero_dist_sample</a>(aero_state, aero_data, &amp;</div>
-<div class="line"><a name="l00516"></a><span class="lineno">  516</span>&#160;               aero_dist_init, 1d0, 1d0, 0d0, run_part_opt%allow_doubling, &amp;</div>
-<div class="line"><a name="l00517"></a><span class="lineno">  517</span>&#160;               run_part_opt%allow_halving)</div>
-<div class="line"><a name="l00518"></a><span class="lineno">  518</span>&#160;<span class="keywordflow">       end if</span></div>
-<div class="line"><a name="l00519"></a><span class="lineno">  519</span>&#160;       env_state = env_state_init</div>
-<div class="line"><a name="l00520"></a><span class="lineno">  520</span>&#160;       <span class="keyword">call </span><a class="code" href="namespacepmc__scenario.html#a9ba2febb35bfe14fe1ce49994de7fdb9">scenario_init_env_state</a>(scenario, env_state, &amp;</div>
-<div class="line"><a name="l00521"></a><span class="lineno">  521</span>&#160;            env_state_init%elapsed_time)</div>
-<div class="line"><a name="l00522"></a><span class="lineno">  522</span>&#160; </div>
-<div class="line"><a name="l00523"></a><span class="lineno">  523</span>&#160;<span class="preprocessor">#ifdef PMC_USE_SUNDIALS</span></div>
-<div class="line"><a name="l00524"></a><span class="lineno">  524</span>&#160;<span class="preprocessor"></span>       <span class="keywordflow">if</span> (do_init_equilibrate) <span class="keywordflow">then</span></div>
-<div class="line"><a name="l00525"></a><span class="lineno">  525</span>&#160;          <span class="keyword">call </span><a class="code" href="namespacepmc__condense.html#a460fbe02310735e79dc7711a8b048fe2">condense_equilib_particles</a>(env_state, aero_data, aero_state)</div>
-<div class="line"><a name="l00526"></a><span class="lineno">  526</span>&#160;<span class="keywordflow">       end if</span></div>
-<div class="line"><a name="l00527"></a><span class="lineno">  527</span>&#160;<span class="preprocessor">#endif</span></div>
-<div class="line"><a name="l00528"></a><span class="lineno">  528</span>&#160;<span class="preprocessor"></span> </div>
-<div class="line"><a name="l00529"></a><span class="lineno">  529</span>&#160;       <span class="keywordflow">if</span> (run_part_opt%do_camp_chem) <span class="keywordflow">then</span></div>
-<div class="line"><a name="l00530"></a><span class="lineno">  530</span>&#160;<span class="preprocessor">#ifdef PMC_USE_CAMP</span></div>
-<div class="line"><a name="l00531"></a><span class="lineno">  531</span>&#160;<span class="preprocessor"></span>          <span class="keyword">call </span><a class="code" href="namespacepmc__run__part.html#a74729d46b5632b772b04c98c6bddcaf7">run_part</a>(scenario, env_state, aero_data, aero_state, gas_data, &amp;</div>
-<div class="line"><a name="l00532"></a><span class="lineno">  532</span>&#160;               gas_state, run_part_opt, camp_core=camp_core, &amp;</div>
-<div class="line"><a name="l00533"></a><span class="lineno">  533</span>&#160;               photolysis=photolysis)</div>
-<div class="line"><a name="l00534"></a><span class="lineno">  534</span>&#160;<span class="preprocessor">#endif</span></div>
-<div class="line"><a name="l00535"></a><span class="lineno">  535</span>&#160;<span class="preprocessor"></span>       <span class="keywordflow">else</span></div>
-<div class="line"><a name="l00536"></a><span class="lineno">  536</span>&#160;          <span class="keyword">call </span><a class="code" href="namespacepmc__run__part.html#a74729d46b5632b772b04c98c6bddcaf7">run_part</a>(scenario, env_state, aero_data, aero_state, gas_data, &amp;</div>
-<div class="line"><a name="l00537"></a><span class="lineno">  537</span>&#160;               gas_state, run_part_opt)</div>
-<div class="line"><a name="l00538"></a><span class="lineno">  538</span>&#160;<span class="keywordflow">       end if</span></div>
-<div class="line"><a name="l00539"></a><span class="lineno">  539</span>&#160; </div>
-<div class="line"><a name="l00540"></a><span class="lineno">  540</span>&#160;<span class="keywordflow">    end do</span></div>
-<div class="line"><a name="l00541"></a><span class="lineno">  541</span>&#160; </div>
-<div class="line"><a name="l00542"></a><span class="lineno">  542</span>&#160;    <span class="keywordflow">if</span> (run_part_opt%do_tchem) <span class="keywordflow">then</span></div>
-<div class="line"><a name="l00543"></a><span class="lineno">  543</span>&#160;<span class="preprocessor">#ifdef PMC_USE_TCHEM</span></div>
-<div class="line"><a name="l00544"></a><span class="lineno">  544</span>&#160;<span class="preprocessor"></span>       <span class="keyword">call </span>pmc_tchem_cleanup()</div>
-<div class="line"><a name="l00545"></a><span class="lineno">  545</span>&#160;<span class="preprocessor">#endif</span></div>
-<div class="line"><a name="l00546"></a><span class="lineno">  546</span>&#160;<span class="preprocessor"></span><span class="keywordflow">    end if</span></div>
-<div class="line"><a name="l00547"></a><span class="lineno">  547</span>&#160; </div>
-<div class="line"><a name="l00548"></a><span class="lineno">  548</span>&#160;    <span class="keyword">call </span><a class="code" href="namespacepmc__rand.html#a48ab8c38095e258be9faafc7bd59ee35">pmc_rand_finalize</a>()</div>
-<div class="line"><a name="l00549"></a><span class="lineno">  549</span>&#160; </div>
-<div class="line"><a name="l00550"></a><span class="lineno">  550</span>&#160;  <span class="keyword">end subroutine </span>partmc_part</div>
+<div class="line"><a name="l00489"></a><span class="lineno">  489</span>&#160;    <span class="comment">! re-initialize RNG with the given seed</span></div>
+<div class="line"><a name="l00490"></a><span class="lineno">  490</span>&#160;    <span class="keyword">call </span><a class="code" href="namespacepmc__rand.html#a48ab8c38095e258be9faafc7bd59ee35">pmc_rand_finalize</a>()</div>
+<div class="line"><a name="l00491"></a><span class="lineno">  491</span>&#160;    <span class="keyword">call </span><a class="code" href="namespacepmc__rand.html#a40da4da741045a9a9ee1ac71aaa17733">pmc_srand</a>(rand_init, <a class="code" href="namespacepmc__mpi.html#a1ac93b34387cb8dec130a10c4f959e9b">pmc_mpi_rank</a>())</div>
+<div class="line"><a name="l00492"></a><span class="lineno">  492</span>&#160; </div>
+<div class="line"><a name="l00493"></a><span class="lineno">  493</span>&#160;    run_part_opt%t_wall_start = <a class="code" href="namespacepmc__util.html#ad3723654701f3b031bc1ab8e5cbc3378">system_clock_time</a>()</div>
+<div class="line"><a name="l00494"></a><span class="lineno">  494</span>&#160; </div>
+<div class="line"><a name="l00495"></a><span class="lineno">  495</span>&#160;    <span class="keywordflow">do</span> i_repeat = 1,run_part_opt%n_repeat</div>
+<div class="line"><a name="l00496"></a><span class="lineno">  496</span>&#160;       run_part_opt%i_repeat = i_repeat</div>
+<div class="line"><a name="l00497"></a><span class="lineno">  497</span>&#160; </div>
+<div class="line"><a name="l00498"></a><span class="lineno">  498</span>&#160;       gas_state = gas_state_init</div>
+<div class="line"><a name="l00499"></a><span class="lineno">  499</span>&#160;       <span class="keywordflow">if</span> (do_restart) <span class="keywordflow">then</span></div>
+<div class="line"><a name="l00500"></a><span class="lineno">  500</span>&#160;          aero_state = aero_state_init</div>
+<div class="line"><a name="l00501"></a><span class="lineno">  501</span>&#160;          <span class="keyword">call </span><a class="code" href="namespacepmc__aero__state.html#a82d688a836cb8ed88c46dd010247d3c1">aero_state_set_n_part_ideal</a>(aero_state, n_part)</div>
+<div class="line"><a name="l00502"></a><span class="lineno">  502</span>&#160;       <span class="keywordflow">else</span></div>
+<div class="line"><a name="l00503"></a><span class="lineno">  503</span>&#160;          <span class="keyword">call </span><a class="code" href="namespacepmc__aero__state.html#a748f903f70f90956fc02765c46f5e541">aero_state_zero</a>(aero_state)</div>
+<div class="line"><a name="l00504"></a><span class="lineno">  504</span>&#160;          aero_mode_type_exp_present &amp;</div>
+<div class="line"><a name="l00505"></a><span class="lineno">  505</span>&#160;               = <a class="code" href="namespacepmc__aero__dist.html#acb52a306c5fd713a1a76f66ef21b22d9">aero_dist_contains_aero_mode_type</a>(aero_dist_init, &amp;</div>
+<div class="line"><a name="l00506"></a><span class="lineno">  506</span>&#160;               aero_mode_type_exp) &amp;</div>
+<div class="line"><a name="l00507"></a><span class="lineno">  507</span>&#160;               .or. <a class="code" href="namespacepmc__scenario.html#afaea66be4e0e1ec9a4b80a2fda61f972">scenario_contains_aero_mode_type</a>(scenario, &amp;</div>
+<div class="line"><a name="l00508"></a><span class="lineno">  508</span>&#160;               aero_mode_type_exp)</div>
+<div class="line"><a name="l00509"></a><span class="lineno">  509</span>&#160;          <span class="keywordflow">if</span> (aero_mode_type_exp_present) <span class="keywordflow">then</span></div>
+<div class="line"><a name="l00510"></a><span class="lineno">  510</span>&#160;             <span class="keyword">call </span><a class="code" href="namespacepmc__util.html#a249b73ad660e5e17ec4e4ad2ff743546">warn_msg</a>(245301880, <span class="stringliteral">&quot;using flat weighting only due to &quot;</span> &amp;</div>
+<div class="line"><a name="l00511"></a><span class="lineno">  511</span>&#160;                  // <span class="stringliteral">&quot;presence of exp aerosol mode&quot;</span>)</div>
+<div class="line"><a name="l00512"></a><span class="lineno">  512</span>&#160;             <span class="keyword">call </span><a class="code" href="namespacepmc__aero__state.html#ae949175272a73f61c851a2ac4a58c712">aero_state_set_weight</a>(aero_state, aero_data, &amp;</div>
+<div class="line"><a name="l00513"></a><span class="lineno">  513</span>&#160;                  <a class="code" href="namespacepmc__aero__state.html#a72b0c9b3118a486936fe3c50c4d908f6">aero_state_weight_flat</a>)</div>
+<div class="line"><a name="l00514"></a><span class="lineno">  514</span>&#160;          <span class="keywordflow">else</span></div>
+<div class="line"><a name="l00515"></a><span class="lineno">  515</span>&#160;             <span class="keyword">call </span><a class="code" href="namespacepmc__aero__state.html#ae949175272a73f61c851a2ac4a58c712">aero_state_set_weight</a>(aero_state, aero_data, &amp;</div>
+<div class="line"><a name="l00516"></a><span class="lineno">  516</span>&#160;                  run_part_opt%weighting_type, run_part_opt%weighting_exponent)</div>
+<div class="line"><a name="l00517"></a><span class="lineno">  517</span>&#160;<span class="keywordflow">          end if</span></div>
+<div class="line"><a name="l00518"></a><span class="lineno">  518</span>&#160;          <span class="keyword">call </span><a class="code" href="namespacepmc__aero__state.html#a82d688a836cb8ed88c46dd010247d3c1">aero_state_set_n_part_ideal</a>(aero_state, n_part)</div>
+<div class="line"><a name="l00519"></a><span class="lineno">  519</span>&#160;          <span class="keyword">call </span><a class="code" href="namespacepmc__aero__state.html#a8b33803d5600e98870a4ac58b78ab34a">aero_state_add_aero_dist_sample</a>(aero_state, aero_data, &amp;</div>
+<div class="line"><a name="l00520"></a><span class="lineno">  520</span>&#160;               aero_dist_init, 1d0, 1d0, 0d0, run_part_opt%allow_doubling, &amp;</div>
+<div class="line"><a name="l00521"></a><span class="lineno">  521</span>&#160;               run_part_opt%allow_halving)</div>
+<div class="line"><a name="l00522"></a><span class="lineno">  522</span>&#160;<span class="keywordflow">       end if</span></div>
+<div class="line"><a name="l00523"></a><span class="lineno">  523</span>&#160;       env_state = env_state_init</div>
+<div class="line"><a name="l00524"></a><span class="lineno">  524</span>&#160;       <span class="keyword">call </span><a class="code" href="namespacepmc__scenario.html#a9ba2febb35bfe14fe1ce49994de7fdb9">scenario_init_env_state</a>(scenario, env_state, &amp;</div>
+<div class="line"><a name="l00525"></a><span class="lineno">  525</span>&#160;            env_state_init%elapsed_time)</div>
+<div class="line"><a name="l00526"></a><span class="lineno">  526</span>&#160; </div>
+<div class="line"><a name="l00527"></a><span class="lineno">  527</span>&#160;<span class="preprocessor">#ifdef PMC_USE_SUNDIALS</span></div>
+<div class="line"><a name="l00528"></a><span class="lineno">  528</span>&#160;<span class="preprocessor"></span>       <span class="keywordflow">if</span> (do_init_equilibrate) <span class="keywordflow">then</span></div>
+<div class="line"><a name="l00529"></a><span class="lineno">  529</span>&#160;          <span class="keyword">call </span><a class="code" href="namespacepmc__condense.html#a460fbe02310735e79dc7711a8b048fe2">condense_equilib_particles</a>(env_state, aero_data, aero_state)</div>
+<div class="line"><a name="l00530"></a><span class="lineno">  530</span>&#160;<span class="keywordflow">       end if</span></div>
+<div class="line"><a name="l00531"></a><span class="lineno">  531</span>&#160;<span class="preprocessor">#endif</span></div>
+<div class="line"><a name="l00532"></a><span class="lineno">  532</span>&#160;<span class="preprocessor"></span> </div>
+<div class="line"><a name="l00533"></a><span class="lineno">  533</span>&#160;       <span class="keywordflow">if</span> (run_part_opt%do_camp_chem) <span class="keywordflow">then</span></div>
+<div class="line"><a name="l00534"></a><span class="lineno">  534</span>&#160;<span class="preprocessor">#ifdef PMC_USE_CAMP</span></div>
+<div class="line"><a name="l00535"></a><span class="lineno">  535</span>&#160;<span class="preprocessor"></span>          <span class="keyword">call </span><a class="code" href="namespacepmc__run__part.html#a74729d46b5632b772b04c98c6bddcaf7">run_part</a>(scenario, env_state, aero_data, aero_state, gas_data, &amp;</div>
+<div class="line"><a name="l00536"></a><span class="lineno">  536</span>&#160;               gas_state, run_part_opt, camp_core=camp_core, &amp;</div>
+<div class="line"><a name="l00537"></a><span class="lineno">  537</span>&#160;               photolysis=photolysis)</div>
+<div class="line"><a name="l00538"></a><span class="lineno">  538</span>&#160;<span class="preprocessor">#endif</span></div>
+<div class="line"><a name="l00539"></a><span class="lineno">  539</span>&#160;<span class="preprocessor"></span>       <span class="keywordflow">else</span></div>
+<div class="line"><a name="l00540"></a><span class="lineno">  540</span>&#160;          <span class="keyword">call </span><a class="code" href="namespacepmc__run__part.html#a74729d46b5632b772b04c98c6bddcaf7">run_part</a>(scenario, env_state, aero_data, aero_state, gas_data, &amp;</div>
+<div class="line"><a name="l00541"></a><span class="lineno">  541</span>&#160;               gas_state, run_part_opt)</div>
+<div class="line"><a name="l00542"></a><span class="lineno">  542</span>&#160;<span class="keywordflow">       end if</span></div>
+<div class="line"><a name="l00543"></a><span class="lineno">  543</span>&#160; </div>
+<div class="line"><a name="l00544"></a><span class="lineno">  544</span>&#160;<span class="keywordflow">    end do</span></div>
+<div class="line"><a name="l00545"></a><span class="lineno">  545</span>&#160; </div>
+<div class="line"><a name="l00546"></a><span class="lineno">  546</span>&#160;    <span class="keywordflow">if</span> (run_part_opt%do_tchem) <span class="keywordflow">then</span></div>
+<div class="line"><a name="l00547"></a><span class="lineno">  547</span>&#160;<span class="preprocessor">#ifdef PMC_USE_TCHEM</span></div>
+<div class="line"><a name="l00548"></a><span class="lineno">  548</span>&#160;<span class="preprocessor"></span>       <span class="keyword">call </span>pmc_tchem_cleanup()</div>
+<div class="line"><a name="l00549"></a><span class="lineno">  549</span>&#160;<span class="preprocessor">#endif</span></div>
+<div class="line"><a name="l00550"></a><span class="lineno">  550</span>&#160;<span class="preprocessor"></span><span class="keywordflow">    end if</span></div>
 <div class="line"><a name="l00551"></a><span class="lineno">  551</span>&#160; </div>
-<div class="line"><a name="l00552"></a><span class="lineno">  552</span>&#160;<span class="comment">!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!</span></div>
-<div class="line"><a name="l00553"></a><span class="lineno">  553</span>&#160;<span class="comment"></span> </div>
-<div class="line"><a name="l00554"></a><span class="lineno">  554</span>&#160;<span class="comment">  !&gt; Run an exact solution simulation.</span></div>
-<div class="line"><a name="l00555"></a><span class="lineno">  555</span>&#160;  <span class="keyword">subroutine </span>partmc_exact(file)</div>
-<div class="line"><a name="l00556"></a><span class="lineno">  556</span>&#160;<span class="comment"></span> </div>
-<div class="line"><a name="l00557"></a><span class="lineno">  557</span>&#160;<span class="comment">    !&gt; Spec file.</span></div>
-<div class="line"><a name="l00558"></a><span class="lineno">  558</span>&#160;    <span class="keywordtype">type</span>(<a class="code" href="structpmc__spec__file_1_1spec__file__t.html">spec_file_t</a>), <span class="keywordtype">intent(inout)</span> :: file</div>
-<div class="line"><a name="l00559"></a><span class="lineno">  559</span>&#160; </div>
-<div class="line"><a name="l00560"></a><span class="lineno">  560</span>&#160;    <span class="keywordtype">character(len=100)</span> :: soln_name</div>
-<div class="line"><a name="l00561"></a><span class="lineno">  561</span>&#160;    <span class="keywordtype">type</span>(<a class="code" href="structpmc__aero__data_1_1aero__data__t.html">aero_data_t</a>) :: aero_data</div>
-<div class="line"><a name="l00562"></a><span class="lineno">  562</span>&#160;    <span class="keywordtype">type</span>(<a class="code" href="structpmc__scenario_1_1scenario__t.html">scenario_t</a>) :: scenario</div>
-<div class="line"><a name="l00563"></a><span class="lineno">  563</span>&#160;    <span class="keywordtype">type</span>(<a class="code" href="structpmc__env__state_1_1env__state__t.html">env_state_t</a>) :: env_state</div>
-<div class="line"><a name="l00564"></a><span class="lineno">  564</span>&#160;    <span class="keywordtype">type</span>(<a class="code" href="structpmc__aero__dist_1_1aero__dist__t.html">aero_dist_t</a>) :: aero_dist_init</div>
-<div class="line"><a name="l00565"></a><span class="lineno">  565</span>&#160;    <span class="keywordtype">type</span>(<a class="code" href="structpmc__run__exact_1_1run__exact__opt__t.html">run_exact_opt_t</a>) :: run_exact_opt</div>
-<div class="line"><a name="l00566"></a><span class="lineno">  566</span>&#160;    <span class="keywordtype">type</span>(<a class="code" href="structpmc__bin__grid_1_1bin__grid__t.html">bin_grid_t</a>) :: bin_grid</div>
-<div class="line"><a name="l00567"></a><span class="lineno">  567</span>&#160;    <span class="keywordtype">type</span>(<a class="code" href="structpmc__gas__data_1_1gas__data__t.html">gas_data_t</a>) :: gas_data</div>
-<div class="line"><a name="l00568"></a><span class="lineno">  568</span>&#160;    <span class="keywordtype">character(len=PMC_MAX_FILENAME_LEN)</span> :: sub_filename</div>
-<div class="line"><a name="l00569"></a><span class="lineno">  569</span>&#160;    <span class="keywordtype">type</span>(<a class="code" href="structpmc__spec__file_1_1spec__file__t.html">spec_file_t</a>) :: sub_file</div>
-<div class="line"><a name="l00570"></a><span class="lineno">  570</span>&#160;<span class="comment"></span> </div>
-<div class="line"><a name="l00571"></a><span class="lineno">  571</span>&#160;<span class="comment">    !&gt; \page input_format_exact Exact (Analytical) Solution</span></div>
-<div class="line"><a name="l00572"></a><span class="lineno">  572</span>&#160;<span class="comment">    !!</span></div>
-<div class="line"><a name="l00573"></a><span class="lineno">  573</span>&#160;<span class="comment">    !! The coagulation kernel and initial distribution must be matched</span></div>
-<div class="line"><a name="l00574"></a><span class="lineno">  574</span>&#160;<span class="comment">    !! for an exact solution to exist. The valid choices are:</span></div>
-<div class="line"><a name="l00575"></a><span class="lineno">  575</span>&#160;<span class="comment">    !!</span></div>
-<div class="line"><a name="l00576"></a><span class="lineno">  576</span>&#160;<span class="comment">    !! &lt;table&gt;</span></div>
-<div class="line"><a name="l00577"></a><span class="lineno">  577</span>&#160;<span class="comment">    !! &lt;tr&gt;&lt;th&gt;Coagulation kernel&lt;/th&gt;</span></div>
-<div class="line"><a name="l00578"></a><span class="lineno">  578</span>&#160;<span class="comment">    !!     &lt;th&gt;Initial aerosol distribution&lt;/th&gt;&lt;/tr&gt;</span></div>
-<div class="line"><a name="l00579"></a><span class="lineno">  579</span>&#160;<span class="comment">    !! &lt;tr&gt;&lt;td&gt;Additive&lt;/td&gt;</span></div>
-<div class="line"><a name="l00580"></a><span class="lineno">  580</span>&#160;<span class="comment">    !!     &lt;td&gt;Single exponential mode&lt;/td&gt;&lt;/tr&gt;</span></div>
-<div class="line"><a name="l00581"></a><span class="lineno">  581</span>&#160;<span class="comment">    !! &lt;tr&gt;&lt;td&gt;Constant&lt;/td&gt;</span></div>
-<div class="line"><a name="l00582"></a><span class="lineno">  582</span>&#160;<span class="comment">    !!     &lt;td&gt;Single exponential mode&lt;/td&gt;&lt;/tr&gt;</span></div>
-<div class="line"><a name="l00583"></a><span class="lineno">  583</span>&#160;<span class="comment">    !! &lt;tr&gt;&lt;td&gt;Zero&lt;/td&gt;</span></div>
-<div class="line"><a name="l00584"></a><span class="lineno">  584</span>&#160;<span class="comment">    !!     &lt;td&gt;Anything&lt;/td&gt;&lt;/tr&gt;</span></div>
-<div class="line"><a name="l00585"></a><span class="lineno">  585</span>&#160;<span class="comment">    !! &lt;/table&gt;</span></div>
-<div class="line"><a name="l00586"></a><span class="lineno">  586</span>&#160;<span class="comment">    !!</span></div>
-<div class="line"><a name="l00587"></a><span class="lineno">  587</span>&#160;<span class="comment">    !! See \ref spec_file_format for the input file text format.</span></div>
-<div class="line"><a name="l00588"></a><span class="lineno">  588</span>&#160;<span class="comment">    !!</span></div>
-<div class="line"><a name="l00589"></a><span class="lineno">  589</span>&#160;<span class="comment">    !! An exact (analytical) simulation spec file has the parameters:</span></div>
-<div class="line"><a name="l00590"></a><span class="lineno">  590</span>&#160;<span class="comment">    !! - \b run_type (string): must be \c exact</span></div>
-<div class="line"><a name="l00591"></a><span class="lineno">  591</span>&#160;<span class="comment">    !! - \b output_prefix (string): prefix of the output filenames ---</span></div>
-<div class="line"><a name="l00592"></a><span class="lineno">  592</span>&#160;<span class="comment">    !!   the filenames will be of the form \c PREFIX_SSSSSSSS.nc where</span></div>
-<div class="line"><a name="l00593"></a><span class="lineno">  593</span>&#160;<span class="comment">    !!   \c SSSSSSSS is is the eight-digit output index (starting at 1</span></div>
-<div class="line"><a name="l00594"></a><span class="lineno">  594</span>&#160;<span class="comment">    !!   and incremented each time the state is output)</span></div>
-<div class="line"><a name="l00595"></a><span class="lineno">  595</span>&#160;<span class="comment">    !! - \b t_max (real, unit s): total simulation time</span></div>
-<div class="line"><a name="l00596"></a><span class="lineno">  596</span>&#160;<span class="comment">    !! - \b t_output (real, unit s): the interval on which to output</span></div>
-<div class="line"><a name="l00597"></a><span class="lineno">  597</span>&#160;<span class="comment">    !!   data to disk and to print progress information to the screen</span></div>
-<div class="line"><a name="l00598"></a><span class="lineno">  598</span>&#160;<span class="comment">    !!   (see \ref output_format)</span></div>
-<div class="line"><a name="l00599"></a><span class="lineno">  599</span>&#160;<span class="comment">    !! - \subpage input_format_diam_bin_grid</span></div>
-<div class="line"><a name="l00600"></a><span class="lineno">  600</span>&#160;<span class="comment">    !! - \b gas_data (string): name of file from which to read the</span></div>
-<div class="line"><a name="l00601"></a><span class="lineno">  601</span>&#160;<span class="comment">    !!   gas material data --- the file format should be</span></div>
-<div class="line"><a name="l00602"></a><span class="lineno">  602</span>&#160;<span class="comment">    !!   \subpage input_format_gas_data</span></div>
-<div class="line"><a name="l00603"></a><span class="lineno">  603</span>&#160;<span class="comment">    !! - \b aerosol_data (string): name of file from which to read the</span></div>
-<div class="line"><a name="l00604"></a><span class="lineno">  604</span>&#160;<span class="comment">    !!   aerosol material data --- the file format should be</span></div>
-<div class="line"><a name="l00605"></a><span class="lineno">  605</span>&#160;<span class="comment">    !!   \subpage input_format_aero_data</span></div>
-<div class="line"><a name="l00606"></a><span class="lineno">  606</span>&#160;<span class="comment">    !! - \b do_fractal (logical): whether to consider particles</span></div>
-<div class="line"><a name="l00607"></a><span class="lineno">  607</span>&#160;<span class="comment">    !!   as fractal agglomerates. If \c do_fractal is \c no, then all the</span></div>
-<div class="line"><a name="l00608"></a><span class="lineno">  608</span>&#160;<span class="comment">    !!   particles are treated as spherical. If \c do_fractal is \c yes,</span></div>
-<div class="line"><a name="l00609"></a><span class="lineno">  609</span>&#160;<span class="comment">    !!   then the following parameters must also be provided:</span></div>
-<div class="line"><a name="l00610"></a><span class="lineno">  610</span>&#160;<span class="comment">    !!   - \subpage input_format_fractal</span></div>
-<div class="line"><a name="l00611"></a><span class="lineno">  611</span>&#160;<span class="comment">    !! - \b aerosol_init (string): filename containing the initial</span></div>
-<div class="line"><a name="l00612"></a><span class="lineno">  612</span>&#160;<span class="comment">    !!   aerosol state at the start of the simulation --- the file</span></div>
-<div class="line"><a name="l00613"></a><span class="lineno">  613</span>&#160;<span class="comment">    !!   format should be \subpage input_format_aero_dist</span></div>
-<div class="line"><a name="l00614"></a><span class="lineno">  614</span>&#160;<span class="comment">    !! - \subpage input_format_scenario</span></div>
-<div class="line"><a name="l00615"></a><span class="lineno">  615</span>&#160;<span class="comment">    !! - \subpage input_format_env_state</span></div>
-<div class="line"><a name="l00616"></a><span class="lineno">  616</span>&#160;<span class="comment">    !! - \b do_coagulation (logical): whether to perform particle</span></div>
-<div class="line"><a name="l00617"></a><span class="lineno">  617</span>&#160;<span class="comment">    !!   coagulation.  If \c do_coagulation is \c yes, then the</span></div>
-<div class="line"><a name="l00618"></a><span class="lineno">  618</span>&#160;<span class="comment">    !!   following parameters must also be provided:</span></div>
-<div class="line"><a name="l00619"></a><span class="lineno">  619</span>&#160;<span class="comment">    !!   - \subpage input_format_coag_kernel</span></div>
-<div class="line"><a name="l00620"></a><span class="lineno">  620</span>&#160;<span class="comment">    !!</span></div>
-<div class="line"><a name="l00621"></a><span class="lineno">  621</span>&#160;<span class="comment">    !! Example:</span></div>
-<div class="line"><a name="l00622"></a><span class="lineno">  622</span>&#160;<span class="comment">    !! &lt;pre&gt;</span></div>
-<div class="line"><a name="l00623"></a><span class="lineno">  623</span>&#160;<span class="comment">    !! run_type exact                  # exact solution</span></div>
-<div class="line"><a name="l00624"></a><span class="lineno">  624</span>&#160;<span class="comment">    !! output_prefix additive_exact    # prefix of output files</span></div>
-<div class="line"><a name="l00625"></a><span class="lineno">  625</span>&#160;<span class="comment">    !!</span></div>
-<div class="line"><a name="l00626"></a><span class="lineno">  626</span>&#160;<span class="comment">    !! t_max 600                       # total simulation time (s)</span></div>
-<div class="line"><a name="l00627"></a><span class="lineno">  627</span>&#160;<span class="comment">    !! t_output 60                     # output interval (0 disables) (s)</span></div>
-<div class="line"><a name="l00628"></a><span class="lineno">  628</span>&#160;<span class="comment">    !!</span></div>
-<div class="line"><a name="l00629"></a><span class="lineno">  629</span>&#160;<span class="comment">    !! n_bin 160                       # number of bins</span></div>
-<div class="line"><a name="l00630"></a><span class="lineno">  630</span>&#160;<span class="comment">    !! d_min 1e-8                      # minimum diameter (m)</span></div>
-<div class="line"><a name="l00631"></a><span class="lineno">  631</span>&#160;<span class="comment">    !! d_max 1e-3                      # maximum diameter (m)</span></div>
+<div class="line"><a name="l00552"></a><span class="lineno">  552</span>&#160;    <span class="keyword">call </span><a class="code" href="namespacepmc__rand.html#a48ab8c38095e258be9faafc7bd59ee35">pmc_rand_finalize</a>()</div>
+<div class="line"><a name="l00553"></a><span class="lineno">  553</span>&#160; </div>
+<div class="line"><a name="l00554"></a><span class="lineno">  554</span>&#160;  <span class="keyword">end subroutine </span>partmc_part</div>
+<div class="line"><a name="l00555"></a><span class="lineno">  555</span>&#160; </div>
+<div class="line"><a name="l00556"></a><span class="lineno">  556</span>&#160;<span class="comment">!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!</span></div>
+<div class="line"><a name="l00557"></a><span class="lineno">  557</span>&#160;<span class="comment"></span> </div>
+<div class="line"><a name="l00558"></a><span class="lineno">  558</span>&#160;<span class="comment">  !&gt; Run an exact solution simulation.</span></div>
+<div class="line"><a name="l00559"></a><span class="lineno">  559</span>&#160;  <span class="keyword">subroutine </span>partmc_exact(file)</div>
+<div class="line"><a name="l00560"></a><span class="lineno">  560</span>&#160;<span class="comment"></span> </div>
+<div class="line"><a name="l00561"></a><span class="lineno">  561</span>&#160;<span class="comment">    !&gt; Spec file.</span></div>
+<div class="line"><a name="l00562"></a><span class="lineno">  562</span>&#160;    <span class="keywordtype">type</span>(<a class="code" href="structpmc__spec__file_1_1spec__file__t.html">spec_file_t</a>), <span class="keywordtype">intent(inout)</span> :: file</div>
+<div class="line"><a name="l00563"></a><span class="lineno">  563</span>&#160; </div>
+<div class="line"><a name="l00564"></a><span class="lineno">  564</span>&#160;    <span class="keywordtype">character(len=100)</span> :: soln_name</div>
+<div class="line"><a name="l00565"></a><span class="lineno">  565</span>&#160;    <span class="keywordtype">type</span>(<a class="code" href="structpmc__aero__data_1_1aero__data__t.html">aero_data_t</a>) :: aero_data</div>
+<div class="line"><a name="l00566"></a><span class="lineno">  566</span>&#160;    <span class="keywordtype">type</span>(<a class="code" href="structpmc__scenario_1_1scenario__t.html">scenario_t</a>) :: scenario</div>
+<div class="line"><a name="l00567"></a><span class="lineno">  567</span>&#160;    <span class="keywordtype">type</span>(<a class="code" href="structpmc__env__state_1_1env__state__t.html">env_state_t</a>) :: env_state</div>
+<div class="line"><a name="l00568"></a><span class="lineno">  568</span>&#160;    <span class="keywordtype">type</span>(<a class="code" href="structpmc__aero__dist_1_1aero__dist__t.html">aero_dist_t</a>) :: aero_dist_init</div>
+<div class="line"><a name="l00569"></a><span class="lineno">  569</span>&#160;    <span class="keywordtype">type</span>(<a class="code" href="structpmc__run__exact_1_1run__exact__opt__t.html">run_exact_opt_t</a>) :: run_exact_opt</div>
+<div class="line"><a name="l00570"></a><span class="lineno">  570</span>&#160;    <span class="keywordtype">type</span>(<a class="code" href="structpmc__bin__grid_1_1bin__grid__t.html">bin_grid_t</a>) :: bin_grid</div>
+<div class="line"><a name="l00571"></a><span class="lineno">  571</span>&#160;    <span class="keywordtype">type</span>(<a class="code" href="structpmc__gas__data_1_1gas__data__t.html">gas_data_t</a>) :: gas_data</div>
+<div class="line"><a name="l00572"></a><span class="lineno">  572</span>&#160;    <span class="keywordtype">character(len=PMC_MAX_FILENAME_LEN)</span> :: sub_filename</div>
+<div class="line"><a name="l00573"></a><span class="lineno">  573</span>&#160;    <span class="keywordtype">type</span>(<a class="code" href="structpmc__spec__file_1_1spec__file__t.html">spec_file_t</a>) :: sub_file</div>
+<div class="line"><a name="l00574"></a><span class="lineno">  574</span>&#160;<span class="comment"></span> </div>
+<div class="line"><a name="l00575"></a><span class="lineno">  575</span>&#160;<span class="comment">    !&gt; \page input_format_exact Exact (Analytical) Solution</span></div>
+<div class="line"><a name="l00576"></a><span class="lineno">  576</span>&#160;<span class="comment">    !!</span></div>
+<div class="line"><a name="l00577"></a><span class="lineno">  577</span>&#160;<span class="comment">    !! The coagulation kernel and initial distribution must be matched</span></div>
+<div class="line"><a name="l00578"></a><span class="lineno">  578</span>&#160;<span class="comment">    !! for an exact solution to exist. The valid choices are:</span></div>
+<div class="line"><a name="l00579"></a><span class="lineno">  579</span>&#160;<span class="comment">    !!</span></div>
+<div class="line"><a name="l00580"></a><span class="lineno">  580</span>&#160;<span class="comment">    !! &lt;table&gt;</span></div>
+<div class="line"><a name="l00581"></a><span class="lineno">  581</span>&#160;<span class="comment">    !! &lt;tr&gt;&lt;th&gt;Coagulation kernel&lt;/th&gt;</span></div>
+<div class="line"><a name="l00582"></a><span class="lineno">  582</span>&#160;<span class="comment">    !!     &lt;th&gt;Initial aerosol distribution&lt;/th&gt;&lt;/tr&gt;</span></div>
+<div class="line"><a name="l00583"></a><span class="lineno">  583</span>&#160;<span class="comment">    !! &lt;tr&gt;&lt;td&gt;Additive&lt;/td&gt;</span></div>
+<div class="line"><a name="l00584"></a><span class="lineno">  584</span>&#160;<span class="comment">    !!     &lt;td&gt;Single exponential mode&lt;/td&gt;&lt;/tr&gt;</span></div>
+<div class="line"><a name="l00585"></a><span class="lineno">  585</span>&#160;<span class="comment">    !! &lt;tr&gt;&lt;td&gt;Constant&lt;/td&gt;</span></div>
+<div class="line"><a name="l00586"></a><span class="lineno">  586</span>&#160;<span class="comment">    !!     &lt;td&gt;Single exponential mode&lt;/td&gt;&lt;/tr&gt;</span></div>
+<div class="line"><a name="l00587"></a><span class="lineno">  587</span>&#160;<span class="comment">    !! &lt;tr&gt;&lt;td&gt;Zero&lt;/td&gt;</span></div>
+<div class="line"><a name="l00588"></a><span class="lineno">  588</span>&#160;<span class="comment">    !!     &lt;td&gt;Anything&lt;/td&gt;&lt;/tr&gt;</span></div>
+<div class="line"><a name="l00589"></a><span class="lineno">  589</span>&#160;<span class="comment">    !! &lt;/table&gt;</span></div>
+<div class="line"><a name="l00590"></a><span class="lineno">  590</span>&#160;<span class="comment">    !!</span></div>
+<div class="line"><a name="l00591"></a><span class="lineno">  591</span>&#160;<span class="comment">    !! See \ref spec_file_format for the input file text format.</span></div>
+<div class="line"><a name="l00592"></a><span class="lineno">  592</span>&#160;<span class="comment">    !!</span></div>
+<div class="line"><a name="l00593"></a><span class="lineno">  593</span>&#160;<span class="comment">    !! An exact (analytical) simulation spec file has the parameters:</span></div>
+<div class="line"><a name="l00594"></a><span class="lineno">  594</span>&#160;<span class="comment">    !! - \b run_type (string): must be \c exact</span></div>
+<div class="line"><a name="l00595"></a><span class="lineno">  595</span>&#160;<span class="comment">    !! - \b output_prefix (string): prefix of the output filenames ---</span></div>
+<div class="line"><a name="l00596"></a><span class="lineno">  596</span>&#160;<span class="comment">    !!   the filenames will be of the form \c PREFIX_SSSSSSSS.nc where</span></div>
+<div class="line"><a name="l00597"></a><span class="lineno">  597</span>&#160;<span class="comment">    !!   \c SSSSSSSS is is the eight-digit output index (starting at 1</span></div>
+<div class="line"><a name="l00598"></a><span class="lineno">  598</span>&#160;<span class="comment">    !!   and incremented each time the state is output)</span></div>
+<div class="line"><a name="l00599"></a><span class="lineno">  599</span>&#160;<span class="comment">    !! - \b t_max (real, unit s): total simulation time</span></div>
+<div class="line"><a name="l00600"></a><span class="lineno">  600</span>&#160;<span class="comment">    !! - \b t_output (real, unit s): the interval on which to output</span></div>
+<div class="line"><a name="l00601"></a><span class="lineno">  601</span>&#160;<span class="comment">    !!   data to disk and to print progress information to the screen</span></div>
+<div class="line"><a name="l00602"></a><span class="lineno">  602</span>&#160;<span class="comment">    !!   (see \ref output_format)</span></div>
+<div class="line"><a name="l00603"></a><span class="lineno">  603</span>&#160;<span class="comment">    !! - \subpage input_format_diam_bin_grid</span></div>
+<div class="line"><a name="l00604"></a><span class="lineno">  604</span>&#160;<span class="comment">    !! - \b gas_data (string): name of file from which to read the</span></div>
+<div class="line"><a name="l00605"></a><span class="lineno">  605</span>&#160;<span class="comment">    !!   gas material data --- the file format should be</span></div>
+<div class="line"><a name="l00606"></a><span class="lineno">  606</span>&#160;<span class="comment">    !!   \subpage input_format_gas_data</span></div>
+<div class="line"><a name="l00607"></a><span class="lineno">  607</span>&#160;<span class="comment">    !! - \b aerosol_data (string): name of file from which to read the</span></div>
+<div class="line"><a name="l00608"></a><span class="lineno">  608</span>&#160;<span class="comment">    !!   aerosol material data --- the file format should be</span></div>
+<div class="line"><a name="l00609"></a><span class="lineno">  609</span>&#160;<span class="comment">    !!   \subpage input_format_aero_data</span></div>
+<div class="line"><a name="l00610"></a><span class="lineno">  610</span>&#160;<span class="comment">    !! - \b do_fractal (logical): whether to consider particles</span></div>
+<div class="line"><a name="l00611"></a><span class="lineno">  611</span>&#160;<span class="comment">    !!   as fractal agglomerates. If \c do_fractal is \c no, then all the</span></div>
+<div class="line"><a name="l00612"></a><span class="lineno">  612</span>&#160;<span class="comment">    !!   particles are treated as spherical. If \c do_fractal is \c yes,</span></div>
+<div class="line"><a name="l00613"></a><span class="lineno">  613</span>&#160;<span class="comment">    !!   then the following parameters must also be provided:</span></div>
+<div class="line"><a name="l00614"></a><span class="lineno">  614</span>&#160;<span class="comment">    !!   - \subpage input_format_fractal</span></div>
+<div class="line"><a name="l00615"></a><span class="lineno">  615</span>&#160;<span class="comment">    !! - \b aerosol_init (string): filename containing the initial</span></div>
+<div class="line"><a name="l00616"></a><span class="lineno">  616</span>&#160;<span class="comment">    !!   aerosol state at the start of the simulation --- the file</span></div>
+<div class="line"><a name="l00617"></a><span class="lineno">  617</span>&#160;<span class="comment">    !!   format should be \subpage input_format_aero_dist</span></div>
+<div class="line"><a name="l00618"></a><span class="lineno">  618</span>&#160;<span class="comment">    !! - \subpage input_format_scenario</span></div>
+<div class="line"><a name="l00619"></a><span class="lineno">  619</span>&#160;<span class="comment">    !! - \subpage input_format_env_state</span></div>
+<div class="line"><a name="l00620"></a><span class="lineno">  620</span>&#160;<span class="comment">    !! - \b do_coagulation (logical): whether to perform particle</span></div>
+<div class="line"><a name="l00621"></a><span class="lineno">  621</span>&#160;<span class="comment">    !!   coagulation.  If \c do_coagulation is \c yes, then the</span></div>
+<div class="line"><a name="l00622"></a><span class="lineno">  622</span>&#160;<span class="comment">    !!   following parameters must also be provided:</span></div>
+<div class="line"><a name="l00623"></a><span class="lineno">  623</span>&#160;<span class="comment">    !!   - \subpage input_format_coag_kernel</span></div>
+<div class="line"><a name="l00624"></a><span class="lineno">  624</span>&#160;<span class="comment">    !!</span></div>
+<div class="line"><a name="l00625"></a><span class="lineno">  625</span>&#160;<span class="comment">    !! Example:</span></div>
+<div class="line"><a name="l00626"></a><span class="lineno">  626</span>&#160;<span class="comment">    !! &lt;pre&gt;</span></div>
+<div class="line"><a name="l00627"></a><span class="lineno">  627</span>&#160;<span class="comment">    !! run_type exact                  # exact solution</span></div>
+<div class="line"><a name="l00628"></a><span class="lineno">  628</span>&#160;<span class="comment">    !! output_prefix additive_exact    # prefix of output files</span></div>
+<div class="line"><a name="l00629"></a><span class="lineno">  629</span>&#160;<span class="comment">    !!</span></div>
+<div class="line"><a name="l00630"></a><span class="lineno">  630</span>&#160;<span class="comment">    !! t_max 600                       # total simulation time (s)</span></div>
+<div class="line"><a name="l00631"></a><span class="lineno">  631</span>&#160;<span class="comment">    !! t_output 60                     # output interval (0 disables) (s)</span></div>
 <div class="line"><a name="l00632"></a><span class="lineno">  632</span>&#160;<span class="comment">    !!</span></div>
-<div class="line"><a name="l00633"></a><span class="lineno">  633</span>&#160;<span class="comment">    !! gas_data gas_data.dat           # file containing gas data</span></div>
-<div class="line"><a name="l00634"></a><span class="lineno">  634</span>&#160;<span class="comment">    !!</span></div>
-<div class="line"><a name="l00635"></a><span class="lineno">  635</span>&#160;<span class="comment">    !! aerosol_data aero_data.dat      # file containing aerosol data</span></div>
-<div class="line"><a name="l00636"></a><span class="lineno">  636</span>&#160;<span class="comment">    !! do_fractal no                   # whether to do fractal treatment</span></div>
-<div class="line"><a name="l00637"></a><span class="lineno">  637</span>&#160;<span class="comment">    !! aerosol_init aero_init_dist.dat # aerosol initial condition file</span></div>
+<div class="line"><a name="l00633"></a><span class="lineno">  633</span>&#160;<span class="comment">    !! n_bin 160                       # number of bins</span></div>
+<div class="line"><a name="l00634"></a><span class="lineno">  634</span>&#160;<span class="comment">    !! d_min 1e-8                      # minimum diameter (m)</span></div>
+<div class="line"><a name="l00635"></a><span class="lineno">  635</span>&#160;<span class="comment">    !! d_max 1e-3                      # maximum diameter (m)</span></div>
+<div class="line"><a name="l00636"></a><span class="lineno">  636</span>&#160;<span class="comment">    !!</span></div>
+<div class="line"><a name="l00637"></a><span class="lineno">  637</span>&#160;<span class="comment">    !! gas_data gas_data.dat           # file containing gas data</span></div>
 <div class="line"><a name="l00638"></a><span class="lineno">  638</span>&#160;<span class="comment">    !!</span></div>
-<div class="line"><a name="l00639"></a><span class="lineno">  639</span>&#160;<span class="comment">    !! temp_profile temp.dat           # temperature profile file</span></div>
-<div class="line"><a name="l00640"></a><span class="lineno">  640</span>&#160;<span class="comment">    !! height_profile height.dat       # height profile file</span></div>
-<div class="line"><a name="l00641"></a><span class="lineno">  641</span>&#160;<span class="comment">    !! gas_emissions gas_emit.dat      # gas emissions file</span></div>
-<div class="line"><a name="l00642"></a><span class="lineno">  642</span>&#160;<span class="comment">    !! gas_background gas_back.dat     # background gas mixing ratios file</span></div>
-<div class="line"><a name="l00643"></a><span class="lineno">  643</span>&#160;<span class="comment">    !! aero_emissions aero_emit.dat    # aerosol emissions file</span></div>
-<div class="line"><a name="l00644"></a><span class="lineno">  644</span>&#160;<span class="comment">    !! aero_background aero_back.dat   # aerosol background file</span></div>
-<div class="line"><a name="l00645"></a><span class="lineno">  645</span>&#160;<span class="comment">    !!</span></div>
-<div class="line"><a name="l00646"></a><span class="lineno">  646</span>&#160;<span class="comment">    !! rel_humidity 0.999              # initial relative humidity (1)</span></div>
-<div class="line"><a name="l00647"></a><span class="lineno">  647</span>&#160;<span class="comment">    !! pressure 1e5                    # initial pressure (Pa)</span></div>
-<div class="line"><a name="l00648"></a><span class="lineno">  648</span>&#160;<span class="comment">    !! latitude 0                      # latitude (degrees, -90 to 90)</span></div>
-<div class="line"><a name="l00649"></a><span class="lineno">  649</span>&#160;<span class="comment">    !! longitude 0                     # longitude (degrees, -180 to 180)</span></div>
-<div class="line"><a name="l00650"></a><span class="lineno">  650</span>&#160;<span class="comment">    !! altitude 0                      # altitude (m)</span></div>
-<div class="line"><a name="l00651"></a><span class="lineno">  651</span>&#160;<span class="comment">    !! start_time 0                    # start time (s since 00:00 UTC)</span></div>
-<div class="line"><a name="l00652"></a><span class="lineno">  652</span>&#160;<span class="comment">    !! start_day 1                     # start day of year (UTC)</span></div>
-<div class="line"><a name="l00653"></a><span class="lineno">  653</span>&#160;<span class="comment">    !!</span></div>
-<div class="line"><a name="l00654"></a><span class="lineno">  654</span>&#160;<span class="comment">    !! do_coagulation yes              # whether to do coagulation (yes/no)</span></div>
-<div class="line"><a name="l00655"></a><span class="lineno">  655</span>&#160;<span class="comment">    !! kernel additive                 # Additive coagulation kernel</span></div>
-<div class="line"><a name="l00656"></a><span class="lineno">  656</span>&#160;<span class="comment">    !! additive_kernel_coeff 1000d0                   # Additive kernel constant</span></div>
-<div class="line"><a name="l00657"></a><span class="lineno">  657</span>&#160;<span class="comment">    !! &lt;/pre&gt;</span></div>
-<div class="line"><a name="l00658"></a><span class="lineno">  658</span>&#160; </div>
-<div class="line"><a name="l00659"></a><span class="lineno">  659</span>&#160;    <span class="comment">! only serial code here</span></div>
-<div class="line"><a name="l00660"></a><span class="lineno">  660</span>&#160;    <span class="keywordflow">if</span> (<a class="code" href="namespacepmc__mpi.html#a1ac93b34387cb8dec130a10c4f959e9b">pmc_mpi_rank</a>() /= 0) <span class="keywordflow">then</span></div>
-<div class="line"><a name="l00661"></a><span class="lineno">  661</span>&#160;       <span class="keywordflow">return</span></div>
-<div class="line"><a name="l00662"></a><span class="lineno">  662</span>&#160;<span class="keywordflow">    end if</span></div>
-<div class="line"><a name="l00663"></a><span class="lineno">  663</span>&#160; </div>
-<div class="line"><a name="l00664"></a><span class="lineno">  664</span>&#160;    <span class="keyword">call </span><a class="code" href="namespacepmc__run__exact.html#a13f37583995c3485c7c4a068ca315833">spec_file_read_run_exact</a>(file, run_exact_opt, aero_data, &amp;</div>
-<div class="line"><a name="l00665"></a><span class="lineno">  665</span>&#160;         bin_grid, gas_data, env_state, aero_dist_init, scenario)</div>
-<div class="line"><a name="l00666"></a><span class="lineno">  666</span>&#160; </div>
-<div class="line"><a name="l00667"></a><span class="lineno">  667</span>&#160;    <span class="keyword">call </span><a class="code" href="namespacepmc__run__exact.html#a8db86b29e1aee6d3aa9f2e922dd1eb97">run_exact</a>(bin_grid, scenario, env_state, aero_data, &amp;</div>
-<div class="line"><a name="l00668"></a><span class="lineno">  668</span>&#160;         aero_dist_init, gas_data, run_exact_opt)</div>
-<div class="line"><a name="l00669"></a><span class="lineno">  669</span>&#160; </div>
-<div class="line"><a name="l00670"></a><span class="lineno">  670</span>&#160;    <span class="keyword">call </span><a class="code" href="namespacepmc__rand.html#a48ab8c38095e258be9faafc7bd59ee35">pmc_rand_finalize</a>()</div>
-<div class="line"><a name="l00671"></a><span class="lineno">  671</span>&#160; </div>
-<div class="line"><a name="l00672"></a><span class="lineno">  672</span>&#160;  <span class="keyword">end subroutine </span>partmc_exact</div>
+<div class="line"><a name="l00639"></a><span class="lineno">  639</span>&#160;<span class="comment">    !! aerosol_data aero_data.dat      # file containing aerosol data</span></div>
+<div class="line"><a name="l00640"></a><span class="lineno">  640</span>&#160;<span class="comment">    !! do_fractal no                   # whether to do fractal treatment</span></div>
+<div class="line"><a name="l00641"></a><span class="lineno">  641</span>&#160;<span class="comment">    !! aerosol_init aero_init_dist.dat # aerosol initial condition file</span></div>
+<div class="line"><a name="l00642"></a><span class="lineno">  642</span>&#160;<span class="comment">    !!</span></div>
+<div class="line"><a name="l00643"></a><span class="lineno">  643</span>&#160;<span class="comment">    !! temp_profile temp.dat           # temperature profile file</span></div>
+<div class="line"><a name="l00644"></a><span class="lineno">  644</span>&#160;<span class="comment">    !! height_profile height.dat       # height profile file</span></div>
+<div class="line"><a name="l00645"></a><span class="lineno">  645</span>&#160;<span class="comment">    !! gas_emissions gas_emit.dat      # gas emissions file</span></div>
+<div class="line"><a name="l00646"></a><span class="lineno">  646</span>&#160;<span class="comment">    !! gas_background gas_back.dat     # background gas mixing ratios file</span></div>
+<div class="line"><a name="l00647"></a><span class="lineno">  647</span>&#160;<span class="comment">    !! aero_emissions aero_emit.dat    # aerosol emissions file</span></div>
+<div class="line"><a name="l00648"></a><span class="lineno">  648</span>&#160;<span class="comment">    !! aero_background aero_back.dat   # aerosol background file</span></div>
+<div class="line"><a name="l00649"></a><span class="lineno">  649</span>&#160;<span class="comment">    !!</span></div>
+<div class="line"><a name="l00650"></a><span class="lineno">  650</span>&#160;<span class="comment">    !! rel_humidity 0.999              # initial relative humidity (1)</span></div>
+<div class="line"><a name="l00651"></a><span class="lineno">  651</span>&#160;<span class="comment">    !! pressure 1e5                    # initial pressure (Pa)</span></div>
+<div class="line"><a name="l00652"></a><span class="lineno">  652</span>&#160;<span class="comment">    !! latitude 0                      # latitude (degrees, -90 to 90)</span></div>
+<div class="line"><a name="l00653"></a><span class="lineno">  653</span>&#160;<span class="comment">    !! longitude 0                     # longitude (degrees, -180 to 180)</span></div>
+<div class="line"><a name="l00654"></a><span class="lineno">  654</span>&#160;<span class="comment">    !! altitude 0                      # altitude (m)</span></div>
+<div class="line"><a name="l00655"></a><span class="lineno">  655</span>&#160;<span class="comment">    !! start_time 0                    # start time (s since 00:00 UTC)</span></div>
+<div class="line"><a name="l00656"></a><span class="lineno">  656</span>&#160;<span class="comment">    !! start_day 1                     # start day of year (UTC)</span></div>
+<div class="line"><a name="l00657"></a><span class="lineno">  657</span>&#160;<span class="comment">    !!</span></div>
+<div class="line"><a name="l00658"></a><span class="lineno">  658</span>&#160;<span class="comment">    !! do_coagulation yes              # whether to do coagulation (yes/no)</span></div>
+<div class="line"><a name="l00659"></a><span class="lineno">  659</span>&#160;<span class="comment">    !! kernel additive                 # Additive coagulation kernel</span></div>
+<div class="line"><a name="l00660"></a><span class="lineno">  660</span>&#160;<span class="comment">    !! additive_kernel_coeff 1000d0                   # Additive kernel constant</span></div>
+<div class="line"><a name="l00661"></a><span class="lineno">  661</span>&#160;<span class="comment">    !! &lt;/pre&gt;</span></div>
+<div class="line"><a name="l00662"></a><span class="lineno">  662</span>&#160; </div>
+<div class="line"><a name="l00663"></a><span class="lineno">  663</span>&#160;    <span class="comment">! only serial code here</span></div>
+<div class="line"><a name="l00664"></a><span class="lineno">  664</span>&#160;    <span class="keywordflow">if</span> (<a class="code" href="namespacepmc__mpi.html#a1ac93b34387cb8dec130a10c4f959e9b">pmc_mpi_rank</a>() /= 0) <span class="keywordflow">then</span></div>
+<div class="line"><a name="l00665"></a><span class="lineno">  665</span>&#160;       <span class="keywordflow">return</span></div>
+<div class="line"><a name="l00666"></a><span class="lineno">  666</span>&#160;<span class="keywordflow">    end if</span></div>
+<div class="line"><a name="l00667"></a><span class="lineno">  667</span>&#160; </div>
+<div class="line"><a name="l00668"></a><span class="lineno">  668</span>&#160;    <span class="keyword">call </span><a class="code" href="namespacepmc__run__exact.html#a13f37583995c3485c7c4a068ca315833">spec_file_read_run_exact</a>(file, run_exact_opt, aero_data, &amp;</div>
+<div class="line"><a name="l00669"></a><span class="lineno">  669</span>&#160;         bin_grid, gas_data, env_state, aero_dist_init, scenario)</div>
+<div class="line"><a name="l00670"></a><span class="lineno">  670</span>&#160; </div>
+<div class="line"><a name="l00671"></a><span class="lineno">  671</span>&#160;    <span class="keyword">call </span><a class="code" href="namespacepmc__run__exact.html#a8db86b29e1aee6d3aa9f2e922dd1eb97">run_exact</a>(bin_grid, scenario, env_state, aero_data, &amp;</div>
+<div class="line"><a name="l00672"></a><span class="lineno">  672</span>&#160;         aero_dist_init, gas_data, run_exact_opt)</div>
 <div class="line"><a name="l00673"></a><span class="lineno">  673</span>&#160; </div>
-<div class="line"><a name="l00674"></a><span class="lineno">  674</span>&#160;<span class="comment">!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!</span></div>
-<div class="line"><a name="l00675"></a><span class="lineno">  675</span>&#160;<span class="comment"></span> </div>
-<div class="line"><a name="l00676"></a><span class="lineno">  676</span>&#160;<span class="comment">  !&gt; Run a sectional code simulation.</span></div>
-<div class="line"><a name="l00677"></a><span class="lineno">  677</span>&#160;  <span class="keyword">subroutine </span>partmc_sect(file)</div>
-<div class="line"><a name="l00678"></a><span class="lineno">  678</span>&#160;<span class="comment"></span> </div>
-<div class="line"><a name="l00679"></a><span class="lineno">  679</span>&#160;<span class="comment">    !&gt; Spec file.</span></div>
-<div class="line"><a name="l00680"></a><span class="lineno">  680</span>&#160;    <span class="keywordtype">type</span>(<a class="code" href="structpmc__spec__file_1_1spec__file__t.html">spec_file_t</a>), <span class="keywordtype">intent(inout)</span> :: file</div>
-<div class="line"><a name="l00681"></a><span class="lineno">  681</span>&#160; </div>
-<div class="line"><a name="l00682"></a><span class="lineno">  682</span>&#160;    <span class="keywordtype">type</span>(<a class="code" href="structpmc__run__sect_1_1run__sect__opt__t.html">run_sect_opt_t</a>) :: run_sect_opt</div>
-<div class="line"><a name="l00683"></a><span class="lineno">  683</span>&#160;    <span class="keywordtype">type</span>(<a class="code" href="structpmc__aero__data_1_1aero__data__t.html">aero_data_t</a>) :: aero_data</div>
-<div class="line"><a name="l00684"></a><span class="lineno">  684</span>&#160;    <span class="keywordtype">type</span>(<a class="code" href="structpmc__aero__dist_1_1aero__dist__t.html">aero_dist_t</a>) :: aero_dist_init</div>
-<div class="line"><a name="l00685"></a><span class="lineno">  685</span>&#160;    <span class="keywordtype">type</span>(<a class="code" href="structpmc__aero__state_1_1aero__state__t.html">aero_state_t</a>) :: aero_init</div>
-<div class="line"><a name="l00686"></a><span class="lineno">  686</span>&#160;    <span class="keywordtype">type</span>(<a class="code" href="structpmc__scenario_1_1scenario__t.html">scenario_t</a>) :: scenario</div>
-<div class="line"><a name="l00687"></a><span class="lineno">  687</span>&#160;    <span class="keywordtype">type</span>(<a class="code" href="structpmc__env__state_1_1env__state__t.html">env_state_t</a>) :: env_state</div>
-<div class="line"><a name="l00688"></a><span class="lineno">  688</span>&#160;    <span class="keywordtype">type</span>(<a class="code" href="structpmc__bin__grid_1_1bin__grid__t.html">bin_grid_t</a>) :: bin_grid</div>
-<div class="line"><a name="l00689"></a><span class="lineno">  689</span>&#160;    <span class="keywordtype">type</span>(<a class="code" href="structpmc__gas__data_1_1gas__data__t.html">gas_data_t</a>) :: gas_data</div>
-<div class="line"><a name="l00690"></a><span class="lineno">  690</span>&#160;    <span class="keywordtype">character(len=PMC_MAX_FILENAME_LEN)</span> :: sub_filename</div>
-<div class="line"><a name="l00691"></a><span class="lineno">  691</span>&#160;    <span class="keywordtype">type</span>(<a class="code" href="structpmc__spec__file_1_1spec__file__t.html">spec_file_t</a>) :: sub_file</div>
-<div class="line"><a name="l00692"></a><span class="lineno">  692</span>&#160;<span class="comment"></span> </div>
-<div class="line"><a name="l00693"></a><span class="lineno">  693</span>&#160;<span class="comment">    !&gt; \page input_format_sectional Sectional Model Simulation</span></div>
-<div class="line"><a name="l00694"></a><span class="lineno">  694</span>&#160;<span class="comment">    !!</span></div>
-<div class="line"><a name="l00695"></a><span class="lineno">  695</span>&#160;<span class="comment">    !! See \ref spec_file_format for the input file text format.</span></div>
-<div class="line"><a name="l00696"></a><span class="lineno">  696</span>&#160;<span class="comment">    !!</span></div>
-<div class="line"><a name="l00697"></a><span class="lineno">  697</span>&#160;<span class="comment">    !! A sectional simulation spec file has the parameters:</span></div>
-<div class="line"><a name="l00698"></a><span class="lineno">  698</span>&#160;<span class="comment">    !! - \b run_type (string): must be \c sectional</span></div>
-<div class="line"><a name="l00699"></a><span class="lineno">  699</span>&#160;<span class="comment">    !! - \b output_prefix (string): prefix of the output filenames ---</span></div>
-<div class="line"><a name="l00700"></a><span class="lineno">  700</span>&#160;<span class="comment">    !!   the filenames will be of the form \c PREFIX_SSSSSSSS.nc where</span></div>
-<div class="line"><a name="l00701"></a><span class="lineno">  701</span>&#160;<span class="comment">    !!   \c SSSSSSSS is is the eight-digit output index (starting at 1</span></div>
-<div class="line"><a name="l00702"></a><span class="lineno">  702</span>&#160;<span class="comment">    !!   and incremented each time the state is output)</span></div>
-<div class="line"><a name="l00703"></a><span class="lineno">  703</span>&#160;<span class="comment">    !! - \b del_t (real, unit s): timestep size</span></div>
-<div class="line"><a name="l00704"></a><span class="lineno">  704</span>&#160;<span class="comment">    !! - \b t_output (real, unit s): the interval on which to</span></div>
-<div class="line"><a name="l00705"></a><span class="lineno">  705</span>&#160;<span class="comment">    !!   output data to disk (see \ref output_format)</span></div>
-<div class="line"><a name="l00706"></a><span class="lineno">  706</span>&#160;<span class="comment">    !! - \b t_progress (real, unit s): the interval on which to</span></div>
-<div class="line"><a name="l00707"></a><span class="lineno">  707</span>&#160;<span class="comment">    !!   write summary information to the screen while running</span></div>
-<div class="line"><a name="l00708"></a><span class="lineno">  708</span>&#160;<span class="comment">    !! - \subpage input_format_diam_bin_grid</span></div>
-<div class="line"><a name="l00709"></a><span class="lineno">  709</span>&#160;<span class="comment">    !! - \b gas_data (string): name of file from which to read the</span></div>
-<div class="line"><a name="l00710"></a><span class="lineno">  710</span>&#160;<span class="comment">    !!   gas material data --- the file format should be</span></div>
-<div class="line"><a name="l00711"></a><span class="lineno">  711</span>&#160;<span class="comment">    !!   \subpage input_format_gas_data</span></div>
-<div class="line"><a name="l00712"></a><span class="lineno">  712</span>&#160;<span class="comment">    !! - \b aerosol_data (string): name of file from which to read the</span></div>
-<div class="line"><a name="l00713"></a><span class="lineno">  713</span>&#160;<span class="comment">    !!   aerosol material data --- the file format should be</span></div>
-<div class="line"><a name="l00714"></a><span class="lineno">  714</span>&#160;<span class="comment">    !!   \subpage input_format_aero_data</span></div>
-<div class="line"><a name="l00715"></a><span class="lineno">  715</span>&#160;<span class="comment">    !! - \b do_fractal (logical): whether to consider particles</span></div>
-<div class="line"><a name="l00716"></a><span class="lineno">  716</span>&#160;<span class="comment">    !!   as fractal agglomerates. If \c do_fractal is \c no, then all the</span></div>
-<div class="line"><a name="l00717"></a><span class="lineno">  717</span>&#160;<span class="comment">    !!   particles are treated as spherical. If \c do_fractal is \c yes,</span></div>
-<div class="line"><a name="l00718"></a><span class="lineno">  718</span>&#160;<span class="comment">    !!   then the following parameters must also be provided:</span></div>
-<div class="line"><a name="l00719"></a><span class="lineno">  719</span>&#160;<span class="comment">    !!   - \subpage input_format_fractal</span></div>
-<div class="line"><a name="l00720"></a><span class="lineno">  720</span>&#160;<span class="comment">    !! - \b aerosol_init (string): filename containing the initial</span></div>
-<div class="line"><a name="l00721"></a><span class="lineno">  721</span>&#160;<span class="comment">    !!   aerosol state at the start of the simulation --- the file</span></div>
-<div class="line"><a name="l00722"></a><span class="lineno">  722</span>&#160;<span class="comment">    !!   format should be \subpage input_format_aero_dist</span></div>
-<div class="line"><a name="l00723"></a><span class="lineno">  723</span>&#160;<span class="comment">    !! - \subpage input_format_scenario</span></div>
-<div class="line"><a name="l00724"></a><span class="lineno">  724</span>&#160;<span class="comment">    !! - \subpage input_format_env_state</span></div>
-<div class="line"><a name="l00725"></a><span class="lineno">  725</span>&#160;<span class="comment">    !! - \b do_coagulation (logical): whether to perform particle</span></div>
-<div class="line"><a name="l00726"></a><span class="lineno">  726</span>&#160;<span class="comment">    !!   coagulation.  If \c do_coagulation is \c yes, then the</span></div>
-<div class="line"><a name="l00727"></a><span class="lineno">  727</span>&#160;<span class="comment">    !!   following parameters must also be provided:</span></div>
-<div class="line"><a name="l00728"></a><span class="lineno">  728</span>&#160;<span class="comment">    !!   - \subpage input_format_coag_kernel</span></div>
-<div class="line"><a name="l00729"></a><span class="lineno">  729</span>&#160;<span class="comment">    !!</span></div>
-<div class="line"><a name="l00730"></a><span class="lineno">  730</span>&#160;<span class="comment">    !! Example:</span></div>
-<div class="line"><a name="l00731"></a><span class="lineno">  731</span>&#160;<span class="comment">    !! &lt;pre&gt;</span></div>
-<div class="line"><a name="l00732"></a><span class="lineno">  732</span>&#160;<span class="comment">    !! run_type sectional              # sectional code run</span></div>
-<div class="line"><a name="l00733"></a><span class="lineno">  733</span>&#160;<span class="comment">    !! output_prefix brown_sect        # prefix of output files</span></div>
-<div class="line"><a name="l00734"></a><span class="lineno">  734</span>&#160;<span class="comment">    !!</span></div>
-<div class="line"><a name="l00735"></a><span class="lineno">  735</span>&#160;<span class="comment">    !! t_max 86400                     # total simulation time (s)</span></div>
-<div class="line"><a name="l00736"></a><span class="lineno">  736</span>&#160;<span class="comment">    !! del_t 60                        # timestep (s)</span></div>
-<div class="line"><a name="l00737"></a><span class="lineno">  737</span>&#160;<span class="comment">    !! t_output 3600                   # output interval (0 disables) (s)</span></div>
-<div class="line"><a name="l00738"></a><span class="lineno">  738</span>&#160;<span class="comment">    !! t_progress 600                  # progress printing interval (0 disables) (s)</span></div>
-<div class="line"><a name="l00739"></a><span class="lineno">  739</span>&#160;<span class="comment">    !!</span></div>
-<div class="line"><a name="l00740"></a><span class="lineno">  740</span>&#160;<span class="comment">    !! n_bin 220                       # number of bins</span></div>
-<div class="line"><a name="l00741"></a><span class="lineno">  741</span>&#160;<span class="comment">    !! d_min 1e-10                     # minimum diameter (m)</span></div>
-<div class="line"><a name="l00742"></a><span class="lineno">  742</span>&#160;<span class="comment">    !! d_max 1e-4                      # maximum diameter (m)</span></div>
+<div class="line"><a name="l00674"></a><span class="lineno">  674</span>&#160;    <span class="keyword">call </span><a class="code" href="namespacepmc__rand.html#a48ab8c38095e258be9faafc7bd59ee35">pmc_rand_finalize</a>()</div>
+<div class="line"><a name="l00675"></a><span class="lineno">  675</span>&#160; </div>
+<div class="line"><a name="l00676"></a><span class="lineno">  676</span>&#160;  <span class="keyword">end subroutine </span>partmc_exact</div>
+<div class="line"><a name="l00677"></a><span class="lineno">  677</span>&#160; </div>
+<div class="line"><a name="l00678"></a><span class="lineno">  678</span>&#160;<span class="comment">!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!</span></div>
+<div class="line"><a name="l00679"></a><span class="lineno">  679</span>&#160;<span class="comment"></span> </div>
+<div class="line"><a name="l00680"></a><span class="lineno">  680</span>&#160;<span class="comment">  !&gt; Run a sectional code simulation.</span></div>
+<div class="line"><a name="l00681"></a><span class="lineno">  681</span>&#160;  <span class="keyword">subroutine </span>partmc_sect(file)</div>
+<div class="line"><a name="l00682"></a><span class="lineno">  682</span>&#160;<span class="comment"></span> </div>
+<div class="line"><a name="l00683"></a><span class="lineno">  683</span>&#160;<span class="comment">    !&gt; Spec file.</span></div>
+<div class="line"><a name="l00684"></a><span class="lineno">  684</span>&#160;    <span class="keywordtype">type</span>(<a class="code" href="structpmc__spec__file_1_1spec__file__t.html">spec_file_t</a>), <span class="keywordtype">intent(inout)</span> :: file</div>
+<div class="line"><a name="l00685"></a><span class="lineno">  685</span>&#160; </div>
+<div class="line"><a name="l00686"></a><span class="lineno">  686</span>&#160;    <span class="keywordtype">type</span>(<a class="code" href="structpmc__run__sect_1_1run__sect__opt__t.html">run_sect_opt_t</a>) :: run_sect_opt</div>
+<div class="line"><a name="l00687"></a><span class="lineno">  687</span>&#160;    <span class="keywordtype">type</span>(<a class="code" href="structpmc__aero__data_1_1aero__data__t.html">aero_data_t</a>) :: aero_data</div>
+<div class="line"><a name="l00688"></a><span class="lineno">  688</span>&#160;    <span class="keywordtype">type</span>(<a class="code" href="structpmc__aero__dist_1_1aero__dist__t.html">aero_dist_t</a>) :: aero_dist_init</div>
+<div class="line"><a name="l00689"></a><span class="lineno">  689</span>&#160;    <span class="keywordtype">type</span>(<a class="code" href="structpmc__aero__state_1_1aero__state__t.html">aero_state_t</a>) :: aero_init</div>
+<div class="line"><a name="l00690"></a><span class="lineno">  690</span>&#160;    <span class="keywordtype">type</span>(<a class="code" href="structpmc__scenario_1_1scenario__t.html">scenario_t</a>) :: scenario</div>
+<div class="line"><a name="l00691"></a><span class="lineno">  691</span>&#160;    <span class="keywordtype">type</span>(<a class="code" href="structpmc__env__state_1_1env__state__t.html">env_state_t</a>) :: env_state</div>
+<div class="line"><a name="l00692"></a><span class="lineno">  692</span>&#160;    <span class="keywordtype">type</span>(<a class="code" href="structpmc__bin__grid_1_1bin__grid__t.html">bin_grid_t</a>) :: bin_grid</div>
+<div class="line"><a name="l00693"></a><span class="lineno">  693</span>&#160;    <span class="keywordtype">type</span>(<a class="code" href="structpmc__gas__data_1_1gas__data__t.html">gas_data_t</a>) :: gas_data</div>
+<div class="line"><a name="l00694"></a><span class="lineno">  694</span>&#160;    <span class="keywordtype">character(len=PMC_MAX_FILENAME_LEN)</span> :: sub_filename</div>
+<div class="line"><a name="l00695"></a><span class="lineno">  695</span>&#160;    <span class="keywordtype">type</span>(<a class="code" href="structpmc__spec__file_1_1spec__file__t.html">spec_file_t</a>) :: sub_file</div>
+<div class="line"><a name="l00696"></a><span class="lineno">  696</span>&#160;<span class="comment"></span> </div>
+<div class="line"><a name="l00697"></a><span class="lineno">  697</span>&#160;<span class="comment">    !&gt; \page input_format_sectional Sectional Model Simulation</span></div>
+<div class="line"><a name="l00698"></a><span class="lineno">  698</span>&#160;<span class="comment">    !!</span></div>
+<div class="line"><a name="l00699"></a><span class="lineno">  699</span>&#160;<span class="comment">    !! See \ref spec_file_format for the input file text format.</span></div>
+<div class="line"><a name="l00700"></a><span class="lineno">  700</span>&#160;<span class="comment">    !!</span></div>
+<div class="line"><a name="l00701"></a><span class="lineno">  701</span>&#160;<span class="comment">    !! A sectional simulation spec file has the parameters:</span></div>
+<div class="line"><a name="l00702"></a><span class="lineno">  702</span>&#160;<span class="comment">    !! - \b run_type (string): must be \c sectional</span></div>
+<div class="line"><a name="l00703"></a><span class="lineno">  703</span>&#160;<span class="comment">    !! - \b output_prefix (string): prefix of the output filenames ---</span></div>
+<div class="line"><a name="l00704"></a><span class="lineno">  704</span>&#160;<span class="comment">    !!   the filenames will be of the form \c PREFIX_SSSSSSSS.nc where</span></div>
+<div class="line"><a name="l00705"></a><span class="lineno">  705</span>&#160;<span class="comment">    !!   \c SSSSSSSS is is the eight-digit output index (starting at 1</span></div>
+<div class="line"><a name="l00706"></a><span class="lineno">  706</span>&#160;<span class="comment">    !!   and incremented each time the state is output)</span></div>
+<div class="line"><a name="l00707"></a><span class="lineno">  707</span>&#160;<span class="comment">    !! - \b del_t (real, unit s): timestep size</span></div>
+<div class="line"><a name="l00708"></a><span class="lineno">  708</span>&#160;<span class="comment">    !! - \b t_output (real, unit s): the interval on which to</span></div>
+<div class="line"><a name="l00709"></a><span class="lineno">  709</span>&#160;<span class="comment">    !!   output data to disk (see \ref output_format)</span></div>
+<div class="line"><a name="l00710"></a><span class="lineno">  710</span>&#160;<span class="comment">    !! - \b t_progress (real, unit s): the interval on which to</span></div>
+<div class="line"><a name="l00711"></a><span class="lineno">  711</span>&#160;<span class="comment">    !!   write summary information to the screen while running</span></div>
+<div class="line"><a name="l00712"></a><span class="lineno">  712</span>&#160;<span class="comment">    !! - \subpage input_format_diam_bin_grid</span></div>
+<div class="line"><a name="l00713"></a><span class="lineno">  713</span>&#160;<span class="comment">    !! - \b gas_data (string): name of file from which to read the</span></div>
+<div class="line"><a name="l00714"></a><span class="lineno">  714</span>&#160;<span class="comment">    !!   gas material data --- the file format should be</span></div>
+<div class="line"><a name="l00715"></a><span class="lineno">  715</span>&#160;<span class="comment">    !!   \subpage input_format_gas_data</span></div>
+<div class="line"><a name="l00716"></a><span class="lineno">  716</span>&#160;<span class="comment">    !! - \b aerosol_data (string): name of file from which to read the</span></div>
+<div class="line"><a name="l00717"></a><span class="lineno">  717</span>&#160;<span class="comment">    !!   aerosol material data --- the file format should be</span></div>
+<div class="line"><a name="l00718"></a><span class="lineno">  718</span>&#160;<span class="comment">    !!   \subpage input_format_aero_data</span></div>
+<div class="line"><a name="l00719"></a><span class="lineno">  719</span>&#160;<span class="comment">    !! - \b do_fractal (logical): whether to consider particles</span></div>
+<div class="line"><a name="l00720"></a><span class="lineno">  720</span>&#160;<span class="comment">    !!   as fractal agglomerates. If \c do_fractal is \c no, then all the</span></div>
+<div class="line"><a name="l00721"></a><span class="lineno">  721</span>&#160;<span class="comment">    !!   particles are treated as spherical. If \c do_fractal is \c yes,</span></div>
+<div class="line"><a name="l00722"></a><span class="lineno">  722</span>&#160;<span class="comment">    !!   then the following parameters must also be provided:</span></div>
+<div class="line"><a name="l00723"></a><span class="lineno">  723</span>&#160;<span class="comment">    !!   - \subpage input_format_fractal</span></div>
+<div class="line"><a name="l00724"></a><span class="lineno">  724</span>&#160;<span class="comment">    !! - \b aerosol_init (string): filename containing the initial</span></div>
+<div class="line"><a name="l00725"></a><span class="lineno">  725</span>&#160;<span class="comment">    !!   aerosol state at the start of the simulation --- the file</span></div>
+<div class="line"><a name="l00726"></a><span class="lineno">  726</span>&#160;<span class="comment">    !!   format should be \subpage input_format_aero_dist</span></div>
+<div class="line"><a name="l00727"></a><span class="lineno">  727</span>&#160;<span class="comment">    !! - \subpage input_format_scenario</span></div>
+<div class="line"><a name="l00728"></a><span class="lineno">  728</span>&#160;<span class="comment">    !! - \subpage input_format_env_state</span></div>
+<div class="line"><a name="l00729"></a><span class="lineno">  729</span>&#160;<span class="comment">    !! - \b do_coagulation (logical): whether to perform particle</span></div>
+<div class="line"><a name="l00730"></a><span class="lineno">  730</span>&#160;<span class="comment">    !!   coagulation.  If \c do_coagulation is \c yes, then the</span></div>
+<div class="line"><a name="l00731"></a><span class="lineno">  731</span>&#160;<span class="comment">    !!   following parameters must also be provided:</span></div>
+<div class="line"><a name="l00732"></a><span class="lineno">  732</span>&#160;<span class="comment">    !!   - \subpage input_format_coag_kernel</span></div>
+<div class="line"><a name="l00733"></a><span class="lineno">  733</span>&#160;<span class="comment">    !!</span></div>
+<div class="line"><a name="l00734"></a><span class="lineno">  734</span>&#160;<span class="comment">    !! Example:</span></div>
+<div class="line"><a name="l00735"></a><span class="lineno">  735</span>&#160;<span class="comment">    !! &lt;pre&gt;</span></div>
+<div class="line"><a name="l00736"></a><span class="lineno">  736</span>&#160;<span class="comment">    !! run_type sectional              # sectional code run</span></div>
+<div class="line"><a name="l00737"></a><span class="lineno">  737</span>&#160;<span class="comment">    !! output_prefix brown_sect        # prefix of output files</span></div>
+<div class="line"><a name="l00738"></a><span class="lineno">  738</span>&#160;<span class="comment">    !!</span></div>
+<div class="line"><a name="l00739"></a><span class="lineno">  739</span>&#160;<span class="comment">    !! t_max 86400                     # total simulation time (s)</span></div>
+<div class="line"><a name="l00740"></a><span class="lineno">  740</span>&#160;<span class="comment">    !! del_t 60                        # timestep (s)</span></div>
+<div class="line"><a name="l00741"></a><span class="lineno">  741</span>&#160;<span class="comment">    !! t_output 3600                   # output interval (0 disables) (s)</span></div>
+<div class="line"><a name="l00742"></a><span class="lineno">  742</span>&#160;<span class="comment">    !! t_progress 600                  # progress printing interval (0 disables) (s)</span></div>
 <div class="line"><a name="l00743"></a><span class="lineno">  743</span>&#160;<span class="comment">    !!</span></div>
-<div class="line"><a name="l00744"></a><span class="lineno">  744</span>&#160;<span class="comment">    !! gas_data gas_data.dat           # file containing gas data</span></div>
-<div class="line"><a name="l00745"></a><span class="lineno">  745</span>&#160;<span class="comment">    !! aerosol_data aero_data.dat      # file containing aerosol data</span></div>
-<div class="line"><a name="l00746"></a><span class="lineno">  746</span>&#160;<span class="comment">    !! do_fractal no                   # whether to do fractal treatment</span></div>
-<div class="line"><a name="l00747"></a><span class="lineno">  747</span>&#160;<span class="comment">    !! aerosol_init aero_init_dist.dat # initial aerosol distribution</span></div>
-<div class="line"><a name="l00748"></a><span class="lineno">  748</span>&#160;<span class="comment">    !!</span></div>
-<div class="line"><a name="l00749"></a><span class="lineno">  749</span>&#160;<span class="comment">    !! temp_profile temp.dat           # temperature profile file</span></div>
-<div class="line"><a name="l00750"></a><span class="lineno">  750</span>&#160;<span class="comment">    !! height_profile height.dat       # height profile file</span></div>
-<div class="line"><a name="l00751"></a><span class="lineno">  751</span>&#160;<span class="comment">    !! gas_emissions gas_emit.dat      # gas emissions file</span></div>
-<div class="line"><a name="l00752"></a><span class="lineno">  752</span>&#160;<span class="comment">    !! gas_background gas_back.dat     # background gas mixing ratios file</span></div>
-<div class="line"><a name="l00753"></a><span class="lineno">  753</span>&#160;<span class="comment">    !! aero_emissions aero_emit.dat    # aerosol emissions file</span></div>
-<div class="line"><a name="l00754"></a><span class="lineno">  754</span>&#160;<span class="comment">    !! aero_background aero_back.dat   # aerosol background file</span></div>
-<div class="line"><a name="l00755"></a><span class="lineno">  755</span>&#160;<span class="comment">    !!</span></div>
-<div class="line"><a name="l00756"></a><span class="lineno">  756</span>&#160;<span class="comment">    !! rel_humidity 0.999              # initial relative humidity (1)</span></div>
-<div class="line"><a name="l00757"></a><span class="lineno">  757</span>&#160;<span class="comment">    !! pressure 1e5                    # initial pressure (Pa)</span></div>
-<div class="line"><a name="l00758"></a><span class="lineno">  758</span>&#160;<span class="comment">    !! latitude 0                      # latitude (degrees_north, -90 to 90)</span></div>
-<div class="line"><a name="l00759"></a><span class="lineno">  759</span>&#160;<span class="comment">    !! longitude 0                     # longitude (degrees_east, -180 to 180)</span></div>
-<div class="line"><a name="l00760"></a><span class="lineno">  760</span>&#160;<span class="comment">    !! altitude 0                      # altitude (m)</span></div>
-<div class="line"><a name="l00761"></a><span class="lineno">  761</span>&#160;<span class="comment">    !! start_time 0                    # start time (s since 00:00 UTC)</span></div>
-<div class="line"><a name="l00762"></a><span class="lineno">  762</span>&#160;<span class="comment">    !! start_day 1                     # start day of year (UTC)</span></div>
-<div class="line"><a name="l00763"></a><span class="lineno">  763</span>&#160;<span class="comment">    !!</span></div>
-<div class="line"><a name="l00764"></a><span class="lineno">  764</span>&#160;<span class="comment">    !! do_coagulation yes              # whether to do coagulation (yes/no)</span></div>
-<div class="line"><a name="l00765"></a><span class="lineno">  765</span>&#160;<span class="comment">    !! kernel brown                    # coagulation kernel</span></div>
-<div class="line"><a name="l00766"></a><span class="lineno">  766</span>&#160;<span class="comment">    !! &lt;/pre&gt;</span></div>
-<div class="line"><a name="l00767"></a><span class="lineno">  767</span>&#160; </div>
-<div class="line"><a name="l00768"></a><span class="lineno">  768</span>&#160;    <span class="comment">! only serial code here</span></div>
-<div class="line"><a name="l00769"></a><span class="lineno">  769</span>&#160;    <span class="keywordflow">if</span> (<a class="code" href="namespacepmc__mpi.html#a1ac93b34387cb8dec130a10c4f959e9b">pmc_mpi_rank</a>() /= 0) <span class="keywordflow">then</span></div>
-<div class="line"><a name="l00770"></a><span class="lineno">  770</span>&#160;       <span class="keywordflow">return</span></div>
-<div class="line"><a name="l00771"></a><span class="lineno">  771</span>&#160;<span class="keywordflow">    end if</span></div>
-<div class="line"><a name="l00772"></a><span class="lineno">  772</span>&#160; </div>
-<div class="line"><a name="l00773"></a><span class="lineno">  773</span>&#160;    <span class="keyword">call </span><a class="code" href="namespacepmc__run__sect.html#a6fc938bab440a2c92027b02fbdaef7a2">spec_file_read_run_sect</a>(file, run_sect_opt, aero_data, bin_grid, &amp;</div>
-<div class="line"><a name="l00774"></a><span class="lineno">  774</span>&#160;         gas_data, env_state, aero_dist_init, scenario)</div>
-<div class="line"><a name="l00775"></a><span class="lineno">  775</span>&#160; </div>
-<div class="line"><a name="l00776"></a><span class="lineno">  776</span>&#160;    <span class="keyword">call </span><a class="code" href="namespacepmc__run__sect.html#a98f7b8811139683010e8a70346452ac2">run_sect</a>(bin_grid, gas_data, aero_data, aero_dist_init, scenario, &amp;</div>
-<div class="line"><a name="l00777"></a><span class="lineno">  777</span>&#160;         env_state, run_sect_opt)</div>
-<div class="line"><a name="l00778"></a><span class="lineno">  778</span>&#160; </div>
-<div class="line"><a name="l00779"></a><span class="lineno">  779</span>&#160;    <span class="keyword">call </span><a class="code" href="namespacepmc__rand.html#a48ab8c38095e258be9faafc7bd59ee35">pmc_rand_finalize</a>()</div>
-<div class="line"><a name="l00780"></a><span class="lineno">  780</span>&#160; </div>
-<div class="line"><a name="l00781"></a><span class="lineno">  781</span>&#160;  <span class="keyword">end subroutine </span>partmc_sect</div>
+<div class="line"><a name="l00744"></a><span class="lineno">  744</span>&#160;<span class="comment">    !! n_bin 220                       # number of bins</span></div>
+<div class="line"><a name="l00745"></a><span class="lineno">  745</span>&#160;<span class="comment">    !! d_min 1e-10                     # minimum diameter (m)</span></div>
+<div class="line"><a name="l00746"></a><span class="lineno">  746</span>&#160;<span class="comment">    !! d_max 1e-4                      # maximum diameter (m)</span></div>
+<div class="line"><a name="l00747"></a><span class="lineno">  747</span>&#160;<span class="comment">    !!</span></div>
+<div class="line"><a name="l00748"></a><span class="lineno">  748</span>&#160;<span class="comment">    !! gas_data gas_data.dat           # file containing gas data</span></div>
+<div class="line"><a name="l00749"></a><span class="lineno">  749</span>&#160;<span class="comment">    !! aerosol_data aero_data.dat      # file containing aerosol data</span></div>
+<div class="line"><a name="l00750"></a><span class="lineno">  750</span>&#160;<span class="comment">    !! do_fractal no                   # whether to do fractal treatment</span></div>
+<div class="line"><a name="l00751"></a><span class="lineno">  751</span>&#160;<span class="comment">    !! aerosol_init aero_init_dist.dat # initial aerosol distribution</span></div>
+<div class="line"><a name="l00752"></a><span class="lineno">  752</span>&#160;<span class="comment">    !!</span></div>
+<div class="line"><a name="l00753"></a><span class="lineno">  753</span>&#160;<span class="comment">    !! temp_profile temp.dat           # temperature profile file</span></div>
+<div class="line"><a name="l00754"></a><span class="lineno">  754</span>&#160;<span class="comment">    !! height_profile height.dat       # height profile file</span></div>
+<div class="line"><a name="l00755"></a><span class="lineno">  755</span>&#160;<span class="comment">    !! gas_emissions gas_emit.dat      # gas emissions file</span></div>
+<div class="line"><a name="l00756"></a><span class="lineno">  756</span>&#160;<span class="comment">    !! gas_background gas_back.dat     # background gas mixing ratios file</span></div>
+<div class="line"><a name="l00757"></a><span class="lineno">  757</span>&#160;<span class="comment">    !! aero_emissions aero_emit.dat    # aerosol emissions file</span></div>
+<div class="line"><a name="l00758"></a><span class="lineno">  758</span>&#160;<span class="comment">    !! aero_background aero_back.dat   # aerosol background file</span></div>
+<div class="line"><a name="l00759"></a><span class="lineno">  759</span>&#160;<span class="comment">    !!</span></div>
+<div class="line"><a name="l00760"></a><span class="lineno">  760</span>&#160;<span class="comment">    !! rel_humidity 0.999              # initial relative humidity (1)</span></div>
+<div class="line"><a name="l00761"></a><span class="lineno">  761</span>&#160;<span class="comment">    !! pressure 1e5                    # initial pressure (Pa)</span></div>
+<div class="line"><a name="l00762"></a><span class="lineno">  762</span>&#160;<span class="comment">    !! latitude 0                      # latitude (degrees_north, -90 to 90)</span></div>
+<div class="line"><a name="l00763"></a><span class="lineno">  763</span>&#160;<span class="comment">    !! longitude 0                     # longitude (degrees_east, -180 to 180)</span></div>
+<div class="line"><a name="l00764"></a><span class="lineno">  764</span>&#160;<span class="comment">    !! altitude 0                      # altitude (m)</span></div>
+<div class="line"><a name="l00765"></a><span class="lineno">  765</span>&#160;<span class="comment">    !! start_time 0                    # start time (s since 00:00 UTC)</span></div>
+<div class="line"><a name="l00766"></a><span class="lineno">  766</span>&#160;<span class="comment">    !! start_day 1                     # start day of year (UTC)</span></div>
+<div class="line"><a name="l00767"></a><span class="lineno">  767</span>&#160;<span class="comment">    !!</span></div>
+<div class="line"><a name="l00768"></a><span class="lineno">  768</span>&#160;<span class="comment">    !! do_coagulation yes              # whether to do coagulation (yes/no)</span></div>
+<div class="line"><a name="l00769"></a><span class="lineno">  769</span>&#160;<span class="comment">    !! kernel brown                    # coagulation kernel</span></div>
+<div class="line"><a name="l00770"></a><span class="lineno">  770</span>&#160;<span class="comment">    !! &lt;/pre&gt;</span></div>
+<div class="line"><a name="l00771"></a><span class="lineno">  771</span>&#160; </div>
+<div class="line"><a name="l00772"></a><span class="lineno">  772</span>&#160;    <span class="comment">! only serial code here</span></div>
+<div class="line"><a name="l00773"></a><span class="lineno">  773</span>&#160;    <span class="keywordflow">if</span> (<a class="code" href="namespacepmc__mpi.html#a1ac93b34387cb8dec130a10c4f959e9b">pmc_mpi_rank</a>() /= 0) <span class="keywordflow">then</span></div>
+<div class="line"><a name="l00774"></a><span class="lineno">  774</span>&#160;       <span class="keywordflow">return</span></div>
+<div class="line"><a name="l00775"></a><span class="lineno">  775</span>&#160;<span class="keywordflow">    end if</span></div>
+<div class="line"><a name="l00776"></a><span class="lineno">  776</span>&#160; </div>
+<div class="line"><a name="l00777"></a><span class="lineno">  777</span>&#160;    <span class="keyword">call </span><a class="code" href="namespacepmc__run__sect.html#a6fc938bab440a2c92027b02fbdaef7a2">spec_file_read_run_sect</a>(file, run_sect_opt, aero_data, bin_grid, &amp;</div>
+<div class="line"><a name="l00778"></a><span class="lineno">  778</span>&#160;         gas_data, env_state, aero_dist_init, scenario)</div>
+<div class="line"><a name="l00779"></a><span class="lineno">  779</span>&#160; </div>
+<div class="line"><a name="l00780"></a><span class="lineno">  780</span>&#160;    <span class="keyword">call </span><a class="code" href="namespacepmc__run__sect.html#a98f7b8811139683010e8a70346452ac2">run_sect</a>(bin_grid, gas_data, aero_data, aero_dist_init, scenario, &amp;</div>
+<div class="line"><a name="l00781"></a><span class="lineno">  781</span>&#160;         env_state, run_sect_opt)</div>
 <div class="line"><a name="l00782"></a><span class="lineno">  782</span>&#160; </div>
-<div class="line"><a name="l00783"></a><span class="lineno">  783</span>&#160;<span class="comment">!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!</span></div>
+<div class="line"><a name="l00783"></a><span class="lineno">  783</span>&#160;    <span class="keyword">call </span><a class="code" href="namespacepmc__rand.html#a48ab8c38095e258be9faafc7bd59ee35">pmc_rand_finalize</a>()</div>
 <div class="line"><a name="l00784"></a><span class="lineno">  784</span>&#160; </div>
-<div class="line"><a name="l00785"></a><span class="lineno">  785</span>&#160;<span class="keyword">end program </span><a class="code" href="partmc_8_f90.html#ab2045885c45ccf99e33fe9749fc952bd">partmc</a></div>
+<div class="line"><a name="l00785"></a><span class="lineno">  785</span>&#160;  <span class="keyword">end subroutine </span>partmc_sect</div>
+<div class="line"><a name="l00786"></a><span class="lineno">  786</span>&#160; </div>
+<div class="line"><a name="l00787"></a><span class="lineno">  787</span>&#160;<span class="comment">!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!</span></div>
+<div class="line"><a name="l00788"></a><span class="lineno">  788</span>&#160; </div>
+<div class="line"><a name="l00789"></a><span class="lineno">  789</span>&#160;<span class="keyword">end program </span><a class="code" href="partmc_8_f90.html#ab2045885c45ccf99e33fe9749fc952bd">partmc</a></div>
 </div><!-- fragment --></div><!-- contents -->
 <div class="ttc" id="anamespacepmc__mpi_html_a44c84d31a3ed394dc39113fb8232221f"><div class="ttname"><a href="namespacepmc__mpi.html#a44c84d31a3ed394dc39113fb8232221f">pmc_mpi::pmc_mpi_init</a></div><div class="ttdeci">subroutine pmc_mpi_init()</div><div class="ttdoc">Initialize MPI.</div><div class="ttdef"><b>Definition:</b> <a href="mpi_8_f90_source.html#l00055">mpi.F90:56</a></div></div>
 <div class="ttc" id="astructpmc__run__sect_1_1run__sect__opt__t_html"><div class="ttname"><a href="structpmc__run__sect_1_1run__sect__opt__t.html">pmc_run_sect::run_sect_opt_t</a></div><div class="ttdoc">Options controlling the operation of run_sect().</div><div class="ttdef"><b>Definition:</b> <a href="run__sect_8_f90_source.html#l00032">run_sect.F90:32</a></div></div>
@@ -845,7 +849,7 @@ $(function() {
 <div class="ttc" id="anamespacepmc__scenario_html"><div class="ttname"><a href="namespacepmc__scenario.html">pmc_scenario</a></div><div class="ttdoc">The scenario_t structure and associated subroutines.</div><div class="ttdef"><b>Definition:</b> <a href="scenario_8_f90_source.html#l00009">scenario.F90:9</a></div></div>
 <div class="ttc" id="astructpmc__scenario_1_1scenario__t_html"><div class="ttname"><a href="structpmc__scenario_1_1scenario__t.html">pmc_scenario::scenario_t</a></div><div class="ttdoc">Scenario data.</div><div class="ttdef"><b>Definition:</b> <a href="scenario_8_f90_source.html#l00054">scenario.F90:54</a></div></div>
 <div class="ttc" id="anamespacepmc__gas__data_html"><div class="ttname"><a href="namespacepmc__gas__data.html">pmc_gas_data</a></div><div class="ttdoc">The gas_data_t structure and associated subroutines.</div><div class="ttdef"><b>Definition:</b> <a href="gas__data_8_f90_source.html#l00009">gas_data.F90:9</a></div></div>
-<div class="ttc" id="anamespacepmc__run__part_html_a74729d46b5632b772b04c98c6bddcaf7"><div class="ttname"><a href="namespacepmc__run__part.html#a74729d46b5632b772b04c98c6bddcaf7">pmc_run_part::run_part</a></div><div class="ttdeci">subroutine run_part(scenario, env_state, aero_data, aero_state, gas_data, gas_state, run_part_opt)</div><div class="ttdoc">Do a particle-resolved Monte Carlo simulation.</div><div class="ttdef"><b>Definition:</b> <a href="run__part_8_f90_source.html#l00125">run_part.F90:127</a></div></div>
+<div class="ttc" id="anamespacepmc__run__part_html_a74729d46b5632b772b04c98c6bddcaf7"><div class="ttname"><a href="namespacepmc__run__part.html#a74729d46b5632b772b04c98c6bddcaf7">pmc_run_part::run_part</a></div><div class="ttdeci">subroutine run_part(scenario, env_state, aero_data, aero_state, gas_data, gas_state, run_part_opt)</div><div class="ttdoc">Do a particle-resolved Monte Carlo simulation.</div><div class="ttdef"><b>Definition:</b> <a href="run__part_8_f90_source.html#l00139">run_part.F90:141</a></div></div>
 <div class="ttc" id="apartmc_8_f90_html_ab2045885c45ccf99e33fe9749fc952bd"><div class="ttname"><a href="partmc_8_f90.html#ab2045885c45ccf99e33fe9749fc952bd">partmc</a></div><div class="ttdeci">program partmc</div><div class="ttdoc">Top level driver.</div><div class="ttdef"><b>Definition:</b> <a href="partmc_8_f90_source.html#l00215">partmc.F90:215</a></div></div>
 <div class="ttc" id="anamespacepmc__aero__state_html_ae949175272a73f61c851a2ac4a58c712"><div class="ttname"><a href="namespacepmc__aero__state.html#ae949175272a73f61c851a2ac4a58c712">pmc_aero_state::aero_state_set_weight</a></div><div class="ttdeci">subroutine aero_state_set_weight(aero_state, aero_data, weight_type, exponent)</div><div class="ttdoc">Sets the weighting functions for an aero_state.</div><div class="ttdef"><b>Definition:</b> <a href="aero__state_8_f90_source.html#l00184">aero_state.F90:186</a></div></div>
 <div class="ttc" id="anamespacepmc__util_html_aa6e9ef9e9da5f7b7f100405b86c74316"><div class="ttname"><a href="namespacepmc__util.html#aa6e9ef9e9da5f7b7f100405b86c74316">pmc_util::die_msg</a></div><div class="ttdeci">subroutine die_msg(code, error_msg)</div><div class="ttdoc">Error immediately.</div><div class="ttdef"><b>Definition:</b> <a href="util_8_f90_source.html#l00134">util.F90:135</a></div></div>
@@ -854,7 +858,7 @@ $(function() {
 <div class="ttc" id="anamespacepmc__constants_html_a396b7709ed4da67dac74cb46a1466ed6"><div class="ttname"><a href="namespacepmc__constants.html#a396b7709ed4da67dac74cb46a1466ed6">pmc_constants::dp</a></div><div class="ttdeci">integer, parameter dp</div><div class="ttdoc">Kind of a double precision real number.</div><div class="ttdef"><b>Definition:</b> <a href="constants_8_f90_source.html#l00012">constants.F90:12</a></div></div>
 <div class="ttc" id="anamespacepmc__coag__kernel_html"><div class="ttname"><a href="namespacepmc__coag__kernel.html">pmc_coag_kernel</a></div><div class="ttdoc">Generic coagulation kernel.</div><div class="ttdef"><b>Definition:</b> <a href="coag__kernel_8_f90_source.html#l00009">coag_kernel.F90:9</a></div></div>
 <div class="ttc" id="anamespacepmc__condense_html"><div class="ttname"><a href="namespacepmc__condense.html">pmc_condense</a></div><div class="ttdoc">Water condensation onto aerosol particles.</div><div class="ttdef"><b>Definition:</b> <a href="condense_8_f90_source.html#l00029">condense.F90:29</a></div></div>
-<div class="ttc" id="astructpmc__run__part_1_1run__part__opt__t_html"><div class="ttname"><a href="structpmc__run__part_1_1run__part__opt__t.html">pmc_run_part::run_part_opt_t</a></div><div class="ttdoc">Options controlling the execution of run_part().</div><div class="ttdef"><b>Definition:</b> <a href="run__part_8_f90_source.html#l00049">run_part.F90:49</a></div></div>
+<div class="ttc" id="astructpmc__run__part_1_1run__part__opt__t_html"><div class="ttname"><a href="structpmc__run__part_1_1run__part__opt__t.html">pmc_run_part::run_part_opt_t</a></div><div class="ttdoc">Options controlling the execution of run_part().</div><div class="ttdef"><b>Definition:</b> <a href="run__part_8_f90_source.html#l00050">run_part.F90:50</a></div></div>
 <div class="ttc" id="anamespacepmc__spec__file_html"><div class="ttname"><a href="namespacepmc__spec__file.html">pmc_spec_file</a></div><div class="ttdoc">Reading formatted text input.</div><div class="ttdef"><b>Definition:</b> <a href="spec__file_8_f90_source.html#l00043">spec_file.F90:43</a></div></div>
 <div class="ttc" id="anamespacepmc__condense_html_a460fbe02310735e79dc7711a8b048fe2"><div class="ttname"><a href="namespacepmc__condense.html#a460fbe02310735e79dc7711a8b048fe2">pmc_condense::condense_equilib_particles</a></div><div class="ttdeci">subroutine condense_equilib_particles(env_state, aero_data, aero_state)</div><div class="ttdoc">Call condense_equilib_particle() on each particle in the aerosol to ensure that every particle has it...</div><div class="ttdef"><b>Definition:</b> <a href="condense_8_f90_source.html#l00746">condense.F90:747</a></div></div>
 <div class="ttc" id="astructpmc__env__state_1_1env__state__t_html"><div class="ttname"><a href="structpmc__env__state_1_1env__state__t.html">pmc_env_state::env_state_t</a></div><div class="ttdoc">Current environment state.</div><div class="ttdef"><b>Definition:</b> <a href="env__state_8_f90_source.html#l00029">env_state.F90:29</a></div></div>
@@ -867,7 +871,7 @@ $(function() {
 <div class="ttc" id="anamespacepmc__util_html_a249b73ad660e5e17ec4e4ad2ff743546"><div class="ttname"><a href="namespacepmc__util.html#a249b73ad660e5e17ec4e4ad2ff743546">pmc_util::warn_msg</a></div><div class="ttdeci">subroutine warn_msg(code, warning_msg, already_warned)</div><div class="ttdoc">Prints a warning message.</div><div class="ttdef"><b>Definition:</b> <a href="util_8_f90_source.html#l00037">util.F90:38</a></div></div>
 <div class="ttc" id="anamespacepmc__run__sect_html_a6fc938bab440a2c92027b02fbdaef7a2"><div class="ttname"><a href="namespacepmc__run__sect.html#a6fc938bab440a2c92027b02fbdaef7a2">pmc_run_sect::spec_file_read_run_sect</a></div><div class="ttdeci">subroutine spec_file_read_run_sect(file, run_sect_opt, aero_data, bin_grid, gas_data, env_state, aero_dist_init, scenario)</div><div class="ttdoc">Read the specification for a run_sect simulation from a spec file.</div><div class="ttdef"><b>Definition:</b> <a href="run__sect_8_f90_source.html#l00203">run_sect.F90:205</a></div></div>
 <div class="ttc" id="anamespacepmc__aero__dist_html"><div class="ttname"><a href="namespacepmc__aero__dist.html">pmc_aero_dist</a></div><div class="ttdoc">The aero_dist_t structure and associated subroutines.</div><div class="ttdef"><b>Definition:</b> <a href="aero__dist_8_f90_source.html#l00018">aero_dist.F90:18</a></div></div>
-<div class="ttc" id="anamespacepmc__run__part_html_a1e3abb3fb2e6429e2912deb5d0d13256"><div class="ttname"><a href="namespacepmc__run__part.html#a1e3abb3fb2e6429e2912deb5d0d13256">pmc_run_part::pmc_mpi_broadcast_run_part</a></div><div class="ttdeci">subroutine pmc_mpi_broadcast_run_part(run_part_opt, aero_data, aero_state_init, gas_data, gas_state_init, env_state_init, aero_dist_init, scenario, n_part, rand_init, do_init_equilibrate, do_restart)</div><div class="ttdoc">Read the specification for a run_part simulation from a spec file.</div><div class="ttdef"><b>Definition:</b> <a href="run__part_8_f90_source.html#l01053">run_part.F90:1060</a></div></div>
+<div class="ttc" id="anamespacepmc__run__part_html_a1e3abb3fb2e6429e2912deb5d0d13256"><div class="ttname"><a href="namespacepmc__run__part.html#a1e3abb3fb2e6429e2912deb5d0d13256">pmc_run_part::pmc_mpi_broadcast_run_part</a></div><div class="ttdeci">subroutine pmc_mpi_broadcast_run_part(run_part_opt, aero_data, aero_state_init, gas_data, gas_state_init, env_state_init, aero_dist_init, scenario, n_part, rand_init, do_init_equilibrate, do_restart)</div><div class="ttdoc">Read the specification for a run_part simulation from a spec file.</div><div class="ttdef"><b>Definition:</b> <a href="run__part_8_f90_source.html#l01122">run_part.F90:1129</a></div></div>
 <div class="ttc" id="apartmc_8_f90_html_a96d0718eb3ffe924b0ed6bf52f51f366"><div class="ttname"><a href="partmc_8_f90.html#a96d0718eb3ffe924b0ed6bf52f51f366">print_usage</a></div><div class="ttdeci">subroutine print_usage()</div><div class="ttdoc">Print the usage text to stderr.</div><div class="ttdef"><b>Definition:</b> <a href="partmc_8_f90_source.html#l00266">partmc.F90:267</a></div></div>
 <div class="ttc" id="anamespacepmc__spec__file_html_a43c0fc75a0548567dae0812159a0288e"><div class="ttname"><a href="namespacepmc__spec__file.html#a43c0fc75a0548567dae0812159a0288e">pmc_spec_file::spec_file_open</a></div><div class="ttdeci">subroutine spec_file_open(filename, file)</div><div class="ttdoc">Open a spec file for reading.</div><div class="ttdef"><b>Definition:</b> <a href="spec__file_8_f90_source.html#l00111">spec_file.F90:112</a></div></div>
 <div class="ttc" id="anamespacepmc__photolysis_html"><div class="ttname"><a href="namespacepmc__photolysis.html">pmc_photolysis</a></div><div class="ttdoc">The photolysis_t type and related functions.</div><div class="ttdef"><b>Definition:</b> <a href="photolysis_8_f90_source.html#l00009">photolysis.F90:9</a></div></div>
@@ -879,7 +883,7 @@ $(function() {
 <div class="ttc" id="astructpmc__aero__data_1_1aero__data__t_html"><div class="ttname"><a href="structpmc__aero__data_1_1aero__data__t.html">pmc_aero_data::aero_data_t</a></div><div class="ttdoc">Aerosol material properties and associated data.</div><div class="ttdef"><b>Definition:</b> <a href="aero__data_8_f90_source.html#l00055">aero_data.F90:55</a></div></div>
 <div class="ttc" id="astructpmc__run__exact_1_1run__exact__opt__t_html"><div class="ttname"><a href="structpmc__run__exact_1_1run__exact__opt__t.html">pmc_run_exact::run_exact_opt_t</a></div><div class="ttdoc">Options controlling the execution of run_exact().</div><div class="ttdef"><b>Definition:</b> <a href="run__exact_8_f90_source.html#l00024">run_exact.F90:24</a></div></div>
 <div class="ttc" id="astructpmc__aero__dist_1_1aero__dist__t_html"><div class="ttname"><a href="structpmc__aero__dist_1_1aero__dist__t.html">pmc_aero_dist::aero_dist_t</a></div><div class="ttdoc">A complete aerosol distribution, consisting of several modes.</div><div class="ttdef"><b>Definition:</b> <a href="aero__dist_8_f90_source.html#l00033">aero_dist.F90:33</a></div></div>
-<div class="ttc" id="anamespacepmc__run__part_html_a4d453335589ac21fa1b8832f325a92ab"><div class="ttname"><a href="namespacepmc__run__part.html#a4d453335589ac21fa1b8832f325a92ab">pmc_run_part::spec_file_read_run_part</a></div><div class="ttdeci">subroutine spec_file_read_run_part(file, run_part_opt, aero_data, aero_state_init, gas_data, gas_state_init, env_state_init, aero_dist_init, scenario, n_part, rand_init, do_init_equilibrate, do_restart)</div><div class="ttdoc">Read the specification for a run_part simulation from a spec file.</div><div class="ttdef"><b>Definition:</b> <a href="run__part_8_f90_source.html#l00454">run_part.F90:461</a></div></div>
+<div class="ttc" id="anamespacepmc__run__part_html_a4d453335589ac21fa1b8832f325a92ab"><div class="ttname"><a href="namespacepmc__run__part.html#a4d453335589ac21fa1b8832f325a92ab">pmc_run_part::spec_file_read_run_part</a></div><div class="ttdeci">subroutine spec_file_read_run_part(file, run_part_opt, aero_data, aero_state_init, gas_data, gas_state_init, env_state_init, aero_dist_init, scenario, n_part, rand_init, do_init_equilibrate, do_restart)</div><div class="ttdoc">Read the specification for a run_part simulation from a spec file.</div><div class="ttdef"><b>Definition:</b> <a href="run__part_8_f90_source.html#l00487">run_part.F90:494</a></div></div>
 <div class="ttc" id="anamespacepmc__util_html"><div class="ttname"><a href="namespacepmc__util.html">pmc_util</a></div><div class="ttdoc">Common utility subroutines.</div><div class="ttdef"><b>Definition:</b> <a href="util_8_f90_source.html#l00009">util.F90:9</a></div></div>
 <div class="ttc" id="anamespacepmc__run__exact_html_a13f37583995c3485c7c4a068ca315833"><div class="ttname"><a href="namespacepmc__run__exact.html#a13f37583995c3485c7c4a068ca315833">pmc_run_exact::spec_file_read_run_exact</a></div><div class="ttdeci">subroutine spec_file_read_run_exact(file, run_exact_opt, aero_data, bin_grid, gas_data, env_state, aero_dist_init, scenario)</div><div class="ttdoc">Read the specification for a run_exact simulation from a spec file.</div><div class="ttdef"><b>Definition:</b> <a href="run__exact_8_f90_source.html#l00090">run_exact.F90:92</a></div></div>
 <div class="ttc" id="anamespacepmc__scenario_html_a9ba2febb35bfe14fe1ce49994de7fdb9"><div class="ttname"><a href="namespacepmc__scenario.html#a9ba2febb35bfe14fe1ce49994de7fdb9">pmc_scenario::scenario_init_env_state</a></div><div class="ttdeci">subroutine scenario_init_env_state(scenario, env_state, time)</div><div class="ttdoc">Initialize the time-dependent contents of the environment. Thereafter scenario_update_env_state() sho...</div><div class="ttdef"><b>Definition:</b> <a href="scenario_8_f90_source.html#l00110">scenario.F90:111</a></div></div>

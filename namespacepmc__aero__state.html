@@ -164,6 +164,9 @@ Functions/Subroutines</h2></td></tr>
 <tr class="memitem:ae7bb5e9e488a24cdb3944e77486125ce"><td class="memItemLeft" align="right" valign="top">real(kind=dp) function, dimension( aero_data_n_source(aero_data))&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepmc__aero__state.html#ae7bb5e9e488a24cdb3944e77486125ce">aero_state_num_concs_by_source</a> (aero_state, aero_data)</td></tr>
 <tr class="memdesc:ae7bb5e9e488a24cdb3944e77486125ce"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the total number concentration associated with each aerosol source category. The amount of concentration of each particle assigned to a source is proportional to the number of primary componenets consisting of that source and the total number of components. Number concentration may be counted more than once for a source if the source appears more than once.  <a href="namespacepmc__aero__state.html#ae7bb5e9e488a24cdb3944e77486125ce">More...</a><br /></td></tr>
 <tr class="separator:ae7bb5e9e488a24cdb3944e77486125ce"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7680745a425781830a6db42b0e821451"><td class="memItemLeft" align="right" valign="top">real(kind=dp) function&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepmc__aero__state.html#a7680745a425781830a6db42b0e821451">aero_state_frozen_fraction</a> (aero_state, aero_data)</td></tr>
+<tr class="memdesc:a7680745a425781830a6db42b0e821451"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the frozen fraction (unitless) for whole aerosol population.. frozen fraction = number concentration of frozen particles / total number concentration.  <a href="namespacepmc__aero__state.html#a7680745a425781830a6db42b0e821451">More...</a><br /></td></tr>
+<tr class="separator:a7680745a425781830a6db42b0e821451"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2e6a26401ff192351ecf7c397705289e"><td class="memItemLeft" align="right" valign="top">real(kind=dp) function&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepmc__aero__state.html#a2e6a26401ff192351ecf7c397705289e">aero_state_group_class_num_conc</a> (aero_state, aero_data, i_group, i_class)</td></tr>
 <tr class="memdesc:a2e6a26401ff192351ecf7c397705289e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the number concentration of a given weight group and class.  <a href="namespacepmc__aero__state.html#a2e6a26401ff192351ecf7c397705289e">More...</a><br /></td></tr>
 <tr class="separator:a2e6a26401ff192351ecf7c397705289e"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -351,7 +354,7 @@ Variables</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="aero__state_8_f90_source.html#l03349">3349</a> of file <a class="el" href="aero__state_8_f90_source.html">aero_state.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="aero__state_8_f90_source.html#l03422">3422</a> of file <a class="el" href="aero__state_8_f90_source.html">aero_state.F90</a>.</p>
 
 </div>
 </div>
@@ -411,7 +414,7 @@ Variables</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="aero__state_8_f90_source.html#l03417">3417</a> of file <a class="el" href="aero__state_8_f90_source.html">aero_state.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="aero__state_8_f90_source.html#l03490">3490</a> of file <a class="el" href="aero__state_8_f90_source.html">aero_state.F90</a>.</p>
 
 </div>
 </div>
@@ -691,7 +694,7 @@ Variables</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Return value. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="aero__state_8_f90_source.html#l01604">1604</a> of file <a class="el" href="aero__state_8_f90_source.html">aero_state.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="aero__state_8_f90_source.html#l01631">1631</a> of file <a class="el" href="aero__state_8_f90_source.html">aero_state.F90</a>.</p>
 
 </div>
 </div>
@@ -737,7 +740,7 @@ Variables</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="aero__state_8_f90_source.html#l02055">2055</a> of file <a class="el" href="aero__state_8_f90_source.html">aero_state.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="aero__state_8_f90_source.html#l02082">2082</a> of file <a class="el" href="aero__state_8_f90_source.html">aero_state.F90</a>.</p>
 
 </div>
 </div>
@@ -798,7 +801,7 @@ Variables</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="aero__state_8_f90_source.html#l02118">2118</a> of file <a class="el" href="aero__state_8_f90_source.html">aero_state.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="aero__state_8_f90_source.html#l02145">2145</a> of file <a class="el" href="aero__state_8_f90_source.html">aero_state.F90</a>.</p>
 
 </div>
 </div>
@@ -837,7 +840,7 @@ Variables</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="aero__state_8_f90_source.html#l03239">3239</a> of file <a class="el" href="aero__state_8_f90_source.html">aero_state.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="aero__state_8_f90_source.html#l03312">3312</a> of file <a class="el" href="aero__state_8_f90_source.html">aero_state.F90</a>.</p>
 
 </div>
 </div>
@@ -923,7 +926,7 @@ Variables</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Return value. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="aero__state_8_f90_source.html#l01630">1630</a> of file <a class="el" href="aero__state_8_f90_source.html">aero_state.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="aero__state_8_f90_source.html#l01657">1657</a> of file <a class="el" href="aero__state_8_f90_source.html">aero_state.F90</a>.</p>
 
 </div>
 </div>
@@ -1031,7 +1034,7 @@ Variables</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="aero__state_8_f90_source.html#l01695">1695</a> of file <a class="el" href="aero__state_8_f90_source.html">aero_state.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="aero__state_8_f90_source.html#l01722">1722</a> of file <a class="el" href="aero__state_8_f90_source.html">aero_state.F90</a>.</p>
 
 </div>
 </div>
@@ -1110,7 +1113,7 @@ Variables</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="aero__state_8_f90_source.html#l03529">3529</a> of file <a class="el" href="aero__state_8_f90_source.html">aero_state.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="aero__state_8_f90_source.html#l03602">3602</a> of file <a class="el" href="aero__state_8_f90_source.html">aero_state.F90</a>.</p>
 
 </div>
 </div>
@@ -1174,6 +1177,45 @@ Variables</h2></td></tr>
 
 </div>
 </div>
+<a id="a7680745a425781830a6db42b0e821451"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7680745a425781830a6db42b0e821451">&#9670;&nbsp;</a></span>aero_state_frozen_fraction()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">real(kind=dp) function pmc_aero_state::aero_state_frozen_fraction </td>
+          <td>(</td>
+          <td class="paramtype">type(<a class="el" href="structpmc__aero__state_1_1aero__state__t.html">aero_state_t</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>aero_state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structpmc__aero__data_1_1aero__data__t.html">aero_data_t</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>aero_data</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Returns the frozen fraction (unitless) for whole aerosol population.. frozen fraction = number concentration of frozen particles / total number concentration. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">aero_state</td><td>Aerosol state. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">aero_data</td><td>Aerosol data. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="aero__state_8_f90_source.html#l01353">1353</a> of file <a class="el" href="aero__state_8_f90_source.html">aero_state.F90</a>.</p>
+
+</div>
+</div>
 <a id="a2e6a26401ff192351ecf7c397705289e"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a2e6a26401ff192351ecf7c397705289e">&#9670;&nbsp;</a></span>aero_state_group_class_num_conc()</h2>
 
@@ -1223,7 +1265,7 @@ Variables</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="aero__state_8_f90_source.html#l01351">1351</a> of file <a class="el" href="aero__state_8_f90_source.html">aero_state.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="aero__state_8_f90_source.html#l01378">1378</a> of file <a class="el" href="aero__state_8_f90_source.html">aero_state.F90</a>.</p>
 
 </div>
 </div>
@@ -1269,7 +1311,7 @@ Variables</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="aero__state_8_f90_source.html#l01726">1726</a> of file <a class="el" href="aero__state_8_f90_source.html">aero_state.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="aero__state_8_f90_source.html#l01753">1753</a> of file <a class="el" href="aero__state_8_f90_source.html">aero_state.F90</a>.</p>
 
 </div>
 </div>
@@ -1344,7 +1386,7 @@ Variables</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="aero__state_8_f90_source.html#l03033">3033</a> of file <a class="el" href="aero__state_8_f90_source.html">aero_state.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="aero__state_8_f90_source.html#l03086">3086</a> of file <a class="el" href="aero__state_8_f90_source.html">aero_state.F90</a>.</p>
 
 </div>
 </div>
@@ -1383,7 +1425,7 @@ Variables</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="aero__state_8_f90_source.html#l02316">2316</a> of file <a class="el" href="aero__state_8_f90_source.html">aero_state.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="aero__state_8_f90_source.html#l02343">2343</a> of file <a class="el" href="aero__state_8_f90_source.html">aero_state.F90</a>.</p>
 
 </div>
 </div>
@@ -1451,7 +1493,7 @@ Variables</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Return value. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="aero__state_8_f90_source.html#l01391">1391</a> of file <a class="el" href="aero__state_8_f90_source.html">aero_state.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="aero__state_8_f90_source.html#l01418">1418</a> of file <a class="el" href="aero__state_8_f90_source.html">aero_state.F90</a>.</p>
 
 </div>
 </div>
@@ -1565,7 +1607,7 @@ Variables</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="aero__state_8_f90_source.html#l01901">1901</a> of file <a class="el" href="aero__state_8_f90_source.html">aero_state.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="aero__state_8_f90_source.html#l01928">1928</a> of file <a class="el" href="aero__state_8_f90_source.html">aero_state.F90</a>.</p>
 
 </div>
 </div>
@@ -1653,7 +1695,7 @@ Variables</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="aero__state_8_f90_source.html#l01525">1525</a> of file <a class="el" href="aero__state_8_f90_source.html">aero_state.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="aero__state_8_f90_source.html#l01552">1552</a> of file <a class="el" href="aero__state_8_f90_source.html">aero_state.F90</a>.</p>
 
 </div>
 </div>
@@ -1755,7 +1797,7 @@ Variables</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="aero__state_8_f90_source.html#l03466">3466</a> of file <a class="el" href="aero__state_8_f90_source.html">aero_state.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="aero__state_8_f90_source.html#l03539">3539</a> of file <a class="el" href="aero__state_8_f90_source.html">aero_state.F90</a>.</p>
 
 </div>
 </div>
@@ -1841,7 +1883,7 @@ Variables</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="aero__state_8_f90_source.html#l01986">1986</a> of file <a class="el" href="aero__state_8_f90_source.html">aero_state.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="aero__state_8_f90_source.html#l02013">2013</a> of file <a class="el" href="aero__state_8_f90_source.html">aero_state.F90</a>.</p>
 
 </div>
 </div>
@@ -1887,7 +1929,7 @@ Variables</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="aero__state_8_f90_source.html#l02417">2417</a> of file <a class="el" href="aero__state_8_f90_source.html">aero_state.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="aero__state_8_f90_source.html#l02444">2444</a> of file <a class="el" href="aero__state_8_f90_source.html">aero_state.F90</a>.</p>
 
 </div>
 </div>
@@ -1916,7 +1958,7 @@ Variables</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Return number of componenets for each particle. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="aero__state_8_f90_source.html#l03299">3299</a> of file <a class="el" href="aero__state_8_f90_source.html">aero_state.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="aero__state_8_f90_source.html#l03372">3372</a> of file <a class="el" href="aero__state_8_f90_source.html">aero_state.F90</a>.</p>
 
 </div>
 </div>
@@ -1990,7 +2032,7 @@ Variables</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="aero__state_8_f90_source.html#l02575">2575</a> of file <a class="el" href="aero__state_8_f90_source.html">aero_state.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="aero__state_8_f90_source.html#l02602">2602</a> of file <a class="el" href="aero__state_8_f90_source.html">aero_state.F90</a>.</p>
 
 </div>
 </div>
@@ -2036,7 +2078,7 @@ Variables</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="aero__state_8_f90_source.html#l02491">2491</a> of file <a class="el" href="aero__state_8_f90_source.html">aero_state.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="aero__state_8_f90_source.html#l02518">2518</a> of file <a class="el" href="aero__state_8_f90_source.html">aero_state.F90</a>.</p>
 
 </div>
 </div>
@@ -2082,7 +2124,7 @@ Variables</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="aero__state_8_f90_source.html#l02532">2532</a> of file <a class="el" href="aero__state_8_f90_source.html">aero_state.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="aero__state_8_f90_source.html#l02559">2559</a> of file <a class="el" href="aero__state_8_f90_source.html">aero_state.F90</a>.</p>
 
 </div>
 </div>
@@ -2427,7 +2469,7 @@ Variables</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="aero__state_8_f90_source.html#l01765">1765</a> of file <a class="el" href="aero__state_8_f90_source.html">aero_state.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="aero__state_8_f90_source.html#l01792">1792</a> of file <a class="el" href="aero__state_8_f90_source.html">aero_state.F90</a>.</p>
 
 </div>
 </div>
@@ -2863,7 +2905,7 @@ Variables</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="aero__state_8_f90_source.html#l01832">1832</a> of file <a class="el" href="aero__state_8_f90_source.html">aero_state.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="aero__state_8_f90_source.html#l01859">1859</a> of file <a class="el" href="aero__state_8_f90_source.html">aero_state.F90</a>.</p>
 
 </div>
 </div>
@@ -2909,7 +2951,7 @@ Variables</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="aero__state_8_f90_source.html#l03319">3319</a> of file <a class="el" href="aero__state_8_f90_source.html">aero_state.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="aero__state_8_f90_source.html#l03392">3392</a> of file <a class="el" href="aero__state_8_f90_source.html">aero_state.F90</a>.</p>
 
 </div>
 </div>
@@ -2969,7 +3011,7 @@ Variables</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="aero__state_8_f90_source.html#l03380">3380</a> of file <a class="el" href="aero__state_8_f90_source.html">aero_state.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="aero__state_8_f90_source.html#l03453">3453</a> of file <a class="el" href="aero__state_8_f90_source.html">aero_state.F90</a>.</p>
 
 </div>
 </div>
@@ -3114,7 +3156,7 @@ Variables</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="aero__state_8_f90_source.html#l03218">3218</a> of file <a class="el" href="aero__state_8_f90_source.html">aero_state.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="aero__state_8_f90_source.html#l03291">3291</a> of file <a class="el" href="aero__state_8_f90_source.html">aero_state.F90</a>.</p>
 
 </div>
 </div>
@@ -3220,7 +3262,7 @@ Variables</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="aero__state_8_f90_source.html#l01654">1654</a> of file <a class="el" href="aero__state_8_f90_source.html">aero_state.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="aero__state_8_f90_source.html#l01681">1681</a> of file <a class="el" href="aero__state_8_f90_source.html">aero_state.F90</a>.</p>
 
 </div>
 </div>
@@ -3248,7 +3290,7 @@ Variables</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="aero__state_8_f90_source.html#l03286">3286</a> of file <a class="el" href="aero__state_8_f90_source.html">aero_state.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="aero__state_8_f90_source.html#l03359">3359</a> of file <a class="el" href="aero__state_8_f90_source.html">aero_state.F90</a>.</p>
 
 </div>
 </div>
@@ -3585,7 +3627,7 @@ Variables</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="aero__state_8_f90_source.html#l02364">2364</a> of file <a class="el" href="aero__state_8_f90_source.html">aero_state.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="aero__state_8_f90_source.html#l02391">2391</a> of file <a class="el" href="aero__state_8_f90_source.html">aero_state.F90</a>.</p>
 
 </div>
 </div>
@@ -3613,7 +3655,7 @@ Variables</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="aero__state_8_f90_source.html#l02345">2345</a> of file <a class="el" href="aero__state_8_f90_source.html">aero_state.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="aero__state_8_f90_source.html#l02372">2372</a> of file <a class="el" href="aero__state_8_f90_source.html">aero_state.F90</a>.</p>
 
 </div>
 </div>
@@ -3659,7 +3701,7 @@ Variables</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="aero__state_8_f90_source.html#l02390">2390</a> of file <a class="el" href="aero__state_8_f90_source.html">aero_state.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="aero__state_8_f90_source.html#l02417">2417</a> of file <a class="el" href="aero__state_8_f90_source.html">aero_state.F90</a>.</p>
 
 </div>
 </div>

@@ -102,6 +102,10 @@ $(function() {
 <li><a class="el" href="input_format_nucleate.html">Input File Format: Nucleation Parameterization</a></li>
 </ul>
 </li>
+<li><b>do_freezing</b> (logical): whether to perform particle freezing. If <code>do_freezing</code> is <code>yes</code>, then the following parameters must also be provided:<ul>
+<li><a class="el" href="input_format_imf_scheme.html">Input File Format: Immersion Freezing Scheme</a></li>
+</ul>
+</li>
 <li><b>rand_init</b> (integer): if greater than zero then use as the seed for the random number generator, or if zero then generate a random seed for the random number generator &mdash; two simulations on the same machine with the same seed (greater than 0) will produce identical output</li>
 <li><b>allow_doubling</b> (logical): if <code>yes</code>, then whenever the number of simulated particles falls below <code>n_part / 2</code>, every particle is duplicated to give better statistics</li>
 <li><b>allow_halving</b> (logical): if <code>yes</code>, then whenever the number of simulated particles rises above <code>n_part * 2</code>, half of the particles are removed (chosen randomly) to reduce the computational expense</li>

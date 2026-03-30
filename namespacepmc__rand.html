@@ -97,6 +97,9 @@ Functions/Subroutines</h2></td></tr>
 <tr class="memitem:a2412b4291de3a49c6583e04382762cad"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepmc__rand.html#a2412b4291de3a49c6583e04382762cad">uuid4_str</a> (uuid)</td></tr>
 <tr class="memdesc:a2412b4291de3a49c6583e04382762cad"><td class="mdescLeft">&#160;</td><td class="mdescRight">Generate a version 4 UUID as a string.  <a href="namespacepmc__rand.html#a2412b4291de3a49c6583e04382762cad">More...</a><br /></td></tr>
 <tr class="separator:a2412b4291de3a49c6583e04382762cad"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a89247f0a42fffd0e7fc3b74142cd2ba6"><td class="memItemLeft" align="right" valign="top">integer function&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepmc__rand.html#a89247f0a42fffd0e7fc3b74142cd2ba6">rand_geometric</a> (p)</td></tr>
+<tr class="memdesc:a89247f0a42fffd0e7fc3b74142cd2ba6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Generate a Geometric-distributed random number with the given probability.  <a href="namespacepmc__rand.html#a89247f0a42fffd0e7fc3b74142cd2ba6">More...</a><br /></td></tr>
+<tr class="separator:a89247f0a42fffd0e7fc3b74142cd2ba6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="var-members"></a>
 Variables</h2></td></tr>
@@ -288,6 +291,34 @@ Variables</h2></td></tr>
 </dl>
 
 <p class="definition">Definition at line <a class="el" href="rand_8_f90_source.html#l00319">319</a> of file <a class="el" href="rand_8_f90_source.html">rand.F90</a>.</p>
+
+</div>
+</div>
+<a id="a89247f0a42fffd0e7fc3b74142cd2ba6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a89247f0a42fffd0e7fc3b74142cd2ba6">&#9670;&nbsp;</a></span>rand_geometric()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">integer function pmc_rand::rand_geometric </td>
+          <td>(</td>
+          <td class="paramtype">real(kind=dp), intent(in)&#160;</td>
+          <td class="paramname"><em>p</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Generate a Geometric-distributed random number with the given probability. </p>
+<p>See <a href="https://en.wikipedia.org/wiki/Geometric_distribution">https://en.wikipedia.org/wiki/Geometric_distribution</a> and <a href="https://www.ucl.ac.uk/~ucakarc/work/software/randgen.f">https://www.ucl.ac.uk/~ucakarc/work/software/randgen.f</a> for more details </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">p</td><td>Sample probability. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="rand_8_f90_source.html#l00707">707</a> of file <a class="el" href="rand_8_f90_source.html">rand.F90</a>.</p>
 
 </div>
 </div>

@@ -93,6 +93,11 @@ module pmc_tchem_interface
       real(kind=c_double) :: array(*)
       integer(kind=c_int), value :: i_batch
     end subroutine
+    subroutine TChem_setNParticlesTrack(n) bind(c, &
+         name="TChem_setNParticlesTrack")
+      use iso_c_binding
+      integer(kind=c_int), value :: n
+    end subroutine
     integer(kind=c_size_t) function TChem_getSpeciesName(index, result, &
          buffer_size) bind(c, name="TChem_getSpeciesName")
       use iso_c_binding
@@ -294,7 +299,7 @@ contains
     integer :: i_water
     integer :: n_gas_spec, n_aero_spec
     integer :: aero_offset
-    real(kind=dp), parameter :: SMALL_MASS_PLACEHOLDER = 1.0d-10
+    real(kind=dp), parameter :: SMALL_MASS_PLACEHOLDER = 1.0d-30
 
     n_gas_spec = gas_data_n_spec(gas_data)
     n_aero_spec = aero_data_n_spec(aero_data)
@@ -344,6 +349,8 @@ contains
 
     call TChem_setNumberConcentrationVector(number_concentration, &
          DEFAULT_BATCH_INDEX)
+
+    call TChem_setNParticlesTrack(n_part)
 
   end subroutine tchem_from_partmc
 

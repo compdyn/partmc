@@ -12,4 +12,8 @@ jobs:
     - name: Build the testing docker image
       run: docker build -t partmc-test .
     - name: Run the tests in the docker container
-      run: docker run -t partmc-test bash -c 'cd /build; make test'
+      run: docker run -v shared-data:/build -t partmc-test bash -c 'cd /build; make test'
+    - name: Generate and upload coverage report
+      uses: ./.github/actions/codecov
+      with:
+        codecov_token: ${{ secrets.CODECOV_TOKEN }}

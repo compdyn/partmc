@@ -222,7 +222,7 @@ contains
        prob_round = floor(val)
     else
        prob_round = ceiling(val)
-    endif
+    end if
 
   end function prob_round
 
@@ -695,6 +695,77 @@ contains
 
   end subroutine uuid4_str
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Generate a Geometric-distributed random number with the given
+  !> probability.
+  !!
+  !! See https://en.wikipedia.org/wiki/Geometric_distribution and
+  !! https://www.ucl.ac.uk/~ucakarc/work/software/randgen.f for
+  !! more details
+
+  integer function rand_geometric(p)
+    implicit none
+    !> Sample probability.
+    real(kind=dp), intent(in) :: p
+
+#ifdef PMC_USE_GSL
+    real(kind=c_double) :: p_c
+    integer(kind=c_int), target :: harvest
+    type(c_ptr) :: harvest_ptr
+    logical :: acceptable
+#else
+    real(kind=dp) :: U, TINY
+#endif
+
+#ifdef PMC_USE_GSL
+    interface
+       integer(kind=c_int) function pmc_rand_geometric_gsl(p, harvest) bind(c)
+         use iso_c_binding
+         real(kind=c_double), value :: p
+         type(c_ptr), value :: harvest
+       end function pmc_rand_geometric_gsl
+    end interface
+#endif
+    call assert(386975305, p >= 0d0)
+    call assert(667756333, p <= 1d0)
+#ifdef PMC_USE_GSL
+    p_c = real(p, kind=c_double)
+    harvest_ptr = c_loc(harvest)
+    acceptable = .false.
+    do while(.not. acceptable)
+       call rand_check_gsl(218328792, &
+            pmc_rand_geometric_gsl(p_c, harvest_ptr))
+       rand_geometric = int(harvest)
+       if (rand_geometric .ge. 1) then
+          acceptable = .true.
+       end if
+    end do
+#else
+    TINY = 1.0D-12
+    rand_geometric = 0
+
+    call assert_msg(927129543, (P.ge.0.0D0).and.(P.le.1.0D0),&
+         "Range error")
+
+    if (P.gt.0.9D0) then
+       rand_geometric = rand_geometric + 1
+       U = pmc_random()
+       do while( U.gt.P )
+          rand_geometric = rand_geometric + 1
+          U = pmc_random()
+       end do
+    else
+       U = pmc_random()
+
+       if (P.gt.TINY) then
+          rand_geometric = 1 + INT( DLOG(U)/DLOG(1.0D0-P) )
+       else
+          rand_geometric = 1 + INT(-DLOG(U)/P)
+       end if
+    end if
+#endif
+  end function rand_geometric
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 end module pmc_rand

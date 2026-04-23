@@ -23,7 +23,7 @@ gas_background gas_back.dat          # background gas concentrations file
 aero_emissions aero_emit.dat         # aerosol emissions file
 aero_background aero_back.dat        # aerosol background file
 loss_function drydep                 # loss function specification
-drydep_params drydep_grass_emerson.dat
+drydep_params drydep_params.dat      # dry deposition parameters
 
 rel_humidity 0.95                    # initial relative humidity (1)
 latitude 0                           # latitude (degrees, -90 to 90)

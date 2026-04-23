@@ -835,6 +835,7 @@ contains
     call gas_state_output_netcdf(gas_state, ncid, gas_data)
     call aero_data_output_netcdf(aero_data, ncid)
     call bin_grid_output_netcdf(bin_grid, ncid, "diam", unit="m")
+    call drydep_params_output_netcdf(scenario%drydep, ncid)
 
     call pmc_nc_check(nf90_close(ncid))
 
@@ -917,6 +918,10 @@ contains
     else
       call assert_msg(582491376, present(aero_binned) .eqv. .false., &
            "cannot input aero_binned without bin_grid")
+    end if
+
+    if (present(scenario)) then
+      call drydep_params_input_netcdf(scenario%drydep, ncid)
     end if
 
   end subroutine input_modal

@@ -613,7 +613,7 @@ contains
 
     ! Interception efficiency
     ! Characteristic radius of large collectors
-    E_IN = drydep_params%C_IN * (d_p / drydep_params%A)**2.0d0
+    E_IN = drydep_params%C_IN * (d_p / drydep_params%A)**drydep_params%nu
 
     ! Impaction efficiency
     St = (V_s * u_star) / (grav * drydep_params%A)
@@ -667,6 +667,7 @@ contains
 
 #ifdef PMC_USE_QUADPACK
      ! Do numerical integration when QUADPACK is available
+     print *, "***USING QUADPACK FOR DRY DEPOSITION***"
      scenario_integrated_loss_rate_drydep = scenario_integrated_loss_rate_drydep_quadpack( &
                                               scenario, aero_mode, moment, density, env_state)
      return
@@ -693,7 +694,7 @@ contains
     gas_mean_free_path = (2.0d0 * visc_d) / (density_air * gas_speed)
     ! Knudsen number
     knud = (2.0d0 * gas_mean_free_path) / d_pg
-    ! Settling velcoity
+    ! Settling velocity
     V_g_bar = (density * d_pg**2.0d0 * const%std_grav) / (18.0d0 * visc_d)
     ! Compute integrated settling velocity
     V_g_hat = V_g_bar * (exp((4.0d0 * moment + 4.0d0) / 2.0d0 * ln_sigma_g**2.0d0) + 1.246d0 * &
@@ -729,7 +730,7 @@ contains
     R_s = 1.0d0 / (drydep_params%eps_0 * u_star * (E_B + E_IN + E_IM) * R1)
 
     ! Integrated deposition velocity
-    V_d_hat = V_g_hat + (1.0d0 / (R_a + R_s))
+    V_d_hat = V_g_hat + (1.0d0 / (R_a + R_s + R_a * R_s * V_g_hat))
 
     ! Loss rate
     scenario_integrated_loss_rate_drydep = V_d_hat / env_state%height
@@ -852,7 +853,7 @@ contains
 
     ! Stokes number and impaction efficiency
     St = (V_s * u_star) / (const%std_grav * drydep_params%A)
-    E_IM = C_IM * (St / (drydep_params%alpha + St))**drydep_params%beta
+    E_IM = drydep_params%C_IM * (St / (drydep_params%alpha + St))**drydep_params%beta
 
     ! Rebound correction
     R1 = exp(-St**0.5d0)
@@ -861,7 +862,7 @@ contains
     R_s = 1.0d0 / (drydep_params%eps_0 * u_star * (E_B + E_IN + E_IM) * R1)
 
     ! Deposition velocity
-    V_d = V_s + (1.0d0 / (R_a + R_s))
+    V_d = V_s + (1.0d0 / (R_a + R_s + R_a * R_s * V_s))
 
     ! Log-normal size distribution
     ln_dp = log(d_p)
@@ -877,10 +878,10 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Updates an array to contain the integrated deposition rates for the
+  !> Updates an array to contain the integrated deposition velocities for the
   !> given moment of each aerosol mode in the distribution.
-  subroutine scenario_modal_drydep_rates(scenario, aero_dist, moment, &
-      density, env_state, rates)
+  subroutine scenario_modal_drydep_velocities(scenario, aero_dist, moment, &
+      density, env_state, velocities)
 
     !> Scenario data.
     type(scenario_t), intent(in) :: scenario
@@ -892,13 +893,13 @@ contains
     real(kind=dp), intent(in) :: density
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
-    !> Rates.
-    real(kind=dp), intent(inout) :: rates(:)
+    !> Velocities.
+    real(kind=dp), intent(inout) :: velocities(:)
 
     integer :: i_mode, n_mode
 
-    do i_mode = 1,size(rates)
-       rates(i_mode) = scenario_integrated_loss_rate_drydep( &
+    do i_mode = 1,size(velocities)
+       velocities(i_mode) = scenario_integrated_loss_rate_drydep( &
           scenario, aero_dist%mode(i_mode), moment, density, env_state) &
           * env_state%height
     end do
@@ -1436,6 +1437,57 @@ contains
     call spec_file_read_real(file, "beta", drydep_params%beta)
 
    end subroutine spec_file_read_drydep_params
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+  !> Write dry deposition parameters to a NetCDF file.
+  subroutine drydep_params_output_netcdf(drydep_params, ncid)
+
+    !> Dry deposition parameters.
+    type(drydep_params_t), intent(in) :: drydep_params
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+
+    call pmc_nc_write_real(ncid, drydep_params%z_ref,   "drydep_z_ref",   unit="m")
+    call pmc_nc_write_real(ncid, drydep_params%u_mean,  "drydep_u_mean",  unit="m s^{-1}")
+    call pmc_nc_write_real(ncid, drydep_params%z_rough, "drydep_z_rough", unit="m")
+    call pmc_nc_write_real(ncid, drydep_params%A,       "drydep_A",       unit="m")
+    call pmc_nc_write_real(ncid, drydep_params%alpha,   "drydep_alpha",   unit="1")
+    call pmc_nc_write_real(ncid, drydep_params%eps_0,   "drydep_eps_0",   unit="1")
+    call pmc_nc_write_real(ncid, drydep_params%gamma,   "drydep_gamma",   unit="1")
+    call pmc_nc_write_real(ncid, drydep_params%C_B,     "drydep_C_B",     unit="1")
+    call pmc_nc_write_real(ncid, drydep_params%C_IN,    "drydep_C_IN",    unit="1")
+    call pmc_nc_write_real(ncid, drydep_params%C_IM,    "drydep_C_IM",    unit="1")
+    call pmc_nc_write_real(ncid, drydep_params%nu,      "drydep_nu",      unit="1")
+    call pmc_nc_write_real(ncid, drydep_params%beta,    "drydep_beta",    unit="1")
+
+  end subroutine drydep_params_output_netcdf
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Read dry deposition parameters from a NetCDF file.
+  subroutine drydep_params_input_netcdf(drydep_params, ncid)
+
+    !> Dry deposition parameters.
+    type(drydep_params_t), intent(inout) :: drydep_params
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+
+    call pmc_nc_read_real(ncid, drydep_params%z_ref,   "drydep_z_ref")
+    call pmc_nc_read_real(ncid, drydep_params%u_mean,  "drydep_u_mean")
+    call pmc_nc_read_real(ncid, drydep_params%z_rough, "drydep_z_rough")
+    call pmc_nc_read_real(ncid, drydep_params%A,       "drydep_A")
+    call pmc_nc_read_real(ncid, drydep_params%alpha,   "drydep_alpha")
+    call pmc_nc_read_real(ncid, drydep_params%eps_0,   "drydep_eps_0")
+    call pmc_nc_read_real(ncid, drydep_params%gamma,   "drydep_gamma")
+    call pmc_nc_read_real(ncid, drydep_params%C_B,     "drydep_C_B")
+    call pmc_nc_read_real(ncid, drydep_params%C_IN,    "drydep_C_IN")
+    call pmc_nc_read_real(ncid, drydep_params%C_IM,    "drydep_C_IM")
+    call pmc_nc_read_real(ncid, drydep_params%nu,      "drydep_nu")
+    call pmc_nc_read_real(ncid, drydep_params%beta,    "drydep_beta")
+
+  end subroutine drydep_params_input_netcdf
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

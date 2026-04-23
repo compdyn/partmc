@@ -7,9 +7,9 @@ program process
   use pmc_aero_dist
   use pmc_scenario
 
-  character(len=PMC_MAX_FILENAME_LEN), parameter :: prefix & 
-= "data/modal_dpg_00001000000000000000_sig_2_5_emerson_grass"
+  implicit none
 
+  character(len=PMC_MAX_FILENAME_LEN) :: prefix
   character(len=PMC_MAX_FILENAME_LEN) :: in_filename, out_filename
   type(bin_grid_t) :: bin_grid
   type(aero_dist_t) :: aero_dist
@@ -23,12 +23,16 @@ program process
   real(kind=dp) :: time, del_t, tot_num_conc, density, tot_mass_conc
   character(len=PMC_UUID_LEN) :: uuid
   real(kind=dp), allocatable :: times(:), num_conc(:)
-  type(stats_1d_t) :: stats_tot_num_conc, stats_num_conc, stats_rates_0, &
-                      stats_rates_3, stats_tot_mass_conc
-  real(kind=dp), allocatable :: rates_0(:), rates_3(:)
+  type(stats_1d_t) :: stats_tot_num_conc, stats_num_conc, stats_velocities_0, &
+                      stats_velocities_3, stats_tot_mass_conc
+  real(kind=dp), allocatable :: velocities_0(:), velocities_3(:)
   character(len=PMC_MAX_FILENAME_LEN), allocatable :: file_list(:)
 
   call pmc_mpi_init()
+
+  call get_command_argument(1, prefix)
+if (len_trim(prefix) == 0) &
+  call die_msg(192837465, "usage: drydep_modal_process <output_prefix>")
 
   call input_filename_list(prefix, file_list)
   n_index = size(file_list)
@@ -50,15 +54,15 @@ program process
 
     tot_mass_conc = sum(aero_binned%vol_conc(:,1) * bin_grid%widths) * aero_data%density(1)
 
-    if (.not. allocated(rates_0)) allocate(rates_0(aero_dist_n_mode(aero_dist)))
-    if (.not. allocated(rates_3)) allocate(rates_3(aero_dist_n_mode(aero_dist)))
+    if (.not. allocated(velocities_0)) allocate(velocities_0(aero_dist_n_mode(aero_dist)))
+    if (.not. allocated(velocities_3)) allocate(velocities_3(aero_dist_n_mode(aero_dist)))
 
-    call scenario_modal_drydep_rates(scenario, aero_dist, 0.0d0, density, &
-      env_state, rates_0)
-    call stats_1d_add(stats_rates_0, rates_0)
-    call scenario_modal_drydep_rates(scenario, aero_dist, 3.0d0, density, &
-      env_state, rates_3)
-    call stats_1d_add(stats_rates_3, rates_3)
+    call scenario_modal_drydep_velocities(scenario, aero_dist, 0.0d0, density, &
+      env_state, velocities_0)
+    call stats_1d_add(stats_velocities_0, velocities_0)
+    call scenario_modal_drydep_velocities(scenario, aero_dist, 3.0d0, density, &
+      env_state, velocities_3)
+    call stats_1d_add(stats_velocities_3, velocities_3)
 
     call stats_1d_add(stats_num_conc, num_conc)
     call stats_1d_add_entry(stats_tot_num_conc, tot_num_conc, i_index)
@@ -68,7 +72,7 @@ program process
     call make_filename(out_filename, prefix, "_process.nc", index)
     write(*,*) "Writing " // trim(out_filename)
     call pmc_nc_open_write(out_filename, ncid)
-    call pmc_nc_write_info(ncid, uuid, "1_urban_plume modal process")
+    call pmc_nc_write_info(ncid, uuid, "7_drydep modal process")
     call env_state_output_netcdf(env_state, ncid)
     call aero_data_output_netcdf(aero_data, ncid)
     call aero_dist_output_netcdf(aero_dist, ncid)
@@ -76,16 +80,16 @@ program process
 
     call stats_1d_output_netcdf(stats_num_conc, ncid, "num concs. per bin", &
       dim_name="diam", unit="m^{-3}")
-    call stats_1d_output_netcdf(stats_rates_0, ncid, "loss_rates_0", &
+    call stats_1d_output_netcdf(stats_velocities_0, ncid, "loss_velocities_0", &
       dim_name="modes", unit="m s^{-1}")
-    call stats_1d_output_netcdf(stats_rates_3, ncid, "loss_rates_3", &
+    call stats_1d_output_netcdf(stats_velocities_3, ncid, "loss_velocities_3", &
       dim_name="modes", unit="m s^{-1}")
 
     call aero_binned_zero(aero_binned)
 
     call stats_1d_clear(stats_num_conc)
-    call stats_1d_clear(stats_rates_0)
-    call stats_1d_clear(stats_rates_3)
+    call stats_1d_clear(stats_velocities_0)
+    call stats_1d_clear(stats_velocities_3)
 
     call pmc_nc_close(ncid) 
   end do

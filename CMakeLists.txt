@@ -190,7 +190,7 @@ if (ENABLE_QUADPACK)
   find_library(QUADPACK_LIB quadpack
     DOC "QUADPACK library"
     PATHS $ENV{QUADPACK_HOME}/lib)
-  if(EXISTS "${QUADPACK_INCLUDE_DIR}/quadpack.mod" AND EXISTS "${QUADPACK_LIB}")
+  if(EXISTS "${QUADPACK_INCLUDE_DIR}/quadpack_double.mod" AND EXISTS "${QUADPACK_LIB}")
       include_directories(${QUADPACK_INCLUDE_DIR})
       add_definitions(-DPMC_USE_QUADPACK)
   else()

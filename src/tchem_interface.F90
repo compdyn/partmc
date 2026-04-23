@@ -202,6 +202,8 @@ contains
     call ensure_integer_array_size(aero_data%num_ions, n_aero_spec)
     call ensure_real_array_size(aero_data%molec_weight, n_aero_spec)
     call ensure_real_array_size(aero_data%kappa, n_aero_spec)
+    call ensure_real_array_size(aero_data%abifm_m, n_aero_spec)
+    call ensure_real_array_size(aero_data%abifm_c, n_aero_spec)
 
     is_gas = .false.
     do i_spec = 1,n_aero_spec
@@ -210,6 +212,8 @@ contains
        aero_data%density(i_spec) = TChem_getAerosolSpeciesDensity(i_spec - 1)
        aero_data%molec_weight(i_spec) = TChem_getAerosolSpeciesMW(i_spec - 1)
        aero_data%kappa(i_spec) = TChem_getAerosolSpeciesKappa(i_spec - 1)
+       aero_data%abifm_m(i_spec) = 0.0d0
+       aero_data%abifm_c(i_spec) = 0.0d0
     end do
 
   end subroutine pmc_tchem_initialize

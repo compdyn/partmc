@@ -1683,8 +1683,6 @@ contains
     !> Value to pack.
     type(drydep_params_t), intent(in) :: val
 
-    integer :: total_size, i, N
-
     pmc_mpi_pack_size_drydep = &
          pmc_mpi_pack_size_real(val%z_ref) &
          + pmc_mpi_pack_size_real(val%u_mean) &

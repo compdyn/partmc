@@ -667,7 +667,6 @@ contains
 
 #ifdef PMC_USE_QUADPACK
      ! Do numerical integration when QUADPACK is available
-     print *, "***USING QUADPACK FOR DRY DEPOSITION***"
      scenario_integrated_loss_rate_drydep = scenario_integrated_loss_rate_drydep_quadpack( &
                                               scenario, aero_mode, moment, density, env_state)
      return

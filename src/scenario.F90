@@ -457,7 +457,6 @@ contains
     else if (scenario%loss_function_type == SCENARIO_LOSS_FUNCTION_CONSTANT) then
        return
     else if (scenario%loss_function_type == SCENARIO_LOSS_FUNCTION_DRYDEP) then
-      ! loss
       do i_mode = 1,aero_dist_n_mode(aero_dist)
        aero_mode = aero_dist%mode(i_mode)
        N = aero_mode%num_conc

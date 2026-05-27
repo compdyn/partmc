@@ -33,15 +33,18 @@
 !! <pre>
 !! run_type &lt;type&gt;
 !! </pre>
-!! where <tt>&lt;type&gt;</tt> is one of \c particle, \c exact, or \c
-!! sectional. This determines the type of run as well as the format of the
-!! remainder of the spec file. The rest of the spec file is described by:
+!! where <tt>&lt;type&gt;</tt> is one of \c particle, \c exact, \c
+!! sectional, or \c modal. This determines the type of run as well as
+!! the format of the remainder of the spec file. The rest of the spec
+!! file is described by:
 !!
 !! \subpage input_format_particle "Particle-resolved simulation"
 !!
 !! \subpage input_format_exact "Exact (analytical) solution"
 !!
 !! \subpage input_format_sectional "Sectional model simulation"
+!!
+!! \subpage input_format_modal "Modal aerosol simulation"
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -805,6 +808,77 @@ contains
     character(len=PMC_MAX_FILENAME_LEN) :: sub_filename
     type(spec_file_t) :: sub_file
 
+    !> \page input_format_modal Modal Aerosol Simulation
+    !!
+    !! See \ref spec_file_format for the input file text format.
+    !!
+    !! A modal simulation spec file has the parameters:
+    !! - \b run_type (string): must be \c modal
+    !! - \b output_prefix (string): prefix of the output filenames ---
+    !!   the filenames will be of the form \c PREFIX_SSSSSSSS.nc where
+    !!   \c SSSSSSSS is the eight-digit output index
+    !! - \b t_max (real, unit s): total simulation time
+    !! - \b del_t (real, unit s): timestep size
+    !! - \b t_output (real, unit s): the interval on which to output
+    !!   data to disk (see \ref output_format)
+    !! - \b t_progress (real, unit s): the interval on which to write
+    !!   summary information to the screen while running
+    !! - \subpage input_format_radius_bin_grid
+    !! - \b gas_data (string): name of file from which to read the
+    !!   gas material data --- the file format should be
+    !!   \subpage input_format_gas_data
+    !! - \b aerosol_data (string): name of file from which to read the
+    !!   aerosol material data (single species only) --- the file
+    !!   format should be \subpage input_format_aero_data
+    !! - \b do_fractal (logical): whether to use fractal treatment
+    !!   (must be \c no; fractal treatment is not supported)
+    !! - \b aerosol_init (string): filename for the initial lognormal
+    !!   aerosol distribution --- the file format should be
+    !!   \subpage input_format_aero_dist
+    !! - \subpage input_format_scenario
+    !! - \subpage input_format_env_state
+    !!
+    !! \note Modal runs support only the \c drydep and \c none loss
+    !! functions.  Aerosol emissions and background dilution are not
+    !! supported; their rates must be zero in the scenario files.
+    !! Coagulation is not supported.
+    !!
+    !! Example:
+    !! <pre>
+    !! run_type modal                  # modal run
+    !! output_prefix out/modal         # prefix of output files
+    !!
+    !! t_max 28800                     # total simulation time (s)
+    !! del_t 60                        # timestep (s)
+    !! t_output 3600                   # output interval (0 disables) (s)
+    !! t_progress 0                    # progress interval (0 disables) (s)
+    !!
+    !! n_bin 1000                      # number of bins
+    !! d_min 4e-8                      # minimum diameter (m)
+    !! d_max 2.5e-3                    # maximum diameter (m)
+    !!
+    !! gas_data gas_data.dat           # file containing gas data
+    !! aerosol_data aero_data.dat      # file containing aerosol data
+    !! do_fractal no                   # fractal treatment not supported
+    !! aerosol_init aero_init_dist.dat # aerosol initial distribution
+    !!
+    !! temp_profile temp.dat           # temperature profile file
+    !! height_profile height.dat       # height profile file
+    !! gas_emissions gas_emit.dat      # gas emissions file
+    !! gas_background gas_back.dat     # background gas mixing ratios file
+    !! aero_emissions aero_emit.dat    # aerosol emissions (rate must be 0)
+    !! aero_background aero_back.dat   # aerosol background (rate must be 0)
+    !! loss_function drydep            # loss function (drydep or none)
+    !! drydep_params drydep_params.dat # dry deposition parameters
+    !!
+    !! rel_humidity 0.95               # initial relative humidity (1)
+    !! latitude 0                      # latitude (degrees, -90 to 90)
+    !! longitude 0                     # longitude (degrees, -180 to 180)
+    !! altitude 0                      # altitude (m)
+    !! start_time 21600                # start time (s since 00:00 UTC)
+    !! start_day 200                   # start day of year (UTC)
+    !! </pre>
+
     ! only serial code here
     if (pmc_mpi_rank() /= 0) then
       return
@@ -840,6 +914,25 @@ contains
     call spec_file_read_env_state(file, env_state)
 
     call spec_file_close(file)
+
+    ! Modal runs do not support aerosol emissions, background dilution,
+    ! or loss functions other than drydep/none.
+    if (size(scenario%aero_emission_rate_scale) > 0) then
+       call assert_msg(583920417, &
+            all(scenario%aero_emission_rate_scale == 0.0d0), &
+            "modal run does not support aerosol emissions: " &
+            // "all aero_emission rates must be zero")
+    end if
+    if (size(scenario%aero_dilution_rate) > 0) then
+       call assert_msg(742916380, &
+            all(scenario%aero_dilution_rate == 0.0d0), &
+            "modal run does not support aerosol background dilution: " &
+            // "all aero_dilution rates must be zero")
+    end if
+    call assert_msg(631804952, &
+         scenario%loss_function_type == SCENARIO_LOSS_FUNCTION_NONE &
+         .or. scenario%loss_function_type == SCENARIO_LOSS_FUNCTION_DRYDEP, &
+         "modal run: only loss_function none or drydep are supported")
 
     ! All data from spec file read. Do the modal run.
 

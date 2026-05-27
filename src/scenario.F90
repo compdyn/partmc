@@ -436,7 +436,7 @@ contains
     real(kind=dp), intent(in) :: del_t
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
-    !> Density for each mode.
+    !> Particle density (kg m^-3), assumed uniform across all modes.
     real(kind=dp), intent(in) :: density
     !> Scenario
     type(scenario_t), intent(inout) :: scenario
@@ -458,38 +458,30 @@ contains
        return
     else if (scenario%loss_function_type == SCENARIO_LOSS_FUNCTION_DRYDEP) then
       do i_mode = 1,aero_dist_n_mode(aero_dist)
-       aero_mode = aero_dist%mode(i_mode)
-       N = aero_mode%num_conc
+         aero_mode = aero_dist%mode(i_mode)
+         N = aero_mode%num_conc
 
-       if (N == 0d0) then
-          cycle
-       end if
+         if (N == 0d0) cycle
 
-       d_pg = aero_mode%char_radius * 2.0d0
-       ln_sigma_g = aero_mode%log10_std_dev_radius / log10(exp(1.0d0))
+         d_pg = aero_mode%char_radius * 2.0d0
+         ln_sigma_g = aero_mode%log10_std_dev_radius / log10(exp(1.0d0))
 
-       ! Integrated deposition rate for the 0-th moment (num. conc.)
-       m_0_rate = -1.0d0 * scenario_integrated_loss_rate_drydep(scenario, aero_mode, &
-                   0.0d0, density, env_state)
-       new_N = N * exp(m_0_rate * del_t)
+         ! Integrated deposition rate for the 0-th moment (num. conc.)
+         m_0_rate = -1.0d0 * scenario_integrated_loss_rate_drydep(scenario, aero_mode, &
+                     0.0d0, density, env_state)
+         new_N = N * exp(m_0_rate * del_t)
 
-       if (new_N < 1d0) then
-          aero_dist%mode(i_mode)%num_conc = 0d0
-          aero_dist%mode(i_mode)%char_radius = 0d0
-          cycle
-       end if
+         aero_dist%mode(i_mode)%num_conc = new_N
 
-       aero_dist%mode(i_mode)%num_conc = new_N
+         ! Integrated deposition rate for the 3-rd moment (proportional to volume conc.)
+         m_3_rate = -1.0d0 * scenario_integrated_loss_rate_drydep(scenario, aero_mode, 3.0d0, &
+                                                                  density, env_state)
+         M = N * d_pg**3.0d0 * exp((3.0d0**2.0d0)/2.0d0 * (ln_sigma_g**2.0d0))
+         new_M = M * exp(m_3_rate * del_t)
 
-       ! Integrated deposition rate for the 3-rd moment (proportional to volume conc.)
-       m_3_rate = -1.0d0 * scenario_integrated_loss_rate_drydep(scenario, aero_mode, 3.0d0, &
-                                                                 density, env_state)
-       M = N * d_pg**3.0d0 * exp((3.0d0**2.0d0)/2.0d0 * (ln_sigma_g**2.0d0))
-       new_M = M * exp(m_3_rate * del_t)
-
-       ! New geometric mean diameter
-       new_d_pg = (new_M / new_N * exp(-(3.0d0**2.0d0)/2.0d0 * (ln_sigma_g**2.0d0)))**(1.0d0/3.0d0)
-       aero_dist%mode(i_mode)%char_radius = new_d_pg / 2.0d0
+         ! New geometric mean diameter
+         new_d_pg = (new_M / new_N * exp(-(3.0d0**2.0d0)/2.0d0 * (ln_sigma_g**2.0d0)))**(1.0d0/3.0d0)
+         aero_dist%mode(i_mode)%char_radius = new_d_pg / 2.0d0
       end do
     end if
 
@@ -802,8 +794,9 @@ contains
                 result, abserr, neval, ier, alist, blist, rlist, elist, iord, last)
 
     if (ier > 0) then
-     call die_msg(837465, "QUADPACK integration failed (error code: " &
-                         // trim(integer_to_string(ier)))
+       call assert_msg(909106718, ier == 0, &
+            "QUADPACK integration failed, error code: " &
+            // trim(integer_to_string(ier)))
     endif
 
     M_k = d_pg**moment * exp(moment**2 * ln_sigma_g**2 / 2.0d0)
@@ -1388,7 +1381,7 @@ contains
     !> Dry deposition parameters.
     type(drydep_params_t), intent(inout) :: drydep_params
 
-    !> \page input_format_chamber Input File Format: Dry Deposition Parameters
+    !> \page input_format_drydep_params Input File Format: Dry Deposition Parameters
     !!
     !! Dry deposition is simulatied using the specified parameters:
     !! - \b z_ref (real, unit m): the reference height \f$z_{\rm ref}\f$ used 
@@ -1495,7 +1488,7 @@ contains
     !> Value to pack.
     type(scenario_t), intent(in) :: val
 
-    integer :: total_size, i, n
+    integer :: total_size, i
 
     total_size = &
          pmc_mpi_pack_size_real_array(val%temp_time) &

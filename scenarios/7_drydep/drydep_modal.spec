@@ -1,5 +1,5 @@
 run_type modal                       # modal run
-output_prefix data/modal_dpg_00001000000000000000_sig_2_5_emerson_grass
+output_prefix out/modal_dpg_00001000000000000000_sig_2_5_emerson_grass
 
 t_max 28800                          # total simulation time (s)
 del_t 60                             # timestep (s)

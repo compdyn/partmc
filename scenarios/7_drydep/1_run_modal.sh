@@ -5,7 +5,7 @@ set -e
 # turn on command echoing
 set -v
 
-mkdir -p data
+mkdir -p out
 
 ../../build/partmc drydep_modal.spec
 

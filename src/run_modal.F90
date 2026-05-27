@@ -62,7 +62,7 @@ contains
 
       real(kind=dp) time, last_output_time, last_progress_time
 
-      integer i, i_time, n_time, i_summary, i_mode, mode
+      integer i_time, n_time, i_summary
       logical do_output, do_progress
 
       call check_time_multiple("t_max", run_modal_opt%t_max, &

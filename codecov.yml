@@ -1,8 +1,3 @@
-codecov:
-  notify:
-    after_n_builds: 4
-    wait_for_ci: true
-
 coverage:
   status:
     project:

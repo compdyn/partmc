@@ -427,6 +427,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Update the modal aerosol distribution to account for particle loss.
   subroutine scenario_update_aero_modes(aero_dist, del_t, env_state, &
                                         density, scenario)
 
@@ -439,10 +440,7 @@ contains
     !> Particle density (kg m^-3), assumed uniform across all modes.
     real(kind=dp), intent(in) :: density
     !> Scenario
-    type(scenario_t), intent(inout) :: scenario
-
-    !> Current mode
-    type(aero_mode_t) :: aero_mode
+    type(scenario_t), intent(in) :: scenario
 
     real(kind=dp) :: N, d_pg, ln_sigma_g
     real(kind=dp) :: m_0_rate, m_3_rate
@@ -458,29 +456,29 @@ contains
        return
     else if (scenario%loss_function_type == SCENARIO_LOSS_FUNCTION_DRYDEP) then
       do i_mode = 1,aero_dist_n_mode(aero_dist)
-         aero_mode = aero_dist%mode(i_mode)
-         N = aero_mode%num_conc
+         N = aero_dist%mode(i_mode)%num_conc
 
          if (N == 0d0) cycle
 
-         d_pg = aero_mode%char_radius * 2.0d0
-         ln_sigma_g = aero_mode%log10_std_dev_radius / log10(exp(1.0d0))
+         d_pg = aero_dist%mode(i_mode)%char_radius * 2.0d0
+         ln_sigma_g = aero_dist%mode(i_mode)%log10_std_dev_radius / log10(exp(1.0d0))
 
          ! Integrated deposition rate for the 0-th moment (num. conc.)
-         m_0_rate = -1.0d0 * scenario_integrated_loss_rate_drydep(scenario, aero_mode, &
-                     0.0d0, density, env_state)
+         m_0_rate = -1.0d0 * scenario_integrated_loss_rate_drydep(scenario, &
+                             aero_dist%mode(i_mode), 0.0d0, density, env_state)
          new_N = N * exp(m_0_rate * del_t)
 
          aero_dist%mode(i_mode)%num_conc = new_N
 
          ! Integrated deposition rate for the 3-rd moment (proportional to volume conc.)
-         m_3_rate = -1.0d0 * scenario_integrated_loss_rate_drydep(scenario, aero_mode, 3.0d0, &
-                                                                  density, env_state)
+         m_3_rate = -1.0d0 * scenario_integrated_loss_rate_drydep(scenario, &
+                             aero_dist%mode(i_mode), 3.0d0, density, env_state)
          M = N * d_pg**3.0d0 * exp((3.0d0**2.0d0)/2.0d0 * (ln_sigma_g**2.0d0))
          new_M = M * exp(m_3_rate * del_t)
 
          ! New geometric mean diameter
-         new_d_pg = (new_M / new_N * exp(-(3.0d0**2.0d0)/2.0d0 * (ln_sigma_g**2.0d0)))**(1.0d0/3.0d0)
+         new_d_pg = (new_M / new_N &
+                    * exp(-(3.0d0**2.0d0)/2.0d0 * (ln_sigma_g**2.0d0)))**(1.0d0/3.0d0)
          aero_dist%mode(i_mode)%char_radius = new_d_pg / 2.0d0
       end do
     end if
@@ -748,7 +746,6 @@ contains
     real(kind=dp) :: density_air
     real(kind=dp) :: visc_d, visc_k
     real(kind=dp) :: gas_speed, gas_mean_free_path
-    real(kind=dp) :: u_star
     real(kind=dp) :: M_k
     real(kind=dp) :: lower, upper, epsabs, epsrel, result, abserr, ref
     integer :: limit, neval, ier, last
@@ -793,11 +790,9 @@ contains
     call dqagse(dep_vel_integrand, lower, upper, epsabs, epsrel, limit, &
                 result, abserr, neval, ier, alist, blist, rlist, elist, iord, last)
 
-    if (ier > 0) then
-       call assert_msg(909106718, ier == 0, &
-            "QUADPACK integration failed, error code: " &
-            // trim(integer_to_string(ier)))
-    endif
+    call assert_msg(909106718, ier == 0, &
+       "QUADPACK integration failed, error code: " &
+       // trim(integer_to_string(ier)))
 
     M_k = d_pg**moment * exp(moment**2 * ln_sigma_g**2 / 2.0d0)
 

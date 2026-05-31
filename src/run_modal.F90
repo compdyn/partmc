@@ -29,6 +29,22 @@ module pmc_run_modal
       real(kind=dp) :: t_progress
       !> Output prefix.
       character(len=300) :: prefix
+      !> Whether to run CAMP
+      logical :: do_camp_chem
+      !> Whether to run TChem
+      logical :: do_tchem
+      !> Whether to do coagulation
+      logical :: do_coagulation
+      !> Whether to do condensation
+      logical :: do_condensation
+      !> Whether to run MOSAIC
+      logical :: do_mosaic
+      !> Whether to compute optical properties
+      logical :: do_optical
+      !> Whether to do nucleation
+      logical :: do_nucleation
+      !> Whether to do immersion freezing
+      logical :: do_immersion_freezing
       !> UUID of the simulation.
       character(len=PMC_UUID_LEN) :: uuid
     end type run_modal_opt_t
@@ -46,7 +62,7 @@ contains
       !> Aerosol distribution.
       type(aero_dist_t), intent(inout) :: aero_dist
       !> Environment data.
-      type(scenario_t), intent(inout) :: scenario
+      type(scenario_t), intent(in) :: scenario
       !> Environment state.
       type(env_state_t), intent(inout) :: env_state
       !> Gas data.
@@ -78,7 +94,7 @@ contains
       end if
 
       ! output data structure
-      call gas_state_set_size(gas_state, gas_data_n_spec(gas_data))   
+      call gas_state_set_size(gas_state, gas_data_n_spec(gas_data))
 
       ! Initialize time.
       time = 0d0
@@ -120,7 +136,7 @@ contains
           call aero_binned_add_aero_dist(aero_binned, bin_grid, aero_data, &
                aero_dist)
           call output_modal(run_modal_opt%prefix, aero_binned, aero_dist, aero_data, &
-               env_state, gas_data, gas_state, bin_grid, scenario,i_summary, time, &
+               env_state, gas_data, gas_state, bin_grid, scenario, i_summary, time, &
                run_modal_opt%del_t, run_modal_opt%uuid)
           call aero_binned_zero(aero_binned)
         end if
@@ -134,6 +150,140 @@ contains
       end do
 
     end subroutine run_modal
+
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Read the specification for a run_modal simulation from a spec file.
+  subroutine spec_file_read_run_modal(file, run_modal_opt, aero_data, &
+       bin_grid, gas_data, env_state, aero_dist_init, scenario)
+
+    !> Spec file.
+    type(spec_file_t), intent(inout) :: file
+    !> Options controlling the operation of run_modal().
+    type(run_modal_opt_t), intent(inout) :: run_modal_opt
+    !> Aerosol data.
+    type(aero_data_t), intent(out) :: aero_data
+    !> Bin grid.
+    type(bin_grid_t), intent(out) :: bin_grid
+    !> Gas data.
+    type(gas_data_t), intent(out) :: gas_data
+    !> Environment state.
+    type(env_state_t), intent(out) :: env_state
+    !> Initial aerosol distribution.
+    type(aero_dist_t), intent(out) :: aero_dist_init
+    !> Scenario.
+    type(scenario_t), intent(out) :: scenario
+
+    character(len=PMC_MAX_FILENAME_LEN) :: sub_filename
+    type(spec_file_t) :: sub_file
+
+    call spec_file_read_string(file, 'output_prefix', run_modal_opt%prefix)
+
+    call spec_file_read_real(file, 't_max', run_modal_opt%t_max)
+    call spec_file_read_real(file, 'del_t', run_modal_opt%del_t)
+    call spec_file_read_real(file, 't_output', run_modal_opt%t_output)
+    call spec_file_read_real(file, 't_progress', run_modal_opt%t_progress)
+
+    call spec_file_read_radius_bin_grid(file, bin_grid)
+
+    call spec_file_read_logical(file, 'do_camp_chem', run_modal_opt%do_camp_chem)
+    if (run_modal_opt%do_camp_chem) then
+       call spec_file_die_msg(263948175, file, &
+            "modal run does not support CAMP chemistry")
+    end if
+
+    call spec_file_read_logical(file, 'do_tchem', run_modal_opt%do_tchem)
+    if (run_modal_opt%do_tchem) then
+       call spec_file_die_msg(195837264, file, &
+            "modal run does not support TChem chemistry")
+    end if
+
+    call spec_file_read_string(file, 'gas_data', sub_filename)
+    call spec_file_open(sub_filename, sub_file)
+    call spec_file_read_gas_data(sub_file, gas_data)
+    call spec_file_close(sub_file)
+
+    call spec_file_read_string(file, 'aerosol_data', sub_filename)
+    call spec_file_open(sub_filename, sub_file)
+    call spec_file_read_aero_data(sub_file, aero_data)
+    call spec_file_close(sub_file)
+
+    call spec_file_read_fractal(file, aero_data%fractal)
+
+    call spec_file_read_string(file,'aerosol_init', sub_filename)
+    call spec_file_open(sub_filename, sub_file)
+    call spec_file_read_aero_dist(sub_file, aero_data, .false., aero_dist_init)
+    call spec_file_close(sub_file)
+
+    call spec_file_read_scenario(file, gas_data, aero_data, .false., scenario)
+    call spec_file_read_env_state(file, env_state)
+
+    call spec_file_read_logical(file, 'do_coagulation', run_modal_opt%do_coagulation)
+    if (run_modal_opt%do_coagulation) then
+       call spec_file_die_msg(473829156, file, &
+            "modal run does not support coagulation")
+    end if
+
+    call spec_file_read_logical(file, 'do_condensation', run_modal_opt%do_condensation)
+    if (run_modal_opt%do_condensation) then
+       call spec_file_die_msg(612938475, file, &
+            "modal run does not support condensation")
+    end if
+
+    call spec_file_read_logical(file, 'do_mosaic', run_modal_opt%do_mosaic)
+    if (run_modal_opt%do_mosaic) then
+       call spec_file_die_msg(584729163, file, &
+            "modal run does not support MOSAIC chemistry")
+    end if
+
+    call spec_file_read_logical(file, 'do_optical', run_modal_opt%do_optical)
+    if (run_modal_opt%do_optical) then
+       call spec_file_die_msg(527436819, file, &
+            "modal run does not support optical properties calculation")
+    end if
+
+    call spec_file_read_logical(file, 'do_nucleation', run_modal_opt%do_nucleation)
+    if (run_modal_opt%do_nucleation) then
+       call spec_file_die_msg(391847265, file, &
+            "modal run does not support nucleation")
+    end if
+
+    call spec_file_read_logical(file, 'do_immersion_freezing', run_modal_opt%do_immersion_freezing)
+    if (run_modal_opt%do_immersion_freezing) then
+       call spec_file_die_msg(748291635, file, &
+            "modal run does not support immersion freezing")
+    end if
+
+    call spec_file_close(file)
+
+    ! Modal runs do not support aerosol emissions, background dilution,
+    ! or loss functions other than drydep/none.
+    if (size(scenario%aero_emission_rate_scale) > 0) then
+       call assert_msg(583920417, &
+            all(scenario%aero_emission_rate_scale == 0.0d0), &
+            "modal run does not support aerosol emissions: " &
+            // "all aero_emission rates must be zero")
+    end if
+    if (size(scenario%aero_dilution_rate) > 0) then
+       call assert_msg(742916380, &
+            all(scenario%aero_dilution_rate == 0.0d0), &
+            "modal run does not support aerosol background dilution: " &
+            // "all aero_dilution rates must be zero")
+    end if
+    call assert_msg(631804952, &
+         scenario%loss_function_type == SCENARIO_LOSS_FUNCTION_NONE &
+         .or. scenario%loss_function_type == SCENARIO_LOSS_FUNCTION_DRYDEP, &
+         "modal run only supports loss_function none or drydep")
+
+    ! All data from spec file read. Do the modal run.
+
+    call pmc_srand(0,0)
+
+    call uuid4_str(run_modal_opt%uuid)
+
+    call scenario_init_env_state(scenario, env_state, 0d0)
+
+  end subroutine spec_file_read_run_modal
 
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

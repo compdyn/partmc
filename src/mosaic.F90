@@ -249,7 +249,7 @@ contains
     ! compute aerosol conversion factors
     do i_spec = 1,aero_data_n_spec(aero_data)
        ! converts m^3(species) to nmol(species)/m^3(air)
-       conv_fac(i_spec) = 1.D9 * aero_data%density(i_spec) &
+       conv_fac(i_spec) = 1.0d6 * aero_data%density(i_spec) &
             / aero_data%molec_weight(i_spec)
     enddo
 
@@ -394,7 +394,7 @@ contains
     ! compute aerosol conversion factors
     do i_spec = 1,aero_data_n_spec(aero_data)
        ! converts m^3(species) to nmol(species)/m^3(air)
-       conv_fac(i_spec) = 1d9 * aero_data%density(i_spec) &
+       conv_fac(i_spec) = 1.0d6 * aero_data%density(i_spec) &
             / aero_data%molec_weight(i_spec)
     enddo
 
@@ -559,17 +559,9 @@ contains
 
      it = 1
      jaerosolstate = 0 
-!     print
-!     call time_integration_mode(gam_ratio, iter_MESA, aH2O_a)
-!     call IntegrateChemistry( it,          & !intent-ins
-!         jaerosolstate, dp_wet_a,         & !intent-inouts
-!          aH2O_a, gam_ratio, iter_mesa     ) !intent-outs
-     call GasChemistry( told_sec, tcur_sec )
-     
-     call aerosoldynamics( it, tcur_sec, told_sec,  & !intent-ins (t_out, t_in)
-          pr_atm, rh, te, cair_molm3,          &
-          cnn, jaerosolstate, dp_wet_a,         & !intent-inouts
-          aH2O_a, gam_ratio, iter_mesa          ) !intent-outs
+     call IntegrateChemistry( it,          & !intent-ins
+         jaerosolstate, dp_wet_a,         & !intent-inouts
+          aH2O_a, gam_ratio, iter_mesa     ) !intent-outs
 
     ! map MOSAIC -> PartMC
     if (do_optical) then

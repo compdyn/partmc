@@ -14,7 +14,7 @@ runs:
       shell: bash
 
     - name: Upload coverage report to codecov.io
-      uses: codecov/codecov-action@v5.5.0
+      uses: codecov/codecov-action@v6
       with:
         token: ${{ inputs.codecov_token }}
         fail_ci_if_error: true

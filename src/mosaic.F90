@@ -438,7 +438,7 @@ contains
 !                  aer(i_spec_mosaic, 3, i_part) / (conv_fac(i_spec) * num_conc)
           end if
        end do
-       aero_state%apa%particle(i_part)%water_hyst_leg = cnn(offset +  kjhyst_a) !jhyst_leg(i_part)
+       aero_state%apa%particle(i_part)%water_hyst_leg = nint(cnn(offset +  kjhyst_a)) !jhyst_leg(i_part)
 
        ! handle water specially
        ! convert kg(water)/m^3(air) to m^3(water)

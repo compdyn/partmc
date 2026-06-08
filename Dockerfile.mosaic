@@ -1,13 +1,8 @@
-# Dockerfile to build PartMC with MOSAIC chemistry support.
-#
-# Build:  docker build -t partmc-mosaic -f Dockerfile.mosaic .
-# Test:   docker run -t partmc-mosaic bash -c 'cd /build; make test'
-#
-# MOSAIC and PartMC are compiled in the same image with the same gfortran so
-# that the MOSAIC .mod files are ABI-compatible with the PartMC build.
+# PartMC with MOSAIC chemistry.
+#   Build: docker build -t partmc-mosaic -f Dockerfile.mosaic .
+#   Test:  docker run -t partmc-mosaic bash -c 'cd /build; make test'
 
-# Pull Fedora from its canonical registry rather than Docker Hub, which
-# intermittently returns 500 errors (e.g. in GitHub Actions).
+# Fedora's own registry; Docker Hub intermittently 500s in CI.
 FROM registry.fedoraproject.org/fedora:41
 
 RUN dnf -y update \
@@ -25,9 +20,7 @@ RUN dnf -y update \
         cmake \
     && dnf clean all
 
-# Build MOSAIC (box model + libmosaic.a) from the public open-atmos source.
-# The partmc-library branch produces the library and module files PartMC links
-# against. compile.sh stages sources into compile/, so create it first.
+# Build MOSAIC with the same gfortran so its .mod files are ABI-compatible.
 ARG MOSAIC_BRANCH=partmc-library
 RUN git clone --depth 1 --branch ${MOSAIC_BRANCH} \
         https://github.com/open-atmos/mosaic.git /mosaic-src \
@@ -35,14 +28,13 @@ RUN git clone --depth 1 --branch ${MOSAIC_BRANCH} \
     && mkdir -p compile \
     && ./compile.sh gfortran
 
-# Stage MOSAIC artifacts into the layout PartMC's CMake expects: libmosaic.a in
-# $MOSAIC_HOME/lib and the .mod files in $MOSAIC_HOME/include.
+# Stage artifacts into the lib/ and include/ layout PartMC's CMake expects.
 ENV MOSAIC_HOME=/opt/mosaic
 RUN mkdir -p ${MOSAIC_HOME}/lib ${MOSAIC_HOME}/include \
     && cp /mosaic-src/MOSAIC_v2/compile/libmosaic.a ${MOSAIC_HOME}/lib/ \
     && cp /mosaic-src/MOSAIC_v2/compile/*.mod ${MOSAIC_HOME}/include/
 
-# NOTE: Modify .dockerignore to whitelist files/directories to copy.
+# See .dockerignore to control what gets copied.
 COPY . /partmc/
 
 RUN mkdir /build \

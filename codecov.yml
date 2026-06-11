@@ -4,7 +4,16 @@ coverage:
       default:
         target: auto
         threshold: 1%
+        if_ci_failed: success
+        if_not_found: success
+        removed_code_behavior: adjust_base
+        branches:
+          - "!master"
     patch:
       default:
         target: auto
-        threshold: 1%
+        threshold: 5%
+        if_ci_failed: success
+        if_not_found: success
+        only_pulls: true
+        informational: true

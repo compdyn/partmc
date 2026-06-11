@@ -51,7 +51,8 @@ contains
         tbeg_sec, dt_sec, rlon, rlat, zalt_m, &
         RH, te, pr_atm, cair_mlc, cair_molm3, ppb
     use module_data_mosaic_aero, only: mcoag_flag1, nbin_a_max, &
-         mSIZE_FRAMEWORK, mhyst_method, mUNSTRUCTURED, mhyst_uporlo_jhyst
+         mSIZE_FRAMEWORK, mhyst_method, mUNSTRUCTURED, mhyst_uporlo_jhyst, &
+         maeroptic_aero
     use module_data_mosaic_constants, only: avogad
     use module_mosaic_init_aerpar, only: mosaic_init_aer_params
 #endif
@@ -102,6 +103,10 @@ contains
     else
        maeroptic = 0
     end if
+    ! the aerosol-side optical flag gates the refractive-index calculation
+    ! inside calc_dry_n_wet_aerosol_props(); the library normally copies it
+    ! from maeroptic in readinputfile(), which PartMC does not call
+    maeroptic_aero = maeroptic
     mshellcore = 1          ! 0 = no shellcore, 1 = core is BC only
                             ! 2 = core is BC and DUST
     msolar = 1              ! 1 = diurnally varying phot, 2 = fixed phot
@@ -563,13 +568,12 @@ contains
          jaerosolstate, dp_wet_a,         & !intent-inouts
           aH2O_a, gam_ratio, iter_mesa     ) !intent-outs
 
-    ! map MOSAIC -> PartMC
+    ! compute optical properties from the post-chemistry MOSAIC state
+    ! (cnn), before mosaic_to_partmc() which may change the number of
+    ! particles
     if (do_optical) then
-       ! must do optical properties first, as mosaic_to_partmc() may
-       ! change the number of particles
- !      call aerosol_optical
-!       call mosaic_aero_optical(env_state, aero_data, &
-!            aero_state, gas_data, gas_state)
+       call mosaic_aero_optical(env_state, aero_data, &
+            aero_state, gas_data, gas_state)
     end if
 
     call mosaic_to_partmc(env_state, aero_data, aero_state, gas_data, &
@@ -581,17 +585,24 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Compute the optical properties of each aerosol particle.
-  !> FIXME: currently disabled.
   !!
-  !! At the moment we are computing the aerosol optical properties
-  !! every timestep from withing mosaic_timestep. This decision should
-  !! be re-evaluated at some point in the future.
+  !! Assumes the caller has already mapped the current aerosol composition
+  !! into the MOSAIC cnn() array. The optical properties are currently
+  !! computed every timestep from within mosaic_timestep(); this decision
+  !! could be re-evaluated in the future.
   subroutine mosaic_aero_optical(env_state, aero_data, &
        aero_state, gas_data, gas_state)
 
 #ifdef PMC_USE_MOSAIC
-!    use module_data_mosaic_aero, only: ri_shell_a, ri_core_a, &
-!         ext_cross, scat_cross, asym_particle, dp_core_a
+    use module_data_mosaic_kind, only: r8
+    use module_data_mosaic_aero, only: naer, nelectrolyte, &
+         ngas_aerchtot, ngas_volatile, nbin_a, nbin_a_max, jtotal, &
+         ref_index_a, dens_comp_a, mw_comp_a, dens_aer_mac, mw_aer_mac
+    use module_data_mosaic_main, only: ngas_max, naer_tot
+    use module_data_mosaic_boxmod, only: cnn, knum_a, kwater_a, kjhyst_a, &
+         kdpdry_a, ksigmag_a
+    use module_mosaic_box_aerchem, only: aerosol_optical_properties
+    use module_mosaic_miedriver, only: miedriver
 #endif
 
     !> Environment state.
@@ -606,56 +617,121 @@ contains
     type(gas_state_t), intent(in) :: gas_state
 
 #ifdef PMC_USE_MOSAIC
-    ! MOSAIC function interfaces
-    interface
-!#ifdef PMC_USE_MOSAIC_MULTI_OPT
-!       subroutine aerosol_optical(i_wavelength)
-!         integer, optional :: i_wavelength
-!       end subroutine aerosol_optical
-!#else
-!       subroutine aerosol_optical()
-!       end subroutine aerosol_optical
-!#endif
-    end interface
+    integer :: i_part, iaer, offset, n_part
+    real(r8) :: vlambc, qextc, qscatc, gscac, extc, scatc
+    real(r8) :: tot_cl_in, tot_nh4_in, tot_no3_in, XT
 
-    integer :: i_part
+    ! MOSAIC aerchem working arrays, sized to the current bin count
+    integer,  allocatable :: jaerosolstate(:), jphase(:), jhyst_leg(:)
+    real(r8), allocatable :: num_a(:), water_a(:)
+    real(r8), allocatable :: Dp_dry_a(:), Dp_wet_a(:), dp_core_a(:)
+    real(r8), allocatable :: area_dry_a(:), area_wet_a(:)
+    real(r8), allocatable :: dens_dry_a(:), dens_wet_a(:)
+    real(r8), allocatable :: mass_dry_a(:), mass_wet_a(:)
+    real(r8), allocatable :: vol_dry_a(:), vol_wet_a(:)
+    real(r8), allocatable :: sigmag_a(:)
+    real(r8), allocatable :: aer(:,:,:), electrolyte(:,:,:)
+    real(r8), allocatable :: gas(:), total_species(:)
+    complex,  allocatable :: ri_shell_a(:), ri_avg_a(:), ri_core_a(:)
 
-    ! map PartMC -> MOSAIC
-    call mosaic_from_partmc(env_state, aero_data, aero_state, &
-         gas_data, gas_state)
+    ! This routine assumes the caller has already mapped the current
+    ! (post-chemistry) aerosol composition into the MOSAIC cnn() array,
+    ! either via mosaic_timestep()/IntegrateChemistry() or an explicit
+    ! mosaic_from_partmc() call. We do NOT re-map here, so that the optical
+    ! properties reflect the post-chemistry state.
+    n_part = aero_state_n_part(aero_state)
+    if (n_part < 1) return
+    nbin_a = n_part
 
-!    call aerosol_optical
+    allocate(jaerosolstate(nbin_a_max), jphase(nbin_a_max), &
+         jhyst_leg(nbin_a_max))
+    allocate(num_a(nbin_a_max), water_a(nbin_a_max))
+    allocate(Dp_dry_a(nbin_a_max), Dp_wet_a(nbin_a_max), dp_core_a(nbin_a_max))
+    allocate(area_dry_a(nbin_a_max), area_wet_a(nbin_a_max))
+    allocate(dens_dry_a(nbin_a_max), dens_wet_a(nbin_a_max))
+    allocate(mass_dry_a(nbin_a_max), mass_wet_a(nbin_a_max))
+    allocate(vol_dry_a(nbin_a_max), vol_wet_a(nbin_a_max))
+    allocate(sigmag_a(nbin_a_max))
+    allocate(aer(naer,3,nbin_a_max), electrolyte(nelectrolyte,3,nbin_a_max))
+    allocate(gas(ngas_aerchtot), total_species(ngas_volatile))
+    allocate(ri_shell_a(nbin_a_max), ri_avg_a(nbin_a_max), &
+         ri_core_a(nbin_a_max))
 
-    ! map MOSAIC -> PartMC
-    ! work backwards for consistency with mosaic_to_partmc(), which
-    ! has specific ordering requirements
-    do i_part = aero_state_n_part(aero_state),1,-1
-#ifdef PMC_USE_MOSAIC_MULTI_OPT
-!       aero_state%apa%particle(i_part)%absorb_cross_sect = &
-!            (ext_cross(i_part,:) - scat_cross(i_part,:)) / 1d4 ! (m^2)
-!       aero_state%apa%particle(i_part)%scatter_cross_sect = &
-!            scat_cross(i_part,:) / 1d4 ! (m^2)
-!       aero_state%apa%particle(i_part)%asymmetry = &
-!            asym_particle(i_part,:) ! (1)
-!       aero_state%apa%particle(i_part)%refract_shell = &
-!            cmplx(ri_shell_a(i_part,:), kind=dc) ! (1)
-!       aero_state%apa%particle(i_part)%refract_core =&
-!            cmplx(ri_core_a(i_part,:), kind=dc) ! (1)
-!       aero_state%apa%particle(i_part)%core_vol = &
-!            aero_data_diam2vol(aero_data, dp_core_a(i_part)) / 1d6 ! (m^3)
-#else
-!       aero_state%apa%particle(i_part)%absorb_cross_sect = (ext_cross(i_part) &
-!            - scat_cross(i_part)) / 1d4                       ! (m^2)
-!       aero_state%apa%particle(i_part)%scatter_cross_sect = &
-!            scat_cross(i_part) / 1d4 ! (m^2)
-!       aero_state%apa%particle(i_part)%asymmetry = asym_particle(i_part) ! (1)
-!       aero_state%apa%particle(i_part)%refract_shell = &
-!            cmplx(ri_shell_a(i_part), kind=dc) ! (1)
-!       aero_state%apa%particle(i_part)%refract_core =&
-!            cmplx(ri_core_a(i_part), kind=dc) ! (1)
-!       aero_state%apa%particle(i_part)%core_vol = &
-!            aero_data_diam2vol(aero_data, dp_core_a(i_part)) / 1d6 ! (m^3)
-#endif
+    aer = 0.0_r8
+    electrolyte = 0.0_r8
+    num_a = 0.0_r8
+    water_a = 0.0_r8
+    Dp_dry_a = 0.0_r8
+    ! Dp_wet_a/dp_core_a and the dry/wet property arrays are intent(inout)
+    ! and only written by aerosol_optical_properties() for bins it deems
+    ! valid; bins flagged no_aerosol are left untouched, so they MUST be
+    ! pre-zeroed or the Mie driver would receive uninitialized diameters.
+    Dp_wet_a = 0.0_r8
+    dp_core_a = 0.0_r8
+    area_dry_a = 0.0_r8
+    area_wet_a = 0.0_r8
+    dens_dry_a = 0.0_r8
+    dens_wet_a = 0.0_r8
+    mass_dry_a = 0.0_r8
+    mass_wet_a = 0.0_r8
+    vol_dry_a = 0.0_r8
+    vol_wet_a = 0.0_r8
+    sigmag_a = 1.0_r8
+    jaerosolstate = 0
+    jphase = jtotal
+    jhyst_leg = 0
+    ! optics use the existing condensed phase only
+    gas = 0.0_r8
+    total_species = 0.0_r8
+    tot_cl_in = 0.0_r8
+    tot_nh4_in = 0.0_r8
+    tot_no3_in = 0.0_r8
+    XT = 0.0_r8
+    ri_shell_a = (0.0, 0.0)
+    ri_avg_a = (0.0, 0.0)
+    ri_core_a = (0.0, 0.0)
+
+    ! unpack post-chemistry cnn() -> MOSAIC aerchem working arrays
+    do i_part = 1,n_part
+       offset = ngas_max + (i_part - 1)*naer_tot
+       num_a(i_part) = cnn(offset + knum_a)             ! #/cc(air)
+       water_a(i_part) = cnn(offset + kwater_a)           ! kg/m^3(air)
+       Dp_dry_a(i_part) = cnn(offset + kdpdry_a) * 1.0d-4  ! um -> cm
+       sigmag_a(i_part) = cnn(offset + ksigmag_a)
+       jhyst_leg(i_part) = nint(cnn(offset + kjhyst_a))
+       do iaer = 1, naer
+          ! cnn species are umol/m^3(air); aer expects nmol/m^3(air)
+          aer(iaer, jtotal, i_part) = cnn(offset + kwater_a + iaer) * 1.0d3
+       end do
+    end do
+
+    ! compute wet & core diameters and shell/core refractive indices
+    call aerosol_optical_properties( &
+         gas, aer, num_a, water_a, &
+         dens_comp_a, mw_comp_a, dens_aer_mac, mw_aer_mac, ref_index_a, &
+         Dp_dry_a, Dp_wet_a, dp_core_a, &
+         ri_shell_a, ri_core_a, ri_avg_a, jaerosolstate, jphase, &
+         tot_cl_in, tot_nh4_in, tot_no3_in, XT, area_dry_a, area_wet_a, &
+         dens_dry_a, dens_wet_a, mass_dry_a, mass_wet_a, vol_dry_a, &
+         vol_wet_a, total_species, electrolyte)
+
+    ! per-particle Mie calculation at 550 nm, then map results -> PartMC
+    do i_part = 1,n_part
+       vlambc = 0.550d0 ! wavelength (um)
+       call miedriver(Dp_wet_a(i_part), dp_core_a(i_part), &
+            ri_shell_a(i_part), ri_core_a(i_part), vlambc, &
+            qextc, qscatc, gscac, extc, scatc)
+       aero_state%apa%particle(i_part)%absorb_cross_sect = &
+            (extc - scatc) / 1d4                            ! cm^2 -> m^2
+       aero_state%apa%particle(i_part)%scatter_cross_sect = &
+            scatc / 1d4                                     ! cm^2 -> m^2
+       aero_state%apa%particle(i_part)%asymmetry = gscac    ! (1)
+       aero_state%apa%particle(i_part)%refract_shell = &
+            cmplx(ri_shell_a(i_part), kind=dc) ! (1)
+       aero_state%apa%particle(i_part)%refract_core = &
+            cmplx(ri_core_a(i_part), kind=dc) ! (1)
+       aero_state%apa%particle(i_part)%core_vol = &
+            aero_data_diam2vol(aero_data, dp_core_a(i_part)) / 1d6 ! (m^3)
     end do
 #endif
 

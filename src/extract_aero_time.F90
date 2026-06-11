@@ -141,7 +141,7 @@ contains
     write(*,'(a)') ''
     write(*,'(a)') 'options are:'
     write(*,'(a)') '  -h, --help        Print this help message.'
-    write(*,'(a)') '  -o, --out <file>  Output filename.'
+    write(*,'(a)') '  -o, --output <file>  Output filename.'
     write(*,'(a)') ''
     write(*,'(a)') 'Examples:'
     write(*,'(a)') '  extract_aero_time data_0001'

@@ -906,7 +906,7 @@ contains
 
     ! only serial code here
     if (pmc_mpi_rank() /= 0) then
-      return
+       return
     end if
 
     call spec_file_read_run_modal(file, run_modal_opt, aero_data, bin_grid, &

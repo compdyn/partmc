@@ -261,6 +261,9 @@ Functions/Subroutines</h2></td></tr>
 <tr class="memitem:a1da5df278262d67cfd7576fedea5e9aa"><td class="memItemLeft" align="right" valign="top">integer function&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepmc__util.html#a1da5df278262d67cfd7576fedea5e9aa">pow2_above</a> (n)</td></tr>
 <tr class="memdesc:a1da5df278262d67cfd7576fedea5e9aa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return the least power-of-2 that is at least equal to n.  <a href="namespacepmc__util.html#a1da5df278262d67cfd7576fedea5e9aa">More...</a><br /></td></tr>
 <tr class="separator:a1da5df278262d67cfd7576fedea5e9aa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aee7fee6c41a699a3eceea31cef7d993a"><td class="memItemLeft" align="right" valign="top">real(kind=dp) function&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepmc__util.html#aee7fee6c41a699a3eceea31cef7d993a">fast_pow</a> (base, exponent)</td></tr>
+<tr class="memdesc:aee7fee6c41a699a3eceea31cef7d993a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute base**exponent, using direct multiplication for common integer exponents (-3 to 3) to avoid the overhead of the general power operator.  <a href="namespacepmc__util.html#aee7fee6c41a699a3eceea31cef7d993a">More...</a><br /></td></tr>
+<tr class="separator:aee7fee6c41a699a3eceea31cef7d993a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad3723654701f3b031bc1ab8e5cbc3378"><td class="memItemLeft" align="right" valign="top">real(kind=dp) function&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepmc__util.html#ad3723654701f3b031bc1ab8e5cbc3378">system_clock_time</a> ()</td></tr>
 <tr class="memdesc:ad3723654701f3b031bc1ab8e5cbc3378"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the current system clock time in seconds.  <a href="namespacepmc__util.html#ad3723654701f3b031bc1ab8e5cbc3378">More...</a><br /></td></tr>
 <tr class="separator:ad3723654701f3b031bc1ab8e5cbc3378"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1476,6 +1479,45 @@ Variables</h2></td></tr>
 </dl>
 
 <p class="definition">Definition at line <a class="el" href="util_8_f90_source.html#l01946">1946</a> of file <a class="el" href="util_8_f90_source.html">util.F90</a>.</p>
+
+</div>
+</div>
+<a id="aee7fee6c41a699a3eceea31cef7d993a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aee7fee6c41a699a3eceea31cef7d993a">&#9670;&nbsp;</a></span>fast_pow()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">real(kind=dp) function pmc_util::fast_pow </td>
+          <td>(</td>
+          <td class="paramtype">real(kind=dp)&#160;</td>
+          <td class="paramname"><em>base</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(kind=dp)&#160;</td>
+          <td class="paramname"><em>exponent</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Compute base**exponent, using direct multiplication for common integer exponents (-3 to 3) to avoid the overhead of the general power operator. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">base</td><td>Base. </td></tr>
+    <tr><td class="paramname">exponent</td><td>Exponent. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="util_8_f90_source.html#l01978">1978</a> of file <a class="el" href="util_8_f90_source.html">util.F90</a>.</p>
 
 </div>
 </div>
@@ -2953,7 +2995,7 @@ Variables</h2></td></tr>
 
 <p>Returns the current system clock time in seconds. </p>
 
-<p class="definition">Definition at line <a class="el" href="util_8_f90_source.html#l01976">1976</a> of file <a class="el" href="util_8_f90_source.html">util.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="util_8_f90_source.html#l02008">2008</a> of file <a class="el" href="util_8_f90_source.html">util.F90</a>.</p>
 
 </div>
 </div>

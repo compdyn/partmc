@@ -289,14 +289,14 @@ $(function() {
 <div class="line"><a name="l00240"></a><span class="lineno">  240</span>&#160;<span class="keywordtype">    real</span>(kind=<a class="code" href="namespacepmc__constants.html#a396b7709ed4da67dac74cb46a1466ed6">dp</a>), <span class="keywordtype">intent(in)</span> :: radius</div>
 <div class="line"><a name="l00241"></a><span class="lineno">  241</span>&#160; </div>
 <div class="line"><a name="l00242"></a><span class="lineno">  242</span>&#160;    <span class="keywordtype">integer</span> :: i_group</div>
-<div class="line"><a name="l00243"></a><span class="lineno">  243</span>&#160;<span class="keywordtype">    real</span>(kind=<a class="code" href="namespacepmc__constants.html#a396b7709ed4da67dac74cb46a1466ed6">dp</a>) :: num_conc(<span class="keyword">size</span>(aero_weight_array%weight, 1))</div>
+<div class="line"><a name="l00243"></a><span class="lineno">  243</span>&#160;<span class="keywordtype">    real</span>(kind=<a class="code" href="namespacepmc__constants.html#a396b7709ed4da67dac74cb46a1466ed6">dp</a>) :: inv_sum</div>
 <div class="line"><a name="l00244"></a><span class="lineno">  244</span>&#160; </div>
-<div class="line"><a name="l00245"></a><span class="lineno">  245</span>&#160;    <span class="keywordflow">do</span> i_group = 1,<span class="keyword">size</span>(aero_weight_array%weight, 1)</div>
-<div class="line"><a name="l00246"></a><span class="lineno">  246</span>&#160;       num_conc(i_group) = <a class="code" href="namespacepmc__aero__weight.html#aca13cabb919a67bd13c75333b7a8daa9">aero_weight_num_conc_at_radius</a>( &amp;</div>
-<div class="line"><a name="l00247"></a><span class="lineno">  247</span>&#160;            aero_weight_array%weight(i_group, i_class), radius)</div>
-<div class="line"><a name="l00248"></a><span class="lineno">  248</span>&#160;<span class="keywordflow">    end do</span></div>
-<div class="line"><a name="l00249"></a><span class="lineno">  249</span>&#160;    <span class="comment">! harmonic mean (same as summing the computational volumes)</span></div>
-<div class="line"><a name="l00250"></a><span class="lineno">  250</span>&#160;    <a class="code" href="namespacepmc__aero__weight__array.html#a8a39b084f2952ba5f1068eadac2c48ed">aero_weight_array_num_conc_at_radius</a> = 1d0 / sum(1d0 / num_conc)</div>
+<div class="line"><a name="l00245"></a><span class="lineno">  245</span>&#160;    inv_sum = 0d0</div>
+<div class="line"><a name="l00246"></a><span class="lineno">  246</span>&#160;    <span class="keywordflow">do</span> i_group = 1, <span class="keyword">size</span>(aero_weight_array%weight, 1)</div>
+<div class="line"><a name="l00247"></a><span class="lineno">  247</span>&#160;       inv_sum = inv_sum + 1d0 / <a class="code" href="namespacepmc__aero__weight.html#aca13cabb919a67bd13c75333b7a8daa9">aero_weight_num_conc_at_radius</a>( &amp;</div>
+<div class="line"><a name="l00248"></a><span class="lineno">  248</span>&#160;            aero_weight_array%weight(i_group, i_class), radius)</div>
+<div class="line"><a name="l00249"></a><span class="lineno">  249</span>&#160;<span class="keywordflow">    end do</span></div>
+<div class="line"><a name="l00250"></a><span class="lineno">  250</span>&#160;    <a class="code" href="namespacepmc__aero__weight__array.html#a8a39b084f2952ba5f1068eadac2c48ed">aero_weight_array_num_conc_at_radius</a> = 1d0 / inv_sum</div>
 <div class="line"><a name="l00251"></a><span class="lineno">  251</span>&#160; </div>
 <div class="line"><a name="l00252"></a><span class="lineno">  252</span>&#160;  <span class="keyword">end function </span><a class="code" href="namespacepmc__aero__weight__array.html#a8a39b084f2952ba5f1068eadac2c48ed">aero_weight_array_num_conc_at_radius</a></div>
 <div class="line"><a name="l00253"></a><span class="lineno">  253</span>&#160; </div>

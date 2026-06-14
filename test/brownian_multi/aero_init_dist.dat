@@ -1,0 +1,17 @@
+# Small mode, pure species A
+mode_name init_a
+mass_frac aero_init_comp_a.dat   # species mass fractions (pure A)
+diam_type geometric              # type of diameter specified
+mode_type log_normal             # type of distribution
+num_conc 1e11                    # particle number concentration (#/m^3)
+geom_mean_diam 2e-8              # geometric mean diameter (m)
+log10_geom_std_dev 0.2           # log_10 of geometric std dev of diameter
+
+# Large mode, pure species B
+mode_name init_b
+mass_frac aero_init_comp_b.dat   # species mass fractions (pure B)
+diam_type geometric              # type of diameter specified
+mode_type log_normal             # type of distribution
+num_conc 1e10                    # particle number concentration (#/m^3)
+geom_mean_diam 1e-7             # geometric mean diameter (m)
+log10_geom_std_dev 0.2           # log_10 of geometric std dev of diameter

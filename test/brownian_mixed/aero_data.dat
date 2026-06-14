@@ -1,0 +1,4 @@
+#     dens (kg/m^3)   ions in soln (1)    molec wght (kg/mole)   kappa (1)   abifm_m (1)  abifm_c (1)
+A              1000                0                   18d-3      0                    0            0
+B              1800                0                   18d-3      0                    0            0
+C              2200                0                   18d-3      0                    0            0

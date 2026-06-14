@@ -190,6 +190,8 @@ add_test(test_additive ${CMAKE_BINARY_DIR}/test_run/run_test_directory.sh additi
 add_test(test_average ${CMAKE_BINARY_DIR}/test_run/run_test_directory.sh average)
 add_test(test_bidisperse ${CMAKE_BINARY_DIR}/test_run/run_test_directory.sh bidisperse)
 add_test(test_brownian ${CMAKE_BINARY_DIR}/test_run/run_test_directory.sh brownian)
+add_test(test_brownian_multi ${CMAKE_BINARY_DIR}/test_run/run_test_directory.sh brownian_multi)
+add_test(test_brownian_mixed ${CMAKE_BINARY_DIR}/test_run/run_test_directory.sh brownian_mixed)
 if(ENABLE_CAMP)
   add_test(test_camp ${CMAKE_BINARY_DIR}/test_run/run_test_directory.sh camp)
 endif()

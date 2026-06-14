@@ -10,6 +10,7 @@
 program extract_sectional_aero_size
 
   use pmc_aero_binned
+  use pmc_aero_data
   use pmc_output
   use pmc_mpi
   use getopt_m
@@ -20,15 +21,16 @@ program extract_sectional_aero_size
 
   character(len=PMC_MAX_FILENAME_LEN) :: in_prefix, out_filename
   character(len=PMC_MAX_FILENAME_LEN), allocatable :: filename_list(:)
+  character(len=AERO_NAME_LEN) :: spec_name
   type(bin_grid_t) :: bin_grid
   type(aero_data_t) :: aero_data
   type(aero_binned_t) :: aero_binned
-  integer :: index, out_unit
+  integer :: index, out_unit, i_spec
   integer :: i_file, n_file, i_bin, dist_type
   real(kind=dp) :: time, del_t
   character(len=PMC_UUID_LEN) :: uuid, run_uuid
   real(kind=dp), allocatable :: aero_dist(:,:)
-  type(option_s) :: opts(4)
+  type(option_s) :: opts(5)
 
   call pmc_mpi_init()
 
@@ -36,12 +38,14 @@ program extract_sectional_aero_size
   opts(2) = option_s("num", .false., 'n')
   opts(3) = option_s("mass", .false., 'm')
   opts(4) = option_s("output", .true., 'o')
+  opts(5) = option_s("species", .true., 's')
 
   dist_type = DIST_TYPE_NONE
   out_filename = ""
+  spec_name = ""
 
   do
-     select case(getopt("hnmo:", opts))
+     select case(getopt("hnmo:s:", opts))
      case(char(0))
         exit
      case('h')
@@ -61,6 +65,8 @@ program extract_sectional_aero_size
         dist_type = DIST_TYPE_MASS
      case('o')
         out_filename = optarg
+     case('s')
+        spec_name = trim(optarg)
      case( '?' )
         call print_help()
         call die_msg(546118086, 'unknown option: ' // trim(optopt))
@@ -82,11 +88,21 @@ program extract_sectional_aero_size
      call die_msg(576941805, 'must select distribution type (--num or --mass)')
   end if
 
+  if ((spec_name /= "") .and. (dist_type /= DIST_TYPE_MASS)) then
+     call print_help()
+     call die_msg(330918074, '--species can only be used with --mass')
+  end if
+
   if (out_filename == "") then
      if (dist_type == DIST_TYPE_NUM) then
         out_filename = trim(in_prefix) // "_aero_size_num.txt"
      elseif (dist_type == DIST_TYPE_MASS) then
-        out_filename = trim(in_prefix) // "_aero_size_mass.txt"
+        if (spec_name /= "") then
+           out_filename = trim(in_prefix) // "_aero_size_mass_" &
+                // trim(spec_name) // ".txt"
+        else
+           out_filename = trim(in_prefix) // "_aero_size_mass.txt"
+        end if
      else
         call die(767619107)
      end if
@@ -102,6 +118,13 @@ program extract_sectional_aero_size
        bin_grid=bin_grid, aero_data=aero_data, aero_binned=aero_binned)
   run_uuid = uuid
 
+  i_spec = 0
+  if (spec_name /= "") then
+     i_spec = aero_data_spec_by_name(aero_data, spec_name)
+     call assert_msg(330918075, i_spec > 0, &
+          "unknown species: " // trim(spec_name))
+  end if
+
   allocate(aero_dist(bin_grid_size(bin_grid), n_file))
 
   do i_file = 1,n_file
@@ -115,10 +138,15 @@ program extract_sectional_aero_size
      if (dist_type == DIST_TYPE_NUM) then
         aero_dist(:, i_file) = aero_binned%num_conc
      elseif (dist_type == DIST_TYPE_MASS) then
-        do i_bin = 1,bin_grid_size(bin_grid)
-           aero_dist(i_bin, i_file) = sum(aero_binned%vol_conc(i_bin, :) &
-                * aero_data%density)
-        end do
+        if (i_spec > 0) then
+           aero_dist(:, i_file) = aero_binned%vol_conc(:, i_spec) &
+                * aero_data%density(i_spec)
+        else
+           do i_bin = 1,bin_grid_size(bin_grid)
+              aero_dist(i_bin, i_file) = sum(aero_binned%vol_conc(i_bin, :) &
+                   * aero_data%density)
+           end do
+        end if
      else
         call die(141087960)
      end if
@@ -165,6 +193,7 @@ contains
     write(*,'(a)') '  -n, --num         Output number distribution.'
     write(*,'(a)') '  -m, --mass        Output mass distribution.'
     write(*,'(a)') '  -o, --output <file>  Output filename.'
+    write(*,'(a)') '  -s, --species <name>  Restrict --mass to one species.'
     write(*,'(a)') ''
     write(*,'(a)') 'Examples:'
     write(*,'(a)') '  extract_sectional_aero_size --num data_0001'

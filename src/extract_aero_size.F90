@@ -11,6 +11,7 @@ program extract_aero_size
 
   use pmc_aero_state
   use pmc_aero_particle
+  use pmc_aero_data
   use pmc_output
   use pmc_mpi
   use getopt_m
@@ -22,6 +23,7 @@ program extract_aero_size
   character(len=PMC_MAX_FILENAME_LEN) :: in_prefix, out_filename
   character(len=PMC_MAX_FILENAME_LEN), allocatable :: filename_list(:)
   character(len=1000) :: tmp_str
+  character(len=AERO_NAME_LEN) :: spec_name
   type(bin_grid_t) :: diam_grid
   type(aero_data_t) :: aero_data
   type(aero_state_t) :: aero_state
@@ -32,7 +34,7 @@ program extract_aero_size
   character(len=PMC_UUID_LEN) :: uuid, run_uuid
   real(kind=dp), allocatable :: diameters(:), num_concs(:), masses(:), hist(:)
   real(kind=dp), allocatable :: aero_dist(:,:)
-  type(option_s) :: opts(7)
+  type(option_s) :: opts(8)
 
   call pmc_mpi_init()
 
@@ -43,15 +45,17 @@ program extract_aero_size
   opts(5) = option_s("dmax", .true., 'X')
   opts(6) = option_s("nbin", .true., 'b')
   opts(7) = option_s("output", .true., 'o')
+  opts(8) = option_s("species", .true., 's')
 
   dist_type = DIST_TYPE_NONE
   d_min = 1d-10
   d_max = 1d-3
   n_bin = 100
   out_filename = ""
+  spec_name = ""
 
   do
-     select case(getopt("hnmN:X:b:o:", opts))
+     select case(getopt("hnmN:X:b:o:s:", opts))
      case(char(0))
         exit
      case('h')
@@ -77,6 +81,8 @@ program extract_aero_size
         n_bin = string_to_integer(optarg)
      case('o')
         out_filename = optarg
+     case('s')
+        spec_name = trim(optarg)
      case( '?' )
         call print_help()
         call die_msg(956456220, 'unknown option: ' // trim(optopt))
@@ -98,11 +104,21 @@ program extract_aero_size
      call die_msg(540839314, 'must select distribution type (--num or --mass)')
   end if
 
+  if ((spec_name /= "") .and. (dist_type /= DIST_TYPE_MASS)) then
+     call print_help()
+     call die_msg(330918073, '--species can only be used with --mass')
+  end if
+
   if (out_filename == "") then
      if (dist_type == DIST_TYPE_NUM) then
         out_filename = trim(in_prefix) // "_aero_size_num.txt"
      elseif (dist_type == DIST_TYPE_MASS) then
-        out_filename = trim(in_prefix) // "_aero_size_mass.txt"
+        if (spec_name /= "") then
+           out_filename = trim(in_prefix) // "_aero_size_mass_" &
+                // trim(spec_name) // ".txt"
+        else
+           out_filename = trim(in_prefix) // "_aero_size_mass.txt"
+        end if
      else
         call die(545030852)
      end if
@@ -134,7 +150,12 @@ program extract_aero_size
      if (dist_type == DIST_TYPE_NUM) then
         hist = bin_grid_histogram_1d(diam_grid, diameters, num_concs)
      elseif (dist_type == DIST_TYPE_MASS) then
-        masses = aero_state_masses(aero_state, aero_data)
+        if (spec_name /= "") then
+           masses = aero_state_masses(aero_state, aero_data, &
+                include=(/ spec_name /))
+        else
+           masses = aero_state_masses(aero_state, aero_data)
+        end if
         hist = bin_grid_histogram_1d(diam_grid, diameters, num_concs * masses)
      else
         call die(123323238)
@@ -184,6 +205,7 @@ contains
     write(*,'(a)') '  -X, --dmax <D>    Maximum diameter (m).'
     write(*,'(a)') '  -b, --nbin <N>    Number of size bins.'
     write(*,'(a)') '  -o, --output <file>  Output filename.'
+    write(*,'(a)') '  -s, --species <name>  Restrict --mass to one species.'
     write(*,'(a)') ''
     write(*,'(a)') 'Examples:'
     write(*,'(a)') '  extract_aero_size --num data_0001'

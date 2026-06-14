@@ -212,9 +212,15 @@ contains
 
   !> Computes an array of kernel values for each bin pair. k(i,j) is
   !> the kernel value at the centers of bins i and j. This assumes the
-  !> kernel is only a function of the particle volumes.
+  !> kernel is only a function of the particle volumes (and, through
+  !> the per-bin composition, the particle densities).
+  !!
+  !! The test particle for each bin is given that bin's mean
+  !! composition via \c bin_vol_frac (volume fractions summing to one),
+  !! so the kernel reflects the bin's mean density. With a single
+  !! species \c bin_vol_frac is simply one.
   subroutine bin_kernel(n_bin, bin_r, aero_data, coag_kernel_type, &
-       env_state, k)
+       env_state, bin_vol_frac, k)
 
     !> Number of bins.
     integer, intent(in) :: n_bin
@@ -226,6 +232,8 @@ contains
     integer, intent(in) :: coag_kernel_type
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
+    !> Per-bin mean composition as volume fractions (n_bin x n_spec).
+    real(kind=dp), intent(in) :: bin_vol_frac(:,:)
     !> Kernel values.
     real(kind=dp), intent(out) :: k(n_bin,n_bin)
 
@@ -236,8 +244,10 @@ contains
        do j = 1,n_bin
           call aero_particle_zero(aero_particle_1, aero_data)
           call aero_particle_zero(aero_particle_2, aero_data)
-          aero_particle_1%vol(1) = aero_data_rad2vol(aero_data, bin_r(i))
-          aero_particle_2%vol(1) = aero_data_rad2vol(aero_data, bin_r(j))
+          aero_particle_1%vol = bin_vol_frac(i,:) &
+               * aero_data_rad2vol(aero_data, bin_r(i))
+          aero_particle_2%vol = bin_vol_frac(j,:) &
+               * aero_data_rad2vol(aero_data, bin_r(j))
           call kernel(coag_kernel_type, aero_particle_1, aero_particle_2, &
                aero_data, env_state, k(i,j))
        end do

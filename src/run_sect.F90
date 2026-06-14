@@ -74,6 +74,9 @@ contains
     real(kind=dp) c(bin_grid_size(bin_grid),bin_grid_size(bin_grid))
     integer ima(bin_grid_size(bin_grid),bin_grid_size(bin_grid))
     real(kind=dp) g(bin_grid_size(bin_grid)), r(bin_grid_size(bin_grid))
+    real(kind=dp) gs(bin_grid_size(bin_grid),aero_data_n_spec(aero_data))
+    real(kind=dp) bin_vol_frac(bin_grid_size(bin_grid), &
+         aero_data_n_spec(aero_data))
     real(kind=dp) e(bin_grid_size(bin_grid))
     real(kind=dp) k_bin(bin_grid_size(bin_grid),bin_grid_size(bin_grid))
     real(kind=dp) ck(bin_grid_size(bin_grid),bin_grid_size(bin_grid))
@@ -82,11 +85,12 @@ contains
     real(kind=dp) taul(bin_grid_size(bin_grid)), tauu(bin_grid_size(bin_grid))
     real(kind=dp) prod(bin_grid_size(bin_grid)), ploss(bin_grid_size(bin_grid))
     real(kind=dp) time, last_output_time, last_progress_time
+    real(kind=dp) bin_vol_tot
     type(env_state_t) :: old_env_state
     type(aero_binned_t) :: aero_binned
     type(gas_state_t) :: gas_state
 
-    integer i, j, i_time, num_t, i_summary
+    integer i, j, i_time, num_t, i_summary, n_spec
     logical do_output, do_progress
 
     call check_time_multiple("t_max", run_sect_opt%t_max, &
@@ -96,24 +100,26 @@ contains
     call check_time_multiple("t_progress", run_sect_opt%t_progress, &
          "del_t", run_sect_opt%del_t)
 
-    ! g         : spectral mass distribution (mg/cm^3)
-    ! e         : droplet mass grid (mg)
+    ! g         : total spectral volume distribution (m^3/m^3)
+    ! gs        : per-species spectral volume distribution (m^3/m^3)
+    ! e         : single-particle volume grid (m^3)
     ! r         : droplet radius grid (um)
     ! log_width : constant grid distance of logarithmic grid
+    !
+    ! The transport is done in particle volume rather than mass because
+    ! the destination bin of a coagulation depends on the (composition-
+    ! independent) particle volume. For a single species this is
+    ! algebraically identical to the original mass-based formulation.
 
-    if (aero_data_n_spec(aero_data) /= 1) then
-       call die_msg(844211192, &
-            'run_sect() can only use one aerosol species')
-    end if
+    n_spec = aero_data_n_spec(aero_data)
 
     ! output data structure
     call gas_state_set_size(gas_state, gas_data_n_spec(gas_data))
 
-    ! mass and radius grid
+    ! volume and radius grid
     do i = 1,bin_grid_size(bin_grid)
        r(i) = bin_grid%centers(i) * 1d6 ! radius in m to um
-       e(i) = aero_data_rad2vol(aero_data, bin_grid%centers(i)) &
-            * aero_data%density(1) * 1d6 ! vol in m^3 to mass in mg
+       e(i) = aero_data_rad2vol(aero_data, bin_grid%centers(i)) ! vol in m^3
     end do
 
     ! initial mass distribution
@@ -126,23 +132,6 @@ contains
     last_progress_time = 0d0
     time = 0d0
     i_summary = 1
-
-    ! precompute kernel values for all pairs of bins
-    call bin_kernel(bin_grid_size(bin_grid), bin_grid%centers, aero_data, &
-         run_sect_opt%coag_kernel_type, env_state, k_bin)
-    call smooth_bin_kernel(bin_grid_size(bin_grid), k_bin, ck)
-    do i = 1,bin_grid_size(bin_grid)
-       do j = 1,bin_grid_size(bin_grid)
-          ck(i,j) = ck(i,j) * 1d6  ! m^3/s to cm^3/s
-       end do
-    end do
-
-    ! multiply kernel with constant timestep and logarithmic grid distance
-    do i = 1,bin_grid_size(bin_grid)
-       do j = 1,bin_grid_size(bin_grid)
-          ck(i,j) = ck(i,j) * run_sect_opt%del_t * bin_grid%widths(i)
-       end do
-    end do
 
     ! initial output
     call check_event(time, run_sect_opt%del_t, run_sect_opt%t_output, &
@@ -158,11 +147,39 @@ contains
     do i_time = 1, num_t
 
        if (run_sect_opt%do_coagulation) then
-          g = aero_binned%vol_conc(:,1) * aero_data%density(1)
-          call coad(bin_grid_size(bin_grid), run_sect_opt%del_t, taug, taup, &
-               taul, tauu, prod, ploss, c, ima, g, r, e, ck, ec)
-          aero_binned%vol_conc(:,1) = g / aero_data%density(1)
-          aero_binned%num_conc = aero_binned%vol_conc(:,1) &
+          ! per-bin mean composition (volume fractions) for the kernel,
+          ! falling back to pure species 1 in empty bins
+          do i = 1,bin_grid_size(bin_grid)
+             bin_vol_tot = sum(aero_binned%vol_conc(i,:))
+             if (bin_vol_tot > 0d0) then
+                bin_vol_frac(i,:) = aero_binned%vol_conc(i,:) / bin_vol_tot
+             else
+                bin_vol_frac(i,:) = 0d0
+                bin_vol_frac(i,1) = 1d0
+             end if
+          end do
+
+          ! recompute kernel for the current per-bin mean density
+          call bin_kernel(bin_grid_size(bin_grid), bin_grid%centers, &
+               aero_data, run_sect_opt%coag_kernel_type, env_state, &
+               bin_vol_frac, k_bin)
+          call smooth_bin_kernel(bin_grid_size(bin_grid), k_bin, ck)
+          ! multiply kernel with constant timestep and logarithmic grid
+          ! distance (kernel and volume grid are both in SI, so no unit
+          ! conversion is needed)
+          do i = 1,bin_grid_size(bin_grid)
+             do j = 1,bin_grid_size(bin_grid)
+                ck(i,j) = ck(i,j) * run_sect_opt%del_t * bin_grid%widths(i)
+             end do
+          end do
+
+          g = sum(aero_binned%vol_conc, dim=2)
+          gs = aero_binned%vol_conc
+          call coad(bin_grid_size(bin_grid), n_spec, run_sect_opt%del_t, &
+               taug, taup, taul, tauu, prod, ploss, c, ima, g, gs, r, e, &
+               ck, ec)
+          aero_binned%vol_conc = gs
+          aero_binned%num_conc = g &
                / aero_data_rad2vol(aero_data, bin_grid%centers)
        end if
 
@@ -280,10 +297,19 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Collision subroutine, exponential approach.
-  subroutine coad(n_bin, dt, taug, taup, taul, tauu, prod, ploss, &
-       c, ima, g, r, e, ck, ec)
+  !!
+  !! Transports total particle volume \c g between bins with the Bott
+  !! (1998) flux scheme, and carries the per-species volume \c gs along
+  !! with it. Mass (volume) lost from a bin is removed in proportion to
+  !! that bin's current composition; mass gained in a destination bin
+  !! is added with its mixed composition and the advective flux to the
+  !! next bin carries the destination bin's (post-gain) composition.
+  !! For \c n_spec == 1 this reduces exactly to the original scheme.
+  subroutine coad(n_bin, n_spec, dt, taug, taup, taul, tauu, prod, ploss, &
+       c, ima, g, gs, r, e, ck, ec)
 
     integer n_bin
+    integer n_spec
     real(kind=dp) dt
     real(kind=dp) taug(n_bin)
     real(kind=dp) taup(n_bin)
@@ -294,6 +320,7 @@ contains
     real(kind=dp) c(n_bin,n_bin)
     integer ima(n_bin,n_bin)
     real(kind=dp) g(n_bin)
+    real(kind=dp) gs(n_bin,n_spec)
     real(kind=dp) r(n_bin)
     real(kind=dp) e(n_bin)
     real(kind=dp) ck(n_bin,n_bin)
@@ -301,8 +328,9 @@ contains
 
     real(kind=dp), parameter :: gmin = 1d-60
 
-    integer i, i0, i1, j, k, kp
+    integer i, i0, i1, j, k, kp, i_spec
     real(kind=dp) x0, gsi, gsj, gsk, gk, x1, flux
+    real(kind=dp) gain_s(n_spec), loss_i_s, loss_j_s, transfer_s
 
     do i = 1,n_bin
        prod(i) = 0d0
@@ -332,7 +360,15 @@ contains
           gsj = x0 / e(i)
           gsk = gsi + gsj
 
-          ! loss from positions i, j
+          ! loss from positions i, j (split by each donor bin's
+          ! composition) and accumulate the per-species gain
+          do i_spec = 1, n_spec
+             loss_i_s = merge(gsi * gs(i,i_spec) / g(i), 0d0, g(i) > 0d0)
+             loss_j_s = merge(gsj * gs(j,i_spec) / g(j), 0d0, g(j) > 0d0)
+             gs(i,i_spec) = gs(i,i_spec) - loss_i_s
+             gs(j,i_spec) = gs(j,i_spec) - loss_j_s
+             gain_s(i_spec) = loss_i_s + loss_j_s
+          end do
           ploss(i) = ploss(i) + gsi
           ploss(j) = ploss(j) + gsj
           g(i) = g(i) - gsi
@@ -342,10 +378,25 @@ contains
              gk = g(k) + gsk
 
              if (gk .gt. gmin) then
+                ! add the gained volume into bin k, mixing composition
+                do i_spec = 1, n_spec
+                   gs(k,i_spec) = gs(k,i_spec) + gain_s(i_spec)
+                end do
+                g(k) = gk
+
                 x1 = log(g(kp) / gk + 1d-60)
                 flux = gsk / x1 * (exp(0.5d0 * x1) &
                      - exp(x1 * (0.5d0 - c(i,j))))
                 flux = min(flux, gk)
+
+                ! advect the flux from bin k to bin kp carrying bin k's
+                ! current (post-gain) composition
+                do i_spec = 1, n_spec
+                   transfer_s = merge(flux * gs(k,i_spec) / g(k), 0d0, &
+                        g(k) > 0d0)
+                   gs(k,i_spec) = gs(k,i_spec) - transfer_s
+                   gs(kp,i_spec) = gs(kp,i_spec) + transfer_s
+                end do
                 g(k) = gk - flux
                 g(kp) = g(kp) + flux
                 ! gain for positions i, j

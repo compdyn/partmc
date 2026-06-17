@@ -74,12 +74,12 @@ axes[pos[0]][pos[1]].legend(handletextpad=0,labelspacing=.1,framealpha=1, edgeco
 axes[pos[0]][pos[1]].grid(True,linestyle='--')
 axes[pos[0]][pos[1]].set_xlim([0,24*60])
 axes[pos[0]][pos[1]].xaxis.set_major_locator(ticker.FixedLocator([0,360,720,1080,1440]))
-axes[pos[0]][pos[1]].xaxis.set_major_formatter(time_formatter)
+#axes[pos[0]][pos[1]].xaxis.set_major_formatter(time_formatter)
 axes[pos[0]][pos[1]].set_ylabel("Mixing ratio (ppm)")
 axes[pos[0]][pos[1]].set_ylim([0,.14])
 positions = [0,.02,.04,.06,.08,.10,.12,.14]
 axes[pos[0]][pos[1]].yaxis.set_major_locator(ticker.FixedLocator(positions))
-axes[pos[0]][pos[1]].yaxis.set_major_formatter(major_formatter)
+#axes[pos[0]][pos[1]].yaxis.set_major_formatter(major_formatter)
 
 pos = [1,0]
 var = 'ISOP'
@@ -102,10 +102,10 @@ ymax = [.005]
 axes[pos[0]][pos[1]].grid(True,linestyle='--')
 axes[pos[0]][pos[1]].set_xlim([0,24*60])
 axes[pos[0]][pos[1]].xaxis.set_major_locator(ticker.FixedLocator([0,360,720,1080,1440]))
-axes[pos[0]][pos[1]].xaxis.set_major_formatter(time_formatter)
+#axes[pos[0]][pos[1]].xaxis.set_major_formatter(time_formatter)
 axes[pos[0]][pos[1]].set_ylabel("Mixing ratio (ppm)")
 axes[pos[0]][pos[1]].set_ylim([0,ymax[0]])
-axes[pos[0]][pos[1]].yaxis.set_major_formatter(major_formatter)
+#axes[pos[0]][pos[1]].yaxis.set_major_formatter(major_formatter)
 out_filename =  'out/camp_gases.pdf'
 print("Writing %s" % out_filename)
 fig.savefig(out_filename)

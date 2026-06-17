@@ -69,7 +69,7 @@ def major_formatter(x, pos):
     return f'{1e9*x:.1f}'
 
 pos = [0,0]
-mass_conc, mass_std = get_mass_conc(file, n_times,'organic_matter.ISOP-P1_aero',
+mass_conc, mass_std = get_mass_conc(file, n_times,'one_layer.organic_matter.ISOP-P1_aero',
      n_repeats=n_runs)
 axes[pos[0]][pos[1]].plot(times[partmc_ind_to_plot], mass_conc[partmc_ind_to_plot],
              color=colors[0], ls='', marker='%s'%(part_symbol), label="ISOP_P1_aero",
@@ -79,12 +79,12 @@ axes[pos[0]][pos[1]].legend(framealpha=1, edgecolor='k')
 axes[pos[0]][pos[1]].grid(True,linestyle='--')
 axes[pos[0]][pos[1]].set_xlim([0,24*60])
 axes[pos[0]][pos[1]].xaxis.set_major_locator(ticker.FixedLocator([0,360,720,1080,1440]))
-axes[pos[0]][pos[1]].xaxis.set_major_formatter(time_formatter)
+#axes[pos[0]][pos[1]].xaxis.set_major_formatter(time_formatter)
 axes[pos[0]][pos[1]].set_ylim([0,3e-9])
-axes[pos[0]][pos[1]].yaxis.set_major_formatter(major_formatter)
+#axes[pos[0]][pos[1]].yaxis.set_major_formatter(major_formatter)
 axes[pos[0]][pos[1]].set_ylabel(r'Mass concentration ($\mu \rm g \, m^{-3}$)')
 pos = [1,0]
-mass_conc, mass_std = get_mass_conc(file, n_times,'organic_matter.ISOP-P2_aero',
+mass_conc, mass_std = get_mass_conc(file, n_times,'one_layer.organic_matter.ISOP-P2_aero',
      n_repeats=n_runs)
 axes[pos[0]][pos[1]].plot(times[partmc_ind_to_plot], mass_conc[partmc_ind_to_plot],
              color=colors[0], ls='', marker='%s'%(part_symbol), label="ISOP-P2_aero",
@@ -94,10 +94,10 @@ axes[pos[0]][pos[1]].grid(True,linestyle='--')
 axes[pos[0]][pos[1]].set_xlabel('Simulation time (h)')
 axes[pos[0]][pos[1]].set_xlim([0,24*60])
 axes[pos[0]][pos[1]].xaxis.set_major_locator(ticker.FixedLocator([0,360,720,1080,1440]))
-axes[pos[0]][pos[1]].xaxis.set_major_formatter(time_formatter)
+#axes[pos[0]][pos[1]].xaxis.set_major_formatter(time_formatter)
 axes[pos[0]][pos[1]].set_ylabel(r'Mass concentration ($\mu \rm g \, m^{-3}$)')
 axes[pos[0]][pos[1]].set_ylim([0,3e-10])
-axes[pos[0]][pos[1]].yaxis.set_major_formatter(major_formatter)
+#axes[pos[0]][pos[1]].yaxis.set_major_formatter(major_formatter)
 out_filename = 'out/timeseries_aero.pdf'
 print("Writing %s" % out_filename)
 fig.savefig(out_filename)

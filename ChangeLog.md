@@ -1,4 +1,4 @@
-2.9.0 - 2026-06-11
+2.9.0 - 2026-06-17
 
   * Add immersion freezing (Wenhan Tang and Sylwester Arabas).
 

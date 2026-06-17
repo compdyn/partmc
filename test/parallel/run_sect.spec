@@ -5,6 +5,7 @@ t_max 86400                     # total simulation time (s)
 del_t 600                       # timestep (s)
 t_output 3600                   # output interval (0 disables) (s)
 t_progress 3600                 # progress printing interval (0 disables) (s)
+do_tchem no                     # whether to use TChem chemistry (yes/no)
 
 n_bin 220                       # number of bins
 d_min 1e-10                     # minimum diameter (m)

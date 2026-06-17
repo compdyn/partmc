@@ -11,6 +11,7 @@ module pmc_tchem_interface
   use pmc_aero_data
   use pmc_aero_particle
   use pmc_aero_state
+  use pmc_aero_binned
   use pmc_constants
   use pmc_gas_data
   use pmc_gas_state
@@ -148,6 +149,185 @@ contains
     call tchem_to_partmc(aero_data, aero_state, gas_data, gas_state, env_state)
 
   end subroutine pmc_tchem_interface_solve
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Run chemistry using TChem for the current PartMC sectional (binned) state.
+  !!
+  !! Each bin is mapped to a TChem "particle" (the bin's mean particle),
+  !! mirroring pmc_tchem_interface_solve() with bins in place of particles.
+  !! TChem holds the per-bin number concentration fixed and only changes the
+  !! per-species masses, so on return only aero_binned%%vol_conc is updated and
+  !! aero_binned%%num_conc is unchanged.
+  subroutine pmc_tchem_interface_solve_sect(env_state, aero_data, &
+       aero_binned, gas_data, gas_state, del_t)
+
+    !> Environment data.
+    type(env_state_t), intent(in) :: env_state
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Binned aerosol state.
+    type(aero_binned_t), intent(inout) :: aero_binned
+    !> Gas data.
+    type(gas_data_t), intent(in) :: gas_data
+    !> Gas state.
+    type(gas_state_t), intent(inout) :: gas_state
+    !> Time step (s).
+    real(kind=dp), intent(in) :: del_t
+
+    call tchem_from_partmc_sect(aero_data, aero_binned, gas_data, gas_state, &
+         env_state)
+
+    call tchem_timestep(del_t)
+
+    call tchem_to_partmc_sect(aero_data, aero_binned, gas_data, gas_state, &
+         env_state)
+
+    ! TODO: remap bins whose mean particle volume has grown past their grid
+    ! edges back onto the fixed bin grid (aero_binned_redistribute,
+    ! moving-center first). Deferred.
+
+  end subroutine pmc_tchem_interface_solve_sect
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Map PartMC binned aerosol and gas state into TChem, treating each bin as
+  !> a single TChem particle (the bin's number-mean particle).
+  subroutine tchem_from_partmc_sect(aero_data, aero_binned, gas_data, &
+       gas_state, env_state)
+
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Binned aerosol state.
+    type(aero_binned_t), intent(in) :: aero_binned
+    !> Gas data.
+    type(gas_data_t), intent(in) :: gas_data
+    !> Gas state.
+    type(gas_state_t), intent(inout) :: gas_state
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+
+    real(kind=dp), allocatable :: state_vector(:), number_concentration(:)
+    integer :: state_vec_dim, tchem_n_part
+    integer :: i_bin, n_bin, i_spec, i_water
+    integer :: n_gas_spec, n_aero_spec, aero_offset
+    real(kind=dp), parameter :: SMALL_MASS_PLACEHOLDER = 1.0d-30
+
+    n_gas_spec = gas_data_n_spec(gas_data)
+    n_aero_spec = aero_data_n_spec(aero_data)
+    n_bin = size(aero_binned%num_conc)
+
+    ! Get size of state vector in TChem
+    state_vec_dim = TChem_getLengthOfStateVector()
+    allocate(state_vector(state_vec_dim))
+    state_vector = 0.0d0
+
+    ! Get size of number concentration vector in TChem
+    tchem_n_part = TChem_getNumberConcentrationVectorSize()
+    allocate(number_concentration(tchem_n_part))
+
+    call assert_msg(502348107, n_bin <= tchem_n_part, &
+         "number of sectional bins exceeds the TChem particle capacity")
+
+    ! First three elements are density, pressure and temperature
+    state_vector(1) = env_state_air_den(env_state)
+    state_vector(2) = env_state%pressure
+    state_vector(3) = env_state%temp
+
+    ! PartMC uses relative humidity and not H2O mixing ratio.
+    i_water = gas_data_spec_by_name(gas_data, "H2O")
+    gas_state%mix_rat(i_water) = env_state_rel_humid_to_mix_rat(env_state)
+    ! Add gas species to state vector. Convert from ppb to ppm.
+    state_vector(STATE_VEC_ENV_OFFSET+1:n_gas_spec + STATE_VEC_ENV_OFFSET) = &
+         gas_state%mix_rat / PPM_TO_PPB
+
+    ! Each bin becomes one TChem particle: the per-particle species mass is the
+    ! bin's mass concentration divided by its number concentration.
+    aero_offset = n_gas_spec + STATE_VEC_ENV_OFFSET
+    do i_bin = 1,n_bin
+       if (aero_binned%num_conc(i_bin) > 0.0d0) then
+          do i_spec = 1,n_aero_spec
+             state_vector(aero_offset + i_spec + (i_bin - 1) * n_aero_spec) = &
+                  aero_binned%vol_conc(i_bin, i_spec) &
+                  * aero_data%density(i_spec) / aero_binned%num_conc(i_bin)
+          end do
+          number_concentration(i_bin) = aero_binned%num_conc(i_bin)
+       else
+          do i_spec = 1,n_aero_spec
+             state_vector(aero_offset + i_spec + (i_bin - 1) * n_aero_spec) = &
+                  SMALL_MASS_PLACEHOLDER
+          end do
+          number_concentration(i_bin) = 0.0d0
+       end if
+    end do
+
+    ! Pad any unused TChem particle slots.
+    do i_bin = n_bin+1,tchem_n_part
+       do i_spec = 1,n_aero_spec
+          state_vector(aero_offset + i_spec + (i_bin - 1) * n_aero_spec) = &
+               SMALL_MASS_PLACEHOLDER
+       end do
+       number_concentration(i_bin) = 0.0d0
+    end do
+
+    call TChem_setStateVector(state_vector, DEFAULT_BATCH_INDEX)
+
+    call TChem_setNumberConcentrationVector(number_concentration, &
+         DEFAULT_BATCH_INDEX)
+
+    call TChem_setNParticlesTrack(n_bin)
+
+  end subroutine tchem_from_partmc_sect
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Map TChem results back into the PartMC binned state.
+  !!
+  !! Only the per-bin per-species masses are updated (into vol_conc); the bin
+  !! number concentrations are held fixed by TChem and are left unchanged.
+  subroutine tchem_to_partmc_sect(aero_data, aero_binned, gas_data, &
+       gas_state, env_state)
+
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Binned aerosol state.
+    type(aero_binned_t), intent(inout) :: aero_binned
+    !> Gas data.
+    type(gas_data_t), intent(in) :: gas_data
+    !> Gas state.
+    type(gas_state_t), intent(inout) :: gas_state
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+
+    real(kind=dp), allocatable :: state_vector(:)
+    integer :: state_vec_dim, i_bin, n_bin, i_spec
+    integer :: n_gas_spec, n_aero_spec, aero_offset
+
+    n_gas_spec = gas_data_n_spec(gas_data)
+    n_aero_spec = aero_data_n_spec(aero_data)
+    n_bin = size(aero_binned%num_conc)
+
+    state_vec_dim = TChem_getLengthOfStateVector()
+    allocate(state_vector(state_vec_dim))
+    call TChem_getStateVector(state_vector, DEFAULT_BATCH_INDEX)
+
+    ! Convert gas from ppm to ppb.
+    gas_state%mix_rat = &
+         state_vector(STATE_VEC_ENV_OFFSET+1:n_gas_spec+STATE_VEC_ENV_OFFSET) &
+         * PPM_TO_PPB
+
+    ! Per-bin mean-particle masses back to per-bin volume concentration,
+    ! holding the bin number concentration fixed (so empty bins stay empty).
+    aero_offset = n_gas_spec + STATE_VEC_ENV_OFFSET
+    do i_bin = 1,n_bin
+       do i_spec = 1,n_aero_spec
+          aero_binned%vol_conc(i_bin, i_spec) = &
+               state_vector(aero_offset + i_spec + (i_bin - 1) * n_aero_spec) &
+               * aero_binned%num_conc(i_bin) / aero_data%density(i_spec)
+       end do
+    end do
+
+  end subroutine tchem_to_partmc_sect
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

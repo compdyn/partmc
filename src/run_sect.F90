@@ -27,6 +27,7 @@ module pmc_run_sect
   use pmc_output
   use pmc_gas_data
   use pmc_gas_state
+  use pmc_tchem_interface
 
   !> Options controlling the operation of run_sect().
   type run_sect_opt_t
@@ -40,6 +41,8 @@ module pmc_run_sect
     real(kind=dp) :: t_progress
     !> Whether to do coagulation.
     logical :: do_coagulation
+    !> Whether to do TChem chemistry.
+    logical :: do_tchem
     !> Output prefix.
      character(len=300) :: prefix
     !> Type of coagulation kernel.
@@ -193,6 +196,13 @@ contains
        call scenario_update_aero_binned(scenario, run_sect_opt%del_t, &
             env_state, old_env_state, bin_grid, aero_data, aero_binned)
 
+       if (run_sect_opt%do_tchem) then
+#ifdef PMC_USE_TCHEM
+          call pmc_tchem_interface_solve_sect(env_state, aero_data, &
+               aero_binned, gas_data, gas_state, run_sect_opt%del_t)
+#endif
+       end if
+
        ! print output
        call check_event(time, run_sect_opt%del_t, run_sect_opt%t_output, &
             last_output_time, do_output)
@@ -238,6 +248,9 @@ contains
     type(gas_data_t), intent(out) :: gas_data
 
     character(len=PMC_MAX_FILENAME_LEN) :: sub_filename
+    character(len=PMC_MAX_FILENAME_LEN) :: tchem_gas_filename, &
+         tchem_aero_filename, tchem_numerics_filename
+    integer :: n_grid_cells
     type(spec_file_t) :: sub_file
 
     call spec_file_read_string(file, 'output_prefix', run_sect_opt%prefix)
@@ -246,6 +259,26 @@ contains
     call spec_file_read_real(file, 'del_t', run_sect_opt%del_t)
     call spec_file_read_real(file, 't_output', run_sect_opt%t_output)
     call spec_file_read_real(file, 't_progress', run_sect_opt%t_progress)
+
+    call spec_file_read_logical(file, 'do_tchem', run_sect_opt%do_tchem)
+    if (run_sect_opt%do_tchem) then
+#ifdef PMC_USE_TCHEM
+       call spec_file_read_string(file, 'tchem_gas_config', &
+            tchem_gas_filename)
+       call spec_file_read_string(file, 'tchem_aero_config', &
+            tchem_aero_filename)
+       call spec_file_read_string(file, 'tchem_numerics_config', &
+            tchem_numerics_filename)
+#endif
+    end if
+
+    if (run_sect_opt%do_tchem) then
+#ifdef PMC_USE_TCHEM
+       n_grid_cells = 1
+       call pmc_tchem_initialize(tchem_gas_filename, tchem_aero_filename, &
+            tchem_numerics_filename, gas_data, aero_data, n_grid_cells)
+#endif
+    end if
 
     call spec_file_read_radius_bin_grid(file, bin_grid)
 

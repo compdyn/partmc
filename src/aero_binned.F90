@@ -256,6 +256,83 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Remap aerosol back onto the fixed bin grid after growth or
+  !> shrinkage, using the moving-center scheme.
+  !!
+  !! Each bin's entire number and per-species volume are moved to the bin
+  !! that contains the bin's current number-mean particle volume (computed
+  !! from the bin totals). This is the operator-split companion to a
+  !! condensation/evaporation step (e.g. TChem) that changes the per-bin
+  !! masses while holding the bin number concentrations fixed, so that the
+  !! mean particle size no longer matches the bin it sits in.
+  !!
+  !! Total number concentration and total per-species volume concentration
+  !! are both conserved exactly. A bin whose mean falls below the first bin
+  !! or above the last bin is clamped into the first/last bin.
+  !!
+  !! This is the moving-center variant (whole-bin moves). A two-moment
+  !! (linear-discrete) variant that splits each bin between its destination
+  !! and one neighbour can later replace this with the same interface, using
+  !! the pre-growth bin totals to reconstruct the sub-bin distribution.
+  subroutine aero_binned_redistribute(aero_binned, bin_grid, aero_data)
+
+    !> Binned aerosol distribution to redistribute in place.
+    type(aero_binned_t), intent(inout) :: aero_binned
+    !> Bin grid (radius-based).
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Aerosol material data.
+    type(aero_data_t), intent(in) :: aero_data
+
+    integer :: n_bin, n_spec, i_bin, i_new
+    real(kind=dp) :: num_actual, total_vol, vol_mean, rad_mean
+    real(kind=dp) :: vol_actual(aero_data_n_spec(aero_data))
+    real(kind=dp) :: new_num(bin_grid_size(bin_grid))
+    real(kind=dp) :: new_vol(bin_grid_size(bin_grid), &
+         aero_data_n_spec(aero_data))
+
+    if (.not. aero_binned_is_allocated(aero_binned)) return
+
+    n_bin = bin_grid_size(bin_grid)
+    n_spec = aero_data_n_spec(aero_data)
+    if (n_bin < 1) return
+
+    ! Accumulate into actual concentrations (#/m^3 and m^3/m^3), i.e. the
+    ! per-log-width densities multiplied by the bin widths, so that moving
+    ! material between bins of (possibly) different width conserves the
+    ! totals rather than the densities.
+    new_num = 0d0
+    new_vol = 0d0
+
+    do i_bin = 1,n_bin
+       num_actual = aero_binned%num_conc(i_bin) * bin_grid%widths(i_bin)
+       vol_actual = aero_binned%vol_conc(i_bin,:) * bin_grid%widths(i_bin)
+       total_vol = sum(vol_actual)
+
+       if ((num_actual > 0d0) .and. (total_vol > 0d0)) then
+          ! number-mean single-particle volume, then the bin containing it
+          vol_mean = total_vol / num_actual
+          rad_mean = aero_data_vol2rad(aero_data, vol_mean)
+          i_new = bin_grid_find(bin_grid, rad_mean)
+          i_new = max(1, min(n_bin, i_new))
+       else
+          ! empty or mass-free bin: leave its contents in place
+          i_new = i_bin
+       end if
+
+       new_num(i_new) = new_num(i_new) + num_actual
+       new_vol(i_new,:) = new_vol(i_new,:) + vol_actual
+    end do
+
+    ! convert the actual concentrations back to per-log-width densities
+    do i_bin = 1,n_bin
+       aero_binned%num_conc(i_bin) = new_num(i_bin) / bin_grid%widths(i_bin)
+       aero_binned%vol_conc(i_bin,:) = new_vol(i_bin,:) / bin_grid%widths(i_bin)
+    end do
+
+  end subroutine aero_binned_redistribute
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Determine the number of bytes required to pack the structure.
   !!
   !! See pmc_mpi for usage details.

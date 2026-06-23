@@ -530,7 +530,9 @@ contains
 
     call pmc_nc_read_real(ncid, time, "time")
     call pmc_nc_read_real(ncid, del_t, "timestep")
-    call pmc_nc_read_integer(ncid, i_repeat, "repeat")
+    ! sectional output has no "repeat" (it is a single deterministic run), so
+    ! tolerate its absence to let the generic extractors read sectional files
+    call pmc_nc_read_integer(ncid, i_repeat, "repeat", must_be_present=.false.)
     call pmc_nc_read_integer(ncid, index, "timestep_index")
 
     if (present(aero_data)) then

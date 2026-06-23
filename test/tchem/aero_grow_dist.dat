@@ -1,0 +1,6 @@
+mode_name grow_seed             # name of mode source
+mass_frac aero_grow_comp.dat    # species mass fractions
+diam_type geometric             # type of diameter specified
+mode_type mono                  # type of distribution
+num_conc 1e6                    # particle number concentration (#/m^3)
+diam 1e-7                       # diameter (m) -- small seed so SOA growth crosses bins

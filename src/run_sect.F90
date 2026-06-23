@@ -56,13 +56,15 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Run a sectional simulation.
-  subroutine run_sect(bin_grid, gas_data, aero_data, aero_dist, &
+  subroutine run_sect(bin_grid, gas_data, gas_state, aero_data, aero_dist, &
        scenario, env_state, run_sect_opt)
 
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Gas data.
     type(gas_data_t), intent(in) :: gas_data
+    !> Gas state (initial value on entry; updated during the run).
+    type(gas_state_t), intent(inout) :: gas_state
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
     !> Aerosol distribution.
@@ -91,7 +93,6 @@ contains
     real(kind=dp) bin_vol_tot
     type(env_state_t) :: old_env_state
     type(aero_binned_t) :: aero_binned
-    type(gas_state_t) :: gas_state
 
     integer i, j, i_time, num_t, i_summary, n_spec
     logical do_output, do_progress
@@ -116,8 +117,8 @@ contains
 
     n_spec = aero_data_n_spec(aero_data)
 
-    ! output data structure
-    call gas_state_set_size(gas_state, gas_data_n_spec(gas_data))
+    ! gas_state arrives already sized (zeroed when no gas-phase chemistry,
+    ! or populated from gas_init when do_tchem is set)
 
     ! volume and radius grid
     do i = 1,bin_grid_size(bin_grid)
@@ -198,7 +199,7 @@ contains
 
        if (run_sect_opt%do_tchem) then
 #ifdef PMC_USE_TCHEM
-          call pmc_tchem_interface_solve_sect(env_state, aero_data, &
+          call pmc_tchem_interface_solve_sect(env_state, aero_data, bin_grid, &
                aero_binned, gas_data, gas_state, run_sect_opt%del_t)
 #endif
        end if
@@ -228,7 +229,7 @@ contains
 
   !> Read the specification for a run_sect simulation from a spec file.
   subroutine spec_file_read_run_sect(file, run_sect_opt, aero_data, &
-       bin_grid, gas_data, env_state, aero_dist_init, scenario)
+       bin_grid, gas_data, gas_state_init, env_state, aero_dist_init, scenario)
 
     !> Spec file.
     type(spec_file_t), intent(inout) :: file
@@ -246,6 +247,8 @@ contains
     type(env_state_t), intent(out) :: env_state
     !> Gas data.
     type(gas_data_t), intent(out) :: gas_data
+    !> Initial gas state.
+    type(gas_state_t), intent(out) :: gas_state_init
 
     character(len=PMC_MAX_FILENAME_LEN) :: sub_filename
     character(len=PMC_MAX_FILENAME_LEN) :: tchem_gas_filename, &
@@ -282,15 +285,32 @@ contains
 
     call spec_file_read_radius_bin_grid(file, bin_grid)
 
-    call spec_file_read_string(file, 'gas_data', sub_filename)
-    call spec_file_open(sub_filename, sub_file)
-    call spec_file_read_gas_data(sub_file, gas_data)
-    call spec_file_close(sub_file)
+    ! gas and aerosol material data: when do_tchem is set these are provided
+    ! by TChem (pmc_tchem_initialize, above) and are not read here
+    if (.not. run_sect_opt%do_tchem) then
+       call spec_file_read_string(file, 'gas_data', sub_filename)
+       call spec_file_open(sub_filename, sub_file)
+       call spec_file_read_gas_data(sub_file, gas_data)
+       call spec_file_close(sub_file)
+    end if
 
-    call spec_file_read_string(file, 'aerosol_data', sub_filename)
-    call spec_file_open(sub_filename, sub_file)
-    call spec_file_read_aero_data(sub_file, aero_data)
-    call spec_file_close(sub_file)
+    ! initial gas state: only read when there is gas-phase chemistry (TChem);
+    ! otherwise start from a zero gas state
+    if (run_sect_opt%do_tchem) then
+       call spec_file_read_string(file, 'gas_init', sub_filename)
+       call spec_file_open(sub_filename, sub_file)
+       call spec_file_read_gas_state(sub_file, gas_data, gas_state_init)
+       call spec_file_close(sub_file)
+    else
+       call gas_state_set_size(gas_state_init, gas_data_n_spec(gas_data))
+    end if
+
+    if (.not. run_sect_opt%do_tchem) then
+       call spec_file_read_string(file, 'aerosol_data', sub_filename)
+       call spec_file_open(sub_filename, sub_file)
+       call spec_file_read_aero_data(sub_file, aero_data)
+       call spec_file_close(sub_file)
+    end if
 
     call spec_file_read_fractal(file, aero_data%fractal)
 

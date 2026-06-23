@@ -12,6 +12,7 @@ module pmc_tchem_interface
   use pmc_aero_particle
   use pmc_aero_state
   use pmc_aero_binned
+  use pmc_bin_grid
   use pmc_constants
   use pmc_gas_data
   use pmc_gas_state
@@ -159,13 +160,15 @@ contains
   !! TChem holds the per-bin number concentration fixed and only changes the
   !! per-species masses, so on return only aero_binned%%vol_conc is updated and
   !! aero_binned%%num_conc is unchanged.
-  subroutine pmc_tchem_interface_solve_sect(env_state, aero_data, &
+  subroutine pmc_tchem_interface_solve_sect(env_state, aero_data, bin_grid, &
        aero_binned, gas_data, gas_state, del_t)
 
     !> Environment data.
     type(env_state_t), intent(in) :: env_state
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
     !> Binned aerosol state.
     type(aero_binned_t), intent(inout) :: aero_binned
     !> Gas data.
@@ -175,17 +178,18 @@ contains
     !> Time step (s).
     real(kind=dp), intent(in) :: del_t
 
-    call tchem_from_partmc_sect(aero_data, aero_binned, gas_data, gas_state, &
-         env_state)
+    call tchem_from_partmc_sect(aero_data, bin_grid, aero_binned, gas_data, &
+         gas_state, env_state)
 
     call tchem_timestep(del_t)
 
     call tchem_to_partmc_sect(aero_data, aero_binned, gas_data, gas_state, &
          env_state)
 
-    ! TODO: remap bins whose mean particle volume has grown past their grid
-    ! edges back onto the fixed bin grid (aero_binned_redistribute,
-    ! moving-center first). Deferred.
+    ! Remap bins whose mean particle volume has grown (or shrunk) past their
+    ! grid edges back onto the fixed bin grid. Moving-center for now; a
+    ! two-moment (linear-discrete) variant can replace this call later.
+    call aero_binned_redistribute(aero_binned, bin_grid, aero_data)
 
   end subroutine pmc_tchem_interface_solve_sect
 
@@ -193,11 +197,13 @@ contains
 
   !> Map PartMC binned aerosol and gas state into TChem, treating each bin as
   !> a single TChem particle (the bin's number-mean particle).
-  subroutine tchem_from_partmc_sect(aero_data, aero_binned, gas_data, &
-       gas_state, env_state)
+  subroutine tchem_from_partmc_sect(aero_data, bin_grid, aero_binned, &
+       gas_data, gas_state, env_state)
 
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
     !> Binned aerosol state.
     type(aero_binned_t), intent(in) :: aero_binned
     !> Gas data.
@@ -241,8 +247,10 @@ contains
     state_vector(STATE_VEC_ENV_OFFSET+1:n_gas_spec + STATE_VEC_ENV_OFFSET) = &
          gas_state%mix_rat / PPM_TO_PPB
 
-    ! Each bin becomes one TChem particle: the per-particle species mass is the
-    ! bin's mass concentration divided by its number concentration.
+    ! Each bin becomes one TChem particle. aero_binned%num_conc and %vol_conc
+    ! are per-log-width densities (dN/dlnD, dV/dlnD), so the per-particle mass
+    ! is vol_conc/num_conc (the dlnD cancels), while the actual number
+    ! concentration (#/m^3) passed to TChem is num_conc * the bin log-width.
     aero_offset = n_gas_spec + STATE_VEC_ENV_OFFSET
     do i_bin = 1,n_bin
        if (aero_binned%num_conc(i_bin) > 0.0d0) then
@@ -251,7 +259,8 @@ contains
                   aero_binned%vol_conc(i_bin, i_spec) &
                   * aero_data%density(i_spec) / aero_binned%num_conc(i_bin)
           end do
-          number_concentration(i_bin) = aero_binned%num_conc(i_bin)
+          number_concentration(i_bin) = aero_binned%num_conc(i_bin) &
+               * bin_grid%widths(i_bin)
        else
           do i_spec = 1,n_aero_spec
              state_vector(aero_offset + i_spec + (i_bin - 1) * n_aero_spec) = &

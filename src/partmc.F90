@@ -691,6 +691,7 @@ contains
     type(env_state_t) :: env_state
     type(bin_grid_t) :: bin_grid
     type(gas_data_t) :: gas_data
+    type(gas_state_t) :: gas_state
     character(len=PMC_MAX_FILENAME_LEN) :: sub_filename
     type(spec_file_t) :: sub_file
 
@@ -775,10 +776,10 @@ contains
     end if
 
     call spec_file_read_run_sect(file, run_sect_opt, aero_data, bin_grid, &
-         gas_data, env_state, aero_dist_init, scenario)
+         gas_data, gas_state, env_state, aero_dist_init, scenario)
 
-    call run_sect(bin_grid, gas_data, aero_data, aero_dist_init, scenario, &
-         env_state, run_sect_opt)
+    call run_sect(bin_grid, gas_data, gas_state, aero_data, aero_dist_init, &
+         scenario, env_state, run_sect_opt)
 
     call pmc_rand_finalize()
 

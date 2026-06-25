@@ -656,8 +656,9 @@ contains
 
 #ifdef PMC_USE_QUADPACK
      ! Do numerical integration when QUADPACK is available
-     scenario_integrated_loss_rate_drydep = scenario_integrated_loss_rate_drydep_quadpack( &
-                                              scenario, aero_mode, moment, density, env_state)
+     scenario_integrated_loss_rate_drydep = &
+          scenario_integrated_loss_rate_drydep_quadpack( &
+          scenario, aero_mode, moment, density, env_state)
      return
 #endif
 

@@ -696,8 +696,8 @@ contains
          / drydep_params%z_rough)
 
     ! Brownian diffusivity
-    D_bar = (const%boltzmann * env_state%temp) / &
-            (3.0d0 * const%pi * visc_d * d_pg)
+    D_bar = (const%boltzmann * env_state%temp) &
+            / (3.0d0 * const%pi * visc_d * d_pg)
     ! Compute integrated Brownian diffusivity
     D_hat = D_bar * ((exp((-2.0d0 * moment + 1.0d0) / 2.0d0 * ln_sigma_g**2.0d0) + 1.246d0 * &
              knud * exp((-4.0d0 * moment + 4.0d0) / 2.0d0 * ln_sigma_g**2.0d0)))

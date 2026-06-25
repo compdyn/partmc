@@ -845,8 +845,8 @@ contains
 
   !> Input modal data.
   subroutine input_modal(filename, index, time, del_t, uuid, aero_dist, &
-                         aero_binned, aero_data, env_state, gas_data, &
-                         gas_state, bin_grid, scenario)
+       aero_binned, aero_data, env_state, gas_data, gas_state, bin_grid, &
+       scenario)
 
     !> Filename to read.
     character(len=*), intent(in) :: filename

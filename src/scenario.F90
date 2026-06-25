@@ -429,7 +429,7 @@ contains
 
   !> Update the modal aerosol distribution to account for particle loss.
   subroutine scenario_update_aero_modes(aero_dist, del_t, env_state, &
-                                        density, scenario)
+       density, scenario)
 
     !> Aerosol distribution.
     type(aero_dist_t), intent(inout) :: aero_dist

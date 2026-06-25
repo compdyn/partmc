@@ -1733,7 +1733,7 @@ contains
     type(drydep_params_t), intent(inout) :: val
 
 #ifdef PMC_USE_MPI
-      integer :: prev_position
+    integer :: prev_position
 
     prev_position = position
     call pmc_mpi_unpack_real(buffer, position, val%z_ref)

@@ -323,7 +323,8 @@ contains
 
     integer :: i_mode, n_mode
     type(aero_mode_t), allocatable :: modes(:)
-    real(kind=dp), allocatable :: char_rads(:), log10_std_dev_rads(:), num_concs(:)
+    real(kind=dp), allocatable :: char_rads(:), log10_std_dev_rads(:), &
+         num_concs(:)
 
     call pmc_nc_read_integer(ncid, n_mode, "n_mode")
 

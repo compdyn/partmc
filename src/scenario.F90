@@ -882,7 +882,7 @@ contains
     !> Velocities.
     real(kind=dp), intent(inout) :: velocities(:)
 
-    integer :: i_mode, n_mode
+    integer :: i_mode
 
     do i_mode = 1,size(velocities)
        velocities(i_mode) = scenario_integrated_loss_rate_drydep( &

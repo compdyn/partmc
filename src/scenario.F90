@@ -728,8 +728,8 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 #ifdef PMC_USE_QUADPACK
-  real(kind=dp) function scenario_integrated_loss_rate_drydep_quadpack(scenario, &
-      aero_mode, moment, density, env_state)
+  real(kind=dp) function scenario_integrated_loss_rate_drydep_quadpack( &
+      scenario, aero_mode, moment, density, env_state)
 
     !> Scenario data.
     type(scenario_t), intent(in) :: scenario

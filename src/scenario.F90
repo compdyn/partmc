@@ -670,7 +670,7 @@ contains
     ln_sigma_g = aero_mode%log10_std_dev_radius / log10(exp(1.0d0))
     ! density of air
     density_air = (const%air_molec_weight * env_state%pressure) &
-                / (const%univ_gas_const * env_state%temp)
+          / (const%univ_gas_const * env_state%temp)
     ! dynamic viscosity
     visc_d = 1.8325d-5 * (416.16 / (env_state%temp + 120.0d0)) &
            * (env_state%temp / 296.16)**1.5d0

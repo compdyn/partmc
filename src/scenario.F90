@@ -1426,7 +1426,6 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-
   !> Write dry deposition parameters to a NetCDF file.
   subroutine drydep_params_output_netcdf(drydep_params, ncid)
 

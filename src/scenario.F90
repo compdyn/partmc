@@ -690,8 +690,10 @@ contains
                  knud * exp((2.0d0 * moment + 1.0d0) / 2.0d0 * ln_sigma_g**2.0d0))
 
     ! Aerodynamic resistance (assuming neutral stability)
-    u_star = 0.4d0 * drydep_params%u_mean / log(drydep_params%z_ref / drydep_params%z_rough)
-    R_a = (1.0d0 / (0.4d0 * u_star)) * log(drydep_params%z_ref / drydep_params%z_rough)
+    u_star = 0.4d0 * drydep_params%u_mean / log(drydep_params%z_ref &
+         / drydep_params%z_rough)
+    R_a = (1.0d0 / (0.4d0 * u_star)) * log(drydep_params%z_ref &
+         / drydep_params%z_rough)
 
     ! Brownian diffusivity
     D_bar = (const%boltzmann * env_state%temp) / &

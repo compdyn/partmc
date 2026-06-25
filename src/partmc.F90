@@ -33,15 +33,18 @@
 !! <pre>
 !! run_type &lt;type&gt;
 !! </pre>
-!! where <tt>&lt;type&gt;</tt> is one of \c particle, \c exact, or \c
-!! sectional. This determines the type of run as well as the format of the
-!! remainder of the spec file. The rest of the spec file is described by:
+!! where <tt>&lt;type&gt;</tt> is one of \c particle, \c exact, \c
+!! sectional, or \c modal. This determines the type of run as well as
+!! the format of the remainder of the spec file. The rest of the spec
+!! file is described by:
 !!
 !! \subpage input_format_particle "Particle-resolved simulation"
 !!
 !! \subpage input_format_exact "Exact (analytical) solution"
 !!
 !! \subpage input_format_sectional "Sectional model simulation"
+!!
+!! \subpage input_format_modal "Modal aerosol simulation"
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -226,6 +229,7 @@ program partmc
   use pmc_run_part
   use pmc_run_exact
   use pmc_run_sect
+  use pmc_run_modal
   use pmc_spec_file
   use pmc_gas_data
   use pmc_gas_state
@@ -300,6 +304,8 @@ contains
        call partmc_exact(file)
     elseif (trim(run_type) == 'sectional') then
        call partmc_sect(file)
+    elseif (trim(run_type) == 'modal') then
+       call partmc_modal(file)
     else
        call die_msg(719261940, "unknown run_type: " // trim(run_type))
     end if
@@ -783,6 +789,135 @@ contains
     call pmc_rand_finalize()
 
   end subroutine partmc_sect
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Run a modal code simulation.
+  subroutine partmc_modal(file)
+
+    !> Spec file
+    type(spec_file_t), intent(inout) :: file
+
+    type(run_modal_opt_t) :: run_modal_opt
+    type(aero_data_t) :: aero_data
+    type(aero_dist_t) :: aero_dist_init
+    type(scenario_t) :: scenario
+    type(env_state_t) :: env_state
+    type(bin_grid_t) :: bin_grid
+    type(gas_data_t) :: gas_data
+
+    !> \page input_format_modal Modal Aerosol Simulation
+    !!
+    !! See \ref spec_file_format for the input file text format.
+    !!
+    !! A modal simulation spec file has the parameters:
+    !! - \b run_type (string): must be \c modal
+    !! - \b output_prefix (string): prefix of the output filenames ---
+    !!   the filenames will be of the form \c PREFIX_SSSSSSSS.nc where
+    !!   \c SSSSSSSS is the eight-digit output index (starting at 1
+    !!   and incremented each time the state is output)
+    !! - \b t_max (real, unit s): total simulation time
+    !! - \b del_t (real, unit s): timestep size
+    !! - \b t_output (real, unit s): the interval on which to output
+    !!   data to disk (see \ref output_format)
+    !! - \b t_progress (real, unit s): the interval on which to write
+    !!   summary information to the screen while running
+    !! - \subpage input_format_radius_bin_grid
+    !! - \b do_camp_chem (logical): must be \c no (not currently supported)
+    !! - \b do_tchem (logical): must be \c no (not currently supported)
+    !! - \b gas_data (string): name of file from which to read the
+    !!   gas material data --- the file format should be
+    !!   \subpage input_format_gas_data
+    !! - \b aerosol_data (string): name of file from which to read the
+    !!   aerosol material data (single species only) --- the file
+    !!   format should be \subpage input_format_aero_data
+    !! - \b do_fractal (logical): whether to use fractal treatment
+    !!   (must be \c no; not currently supported)
+    !! - \b aerosol_init (string): filename for the initial lognormal
+    !!   aerosol distribution --- the file format should be
+    !!   \subpage input_format_aero_dist
+    !! - \subpage input_format_scenario
+    !! - \subpage input_format_env_state
+    !! - \b do_coagulation (logical): must be \c no (not currently supported)
+    !! - \b do_condensation (logical): must be \c no (not currently supported)
+    !! - \b do_mosaic (logical): must be \c no (not currently supported)
+    !! - \b do_optical (logical): must be \c no (not currently supported)
+    !! - \b do_nucleation (logical): must be \c no (not currently supported)
+    !! - \b do_immersion_freezing (logical): must be \c no (not currently
+    !!   supported)
+    !! - \b do_parallel (logical): must be \c no (not currently supported)
+    !!
+    !! \note Modal runs currently support only the \c drydep and \c none
+    !! loss functions. Aerosol emissions and background dilution are not
+    !! supported; their rates must be zero in the scenario files. The
+    !! options \c do_camp_chem, \c do_tchem, \c do_coagulation,
+    !! \c do_condensation, \c do_mosaic, \c do_optical, \c do_nucleation,
+    !! \c do_immersion_freezing, and \c do_parallel are included for future
+    !! extensibility but must currently be set to \c no --- setting any of
+    !! them to \c yes will produce a fatal error.
+    !!
+    !! Example:
+    !! <pre>
+    !! run_type modal                         # modal run
+    !! output_prefix out/modal                # prefix of output files
+    !!
+    !! t_max 28800                            # total simulation time (s)
+    !! del_t 60                               # timestep (s)
+    !! t_output 3600                          # output interval (0 disables) (s)
+    !! t_progress 0                           # progress printing interval (0 disables) (s)
+    !!
+    !! n_bin 1000                             # number of bins (for processing purposes)
+    !! d_min 4e-8                             # minimum diameter (m)
+    !! d_max 2.5e-3                           # maximum diameter (m)
+    !!
+    !! do_camp_chem no                        # whether to use CAMP for chemistry (yes/no)
+    !! do_tchem no                            # whether to use TChem for chemistry (yes/no)
+    !!
+    !! gas_data gas_data.dat                  # file containing gas data
+    !! aerosol_data aero_data.dat             # file containing aerosol data
+    !! do_fractal no                          # whether to do fractal treatment (yes/no)
+    !! aerosol_init aero_init_dist.dat        # aerosol initial condition file
+    !!
+    !! temp_profile temp.dat                  # temperature profile file
+    !! pressure_profile pres.dat              # pressure profile file
+    !! height_profile height.dat              # height profile file
+    !! gas_emissions gas_emit.dat             # gas emissions file
+    !! gas_background gas_back.dat            # background gas concentrations file
+    !! aero_emissions aero_emit.dat           # aerosol emissions file (rate must be 0)
+    !! aero_background aero_back.dat          # aerosol background file (rate must be 0)
+    !! loss_function drydep                   # loss function specification
+    !! drydep_params drydep_params.dat        # dry deposition parameters
+    !!
+    !! rel_humidity 0.95                      # initial relative humidity (1)
+    !! latitude 0                             # latitude (degrees, -90 to 90)
+    !! longitude 0                            # longitude (degrees, -180 to 180)
+    !! altitude 0                             # altitude (m)
+    !! start_time 21600                       # start time (s since 00:00 UTC)
+    !! start_day 200                          # start day of year (UTC)
+    !!
+    !! do_coagulation no                      # whether to do coagulation (yes/no)
+    !! do_condensation no                     # whether to do condensation (yes/no)
+    !! do_mosaic no                           # whether to do MOSAIC (yes/no)
+    !! do_optical no                          # whether to compute optical props (yes/no)
+    !! do_nucleation no                       # whether to do nucleation (yes/no)
+    !! do_immersion_freezing no               # whether to do freezing (yes/no)
+    !! do_parallel no                         # whether to run in parallel (yes/no)
+    !! </pre>
+
+    ! only serial code here
+    if (pmc_mpi_rank() /= 0) then
+       return
+    end if
+
+    call spec_file_read_run_modal(file, run_modal_opt, aero_data, bin_grid, &
+         gas_data, env_state, aero_dist_init, scenario)
+
+    call run_modal(aero_data, aero_dist_init, scenario, &
+         env_state, gas_data, bin_grid, run_modal_opt)
+
+    call pmc_rand_finalize()
+
+  end subroutine partmc_modal
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

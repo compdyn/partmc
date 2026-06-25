@@ -282,7 +282,8 @@ contains
     integer, intent(in) :: ncid
 
     integer :: i_mode, n_mode
-    real(kind=dp), allocatable :: char_rads(:), log10_std_dev_rads(:), num_concs(:)
+    real(kind=dp), allocatable :: char_rads(:), log10_std_dev_rads(:), &
+         num_concs(:)
 
     n_mode = aero_dist_n_mode(aero_dist)
 

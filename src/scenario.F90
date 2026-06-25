@@ -886,8 +886,8 @@ contains
 
     do i_mode = 1,size(velocities)
        velocities(i_mode) = scenario_integrated_loss_rate_drydep( &
-          scenario, aero_dist%mode(i_mode), moment, density, env_state) &
-          * env_state%height
+            scenario, aero_dist%mode(i_mode), moment, density, env_state) &
+            * env_state%height
     end do
 
   end subroutine

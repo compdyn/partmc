@@ -1,9 +1,0 @@
-solver_info:
-  atol_time: 1e-6
-  rtol_time: 1e-6
-  dtmin: 1e-20
-  atol_newton: 1e-18
-  rtol_newton: 1e-8
-  max_newton_iterations: 100
-  max_time_iterations: 1000000
-  jacobian_interval: 100

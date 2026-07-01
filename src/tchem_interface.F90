@@ -93,10 +93,11 @@ module pmc_tchem_interface
       real(kind=c_double) :: array(*)
       integer(kind=c_int), value :: i_batch
     end subroutine
-    subroutine TChem_setNParticlesTrack(n) bind(c, &
+    subroutine TChem_setNParticlesTrack(n, i_batch) bind(c, &
          name="TChem_setNParticlesTrack")
       use iso_c_binding
       integer(kind=c_int), value :: n
+      integer(kind=c_int), value :: i_batch
     end subroutine
     integer(kind=c_size_t) function TChem_getSpeciesName(index, result, &
          buffer_size) bind(c, name="TChem_getSpeciesName")
@@ -354,7 +355,7 @@ contains
     call TChem_setNumberConcentrationVector(number_concentration, &
          DEFAULT_BATCH_INDEX)
 
-    call TChem_setNParticlesTrack(n_part)
+    call TChem_setNParticlesTrack(n_part, DEFAULT_BATCH_INDEX)
 
   end subroutine tchem_from_partmc
 

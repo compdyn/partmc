@@ -183,7 +183,7 @@ contains
     write(*,'(a)') '  -N, --dmin <D>    Minimum diameter (m).'
     write(*,'(a)') '  -X, --dmax <D>    Maximum diameter (m).'
     write(*,'(a)') '  -b, --nbin <N>    Number of size bins.'
-    write(*,'(a)') '  -o, --out <file>  Output filename.'
+    write(*,'(a)') '  -o, --output <file>  Output filename.'
     write(*,'(a)') ''
     write(*,'(a)') 'Examples:'
     write(*,'(a)') '  extract_aero_size --num data_0001'

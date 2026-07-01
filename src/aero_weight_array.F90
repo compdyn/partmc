@@ -240,14 +240,14 @@ contains
     real(kind=dp), intent(in) :: radius
 
     integer :: i_group
-    real(kind=dp) :: num_conc(size(aero_weight_array%weight, 1))
+    real(kind=dp) :: inv_sum
 
-    do i_group = 1,size(aero_weight_array%weight, 1)
-       num_conc(i_group) = aero_weight_num_conc_at_radius( &
+    inv_sum = 0d0
+    do i_group = 1, size(aero_weight_array%weight, 1)
+       inv_sum = inv_sum + 1d0 / aero_weight_num_conc_at_radius( &
             aero_weight_array%weight(i_group, i_class), radius)
     end do
-    ! harmonic mean (same as summing the computational volumes)
-    aero_weight_array_num_conc_at_radius = 1d0 / sum(1d0 / num_conc)
+    aero_weight_array_num_conc_at_radius = 1d0 / inv_sum
 
   end function aero_weight_array_num_conc_at_radius
 

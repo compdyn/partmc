@@ -1972,6 +1972,38 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Compute base**exponent, using direct multiplication for common
+  !> integer exponents (-3 to 3) to avoid the overhead of the general
+  !> power operator.
+  real(kind=dp) function fast_pow(base, exponent)
+
+    !> Base.
+    real(kind=dp) :: base
+    !> Exponent.
+    real(kind=dp) :: exponent
+
+    if (exponent == 0d0) then
+       fast_pow = 1d0
+    else if (exponent == 1d0) then
+       fast_pow = base
+    else if (exponent == 2d0) then
+       fast_pow = base * base
+    else if (exponent == 3d0) then
+       fast_pow = base * base * base
+    else if (exponent == -1d0) then
+       fast_pow = 1d0 / base
+    else if (exponent == -2d0) then
+       fast_pow = 1d0 / (base * base)
+    else if (exponent == -3d0) then
+       fast_pow = 1d0 / (base * base * base)
+    else
+       fast_pow = base**exponent
+    end if
+
+  end function fast_pow
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Returns the current system clock time in seconds.
   real(kind=dp) function system_clock_time()
 

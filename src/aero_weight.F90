@@ -137,7 +137,7 @@ contains
     elseif ((aero_weight%type == AERO_WEIGHT_TYPE_POWER) &
          .or. (aero_weight%type == AERO_WEIGHT_TYPE_MFA)) then
        aero_weight_num_conc_at_radius = aero_weight%magnitude &
-            * radius**aero_weight%exponent
+            * fast_pow(radius, aero_weight%exponent)
     else
        call die_msg(700421478, "unknown aero_weight type: " &
             // trim(integer_to_string(aero_weight%type)))

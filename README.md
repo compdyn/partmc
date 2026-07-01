@@ -2,10 +2,10 @@ PartMC: Particle-resolved Monte Carlo code for atmospheric aerosol simulation
 ======
 ![PartMC](https://raw.githubusercontent.com/wiki/compdyn/partmc/logo.svg)
 
-[![Latest version](https://img.shields.io/github/tag/compdyn/partmc.svg?label=version)](https://github.com/compdyn/partmc/blob/master/ChangeLog.md) [![Documentation](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://compdyn.github.io/partmc/) [![Docker build status](https://img.shields.io/docker/automated/compdyn/partmc.svg)](https://hub.docker.com/r/compdyn/partmc/builds/) [![Github Actions Status](https://github.com/compdyn/partmc/actions/workflows/main.yml/badge.svg?branch=master)](https://github.com/compdyn/partmc/actions/workflows/main.yml) [![License](https://img.shields.io/github/license/compdyn/partmc.svg)](https://github.com/compdyn/partmc/blob/master/COPYING) [![DOI](https://zenodo.org/badge/24058992.svg)](https://zenodo.org/badge/latestdoi/24058992) [![Coverage Status](https://codecov.io/gh/compdyn/partmc/branch/master/graph/badge.svg)](https://app.codecov.io/gh/compdyn/partmc)
+[![Latest version](https://img.shields.io/github/tag/compdyn/partmc.svg?label=version)](https://github.com/compdyn/partmc/blob/master/ChangeLog.md) [![Documentation](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://compdyn.github.io/partmc/) [![Docker build status](https://img.shields.io/docker/automated/compdyn/partmc.svg)](https://hub.docker.com/r/compdyn/partmc/builds/) [![Github Actions Status](https://github.com/compdyn/partmc/actions/workflows/main.yml/badge.svg?branch=master)](https://github.com/compdyn/partmc/actions/workflows/main.yml) [![License](https://img.shields.io/github/license/compdyn/partmc.svg)](https://github.com/compdyn/partmc/blob/master/COPYING) [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1490924.svg)](https://doi.org/10.5281/zenodo.1490924) [![Coverage Status](https://codecov.io/gh/compdyn/partmc/branch/master/graph/badge.svg)](https://app.codecov.io/gh/compdyn/partmc)
 
-Version 2.8.0  
-Released 2024-02-23
+Version 2.9.0  
+Released 2026-06-17
 
 **Repository:** <https://github.com/compdyn/partmc>
 
@@ -17,9 +17,9 @@ Released 2024-02-23
 - [Description of code conventions and style](https://compdyn.github.io/partmc/coding_style.html);
 - [Publications about PartMC](https://compdyn.github.io/partmc/publications.html).
 
-**Cite as:** M. West, N. Riemer, J. Curtis, M. Michelotti, and J. Tian (2024) PartMC, [![version](https://img.shields.io/github/release/compdyn/partmc.svg?label=version)](https://github.com/compdyn/partmc), [![DOI](https://zenodo.org/badge/24058992.svg)](https://zenodo.org/badge/latestdoi/24058992)
+**Cite as:** M. West, N. Riemer, J. Curtis, M. Michelotti, J. Tian, M. Dawson, W. Tang, and S. Arabas (2026) PartMC, [![version](https://img.shields.io/github/release/compdyn/partmc.svg?label=version)](https://github.com/compdyn/partmc), [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1490924.svg)](https://doi.org/10.5281/zenodo.1490924) 
 
-Copyright (C) 2005-2024 Nicole Riemer and Matthew West  
+Copyright (C) 2005-2026 Nicole Riemer and Matthew West  
 Portions copyright (C) Andreas Bott, Richard Easter, Jeffrey Curtis,
 Matthew Michelotti, and Jian Tian  
 Licensed under the GNU General Public License version 2 or (at your
@@ -189,12 +189,12 @@ Installation
 
 2. Unpack PartMC:
 
-        tar xzvf partmc-2.8.0.tar.gz
+        tar xzvf partmc-2.9.0.tar.gz
 
 3. Change into the main PartMC directory (where this README file is
    located):
 
-        cd partmc-2.8.0
+        cd partmc-2.9.0
 
 4. Make a directory called `build` and change into it:
 

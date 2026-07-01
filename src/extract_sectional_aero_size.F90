@@ -164,7 +164,7 @@ contains
     write(*,'(a)') '  -h, --help        Print this help message.'
     write(*,'(a)') '  -n, --num         Output number distribution.'
     write(*,'(a)') '  -m, --mass        Output mass distribution.'
-    write(*,'(a)') '  -o, --out <file>  Output filename.'
+    write(*,'(a)') '  -o, --output <file>  Output filename.'
     write(*,'(a)') ''
     write(*,'(a)') 'Examples:'
     write(*,'(a)') '  extract_sectional_aero_size --num data_0001'

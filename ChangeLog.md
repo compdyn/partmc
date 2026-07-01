@@ -1,3 +1,27 @@
+2.9.0 - 2026-06-17
+
+  * Add immersion freezing (Wenhan Tang and Sylwester Arabas).
+
+  * Add support for TChem gas-phase chemistry (Jeff Curtis).
+
+  * Allow the coefficient for the additive coagulation kernel to be set
+    from the spec file (Zach D'Aquino).
+
+  * Restructure reading of simulation input (Jeff Curtis).
+
+  * Improve performance in frequently called weighting functions
+    (Jeff Curtis).
+
+  * Add automated Doxygen documentation published to GitHub Pages, with
+    `README.md` as the homepage (Jeff Curtis).
+
+  * Add code coverage analysis using codecov.io (Sylwester Arabas).
+
+  * Fix `aero_particle` `least_create_time` bug (Jeff Curtis).
+
+  * Fix writing format specifier in `aero_particle_extract.F90` to avoid
+    an ifx compiler issue (Jeff Curtis).
+
 2.8.0 - 2024-02-23
 
   * Add `aero_component` for tracking particle source information (Jeff Curtis).

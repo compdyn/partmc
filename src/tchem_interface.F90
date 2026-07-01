@@ -5,7 +5,7 @@
 !> \file
 !> The pmc_tchem_interface module.
 
-!> An interface between PartMC and TChem
+!> An interface between PartMC and TChem.
 module pmc_tchem_interface
 
   use pmc_aero_data
@@ -27,8 +27,7 @@ module pmc_tchem_interface
 #ifdef PMC_USE_TCHEM
   interface
     subroutine tchem_c_initialize(arg_chemfile, arg_aerofile, &
-         arg_numericsfile, n_batch) &
-         bind(c, name="initialize")
+         arg_numericsfile, n_batch) bind(c, name="initialize")
       use iso_c_binding
       character(kind=c_char), intent(in) :: arg_chemfile(*)
       character(kind=c_char), intent(in) :: arg_aerofile(*)
@@ -174,7 +173,7 @@ contains
     integer :: i_spec
     logical :: is_gas
 
-    ! initialize the model
+    ! Initialize the model
     call tchem_c_initialize(trim(gas_config_filename), &
          trim(aero_config_filename), trim(solver_config_filename), &
          n_grid_cells)
@@ -262,8 +261,8 @@ contains
 
     ! Convert from ppm to ppb.
     gas_state%mix_rat = &
-       state_vector(STATE_VEC_ENV_OFFSET+1:n_gas_spec+STATE_VEC_ENV_OFFSET) &
-       * PPM_TO_PPB
+         state_vector(STATE_VEC_ENV_OFFSET+1:n_gas_spec+STATE_VEC_ENV_OFFSET) &
+         * PPM_TO_PPB
 
     call aero_state_num_conc_for_reweight(aero_state, aero_data, &
          reweight_num_conc)
@@ -328,7 +327,7 @@ contains
     i_water = gas_data_spec_by_name(gas_data, "H2O")
     gas_state%mix_rat(i_water) = env_state_rel_humid_to_mix_rat(env_state)
     ! Add gas species to state vector. Convert from ppb to ppm.
-    state_vector(STATE_VEC_ENV_OFFSET+1:n_gas_spec + STATE_VEC_ENV_OFFSET) = &
+    state_vector(STATE_VEC_ENV_OFFSET+1:n_gas_spec+STATE_VEC_ENV_OFFSET) = &
          gas_state%mix_rat / PPM_TO_PPB
 
     aero_offset = n_gas_spec + STATE_VEC_ENV_OFFSET
@@ -344,7 +343,7 @@ contains
 
     do i_part = n_part+1,tchem_n_part
        do i_spec = 1,n_aero_spec
-          state_vector(aero_offset + i_spec + (i_part-1) * n_aero_spec) = &
+          state_vector(aero_offset + i_spec + (i_part - 1) * n_aero_spec) = &
                SMALL_MASS_PLACEHOLDER
        end do
        number_concentration(i_part) = 0.0d0

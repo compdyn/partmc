@@ -22,7 +22,7 @@ Fe2O3          5240                0                   159.69d-3  0.01          
 
 #KLN            2650                0                   258.16d-3  0.023           54.58834          -10.54758   0.0
 # Kaolinite
-# den: https://cameochemicals.noaa.gov/chemical/25036   surface tension (J m^{-2})
+# den: https://cameochemicals.noaa.gov/chemical/25036
 # molec wght: http://webmineral.com/data/Kaolinite.shtml#.ZA0TTezMJ_Q
 # kappa: 10.1039/b901585j   
 # sigma: [unknown]

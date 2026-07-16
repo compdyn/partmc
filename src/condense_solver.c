@@ -174,6 +174,7 @@ int condense_solver(int neq, double *x_f, double *abstol_f, double reltol_f,
 	N_VDestroy_Serial(y);
 	N_VDestroy_Serial(abstol);
 	CVodeFree(&cvode_mem);
+	SUNLinSolFree(LS);
 #if SUNDIALS_VERSION_MAJOR >= 6
 	SUNContext_Free(&sunctx);
 #endif

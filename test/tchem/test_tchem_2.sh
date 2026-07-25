@@ -9,6 +9,5 @@ cd ${0%/*}
 # make the output directory if it doesn't exist
 mkdir -p out
 
-../../partmc run_part_cb05cl_ae5.spec
-../../extract_gas out/tchem_cb05cl_ae5_0001
-../../numeric_diff --by col --rel-tol 0.4 out/tchem_cb05cl_ae5_0001_gas.txt tchem_cb05cl_ae5_gas_saved.txt
+../../extract_aero_time out/tchem_cb05cl_ae5_0001
+../../numeric_diff --rel-tol 0.4 out/tchem_cb05cl_ae5_0001_aero_time.txt tchem_cb05cl_ae5_aero_time_saved.txt

@@ -60,6 +60,7 @@
       "kappa" : 0.0,
       "abifm_m": 0,
       "abifm_c": 0,
+      "sigma" : 0.03,
       "note" : "Using C30H54 for molecular weight. TODO find best surrogate"
     },
     {
@@ -74,6 +75,7 @@
       "kappa" : 0.1,
       "abifm_m": 0,
       "abifm_c": 0,
+      "sigma" : 0.03,
       "note" : [
         "Using ketopropanoic acid for molecular weight. TODO find best surrogate",
         "TODO update SIMPOL parameters based on MW of new surrogate"
@@ -91,6 +93,7 @@
       "kappa" : 0.1,
       "abifm_m": 0,
       "abifm_c": 0,
+      "sigma" : 0.03,
       "note" : [
         "Using oxalic acid for molecular weight. TODO find best surrogate",
         "TODO update SIMPOL parameters based on MW of new surrogate"
@@ -108,6 +111,7 @@
       "kappa" : 0.1,
       "abifm_m": 0,
       "abifm_c": 0,
+      "sigma" : 0.03,
       "note" : [
         "Using 2-hydroxy-3-isopropyl-6-methyl-cyclohexanone for molecular weight",
         "TODO find best surrogate",
@@ -126,6 +130,7 @@
       "kappa" : 0.1,
       "abifm_m": 0,
       "abifm_c": 0,
+      "sigma" : 0.03,
       "note" : [
         "Using 2-methyl-5-carboxy-2,4-hexodienoic acid. TODO find best surrogate",
         "TODO update SIMPOL parameters based on MW of new surrogate"

@@ -93,6 +93,7 @@ contains
 
     ! Update the PartMC gas-phase state
     call gas_state_get_camp_conc(gas_state, camp_state)
+    !call camp_core%print()
 
   end subroutine pmc_camp_interface_solve
 

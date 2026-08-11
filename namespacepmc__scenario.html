@@ -53,6 +53,9 @@ $(function() {
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
 Data Types</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">type &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpmc__scenario_1_1drydep__params__t.html">drydep_params_t</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Parameters for simulating dry deposition.  <a href="structpmc__scenario_1_1drydep__params__t.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">type &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpmc__scenario_1_1scenario__t.html">scenario_t</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Scenario data.  <a href="structpmc__scenario_1_1scenario__t.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -74,12 +77,21 @@ Functions/Subroutines</h2></td></tr>
 <tr class="memitem:aa8ca6c77c94665bdbf4c4f25e2dd1523"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepmc__scenario.html#aa8ca6c77c94665bdbf4c4f25e2dd1523">scenario_update_aero_binned</a> (scenario, delta_t, env_state, old_env_state, bin_grid, aero_data, aero_binned)</td></tr>
 <tr class="memdesc:aa8ca6c77c94665bdbf4c4f25e2dd1523"><td class="mdescLeft">&#160;</td><td class="mdescRight">Do emissions and background dilution from the environment for a binned aerosol distribution.  <a href="namespacepmc__scenario.html#aa8ca6c77c94665bdbf4c4f25e2dd1523">More...</a><br /></td></tr>
 <tr class="separator:aa8ca6c77c94665bdbf4c4f25e2dd1523"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a30267474d0e657c2be781e1d187e5faa"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepmc__scenario.html#a30267474d0e657c2be781e1d187e5faa">scenario_update_aero_modes</a> (aero_dist, del_t, env_state, density, scenario)</td></tr>
+<tr class="memdesc:a30267474d0e657c2be781e1d187e5faa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Update the modal aerosol distribution to account for particle loss.  <a href="namespacepmc__scenario.html#a30267474d0e657c2be781e1d187e5faa">More...</a><br /></td></tr>
+<tr class="separator:a30267474d0e657c2be781e1d187e5faa"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab60e2eeb66ae8849ad11923d76a9bd7f"><td class="memItemLeft" align="right" valign="top">real(kind=dp) function&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepmc__scenario.html#ab60e2eeb66ae8849ad11923d76a9bd7f">scenario_loss_rate</a> (scenario, vol, density, aero_data, env_state)</td></tr>
 <tr class="memdesc:ab60e2eeb66ae8849ad11923d76a9bd7f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Evaluate a loss rate function.  <a href="namespacepmc__scenario.html#ab60e2eeb66ae8849ad11923d76a9bd7f">More...</a><br /></td></tr>
 <tr class="separator:ab60e2eeb66ae8849ad11923d76a9bd7f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:adbc0c60c8638d7bc02416577dedf89ac"><td class="memItemLeft" align="right" valign="top">real(kind=dp) function&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepmc__scenario.html#adbc0c60c8638d7bc02416577dedf89ac">scenario_loss_rate_dry_dep</a> (vol, density, aero_data, env_state)</td></tr>
-<tr class="memdesc:adbc0c60c8638d7bc02416577dedf89ac"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute and return the dry deposition rate for a given particle. All equations used here are written in detail in the file <code>doc/deposition/deposition.tex</code>.  <a href="namespacepmc__scenario.html#adbc0c60c8638d7bc02416577dedf89ac">More...</a><br /></td></tr>
-<tr class="separator:adbc0c60c8638d7bc02416577dedf89ac"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a337c0b8096c4383ab0a723819d3d4c4f"><td class="memItemLeft" align="right" valign="top">real(kind=dp) function&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepmc__scenario.html#a337c0b8096c4383ab0a723819d3d4c4f">scenario_loss_rate_drydep</a> (vol, density, aero_data, env_state, scenario)</td></tr>
+<tr class="memdesc:a337c0b8096c4383ab0a723819d3d4c4f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute and return the dry deposition rate for a given particle. All equations used here are written in detail in the file <code>doc/deposition/deposition.tex</code>.  <a href="namespacepmc__scenario.html#a337c0b8096c4383ab0a723819d3d4c4f">More...</a><br /></td></tr>
+<tr class="separator:a337c0b8096c4383ab0a723819d3d4c4f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a77b14205745236ed61613f6bac7fe7f5"><td class="memItemLeft" align="right" valign="top">real(kind=dp) function&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepmc__scenario.html#a77b14205745236ed61613f6bac7fe7f5">scenario_integrated_loss_rate_drydep</a> (scenario, aero_mode, moment, density, env_state)</td></tr>
+<tr class="memdesc:a77b14205745236ed61613f6bac7fe7f5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute and return the integrated dry deposition rate for a given lognormal aerosol mode (modal approximation).  <a href="namespacepmc__scenario.html#a77b14205745236ed61613f6bac7fe7f5">More...</a><br /></td></tr>
+<tr class="separator:a77b14205745236ed61613f6bac7fe7f5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6d470e3aacf10cfc6eac98a6606bf1ff"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepmc__scenario.html#a6d470e3aacf10cfc6eac98a6606bf1ff">scenario_modal_drydep_velocities</a> (scenario, aero_dist, moment, density, env_state, velocities)</td></tr>
+<tr class="memdesc:a6d470e3aacf10cfc6eac98a6606bf1ff"><td class="mdescLeft">&#160;</td><td class="mdescRight">Updates an array to contain the integrated deposition velocities for the given moment of each aerosol mode in the distribution.  <a href="namespacepmc__scenario.html#a6d470e3aacf10cfc6eac98a6606bf1ff">More...</a><br /></td></tr>
+<tr class="separator:a6d470e3aacf10cfc6eac98a6606bf1ff"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3b3b510051adbe1f82741b50ea7d5857"><td class="memItemLeft" align="right" valign="top">real(kind=dp) function&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepmc__scenario.html#a3b3b510051adbe1f82741b50ea7d5857">scenario_loss_rate_max</a> (scenario, vol, aero_data, env_state)</td></tr>
 <tr class="memdesc:a3b3b510051adbe1f82741b50ea7d5857"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute and return the max loss rate function for a given volume.  <a href="namespacepmc__scenario.html#a3b3b510051adbe1f82741b50ea7d5857">More...</a><br /></td></tr>
 <tr class="separator:a3b3b510051adbe1f82741b50ea7d5857"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -95,6 +107,12 @@ Functions/Subroutines</h2></td></tr>
 <tr class="memitem:afaea66be4e0e1ec9a4b80a2fda61f972"><td class="memItemLeft" align="right" valign="top">elemental logical function&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepmc__scenario.html#afaea66be4e0e1ec9a4b80a2fda61f972">scenario_contains_aero_mode_type</a> (scenario, aero_mode_type)</td></tr>
 <tr class="memdesc:afaea66be4e0e1ec9a4b80a2fda61f972"><td class="mdescLeft">&#160;</td><td class="mdescRight">Whether any of the contained aerosol modes are of the given type.  <a href="namespacepmc__scenario.html#afaea66be4e0e1ec9a4b80a2fda61f972">More...</a><br /></td></tr>
 <tr class="separator:afaea66be4e0e1ec9a4b80a2fda61f972"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afa831d9e5f0f0989cab1b9c2ad88bad3"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepmc__scenario.html#afa831d9e5f0f0989cab1b9c2ad88bad3">drydep_params_output_netcdf</a> (drydep_params, <a class="el" href="fractal_8_f90.html#a4e89f3f850921ff84a6dfce8b166ad50">ncid</a>)</td></tr>
+<tr class="memdesc:afa831d9e5f0f0989cab1b9c2ad88bad3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Write dry deposition parameters to a NetCDF file.  <a href="namespacepmc__scenario.html#afa831d9e5f0f0989cab1b9c2ad88bad3">More...</a><br /></td></tr>
+<tr class="separator:afa831d9e5f0f0989cab1b9c2ad88bad3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abaa23fdb0b84b3e5410b911088024a6c"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepmc__scenario.html#abaa23fdb0b84b3e5410b911088024a6c">drydep_params_input_netcdf</a> (drydep_params, <a class="el" href="fractal_8_f90.html#a4e89f3f850921ff84a6dfce8b166ad50">ncid</a>)</td></tr>
+<tr class="memdesc:abaa23fdb0b84b3e5410b911088024a6c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read dry deposition parameters from a NetCDF file.  <a href="namespacepmc__scenario.html#abaa23fdb0b84b3e5410b911088024a6c">More...</a><br /></td></tr>
+<tr class="separator:abaa23fdb0b84b3e5410b911088024a6c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a135753482d6e0a63cf3947e6e017c618"><td class="memItemLeft" align="right" valign="top">integer function&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepmc__scenario.html#a135753482d6e0a63cf3947e6e017c618">pmc_mpi_pack_size_scenario</a> (val)</td></tr>
 <tr class="memdesc:a135753482d6e0a63cf3947e6e017c618"><td class="mdescLeft">&#160;</td><td class="mdescRight">Determines the number of bytes required to pack the given value.  <a href="namespacepmc__scenario.html#a135753482d6e0a63cf3947e6e017c618">More...</a><br /></td></tr>
 <tr class="separator:a135753482d6e0a63cf3947e6e017c618"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -104,6 +122,15 @@ Functions/Subroutines</h2></td></tr>
 <tr class="memitem:afddd83d6cfc65b32e3cce01d70ecdf85"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepmc__scenario.html#afddd83d6cfc65b32e3cce01d70ecdf85">pmc_mpi_unpack_scenario</a> (buffer, position, val)</td></tr>
 <tr class="memdesc:afddd83d6cfc65b32e3cce01d70ecdf85"><td class="mdescLeft">&#160;</td><td class="mdescRight">Unpacks the given value from the buffer, advancing position.  <a href="namespacepmc__scenario.html#afddd83d6cfc65b32e3cce01d70ecdf85">More...</a><br /></td></tr>
 <tr class="separator:afddd83d6cfc65b32e3cce01d70ecdf85"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad5355702ae08d8b53e8e6e03ff11eed9"><td class="memItemLeft" align="right" valign="top">integer function&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepmc__scenario.html#ad5355702ae08d8b53e8e6e03ff11eed9">pmc_mpi_pack_size_drydep</a> (val)</td></tr>
+<tr class="memdesc:ad5355702ae08d8b53e8e6e03ff11eed9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Determines the number of bytes required to pack the given value.  <a href="namespacepmc__scenario.html#ad5355702ae08d8b53e8e6e03ff11eed9">More...</a><br /></td></tr>
+<tr class="separator:ad5355702ae08d8b53e8e6e03ff11eed9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6143981d1dd6ffed67bcabe7e3c70131"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepmc__scenario.html#a6143981d1dd6ffed67bcabe7e3c70131">pmc_mpi_pack_drydep</a> (buffer, position, val)</td></tr>
+<tr class="memdesc:a6143981d1dd6ffed67bcabe7e3c70131"><td class="mdescLeft">&#160;</td><td class="mdescRight">Packs the given value into the buffer, advancing position.  <a href="namespacepmc__scenario.html#a6143981d1dd6ffed67bcabe7e3c70131">More...</a><br /></td></tr>
+<tr class="separator:a6143981d1dd6ffed67bcabe7e3c70131"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a075a2ac7ea846bb76ba86270547902bd"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepmc__scenario.html#a075a2ac7ea846bb76ba86270547902bd">pmc_mpi_unpack_drydep</a> (buffer, position, val)</td></tr>
+<tr class="memdesc:a075a2ac7ea846bb76ba86270547902bd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Unpacks the given value from the buffer, advancing position.  <a href="namespacepmc__scenario.html#a075a2ac7ea846bb76ba86270547902bd">More...</a><br /></td></tr>
+<tr class="separator:a075a2ac7ea846bb76ba86270547902bd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="var-members"></a>
 Variables</h2></td></tr>
@@ -132,6 +159,130 @@ Variables</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>The <a class="el" href="structpmc__scenario_1_1scenario__t.html" title="Scenario data.">scenario_t</a> structure and associated subroutines. </p>
 </div><h2 class="groupheader">Function/Subroutine Documentation</h2>
+<a id="abaa23fdb0b84b3e5410b911088024a6c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abaa23fdb0b84b3e5410b911088024a6c">&#9670;&nbsp;</a></span>drydep_params_input_netcdf()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">subroutine pmc_scenario::drydep_params_input_netcdf </td>
+          <td>(</td>
+          <td class="paramtype">type(<a class="el" href="structpmc__scenario_1_1drydep__params__t.html">drydep_params_t</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>drydep_params</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">integer, intent(in)&#160;</td>
+          <td class="paramname"><em>ncid</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Read dry deposition parameters from a NetCDF file. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">drydep_params</td><td>Dry deposition parameters. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">ncid</td><td>NetCDF file ID, in data mode. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l01479">1479</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+
+</div>
+</div>
+<a id="afa831d9e5f0f0989cab1b9c2ad88bad3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afa831d9e5f0f0989cab1b9c2ad88bad3">&#9670;&nbsp;</a></span>drydep_params_output_netcdf()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">subroutine pmc_scenario::drydep_params_output_netcdf </td>
+          <td>(</td>
+          <td class="paramtype">type(<a class="el" href="structpmc__scenario_1_1drydep__params__t.html">drydep_params_t</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>drydep_params</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">integer, intent(in)&#160;</td>
+          <td class="paramname"><em>ncid</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Write dry deposition parameters to a NetCDF file. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">drydep_params</td><td>Dry deposition parameters. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">ncid</td><td>NetCDF file ID, in data mode. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l01451">1451</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+
+</div>
+</div>
+<a id="a6143981d1dd6ffed67bcabe7e3c70131"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6143981d1dd6ffed67bcabe7e3c70131">&#9670;&nbsp;</a></span>pmc_mpi_pack_drydep()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">subroutine pmc_scenario::pmc_mpi_pack_drydep </td>
+          <td>(</td>
+          <td class="paramtype">character, dimension(:), intent(inout)&#160;</td>
+          <td class="paramname"><em>buffer</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">integer, intent(inout)&#160;</td>
+          <td class="paramname"><em>position</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structpmc__scenario_1_1drydep__params__t.html">drydep_params_t</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>val</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Packs the given value into the buffer, advancing position. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">buffer</td><td>Memory buffer. </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">position</td><td>Current buffer position. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">val</td><td>Value to pack. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l01718">1718</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+
+</div>
+</div>
 <a id="a93772962c3e78b32063cb735d357878a"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a93772962c3e78b32063cb735d357878a">&#9670;&nbsp;</a></span>pmc_mpi_pack_scenario()</h2>
 
@@ -174,7 +325,35 @@ Variables</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l01062">1062</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l01563">1563</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+
+</div>
+</div>
+<a id="ad5355702ae08d8b53e8e6e03ff11eed9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad5355702ae08d8b53e8e6e03ff11eed9">&#9670;&nbsp;</a></span>pmc_mpi_pack_size_drydep()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">integer function pmc_scenario::pmc_mpi_pack_size_drydep </td>
+          <td>(</td>
+          <td class="paramtype">type(<a class="el" href="structpmc__scenario_1_1drydep__params__t.html">drydep_params_t</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>val</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Determines the number of bytes required to pack the given value. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">val</td><td>Value to pack. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l01694">1694</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
 
 </div>
 </div>
@@ -202,7 +381,53 @@ Variables</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l01006">1006</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l01506">1506</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+
+</div>
+</div>
+<a id="a075a2ac7ea846bb76ba86270547902bd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a075a2ac7ea846bb76ba86270547902bd">&#9670;&nbsp;</a></span>pmc_mpi_unpack_drydep()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">subroutine pmc_scenario::pmc_mpi_unpack_drydep </td>
+          <td>(</td>
+          <td class="paramtype">character, dimension(:), intent(inout)&#160;</td>
+          <td class="paramname"><em>buffer</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">integer, intent(inout)&#160;</td>
+          <td class="paramname"><em>position</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structpmc__scenario_1_1drydep__params__t.html">drydep_params_t</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>val</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Unpacks the given value from the buffer, advancing position. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">buffer</td><td>Memory buffer. </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">position</td><td>Current buffer position. </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">val</td><td>Value to pack. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l01752">1752</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
 
 </div>
 </div>
@@ -248,7 +473,7 @@ Variables</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l01121">1121</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l01623">1623</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
 
 </div>
 </div>
@@ -287,7 +512,7 @@ Variables</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00752">752</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l01127">1127</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
 
 </div>
 </div>
@@ -333,7 +558,67 @@ Variables</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00110">110</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00144">144</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+
+</div>
+</div>
+<a id="a77b14205745236ed61613f6bac7fe7f5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a77b14205745236ed61613f6bac7fe7f5">&#9670;&nbsp;</a></span>scenario_integrated_loss_rate_drydep()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">real(kind=dp) function pmc_scenario::scenario_integrated_loss_rate_drydep </td>
+          <td>(</td>
+          <td class="paramtype">type(<a class="el" href="structpmc__scenario_1_1scenario__t.html">scenario_t</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>scenario</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structpmc__aero__mode_1_1aero__mode__t.html">aero_mode_t</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>aero_mode</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(kind=dp), intent(in)&#160;</td>
+          <td class="paramname"><em>moment</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(kind=dp), intent(in)&#160;</td>
+          <td class="paramname"><em>density</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structpmc__env__state_1_1env__state__t.html">env_state_t</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>env_state</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Compute and return the integrated dry deposition rate for a given lognormal aerosol mode (modal approximation). </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">scenario</td><td>Scenario data. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">aero_mode</td><td>Aerosol mode. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">moment</td><td>Moment to calculate loss rate for. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">density</td><td>Particle density assumed for entire mode (kg m^-3). </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">env_state</td><td>Environment state. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00636">636</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
 
 </div>
 </div>
@@ -393,7 +678,7 @@ Variables</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00398">398</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00496">496</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
 
 </div>
 </div>
@@ -455,18 +740,18 @@ Variables</h2></td></tr>
 <p>Number of sample points per bin.</p>
 <p>Over-estimation scale factor parameter.</p>
 
-<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00580">580</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00955">955</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
 
 </div>
 </div>
-<a id="adbc0c60c8638d7bc02416577dedf89ac"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#adbc0c60c8638d7bc02416577dedf89ac">&#9670;&nbsp;</a></span>scenario_loss_rate_dry_dep()</h2>
+<a id="a337c0b8096c4383ab0a723819d3d4c4f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a337c0b8096c4383ab0a723819d3d4c4f">&#9670;&nbsp;</a></span>scenario_loss_rate_drydep()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">real(kind=dp) function pmc_scenario::scenario_loss_rate_dry_dep </td>
+          <td class="memname">real(kind=dp) function pmc_scenario::scenario_loss_rate_drydep </td>
           <td>(</td>
           <td class="paramtype">real(kind=dp), intent(in)&#160;</td>
           <td class="paramname"><em>vol</em>, </td>
@@ -487,7 +772,13 @@ Variables</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">type(<a class="el" href="structpmc__env__state_1_1env__state__t.html">env_state_t</a>), intent(in)&#160;</td>
-          <td class="paramname"><em>env_state</em>&#160;</td>
+          <td class="paramname"><em>env_state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structpmc__scenario_1_1scenario__t.html">scenario_t</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>scenario</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -504,11 +795,12 @@ Variables</h2></td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">density</td><td>Particle density (kg m^-3). </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">aero_data</td><td>Aerosol data. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">env_state</td><td>Environment state. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">scenario</td><td>Scenario data. </td></tr>
   </table>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00444">444</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00542">542</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
 
 </div>
 </div>
@@ -562,7 +854,74 @@ Variables</h2></td></tr>
 </dl>
 <p>Number of density sample points.</p>
 
-<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00543">543</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00918">918</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+
+</div>
+</div>
+<a id="a6d470e3aacf10cfc6eac98a6606bf1ff"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6d470e3aacf10cfc6eac98a6606bf1ff">&#9670;&nbsp;</a></span>scenario_modal_drydep_velocities()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">subroutine pmc_scenario::scenario_modal_drydep_velocities </td>
+          <td>(</td>
+          <td class="paramtype">type(<a class="el" href="structpmc__scenario_1_1scenario__t.html">scenario_t</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>scenario</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structpmc__aero__dist_1_1aero__dist__t.html">aero_dist_t</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>aero_dist</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(kind=dp), intent(in)&#160;</td>
+          <td class="paramname"><em>moment</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(kind=dp), intent(in)&#160;</td>
+          <td class="paramname"><em>density</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structpmc__env__state_1_1env__state__t.html">env_state_t</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>env_state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(kind=dp), dimension(:), intent(inout)&#160;</td>
+          <td class="paramname"><em>velocities</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Updates an array to contain the integrated deposition velocities for the given moment of each aerosol mode in the distribution. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">scenario</td><td>Scenario data. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">aero_dist</td><td>Aerosol distribution. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">moment</td><td>Moment to compute deposition velocities for. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">density</td><td>Density for the mode. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">env_state</td><td>Environment state. </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">velocities</td><td>Modal dry deposition velocities. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00889">889</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
 
 </div>
 </div>
@@ -622,7 +981,7 @@ Variables</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00626">626</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l01001">1001</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
 
 </div>
 </div>
@@ -696,7 +1055,7 @@ Variables</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00711">711</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l01086">1086</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
 
 </div>
 </div>
@@ -770,7 +1129,66 @@ Variables</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00349">349</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00383">383</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+
+</div>
+</div>
+<a id="a30267474d0e657c2be781e1d187e5faa"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a30267474d0e657c2be781e1d187e5faa">&#9670;&nbsp;</a></span>scenario_update_aero_modes()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">subroutine pmc_scenario::scenario_update_aero_modes </td>
+          <td>(</td>
+          <td class="paramtype">type(<a class="el" href="structpmc__aero__dist_1_1aero__dist__t.html">aero_dist_t</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>aero_dist</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(kind=dp), intent(in)&#160;</td>
+          <td class="paramname"><em>del_t</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structpmc__env__state_1_1env__state__t.html">env_state_t</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>env_state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(kind=dp), intent(in)&#160;</td>
+          <td class="paramname"><em>density</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structpmc__scenario_1_1scenario__t.html">scenario_t</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>scenario</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Update the modal aerosol distribution to account for particle loss. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">aero_dist</td><td>Aerosol distribution. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">del_t</td><td>Timestep. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">env_state</td><td>Environment state. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">density</td><td>Particle density (kg m^-3), assumed uniform across all modes. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00432">432</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
 
 </div>
 </div>
@@ -872,7 +1290,7 @@ Variables</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00259">259</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00293">293</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
 
 </div>
 </div>
@@ -921,7 +1339,7 @@ Variables</h2></td></tr>
 <p>Ambient pressure (Pa)</p>
 <p>Ambient temperature (K)</p>
 
-<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00133">133</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00167">167</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
 
 </div>
 </div>
@@ -1006,7 +1424,7 @@ Variables</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00207">207</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00241">241</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
 
 </div>
 </div>
@@ -1025,7 +1443,7 @@ Variables</h2></td></tr>
 
 <p>Parameter to switch between algorithms for particle loss. A value of 0 will always use the naive algorithm, and a value of 1 will always use the accept-reject algorithm. </p>
 
-<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00041">41</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00044">44</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
 
 </div>
 </div>
@@ -1043,7 +1461,7 @@ Variables</h2></td></tr>
 
 <p>Type code for a loss rate function for chamber experiments. </p>
 
-<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00036">36</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00039">39</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
 
 </div>
 </div>
@@ -1061,7 +1479,7 @@ Variables</h2></td></tr>
 
 <p>Type code for a constant loss function. </p>
 
-<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00030">30</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00033">33</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
 
 </div>
 </div>
@@ -1079,7 +1497,7 @@ Variables</h2></td></tr>
 
 <p>Type code for a loss rate function based on dry deposition. </p>
 
-<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00034">34</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00037">37</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
 
 </div>
 </div>
@@ -1097,7 +1515,7 @@ Variables</h2></td></tr>
 
 <p>Type code for an undefined or invalid loss function. </p>
 
-<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00026">26</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00029">29</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
 
 </div>
 </div>
@@ -1115,7 +1533,7 @@ Variables</h2></td></tr>
 
 <p>Type code for a zero loss function. </p>
 
-<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00028">28</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00031">31</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
 
 </div>
 </div>
@@ -1133,7 +1551,7 @@ Variables</h2></td></tr>
 
 <p>Type code for a loss rate function proportional to particle volume. </p>
 
-<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00032">32</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00035">35</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
 
 </div>
 </div>

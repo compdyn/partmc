@@ -113,6 +113,9 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:ab57088939db462aeff72b59134fe605e"><td class="memItemLeft" align="right" valign="top">integer&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpmc__scenario_1_1scenario__t.html#ab57088939db462aeff72b59134fe605e">loss_function_type</a></td></tr>
 <tr class="memdesc:ab57088939db462aeff72b59134fe605e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Type of loss rate function.  <a href="structpmc__scenario_1_1scenario__t.html#ab57088939db462aeff72b59134fe605e">More...</a><br /></td></tr>
 <tr class="separator:ab57088939db462aeff72b59134fe605e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af73789cfe9588b63a259ba9a6a4aec07"><td class="memItemLeft" align="right" valign="top">type(<a class="el" href="structpmc__scenario_1_1drydep__params__t.html">drydep_params_t</a>)&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpmc__scenario_1_1scenario__t.html#af73789cfe9588b63a259ba9a6a4aec07">drydep</a></td></tr>
+<tr class="memdesc:af73789cfe9588b63a259ba9a6a4aec07"><td class="mdescLeft">&#160;</td><td class="mdescRight">Dry deposition parameters.  <a href="structpmc__scenario_1_1scenario__t.html#af73789cfe9588b63a259ba9a6a4aec07">More...</a><br /></td></tr>
+<tr class="separator:af73789cfe9588b63a259ba9a6a4aec07"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7913079fb54eeeca7d4e75ca5f9b6185"><td class="memItemLeft" align="right" valign="top">type(<a class="el" href="structpmc__chamber_1_1chamber__t.html">chamber_t</a>)&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpmc__scenario_1_1scenario__t.html#a7913079fb54eeeca7d4e75ca5f9b6185">chamber</a></td></tr>
 <tr class="memdesc:a7913079fb54eeeca7d4e75ca5f9b6185"><td class="mdescLeft">&#160;</td><td class="mdescRight">Chamber parameters for wall loss and sedimentation.  <a href="structpmc__scenario_1_1scenario__t.html#a7913079fb54eeeca7d4e75ca5f9b6185">More...</a><br /></td></tr>
 <tr class="separator:a7913079fb54eeeca7d4e75ca5f9b6185"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -122,7 +125,7 @@ Public Attributes</h2></td></tr>
 <p>This is everything needed to drive the scenario being simulated.</p>
 <p>The temperature, pressure, emissions and background states are profiles prescribed as functions of time by giving a number of times and the corresponding data. Simple data such as temperature and pressure is linearly interpolated between times, with constant interpolation outside of the range of times. Gases and aerosols are interpolated with <a class="el" href="namespacepmc__gas__state.html#ab70d882ec5ebc99127b4e815278cb15a" title="Determine the current gas_state and rate by interpolating at the current time with the lists of gas_s...">gas_state_interp_1d()</a> and <a class="el" href="namespacepmc__aero__dist.html#a1fe0b780b71145acb4892b597f9218a5" title="Determine the current aero_dist and rate by interpolating at the current time with the lists of aero_...">aero_dist_interp_1d()</a>, respectively. </p>
 
-<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00054">54</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00086">86</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
 </div><h2 class="groupheader">Member Data Documentation</h2>
 <a id="a3baa3f5d6161da8ee9f83f60778b8aea"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a3baa3f5d6161da8ee9f83f60778b8aea">&#9670;&nbsp;</a></span>aero_background</h2>
@@ -138,7 +141,7 @@ Public Attributes</h2></td></tr>
 
 <p>Aerosol background at set-points (# m^{-3}). </p>
 
-<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00096">96</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00128">128</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
 
 </div>
 </div>
@@ -156,7 +159,7 @@ Public Attributes</h2></td></tr>
 
 <p>Aerosol-background dilution rates at set-points (s^{-1}). </p>
 
-<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00094">94</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00126">126</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
 
 </div>
 </div>
@@ -174,7 +177,7 @@ Public Attributes</h2></td></tr>
 
 <p>Aerosol-background dilution set-point times (s). </p>
 
-<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00092">92</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00124">124</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
 
 </div>
 </div>
@@ -192,7 +195,7 @@ Public Attributes</h2></td></tr>
 
 <p>Aerosol emissions at set-points (# m^{-2} s^{-1}). </p>
 
-<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00089">89</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00121">121</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
 
 </div>
 </div>
@@ -210,7 +213,7 @@ Public Attributes</h2></td></tr>
 
 <p>Aerosol emission rate scales at set-points (1). </p>
 
-<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00087">87</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00119">119</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
 
 </div>
 </div>
@@ -228,7 +231,7 @@ Public Attributes</h2></td></tr>
 
 <p>Aerosol emission set-points times (s). </p>
 
-<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00085">85</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00117">117</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
 
 </div>
 </div>
@@ -246,7 +249,25 @@ Public Attributes</h2></td></tr>
 
 <p>Chamber parameters for wall loss and sedimentation. </p>
 
-<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00101">101</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00135">135</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+
+</div>
+</div>
+<a id="af73789cfe9588b63a259ba9a6a4aec07"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af73789cfe9588b63a259ba9a6a4aec07">&#9670;&nbsp;</a></span>drydep</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">type(<a class="el" href="structpmc__scenario_1_1drydep__params__t.html">drydep_params_t</a>) pmc_scenario::scenario_t::drydep</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Dry deposition parameters. </p>
+
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00133">133</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
 
 </div>
 </div>
@@ -264,7 +285,7 @@ Public Attributes</h2></td></tr>
 
 <p>Background gas mixing ratios at set-points (ppb). </p>
 
-<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00082">82</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00114">114</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
 
 </div>
 </div>
@@ -282,7 +303,7 @@ Public Attributes</h2></td></tr>
 
 <p>Gas-background dilution rates at set-points (s^{-1}). </p>
 
-<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00080">80</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00112">112</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
 
 </div>
 </div>
@@ -300,7 +321,7 @@ Public Attributes</h2></td></tr>
 
 <p>Gas-background dilution set-point times (s). </p>
 
-<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00078">78</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00110">110</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
 
 </div>
 </div>
@@ -318,7 +339,7 @@ Public Attributes</h2></td></tr>
 
 <p>Gas emission rates at set-points (mol m^{-2} s^{-1}). </p>
 
-<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00075">75</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00107">107</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
 
 </div>
 </div>
@@ -336,7 +357,7 @@ Public Attributes</h2></td></tr>
 
 <p>Gas emisssion rate scales at set-points (1). </p>
 
-<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00073">73</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00105">105</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
 
 </div>
 </div>
@@ -354,7 +375,7 @@ Public Attributes</h2></td></tr>
 
 <p>Gas emission set-point times (s). </p>
 
-<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00071">71</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00103">103</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
 
 </div>
 </div>
@@ -372,7 +393,7 @@ Public Attributes</h2></td></tr>
 
 <p>Heights at set-points (m). </p>
 
-<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00068">68</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00100">100</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
 
 </div>
 </div>
@@ -390,7 +411,7 @@ Public Attributes</h2></td></tr>
 
 <p>Height set-point times (s). </p>
 
-<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00066">66</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00098">98</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
 
 </div>
 </div>
@@ -408,7 +429,7 @@ Public Attributes</h2></td></tr>
 
 <p>Type of loss rate function. </p>
 
-<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00099">99</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00131">131</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
 
 </div>
 </div>
@@ -426,7 +447,7 @@ Public Attributes</h2></td></tr>
 
 <p>Pressures at set-points (Pa). </p>
 
-<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00063">63</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00095">95</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
 
 </div>
 </div>
@@ -444,7 +465,7 @@ Public Attributes</h2></td></tr>
 
 <p>Pressure set-point times (s). </p>
 
-<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00061">61</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00093">93</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
 
 </div>
 </div>
@@ -462,7 +483,7 @@ Public Attributes</h2></td></tr>
 
 <p>Temperatures at set-points (K). </p>
 
-<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00058">58</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00090">90</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
 
 </div>
 </div>
@@ -480,7 +501,7 @@ Public Attributes</h2></td></tr>
 
 <p>Temperature set-point times (s). </p>
 
-<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00056">56</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00088">88</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
 
 </div>
 </div>

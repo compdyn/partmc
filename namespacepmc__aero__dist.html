@@ -79,6 +79,12 @@ Functions/Subroutines</h2></td></tr>
 <tr class="memitem:a1fe0b780b71145acb4892b597f9218a5"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepmc__aero__dist.html#a1fe0b780b71145acb4892b597f9218a5">aero_dist_interp_1d</a> (aero_dist_list, time_list, rate_list, time, aero_dist, rate)</td></tr>
 <tr class="memdesc:a1fe0b780b71145acb4892b597f9218a5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Determine the current aero_dist and rate by interpolating at the current time with the lists of aero_dists and rates.  <a href="namespacepmc__aero__dist.html#a1fe0b780b71145acb4892b597f9218a5">More...</a><br /></td></tr>
 <tr class="separator:a1fe0b780b71145acb4892b597f9218a5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3b7ea1790f0af80216845f718c2425fe"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepmc__aero__dist.html#a3b7ea1790f0af80216845f718c2425fe">aero_dist_output_netcdf</a> (aero_dist, <a class="el" href="fractal_8_f90.html#a4e89f3f850921ff84a6dfce8b166ad50">ncid</a>)</td></tr>
+<tr class="memdesc:a3b7ea1790f0af80216845f718c2425fe"><td class="mdescLeft">&#160;</td><td class="mdescRight">Write distribution parameters for each mode in the aerosol distribution.  <a href="namespacepmc__aero__dist.html#a3b7ea1790f0af80216845f718c2425fe">More...</a><br /></td></tr>
+<tr class="separator:a3b7ea1790f0af80216845f718c2425fe"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0f9e8be572b692680681223810cd9c58"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepmc__aero__dist.html#a0f9e8be572b692680681223810cd9c58">aero_dist_input_netcdf</a> (aero_dist, <a class="el" href="fractal_8_f90.html#a4e89f3f850921ff84a6dfce8b166ad50">ncid</a>)</td></tr>
+<tr class="memdesc:a0f9e8be572b692680681223810cd9c58"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read distribution parameters for each mode in the aerosol distribution.  <a href="namespacepmc__aero__dist.html#a0f9e8be572b692680681223810cd9c58">More...</a><br /></td></tr>
+<tr class="separator:a0f9e8be572b692680681223810cd9c58"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac204813ce47a796777984e68f0e50dc7"><td class="memItemLeft" align="right" valign="top">integer function&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepmc__aero__dist.html#ac204813ce47a796777984e68f0e50dc7">pmc_mpi_pack_size_aero_dist</a> (val)</td></tr>
 <tr class="memdesc:ac204813ce47a796777984e68f0e50dc7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Determines the number of bytes required to pack the given value.  <a href="namespacepmc__aero__dist.html#ac204813ce47a796777984e68f0e50dc7">More...</a><br /></td></tr>
 <tr class="separator:ac204813ce47a796777984e68f0e50dc7"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -130,6 +136,45 @@ Functions/Subroutines</h2></td></tr>
 </dl>
 
 <p class="definition">Definition at line <a class="el" href="aero__dist_8_f90_source.html#l00153">153</a> of file <a class="el" href="aero__dist_8_f90_source.html">aero_dist.F90</a>.</p>
+
+</div>
+</div>
+<a id="a0f9e8be572b692680681223810cd9c58"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0f9e8be572b692680681223810cd9c58">&#9670;&nbsp;</a></span>aero_dist_input_netcdf()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">subroutine pmc_aero_dist::aero_dist_input_netcdf </td>
+          <td>(</td>
+          <td class="paramtype">type(<a class="el" href="structpmc__aero__dist_1_1aero__dist__t.html">aero_dist_t</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>aero_dist</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">integer, intent(in)&#160;</td>
+          <td class="paramname"><em>ncid</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Read distribution parameters for each mode in the aerosol distribution. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">aero_dist</td><td>Aerosol distribution to read. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">ncid</td><td>NetCDF file ID, in data mode </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="aero__dist_8_f90_source.html#l00320">320</a> of file <a class="el" href="aero__dist_8_f90_source.html">aero_dist.F90</a>.</p>
 
 </div>
 </div>
@@ -320,6 +365,45 @@ Functions/Subroutines</h2></td></tr>
 
 </div>
 </div>
+<a id="a3b7ea1790f0af80216845f718c2425fe"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3b7ea1790f0af80216845f718c2425fe">&#9670;&nbsp;</a></span>aero_dist_output_netcdf()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">subroutine pmc_aero_dist::aero_dist_output_netcdf </td>
+          <td>(</td>
+          <td class="paramtype">type(<a class="el" href="structpmc__aero__dist_1_1aero__dist__t.html">aero_dist_t</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>aero_dist</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">integer, intent(in)&#160;</td>
+          <td class="paramname"><em>ncid</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Write distribution parameters for each mode in the aerosol distribution. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">aero_dist</td><td>Aerosol distribution to write. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">ncid</td><td>NetCDF file ID, in data mode. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="aero__dist_8_f90_source.html#l00277">277</a> of file <a class="el" href="aero__dist_8_f90_source.html">aero_dist.F90</a>.</p>
+
+</div>
+</div>
 <a id="a1976c9bd301379b91f6c14668315bacf"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a1976c9bd301379b91f6c14668315bacf">&#9670;&nbsp;</a></span>aero_dist_total_num_conc()</h2>
 
@@ -443,7 +527,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="aero__dist_8_f90_source.html#l00425">425</a> of file <a class="el" href="aero__dist_8_f90_source.html">aero_dist.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="aero__dist_8_f90_source.html#l00506">506</a> of file <a class="el" href="aero__dist_8_f90_source.html">aero_dist.F90</a>.</p>
 
 </div>
 </div>
@@ -471,7 +555,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="aero__dist_8_f90_source.html#l00403">403</a> of file <a class="el" href="aero__dist_8_f90_source.html">aero_dist.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="aero__dist_8_f90_source.html#l00484">484</a> of file <a class="el" href="aero__dist_8_f90_source.html">aero_dist.F90</a>.</p>
 
 </div>
 </div>
@@ -517,7 +601,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="aero__dist_8_f90_source.html#l00455">455</a> of file <a class="el" href="aero__dist_8_f90_source.html">aero_dist.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="aero__dist_8_f90_source.html#l00536">536</a> of file <a class="el" href="aero__dist_8_f90_source.html">aero_dist.F90</a>.</p>
 
 </div>
 </div>

@@ -169,52 +169,60 @@
 \_form#168=154x14:\[ c(t) = p(t) c(0) + (1 - p(t)) b. \]
 \_form#169=8x10:$\lambda$
 \_form#170=173x31:\[ p(t) = \min\left(1, \frac{h(0)}{h(t)}\right) \exp(-\lambda t). \]
-\_form#171=46x9:$m_1 = x_1$
-\_form#172=35x11:$v_1 = 0$
-\_form#173=31x9:$n = 1$
-\_form#174=31x11:$n \ge 2$
-\_form#175=143x24:\[ m_n = m_{n-1} + \frac{x_n - m_{n-1}}{n} \]
-\_form#176=184x29:\[ v_n = \frac{n - 2}{n - 1} v_{n-1} + \frac{(x_n - m_{n-1})^2}{n}. \]
-\_form#177=19x9:$m_n$
-\_form#178=14x9:$v_n$
-\_form#179=66x14:$\{x_1,\ldots,x_n\}$
-\_form#180=9x6:$n$
-\_form#181=59x35:\[ t_n = \sum_{i=1}^n x_i \]
-\_form#182=109x35:\[ s_n = \sum_{i=1}^n (x_i - m_n)^2. \]
-\_form#183=48x16:$m_n = \frac{t_n}{n}$
-\_form#184=105x16:$p_n = \frac{1}{n} \left( s_n - n m_n^2 \right)$
-\_form#185=118x16:$v_n = \frac{1}{n - 1} \left( s_n - n m_n^2 \right)$
-\_form#186=101x35:\[ s_n = \sum_{i=1}^n x_i^2 - n m_n^2 \]
-\_form#187=179x26:\[ s_n = s_{n-1} + \frac{n - 1}{n} (x_n - m_{n-1})^2. \]
-\_form#188=430x28:\[ p_n = \frac{n-1}{n} p_{n-1} + \frac{(x_n - m_n)(x_n - m_{n-1})}{n} = \frac{n-1}{n} p_{n-1} + \frac{n-1}{n^2} (x_n - m_{n-1})^2. \]
-\_form#189=11x9:$s_n$
-\_form#190=21x6:$n \kappa \epsilon$
-\_form#191=5x6:$\epsilon$
-\_form#192=8x6:$\kappa$
-\_form#193=164x38:\[ \kappa = \frac{\|x\|_2}{\sqrt{s_n}} = \sqrt{1 + \frac{m_n^2}{p_n}} \approx \frac{m_n}{p_n}. \]
-\_form#194=30x9:$m_{n-1}$
-\_form#195=25x9:$v_{n-1}$
-\_form#196=14x9:$x_n$
-\_form#197=9x9:$\mu$
-\_form#198=8x6:$\sigma$
-\_form#199=133x14:$[\mu - r\sigma/\sqrt{n}, \mu + r\sigma/\sqrt{n}]$
-\_form#200=71x14:$f(\nu) = t_{0.95,\nu}$
-\_form#201=51x9:$\nu = n - 1$
-\_form#202=89x14:$g(\nu) = f(\nu) - L$
-\_form#203=85x15:$L = \Phi^{-1}(0.975)$
-\_form#204=9x10:$\Phi$
-\_form#205=60x14:$g'(\nu) < -1$
-\_form#206=63x14:$g'(\nu) \to -1$
-\_form#207=39x8:$\nu \to \infty$
-\_form#208=24x14:$g(\nu)$
-\_form#209=24x14:$A/\nu$
-\_form#210=75x14:$g(\nu^*) = A^*/\nu$
-\_form#211=69x14:$g(\nu) < A^*/\nu$
-\_form#212=35x11:$\nu > \nu^*$
-\_form#213=163x14:$f(\nu) \le (f(\nu^*) - L) (\nu^* / \nu) + L$
-\_form#214=35x13:$\nu \ge \nu^*$
-\_form#215=56x14:$(\nu^*, f(\nu^*))$
-\_form#216=4x10:$l$
-\_form#217=11x13:$ \ell_1 $
-\_form#218=36x13:$ - p \ln p$
-\_form#219=8x9:$p$
+\_form#171=18x9:$z_{\rm ref}$
+\_form#172=15x13:$R_a$
+\_form#173=21x11:$E_{\rm IM}$
+\_form#174=14x13:$R_s$
+\_form#175=16x11:$E_{\rm B}$
+\_form#176=20x11:$E_{\rm IN}$
+\_form#177=6x6:$\nu$
+\_form#178=9x13:$\beta$
+\_form#179=46x9:$m_1 = x_1$
+\_form#180=35x11:$v_1 = 0$
+\_form#181=31x9:$n = 1$
+\_form#182=31x11:$n \ge 2$
+\_form#183=143x24:\[ m_n = m_{n-1} + \frac{x_n - m_{n-1}}{n} \]
+\_form#184=184x29:\[ v_n = \frac{n - 2}{n - 1} v_{n-1} + \frac{(x_n - m_{n-1})^2}{n}. \]
+\_form#185=19x9:$m_n$
+\_form#186=14x9:$v_n$
+\_form#187=66x14:$\{x_1,\ldots,x_n\}$
+\_form#188=9x6:$n$
+\_form#189=59x35:\[ t_n = \sum_{i=1}^n x_i \]
+\_form#190=109x35:\[ s_n = \sum_{i=1}^n (x_i - m_n)^2. \]
+\_form#191=48x16:$m_n = \frac{t_n}{n}$
+\_form#192=105x16:$p_n = \frac{1}{n} \left( s_n - n m_n^2 \right)$
+\_form#193=118x16:$v_n = \frac{1}{n - 1} \left( s_n - n m_n^2 \right)$
+\_form#194=101x35:\[ s_n = \sum_{i=1}^n x_i^2 - n m_n^2 \]
+\_form#195=179x26:\[ s_n = s_{n-1} + \frac{n - 1}{n} (x_n - m_{n-1})^2. \]
+\_form#196=430x28:\[ p_n = \frac{n-1}{n} p_{n-1} + \frac{(x_n - m_n)(x_n - m_{n-1})}{n} = \frac{n-1}{n} p_{n-1} + \frac{n-1}{n^2} (x_n - m_{n-1})^2. \]
+\_form#197=11x9:$s_n$
+\_form#198=21x6:$n \kappa \epsilon$
+\_form#199=5x6:$\epsilon$
+\_form#200=8x6:$\kappa$
+\_form#201=164x38:\[ \kappa = \frac{\|x\|_2}{\sqrt{s_n}} = \sqrt{1 + \frac{m_n^2}{p_n}} \approx \frac{m_n}{p_n}. \]
+\_form#202=30x9:$m_{n-1}$
+\_form#203=25x9:$v_{n-1}$
+\_form#204=14x9:$x_n$
+\_form#205=9x9:$\mu$
+\_form#206=8x6:$\sigma$
+\_form#207=133x14:$[\mu - r\sigma/\sqrt{n}, \mu + r\sigma/\sqrt{n}]$
+\_form#208=71x14:$f(\nu) = t_{0.95,\nu}$
+\_form#209=51x9:$\nu = n - 1$
+\_form#210=89x14:$g(\nu) = f(\nu) - L$
+\_form#211=85x15:$L = \Phi^{-1}(0.975)$
+\_form#212=9x10:$\Phi$
+\_form#213=60x14:$g'(\nu) < -1$
+\_form#214=63x14:$g'(\nu) \to -1$
+\_form#215=39x8:$\nu \to \infty$
+\_form#216=24x14:$g(\nu)$
+\_form#217=24x14:$A/\nu$
+\_form#218=75x14:$g(\nu^*) = A^*/\nu$
+\_form#219=69x14:$g(\nu) < A^*/\nu$
+\_form#220=35x11:$\nu > \nu^*$
+\_form#221=163x14:$f(\nu) \le (f(\nu^*) - L) (\nu^* / \nu) + L$
+\_form#222=35x13:$\nu \ge \nu^*$
+\_form#223=56x14:$(\nu^*, f(\nu^*))$
+\_form#224=4x10:$l$
+\_form#225=11x13:$ \ell_1 $
+\_form#226=36x13:$ - p \ln p$
+\_form#227=8x9:$p$

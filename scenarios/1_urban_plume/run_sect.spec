@@ -1,0 +1,38 @@
+run_type sectional              # sectional code run
+output_prefix out/urban_plume_sect # prefix of output files
+
+t_max 86400                    # total simulation time (s)
+del_t 60                        # timestep (s)
+t_output 3600                   # output interval (0 disables) (s)
+t_progress 21600                # progress printing interval (0 disables) (s)
+do_tchem no                     # whether to use TChem chemistry (yes/no)
+do_mosaic yes
+
+n_bin 20                       # number of bins
+d_min 1e-9                     # minimum diameter (m)
+d_max 1e-5                      # maximum diameter (m)
+
+gas_data gas_data.dat           # file containing gas data
+gas_init gas_init.dat
+aerosol_data aero_data.dat      # file containing aerosol data
+do_fractal no                   # whether to do fractal treatment
+aerosol_init aero_init_dist.dat # initial aerosol distribution
+
+temp_profile temp.dat           # temperature profile file
+pressure_profile pres.dat   # pressure profile file
+height_profile height.dat       # height profile file
+gas_emissions gas_emit.dat      # gas emissions file
+gas_background gas_back.dat     # background gas mixing ratios file
+aero_emissions aero_emit.dat    # aerosol emissions file
+aero_background aero_back.dat   # aerosol background file
+loss_function none              # particle loss function
+
+rel_humidity 0.95              # initial relative humidity (1)
+latitude 0                      # latitude (degrees, -90 to 90)
+longitude 0                     # longitude (degrees, -180 to 180)
+altitude 0                      # altitude (m)
+start_time 21600                # start time (s since 00:00 UTC)
+start_day 200                   # start day of year (UTC)
+
+do_coagulation yes              # whether to do coagulation (yes/no)
+coag_kernel brown               # coagulation kernel

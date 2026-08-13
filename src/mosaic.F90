@@ -10,12 +10,22 @@ module pmc_mosaic
 
   use pmc_aero_data
   use pmc_aero_state
+  use pmc_aero_binned
+  use pmc_bin_grid
   use pmc_constants
   use pmc_env_state
   use pmc_gas_data
   use pmc_gas_state
   use pmc_output
   use pmc_util
+
+#ifdef PMC_USE_MOSAIC
+  !> Per-bin water hysteresis leg for the sectional MOSAIC coupling, persisted
+  !! across timesteps. Sectional bins carry no per-particle hysteresis of their
+  !! own, so bin i's leg is stored here between mosaic_from_partmc_sect() and
+  !! mosaic_to_partmc_sect() and reused on the next step (default 0 = dry leg).
+  integer, allocatable, save :: mosaic_sect_hyst_leg(:)
+#endif
 
 contains
 
@@ -471,6 +481,358 @@ contains
 #endif
 
   end subroutine mosaic_timestep
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Do one MOSAIC timestep for the PartMC sectional (binned) state, then remap
+  !! bins whose mean particle volume has grown or shrunk past their grid edges
+  !! back onto the fixed bin grid.
+  !!
+  !! This mirrors pmc_tchem_interface_solve_sect(): map bins -> MOSAIC,
+  !! integrate the chemistry, map MOSAIC -> bins, then redistribute onto the
+  !! fixed grid. Each bin is treated as one MOSAIC particle (the bin's
+  !! number-mean particle). The per-bin number concentration is held fixed
+  !! through the chemistry and conserved by the redistribute.
+  !!
+  !! Optical properties are not computed here (run_sect() has no optical path).
+  subroutine mosaic_timestep_sect(env_state, aero_data, bin_grid, &
+       aero_binned, gas_data, gas_state)
+
+#ifdef PMC_USE_MOSAIC
+    use module_data_mosaic_main, only: msolar
+#endif
+
+    !> Environment state.
+    type(env_state_t), intent(inout) :: env_state
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Binned aerosol state.
+    type(aero_binned_t), intent(inout) :: aero_binned
+    !> Gas data.
+    type(gas_data_t), intent(in) :: gas_data
+    !> Gas state.
+    type(gas_state_t), intent(inout) :: gas_state
+
+#ifdef PMC_USE_MOSAIC
+    ! MOSAIC function interfaces
+    interface
+       subroutine SolarZenithAngle()
+       end subroutine SolarZenithAngle
+       subroutine IntegrateChemistry()
+       end subroutine IntegrateChemistry
+    end interface
+
+    type(aero_binned_t) :: aero_binned_pregrow
+    integer, save :: redist_method = -1
+    character(len=64) :: env_val
+    integer :: env_status
+
+    ! Select the sectional bin-remap method once (default moving-center; set
+    ! PARTMC_SECTIONAL_REDISTRIBUTE=two_moment for the lower-diffusion
+    ! linear-discrete scheme), matching pmc_tchem_interface_solve_sect().
+    if (redist_method < 0) then
+       call get_environment_variable("PARTMC_SECTIONAL_REDISTRIBUTE", &
+            env_val, status=env_status)
+       if ((env_status == 0) .and. ((trim(env_val) == "two_moment") &
+            .or. (trim(env_val) == "2"))) then
+          redist_method = AERO_BINNED_REDIST_TWO_MOMENT
+          write(*,'(a)') 'mosaic sectional bin remap: TWO-MOMENT'
+       else
+          redist_method = AERO_BINNED_REDIST_MOVING_CENTER
+          write(*,'(a)') 'mosaic sectional bin remap: MOVING-CENTER'
+       end if
+    end if
+
+    ! The two-moment remap reconstructs the sub-bin distribution from the
+    ! pre-growth state, so capture it before MOSAIC changes the masses.
+    if (redist_method == AERO_BINNED_REDIST_TWO_MOMENT) then
+       aero_binned_pregrow = aero_binned
+    end if
+
+    ! map PartMC bins -> MOSAIC
+    call mosaic_from_partmc_sect(env_state, aero_data, bin_grid, aero_binned, &
+         gas_data, gas_state)
+
+    if (msolar == 1) then
+       call SolarZenithAngle
+    end if
+
+    call IntegrateChemistry
+
+    ! map MOSAIC -> PartMC bins
+    call mosaic_to_partmc_sect(env_state, aero_data, bin_grid, aero_binned, &
+         gas_data, gas_state)
+
+    ! Remap bins whose mean particle volume has grown (or shrunk) past their
+    ! grid edges back onto the fixed bin grid.
+    if (redist_method == AERO_BINNED_REDIST_TWO_MOMENT) then
+       call aero_binned_redistribute_two_moment(aero_binned, &
+            aero_binned_pregrow, bin_grid, aero_data)
+    else
+       call aero_binned_redistribute_moving_center(aero_binned, bin_grid, &
+            aero_data)
+    end if
+#endif
+
+  end subroutine mosaic_timestep_sect
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Map PartMC binned aerosol and gas state into MOSAIC, treating each bin as
+  !> a single MOSAIC particle (the bin's number-mean particle).
+  !!
+  !! Mirrors mosaic_from_partmc() with bins in place of particles: bin i maps
+  !! to MOSAIC particle i. Because aero_binned holds total per-bin
+  !! concentrations, the MOSAIC \c aer array (nmol/m^3 of air) is filled with
+  !! the bin's actual volume concentration directly, without a per-particle
+  !! num_conc factor.
+  subroutine mosaic_from_partmc_sect(env_state, aero_data, bin_grid, &
+       aero_binned, gas_data, gas_state)
+
+#ifdef PMC_USE_MOSAIC
+    use module_data_mosaic_aero, only: nbin_a, aer, num_a, jhyst_leg, water_a
+
+    use module_data_mosaic_main, only: tbeg_sec, tcur_sec, tmid_sec, &
+         dt_sec, dt_min, dt_aeroptic_min, RH, te, pr_atm, cnn, cair_mlc, &
+         cair_molm3, ppb, avogad, naerbin
+#endif
+
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Binned aerosol state.
+    type(aero_binned_t), intent(in) :: aero_binned
+    !> Gas data.
+    type(gas_data_t), intent(in) :: gas_data
+    !> Gas state.
+    type(gas_state_t), intent(in) :: gas_state
+
+#ifdef PMC_USE_MOSAIC
+    ! local variables
+    real(kind=dp) :: time_UTC    ! 24-hr UTC clock time (hr).
+    real(kind=dp) :: tmar21_sec  ! Time at noon, march 21, UTC (s).
+    real(kind=dp) :: conv_fac(aero_data_n_spec(aero_data))
+    real(kind=dp) :: num_conc, vol_conc_actual
+    integer :: i_bin, n_bin, i_spec, i_spec_mosaic
+    ! Empty bins (zero number) still occupy a MOSAIC particle slot so that the
+    ! bin <-> particle index mapping stays fixed for the reverse map. Seed them
+    ! with tiny placeholder mass/number so the solver stays finite; their
+    ! results are discarded (mosaic_to_partmc_sect skips empty bins).
+    real(kind=dp), parameter :: SMALL_MASS_PLACEHOLDER = 1.0d-30
+    real(kind=dp), parameter :: SMALL_NUM_PLACEHOLDER = 1.0d-30
+
+    ! MOSAIC function interfaces
+    interface
+       subroutine AllocateMemory()
+       end subroutine AllocateMemory
+       subroutine DeallocateMemory()
+       end subroutine DeallocateMemory
+    end interface
+
+    n_bin = size(aero_binned%num_conc)
+
+    ! update time variables (identical to mosaic_from_partmc)
+    tmar21_sec = real((79*24 + 12)*3600, kind=dp)    ! noon, mar 21, UTC
+    tcur_sec = real(tbeg_sec, kind=dp) + env_state%elapsed_time
+
+    time_UTC = env_state%start_time/3600d0  ! 24-hr UTC clock time (hr)
+    time_UTC = time_UTC + dt_sec/3600d0
+    do while (time_UTC >= 24d0)
+       time_UTC = time_UTC - 24d0
+    end do
+
+    tmid_sec = tcur_sec + 0.5d0*dt_sec
+    if (tmid_sec .ge. tmar21_sec) then
+       tmid_sec = tmid_sec - tmar21_sec     ! seconds since noon, march 21
+    else
+       tmid_sec = tmid_sec &
+            + dble(((365-79)*24 - 12)*3600) ! seconds since noon, march 21
+    end if
+
+    ! transport timestep (min)
+    dt_min = dt_sec/60d0
+    ! aerosol optics timestep (min)
+    dt_aeroptic_min = 0d0
+
+    ! compute aerosol conversion factors: m^3(species) -> nmol(species)/m^3(air)
+    do i_spec = 1,aero_data_n_spec(aero_data)
+       conv_fac(i_spec) = 1.D9 * aero_data%density(i_spec) &
+            / aero_data%molec_weight(i_spec)
+    end do
+
+    ! environmental parameters: map PartMC -> MOSAIC
+    RH = env_state%rel_humid * 100.d0              ! relative humidity (%)
+    te = env_state%temp                            ! temperature (K)
+    pr_atm = env_state%pressure / const%air_std_press ! pressure (atm)
+    cair_mlc = avogad*pr_atm/(82.056d0*te)   ! air conc [molec/cc]
+    cair_molm3 = 1d6*pr_atm/(82.056d0*te)    ! air conc [mol/m^3]
+    ppb = 1d9
+
+    ! one MOSAIC particle per bin
+    nbin_a = n_bin
+    if (nbin_a > naerbin) then
+       call DeallocateMemory()
+       naerbin = nbin_a
+       call AllocateMemory()
+    end if
+
+    ! persist the per-bin hysteresis leg across timesteps (sectional bins carry
+    ! none of their own); default to the lower/dry leg on the first step
+    if (allocated(mosaic_sect_hyst_leg)) then
+       if (size(mosaic_sect_hyst_leg) /= n_bin) then
+          deallocate(mosaic_sect_hyst_leg)
+       end if
+    end if
+    if (.not. allocated(mosaic_sect_hyst_leg)) then
+       allocate(mosaic_sect_hyst_leg(n_bin))
+       mosaic_sect_hyst_leg = 0
+    end if
+
+    aer = 0d0    ! initialize to zero
+    ! aero_binned num_conc/vol_conc are per-log-width densities (dN/dlnD,
+    ! dV/dlnD), so multiply by the bin log-width to recover the actual
+    ! concentrations (#/m^3 and m^3/m^3 of air).
+    do i_bin = 1,n_bin
+       num_conc = aero_binned%num_conc(i_bin) * bin_grid%widths(i_bin)
+       if (num_conc > 0d0) then
+          do i_spec = 1,aero_data_n_spec(aero_data)
+             i_spec_mosaic = aero_data%mosaic_index(i_spec)
+             if (i_spec_mosaic > 0) then
+                vol_conc_actual = aero_binned%vol_conc(i_bin, i_spec) &
+                     * bin_grid%widths(i_bin)
+                ! convert m^3(species)/m^3(air) to nmol(species)/m^3(air)
+                aer(i_spec_mosaic, 3, i_bin) = vol_conc_actual &
+                     * conv_fac(i_spec)
+             end if
+          end do
+          ! handle water specially: convert m^3(water)/m^3(air) to kg/m^3(air)
+          water_a(i_bin) = aero_binned%vol_conc(i_bin, aero_data%i_water) &
+               * bin_grid%widths(i_bin) * aero_data%density(aero_data%i_water)
+          num_a(i_bin) = 1d-6 * num_conc   ! num conc (#/cc(air))
+       else
+          ! empty bin: tiny placeholders, discarded on the way back
+          do i_spec = 1,aero_data_n_spec(aero_data)
+             i_spec_mosaic = aero_data%mosaic_index(i_spec)
+             if (i_spec_mosaic > 0) then
+                aer(i_spec_mosaic, 3, i_bin) = SMALL_MASS_PLACEHOLDER
+             end if
+          end do
+          water_a(i_bin) = 0d0
+          num_a(i_bin) = SMALL_NUM_PLACEHOLDER
+       end if
+       jhyst_leg(i_bin) = mosaic_sect_hyst_leg(i_bin)
+    end do
+
+    ! gas chemistry: map PartMC -> MOSAIC
+    cnn = 0d0
+    do i_spec = 1,gas_data_n_spec(gas_data)
+       i_spec_mosaic = gas_data%mosaic_index(i_spec)
+       if (i_spec_mosaic > 0) then
+          ! convert ppbv to molec/cc
+          cnn(i_spec_mosaic) = gas_state%mix_rat(i_spec) * cair_mlc / ppb
+       end if
+    end do
+#endif
+
+  end subroutine mosaic_from_partmc_sect
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Map MOSAIC results back into the PartMC binned state.
+  !!
+  !! Only the per-bin per-species masses (vol_conc) and gas/env state are
+  !! updated; the per-bin number concentration is held fixed (empty bins stay
+  !! empty). Unlike mosaic_to_partmc() no reweight is done here -- bins are not
+  !! moved between size classes at this point; that is handled afterwards by
+  !! the caller's bin redistribute.
+  subroutine mosaic_to_partmc_sect(env_state, aero_data, bin_grid, &
+       aero_binned, gas_data, gas_state)
+
+#ifdef PMC_USE_MOSAIC
+    use module_data_mosaic_aero, only: aer, jhyst_leg, water_a
+
+    use module_data_mosaic_main, only: RH, te, pr_atm, cnn, cair_mlc, &
+         cair_molm3, ppb, avogad, msolar, cos_sza
+#endif
+
+    !> Environment state.
+    type(env_state_t), intent(inout) :: env_state
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Binned aerosol state.
+    type(aero_binned_t), intent(inout) :: aero_binned
+    !> Gas data.
+    type(gas_data_t), intent(in) :: gas_data
+    !> Gas state.
+    type(gas_state_t), intent(inout) :: gas_state
+
+#ifdef PMC_USE_MOSAIC
+    ! local variables
+    real(kind=dp) :: conv_fac(aero_data_n_spec(aero_data)), num_conc
+    integer :: i_bin, n_bin, i_spec, i_spec_mosaic
+
+    n_bin = size(aero_binned%num_conc)
+
+    ! compute aerosol conversion factors: m^3(species) -> nmol(species)/m^3(air)
+    do i_spec = 1,aero_data_n_spec(aero_data)
+       conv_fac(i_spec) = 1d9 * aero_data%density(i_spec) &
+            / aero_data%molec_weight(i_spec)
+    end do
+
+    ! environmental parameters: map MOSAIC -> PartMC
+    env_state%rel_humid = RH / 100d0
+    env_state%temp = te
+    env_state%pressure = pr_atm * const%air_std_press
+    if (msolar == 1) then
+       env_state%solar_zenith_angle = acos(cos_sza)
+    end if
+    cair_mlc = avogad*pr_atm/(82.056d0*te)   ! air conc [molec/cc]
+    cair_molm3 = 1d6*pr_atm/(82.056d0*te)    ! air conc [mol/m^3]
+    ppb = 1d9
+
+    ! gas chemistry: map MOSAIC -> PartMC
+    do i_spec = 1,gas_data_n_spec(gas_data)
+       i_spec_mosaic = gas_data%mosaic_index(i_spec)
+       if (i_spec_mosaic > 0) then
+          ! convert molec/cc to ppbv
+          gas_state%mix_rat(i_spec) = cnn(i_spec_mosaic) / cair_mlc * ppb
+       end if
+    end do
+
+    ! Per-bin masses back into vol_conc, holding the bin number concentration
+    ! fixed (so empty bins stay empty). vol_conc is a per-log-width density, so
+    ! divide the actual volume concentration by the bin log-width.
+    do i_bin = 1,n_bin
+       num_conc = aero_binned%num_conc(i_bin) * bin_grid%widths(i_bin)
+       if (num_conc <= 0d0) cycle   ! empty bin stays empty
+       do i_spec = 1,aero_data_n_spec(aero_data)
+          i_spec_mosaic = aero_data%mosaic_index(i_spec)
+          if (i_spec_mosaic > 0) then
+             ! convert nmol(species)/m^3(air) to m^3(species)/m^3(air), then to
+             ! a per-log-width density
+             aero_binned%vol_conc(i_bin, i_spec) = &
+                  aer(i_spec_mosaic, 3, i_bin) / conv_fac(i_spec) &
+                  / bin_grid%widths(i_bin)
+          end if
+       end do
+       ! handle water specially: kg(water)/m^3(air) -> m^3(water)/m^3(air) ->
+       ! per-log-width density
+       aero_binned%vol_conc(i_bin, aero_data%i_water) = &
+            water_a(i_bin) / aero_data%density(aero_data%i_water) &
+            / bin_grid%widths(i_bin)
+       ! carry the updated hysteresis leg to the next timestep
+       mosaic_sect_hyst_leg(i_bin) = jhyst_leg(i_bin)
+    end do
+#endif
+
+  end subroutine mosaic_to_partmc_sect
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

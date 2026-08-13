@@ -3143,17 +3143,57 @@ contains
 
     call pmc_nc_read_real_2d(ncid, aero_particle_mass, &
          "aero_particle_mass")
+    ! Component / primary-parts info was added in 2.8.0; Read as
+    ! optional, then fill in per-particle defaults below
+    ! (1 primary part, 0 components per particle) so the construction
+    ! loop works uniformly.
     call pmc_nc_read_integer_1d(ncid, aero_particle_n_primary_parts, &
-         "aero_particle_n_primary_parts")
+         "aero_particle_n_primary_parts", must_be_present=.false.)
     call pmc_nc_read_integer_1d(ncid, aero_component_particle_num, &
-         "aero_component_particle_num")
+         "aero_component_particle_num", must_be_present=.false.)
     call pmc_nc_read_integer_1d(ncid, aero_component_source_num, &
-         "aero_component_source_num")
+         "aero_component_source_num", must_be_present=.false.)
     call pmc_nc_read_real_1d(ncid, aero_component_create_time, &
-         "aero_component_create_time")
-    call pmc_nc_read_integer_1d(ncid, aero_component_len, "aero_component_len")
+         "aero_component_create_time", must_be_present=.false.)
+    call pmc_nc_read_integer_1d(ncid, aero_component_len, "aero_component_len", &
+         must_be_present=.false.)
     call pmc_nc_read_integer_1d(ncid, aero_component_start_ind, &
-         "aero_component_start_ind")
+         "aero_component_start_ind", must_be_present=.false.)
+    if (size(aero_particle_n_primary_parts) /= n_part) then
+       if (allocated(aero_particle_n_primary_parts)) &
+            deallocate(aero_particle_n_primary_parts)
+       allocate(aero_particle_n_primary_parts(n_part))
+       aero_particle_n_primary_parts = 1
+    end if
+    ! When component info is absent in an old file, give every particle
+    ! one component pointing at a shared dummy entry (source_id = 1,
+    ! create_time = 0). Length / start_ind arrays are sized per-particle
+    ! so the construction loop reads them positionally; the flat
+    ! source_num / create_time arrays only need a single entry that
+    ! every particle indexes via start_ind = 1.
+    if (size(aero_component_len) /= n_part) then
+       if (allocated(aero_component_len)) deallocate(aero_component_len)
+       allocate(aero_component_len(n_part))
+       aero_component_len = 1
+    end if
+    if (size(aero_component_start_ind) /= n_part) then
+       if (allocated(aero_component_start_ind)) &
+            deallocate(aero_component_start_ind)
+       allocate(aero_component_start_ind(n_part))
+       aero_component_start_ind = 1
+    end if
+    if (size(aero_component_source_num) == 0) then
+       if (allocated(aero_component_source_num)) &
+            deallocate(aero_component_source_num)
+       allocate(aero_component_source_num(1))
+       aero_component_source_num(1) = 1
+    end if
+    if (size(aero_component_create_time) == 0) then
+       if (allocated(aero_component_create_time)) &
+            deallocate(aero_component_create_time)
+       allocate(aero_component_create_time(1))
+       aero_component_create_time(1) = 0d0
+    end if
     call pmc_nc_read_integer_1d(ncid, aero_particle_weight_group, &
          "aero_particle_weight_group")
     call pmc_nc_read_integer_1d(ncid, aero_particle_weight_class, &
@@ -3180,14 +3220,18 @@ contains
          "aero_num_conc")
     call pmc_nc_read_integer64_1d(ncid, aero_id, &
          "aero_id")
+    ! Freezing attributes came in later PartMC versions. Mark them optional
+    ! so old files can be read; the per-particle loop below guards each
+    ! assignment with a size check, so missing fields fall back to the
+    ! aero_particle_zero defaults.
     call pmc_nc_read_integer_1d(ncid, aero_frozen, &
-         "aero_frozen")
+         "aero_frozen", must_be_present=.false.)
     call pmc_nc_read_real_1d(ncid, aero_imf_temperature, &
-         "aero_imf_temperature")
+         "aero_imf_temperature", must_be_present=.false.)
     call pmc_nc_read_real_1d(ncid, aero_ice_density, &
-         "aero_ice_density", must_be_present=.true.)
+         "aero_ice_density", must_be_present=.false.)
     call pmc_nc_read_real_1d(ncid, aero_ice_shape_phi, &
-         "aero_ice_shape_phi", must_be_present=.true.)
+         "aero_ice_shape_phi", must_be_present=.false.)
     call pmc_nc_read_real_1d(ncid, aero_least_create_time, &
          "aero_least_create_time")
     call pmc_nc_read_real_1d(ncid, aero_greatest_create_time, &
@@ -3239,14 +3283,22 @@ contains
        end if
        aero_particle%water_hyst_leg = aero_water_hyst_leg(i_part)
        aero_particle%id = aero_id(i_part)
-       if (aero_frozen(i_part) == 1) then
-          aero_particle%frozen = .true.
-       else
-          aero_particle%frozen = .false.
+       if (size(aero_frozen) == n_part) then
+          if (aero_frozen(i_part) == 1) then
+             aero_particle%frozen = .true.
+          else
+             aero_particle%frozen = .false.
+          end if
        end if
-       aero_particle%imf_temperature = aero_imf_temperature(i_part)
-       aero_particle%den_ice = aero_ice_density(i_part)
-       aero_particle%ice_shape_phi = aero_ice_shape_phi(i_part)
+       if (size(aero_imf_temperature) == n_part) then
+          aero_particle%imf_temperature = aero_imf_temperature(i_part)
+       end if
+       if (size(aero_ice_density) == n_part) then
+          aero_particle%den_ice = aero_ice_density(i_part)
+       end if
+       if (size(aero_ice_shape_phi) == n_part) then
+          aero_particle%ice_shape_phi = aero_ice_shape_phi(i_part)
+       end if
        aero_particle%least_create_time = aero_least_create_time(i_part)
        aero_particle%greatest_create_time = aero_greatest_create_time(i_part)
 

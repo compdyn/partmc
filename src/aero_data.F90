@@ -966,7 +966,7 @@ contains
     integer :: dimid_aero_species, n_spec, varid_aero_species, i_spec, i
     integer :: dimid_aero_source, n_source, varid_aero_source, i_source
     integer :: dimid_aero_weight_class, n_class, i_class, &
-         varid_aero_weight_class
+         varid_aero_weight_class, status
     character(len=((AERO_NAME_LEN + 2) * MAX_SPECIES)) :: aero_species_names
     character(len=:), allocatable :: aero_source_names
     character(len=:), allocatable :: aero_weight_class_names
@@ -985,14 +985,20 @@ contains
 
     call pmc_nc_read_integer_1d(ncid, aero_data%mosaic_index, &
          "aero_mosaic_index")
+    ! Optical wavelengths are absent in versions before 2.8.0; if missing,
+    ! leave the wavelengths array empty.
     call pmc_nc_read_real_1d(ncid, aero_data%wavelengths, &
-         "aero_optical_wavelengths")
+         "aero_optical_wavelengths", must_be_present=.false.)
     call pmc_nc_read_real_1d(ncid, aero_data%density, "aero_density")
     call pmc_nc_read_integer_1d(ncid, aero_data%num_ions, "aero_num_ions")
     call pmc_nc_read_real_1d(ncid, aero_data%molec_weight, "aero_molec_weight")
     call pmc_nc_read_real_1d(ncid, aero_data%kappa, "aero_kappa")
-    call pmc_nc_read_real_1d(ncid, aero_data%abifm_m, "aero_abifm_m")
-    call pmc_nc_read_real_1d(ncid, aero_data%abifm_c, "aero_abifm_c")
+    ! ABIFM freezing parameters were added after 2.8.0, so if missing,
+    ! parameter values set to zero.
+    call pmc_nc_read_real_1d(ncid, aero_data%abifm_m, "aero_abifm_m", &
+         must_be_present=.false.)
+    call pmc_nc_read_real_1d(ncid, aero_data%abifm_c, "aero_abifm_c", &
+         must_be_present=.false.)
 
     call pmc_nc_check(nf90_inq_varid(ncid, "aero_species", &
          varid_aero_species))
@@ -1032,31 +1038,61 @@ contains
     end do
     call assert(377166446, aero_source_names == "")
 
-    call pmc_nc_check(nf90_inq_varid(ncid, "aero_data_weight_class", &
-         varid_aero_weight_class))
-    allocate(character(len=((AERO_SOURCE_NAME_LEN + 2) * MAX_SOURCES)) &
-         :: aero_weight_class_names)
-    call pmc_nc_check(nf90_get_att(ncid, varid_aero_weight_class, "names", &
-         aero_weight_class_names))
-    ! aero_weight_class_names are comma-separated, so unpack them
-    call pmc_nc_check(nf90_inq_dimid(ncid, "aero_weight_class", &
-         dimid_aero_weight_class))
-    call pmc_nc_check(nf90_Inquire_Dimension(ncid, &
-         dimid_aero_weight_class, name, n_class))
-    call ensure_string_array_size(aero_data%weight_class_name, n_class)
-    do i_class = 1,n_class
-       i = 1
-       do while ((aero_weight_class_names(i:i) /= " ") &
-            .and. (aero_weight_class_names(i:i) /= ","))
-          i = i + 1
+    ! aero_data_weight_class and its associated dimension were added when
+    ! source-classed weighting was introduced in 2.8.0; earlier outputs
+    ! will not have them. If absent, default to a single class with default
+    ! name.
+    status = nf90_inq_varid(ncid, "aero_data_weight_class", &
+         varid_aero_weight_class)
+    if (status == NF90_ENOTVAR) then
+       ! The source->class mapping variable is missing in pre-source-
+       ! classed-weighting outputs. The aero_weight_class dimension itself
+       ! has existed since v2.3.0 (2013) so conider it reliable to use it
+       ! to size weight_class_name with synthetic names so
+       ! aero_data_n_weight_class agrees with the awa shape.
+       call pmc_nc_check(nf90_inq_dimid(ncid, "aero_weight_class", &
+            dimid_aero_weight_class))
+       call pmc_nc_check(nf90_Inquire_Dimension(ncid, &
+            dimid_aero_weight_class, name, n_class))
+       call ensure_string_array_size(aero_data%weight_class_name, n_class)
+       do i_class = 1,n_class
+          write(aero_data%weight_class_name(i_class), '(a,i0)') &
+               "class_", i_class
        end do
-       call assert(840982472, i > 1)
-       aero_data%weight_class_name(i_class) = aero_weight_class_names(1:(i-1))
-       aero_weight_class_names = aero_weight_class_names((i+1):)
-    end do
-    call assert(377166448, aero_weight_class_names == "")
+    else
+       call pmc_nc_check(status)
+       allocate(character(len=((AERO_SOURCE_NAME_LEN + 2) * MAX_SOURCES)) &
+            :: aero_weight_class_names)
+       call pmc_nc_check(nf90_get_att(ncid, varid_aero_weight_class, &
+            "names", aero_weight_class_names))
+       ! aero_weight_class_names are comma-separated, so unpack them
+       call pmc_nc_check(nf90_inq_dimid(ncid, "aero_weight_class", &
+            dimid_aero_weight_class))
+       call pmc_nc_check(nf90_Inquire_Dimension(ncid, &
+            dimid_aero_weight_class, name, n_class))
+       call ensure_string_array_size(aero_data%weight_class_name, n_class)
+       do i_class = 1,n_class
+          i = 1
+          do while ((aero_weight_class_names(i:i) /= " ") &
+               .and. (aero_weight_class_names(i:i) /= ","))
+             i = i + 1
+          end do
+          call assert(840982472, i > 1)
+          aero_data%weight_class_name(i_class) &
+               = aero_weight_class_names(1:(i-1))
+          aero_weight_class_names = aero_weight_class_names((i+1):)
+       end do
+       call assert(377166448, aero_weight_class_names == "")
+    end if
 
-    call pmc_nc_read_integer(ncid, aero_data%i_water, "aero_i_water")
+    ! Backwards compatibility for aero_i_water for pre 2.8.0.
+    status = nf90_inq_varid(ncid, "aero_i_water", varid_aero_weight_class)
+    if (status == NF90_ENOTVAR) then
+       call aero_data_set_water_index(aero_data)
+    else
+       call pmc_nc_check(status)
+       call pmc_nc_read_integer(ncid, aero_data%i_water, "aero_i_water")
+    end if
 
     call fractal_input_netcdf(aero_data%fractal, ncid)
 

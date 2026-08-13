@@ -178,6 +178,33 @@ contains
     !> Time step (s).
     real(kind=dp), intent(in) :: del_t
 
+    type(aero_binned_t) :: aero_binned_pregrow
+    integer, save :: redist_method = -1
+    character(len=64) :: env_val
+    integer :: env_status
+
+    ! Select the sectional bin-remap method once (default moving-center; set
+    ! PARTMC_SECTIONAL_REDISTRIBUTE=two_moment for the lower-diffusion
+    ! linear-discrete scheme).
+    if (redist_method < 0) then
+       call get_environment_variable("PARTMC_SECTIONAL_REDISTRIBUTE", &
+            env_val, status=env_status)
+       if ((env_status == 0) .and. ((trim(env_val) == "two_moment") &
+            .or. (trim(env_val) == "2"))) then
+          redist_method = AERO_BINNED_REDIST_TWO_MOMENT
+          write(*,'(a)') 'tchem sectional bin remap: TWO-MOMENT'
+       else
+          redist_method = AERO_BINNED_REDIST_MOVING_CENTER
+          write(*,'(a)') 'tchem sectional bin remap: MOVING-CENTER'
+       end if
+    end if
+
+    ! The two-moment remap reconstructs the sub-bin distribution from the
+    ! pre-growth state, so capture it before TChem changes the masses.
+    if (redist_method == AERO_BINNED_REDIST_TWO_MOMENT) then
+       aero_binned_pregrow = aero_binned
+    end if
+
     call tchem_from_partmc_sect(aero_data, bin_grid, aero_binned, gas_data, &
          gas_state, env_state)
 
@@ -187,9 +214,14 @@ contains
          env_state)
 
     ! Remap bins whose mean particle volume has grown (or shrunk) past their
-    ! grid edges back onto the fixed bin grid. Moving-center for now; a
-    ! two-moment (linear-discrete) variant can replace this call later.
-    call aero_binned_redistribute(aero_binned, bin_grid, aero_data)
+    ! grid edges back onto the fixed bin grid.
+    if (redist_method == AERO_BINNED_REDIST_TWO_MOMENT) then
+       call aero_binned_redistribute_two_moment(aero_binned, &
+            aero_binned_pregrow, bin_grid, aero_data)
+    else
+       call aero_binned_redistribute_moving_center(aero_binned, bin_grid, &
+            aero_data)
+    end if
 
   end subroutine pmc_tchem_interface_solve_sect
 

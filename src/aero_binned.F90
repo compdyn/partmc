@@ -44,6 +44,11 @@ module pmc_aero_binned
      real(kind=dp), allocatable :: vol_conc(:,:)
   end type aero_binned_t
 
+  !> Moving-center bin remap: whole-bin moves to the destination bin.
+  integer, parameter :: AERO_BINNED_REDIST_MOVING_CENTER = 1
+  !> Two-moment (linear-discrete) bin remap: splits across two bins.
+  integer, parameter :: AERO_BINNED_REDIST_TWO_MOMENT = 2
+
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -270,11 +275,11 @@ contains
   !! are both conserved exactly. A bin whose mean falls below the first bin
   !! or above the last bin is clamped into the first/last bin.
   !!
-  !! This is the moving-center variant (whole-bin moves). A two-moment
-  !! (linear-discrete) variant that splits each bin between its destination
-  !! and one neighbour can later replace this with the same interface, using
-  !! the pre-growth bin totals to reconstruct the sub-bin distribution.
-  subroutine aero_binned_redistribute(aero_binned, bin_grid, aero_data)
+  !! This is the moving-center variant (whole-bin moves); see
+  !! aero_binned_redistribute_two_moment() for the lower-diffusion
+  !! linear-discrete alternative.
+  subroutine aero_binned_redistribute_moving_center(aero_binned, bin_grid, &
+       aero_data)
 
     !> Binned aerosol distribution to redistribute in place.
     type(aero_binned_t), intent(inout) :: aero_binned
@@ -329,7 +334,225 @@ contains
        aero_binned%vol_conc(i_bin,:) = new_vol(i_bin,:) / bin_grid%widths(i_bin)
     end do
 
-  end subroutine aero_binned_redistribute
+  end subroutine aero_binned_redistribute_moving_center
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Remap aerosol back onto the fixed bin grid after growth, using the
+  !> two-moment (linear-discrete) scheme of Jacobson / MOSAIC move_sections.
+  !!
+  !! Unlike the moving-center variant (whole-bin moves, which leaves a
+  !! comb of spikes), this reconstructs a linear sub-bin number distribution
+  !! in each source bin from its pre-growth number and mean volume, then
+  !! splits the grown number and volume *fractionally* between the
+  !! destination bin and one neighbour -- conserving both number and volume
+  !! while greatly reducing the numerical-diffusion / spiking artifact.
+  !!
+  !! \c aero_binned holds the post-growth (aftgrow) state and is updated in
+  !! place; \c aero_binned_pregrow holds the pre-growth state (captured before
+  !! the condensation step). Number is unchanged by condensation, so the two
+  !! share the same per-bin number; only the volumes differ.
+  subroutine aero_binned_redistribute_two_moment(aero_binned, &
+       aero_binned_pregrow, bin_grid, aero_data)
+
+    !> Post-growth binned distribution, redistributed in place.
+    type(aero_binned_t), intent(inout) :: aero_binned
+    !> Pre-growth binned distribution (same number, smaller volumes).
+    type(aero_binned_t), intent(in) :: aero_binned_pregrow
+    !> Bin grid (radius-based).
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Aerosol material data.
+    type(aero_data_t), intent(in) :: aero_data
+
+    integer :: n_bin, i_bin, dest1, dest2
+    real(kind=dp) :: num_actual, vtot_pre, vtot_aft, frac_num, frac_vol
+    real(kind=dp) :: vol_actual(aero_data_n_spec(aero_data))
+    real(kind=dp) :: vol_edge(bin_grid_size(bin_grid) + 1)
+    real(kind=dp) :: new_num(bin_grid_size(bin_grid))
+    real(kind=dp) :: new_vol(bin_grid_size(bin_grid), &
+         aero_data_n_spec(aero_data))
+
+    if (.not. aero_binned_is_allocated(aero_binned)) return
+    n_bin = bin_grid_size(bin_grid)
+    if (n_bin < 1) return
+
+    ! single-particle dry volume at each bin edge
+    vol_edge = aero_data_rad2vol(aero_data, bin_grid%edges)
+
+    new_num = 0d0
+    new_vol = 0d0
+
+    do i_bin = 1,n_bin
+       num_actual = aero_binned%num_conc(i_bin) * bin_grid%widths(i_bin)
+       vol_actual = aero_binned%vol_conc(i_bin,:) * bin_grid%widths(i_bin)
+       vtot_aft = sum(aero_binned%vol_conc(i_bin,:))
+       vtot_pre = sum(aero_binned_pregrow%vol_conc(i_bin,:))
+
+       ! per-log-width densities cancel inside the split (it uses ratios), so
+       ! pass them directly; deposit the actual (x width) amounts below.
+       call aero_binned_two_moment_split(aero_binned%num_conc(i_bin), &
+            vtot_pre, vtot_aft, i_bin, n_bin, vol_edge, dest1, dest2, &
+            frac_num, frac_vol)
+
+       new_num(dest1) = new_num(dest1) + num_actual * frac_num
+       new_vol(dest1,:) = new_vol(dest1,:) + vol_actual * frac_vol
+       if (dest2 > 0) then
+          new_num(dest2) = new_num(dest2) + num_actual * (1d0 - frac_num)
+          new_vol(dest2,:) = new_vol(dest2,:) + vol_actual * (1d0 - frac_vol)
+       end if
+    end do
+
+    do i_bin = 1,n_bin
+       aero_binned%num_conc(i_bin) = new_num(i_bin) / bin_grid%widths(i_bin)
+       aero_binned%vol_conc(i_bin,:) = new_vol(i_bin,:) / bin_grid%widths(i_bin)
+    end do
+
+  end subroutine aero_binned_redistribute_two_moment
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> For one source bin, determine the destination bin(s) and the number /
+  !> volume fractions for the two-moment remap.
+  !!
+  !! Ports the linear-discrete logic of MOSAIC \c move_sections: reconstruct a
+  !! linear sub-bin distribution \c n(z) = aa + bb*z from the pre-growth number
+  !! and mean volume, find the destination bin \c dest1 of the grown mean,
+  !! map that bin's edges back into pre-growth volume space, and integrate the
+  !! 0th/1st moments over the overlap to get the fraction staying in \c dest1
+  !! (the rest goes to neighbour \c dest2). Falls back to a whole-bin move
+  !! (\c dest2 = 0, fractions = 1) whenever the reconstruction is degenerate.
+  subroutine aero_binned_two_moment_split(num, vtot_pre, vtot_aft, n, n_bin, &
+       vol_edge, dest1, dest2, frac_num, frac_vol)
+
+    !> Bin number (any consistent units; ratios cancel).
+    real(kind=dp), intent(in) :: num
+    !> Pre-growth and post-growth total volume in the bin (same units as num).
+    real(kind=dp), intent(in) :: vtot_pre, vtot_aft
+    !> Source bin index and number of bins.
+    integer, intent(in) :: n, n_bin
+    !> Single-particle dry volume at the bin edges (m^3), length n_bin+1.
+    real(kind=dp), intent(in) :: vol_edge(n_bin + 1)
+    !> Primary destination bin and secondary (neighbour) bin (0 if none).
+    integer, intent(out) :: dest1, dest2
+    !> Fraction of number and of volume going to dest1 (remainder to dest2).
+    real(kind=dp), intent(out) :: frac_num, frac_vol
+
+    integer :: nnew, nnew2
+    real(kind=dp) :: vbar_aft, vbar_pre, vlo, vhi, vdel, gamma, ratio, aa, bb
+    real(kind=dp) :: vtmp, vcutlo, vcuthi, zlo, zhi, d1, d2, d3
+
+    ! default: whole-bin move (moving-center fallback)
+    dest2 = 0
+    frac_num = 1d0
+    frac_vol = 1d0
+
+    ! negligible / empty bin -> leave in place
+    if ((num <= 0d0) .or. (vtot_aft <= 0d0)) then
+       dest1 = n
+       return
+    end if
+
+    ! destination bin of the grown number-mean particle volume
+    vbar_aft = vtot_aft / num
+    if (vbar_aft >= vol_edge(n_bin + 1)) then
+       dest1 = n_bin
+       return
+    else if (vbar_aft <= vol_edge(1)) then
+       dest1 = 1
+       return
+    end if
+    nnew = n
+    if (vbar_aft > vol_edge(n + 1)) then
+       do while ((nnew < n_bin) .and. (vbar_aft > vol_edge(nnew + 1)))
+          nnew = nnew + 1
+       end do
+    else if (vbar_aft < vol_edge(n)) then
+       do while ((nnew > 1) .and. (vbar_aft < vol_edge(nnew)))
+          nnew = nnew - 1
+       end do
+    end if
+    dest1 = nnew
+
+    ! need a valid pre-growth distribution to do better than moving-center
+    if (vtot_pre <= 0d0) return
+
+    vlo = vol_edge(n)
+    vhi = vol_edge(n + 1)
+    vdel = vhi - vlo
+    vbar_pre = vtot_pre / num
+
+    ! pre-growth mean too close to (or outside) the bin edges -> moving-center
+    if ((vbar_pre >= vhi - 0.01d0 * vdel) .or. &
+        (vbar_pre <= vlo + 0.01d0 * vdel)) return
+
+    ! linear sub-bin reconstruction n(z) = aa + bb*z, z in [0,1] over [vlo,vhi],
+    ! matching the bin number and mean volume (with edge-clamping that keeps the
+    ! linear density non-negative, as in MOSAIC move_sections)
+    gamma = vhi / vlo - 1d0
+    ratio = vbar_pre / vlo
+    if (ratio <= 1.0001d0 + gamma / 3d0) then
+       vtmp = vlo + 3d0 * (vbar_pre - vlo)
+       vhi = min(vhi, vtmp)
+       vdel = vhi - vlo
+       gamma = vhi / vlo - 1d0
+       ratio = vbar_pre / vlo
+    else if (ratio >= 0.9999d0 + gamma * 2d0 / 3d0) then
+       vtmp = vhi + 3d0 * (vbar_pre - vhi)
+       vlo = max(vlo, vtmp)
+       vdel = vhi - vlo
+       gamma = vhi / vlo - 1d0
+       ratio = vbar_pre / vlo
+    end if
+    bb = (ratio - 1d0 - 0.5d0 * gamma) * 12d0 / gamma
+    aa = 1d0 - 0.5d0 * bb
+
+    ! destination bin edges mapped back into pre-growth volume space
+    vcutlo = vol_edge(nnew)     * (vbar_pre / vbar_aft)
+    vcuthi = vol_edge(nnew + 1) * (vbar_pre / vbar_aft)
+
+    ! choose the neighbour bin, or fall back to moving-center if the grown bin
+    ! sits entirely within the destination
+    if (nnew == 1) then
+       if (vhi <= vcuthi) return
+       nnew2 = nnew + 1
+    else if (nnew == n_bin) then
+       if (vlo >= vcutlo) return
+       nnew2 = nnew - 1
+    else
+       if ((vlo >= vcutlo) .and. (vhi <= vcuthi)) return
+       if (vlo < vcutlo) then
+          nnew2 = nnew - 1
+       else
+          nnew2 = nnew + 1
+       end if
+    end if
+
+    ! integrate the linear distribution over the part landing in dest1
+    zlo = max(0d0, (vcutlo - vlo) / vdel)
+    zhi = min(1d0, (vcuthi - vlo) / vdel)
+    d1 = zhi - zlo
+    d2 = (zhi**2 - zlo**2) * 0.5d0
+    d3 = (zhi**3 - zlo**3) / 3d0
+    frac_num = aa * d1 + bb * d2
+    frac_vol = (vlo / vbar_pre) &
+         * (aa * d1 + (aa * gamma + bb) * d2 + (bb * gamma) * d3)
+
+    if ((frac_num <= 0d0) .or. (frac_vol <= 0d0)) then
+       ! all goes to the neighbour
+       dest1 = nnew2
+       dest2 = 0
+       frac_num = 1d0
+       frac_vol = 1d0
+    else if ((frac_num >= 1d0) .or. (frac_vol >= 1d0)) then
+       ! all stays in dest1
+       dest2 = 0
+       frac_num = 1d0
+       frac_vol = 1d0
+    else
+       dest2 = nnew2
+    end if
+
+  end subroutine aero_binned_two_moment_split
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

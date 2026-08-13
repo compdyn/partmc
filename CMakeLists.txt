@@ -403,6 +403,13 @@ add_executable(bin_average_size src/bin_average_size.F90)
 target_link_libraries(bin_average_size partmclib)
 
 ######################################################################
+# aero_binned_from_particles
+
+add_executable(aero_binned_from_particles src/aero_binned_from_particles.F90)
+
+target_link_libraries(aero_binned_from_particles partmclib)
+
+######################################################################
 # extract_aero_*
 
 add_executable(extract_aero_particles

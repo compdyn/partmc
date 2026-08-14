@@ -410,6 +410,11 @@ add_executable(aero_binned_from_particles src/aero_binned_from_particles.F90)
 target_link_libraries(aero_binned_from_particles partmclib)
 
 ######################################################################
+
+add_executable(filter_aero_state src/filter_aero_state.F90 src/getopt.F90)
+target_link_libraries(filter_aero_state partmclib)
+
+######################################################################
 # extract_aero_*
 
 add_executable(extract_aero_particles

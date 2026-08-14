@@ -477,6 +477,64 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Remove every particle in \c aero_state whose \c weight_class does
+  !> not equal \c keep_class in-place.
+  subroutine aero_state_filter_by_weight_class(aero_state, keep_class)
+
+    !> Aerosol state to filter in place.
+    type(aero_state_t), intent(inout) :: aero_state
+    !> Weight class to keep; every particle with a different class is dropped.
+    integer, intent(in) :: keep_class
+
+    integer :: i_part
+
+    do i_part = aero_state_n_part(aero_state), 1, -1
+       if (aero_state%apa%particle(i_part)%weight_class /= keep_class) then
+          call aero_state_remove_particle_no_info(aero_state, i_part)
+       end if
+    end do
+
+  end subroutine aero_state_filter_by_weight_class
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Keep only the particles whose 1-based index appears in
+  !> \c keep_indices; drop every other particle in place. Duplicates in
+  !> \c keep_indices are silently ignored. Each value must lie in
+  !> [1, aero_state_n_part(aero_state)].
+  subroutine aero_state_filter_by_indices(aero_state, keep_indices)
+
+    !> Aerosol state to filter in place.
+    type(aero_state_t), intent(inout) :: aero_state
+    !> 1-based indices of particles to keep.
+    integer, intent(in) :: keep_indices(:)
+
+    integer :: i_part, n_part_orig, i
+    logical, allocatable :: keep(:)
+
+    n_part_orig = aero_state_n_part(aero_state)
+    allocate(keep(n_part_orig))
+    keep = .false.
+    do i = 1,size(keep_indices)
+       call assert_msg(820411735, &
+            keep_indices(i) >= 1 .and. keep_indices(i) <= n_part_orig, &
+            "keep_indices(" // trim(integer_to_string(i)) // ") = " &
+            // trim(integer_to_string(keep_indices(i))) &
+            // " is out of range [1, " &
+            // trim(integer_to_string(n_part_orig)) // "]")
+       keep(keep_indices(i)) = .true.
+    end do
+
+    do i_part = n_part_orig,1,-1
+       if (.not. keep(i_part)) then
+          call aero_state_remove_particle_no_info(aero_state, i_part)
+       end if
+    end do
+
+  end subroutine aero_state_filter_by_indices
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Add copies or remove a particle, with a given mean number of
   !> resulting particles.
   !!

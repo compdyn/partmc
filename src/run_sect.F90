@@ -102,6 +102,13 @@ contains
     real(kind=dp) bin_vol_frac(bin_grid_size(bin_grid), &
          aero_data_n_spec(aero_data))
     real(kind=dp) e(bin_grid_size(bin_grid))
+    real(kind=dp) f_ieqk(bin_grid_size(bin_grid),bin_grid_size(bin_grid))
+    real(kind=dp) f_klo(bin_grid_size(bin_grid),bin_grid_size(bin_grid))
+    real(kind=dp) f_khi(bin_grid_size(bin_grid),bin_grid_size(bin_grid))
+    integer klo_of_ij(bin_grid_size(bin_grid),bin_grid_size(bin_grid))
+    integer khi_of_ij(bin_grid_size(bin_grid),bin_grid_size(bin_grid))
+    integer ilo_of_jk(bin_grid_size(bin_grid),bin_grid_size(bin_grid))
+    integer ihi_of_jk(bin_grid_size(bin_grid),bin_grid_size(bin_grid))
     real(kind=dp) k_bin(bin_grid_size(bin_grid),bin_grid_size(bin_grid))
     real(kind=dp) ck(bin_grid_size(bin_grid),bin_grid_size(bin_grid))
     real(kind=dp) ec(bin_grid_size(bin_grid),bin_grid_size(bin_grid))
@@ -160,6 +167,16 @@ contains
 
     call courant(bin_grid_size(bin_grid), bin_grid%widths(1), e, ima, c)
 
+    ! the bin-splitting weights and donor-index ranges used by
+    ! coag_two_moment() depend only on the static volume grid e(), not on
+    ! composition, kernel, or environment, so precompute them once here
+    ! instead of on every timestep
+    if (run_sect_opt%do_coagulation .and. &
+         SECT_COAG_METHOD == SECT_COAG_TWO_MOMENT) then
+       call coag_two_moment_geometry(bin_grid_size(bin_grid), e, f_ieqk, &
+            f_klo, f_khi, klo_of_ij, khi_of_ij, ilo_of_jk, ihi_of_jk)
+    end if
+
     ! initialize MOSAIC (allocates its data structures; matches run_part)
     if (run_sect_opt%do_mosaic) then
 #ifdef PMC_USE_MOSAIC
@@ -190,8 +207,9 @@ contains
              ! Jacobson (2002) semi-implicit two-moment scheme: evolves the
              ! per-bin number and per-species volume as independent moments.
              call coag_two_moment(bin_grid, aero_data, env_state, &
-                  run_sect_opt%coag_kernel_type, run_sect_opt%del_t, &
-                  aero_binned)
+                  run_sect_opt%coag_kernel_type, run_sect_opt%del_t, e, &
+                  f_ieqk, f_klo, f_khi, klo_of_ij, khi_of_ij, ilo_of_jk, &
+                  ihi_of_jk, aero_binned)
           else
              ! per-bin mean composition (volume fractions) for the kernel,
              ! falling back to pure species 1 in empty bins
@@ -537,99 +555,32 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Two-moment coagulation, semi-implicit scheme of Jacobson (2002).
-  !!
-  !! Unlike the single-moment Bott flux scheme in coad() (which advects the
-  !! volume distribution and derives number from it), this evolves the per-bin
-  !! number concentration and the per-species volume concentration as
-  !! independent moments. It is the single-type algorithm used by MOSAIC
-  !! (jacobson2002_singletype_coag in module_mosaic_coag1d), adapted here to
-  !! PartMC's aero_binned_t and coagulation kernel.
-  !!
-  !! For each donor pair (i,j) the combined single-particle volume
-  !! e(i) + e(j) is split between the two grid bins k and k+1 that bracket it,
-  !! with the volume-conserving weights f_ijk of Jacobson (2002) eqn 8. Total
-  !! per-species volume is conserved to round-off; number decreases as
-  !! particles merge. The update is semi-implicit (unconditionally stable), and
-  !! the step is sub-cycled so that no bin loses more than a set fraction of its
-  !! number per sub-step, which keeps the moments accurate for large del_t.
-  !!
-  !! \reference Jacobson, M. Z., Analysis of aerosol interactions with numerical
-  !! techniques for solving coagulation..., J. Geophys. Res., 107(D19), 4366,
-  !! 2002.
-  subroutine coag_two_moment(bin_grid, aero_data, env_state, &
-       coag_kernel_type, del_t, aero_binned)
+  !> Precompute the bin-splitting weights f_ijk and the
+  !! per-(j,k) donor-index ranges used by coag_two_moment().
+  subroutine coag_two_moment_geometry(n_bin, e, f_ieqk, f_klo, f_khi, &
+       klo_of_ij, khi_of_ij, ilo_of_jk, ihi_of_jk)
 
-    !> Bin grid.
-    type(bin_grid_t), intent(in) :: bin_grid
-    !> Aerosol data.
-    type(aero_data_t), intent(in) :: aero_data
-    !> Environment state.
-    type(env_state_t), intent(in) :: env_state
-    !> Type of coagulation kernel.
-    integer, intent(in) :: coag_kernel_type
-    !> Timestep (s).
-    real(kind=dp), intent(in) :: del_t
-    !> Binned aerosol distribution (updated in place).
-    type(aero_binned_t), intent(inout) :: aero_binned
+    !> Number of bins.
+    integer, intent(in) :: n_bin
+    !> Single-particle volume at each bin center (m^3).
+    real(kind=dp), intent(in) :: e(n_bin)
+    !> Weight of the i==k term in f_ijk.
+    real(kind=dp), intent(out) :: f_ieqk(n_bin,n_bin)
+    !> Weight on the lower bracketing bin klo_of_ij(i,j).
+    real(kind=dp), intent(out) :: f_klo(n_bin,n_bin)
+    !> Weight on the upper bracketing bin khi_of_ij(i,j).
+    real(kind=dp), intent(out) :: f_khi(n_bin,n_bin)
+    !> Lower bin that e(i) + e(j) splits into.
+    integer, intent(out) :: klo_of_ij(n_bin,n_bin)
+    !> Upper bin that e(i) + e(j) splits into.
+    integer, intent(out) :: khi_of_ij(n_bin,n_bin)
+    !> For each (j,k), the lowest donor i with i + j --> k.
+    integer, intent(out) :: ilo_of_jk(n_bin,n_bin)
+    !> For each (j,k), the highest donor i with i + j --> k.
+    integer, intent(out) :: ihi_of_jk(n_bin,n_bin)
 
-    !> Maximum fractional number loss from a bin per sub-step.
-    real(kind=dp), parameter :: frac_loss_limit = 0.5d0
-    !> Cap on the number of sub-steps.
-    integer, parameter :: max_nsubstep = 1000
-
-    integer :: n_bin, n_spec, i, j, k, kp1, l, isubstep, nsubstep
-    real(kind=dp) :: bin_vol_tot, vol_ipj, f_tmp, tmpa, tmpb, del_t_sub
-    real(kind=dp) :: t1_num, t3_num, t1_vol_denom
-    real(kind=dp) :: e(bin_grid_size(bin_grid))
-    real(kind=dp) :: bin_vol_frac(bin_grid_size(bin_grid), &
-         aero_data_n_spec(aero_data))
-    real(kind=dp) :: k_bin(bin_grid_size(bin_grid),bin_grid_size(bin_grid))
-    real(kind=dp) :: beta(bin_grid_size(bin_grid),bin_grid_size(bin_grid))
-    real(kind=dp) :: cnum(bin_grid_size(bin_grid))
-    real(kind=dp) :: cnum_old(bin_grid_size(bin_grid))
-    real(kind=dp) :: cvol(bin_grid_size(bin_grid),aero_data_n_spec(aero_data))
-    real(kind=dp) :: t1_vol(aero_data_n_spec(aero_data))
-    real(kind=dp) :: f_ieqk(bin_grid_size(bin_grid),bin_grid_size(bin_grid))
-    real(kind=dp) :: f_klo(bin_grid_size(bin_grid),bin_grid_size(bin_grid))
-    real(kind=dp) :: f_khi(bin_grid_size(bin_grid),bin_grid_size(bin_grid))
-    integer :: klo_of_ij(bin_grid_size(bin_grid),bin_grid_size(bin_grid))
-    integer :: khi_of_ij(bin_grid_size(bin_grid),bin_grid_size(bin_grid))
-    integer :: ilo_of_jk(bin_grid_size(bin_grid),bin_grid_size(bin_grid))
-    integer :: ihi_of_jk(bin_grid_size(bin_grid),bin_grid_size(bin_grid))
-
-    n_bin = bin_grid_size(bin_grid)
-    n_spec = aero_data_n_spec(aero_data)
-    if (n_bin < 1) return
-
-    ! single-particle volume at each bin center (m^3)
-    do i = 1,n_bin
-       e(i) = aero_data_rad2vol(aero_data, bin_grid%centers(i))
-    end do
-
-    ! per-bin mean composition (volume fractions) for the kernel, falling
-    ! back to pure species 1 in empty bins
-    do i = 1,n_bin
-       bin_vol_tot = sum(aero_binned%vol_conc(i,:))
-       if (bin_vol_tot > 0d0) then
-          bin_vol_frac(i,:) = aero_binned%vol_conc(i,:) / bin_vol_tot
-       else
-          bin_vol_frac(i,:) = 0d0
-          bin_vol_frac(i,1) = 1d0
-       end if
-    end do
-
-    ! coagulation kernel beta(i,j) (m^3/s) for the current per-bin composition
-    call bin_kernel(n_bin, bin_grid%centers, aero_data, coag_kernel_type, &
-         env_state, bin_vol_frac, k_bin)
-
-    ! Work in actual concentrations (per m^3), i.e. per-log-width densities
-    ! times the bin widths, because the coagulation rate is quadratic in
-    ! concentration. The widths cancel when converting back at the end.
-    do i = 1,n_bin
-       cnum(i) = aero_binned%num_conc(i) * bin_grid%widths(i)
-       cvol(i,:) = aero_binned%vol_conc(i,:) * bin_grid%widths(i)
-    end do
+    integer :: i, j, k, kp1
+    real(kind=dp) :: vol_ipj, f_tmp
 
     ! f_ijk of Jacobson (2002) eqn 8: for each donor pair (i,j) the combined
     ! volume e(i)+e(j) is split between bins klo and khi = klo+1. Only the two
@@ -663,7 +614,7 @@ contains
        end do
     end do
 
-    ! for each (j,k), the range of donor i for which i + j --> k is possible
+    ! for each (j,k), the range of donor i for which i + j -> k is possible
     do k = 1,n_bin
        do j = 1,k
           ilo_of_jk(j,k) = n_bin + 1
@@ -675,6 +626,112 @@ contains
              end if
           end do
        end do
+    end do
+
+  end subroutine coag_two_moment_geometry
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Two-moment coagulation, semi-implicit scheme of Jacobson (2002).
+  !!
+  !! Unlike the single-moment Bott flux scheme in coad() (which advects the
+  !! volume distribution and derives number from it), this evolves the per-bin
+  !! number concentration and the per-species volume concentration as
+  !! independent moments. Based on the algorithm used by MOSAIC
+  !! (jacobson2002_singletype_coag in module_mosaic_coag1d), adapted here to
+  !! PartMC's aero_binned_t and coagulation kernel.
+  !!
+  !! For each donor pair (i,j) the combined single-particle volume
+  !! e(i) + e(j) is split between the two grid bins k and k+1 that bracket it,
+  !! with the volume-conserving weights f_ijk of Jacobson (2002) eqn 8. Total
+  !! per-species volume is conserved to round-off; number decreases as
+  !! particles merge. The update is semi-implicit (unconditionally stable), and
+  !! the step is sub-cycled so that no bin loses more than a set fraction of its
+  !! number per sub-step, which keeps the moments accurate for large time 
+  !! steps.
+  !!
+  !! \reference Jacobson, M. Z., Analysis of aerosol interactions with numerical
+  !! techniques for solving coagulation..., J. Geophys. Res., 107(D19), 4366,
+  !! 2002.
+  subroutine coag_two_moment(bin_grid, aero_data, env_state, &
+       coag_kernel_type, del_t, e, f_ieqk, f_klo, f_khi, klo_of_ij, &
+       khi_of_ij, ilo_of_jk, ihi_of_jk, aero_binned)
+
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+    !> Type of coagulation kernel.
+    integer, intent(in) :: coag_kernel_type
+    !> Timestep (s).
+    real(kind=dp), intent(in) :: del_t
+    !> Single-particle volume at each bin center (m^3).
+    real(kind=dp), intent(in) :: e(bin_grid_size(bin_grid))
+    !> Precomputed bin-splitting weights and donor-index ranges from
+    !! coag_two_moment_geometry() (time-invariant, computed once by the
+    !! caller).
+    real(kind=dp), intent(in) :: f_ieqk(bin_grid_size(bin_grid), &
+         bin_grid_size(bin_grid))
+    real(kind=dp), intent(in) :: f_klo(bin_grid_size(bin_grid), &
+         bin_grid_size(bin_grid))
+    real(kind=dp), intent(in) :: f_khi(bin_grid_size(bin_grid), &
+         bin_grid_size(bin_grid))
+    integer, intent(in) :: klo_of_ij(bin_grid_size(bin_grid), &
+         bin_grid_size(bin_grid))
+    integer, intent(in) :: khi_of_ij(bin_grid_size(bin_grid), &
+         bin_grid_size(bin_grid))
+    integer, intent(in) :: ilo_of_jk(bin_grid_size(bin_grid), &
+         bin_grid_size(bin_grid))
+    integer, intent(in) :: ihi_of_jk(bin_grid_size(bin_grid), &
+         bin_grid_size(bin_grid))
+    !> Binned aerosol distribution (updated in place).
+    type(aero_binned_t), intent(inout) :: aero_binned
+
+    !> Maximum fractional number loss from a bin per sub-step.
+    real(kind=dp), parameter :: frac_loss_limit = 0.5d0
+    !> Cap on the number of sub-steps.
+    integer, parameter :: max_nsubstep = 1000
+
+    integer :: n_bin, n_spec, i, j, k, l, isubstep, nsubstep
+    real(kind=dp) :: bin_vol_tot, f_tmp, tmpa, tmpb, del_t_sub
+    real(kind=dp) :: t1_num, t3_num, t1_vol_denom
+    real(kind=dp) :: bin_vol_frac(bin_grid_size(bin_grid), &
+         aero_data_n_spec(aero_data))
+    real(kind=dp) :: k_bin(bin_grid_size(bin_grid),bin_grid_size(bin_grid))
+    real(kind=dp) :: beta(bin_grid_size(bin_grid),bin_grid_size(bin_grid))
+    real(kind=dp) :: cnum(bin_grid_size(bin_grid))
+    real(kind=dp) :: cnum_old(bin_grid_size(bin_grid))
+    real(kind=dp) :: cvol(bin_grid_size(bin_grid),aero_data_n_spec(aero_data))
+    real(kind=dp) :: t1_vol(aero_data_n_spec(aero_data))
+
+    n_bin = bin_grid_size(bin_grid)
+    n_spec = aero_data_n_spec(aero_data)
+    if (n_bin < 1) return
+
+    ! per-bin mean composition (volume fractions) for the kernel, falling
+    ! back to pure species 1 in empty bins
+    do i = 1,n_bin
+       bin_vol_tot = sum(aero_binned%vol_conc(i,:))
+       if (bin_vol_tot > 0d0) then
+          bin_vol_frac(i,:) = aero_binned%vol_conc(i,:) / bin_vol_tot
+       else
+          bin_vol_frac(i,:) = 0d0
+          bin_vol_frac(i,1) = 1d0
+       end if
+    end do
+
+    ! coagulation kernel beta(i,j) (m^3/s) for the current per-bin composition
+    call bin_kernel(n_bin, bin_grid%centers, aero_data, coag_kernel_type, &
+         env_state, bin_vol_frac, k_bin)
+
+    ! Work in actual concentrations (per m^3), i.e. per-log-width densities
+    ! times the bin widths, because the coagulation rate is quadratic in
+    ! concentration. The widths cancel when converting back at the end.
+    do i = 1,n_bin
+       cnum(i) = aero_binned%num_conc(i) * bin_grid%widths(i)
+       cvol(i,:) = aero_binned%vol_conc(i,:) * bin_grid%widths(i)
     end do
 
     ! choose the number of sub-steps so that no bin loses more than

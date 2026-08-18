@@ -1,0 +1,48 @@
+# PartMC with MOSAIC chemistry.
+#   Build: docker build -t partmc-mosaic -f Dockerfile.mosaic .
+#   Test:  docker run -t partmc-mosaic bash -c 'cd /build; make test'
+
+# Fedora's own registry; Docker Hub intermittently 500s in CI.
+FROM registry.fedoraproject.org/fedora:41
+
+RUN dnf -y update \
+    && dnf -y install \
+        less \
+        tmux \
+        make \
+        gcc \
+        gcc-gfortran \
+        gcc-c++ \
+        tcsh \
+        git \
+        netcdf-fortran-devel \
+        gsl-devel \
+        cmake \
+    && dnf clean all
+
+# Build MOSAIC with the same gfortran so its .mod files are ABI-compatible.
+ARG MOSAIC_BRANCH=partmc-library
+RUN git clone --depth 1 --branch ${MOSAIC_BRANCH} \
+        https://github.com/open-atmos/mosaic.git /mosaic-src \
+    && cd /mosaic-src/MOSAIC_v2 \
+    && mkdir -p compile \
+    && ./compile.sh gfortran
+
+# Stage artifacts into the lib/ and include/ layout PartMC's CMake expects.
+ENV MOSAIC_HOME=/opt/mosaic
+RUN mkdir -p ${MOSAIC_HOME}/lib ${MOSAIC_HOME}/include \
+    && cp /mosaic-src/MOSAIC_v2/compile/libmosaic.a ${MOSAIC_HOME}/lib/ \
+    && cp /mosaic-src/MOSAIC_v2/compile/*.mod ${MOSAIC_HOME}/include/
+
+# See .dockerignore to control what gets copied.
+COPY . /partmc/
+
+RUN mkdir /build \
+    && cd /build \
+    && cmake -D CMAKE_BUILD_TYPE=release \
+             -D CMAKE_C_FLAGS_RELEASE="-O2 -g -Werror -Wall -Wextra" \
+             -D CMAKE_Fortran_FLAGS_RELEASE="-O2 -g -Werror -fimplicit-none -Wall -Wextra -Wconversion -Wunderflow -Wimplicit-interface -Wno-compare-reals -Wno-unused -Wno-unused-parameter -Wno-unused-dummy-argument -fbounds-check" \
+             -D ENABLE_GSL:BOOL=TRUE \
+             -D ENABLE_MOSAIC:BOOL=TRUE \
+             /partmc \
+    && make

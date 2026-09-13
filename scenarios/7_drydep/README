@@ -38,7 +38,7 @@ Both runs share:
 Emissions and background rates are zero. Condensation and all
 other microphysical processes are disabled, so dry deposition is the
 only active process. The sectional case runs with the zero
-coagulation kernel It also sets do_aero_dilution to no; the modal
+coagulation kernel. It also sets do_aero_dilution to no; the modal
 representation has no dilution treatment.
 
 Deposition parameters

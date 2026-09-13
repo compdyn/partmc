@@ -10,6 +10,9 @@ n_bin 220                       # number of bins
 d_min 1e-10                     # minimum diameter (m)
 d_max 1e-4                      # maximum diameter (m)
 
+do_camp_chem no                 # whether to use CAMP for chemistry (yes/no)
+do_tchem no                     # whether to use TChem for chemistry (yes/no)
+
 gas_data gas_data.dat           # file containing gas data
 aerosol_data aero_data.dat      # file containing aerosol data
 do_fractal no                   # whether to do fractal treatment
@@ -31,5 +34,11 @@ altitude 0                      # altitude (m)
 start_time 0                    # start time (s since 00:00 UTC)
 start_day 1                     # start day of year (UTC)
 
+do_aero_dilution yes            # whether to do aerosol dilution (yes/no)
 do_coagulation yes              # whether to do coagulation (yes/no)
 coag_kernel brown               # coagulation kernel
+do_condensation no              # whether to do condensation (yes/no)
+do_mosaic no                    # whether to do MOSAIC (yes/no)
+do_optical no                   # whether to compute optical props (yes/no)
+do_nucleation no                # whether to do nucleation (yes/no)
+do_immersion_freezing no        # whether to do freezing (yes/no)

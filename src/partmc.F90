@@ -732,6 +732,11 @@ contains
     !!   format should be \subpage input_format_aero_dist
     !! - \subpage input_format_scenario
     !! - \subpage input_format_env_state
+    !! - \b do_aero_dilution (logical): whether to apply aerosol
+    !!   dilution. If \c no, both the background-exchange dilution and
+    !!   the mixing-layer-growth correction are skipped, which allows
+    !!   other processes (for example dry deposition) to be studied in
+    !!   isolation.
     !! - \b do_coagulation (logical): whether to perform particle
     !!   coagulation.  If \c do_coagulation is \c yes, then the
     !!   following parameters must also be provided:
@@ -771,6 +776,7 @@ contains
     !! start_time 0                    # start time (s since 00:00 UTC)
     !! start_day 1                     # start day of year (UTC)
     !!
+    !! do_aero_dilution yes            # whether to do dilution (yes/no)
     !! do_coagulation yes              # whether to do coagulation (yes/no)
     !! kernel brown                    # coagulation kernel
     !! </pre>

@@ -18,6 +18,7 @@ module pmc_scenario
   use pmc_gas_data
   use pmc_chamber
   use pmc_mpi
+  use pmc_netcdf
 #ifdef PMC_USE_MPI
   use mpi
 #endif
@@ -381,7 +382,7 @@ contains
   !!
   !! See scenario_update_gas_state() for a description of the model.
   subroutine scenario_update_aero_binned(scenario, delta_t, env_state, &
-       old_env_state, bin_grid, aero_data, aero_binned)
+       old_env_state, bin_grid, aero_data, do_aero_dilution, aero_binned)
 
     !> Scenario data.
     type(scenario_t), intent(in) :: scenario
@@ -395,6 +396,8 @@ contains
     type(bin_grid_t), intent(in) :: bin_grid
     !> Aero data values.
     type(aero_data_t), intent(in) :: aero_data
+    !> Whether to do dilution.
+    logical, intent(in) :: do_aero_dilution
     !> Aero binned to update.
     type(aero_binned_t), intent(inout) :: aero_binned
 
@@ -412,17 +415,23 @@ contains
     call aero_binned_add_scaled(aero_binned, emissions_binned, p)
 
     ! dilution
-    call aero_dist_interp_1d(scenario%aero_background, &
-         scenario%aero_dilution_time, scenario%aero_dilution_rate, &
-         env_state%elapsed_time, background, dilution_rate)
-    call aero_binned_add_aero_dist(background_binned, bin_grid, aero_data, &
-         background)
-    p = exp(- dilution_rate * delta_t)
-    if (env_state%height > old_env_state%height) then
-       p = p * old_env_state%height / env_state%height
+    if (do_aero_dilution) then
+       call aero_dist_interp_1d(scenario%aero_background, &
+            scenario%aero_dilution_time, scenario%aero_dilution_rate, &
+            env_state%elapsed_time, background, dilution_rate)
+       call aero_binned_add_aero_dist(background_binned, bin_grid, aero_data, &
+             background)
+       p = exp(- dilution_rate * delta_t)
+       if (env_state%height > old_env_state%height) then
+          p = p * old_env_state%height / env_state%height
+       end if
+       call aero_binned_scale(aero_binned, p)
+       call aero_binned_add_scaled(aero_binned, background_binned, 1d0 - p)
     end if
-    call aero_binned_scale(aero_binned, p)
-    call aero_binned_add_scaled(aero_binned, background_binned, 1d0 - p)
+
+    ! loss
+    call scenario_binned_loss(scenario, bin_grid, delta_t, aero_data, &
+         env_state, aero_binned)
 
   end subroutine scenario_update_aero_binned
 
@@ -622,7 +631,7 @@ contains
     R_s = 1.0d0 / (drydep_params%eps_0 * u_star * (E_B + E_IN + E_IM) * R1)
 
     ! Dry deposition
-    V_d = V_s + (1.0d0 / (R_a + R_s + R_a * R_s * V_s))
+    V_d = V_s + (1.0d0 / (R_a + R_s))
 
     ! The loss rate
     scenario_loss_rate_drydep = V_d / env_state%height
@@ -733,7 +742,7 @@ contains
     R_s = 1.0d0 / (drydep_params%eps_0 * u_star * (E_B + E_IN + E_IM) * R1)
 
     ! Integrated deposition velocity
-    V_d_hat = V_g_hat + (1.0d0 / (R_a + R_s + R_a * R_s * V_g_hat))
+    V_d_hat = V_g_hat + (1.0d0 / (R_a + R_s))
 
     ! Loss rate
     scenario_integrated_loss_rate_drydep = V_d_hat / env_state%height
@@ -868,7 +877,7 @@ contains
     R_s = 1.0d0 / (drydep_params%eps_0 * u_star * (E_B + E_IN + E_IM) * R1)
 
     ! Deposition velocity
-    V_d = V_s + (1.0d0 / (R_a + R_s + R_a * R_s * V_s))
+    V_d = V_s + (1.0d0 / (R_a + R_s))
 
     ! Log-normal size distribution
     ln_dp = log(d_p)
@@ -1120,6 +1129,92 @@ contains
     call aero_state_remove_particle_with_info(aero_state, i_part, aero_info)
 
   end subroutine scenario_try_single_particle_loss
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Performs loss for a binned aerosol distribution for one time step.
+  subroutine scenario_binned_loss(scenario, bin_grid, delta_t, aero_data, &
+       env_state, aero_binned)
+
+    !> Scenario data.
+    type(scenario_t), intent(in) :: scenario
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Time increment to update over.
+    real(kind=dp), intent(in) :: delta_t
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Environmental state.
+    type(env_state_t), intent(in) :: env_state
+    !> Binned aerosol data.
+    type(aero_binned_t), intent(inout) :: aero_binned
+
+    integer :: i_bin
+    real(kind=dp) :: density, vol, loss_rate, p
+
+    if (scenario%loss_function_type == SCENARIO_LOSS_FUNCTION_NONE .or. &
+        scenario%loss_function_type == SCENARIO_LOSS_FUNCTION_INVALID) then
+        return
+    else if (scenario%loss_function_type == SCENARIO_LOSS_FUNCTION_DRYDEP) then
+
+       density = aero_data%density(1)
+
+       do i_bin = 1,bin_grid_size(bin_grid)
+
+          if (aero_binned%num_conc(i_bin) <= 0d0) cycle
+
+          vol = aero_data_rad2vol(aero_data, bin_grid%centers(i_bin))
+          loss_rate = scenario_loss_rate(scenario, vol, density, &
+               aero_data, env_state)
+          p = exp(- loss_rate * delta_t)
+          aero_binned%vol_conc(i_bin,:) = aero_binned%vol_conc(i_bin,:) * p
+          aero_binned%num_conc(i_bin) = aero_binned%vol_conc(i_bin,1) / vol
+
+       end do
+    else
+       return
+    end if
+
+  end subroutine scenario_binned_loss
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Updates an array (of size equal to the number of sections) containing
+  !> the dry deposition velocity for each bin in a sectional simulation.
+  !!
+  !! This is a diagnostic helper: it returns deposition velocities (m s^{-1})
+  !! rather than loss rates, by multiplying the rate from
+  !! scenario_loss_rate_drydep() back by the mixing layer height. It is not
+  !! used by the sectional time-stepping itself, which calls
+  !! scenario_binned_loss().
+  subroutine scenario_section_drydep_rates(scenario, bin_grid, aero_data, &
+       env_state, rates)
+
+    !> Scenario data.
+    type(scenario_t), intent(in) :: scenario
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Environmental state.
+    type(env_state_t), intent(in) :: env_state
+    !> Deposition velocities for each section/bin (m s^{-1}).
+    real(kind=dp), intent(inout) :: rates(:)
+
+    integer :: i_bin
+    real(kind=dp) :: density, vol
+
+    call assert_msg(516274839, size(rates) == bin_grid_size(bin_grid), &
+         "rates array size must match the number of bins")
+
+    density = aero_data%density(1)
+
+    do i_bin = 1,bin_grid_size(bin_grid)
+       vol = aero_data_rad2vol(aero_data, bin_grid%centers(i_bin))
+       rates(i_bin) = scenario_loss_rate_drydep(vol, density, &
+            aero_data, env_state, scenario) * env_state%height
+    end do
+
+  end subroutine scenario_section_drydep_rates
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

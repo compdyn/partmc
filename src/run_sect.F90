@@ -104,7 +104,6 @@ contains
 
     integer i, j, i_time, num_t, i_summary
     logical do_output, do_progress
-    real(kind=dp) removed
 
     call check_time_multiple("t_max", run_sect_opt%t_max, &
          "del_t", run_sect_opt%del_t)

@@ -142,7 +142,6 @@ contains
     last_progress_time = 0d0
     time = 0d0
     i_summary = 1
-    removed = 0d0
 
     ! precompute kernel values for all pairs of bins
     call bin_kernel(bin_grid_size(bin_grid), bin_grid%centers, aero_data, &

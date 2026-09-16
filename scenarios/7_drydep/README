@@ -1,0 +1,56 @@
+Dry deposition scenario
+=======================
+
+Demonstrates dry deposition of aerosol particles using both the
+modal and the sectional (binned) representations. Both are run
+with identical inputs so that their results can be compared directly.
+
+Running
+-------
+
+Modal:
+
+    ./1_run_modal.sh
+    ./2_process_modal.sh
+
+Sectional:
+
+    ./1_run_sect.sh
+    ./2_process_sect.sh
+
+Each simulates 8 hours with hourly output. The modal case is
+post-processed by drydep_modal_process, which writes total number and
+mass concentration time series to out/drydep_modal_process.nc. The
+sectional case uses the standard extract_sectional_* tools.
+
+Configuration
+-------------
+
+Both runs share:
+
+  aero_init_dist.dat   single log-normal mode, 3.2e9 m^-3, geometric
+                       mean diameter 100 nm, sigma (geom_std_dev)= 1.8
+  aero_data.dat        single species (SO4)
+  drydep_params.dat    deposition parameters (see below)
+  temp.dat, pres.dat, height.dat, gas_*.dat, aero_back*.dat,
+  aero_emit*.dat       meteorology, emissions and background
+
+Emissions and background rates are zero. Condensation and all
+other microphysical processes are disabled, so dry deposition is the
+only active process. The sectional case runs with the zero
+coagulation kernel. It also sets do_aero_dilution to no; the modal
+representation has no dilution treatment.
+
+Deposition parameters
+---------------------
+
+drydep_params.dat holds the coefficients of the size-resolved
+deposition scheme (Zhang et al. 2001; Emerson et al. 2020). The
+dry deposition velocity equation is
+
+    V_d = V_s + 1 / (R_a + R_s)
+
+following Slinn (1982), as used by both parameterizations. The
+land-use-dependent quantities (z_rough, A, alpha, gamma) and the
+scheme coefficients (C_B, C_IN, C_IM, nu, beta) are all read from
+this file.

@@ -1,12 +1,12 @@
-run_type modal                         # modal run
-output_prefix out/drydep_modal          # prefix of output files
+run_type sectional                     # sectional (binned) run
+output_prefix out/drydep_sect          # prefix of output files
 
 t_max 28800                            # total simulation time (s)
 del_t 60                               # timestep (s)
 t_output 3600                          # output interval (0 disables) (s)
 t_progress 0                           # progress printing interval (0 disables) (s)
 
-n_bin 1000                             # number of bins (for processing purposes)
+n_bin 1000                             # number of bins
 d_min 1e-10                            # minimum diameter (m)
 d_max 1e-3                             # maximum diameter (m)
 
@@ -35,7 +35,9 @@ altitude 0                             # altitude (m)
 start_time 21600                       # start time (s since 00:00 UTC)
 start_day 200                          # start day of year (UTC)
 
-do_coagulation no                      # whether to do coagulation (yes/no)
+do_aero_dilution no                    # whether to do aerosol dilution (yes/no)
+do_coagulation yes                     # whether to do coagulation (yes/no)
+coag_kernel zero                       # coagulation kernel (zero = no coagulation)
 do_condensation no                     # whether to do condensation (yes/no)
 do_mosaic no                           # whether to do MOSAIC (yes/no)
 do_optical no                          # whether to compute optical props (yes/no)

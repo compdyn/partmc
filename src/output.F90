@@ -662,7 +662,7 @@ contains
 
   !> Write the current sectional data.
   subroutine output_sectional(prefix, bin_grid, aero_data, aero_binned, &
-       gas_data, gas_state, env_state, index, time, del_t, uuid)
+       gas_data, gas_state, env_state, scenario, index, time, del_t, uuid)
 
     !> Prefix of filename to write
     character(len=*), intent(in) :: prefix
@@ -678,6 +678,8 @@ contains
     type(gas_state_t), intent(in) :: gas_state
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
+    !> Scenario data.
+    type(scenario_t), intent(in) :: scenario
     !> Filename index.
     integer, intent(in) :: index
     !> Current time (s).
@@ -705,6 +707,10 @@ contains
     call aero_binned_output_netcdf(aero_binned, ncid, bin_grid, &
          aero_data)
 
+    if (scenario%loss_function_type == SCENARIO_LOSS_FUNCTION_DRYDEP) then
+       call drydep_params_output_netcdf(scenario%drydep, ncid)
+    end if
+
     call pmc_nc_check(nf90_close(ncid))
 
   end subroutine output_sectional
@@ -713,7 +719,7 @@ contains
 
   !> Input sectional data.
   subroutine input_sectional(filename, index, time, del_t, uuid, bin_grid, &
-       aero_data, aero_binned, gas_data, gas_state, env_state)
+       aero_data, aero_binned, gas_data, gas_state, env_state, scenario)
 
     !> Filename to read.
     character(len=*), intent(in) :: filename
@@ -737,6 +743,8 @@ contains
     type(gas_state_t), optional, intent(inout) :: gas_state
     !> Environment state.
     type(env_state_t), optional, intent(inout) :: env_state
+    !> Scenario data.
+    type(scenario_t), optional, intent(inout) :: scenario
 
     integer :: ncid
 
@@ -777,6 +785,10 @@ contains
 
     if (present(env_state)) then
        call env_state_input_netcdf(env_state, ncid)
+    end if
+
+    if (present(scenario)) then
+       call drydep_params_input_netcdf(scenario%drydep, ncid)
     end if
 
     call pmc_nc_close(ncid)
@@ -834,7 +846,10 @@ contains
     call gas_state_output_netcdf(gas_state, ncid, gas_data)
     call aero_data_output_netcdf(aero_data, ncid)
     call bin_grid_output_netcdf(bin_grid, ncid, "diam", unit="m")
-    call drydep_params_output_netcdf(scenario%drydep, ncid)
+
+    if (scenario%loss_function_type == SCENARIO_LOSS_FUNCTION_DRYDEP) then
+       call drydep_params_output_netcdf(scenario%drydep, ncid)
+    end if
 
     call pmc_nc_check(nf90_close(ncid))
 

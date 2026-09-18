@@ -1,0 +1,21 @@
+ensemble_size 1
+reference_seed 1
+
+member_dir members
+member_prefix m
+output_prefix out/ensemble_cb05_w_SIMPOL
+
+t_max 600
+del_t 60
+t_output 60
+
+tchem_gas_config shared/config_gas_cb05cl_ae5_with_SIMPOL.yaml
+tchem_aero_config shared/config_aero_cb05cl_ae5_with_SIMPOL.yaml
+tchem_numerics_config shared/solver_cb05cl_ae5_with_SIMPOL.yaml
+
+n_part 20
+allow_doubling yes
+allow_halving yes
+read_aero_weight_classes no
+record_removals no
+do_optical no

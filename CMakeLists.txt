@@ -229,6 +229,8 @@ add_test(test_rand ${CMAKE_BINARY_DIR}/test_run/run_test_directory.sh rand)
 add_test(test_sedi ${CMAKE_BINARY_DIR}/test_run/run_test_directory.sh sedi)
 if (ENABLE_TCHEM)
   add_test(test_tchem ${CMAKE_BINARY_DIR}/test_run/run_test_directory.sh tchem)
+  # TODO: Once its actually a test with a pass/fail condition, add ensemble test case
+  #add_test(test_ensemble ${CMAKE_BINARY_DIR}/test_run/run_test_directory.sh ensemble)
 endif()
 add_test(test_weighting ${CMAKE_BINARY_DIR}/test_run/run_test_directory.sh weighting)
 
@@ -254,6 +256,7 @@ add_library(partmclib src/aero_state.F90 src/integer_varray.F90
   src/camp_interface.F90 src/photolysis.F90 src/sys.F90
   src/ice_nucleation.F90
   src/tchem_interface.F90
+  src/ensemble.F90
   src/aero_component.F90
   ${SUNDIALS_SRC} ${GSL_SRC} ${TCHEM_SRC}
   ${C_SORT_SRC})
@@ -294,6 +297,16 @@ add_executable(partmc src/partmc.F90)
 target_link_libraries(partmc partmclib)
 if (ENABLE_TCHEM_GPU)
   set_property(TARGET partmc PROPERTY LINKER_LANGUAGE CXX)
+endif()
+
+######################################################################
+# partmc_ensemble executable
+
+add_executable(partmc_ensemble src/partmc_ensemble.F90)
+
+target_link_libraries(partmc_ensemble partmclib)
+if (ENABLE_TCHEM_GPU)
+  set_property(TARGET partmc_ensemble PROPERTY LINKER_LANGUAGE CXX)
 endif()
 
 ######################################################################

@@ -108,7 +108,7 @@ contains
   !> Write the current state.
   subroutine output_state(prefix, output_type, aero_data, aero_state, &
        gas_data, gas_state, env_state, index, time, del_t, i_repeat, &
-       record_removals, record_optical, uuid)
+       record_removals, record_optical, uuid, seed)
 
     !> Prefix of state file.
     character(len=*), intent(in) :: prefix
@@ -138,6 +138,8 @@ contains
     logical, intent(in) :: record_optical
     !> UUID of the simulation.
     character(len=PMC_UUID_LEN), intent(in) :: uuid
+    !> Random seed for initializing ensemble member (for partmc_ensemble runs).
+    integer, intent(in), optional :: seed
 
     integer :: rank, n_proc
 #ifdef PMC_USE_MPI
@@ -156,7 +158,7 @@ contains
        if (rank == 0) then
           call output_state_to_file(prefix, aero_data, aero_state, gas_data, &
                gas_state, env_state, index, time, del_t, i_repeat, &
-               record_removals, record_optical, uuid, rank, n_proc)
+               record_removals, record_optical, uuid, rank, n_proc, seed)
 #ifdef PMC_USE_MPI
           do i_proc = 1,(n_proc - 1)
              call recv_output_state_central(prefix, aero_data, gas_data, &
@@ -171,12 +173,12 @@ contains
        ! have each process write its own data directly
        call output_state_to_file(prefix, aero_data, aero_state, gas_data, &
             gas_state, env_state, index, time, del_t, i_repeat, &
-            record_removals, record_optical, uuid, rank, n_proc)
+            record_removals, record_optical, uuid, rank, n_proc, seed)
     elseif (output_type == OUTPUT_TYPE_SINGLE) then
        if (n_proc == 1) then
           call output_state_to_file(prefix, aero_data, aero_state, gas_data, &
                gas_state, env_state, index, time, del_t, i_repeat, &
-               record_removals, record_optical, uuid, rank, n_proc)
+               record_removals, record_optical, uuid, rank, n_proc, seed)
        else
 #ifdef PMC_USE_MPI
           ! collect all data onto process 0 and then write it to a
@@ -190,7 +192,7 @@ contains
              call output_state_to_file(prefix, aero_data, aero_state_write, &
                   gas_data, gas_state_write, env_state_write, index, time, &
                   del_t, i_repeat, record_removals, record_optical, uuid, &
-                  rank, 1)
+                  rank, 1, seed)
           end if
 #endif
        end if
@@ -277,7 +279,7 @@ contains
   !> subroutine directly, but rather call output_state().
   subroutine output_state_to_file(prefix, aero_data, aero_state, gas_data, &
        gas_state, env_state, index, time, del_t, i_repeat, record_removals, &
-       record_optical, uuid, write_rank, write_n_proc)
+       record_optical, uuid, write_rank, write_n_proc, seed)
 
     !> Prefix of state file.
     character(len=*), intent(in) :: prefix
@@ -309,6 +311,8 @@ contains
     integer, intent(in), optional :: write_rank
     !> Number of processes to write into file.
     integer, intent(in), optional :: write_n_proc
+    !> Random seed for initializing ensemble member (for partmc_ensemble runs).
+    integer, intent(in), optional :: seed
 
     character(len=len(prefix)+100) :: filename
     integer :: ncid
@@ -368,6 +372,10 @@ contains
     call write_time(ncid, time, del_t, index)
     call pmc_nc_write_integer(ncid, i_repeat, "repeat", &
          description="repeat number of this simulation (starting from 1)")
+    if (present(seed)) then
+      call pmc_nc_write_integer(ncid, seed, "ensemble member seed", &
+         description="random seed used to initialize ensemble member")
+    end if
 
     call env_state_output_netcdf(env_state, ncid)
     call gas_data_output_netcdf(gas_data, ncid)

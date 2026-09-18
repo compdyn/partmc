@@ -141,11 +141,12 @@ contains
     real(kind=dp), intent(in) :: del_t
 
     call tchem_from_partmc(aero_data, aero_state, gas_data, gas_state, &
-         env_state)
+         env_state, DEFAULT_BATCH_INDEX)
 
     call tchem_timestep(del_t)
 
-    call tchem_to_partmc(aero_data, aero_state, gas_data, gas_state, env_state)
+    call tchem_to_partmc(aero_data, aero_state, gas_data, gas_state, &
+         env_state, DEFAULT_BATCH_INDEX)
 
   end subroutine pmc_tchem_interface_solve
 
@@ -231,7 +232,7 @@ contains
 
   !> Map all data TChem -> PartMC.
   subroutine tchem_to_partmc(aero_data, aero_state, gas_data, gas_state, &
-       env_state)
+       env_state, i_batch)
 
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
@@ -243,6 +244,8 @@ contains
     type(gas_state_t), intent(inout) :: gas_state
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
+    !> Batch member index (0-based indexing)
+    integer, intent(in) :: i_batch
 
     integer(kind=c_int) :: state_vec_dim
     integer :: i_part, i_spec
@@ -257,7 +260,7 @@ contains
     ! Get gas array
     state_vec_dim = TChem_getLengthOfStateVector()
     allocate(state_vector(state_vec_dim))
-    call TChem_getStateVector(state_vector, DEFAULT_BATCH_INDEX)
+    call TChem_getStateVector(state_vector, i_batch)
 
     ! Convert from ppm to ppb.
     gas_state%mix_rat = &
@@ -284,7 +287,7 @@ contains
 
   !> Map all data PartMC -> TChem.
   subroutine tchem_from_partmc(aero_data, aero_state, gas_data, gas_state, &
-       env_state)
+       env_state, i_batch)
 
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
@@ -296,6 +299,8 @@ contains
     type(gas_state_t), intent(inout) :: gas_state
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
+    !> Batch member index (0-based indexing)
+    integer, intent(in) :: i_batch
 
     real(kind=dp), allocatable :: state_vector(:), number_concentration(:)
     integer :: state_vec_dim, tchem_n_part, i_spec
@@ -349,12 +354,12 @@ contains
        number_concentration(i_part) = 0.0d0
     end do
 
-    call TChem_setStateVector(state_vector, DEFAULT_BATCH_INDEX)
+    call TChem_setStateVector(state_vector, i_batch)
 
     call TChem_setNumberConcentrationVector(number_concentration, &
-         DEFAULT_BATCH_INDEX)
+         i_batch)
 
-    call TChem_setNParticlesTrack(n_part, DEFAULT_BATCH_INDEX)
+    call TChem_setNParticlesTrack(n_part, i_batch)
 
   end subroutine tchem_from_partmc
 

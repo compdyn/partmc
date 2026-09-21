@@ -1003,7 +1003,15 @@ contains
     call pmc_nc_read_real_1d(ncid, aero_data%kappa, "aero_kappa")
     call pmc_nc_read_real_1d(ncid, aero_data%abifm_m, "aero_abifm_m")
     call pmc_nc_read_real_1d(ncid, aero_data%abifm_c, "aero_abifm_c")
-    call pmc_nc_read_real_1d(ncid, aero_data%sigma, "aero_sigma")
+    call pmc_nc_read_real_1d(ncid, aero_data%sigma, "aero_sigma", &
+         must_be_present=.false.)
+    if (size(aero_data%sigma) == 0) then
+       ! Backward compatibility: files written before per-species surface
+       ! tension was added have no aero_sigma variable. Default to the water
+       ! value, reproducing the earlier constant-surface-tension behaviour.
+       call ensure_real_array_size(aero_data%sigma, size(aero_data%density))
+       aero_data%sigma = const%water_surf_eng
+    end if
 
     call pmc_nc_check(nf90_inq_varid(ncid, "aero_species", &
          varid_aero_species))

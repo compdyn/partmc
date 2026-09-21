@@ -30,7 +30,8 @@
       "num_ions" : 0,
       "kappa" : 0.1,
       "abifm_m": 0,
-      "abifm_c": 0
+      "abifm_c": 0,
+      "sigma": 0
     },
     {
       "monarch name" : "lumped low-density dust species",
@@ -43,7 +44,8 @@
       "num_ions" : 0,
       "kappa" : 0.1,
       "abifm_m": 0,
-      "abifm_c": 0
+      "abifm_c": 0,
+      "sigma": 0
     },
     {
       "monarch name" : "lumped sea salt species",
@@ -56,7 +58,8 @@
       "num_ions" : 0,
       "kappa" : 0.53,
       "abifm_m": 0,
-      "abifm_c": 0
+      "abifm_c": 0,
+      "sigma": 0.073
     },
     {
       "name" : "BC_phob",
@@ -69,7 +72,8 @@
       "num_ions" : 0,
       "kappa" : 0,
       "abifm_m": 0,
-      "abifm_c": 0
+      "abifm_c": 0,
+      "sigma": 0
     },
     {
       "name" : "BC_phil",
@@ -82,7 +86,8 @@
       "num_ions" : 0,
       "kappa" : 0.001,
       "abifm_m": 0,
-      "abifm_c": 0
+      "abifm_c": 0,
+      "sigma": 0
     },
     {
       "name" : "other_PM",
@@ -95,7 +100,8 @@
       "num_ions" : 0,
       "kappa" : 0,
       "abifm_m": 0,
-      "abifm_c": 0
+      "abifm_c": 0,
+      "sigma": 0.073
     },
     {
       "name" : "other_other_PM",
@@ -108,7 +114,8 @@
       "num_ions" : 0,
       "kappa" : 0,
       "abifm_m": 0,
-      "abifm_c": 0
+      "abifm_c": 0,
+      "sigma": 0.073
     }
   ]
 }

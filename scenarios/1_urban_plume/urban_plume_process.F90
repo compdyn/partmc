@@ -26,10 +26,12 @@ program process
   real(kind=dp), allocatable :: times(:), dry_diameters(:), num_concs(:), &
        dry_masses(:), masses(:), bc_masses(:), bc_fracs(:), &
        crit_rhs(:), scs(:), num_dist(:), &
-       diam_bc_dist(:,:), diam_sc_dist(:,:)
+       diam_bc_dist(:,:), diam_sc_dist(:,:), &
+       crit_rhs_est(:), scs_est(:), diam_sc_est_dist(:,:)
   type(stats_1d_t) :: stats_num_dist, stats_d_alpha, stats_tot_num_conc, &
        stats_tot_mass_conc, stats_d_gamma, stats_chi
-  type(stats_2d_t) :: stats_diam_bc_dist, stats_diam_sc_dist
+  type(stats_2d_t) :: stats_diam_bc_dist, stats_diam_sc_dist, &
+       stats_diam_sc_est_dist
   character(len=AERO_NAME_LEN), allocatable :: mixing_state_groups(:,:)
 
   call pmc_mpi_init()
@@ -48,6 +50,7 @@ program process
   mixing_state_groups(3,:) = ["SO4   ", "NO3   ", "NH4   ", "      "]
 
   scs = [ real(kind=dp) :: ] ! silence compiler warnings
+  scs_est = [ real(kind=dp) :: ]
   bc_fracs = [ real(kind=dp) :: ]
 
   do i_index = 1,n_index
@@ -90,6 +93,14 @@ program process
              sc_grid, scs, num_concs)
         call stats_2d_add(stats_diam_sc_dist, diam_sc_dist)
 
+        ! critical supersaturation using the effective surface tension (EST)
+        crit_rhs_est = aero_state_crit_rel_humids_est(aero_state, aero_data, &
+             env_state)
+        scs_est = crit_rhs_est - 1d0
+        diam_sc_est_dist = bin_grid_histogram_2d(diam_grid, dry_diameters, &
+             sc_grid, scs_est, num_concs)
+        call stats_2d_add(stats_diam_sc_est_dist, diam_sc_est_dist)
+
         call aero_state_mixing_state_metrics(aero_state, aero_data, &
              d_alpha, d_gamma, chi, groups=mixing_state_groups)
 
@@ -118,6 +129,11 @@ program process
      call stats_2d_output_netcdf(stats_diam_sc_dist, ncid, "diam_sc_dist", &
           dim_name_1="diam", dim_name_2="sc", unit="m^{-3}")
      call stats_2d_clear(stats_diam_sc_dist)
+
+     call stats_2d_output_netcdf(stats_diam_sc_est_dist, ncid, &
+          "diam_sc_est_dist", dim_name_1="diam", dim_name_2="sc", &
+          unit="m^{-3}")
+     call stats_2d_clear(stats_diam_sc_est_dist)
 
      call pmc_nc_close(ncid)
   end do

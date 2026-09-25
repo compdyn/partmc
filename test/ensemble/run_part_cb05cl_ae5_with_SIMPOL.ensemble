@@ -19,3 +19,4 @@ allow_halving yes
 read_aero_weight_classes no
 record_removals no
 do_optical no
+do_fractal no

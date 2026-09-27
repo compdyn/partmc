@@ -788,7 +788,8 @@ contains
     end if
 
     if (present(scenario)) then
-       call drydep_params_input_netcdf(scenario%drydep, ncid)
+       call drydep_params_input_netcdf(scenario%drydep, ncid, &
+            must_be_present=.false.)
     end if
 
     call pmc_nc_close(ncid)
@@ -935,7 +936,8 @@ contains
     end if
 
     if (present(scenario)) then
-      call drydep_params_input_netcdf(scenario%drydep, ncid)
+       call drydep_params_input_netcdf(scenario%drydep, ncid, &
+            must_be_present=.false.)
     end if
 
   end subroutine input_modal

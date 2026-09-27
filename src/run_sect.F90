@@ -144,21 +144,23 @@ contains
     i_summary = 1
 
     ! precompute kernel values for all pairs of bins
-    call bin_kernel(bin_grid_size(bin_grid), bin_grid%centers, aero_data, &
-         run_sect_opt%coag_kernel_type, env_state, k_bin)
-    call smooth_bin_kernel(bin_grid_size(bin_grid), k_bin, ck)
-    do i = 1,bin_grid_size(bin_grid)
-       do j = 1,bin_grid_size(bin_grid)
-          ck(i,j) = ck(i,j) * 1d6  ! m^3/s to cm^3/s
+    if (run_sect_opt%do_coagulation) then
+       call bin_kernel(bin_grid_size(bin_grid), bin_grid%centers, aero_data, &
+            run_sect_opt%coag_kernel_type, env_state, k_bin)
+       call smooth_bin_kernel(bin_grid_size(bin_grid), k_bin, ck)
+       do i = 1,bin_grid_size(bin_grid)
+          do j = 1,bin_grid_size(bin_grid)
+             ck(i,j) = ck(i,j) * 1d6  ! m^3/s to cm^3/s
+          end do
        end do
-    end do
 
-    ! multiply kernel with constant timestep and logarithmic grid distance
-    do i = 1,bin_grid_size(bin_grid)
-       do j = 1,bin_grid_size(bin_grid)
-          ck(i,j) = ck(i,j) * run_sect_opt%del_t * bin_grid%widths(i)
+       ! multiply kernel with constant timestep and logarithmic grid distance
+       do i = 1,bin_grid_size(bin_grid)
+          do j = 1,bin_grid_size(bin_grid)
+             ck(i,j) = ck(i,j) * run_sect_opt%del_t * bin_grid%widths(i)
+          end do
        end do
-    end do
+    end if
 
     ! initial output
     call check_event(time, run_sect_opt%del_t, run_sect_opt%t_output, &

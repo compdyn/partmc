@@ -449,7 +449,7 @@ contains
     type(env_state_t), intent(in) :: env_state
     !> Particle density (kg m^-3), assumed uniform across all modes.
     real(kind=dp), intent(in) :: density
-    !> Scenario
+    !> Scenario data.
     type(scenario_t), intent(in) :: scenario
 
     real(kind=dp) :: N, d_pg, ln_sigma_g
@@ -461,9 +461,6 @@ contains
     if (scenario%loss_function_type == SCENARIO_LOSS_FUNCTION_INVALID) then
        return
     else if (scenario%loss_function_type == SCENARIO_LOSS_FUNCTION_NONE) then
-       return
-    else if (scenario%loss_function_type == &
-         SCENARIO_LOSS_FUNCTION_CONSTANT) then
        return
     else if (scenario%loss_function_type == SCENARIO_LOSS_FUNCTION_DRYDEP) then
        do i_mode = 1,aero_dist_n_mode(aero_dist)
@@ -495,6 +492,10 @@ contains
                * (ln_sigma_g**2.0d0)))**(1.0d0/3.0d0)
           aero_dist%mode(i_mode)%char_radius = new_d_pg / 2.0d0
        end do
+    else
+       call die_msg(192500240, "loss_function must be none or drydep " &
+            // "for modal runs; unsupported loss function id: " &
+            // trim(integer_to_string(scenario%loss_function_type)))
     end if
 
   end subroutine scenario_update_aero_modes
@@ -1153,9 +1154,14 @@ contains
 
     if (scenario%loss_function_type == SCENARIO_LOSS_FUNCTION_NONE .or. &
         scenario%loss_function_type == SCENARIO_LOSS_FUNCTION_INVALID) then
-        return
+       return
     else if (scenario%loss_function_type == SCENARIO_LOSS_FUNCTION_DRYDEP) then
 
+       ! Assumes a single aerosol species, as run_sect() requires. Both the
+       ! density and the number diagnosis below use species 1 only, and
+       ! must be generalized if more species are allowed.
+       call assert_msg(258732274, aero_data_n_spec(aero_data) == 1, &
+            "sectional loss assumes a single aerosol species")
        density = aero_data%density(1)
 
        do i_bin = 1,bin_grid_size(bin_grid)
@@ -1171,50 +1177,12 @@ contains
 
        end do
     else
-       return
+       call die_msg(769879198, "loss_function must be none or drydep " &
+            // "for sectional runs; unsupported loss function id: " &
+            // trim(integer_to_string(scenario%loss_function_type)))
     end if
 
   end subroutine scenario_binned_loss
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Updates an array (of size equal to the number of sections) containing
-  !> the dry deposition velocity for each bin in a sectional simulation.
-  !!
-  !! This is a diagnostic helper: it returns deposition velocities (m s^{-1})
-  !! rather than loss rates, by multiplying the rate from
-  !! scenario_loss_rate_drydep() back by the mixing layer height. It is not
-  !! used by the sectional time-stepping itself, which calls
-  !! scenario_binned_loss().
-  subroutine scenario_section_drydep_rates(scenario, bin_grid, aero_data, &
-       env_state, rates)
-
-    !> Scenario data.
-    type(scenario_t), intent(in) :: scenario
-    !> Bin grid.
-    type(bin_grid_t), intent(in) :: bin_grid
-    !> Aerosol data.
-    type(aero_data_t), intent(in) :: aero_data
-    !> Environmental state.
-    type(env_state_t), intent(in) :: env_state
-    !> Deposition velocities for each section/bin (m s^{-1}).
-    real(kind=dp), intent(inout) :: rates(:)
-
-    integer :: i_bin
-    real(kind=dp) :: density, vol
-
-    call assert_msg(516274839, size(rates) == bin_grid_size(bin_grid), &
-         "rates array size must match the number of bins")
-
-    density = aero_data%density(1)
-
-    do i_bin = 1,bin_grid_size(bin_grid)
-       vol = aero_data_rad2vol(aero_data, bin_grid%centers(i_bin))
-       rates(i_bin) = scenario_loss_rate_drydep(vol, density, &
-            aero_data, env_state, scenario) * env_state%height
-    end do
-
-  end subroutine scenario_section_drydep_rates
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -1289,6 +1257,13 @@ contains
     !!      for constant loss rate, \c volume for particle loss proportional
     !!      to particle volume, \c drydep for particle loss proportional
     !!      to dry deposition velocity, or \c chamber for a chamber model.
+    !!      Sectional and modal runs support only \c none and \c drydep.
+    !!      If \c loss_function is \c drydep, it may be followed by
+    !!      \b drydep_params (string), the name of the file from which to
+    !!      read the dry deposition parameters --- the file format should
+    !!      be \subpage input_format_drydep_params. If \c drydep_params is
+    !!      omitted, the default parameters are used and a warning is
+    !!      printed.
     !!      If \c loss_function is \c chamber, then the following
     !!      parameters must also be provided:
     !!      - \subpage input_format_chamber
@@ -1493,7 +1468,7 @@ contains
 
     !> \page input_format_drydep_params Input File Format: Dry Deposition Parameters
     !!
-    !! Dry deposition is simulatied using the specified parameters:
+    !! Dry deposition is simulated using the specified parameters:
     !! - \b z_ref (real, unit m): the reference height \f$z_{\rm ref}\f$ used
     !!   in the calculation of aerodynamic resistance \f$R_a\f$
     !! - \b u_mean (real, unit m s^{-1}): the wind speed at the reference
@@ -1571,12 +1546,28 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read dry deposition parameters from a NetCDF file.
-  subroutine drydep_params_input_netcdf(drydep_params, ncid)
+  subroutine drydep_params_input_netcdf(drydep_params, ncid, must_be_present)
 
     !> Dry deposition parameters.
     type(drydep_params_t), intent(inout) :: drydep_params
     !> NetCDF file ID, in data mode.
     integer, intent(in) :: ncid
+    !> Whether the parameters must be present in the file (default
+    !> \c .true.). They are only written when the loss function is dry
+    !> deposition, so readers that may be given either kind of file
+    !> should pass \c .false., which leaves \c drydep_params unchanged.
+    logical, optional, intent(in) :: must_be_present
+
+    integer :: varid, status
+    logical :: use_must_be_present
+
+    use_must_be_present = .true.
+    if (present(must_be_present)) use_must_be_present = must_be_present
+
+    if (.not. use_must_be_present) then
+       status = nf90_inq_varid(ncid, "drydep_z_ref", varid)
+       if (status == NF90_ENOTVAR) return
+    end if
 
     associate (d => drydep_params)
       call pmc_nc_read_real(ncid, d%z_ref,   "drydep_z_ref")

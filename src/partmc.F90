@@ -732,6 +732,12 @@ contains
     !!   format should be \subpage input_format_aero_dist
     !! - \subpage input_format_scenario
     !! - \subpage input_format_env_state
+    !! - \b do_aero_dilution (logical, optional): whether to apply aerosol
+    !!   dilution (default \c yes). It may only be given when
+    !!   \c loss_function is \c drydep. If \c no, both the
+    !!   background-exchange dilution and the mixing-layer-growth dilution
+    !!   are skipped, so dry deposition can be studied in isolation with a
+    !!   time-varying mixing height.
     !! - \b do_coagulation (logical): whether to perform particle
     !!   coagulation.  If \c do_coagulation is \c yes, then the
     !!   following parameters must also be provided:

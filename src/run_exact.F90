@@ -78,8 +78,8 @@ contains
             run_exact_opt%coag_kernel_type, aero_dist_init, scenario, &
             env_state, time, aero_binned)
        call output_sectional(run_exact_opt%prefix, bin_grid, aero_data, &
-            aero_binned, gas_data, gas_state, env_state, i_time + 1, &
-            time, run_exact_opt%t_output, run_exact_opt%uuid)
+            aero_binned, gas_data, gas_state, env_state, scenario, &
+            i_time + 1, time, run_exact_opt%t_output, run_exact_opt%uuid)
     end do
 
   end subroutine run_exact

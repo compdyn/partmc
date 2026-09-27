@@ -31,19 +31,36 @@ module pmc_run_sect
   !> Options controlling the operation of run_sect().
   type run_sect_opt_t
      !> Final time (s).
-    real(kind=dp) :: t_max
-    !> Timestep for coagulation (s).
-    real(kind=dp) :: del_t
-    !> Output interval (0 disables) (s).
-    real(kind=dp) :: t_output
-    !> Progress interval (0 disables) (s).
-    real(kind=dp) :: t_progress
-    !> Whether to do coagulation.
-    logical :: do_coagulation
-    !> Output prefix.
+     real(kind=dp) :: t_max
+     !> Timestep for coagulation (s).
+     real(kind=dp) :: del_t
+     !> Output interval (0 disables) (s).
+     real(kind=dp) :: t_output
+     !> Progress interval (0 disables) (s).
+     real(kind=dp) :: t_progress
+     !> Whether to do aerosol background dilution (optional in spec file
+     !> and only allowed with loss_function = drydep; defaults to \c .true.).
+     logical :: do_aero_dilution
+     !> Type of coagulation kernel.
+     integer :: coag_kernel_type
+     !> Whether to do coagulation.
+     logical :: do_coagulation
+     !> Whether to run CAMP.
+     logical :: do_camp_chem
+     !> Whether to run TChem.
+     logical :: do_tchem
+     !> Whether to do condensation.
+     logical :: do_condensation
+     !> Whether to run MOSAIC.
+     logical :: do_mosaic
+     !> Whether to compute optical properties.
+     logical :: do_optical
+     !> Whether to do nucleation.
+     logical :: do_nucleation
+     !> Whether to do immersion freezing.
+     logical :: do_immersion_freezing
+     !> Output prefix.
      character(len=300) :: prefix
-    !> Type of coagulation kernel.
-    integer :: coag_kernel_type
      !> UUID of the simulation.
      character(len=PMC_UUID_LEN) :: uuid
   end type run_sect_opt_t
@@ -128,28 +145,30 @@ contains
     i_summary = 1
 
     ! precompute kernel values for all pairs of bins
-    call bin_kernel(bin_grid_size(bin_grid), bin_grid%centers, aero_data, &
-         run_sect_opt%coag_kernel_type, env_state, k_bin)
-    call smooth_bin_kernel(bin_grid_size(bin_grid), k_bin, ck)
-    do i = 1,bin_grid_size(bin_grid)
-       do j = 1,bin_grid_size(bin_grid)
-          ck(i,j) = ck(i,j) * 1d6  ! m^3/s to cm^3/s
+    if (run_sect_opt%do_coagulation) then
+       call bin_kernel(bin_grid_size(bin_grid), bin_grid%centers, aero_data, &
+            run_sect_opt%coag_kernel_type, env_state, k_bin)
+       call smooth_bin_kernel(bin_grid_size(bin_grid), k_bin, ck)
+       do i = 1,bin_grid_size(bin_grid)
+          do j = 1,bin_grid_size(bin_grid)
+             ck(i,j) = ck(i,j) * 1d6  ! m^3/s to cm^3/s
+          end do
        end do
-    end do
 
-    ! multiply kernel with constant timestep and logarithmic grid distance
-    do i = 1,bin_grid_size(bin_grid)
-       do j = 1,bin_grid_size(bin_grid)
-          ck(i,j) = ck(i,j) * run_sect_opt%del_t * bin_grid%widths(i)
+       ! multiply kernel with constant timestep and logarithmic grid distance
+       do i = 1,bin_grid_size(bin_grid)
+          do j = 1,bin_grid_size(bin_grid)
+             ck(i,j) = ck(i,j) * run_sect_opt%del_t * bin_grid%widths(i)
+          end do
        end do
-    end do
+    end if
 
     ! initial output
     call check_event(time, run_sect_opt%del_t, run_sect_opt%t_output, &
          last_output_time, do_output)
     if (do_output) then
        call output_sectional(run_sect_opt%prefix, bin_grid, aero_data, &
-            aero_binned, gas_data, gas_state, env_state, i_summary, &
+            aero_binned, gas_data, gas_state, env_state, scenario, i_summary, &
             time, run_sect_opt%t_output, run_sect_opt%uuid)
     end if
 
@@ -174,7 +193,8 @@ contains
        call scenario_update_gas_state(scenario, run_sect_opt%del_t, &
             env_state, old_env_state, gas_data, gas_state)
        call scenario_update_aero_binned(scenario, run_sect_opt%del_t, &
-            env_state, old_env_state, bin_grid, aero_data, aero_binned)
+            env_state, old_env_state, bin_grid, aero_data, &
+            run_sect_opt%do_aero_dilution, aero_binned)
 
        ! print output
        call check_event(time, run_sect_opt%del_t, run_sect_opt%t_output, &
@@ -182,8 +202,8 @@ contains
        if (do_output) then
           i_summary = i_summary + 1
           call output_sectional(run_sect_opt%prefix, bin_grid, aero_data, &
-               aero_binned, gas_data, gas_state, env_state, i_summary, &
-               time, run_sect_opt%t_output, run_sect_opt%uuid)
+               aero_binned, gas_data, gas_state, env_state, scenario, &
+               i_summary, time, run_sect_opt%t_output, run_sect_opt%uuid)
        end if
 
        ! print progress to stdout
@@ -222,6 +242,7 @@ contains
 
     character(len=PMC_MAX_FILENAME_LEN) :: sub_filename
     type(spec_file_t) :: sub_file
+    type(spec_line_t) :: line
 
     call spec_file_read_string(file, 'output_prefix', run_sect_opt%prefix)
 
@@ -231,6 +252,19 @@ contains
     call spec_file_read_real(file, 't_progress', run_sect_opt%t_progress)
 
     call spec_file_read_radius_bin_grid(file, bin_grid)
+
+    call spec_file_read_logical(file, 'do_camp_chem', &
+         run_sect_opt%do_camp_chem)
+    if (run_sect_opt%do_camp_chem) then
+       call spec_file_die_msg(263948175, file, &
+            "sectional run does not support CAMP chemistry")
+    end if
+
+    call spec_file_read_logical(file, 'do_tchem', run_sect_opt%do_tchem)
+    if (run_sect_opt%do_tchem) then
+       call spec_file_die_msg(195837264, file, &
+            "sectional run does not support TChem chemistry")
+    end if
 
     call spec_file_read_string(file, 'gas_data', sub_filename)
     call spec_file_open(sub_filename, sub_file)
@@ -250,7 +284,24 @@ contains
     call spec_file_close(sub_file)
 
     call spec_file_read_scenario(file, gas_data, aero_data, .false., scenario)
+    call assert_msg(383939910, &
+         scenario%loss_function_type == SCENARIO_LOSS_FUNCTION_NONE &
+         .or. scenario%loss_function_type == SCENARIO_LOSS_FUNCTION_DRYDEP, &
+         "sectional run only supports loss_function none or drydep")
     call spec_file_read_env_state(file, env_state)
+
+    ! optional line, only allowed with dry deposition (default: dilute)
+    run_sect_opt%do_aero_dilution = .true.
+    call spec_file_read_line_no_eof(file, line)
+    call spec_file_unread_line(file)
+    if (line%name == 'do_aero_dilution') then
+       call spec_file_read_logical(file, 'do_aero_dilution', &
+            run_sect_opt%do_aero_dilution)
+       if (scenario%loss_function_type /= SCENARIO_LOSS_FUNCTION_DRYDEP) then
+          call spec_file_die_msg(363374529, file, &
+               "do_aero_dilution is only allowed with loss_function drydep")
+       end if
+    end if
 
     call spec_file_read_logical(file, 'do_coagulation', &
          run_sect_opt%do_coagulation)
@@ -263,6 +314,40 @@ contains
        end if
     else
        run_sect_opt%coag_kernel_type = COAG_KERNEL_TYPE_INVALID
+    end if
+
+    call spec_file_read_logical(file, 'do_condensation', &
+         run_sect_opt%do_condensation)
+    if (run_sect_opt%do_condensation) then
+       call spec_file_die_msg(612938475, file, &
+            "sectional run does not support condensation")
+    end if
+
+    call spec_file_read_logical(file, 'do_mosaic', run_sect_opt%do_mosaic)
+    if (run_sect_opt%do_mosaic) then
+       call spec_file_die_msg(584729163, file, &
+            "sectional run does not support MOSAIC chemistry")
+       call spec_file_read_logical(file, 'do_optical', run_sect_opt%do_optical)
+       if (run_sect_opt%do_optical) then
+          call spec_file_die_msg(527436819, file, &
+               "sectional run does not support optical properties calculation")
+       end if
+    else
+       run_sect_opt%do_optical = .false.
+    end if
+
+    call spec_file_read_logical(file, 'do_nucleation', &
+         run_sect_opt%do_nucleation)
+    if (run_sect_opt%do_nucleation) then
+       call spec_file_die_msg(391847265, file, &
+            "sectional run does not support nucleation")
+    end if
+
+    call spec_file_read_logical(file, 'do_immersion_freezing', &
+         run_sect_opt%do_immersion_freezing)
+    if (run_sect_opt%do_immersion_freezing) then
+       call spec_file_die_msg(748291635, file, &
+            "sectional run does not support immersion freezing")
     end if
 
     call spec_file_close(file)

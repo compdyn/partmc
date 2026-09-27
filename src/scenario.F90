@@ -18,6 +18,7 @@ module pmc_scenario
   use pmc_gas_data
   use pmc_chamber
   use pmc_mpi
+  use pmc_netcdf
 #ifdef PMC_USE_MPI
   use mpi
 #endif
@@ -381,7 +382,7 @@ contains
   !!
   !! See scenario_update_gas_state() for a description of the model.
   subroutine scenario_update_aero_binned(scenario, delta_t, env_state, &
-       old_env_state, bin_grid, aero_data, aero_binned)
+       old_env_state, bin_grid, aero_data, do_aero_dilution, aero_binned)
 
     !> Scenario data.
     type(scenario_t), intent(in) :: scenario
@@ -395,6 +396,8 @@ contains
     type(bin_grid_t), intent(in) :: bin_grid
     !> Aero data values.
     type(aero_data_t), intent(in) :: aero_data
+    !> Whether to do dilution.
+    logical, intent(in) :: do_aero_dilution
     !> Aero binned to update.
     type(aero_binned_t), intent(inout) :: aero_binned
 
@@ -412,17 +415,23 @@ contains
     call aero_binned_add_scaled(aero_binned, emissions_binned, p)
 
     ! dilution
-    call aero_dist_interp_1d(scenario%aero_background, &
-         scenario%aero_dilution_time, scenario%aero_dilution_rate, &
-         env_state%elapsed_time, background, dilution_rate)
-    call aero_binned_add_aero_dist(background_binned, bin_grid, aero_data, &
-         background)
-    p = exp(- dilution_rate * delta_t)
-    if (env_state%height > old_env_state%height) then
-       p = p * old_env_state%height / env_state%height
+    if (do_aero_dilution) then
+       call aero_dist_interp_1d(scenario%aero_background, &
+            scenario%aero_dilution_time, scenario%aero_dilution_rate, &
+            env_state%elapsed_time, background, dilution_rate)
+       call aero_binned_add_aero_dist(background_binned, bin_grid, aero_data, &
+             background)
+       p = exp(- dilution_rate * delta_t)
+       if (env_state%height > old_env_state%height) then
+          p = p * old_env_state%height / env_state%height
+       end if
+       call aero_binned_scale(aero_binned, p)
+       call aero_binned_add_scaled(aero_binned, background_binned, 1d0 - p)
     end if
-    call aero_binned_scale(aero_binned, p)
-    call aero_binned_add_scaled(aero_binned, background_binned, 1d0 - p)
+
+    ! loss
+    call scenario_binned_loss(scenario, bin_grid, delta_t, aero_data, &
+         env_state, aero_binned)
 
   end subroutine scenario_update_aero_binned
 
@@ -440,7 +449,7 @@ contains
     type(env_state_t), intent(in) :: env_state
     !> Particle density (kg m^-3), assumed uniform across all modes.
     real(kind=dp), intent(in) :: density
-    !> Scenario
+    !> Scenario data.
     type(scenario_t), intent(in) :: scenario
 
     real(kind=dp) :: N, d_pg, ln_sigma_g
@@ -452,9 +461,6 @@ contains
     if (scenario%loss_function_type == SCENARIO_LOSS_FUNCTION_INVALID) then
        return
     else if (scenario%loss_function_type == SCENARIO_LOSS_FUNCTION_NONE) then
-       return
-    else if (scenario%loss_function_type == &
-         SCENARIO_LOSS_FUNCTION_CONSTANT) then
        return
     else if (scenario%loss_function_type == SCENARIO_LOSS_FUNCTION_DRYDEP) then
        do i_mode = 1,aero_dist_n_mode(aero_dist)
@@ -486,6 +492,10 @@ contains
                * (ln_sigma_g**2.0d0)))**(1.0d0/3.0d0)
           aero_dist%mode(i_mode)%char_radius = new_d_pg / 2.0d0
        end do
+    else
+       call die_msg(192500240, "loss_function must be none or drydep " &
+            // "for modal runs; unsupported loss function id: " &
+            // trim(integer_to_string(scenario%loss_function_type)))
     end if
 
   end subroutine scenario_update_aero_modes
@@ -622,7 +632,7 @@ contains
     R_s = 1.0d0 / (drydep_params%eps_0 * u_star * (E_B + E_IN + E_IM) * R1)
 
     ! Dry deposition
-    V_d = V_s + (1.0d0 / (R_a + R_s + R_a * R_s * V_s))
+    V_d = V_s + (1.0d0 / (R_a + R_s))
 
     ! The loss rate
     scenario_loss_rate_drydep = V_d / env_state%height
@@ -733,7 +743,7 @@ contains
     R_s = 1.0d0 / (drydep_params%eps_0 * u_star * (E_B + E_IN + E_IM) * R1)
 
     ! Integrated deposition velocity
-    V_d_hat = V_g_hat + (1.0d0 / (R_a + R_s + R_a * R_s * V_g_hat))
+    V_d_hat = V_g_hat + (1.0d0 / (R_a + R_s))
 
     ! Loss rate
     scenario_integrated_loss_rate_drydep = V_d_hat / env_state%height
@@ -868,7 +878,7 @@ contains
     R_s = 1.0d0 / (drydep_params%eps_0 * u_star * (E_B + E_IN + E_IM) * R1)
 
     ! Deposition velocity
-    V_d = V_s + (1.0d0 / (R_a + R_s + R_a * R_s * V_s))
+    V_d = V_s + (1.0d0 / (R_a + R_s))
 
     ! Log-normal size distribution
     ln_dp = log(d_p)
@@ -1120,6 +1130,59 @@ contains
     call aero_state_remove_particle_with_info(aero_state, i_part, aero_info)
 
   end subroutine scenario_try_single_particle_loss
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Performs loss for a binned aerosol distribution for one time step.
+  subroutine scenario_binned_loss(scenario, bin_grid, delta_t, aero_data, &
+       env_state, aero_binned)
+
+    !> Scenario data.
+    type(scenario_t), intent(in) :: scenario
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Time increment to update over.
+    real(kind=dp), intent(in) :: delta_t
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Environmental state.
+    type(env_state_t), intent(in) :: env_state
+    !> Binned aerosol data.
+    type(aero_binned_t), intent(inout) :: aero_binned
+
+    integer :: i_bin
+    real(kind=dp) :: density, vol, loss_rate, p
+
+    if (scenario%loss_function_type == SCENARIO_LOSS_FUNCTION_NONE .or. &
+        scenario%loss_function_type == SCENARIO_LOSS_FUNCTION_INVALID) then
+       return
+    else if (scenario%loss_function_type == SCENARIO_LOSS_FUNCTION_DRYDEP) then
+
+       ! Assumes a single aerosol species, as run_sect() requires. Both the
+       ! density and the number diagnosis below use species 1 only, and
+       ! must be generalized if more species are allowed.
+       call assert_msg(258732274, aero_data_n_spec(aero_data) == 1, &
+            "sectional loss assumes a single aerosol species")
+       density = aero_data%density(1)
+
+       do i_bin = 1,bin_grid_size(bin_grid)
+
+          if (aero_binned%num_conc(i_bin) <= 0d0) cycle
+
+          vol = aero_data_rad2vol(aero_data, bin_grid%centers(i_bin))
+          loss_rate = scenario_loss_rate(scenario, vol, density, &
+               aero_data, env_state)
+          p = exp(- loss_rate * delta_t)
+          aero_binned%vol_conc(i_bin,:) = aero_binned%vol_conc(i_bin,:) * p
+          aero_binned%num_conc(i_bin) = aero_binned%vol_conc(i_bin,1) / vol
+
+       end do
+    else
+       call die_msg(769879198, "loss_function must be none or drydep " &
+            // "for sectional runs; unsupported loss function id: " &
+            // trim(integer_to_string(scenario%loss_function_type)))
+    end if
+
+  end subroutine scenario_binned_loss
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -1194,6 +1257,13 @@ contains
     !!      for constant loss rate, \c volume for particle loss proportional
     !!      to particle volume, \c drydep for particle loss proportional
     !!      to dry deposition velocity, or \c chamber for a chamber model.
+    !!      Sectional and modal runs support only \c none and \c drydep.
+    !!      If \c loss_function is \c drydep, it may be followed by
+    !!      \b drydep_params (string), the name of the file from which to
+    !!      read the dry deposition parameters --- the file format should
+    !!      be \subpage input_format_drydep_params. If \c drydep_params is
+    !!      omitted, the default parameters are used and a warning is
+    !!      printed.
     !!      If \c loss_function is \c chamber, then the following
     !!      parameters must also be provided:
     !!      - \subpage input_format_chamber
@@ -1398,7 +1468,7 @@ contains
 
     !> \page input_format_drydep_params Input File Format: Dry Deposition Parameters
     !!
-    !! Dry deposition is simulatied using the specified parameters:
+    !! Dry deposition is simulated using the specified parameters:
     !! - \b z_ref (real, unit m): the reference height \f$z_{\rm ref}\f$ used
     !!   in the calculation of aerodynamic resistance \f$R_a\f$
     !! - \b u_mean (real, unit m s^{-1}): the wind speed at the reference
@@ -1476,12 +1546,28 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read dry deposition parameters from a NetCDF file.
-  subroutine drydep_params_input_netcdf(drydep_params, ncid)
+  subroutine drydep_params_input_netcdf(drydep_params, ncid, must_be_present)
 
     !> Dry deposition parameters.
     type(drydep_params_t), intent(inout) :: drydep_params
     !> NetCDF file ID, in data mode.
     integer, intent(in) :: ncid
+    !> Whether the parameters must be present in the file (default
+    !> \c .true.). They are only written when the loss function is dry
+    !> deposition, so readers that may be given either kind of file
+    !> should pass \c .false., which leaves \c drydep_params unchanged.
+    logical, optional, intent(in) :: must_be_present
+
+    integer :: varid, status
+    logical :: use_must_be_present
+
+    use_must_be_present = .true.
+    if (present(must_be_present)) use_must_be_present = must_be_present
+
+    if (.not. use_must_be_present) then
+       status = nf90_inq_varid(ncid, "drydep_z_ref", varid)
+       if (status == NF90_ENOTVAR) return
+    end if
 
     associate (d => drydep_params)
       call pmc_nc_read_real(ncid, d%z_ref,   "drydep_z_ref")

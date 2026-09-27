@@ -102,7 +102,7 @@ if (len_trim(prefix) == 0) &
   call stats_1d_output_netcdf(stats_tot_num_conc, ncid, "tot_num_conc", &
       dim_name="time", unit="m^{-3}")
   call stats_1d_output_netcdf(stats_tot_mass_conc, ncid, "tot_mass_conc", &
-      dim_name="time", unit="ug m^{-3}")
+      dim_name="time", unit="kg m^{-3}")
   call pmc_nc_close(ncid)
 
   call pmc_mpi_finalize()

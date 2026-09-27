@@ -35,10 +35,8 @@ start_time 0                    # start time (s since 00:00 UTC)
 start_day 1                     # start day of year (UTC)
 
 do_aero_dilution no             # whether to do aerosol dilution (yes/no)
-do_coagulation yes              # whether to do coagulation (yes/no)
-coag_kernel      zero           # coagulation kernel 
+do_coagulation no               # whether to do coagulation (yes/no)
 do_condensation no              # whether to do condensation (yes/no)
 do_mosaic no                    # whether to do MOSAIC (yes/no)
-do_optical no                   # whether to compute optical props (yes/no)
 do_nucleation no                # whether to do nucleation (yes/no)
 do_immersion_freezing no        # whether to do freezing (yes/no)

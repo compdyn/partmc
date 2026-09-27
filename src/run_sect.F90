@@ -38,7 +38,8 @@ module pmc_run_sect
      real(kind=dp) :: t_output
      !> Progress interval (0 disables) (s).
      real(kind=dp) :: t_progress
-     !> Whether to do aerosol background dilution.
+     !> Whether to do aerosol background dilution (optional in spec file
+     !> and only allowed with loss_function = drydep; defaults to \c .true.).
      logical :: do_aero_dilution
      !> Type of coagulation kernel.
      integer :: coag_kernel_type
@@ -241,6 +242,7 @@ contains
 
     character(len=PMC_MAX_FILENAME_LEN) :: sub_filename
     type(spec_file_t) :: sub_file
+    type(spec_line_t) :: line
 
     call spec_file_read_string(file, 'output_prefix', run_sect_opt%prefix)
 
@@ -282,10 +284,24 @@ contains
     call spec_file_close(sub_file)
 
     call spec_file_read_scenario(file, gas_data, aero_data, .false., scenario)
+    call assert_msg(383939910, &
+         scenario%loss_function_type == SCENARIO_LOSS_FUNCTION_NONE &
+         .or. scenario%loss_function_type == SCENARIO_LOSS_FUNCTION_DRYDEP, &
+         "sectional run only supports loss_function none or drydep")
     call spec_file_read_env_state(file, env_state)
 
-    call spec_file_read_logical(file, 'do_aero_dilution', &
-         run_sect_opt%do_aero_dilution)
+    ! optional line, only allowed with dry deposition (default: dilute)
+    run_sect_opt%do_aero_dilution = .true.
+    call spec_file_read_line_no_eof(file, line)
+    call spec_file_unread_line(file)
+    if (line%name == 'do_aero_dilution') then
+       call spec_file_read_logical(file, 'do_aero_dilution', &
+            run_sect_opt%do_aero_dilution)
+       if (scenario%loss_function_type /= SCENARIO_LOSS_FUNCTION_DRYDEP) then
+          call spec_file_die_msg(363374529, file, &
+               "do_aero_dilution is only allowed with loss_function drydep")
+       end if
+    end if
 
     call spec_file_read_logical(file, 'do_coagulation', &
          run_sect_opt%do_coagulation)
@@ -311,12 +327,13 @@ contains
     if (run_sect_opt%do_mosaic) then
        call spec_file_die_msg(584729163, file, &
             "sectional run does not support MOSAIC chemistry")
-    end if
-
-    call spec_file_read_logical(file, 'do_optical', run_sect_opt%do_optical)
-    if (run_sect_opt%do_optical) then
-       call spec_file_die_msg(527436819, file, &
-            "sectional run does not support optical properties calculation")
+       call spec_file_read_logical(file, 'do_optical', run_sect_opt%do_optical)
+       if (run_sect_opt%do_optical) then
+          call spec_file_die_msg(527436819, file, &
+               "sectional run does not support optical properties calculation")
+       end if
+    else
+       run_sect_opt%do_optical = .false.
     end if
 
     call spec_file_read_logical(file, 'do_nucleation', &

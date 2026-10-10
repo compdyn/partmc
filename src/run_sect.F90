@@ -256,13 +256,13 @@ contains
     call spec_file_read_logical(file, 'do_camp_chem', &
          run_sect_opt%do_camp_chem)
     if (run_sect_opt%do_camp_chem) then
-       call spec_file_die_msg(263948175, file, &
+       call spec_file_die_msg(645601039, file, &
             "sectional run does not support CAMP chemistry")
     end if
 
     call spec_file_read_logical(file, 'do_tchem', run_sect_opt%do_tchem)
     if (run_sect_opt%do_tchem) then
-       call spec_file_die_msg(195837264, file, &
+       call spec_file_die_msg(366298338, file, &
             "sectional run does not support TChem chemistry")
     end if
 
@@ -319,17 +319,17 @@ contains
     call spec_file_read_logical(file, 'do_condensation', &
          run_sect_opt%do_condensation)
     if (run_sect_opt%do_condensation) then
-       call spec_file_die_msg(612938475, file, &
+       call spec_file_die_msg(673957476, file, &
             "sectional run does not support condensation")
     end if
 
     call spec_file_read_logical(file, 'do_mosaic', run_sect_opt%do_mosaic)
     if (run_sect_opt%do_mosaic) then
-       call spec_file_die_msg(584729163, file, &
+       call spec_file_die_msg(129153012, file, &
             "sectional run does not support MOSAIC chemistry")
        call spec_file_read_logical(file, 'do_optical', run_sect_opt%do_optical)
        if (run_sect_opt%do_optical) then
-          call spec_file_die_msg(527436819, file, &
+          call spec_file_die_msg(627325616, file, &
                "sectional run does not support optical properties calculation")
        end if
     else
@@ -339,14 +339,14 @@ contains
     call spec_file_read_logical(file, 'do_nucleation', &
          run_sect_opt%do_nucleation)
     if (run_sect_opt%do_nucleation) then
-       call spec_file_die_msg(391847265, file, &
+       call spec_file_die_msg(100312705, file, &
             "sectional run does not support nucleation")
     end if
 
     call spec_file_read_logical(file, 'do_immersion_freezing', &
          run_sect_opt%do_immersion_freezing)
     if (run_sect_opt%do_immersion_freezing) then
-       call spec_file_die_msg(748291635, file, &
+       call spec_file_die_msg(160346377, file, &
             "sectional run does not support immersion freezing")
     end if
 

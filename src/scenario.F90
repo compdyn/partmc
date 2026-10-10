@@ -420,7 +420,7 @@ contains
             scenario%aero_dilution_time, scenario%aero_dilution_rate, &
             env_state%elapsed_time, background, dilution_rate)
        call aero_binned_add_aero_dist(background_binned, bin_grid, aero_data, &
-             background)
+            background)
        p = exp(- dilution_rate * delta_t)
        if (env_state%height > old_env_state%height) then
           p = p * old_env_state%height / env_state%height

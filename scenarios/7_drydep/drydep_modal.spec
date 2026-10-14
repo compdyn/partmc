@@ -1,5 +1,5 @@
 run_type modal                         # modal run
-output_prefix out/modal_dpg_10_0_sig_2_5_emerson_broad
+output_prefix out/drydep_modal          # prefix of output files
 
 t_max 28800                            # total simulation time (s)
 del_t 60                               # timestep (s)
@@ -7,8 +7,8 @@ t_output 3600                          # output interval (0 disables) (s)
 t_progress 0                           # progress printing interval (0 disables) (s)
 
 n_bin 1000                             # number of bins (for processing purposes)
-d_min 4e-8                             # minimum diameter (m)
-d_max 2.5e-3                           # maximum diameter (m)
+d_min 1e-10                            # minimum diameter (m)
+d_max 1e-3                             # maximum diameter (m)
 
 do_camp_chem no                        # whether to use CAMP for chemistry (yes/no)
 do_tchem no                            # whether to use TChem for chemistry (yes/no)
@@ -16,7 +16,7 @@ do_tchem no                            # whether to use TChem for chemistry (yes
 gas_data gas_data.dat                  # file containing gas data
 aerosol_data aero_data.dat             # file containing aerosol data
 do_fractal no                          # whether to do fractal treatment (yes/no)
-aerosol_init aero_init_run.dat
+aerosol_init aero_init_dist.dat        # aerosol initial condition file
 
 temp_profile temp.dat                  # temperature profile file
 pressure_profile pres.dat              # pressure profile file
@@ -26,7 +26,7 @@ gas_background gas_back.dat            # background gas concentrations file
 aero_emissions aero_emit.dat           # aerosol emissions file
 aero_background aero_back.dat          # aerosol background file
 loss_function drydep                   # loss function specification
-drydep_params drydep_broad_emerson.dat
+drydep_params drydep_params.dat        # dry deposition parameters
 
 rel_humidity 0.95                      # initial relative humidity (1)
 latitude 0                             # latitude (degrees, -90 to 90)

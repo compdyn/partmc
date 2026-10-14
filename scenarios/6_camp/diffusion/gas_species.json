@@ -1,0 +1,9 @@
+{
+"notes" :"Descriptions are from CB5 Final Report RT-04-00675 (www.camx.com/files/cb05_final_report_120805.aspx) and from notes in the cb05cl_ae5_aq_CMAQ.def mechanism file",	
+"camp-data" : [
+  {
+    "name" : "O3",
+    "type" : "CHEM_SPEC",
+    "description" : "gas-phase ozone"
+  }
+]}

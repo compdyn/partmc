@@ -25,6 +25,13 @@
                               "shikimic_acid_aero"
                       ],
                       "covers": "two_layer"
+              },
+                            {
+                      "name": "four_layer",
+                      "phases": [
+                              "shikimic_acid_aero"
+                      ],
+                      "covers": "three_layer"
               }
       ]
     }

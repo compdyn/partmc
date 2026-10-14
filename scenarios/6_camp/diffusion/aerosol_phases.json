@@ -1,0 +1,18 @@
+{
+  "description" : "These aerosol phases correspond to the MONARCH 'mod37' configuration",
+  "camp-data" : [
+    {
+      "name" : "shikimic_acid_aero",
+      "type" : "AERO_PHASE",
+      "species" : [ 
+          {
+            "name" : "shikimic_acid"
+          },
+          {
+            "name" : "ozone_aero",
+            "diffusion coefficient [m2 s-1]": 1.0e-15
+          }
+        ]
+    }
+  ]
+}

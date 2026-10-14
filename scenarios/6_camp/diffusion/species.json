@@ -1,0 +1,38 @@
+{
+  "description" : [
+    "These species needed for the 2 product SOA scheme",
+    "(see mechanism.json for details)"
+  ],
+  "camp-data" : [
+    {
+      "name" : "O3",
+      "type" : "CHEM_SPEC",
+      "phase" : "GAS",
+      "absolute integration tolerance" : 1.0E-03,
+      "molecular weight [kg mol-1]" : 0.048,
+      "description" : "gas-phase ozone"
+    },
+    {
+      "name" : "shikimic_acid",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-05,
+      "density [kg m-3]" : 1520.0,
+      "molecular weight [kg mol-1]" : 0.17415,
+      "description" : "shikimic acid",
+      "num_ions" : 0,
+      "kappa" : 0
+    },
+    {
+      "name" : "ozone_aero",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-05,
+      "density [kg m-3]" : 1800.0,
+      "molecular weight [kg mol-1]" : 0.048,
+      "description" : "Ozone in the aerosol phase",
+      "num_ions" : 0,
+      "kappa" : 0
+    }
+  ]
+}

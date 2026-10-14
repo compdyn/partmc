@@ -1,0 +1,20 @@
+{
+  "notes" : [
+    "Diffusion mechanism for AAAR poster"
+  ],
+  "camp-data" : [
+    {
+      "name" : "Diffusion mechanism",
+      "type" : "MECHANISM",
+      "reactions" : [
+        {
+          "type" : "CONDENSED_PHASE_DIFFUSION",
+          "species" : [{
+            "phase" : "shikimic_acid_aero",
+            "name" : "ozone_aero"
+          }]
+        }
+      ]
+    }
+  ]
+}

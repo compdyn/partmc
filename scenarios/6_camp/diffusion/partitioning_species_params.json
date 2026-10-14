@@ -1,0 +1,17 @@
+{
+  "description" : [
+    "Dry deposition reactions and species properties",
+    "TODO Consider updating diffusion coefficients according to Tang et al. Atmos. Chem. Phys., 14, 9233-9247 (2014)",
+    "   available at https://www.atmos-chem-phys.net/14/9233/2014/acp-14-9233-2014.pdf"
+  ],
+  "camp-data" : [
+    {
+      "name" : "O3",
+      "type" : "CHEM_SPEC",
+      "HLC(298K) [M Pa-1]" :1.115E-07,
+      "HLC exp factor [K]" :2.300E+03,
+      "dry dep reactivity factor [unitless]" :1.000E+00,
+      "diffusion coeff [m2 s-1]" :1.750E-05
+    }
+  ]
+}

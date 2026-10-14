@@ -71,6 +71,7 @@ $(function() {
 <li><b>aerosol_init</b> (string): filename containing the initial aerosol state at the start of the simulation &mdash; the file format should be <a class="el" href="input_format_aero_dist.html">Input File Format: Aerosol Distribution</a></li>
 <li><a class="el" href="input_format_scenario.html">Input File Format: Scenario</a></li>
 <li><a class="el" href="input_format_env_state.html">Input File Format: Environment State</a></li>
+<li><b>do_aero_dilution</b> (logical, optional): whether to apply aerosol dilution (default <code>yes</code>). It may only be given when <code>loss_function</code> is <code>drydep</code>. If <code>no</code>, both the background-exchange dilution and the mixing-layer-growth dilution are skipped, so dry deposition can be studied in isolation with a time-varying mixing height.</li>
 <li><b>do_coagulation</b> (logical): whether to perform particle coagulation. If <code>do_coagulation</code> is <code>yes</code>, then the following parameters must also be provided:<ul>
 <li><a class="el" href="input_format_coag_kernel.html">Input File Format: Coagulation Kernel</a></li>
 </ul>

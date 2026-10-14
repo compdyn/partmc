@@ -74,9 +74,9 @@ Functions/Subroutines</h2></td></tr>
 <tr class="memitem:a6d0621141b705a051b14761430d385ca"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepmc__scenario.html#a6d0621141b705a051b14761430d385ca">scenario_update_aero_state</a> (scenario, delta_t, env_state, old_env_state, aero_data, aero_state, n_emit, n_dil_in, n_dil_out, allow_doubling, allow_halving)</td></tr>
 <tr class="memdesc:a6d0621141b705a051b14761430d385ca"><td class="mdescLeft">&#160;</td><td class="mdescRight">Do emissions and background dilution for a particle aerosol distribution.  <a href="namespacepmc__scenario.html#a6d0621141b705a051b14761430d385ca">More...</a><br /></td></tr>
 <tr class="separator:a6d0621141b705a051b14761430d385ca"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa8ca6c77c94665bdbf4c4f25e2dd1523"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepmc__scenario.html#aa8ca6c77c94665bdbf4c4f25e2dd1523">scenario_update_aero_binned</a> (scenario, delta_t, env_state, old_env_state, bin_grid, aero_data, aero_binned)</td></tr>
-<tr class="memdesc:aa8ca6c77c94665bdbf4c4f25e2dd1523"><td class="mdescLeft">&#160;</td><td class="mdescRight">Do emissions and background dilution from the environment for a binned aerosol distribution.  <a href="namespacepmc__scenario.html#aa8ca6c77c94665bdbf4c4f25e2dd1523">More...</a><br /></td></tr>
-<tr class="separator:aa8ca6c77c94665bdbf4c4f25e2dd1523"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a50b7224161d739b1bae6f226f4982fd5"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepmc__scenario.html#a50b7224161d739b1bae6f226f4982fd5">scenario_update_aero_binned</a> (scenario, delta_t, env_state, old_env_state, bin_grid, aero_data, do_aero_dilution, aero_binned)</td></tr>
+<tr class="memdesc:a50b7224161d739b1bae6f226f4982fd5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Do emissions and background dilution from the environment for a binned aerosol distribution.  <a href="namespacepmc__scenario.html#a50b7224161d739b1bae6f226f4982fd5">More...</a><br /></td></tr>
+<tr class="separator:a50b7224161d739b1bae6f226f4982fd5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a30267474d0e657c2be781e1d187e5faa"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepmc__scenario.html#a30267474d0e657c2be781e1d187e5faa">scenario_update_aero_modes</a> (aero_dist, del_t, env_state, density, scenario)</td></tr>
 <tr class="memdesc:a30267474d0e657c2be781e1d187e5faa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Update the modal aerosol distribution to account for particle loss.  <a href="namespacepmc__scenario.html#a30267474d0e657c2be781e1d187e5faa">More...</a><br /></td></tr>
 <tr class="separator:a30267474d0e657c2be781e1d187e5faa"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -104,15 +104,18 @@ Functions/Subroutines</h2></td></tr>
 <tr class="memitem:ab3b05e77d36cc1b27c10ebd8d315df61"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepmc__scenario.html#ab3b05e77d36cc1b27c10ebd8d315df61">scenario_try_single_particle_loss</a> (scenario, delta_t, aero_data, aero_state, env_state, i_part, over_prob)</td></tr>
 <tr class="memdesc:ab3b05e77d36cc1b27c10ebd8d315df61"><td class="mdescLeft">&#160;</td><td class="mdescRight">Test a candidate particle to see if it should be removed, and remove if necessary. Particle is removed with probability (1d0 - exp(-delta_t*rate))/over_prob, where rate is the loss function evaluated for the given particle.  <a href="namespacepmc__scenario.html#ab3b05e77d36cc1b27c10ebd8d315df61">More...</a><br /></td></tr>
 <tr class="separator:ab3b05e77d36cc1b27c10ebd8d315df61"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2dcfa3b0ab86d1a1f97663629b5229fe"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepmc__scenario.html#a2dcfa3b0ab86d1a1f97663629b5229fe">scenario_binned_loss</a> (scenario, bin_grid, delta_t, aero_data, env_state, aero_binned)</td></tr>
+<tr class="memdesc:a2dcfa3b0ab86d1a1f97663629b5229fe"><td class="mdescLeft">&#160;</td><td class="mdescRight">Performs loss for a binned aerosol distribution for one time step.  <a href="namespacepmc__scenario.html#a2dcfa3b0ab86d1a1f97663629b5229fe">More...</a><br /></td></tr>
+<tr class="separator:a2dcfa3b0ab86d1a1f97663629b5229fe"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afaea66be4e0e1ec9a4b80a2fda61f972"><td class="memItemLeft" align="right" valign="top">elemental logical function&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepmc__scenario.html#afaea66be4e0e1ec9a4b80a2fda61f972">scenario_contains_aero_mode_type</a> (scenario, aero_mode_type)</td></tr>
 <tr class="memdesc:afaea66be4e0e1ec9a4b80a2fda61f972"><td class="mdescLeft">&#160;</td><td class="mdescRight">Whether any of the contained aerosol modes are of the given type.  <a href="namespacepmc__scenario.html#afaea66be4e0e1ec9a4b80a2fda61f972">More...</a><br /></td></tr>
 <tr class="separator:afaea66be4e0e1ec9a4b80a2fda61f972"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afa831d9e5f0f0989cab1b9c2ad88bad3"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepmc__scenario.html#afa831d9e5f0f0989cab1b9c2ad88bad3">drydep_params_output_netcdf</a> (drydep_params, <a class="el" href="fractal_8_f90.html#a4e89f3f850921ff84a6dfce8b166ad50">ncid</a>)</td></tr>
 <tr class="memdesc:afa831d9e5f0f0989cab1b9c2ad88bad3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Write dry deposition parameters to a NetCDF file.  <a href="namespacepmc__scenario.html#afa831d9e5f0f0989cab1b9c2ad88bad3">More...</a><br /></td></tr>
 <tr class="separator:afa831d9e5f0f0989cab1b9c2ad88bad3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abaa23fdb0b84b3e5410b911088024a6c"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepmc__scenario.html#abaa23fdb0b84b3e5410b911088024a6c">drydep_params_input_netcdf</a> (drydep_params, <a class="el" href="fractal_8_f90.html#a4e89f3f850921ff84a6dfce8b166ad50">ncid</a>)</td></tr>
-<tr class="memdesc:abaa23fdb0b84b3e5410b911088024a6c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read dry deposition parameters from a NetCDF file.  <a href="namespacepmc__scenario.html#abaa23fdb0b84b3e5410b911088024a6c">More...</a><br /></td></tr>
-<tr class="separator:abaa23fdb0b84b3e5410b911088024a6c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4e8582ac2540938414b7fbf8a5553971"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepmc__scenario.html#a4e8582ac2540938414b7fbf8a5553971">drydep_params_input_netcdf</a> (drydep_params, <a class="el" href="fractal_8_f90.html#a4e89f3f850921ff84a6dfce8b166ad50">ncid</a>, must_be_present)</td></tr>
+<tr class="memdesc:a4e8582ac2540938414b7fbf8a5553971"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read dry deposition parameters from a NetCDF file.  <a href="namespacepmc__scenario.html#a4e8582ac2540938414b7fbf8a5553971">More...</a><br /></td></tr>
+<tr class="separator:a4e8582ac2540938414b7fbf8a5553971"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a135753482d6e0a63cf3947e6e017c618"><td class="memItemLeft" align="right" valign="top">integer function&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepmc__scenario.html#a135753482d6e0a63cf3947e6e017c618">pmc_mpi_pack_size_scenario</a> (val)</td></tr>
 <tr class="memdesc:a135753482d6e0a63cf3947e6e017c618"><td class="mdescLeft">&#160;</td><td class="mdescRight">Determines the number of bytes required to pack the given value.  <a href="namespacepmc__scenario.html#a135753482d6e0a63cf3947e6e017c618">More...</a><br /></td></tr>
 <tr class="separator:a135753482d6e0a63cf3947e6e017c618"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -159,8 +162,8 @@ Variables</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>The <a class="el" href="structpmc__scenario_1_1scenario__t.html" title="Scenario data.">scenario_t</a> structure and associated subroutines. </p>
 </div><h2 class="groupheader">Function/Subroutine Documentation</h2>
-<a id="abaa23fdb0b84b3e5410b911088024a6c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#abaa23fdb0b84b3e5410b911088024a6c">&#9670;&nbsp;</a></span>drydep_params_input_netcdf()</h2>
+<a id="a4e8582ac2540938414b7fbf8a5553971"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4e8582ac2540938414b7fbf8a5553971">&#9670;&nbsp;</a></span>drydep_params_input_netcdf()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -175,7 +178,13 @@ Variables</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">integer, intent(in)&#160;</td>
-          <td class="paramname"><em>ncid</em>&#160;</td>
+          <td class="paramname"><em>ncid</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">logical, intent(in), optional&#160;</td>
+          <td class="paramname"><em>must_be_present</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -190,11 +199,12 @@ Variables</h2></td></tr>
   <table class="params">
     <tr><td class="paramdir">[in,out]</td><td class="paramname">drydep_params</td><td>Dry deposition parameters. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">ncid</td><td>NetCDF file ID, in data mode. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">must_be_present</td><td>Whether the parameters must be present in the file (default <code></code>.true.). They are only written when the loss function is dry deposition, so readers that may be given either kind of file should pass <code></code>.false., which leaves <code>drydep_params</code> unchanged. </td></tr>
   </table>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l01479">1479</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l01549">1549</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
 
 </div>
 </div>
@@ -233,7 +243,7 @@ Variables</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l01451">1451</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l01521">1521</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
 
 </div>
 </div>
@@ -279,7 +289,7 @@ Variables</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l01718">1718</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l01804">1804</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
 
 </div>
 </div>
@@ -325,7 +335,7 @@ Variables</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l01563">1563</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l01649">1649</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
 
 </div>
 </div>
@@ -353,7 +363,7 @@ Variables</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l01694">1694</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l01780">1780</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
 
 </div>
 </div>
@@ -381,7 +391,7 @@ Variables</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l01506">1506</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l01592">1592</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
 
 </div>
 </div>
@@ -427,7 +437,7 @@ Variables</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l01752">1752</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l01838">1838</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
 
 </div>
 </div>
@@ -473,7 +483,74 @@ Variables</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l01623">1623</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l01709">1709</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+
+</div>
+</div>
+<a id="a2dcfa3b0ab86d1a1f97663629b5229fe"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2dcfa3b0ab86d1a1f97663629b5229fe">&#9670;&nbsp;</a></span>scenario_binned_loss()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">subroutine pmc_scenario::scenario_binned_loss </td>
+          <td>(</td>
+          <td class="paramtype">type(<a class="el" href="structpmc__scenario_1_1scenario__t.html">scenario_t</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>scenario</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structpmc__bin__grid_1_1bin__grid__t.html">bin_grid_t</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>bin_grid</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(kind=dp), intent(in)&#160;</td>
+          <td class="paramname"><em>delta_t</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structpmc__aero__data_1_1aero__data__t.html">aero_data_t</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>aero_data</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structpmc__env__state_1_1env__state__t.html">env_state_t</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>env_state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structpmc__aero__binned_1_1aero__binned__t.html">aero_binned_t</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>aero_binned</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Performs loss for a binned aerosol distribution for one time step. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">scenario</td><td>Scenario data. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">bin_grid</td><td>Bin grid. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">delta_t</td><td>Time increment to update over. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">aero_data</td><td>Aerosol data. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">env_state</td><td>Environmental state. </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">aero_binned</td><td>Binned aerosol data. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l01136">1136</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
 
 </div>
 </div>
@@ -512,7 +589,7 @@ Variables</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l01127">1127</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l01190">1190</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
 
 </div>
 </div>
@@ -558,7 +635,7 @@ Variables</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00144">144</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00145">145</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
 
 </div>
 </div>
@@ -618,7 +695,7 @@ Variables</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00636">636</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00646">646</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
 
 </div>
 </div>
@@ -678,7 +755,7 @@ Variables</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00496">496</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00506">506</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
 
 </div>
 </div>
@@ -740,7 +817,7 @@ Variables</h2></td></tr>
 <p>Number of sample points per bin.</p>
 <p>Over-estimation scale factor parameter.</p>
 
-<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00955">955</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00965">965</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
 
 </div>
 </div>
@@ -800,7 +877,7 @@ Variables</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00542">542</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00552">552</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
 
 </div>
 </div>
@@ -854,7 +931,7 @@ Variables</h2></td></tr>
 </dl>
 <p>Number of density sample points.</p>
 
-<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00918">918</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00928">928</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
 
 </div>
 </div>
@@ -921,7 +998,7 @@ Variables</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00889">889</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00899">899</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
 
 </div>
 </div>
@@ -981,7 +1058,7 @@ Variables</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l01001">1001</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l01011">1011</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
 
 </div>
 </div>
@@ -1055,12 +1132,12 @@ Variables</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l01086">1086</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l01096">1096</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
 
 </div>
 </div>
-<a id="aa8ca6c77c94665bdbf4c4f25e2dd1523"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa8ca6c77c94665bdbf4c4f25e2dd1523">&#9670;&nbsp;</a></span>scenario_update_aero_binned()</h2>
+<a id="a50b7224161d739b1bae6f226f4982fd5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a50b7224161d739b1bae6f226f4982fd5">&#9670;&nbsp;</a></span>scenario_update_aero_binned()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1104,6 +1181,12 @@ Variables</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">logical, intent(in)&#160;</td>
+          <td class="paramname"><em>do_aero_dilution</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
           <td class="paramtype">type(<a class="el" href="structpmc__aero__binned_1_1aero__binned__t.html">aero_binned_t</a>), intent(inout)&#160;</td>
           <td class="paramname"><em>aero_binned</em>&#160;</td>
         </tr>
@@ -1124,12 +1207,13 @@ Variables</h2></td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">old_env_state</td><td>Previous environment. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">bin_grid</td><td>Bin grid. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">aero_data</td><td>Aero data values. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">do_aero_dilution</td><td>Whether to do dilution. </td></tr>
     <tr><td class="paramdir">[in,out]</td><td class="paramname">aero_binned</td><td>Aero binned to update. </td></tr>
   </table>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00383">383</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00384">384</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
 
 </div>
 </div>
@@ -1184,11 +1268,12 @@ Variables</h2></td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">del_t</td><td>Timestep. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">env_state</td><td>Environment state. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">density</td><td>Particle density (kg m^-3), assumed uniform across all modes. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">scenario</td><td>Scenario data. </td></tr>
   </table>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00432">432</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00441">441</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
 
 </div>
 </div>
@@ -1290,7 +1375,7 @@ Variables</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00293">293</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00294">294</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
 
 </div>
 </div>
@@ -1339,7 +1424,7 @@ Variables</h2></td></tr>
 <p>Ambient pressure (Pa)</p>
 <p>Ambient temperature (K)</p>
 
-<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00167">167</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00168">168</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
 
 </div>
 </div>
@@ -1424,7 +1509,7 @@ Variables</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00241">241</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00242">242</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
 
 </div>
 </div>
@@ -1443,7 +1528,7 @@ Variables</h2></td></tr>
 
 <p>Parameter to switch between algorithms for particle loss. A value of 0 will always use the naive algorithm, and a value of 1 will always use the accept-reject algorithm. </p>
 
-<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00044">44</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00045">45</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
 
 </div>
 </div>
@@ -1461,7 +1546,7 @@ Variables</h2></td></tr>
 
 <p>Type code for a loss rate function for chamber experiments. </p>
 
-<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00039">39</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00040">40</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
 
 </div>
 </div>
@@ -1479,7 +1564,7 @@ Variables</h2></td></tr>
 
 <p>Type code for a constant loss function. </p>
 
-<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00033">33</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00034">34</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
 
 </div>
 </div>
@@ -1497,7 +1582,7 @@ Variables</h2></td></tr>
 
 <p>Type code for a loss rate function based on dry deposition. </p>
 
-<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00037">37</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00038">38</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
 
 </div>
 </div>
@@ -1515,7 +1600,7 @@ Variables</h2></td></tr>
 
 <p>Type code for an undefined or invalid loss function. </p>
 
-<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00029">29</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00030">30</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
 
 </div>
 </div>
@@ -1533,7 +1618,7 @@ Variables</h2></td></tr>
 
 <p>Type code for a zero loss function. </p>
 
-<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00031">31</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00032">32</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
 
 </div>
 </div>
@@ -1551,7 +1636,7 @@ Variables</h2></td></tr>
 
 <p>Type code for a loss rate function proportional to particle volume. </p>
 
-<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00035">35</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scenario_8_f90_source.html#l00036">36</a> of file <a class="el" href="scenario_8_f90_source.html">scenario.F90</a>.</p>
 
 </div>
 </div>

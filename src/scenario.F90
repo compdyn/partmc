@@ -1153,8 +1153,8 @@ contains
     real(kind=dp) :: density, vol, loss_rate, p
 
     if (scenario%loss_function_type == SCENARIO_LOSS_FUNCTION_NONE .or. &
-        scenario%loss_function_type == SCENARIO_LOSS_FUNCTION_INVALID) then
-        return
+         scenario%loss_function_type == SCENARIO_LOSS_FUNCTION_INVALID) then
+       return
     else if (scenario%loss_function_type == SCENARIO_LOSS_FUNCTION_DRYDEP) then
 
        ! Assumes a single aerosol species, as run_sect() requires. Both the

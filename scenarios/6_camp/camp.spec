@@ -6,7 +6,7 @@ restart no                      # whether to restart from saved state (yes/no)
 do_select_weighting no          # whether to select weighting explicitly (yes/no)
 
 t_max 86400                    # total simulation time (s)
-del_t 10                        # timestep (s)
+del_t 120                        # timestep (s)
 t_output 600                   # output interval (0 disables) (s)
 t_progress 600                  # progress printing interval (0 disables) (s)
 

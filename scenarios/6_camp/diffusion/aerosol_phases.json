@@ -10,7 +10,7 @@
           },
           {
             "name" : "ozone_aero",
-            "diffusion coefficient [m2 s-1]": 1.0e-15
+            "diffusion coefficient [m2 s-1]": 1.0e-16
           }
         ]
     }

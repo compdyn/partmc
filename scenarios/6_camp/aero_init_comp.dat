@@ -1,6 +1,6 @@
 #                      mass fractions
-one_layer.shikimic_acid_aero.shikimic_acid  0.22
-two_layer.shikimic_acid_aero.shikimic_acid  0.22
-three_layer.shikimic_acid_aero.shikimic_acid  0.22
-four_layer.shikimic_acid_aero.ozone_aero 0.17
-four_layer.shikimic_acid_aero.shikimic_acid 0.17
+one_layer.shikimic_acid_aero.shikimic_acid  0.25
+two_layer.shikimic_acid_aero.shikimic_acid  0.25
+three_layer.shikimic_acid_aero.shikimic_acid  0.25
+four_layer.shikimic_acid_aero.ozone_aero 0.125
+four_layer.shikimic_acid_aero.shikimic_acid 0.0125

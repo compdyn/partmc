@@ -83,7 +83,7 @@ contains
     call init_data_modules  ! initialize indices and vars
 
     ! allocate aerosol bins
-    naerbin = 10000
+    naerbin = 1
     naer_max = naer_tot * naerbin
     ntot_max = ngas_max + naer_max
     nbin_a_max = naerbin
@@ -154,13 +154,16 @@ contains
   subroutine mosaic_cleanup()
 
 #ifdef PMC_USE_MOSAIC
-    ! MOSAIC function interfaces
-    interface
-!       subroutine DeallocateMemory()
-!       end subroutine DeallocateMemory
-    end interface
+    use module_data_mosaic_boxmod, only: cnn, lun_aer, lun_aer_status, &
+         aer_output, species, emission, emit
 
-!    call DeallocateMemory()
+    if (allocated(cnn))            deallocate(cnn)
+    if (allocated(lun_aer))        deallocate(lun_aer)
+    if (allocated(lun_aer_status)) deallocate(lun_aer_status)
+    if (allocated(aer_output))     deallocate(aer_output)
+    if (allocated(species))        deallocate(species)
+    if (allocated(emission))       deallocate(emission)
+    if (allocated(emit))           deallocate(emit)
 #endif
 
   end subroutine mosaic_cleanup
@@ -272,13 +275,13 @@ contains
     ntot_used = ngas_max + nbin_a * naer_tot
     if (nbin_a > naerbin) then
        ! deallocate before reallocating with larger size
-       if (allocated(cnn))            deallocate(cnn)
-       if (allocated(lun_aer))        deallocate(lun_aer)
+       if (allocated(cnn)) deallocate(cnn)
+       if (allocated(lun_aer)) deallocate(lun_aer)
        if (allocated(lun_aer_status)) deallocate(lun_aer_status)
-       if (allocated(aer_output))     deallocate(aer_output)
-       if (allocated(species))        deallocate(species)
-       if (allocated(emission))       deallocate(emission)
-       if (allocated(emit))           deallocate(emit)
+       if (allocated(aer_output)) deallocate(aer_output)
+       if (allocated(species)) deallocate(species)
+       if (allocated(emission)) deallocate(emission)
+       if (allocated(emit)) deallocate(emit)
        naerbin = nbin_a
        naer_max = naer_tot * naerbin
        ntot_max = ngas_max + naer_max
@@ -522,10 +525,10 @@ contains
 
   !Local variables
   integer :: mfreq_aeroptic, it
-  integer, dimension(nbin_a_max) :: jaerosolstate
-  integer, dimension(nbin_a_max) :: iter_MESA
-  real(kind=dp), dimension(nbin_a_max) :: dp_wet_a
-  real(kind=dp), dimension(nbin_a_max) :: aH2O_a, gam_ratio
+  integer, allocatable :: jaerosolstate(:)
+  integer, allocatable :: iter_MESA(:)
+  real(kind=dp), allocatable :: dp_wet_a(:)
+  real(kind=dp), allocatable :: aH2O_a(:), gam_ratio(:)
 
     ! MOSAIC function interfaces
     interface
@@ -557,6 +560,12 @@ contains
     ! map PartMC -> MOSAIC
     call mosaic_from_partmc(env_state, aero_data, aero_state, gas_data, &
          gas_state)
+
+    allocate(jaerosolstate(nbin_a_max))
+    allocate(iter_MESA(nbin_a_max))
+    allocate(dp_wet_a(nbin_a_max))
+    allocate(aH2O_a(nbin_a_max))
+    allocate(gam_ratio(nbin_a_max))
 
     if (msolar == 1) then
       call SolarZenithAngle

@@ -1159,6 +1159,7 @@ contains
     call pmc_mpi_unpack_integer(buffer, position, val%water_hyst_leg)
     call pmc_mpi_unpack_integer64(buffer, position, val%id)
     call pmc_mpi_unpack_integer(buffer, position, n_components)
+    if (allocated(val%component)) deallocate(val%component)
     if (n_components > -1) then
        allocate(val%component(n_components))
     end if

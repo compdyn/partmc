@@ -108,6 +108,15 @@ module pmc_condense
      real(kind=dp) :: dHdotenv_dH
   end type condense_rates_outputs_t
 
+  !> Internal-use structure for storing the per-call quantities used
+  !> by \c condense_rates() that depend only on temperature and
+  !> pressure (and so are identical for every particle within a
+  !> single call to \c condense_vf_f() or \c condense_jac()).
+  type condense_rates_env_t
+     real(kind=dp) :: rho_w, M_w, P_0, dP0_dT_div_P0, rho_air
+     real(kind=dp) :: k_a, D_v, U, V, W, X, Y, Z
+  end type condense_rates_env_t
+
   !> Internal-use variable for storing the aerosol data during calls
   !> to the ODE solver.
   type(aero_data_t) :: condense_saved_aero_data
@@ -388,13 +397,58 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Compute the temperature/pressure-dependent quantities used by
+  !> \c condense_rates() that are identical for every particle within
+  !> a single call to \c condense_vf_f() or \c condense_jac(). Callers
+  !> should invoke this once per call, before looping over particles.
+  subroutine condense_rates_env(inputs, env)
+
+    !> Inputs to rates (only \c T and \c p are used).
+    type(condense_rates_inputs_t), intent(in) :: inputs
+    !> Precomputed per-call environment quantities.
+    type(condense_rates_env_t), intent(out) :: env
+
+    env%rho_w = const%water_density
+    env%M_w = const%water_molec_weight
+    env%P_0 = const%water_eq_vap_press &
+         * 10d0**(7.45d0 * (inputs%T - const%water_freeze_temp) &
+         / (inputs%T - 38d0))
+    env%dP0_dT_div_P0 = 7.45d0 * log(10d0) &
+         * (const%water_freeze_temp - 38d0) / (inputs%T - 38d0)**2
+    env%rho_air = const%air_molec_weight * inputs%p &
+         / (const%univ_gas_const * inputs%T)
+
+    env%k_a = 1d-3 * (4.39d0 + 0.071d0 * inputs%T)
+    env%D_v = 0.211d-4 / (inputs%p / const%air_std_press) &
+         * (inputs%T / 273d0)**1.94d0
+    env%U = const%water_latent_heat * env%rho_w / (4d0 * inputs%T)
+    env%V = 4d0 * env%M_w * env%P_0 &
+         / (env%rho_w * const%univ_gas_const * inputs%T)
+    env%W = const%water_latent_heat * env%M_w &
+         / (const%univ_gas_const * inputs%T)
+    env%X = 4d0 * env%M_w * const%water_surf_eng &
+         / (const%univ_gas_const * inputs%T * env%rho_w)
+    env%Y = 2d0 * env%k_a / (const%accom_coeff * env%rho_air &
+         * const%air_spec_heat) &
+         * sqrt(2d0 * const%pi * const%air_molec_weight &
+         / (const%univ_gas_const * inputs%T))
+    env%Z = 2d0 * env%D_v / const%accom_coeff * sqrt(2d0 * const%pi &
+         * env%M_w / (const%univ_gas_const * inputs%T))
+
+  end subroutine condense_rates_env
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Compute the rate of change of particle diameter and relative
   !> humidity for a single particle, together with the derivatives of
   !> the rates with respect to the input variables.
-  subroutine condense_rates(inputs, outputs)
+  subroutine condense_rates(inputs, env, outputs)
 
     !> Inputs to rates.
     type(condense_rates_inputs_t), intent(in) :: inputs
+    !> Precomputed per-call environment quantities (see
+    !> \c condense_rates_env()).
+    type(condense_rates_env_t), intent(in) :: env
     !> Outputs rates.
     type(condense_rates_outputs_t), intent(out) :: outputs
 
@@ -404,30 +458,19 @@ contains
     real(kind=dp) :: dh_dH, ddeltastar_dD, ddeltastar_dH
     integer :: newton_step
 
-    rho_w = const%water_density
-    M_w = const%water_molec_weight
-    P_0 = const%water_eq_vap_press &
-         * 10d0**(7.45d0 * (inputs%T - const%water_freeze_temp) &
-         / (inputs%T - 38d0))
-    dP0_dT_div_P0 = 7.45d0 * log(10d0) * (const%water_freeze_temp - 38d0) &
-         / (inputs%T - 38d0)**2
-    rho_air = const%air_molec_weight * inputs%p &
-         / (const%univ_gas_const * inputs%T)
-
-    k_a = 1d-3 * (4.39d0 + 0.071d0 * inputs%T)
-    D_v = 0.211d-4 / (inputs%p / const%air_std_press) &
-         * (inputs%T / 273d0)**1.94d0
-    U = const%water_latent_heat * rho_w / (4d0 * inputs%T)
-    V = 4d0 * M_w * P_0 / (rho_w * const%univ_gas_const * inputs%T)
-    W = const%water_latent_heat * M_w / (const%univ_gas_const * inputs%T)
-    X = 4d0 * M_w * const%water_surf_eng &
-         / (const%univ_gas_const * inputs%T * rho_w)
-    Y = 2d0 * k_a / (const%accom_coeff * rho_air &
-         * const%air_spec_heat) &
-         * sqrt(2d0 * const%pi * const%air_molec_weight &
-         / (const%univ_gas_const * inputs%T))
-    Z = 2d0 * D_v / const%accom_coeff * sqrt(2d0 * const%pi * M_w &
-         / (const%univ_gas_const * inputs%T))
+    rho_w = env%rho_w
+    M_w = env%M_w
+    P_0 = env%P_0
+    dP0_dT_div_P0 = env%dP0_dT_div_P0
+    rho_air = env%rho_air
+    k_a = env%k_a
+    D_v = env%D_v
+    U = env%U
+    V = env%V
+    W = env%W
+    X = env%X
+    Y = env%Y
+    Z = env%Z
 
     outputs%Hdot_env = - dP0_dT_div_P0 * inputs%Tdot * inputs%H &
          + inputs%H * inputs%pdot / inputs%p
@@ -545,6 +588,7 @@ contains
     real(kind=dp) :: Hdot
     integer :: i_part
     type(condense_rates_inputs_t) :: inputs
+    type(condense_rates_env_t) :: env
     type(condense_rates_outputs_t) :: outputs
 
     condense_count_vf = condense_count_vf + 1
@@ -560,6 +604,8 @@ contains
     inputs%pdot = condense_saved_pdot
     inputs%H = state(n_eqn)
 
+    call condense_rates_env(inputs, env)
+
     Hdot = 0d0
     do i_part = 1,(n_eqn - 1)
        inputs%D = state(i_part)
@@ -569,7 +615,7 @@ contains
             / (condense_saved_env_state_initial%temp * inputs%p) &
             / condense_saved_num_conc(i_part)
        inputs%kappa = condense_saved_kappa(i_part)
-       call condense_rates(inputs, outputs)
+       call condense_rates(inputs, env, outputs)
        state_dot(i_part) = outputs%Ddot
        Hdot = Hdot + outputs%Hdot_i
     end do
@@ -607,6 +653,7 @@ contains
     real(kind=c_double), pointer :: state(:)
     integer :: i_part
     type(condense_rates_inputs_t) :: inputs
+    type(condense_rates_env_t) :: env
     type(condense_rates_outputs_t) :: outputs
 
     call c_f_pointer(state_p, state, (/ n_eqn /))
@@ -619,6 +666,8 @@ contains
     inputs%pdot = condense_saved_pdot
     inputs%H = state(n_eqn)
 
+    call condense_rates_env(inputs, env)
+
     dHdot_dH = 0d0
     do i_part = 1,(n_eqn - 1)
        inputs%D = state(i_part)
@@ -628,7 +677,7 @@ contains
             / (condense_saved_env_state_initial%temp * inputs%p) &
             / condense_saved_num_conc(i_part)
        inputs%kappa = condense_saved_kappa(i_part)
-       call condense_rates(inputs, outputs)
+       call condense_rates(inputs, env, outputs)
        dDdot_dD(i_part) = outputs%dDdot_dD
        dDdot_dH(i_part) = outputs%dDdot_dH
        dHdot_dD(i_part) = outputs%dHdoti_dD + outputs%dHdotenv_dD

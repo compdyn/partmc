@@ -151,6 +151,25 @@ module pmc_condense
   !> Cached scalar dHdot/dH sensitivity.
   real(kind=dp) :: condense_cached_dHdot_dH
 
+  !> Jacobian sensitivities from the most recent condense_vf_f() call.
+  !> condense_rates() computes them alongside the rates anyway, and
+  !> CVODE calls jtsetup/psetup at the state it has just evaluated, so
+  !> condense_jac_cache_f() copies these instead of re-running the
+  !> particle loop when the state and time match exactly.
+  real(kind=dp), allocatable :: condense_vf_dDdot_dD(:)
+  !> dDdot_i/dH from the most recent condense_vf_f() call.
+  real(kind=dp), allocatable :: condense_vf_dDdot_dH(:)
+  !> dHdot/dD_i from the most recent condense_vf_f() call.
+  real(kind=dp), allocatable :: condense_vf_dHdot_dD(:)
+  !> dHdot/dH from the most recent condense_vf_f() call.
+  real(kind=dp) :: condense_vf_dHdot_dH
+  !> State at which the condense_vf_* sensitivities were computed.
+  real(kind=dp), allocatable :: condense_vf_state(:)
+  !> Time at which the condense_vf_* sensitivities were computed.
+  real(kind=dp) :: condense_vf_time
+  !> Whether the condense_vf_* sensitivities are valid.
+  logical :: condense_vf_valid = .false.
+
   !> Internal-use variable for counting calls to the vector field
   !> subroutine.
   integer, save :: condense_count_vf
@@ -243,6 +262,11 @@ contains
     allocate(condense_cached_dDdot_dD(aero_state_n_part(aero_state)))
     allocate(condense_cached_dDdot_dH(aero_state_n_part(aero_state)))
     allocate(condense_cached_dHdot_dD(aero_state_n_part(aero_state)))
+    allocate(condense_vf_dDdot_dD(aero_state_n_part(aero_state)))
+    allocate(condense_vf_dDdot_dH(aero_state_n_part(aero_state)))
+    allocate(condense_vf_dHdot_dD(aero_state_n_part(aero_state)))
+    allocate(condense_vf_state(aero_state_n_part(aero_state) + 1))
+    condense_vf_valid = .false.
     ! work backwards for consistency with the later number
     ! concentration adjustment, which has specific ordering
     ! requirements
@@ -353,6 +377,11 @@ contains
     deallocate(condense_cached_dDdot_dD)
     deallocate(condense_cached_dDdot_dH)
     deallocate(condense_cached_dHdot_dD)
+    deallocate(condense_vf_dDdot_dD)
+    deallocate(condense_vf_dDdot_dH)
+    deallocate(condense_vf_dHdot_dD)
+    deallocate(condense_vf_state)
+    condense_vf_valid = .false.
 
   end subroutine condense_particles
 
@@ -455,7 +484,7 @@ contains
     real(kind=dp) :: rho_w, M_w, P_0, dP0_dT_div_P0, rho_air, k_a, D_v, U
     real(kind=dp) :: V, W, X, Y, Z, k_ap, dkap_dD, D_vp, dDvp_dD
     real(kind=dp) :: a_w, daw_dD, delta_star, h, dh_ddelta, dh_dD
-    real(kind=dp) :: dh_dH, ddeltastar_dD, ddeltastar_dH
+    real(kind=dp) :: dh_dH, ddeltastar_dD, ddeltastar_dH, exp_term
     integer :: newton_step
 
     rho_w = env%rho_w
@@ -525,16 +554,17 @@ contains
        ! update delta_star first so when the newton loop ends we have
        ! h and dh_ddelta evaluated at the final delta_star value
        delta_star = delta_star - h / dh_ddelta
+       ! one exp() per iteration; the last one is reused for dh_dD below
+       exp_term = exp(W * delta_star / (1d0 + delta_star) &
+            + (X / inputs%D) / (1d0 + delta_star))
        h = k_ap * delta_star - U * V * D_vp &
             * (inputs%H - a_w / (1d0 + delta_star) &
-            * exp(W * delta_star / (1d0 + delta_star) &
-            + (X / inputs%D) / (1d0 + delta_star)))
+            * exp_term)
        dh_ddelta = &
             k_ap - U * V * D_vp * a_w / (1d0 + delta_star)**2 &
             * (1d0 - W / (1d0 + delta_star) &
             + (X / inputs%D) / (1d0 + delta_star)) &
-            * exp(W * delta_star / (1d0 + delta_star) &
-            + (X / inputs%D) / (1d0 + delta_star))
+            * exp_term
     end do
     call warn_assert_msg(387362320, &
          abs(h) < 1d3 * epsilon(1d0) * abs(U * V * D_vp * inputs%H), &
@@ -549,8 +579,7 @@ contains
          * (a_w * dDvp_dD + D_vp * daw_dD &
          - D_vp * a_w * (X / inputs%D**2) / (1d0 + delta_star)) &
          * (1d0 / (1d0 + delta_star)) &
-         * exp((W * delta_star) / (1d0 + delta_star) &
-         + (X / inputs%D) / (1d0 + delta_star))
+         * exp_term
     dh_dH = - U * V * D_vp
 
     ddeltastar_dD = - dh_dD / dh_ddelta
@@ -607,6 +636,7 @@ contains
     call condense_rates_env(inputs, env)
 
     Hdot = 0d0
+    condense_vf_dHdot_dH = 0d0
     do i_part = 1,(n_eqn - 1)
        inputs%D = state(i_part)
        inputs%D_dry = condense_saved_D_dry(i_part)
@@ -618,10 +648,20 @@ contains
        call condense_rates(inputs, env, outputs)
        state_dot(i_part) = outputs%Ddot
        Hdot = Hdot + outputs%Hdot_i
+       ! same expressions, in the same order, as condense_jac()
+       condense_vf_dDdot_dD(i_part) = outputs%dDdot_dD
+       condense_vf_dDdot_dH(i_part) = outputs%dDdot_dH
+       condense_vf_dHdot_dD(i_part) = outputs%dHdoti_dD + outputs%dHdotenv_dD
+       condense_vf_dHdot_dH = condense_vf_dHdot_dH + outputs%dHdoti_dH
     end do
     Hdot = Hdot + outputs%Hdot_env
+    condense_vf_dHdot_dH = condense_vf_dHdot_dH + outputs%dHdotenv_dH
 
     state_dot(n_eqn) = Hdot
+
+    condense_vf_state = state
+    condense_vf_time = time
+    condense_vf_valid = .true.
 
   end subroutine condense_vf_f
 #endif
@@ -709,6 +749,20 @@ contains
     real(kind=c_double), value, intent(in) :: time
     !> Pointer to current state vector.
     type(c_ptr), value, intent(in) :: state_p
+
+    real(kind=c_double), pointer :: state(:)
+
+    call c_f_pointer(state_p, state, (/ n_eqn /))
+    if (condense_vf_valid) then
+       if ((time == condense_vf_time) &
+            .and. all(state == condense_vf_state)) then
+          condense_cached_dDdot_dD = condense_vf_dDdot_dD
+          condense_cached_dDdot_dH = condense_vf_dDdot_dH
+          condense_cached_dHdot_dD = condense_vf_dHdot_dD
+          condense_cached_dHdot_dH = condense_vf_dHdot_dH
+          return
+       end if
+    end if
 
     condense_count_jac_eval = condense_count_jac_eval + 1
 

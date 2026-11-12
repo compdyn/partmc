@@ -130,12 +130,27 @@ module pmc_condense
   !> concentrations during calls to the ODE solver.
   real(kind=dp), allocatable :: condense_saved_num_conc(:)
 
+  !> Cache of the analytic Jacobian sensitivities dDdot_i/dD_i,
+  !> refreshed by condense_jac_cache_f() (via CVODE's jtsetup/psetup
+  !> callbacks) rather than recomputed on every preconditioner solve
+  !> or Jacobian-vector product.
+  real(kind=dp), allocatable :: condense_cached_dDdot_dD(:)
+  !> Cached dDdot_i/dH sensitivities.
+  real(kind=dp), allocatable :: condense_cached_dDdot_dH(:)
+  !> Cached dHdot/dD_i sensitivities.
+  real(kind=dp), allocatable :: condense_cached_dHdot_dD(:)
+  !> Cached scalar dHdot/dH sensitivity.
+  real(kind=dp) :: condense_cached_dHdot_dH
+
   !> Internal-use variable for counting calls to the vector field
   !> subroutine.
   integer, save :: condense_count_vf
   !> Internal-use variable for counting calls to the Jacobian-solving
   !> subroutine.
   integer, save :: condense_count_solve
+  !> Internal-use variable for counting calls that actually recompute
+  !> the cached Jacobian (as opposed to reusing it).
+  integer, save :: condense_count_jac_eval
 
 contains
 
@@ -216,6 +231,9 @@ contains
     allocate(condense_saved_kappa(aero_state_n_part(aero_state)))
     allocate(condense_saved_D_dry(aero_state_n_part(aero_state)))
     allocate(condense_saved_num_conc(aero_state_n_part(aero_state)))
+    allocate(condense_cached_dDdot_dD(aero_state_n_part(aero_state)))
+    allocate(condense_cached_dDdot_dH(aero_state_n_part(aero_state)))
+    allocate(condense_cached_dHdot_dD(aero_state_n_part(aero_state)))
     ! work backwards for consistency with the later number
     ! concentration adjustment, which has specific ordering
     ! requirements
@@ -252,12 +270,14 @@ contains
     abstol_f_p = c_loc(abstol_f)
     condense_count_vf = 0
     condense_count_solve = 0
+    condense_count_jac_eval = 0
     solver_stat = condense_solver(n_eqn_f, state_f_p, abstol_f_p, reltol_f, &
          t_initial_f, t_final_f)
     call condense_check_solve(solver_stat)
     if (CONDENSE_DO_TEST_COUNTS) then
        write(0,*) 'condense_count_vf ', condense_count_vf
        write(0,*) 'condense_count_solve ', condense_count_solve
+       write(0,*) 'condense_count_jac_eval ', condense_count_jac_eval
     end if
     do i_eqn = 1,n_eqn
        state(i_eqn) = real(state_f(i_eqn), kind=dp)
@@ -321,6 +341,9 @@ contains
     deallocate(condense_saved_kappa)
     deallocate(condense_saved_D_dry)
     deallocate(condense_saved_num_conc)
+    deallocate(condense_cached_dDdot_dD)
+    deallocate(condense_cached_dDdot_dH)
+    deallocate(condense_cached_dHdot_dD)
 
   end subroutine condense_particles
 
@@ -619,9 +642,73 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 #ifdef PMC_USE_SUNDIALS
+  !> Recompute the analytic Jacobian sensitivities and store them in
+  !> the module-level cache (\c condense_cached_*), for reuse by
+  !> \c condense_jac_solve_f() and \c condense_jac_times_vec_f().
+  !>
+  !> This is called from CVODE's \c jtsetup callback once per Newton
+  !> iteration, and from its \c psetup callback whenever CVODE decides
+  !> the previously cached Jacobian is stale (see \c jok in
+  !> \c condense_solver.c). Splitting this out avoids recomputing the
+  !> Jacobian (an O(n_part) pass with \c exp()/\c pow() calls) on
+  !> every preconditioner solve and every Jacobian-vector product.
+  subroutine condense_jac_cache_f(n_eqn, time, state_p) bind(c)
+
+    !> Length of state vector.
+    integer(kind=c_int), value, intent(in) :: n_eqn
+    !> Current time (s).
+    real(kind=c_double), value, intent(in) :: time
+    !> Pointer to current state vector.
+    type(c_ptr), value, intent(in) :: state_p
+
+    condense_count_jac_eval = condense_count_jac_eval + 1
+
+    call condense_jac(n_eqn, time, state_p, condense_cached_dDdot_dD, &
+         condense_cached_dDdot_dH, condense_cached_dHdot_dD, &
+         condense_cached_dHdot_dH)
+
+  end subroutine condense_jac_cache_f
+#endif
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+#ifdef PMC_USE_SUNDIALS
+  !> Compute the Jacobian-vector product \f$ Jv \f$ using the cached
+  !> analytic sensitivities (see \c condense_jac_cache_f()), instead
+  !> of SUNDIALS' default finite-difference approximation (which would
+  !> otherwise call the full per-particle rate function again for
+  !> every Krylov iteration).
+  subroutine condense_jac_times_vec_f(n_eqn, v_p, jv_p) bind(c)
+
+    !> Length of state vector.
+    integer(kind=c_int), value, intent(in) :: n_eqn
+    !> Pointer to the vector \c v being multiplied.
+    type(c_ptr), value, intent(in) :: v_p
+    !> Pointer to the output vector \c Jv.
+    type(c_ptr), value, intent(in) :: jv_p
+
+    real(kind=c_double), pointer :: v(:), jv(:)
+
+    call c_f_pointer(v_p, v, (/ n_eqn /))
+    call c_f_pointer(jv_p, jv, (/ n_eqn /))
+
+    jv(1:(n_eqn - 1)) = condense_cached_dDdot_dD * v(1:(n_eqn - 1)) &
+         + condense_cached_dDdot_dH * v(n_eqn)
+    jv(n_eqn) = sum(condense_cached_dHdot_dD * v(1:(n_eqn - 1))) &
+         + condense_cached_dHdot_dH * v(n_eqn)
+
+  end subroutine condense_jac_times_vec_f
+#endif
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+#ifdef PMC_USE_SUNDIALS
   !> Solve the system \f$ Pz = r \f$ where \f$ P = I - \gamma J \f$
   !> and \f$ J = \partial f / \partial y \f$. The solution is returned
   !> in the \f$ r \f$ vector.
+  !>
+  !> Uses the module-level Jacobian cache filled by
+  !> \c condense_jac_cache_f() rather than recomputing it here.
   subroutine condense_jac_solve_f(n_eqn, time, state_p, state_dot_p, &
        rhs_p, gamma) bind(c)
 
@@ -640,8 +727,6 @@ contains
 
     real(kind=c_double), pointer :: state(:), state_dot(:), rhs(:)
     real(kind=c_double) :: soln(n_eqn)
-    real(kind=dp) :: dDdot_dD(n_eqn - 1), dDdot_dH(n_eqn - 1)
-    real(kind=dp) :: dHdot_dD(n_eqn - 1), dHdot_dH
     real(kind=dp) :: lhs_n, rhs_n
     real(kind=c_double) :: residual(n_eqn)
     real(kind=dp) :: rhs_norm, soln_norm, residual_norm
@@ -649,38 +734,37 @@ contains
 
     condense_count_solve = condense_count_solve + 1
 
-    call condense_jac(n_eqn, time, state_p, dDdot_dD, dDdot_dH, &
-         dHdot_dD, dHdot_dH)
-
     call c_f_pointer(state_p, state, (/ n_eqn /))
     call c_f_pointer(state_dot_p, state_dot, (/ n_eqn /))
     call c_f_pointer(rhs_p, rhs, (/ n_eqn /))
 
     !FIXME: write this all in matrix-vector notation, no i_part looping
-    lhs_n = 1d0 - gamma * dHdot_dH
+    lhs_n = 1d0 - gamma * condense_cached_dHdot_dH
     rhs_n = rhs(n_eqn)
     do i_part = 1,(n_eqn - 1)
-       lhs_n = lhs_n - (- gamma * dDdot_dH(i_part)) &
-            * (- gamma * dHdot_dD(i_part)) / (1d0 - gamma * dDdot_dD(i_part))
-       rhs_n = rhs_n - (- gamma * dHdot_dD(i_part)) * rhs(i_part) &
-            / (1d0 - gamma * dDdot_dD(i_part))
+       lhs_n = lhs_n - (- gamma * condense_cached_dDdot_dH(i_part)) &
+            * (- gamma * condense_cached_dHdot_dD(i_part)) &
+            / (1d0 - gamma * condense_cached_dDdot_dD(i_part))
+       rhs_n = rhs_n &
+            - (- gamma * condense_cached_dHdot_dD(i_part)) * rhs(i_part) &
+            / (1d0 - gamma * condense_cached_dDdot_dD(i_part))
     end do
     soln(n_eqn) = rhs_n / lhs_n
 
     do i_part = 1,(n_eqn - 1)
        soln(i_part) = (rhs(i_part) &
-            - (- gamma * dDdot_dH(i_part)) * soln(n_eqn)) &
-            / (1d0 - gamma * dDdot_dD(i_part))
+            - (- gamma * condense_cached_dDdot_dH(i_part)) * soln(n_eqn)) &
+            / (1d0 - gamma * condense_cached_dDdot_dD(i_part))
     end do
 
     if (CONDENSE_DO_TEST_JAC_SOLVE) then
        ! (I - g J) soln = rhs
 
        ! residual = J soln
-       residual(n_eqn) = sum(dHdot_dD * soln(1:(n_eqn-1))) &
-            + dHdot_dH * soln(n_eqn)
-       residual(1:(n_eqn-1)) = dDdot_dD * soln(1:(n_eqn-1)) &
-            + dDdot_dH * soln(n_eqn)
+       residual(n_eqn) = sum(condense_cached_dHdot_dD * soln(1:(n_eqn-1))) &
+            + condense_cached_dHdot_dH * soln(n_eqn)
+       residual(1:(n_eqn-1)) = condense_cached_dDdot_dD * soln(1:(n_eqn-1)) &
+            + condense_cached_dDdot_dH * soln(n_eqn)
 
        residual = rhs - (soln - gamma * residual)
        rhs_norm = sqrt(sum(rhs**2))

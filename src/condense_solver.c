@@ -50,6 +50,10 @@
 /** \brief Result code indicating failure to allocate the SUNDIALS Context.
  */
 #define PMC_CONDENSE_SOLVER_INIT_SUNDIALS  11
+/** \brief Result code indicating failure to set the Jacobian-vector
+ *  product functions.
+ */
+#define PMC_CONDENSE_SOLVER_JAC_TIMES_SET  12
 
 static int condense_vf(realtype t, N_Vector y, N_Vector ydot, void *user_data);
 
@@ -61,12 +65,22 @@ static int condense_check_flag(void *flagvalue, char *funcname, int opt);
 static int condense_solver_Solve(double t, N_Vector ycur, N_Vector fcur,
 				 N_Vector r, N_Vector b, double gamma,
                                  double delta, int lr, void *user_data);
+static int condense_psetup(realtype t, N_Vector y, N_Vector fy,
+                            booleantype jok, booleantype *jcurPtr,
+                            realtype gamma, void *user_data);
+static int condense_jtsetup(realtype t, N_Vector y, N_Vector fy,
+                             void *user_data);
+static int condense_jtimes(N_Vector v, N_Vector Jv, realtype t,
+                            N_Vector y, N_Vector fy, void *user_data,
+                            N_Vector tmp);
 
 /*******************************************************/
 
 void condense_vf_f(int neq, realtype t, double *y_f, double *ydot_f);
 void condense_jac_solve_f(int neq, double t, double *ycur_f, double *fcur_f,
                           double *b_f, double gamma);
+void condense_jac_cache_f(int neq, double t, double *y_f);
+void condense_jac_times_vec_f(int neq, double *v_f, double *jv_f);
 
 /** \brief Call the ODE solver.
  *
@@ -158,9 +172,13 @@ int condense_solver(int neq, double *x_f, double *abstol_f, double reltol_f,
 	flag = CVodeSetLinearSolver(cvode_mem, LS, NULL);
 	if (condense_check_flag(&flag, "CVodeSetLinearSolver", 1))
                 return PMC_CONDENSE_SOLVER_LINSOL_SET;
-	flag = CVodeSetPreconditioner(cvode_mem, NULL, condense_solver_Solve);
+	flag = CVodeSetPreconditioner(cvode_mem, condense_psetup,
+	                               condense_solver_Solve);
 	if (condense_check_flag(&flag, "CVodeSetPreconditioner", 1))
                 return PMC_CONDENSE_SOLVER_LINSOL_PREC;
+	flag = CVodeSetJacTimes(cvode_mem, condense_jtsetup, condense_jtimes);
+	if (condense_check_flag(&flag, "CVodeSetJacTimes", 1))
+                return PMC_CONDENSE_SOLVER_JAC_TIMES_SET;
 
 	t = t_initial;
 	flag = CVode(cvode_mem, t_final, y, &t, CV_NORMAL);
@@ -305,6 +323,116 @@ static int condense_solver_Solve(double t, N_Vector ycur, N_Vector fcur,
 	free(b_f);
 	free(ycur_f);
 	free(fcur_f);
+	return(0);
+}
+#pragma GCC diagnostic pop
+
+/** \brief Preconditioner setup routine.
+ *
+ * Refreshes the cached analytic Jacobian sensitivities used by
+ * condense_solver_Solve(), unless \c jok indicates that CVODE
+ * considers the previously cached values still good enough to reuse
+ * (the standard SUNDIALS preconditioner-reuse contract: this lets
+ * CVODE itself control how often the O(n_part) Jacobian is
+ * recomputed, instead of recomputing it on every single
+ * preconditioner solve).
+ */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+static int condense_psetup(realtype t, N_Vector y, N_Vector fy,
+                            booleantype jok, booleantype *jcurPtr,
+                            realtype gamma, void *user_data)
+{
+	realtype *y_data;
+	int i, neq;
+	double *y_f;
+
+	if (jok) {
+		*jcurPtr = SUNFALSE;
+		return(0);
+	}
+
+	neq = NV_LENGTH_S(y);
+	y_data = NV_DATA_S(y);
+
+	y_f = malloc(neq * sizeof(double));
+	for (i = 0; i < neq; i++) {
+		y_f[i] = y_data[i];
+	}
+	condense_jac_cache_f(neq, t, y_f);
+	free(y_f);
+
+	*jcurPtr = SUNTRUE;
+	return(0);
+}
+#pragma GCC diagnostic pop
+
+/** \brief Jacobian-times-vector setup routine.
+ *
+ * Refreshes the cached analytic Jacobian sensitivities so
+ * condense_jtimes() can use them. Called once per Newton iteration
+ * (SUNDIALS gives no staleness flag here, unlike the preconditioner
+ * setup, since the Jacobian-vector product is meant to reflect the
+ * current linearization point so the Krylov solve stays meaningful).
+ * This still avoids the much larger cost of SUNDIALS' default
+ * finite-difference Jacobian-vector product, which would otherwise
+ * call the full ODE right-hand side once per Krylov iteration instead
+ * of once per Newton iteration.
+ */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+static int condense_jtsetup(realtype t, N_Vector y, N_Vector fy,
+                             void *user_data)
+{
+	realtype *y_data;
+	int i, neq;
+	double *y_f;
+
+	neq = NV_LENGTH_S(y);
+	y_data = NV_DATA_S(y);
+
+	y_f = malloc(neq * sizeof(double));
+	for (i = 0; i < neq; i++) {
+		y_f[i] = y_data[i];
+	}
+	condense_jac_cache_f(neq, t, y_f);
+	free(y_f);
+
+	return(0);
+}
+#pragma GCC diagnostic pop
+
+/** \brief Compute the Jacobian-vector product \f$ Jv \f$ using the
+ * analytic sensitivities cached by the most recent call to
+ * condense_psetup() or condense_jtsetup(), instead of SUNDIALS'
+ * default finite-difference approximation.
+ */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+static int condense_jtimes(N_Vector v, N_Vector Jv, realtype t,
+                            N_Vector y, N_Vector fy, void *user_data,
+                            N_Vector tmp)
+{
+	realtype *v_data, *jv_data;
+	int i, neq;
+	double *v_f, *jv_f;
+
+	neq = NV_LENGTH_S(v);
+	v_data = NV_DATA_S(v);
+	jv_data = NV_DATA_S(Jv);
+
+	v_f = malloc(neq * sizeof(double));
+	jv_f = malloc(neq * sizeof(double));
+	for (i = 0; i < neq; i++) {
+		v_f[i] = v_data[i];
+	}
+	condense_jac_times_vec_f(neq, v_f, jv_f);
+	for (i = 0; i < neq; i++) {
+		jv_data[i] = jv_f[i];
+	}
+
+	free(v_f);
+	free(jv_f);
 	return(0);
 }
 #pragma GCC diagnostic pop

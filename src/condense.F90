@@ -108,10 +108,8 @@ module pmc_condense
      real(kind=dp) :: dHdotenv_dH
   end type condense_rates_outputs_t
 
-  !> Internal-use structure for storing the per-call quantities used
-  !> by \c condense_rates() that depend only on temperature and
-  !> pressure (and so are identical for every particle within a
-  !> single call to \c condense_vf_f() or \c condense_jac()).
+  !> Internal-use structure for storing the quantities used by \c
+  !> condense_rates() that depend only on temperature and pressure.
   type condense_rates_env_t
      real(kind=dp) :: rho_w, M_w, P_0, dP0_dT_div_P0, rho_air
      real(kind=dp) :: k_a, D_v, U, V, W, X, Y, Z
@@ -139,10 +137,8 @@ module pmc_condense
   !> concentrations during calls to the ODE solver.
   real(kind=dp), allocatable :: condense_saved_num_conc(:)
 
-  !> Cache of the analytic Jacobian sensitivities dDdot_i/dD_i,
-  !> refreshed by condense_jac_cache_f() (via CVODE's jtsetup/psetup
-  !> callbacks) rather than recomputed on every preconditioner solve
-  !> or Jacobian-vector product.
+  !> Internal-use variable for storing the cached Jacobian
+  !> sensitivities dDdot_i/dD_i during calls to the ODE solver.
   real(kind=dp), allocatable :: condense_cached_dDdot_dD(:)
   !> Cached dDdot_i/dH sensitivities.
   real(kind=dp), allocatable :: condense_cached_dDdot_dH(:)
@@ -151,11 +147,8 @@ module pmc_condense
   !> Cached scalar dHdot/dH sensitivity.
   real(kind=dp) :: condense_cached_dHdot_dH
 
-  !> Jacobian sensitivities from the most recent condense_vf_f() call.
-  !> condense_rates() computes them alongside the rates anyway, and
-  !> CVODE calls jtsetup/psetup at the state it has just evaluated, so
-  !> condense_jac_cache_f() copies these instead of re-running the
-  !> particle loop when the state and time match exactly.
+  !> Internal-use variable for storing the Jacobian sensitivities
+  !> dDdot_i/dD_i from the most recent call to condense_vf_f().
   real(kind=dp), allocatable :: condense_vf_dDdot_dD(:)
   !> dDdot_i/dH from the most recent condense_vf_f() call.
   real(kind=dp), allocatable :: condense_vf_dDdot_dH(:)
@@ -176,8 +169,8 @@ module pmc_condense
   !> Internal-use variable for counting calls to the Jacobian-solving
   !> subroutine.
   integer, save :: condense_count_solve
-  !> Internal-use variable for counting calls that actually recompute
-  !> the cached Jacobian (as opposed to reusing it).
+  !> Internal-use variable for counting recomputations of the cached
+  !> Jacobian.
   integer, save :: condense_count_jac_eval
 
 contains
@@ -426,15 +419,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Compute the temperature/pressure-dependent quantities used by
-  !> \c condense_rates() that are identical for every particle within
-  !> a single call to \c condense_vf_f() or \c condense_jac(). Callers
-  !> should invoke this once per call, before looping over particles.
+  !> Compute the quantities used by \c condense_rates() that depend
+  !> only on temperature and pressure.
   subroutine condense_rates_env(inputs, env)
 
-    !> Inputs to rates (only \c T and \c p are used).
+    !> Inputs to rates.
     type(condense_rates_inputs_t), intent(in) :: inputs
-    !> Precomputed per-call environment quantities.
+    !> Temperature and pressure dependent quantities.
     type(condense_rates_env_t), intent(out) :: env
 
     env%rho_w = const%water_density
@@ -475,8 +466,7 @@ contains
 
     !> Inputs to rates.
     type(condense_rates_inputs_t), intent(in) :: inputs
-    !> Precomputed per-call environment quantities (see
-    !> \c condense_rates_env()).
+    !> Temperature and pressure dependent quantities.
     type(condense_rates_env_t), intent(in) :: env
     !> Outputs rates.
     type(condense_rates_outputs_t), intent(out) :: outputs
@@ -731,16 +721,8 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 #ifdef PMC_USE_SUNDIALS
-  !> Recompute the analytic Jacobian sensitivities and store them in
-  !> the module-level cache (\c condense_cached_*), for reuse by
-  !> \c condense_jac_solve_f() and \c condense_jac_times_vec_f().
-  !>
-  !> This is called from CVODE's \c jtsetup callback once per Newton
-  !> iteration, and from its \c psetup callback whenever CVODE decides
-  !> the previously cached Jacobian is stale (see \c jok in
-  !> \c condense_solver.c). Splitting this out avoids recomputing the
-  !> Jacobian (an O(n_part) pass with \c exp()/\c pow() calls) on
-  !> every preconditioner solve and every Jacobian-vector product.
+  !> Compute the Jacobian sensitivities and store them in the
+  !> module-level cache.
   subroutine condense_jac_cache_f(n_eqn, time, state_p) bind(c)
 
     !> Length of state vector.
@@ -777,10 +759,7 @@ contains
 
 #ifdef PMC_USE_SUNDIALS
   !> Compute the Jacobian-vector product \f$ Jv \f$ using the cached
-  !> analytic sensitivities (see \c condense_jac_cache_f()), instead
-  !> of SUNDIALS' default finite-difference approximation (which would
-  !> otherwise call the full per-particle rate function again for
-  !> every Krylov iteration).
+  !> Jacobian sensitivities.
   subroutine condense_jac_times_vec_f(n_eqn, v_p, jv_p) bind(c)
 
     !> Length of state vector.
@@ -809,9 +788,6 @@ contains
   !> Solve the system \f$ Pz = r \f$ where \f$ P = I - \gamma J \f$
   !> and \f$ J = \partial f / \partial y \f$. The solution is returned
   !> in the \f$ r \f$ vector.
-  !>
-  !> Uses the module-level Jacobian cache filled by
-  !> \c condense_jac_cache_f() rather than recomputing it here.
   subroutine condense_jac_solve_f(n_eqn, time, state_p, state_dot_p, &
        rhs_p, gamma) bind(c)
 

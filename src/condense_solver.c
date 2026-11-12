@@ -50,8 +50,8 @@
 /** \brief Result code indicating failure to allocate the SUNDIALS Context.
  */
 #define PMC_CONDENSE_SOLVER_INIT_SUNDIALS  11
-/** \brief Result code indicating failure to set the Jacobian-vector
- *  product functions.
+/** \brief Result code indicating failure to set the Jacobian-times-vector
+ * functions.
  */
 #define PMC_CONDENSE_SOLVER_JAC_TIMES_SET  12
 
@@ -327,15 +327,8 @@ static int condense_solver_Solve(double t, N_Vector ycur, N_Vector fcur,
 }
 #pragma GCC diagnostic pop
 
-/** \brief Preconditioner setup routine.
- *
- * Refreshes the cached analytic Jacobian sensitivities used by
- * condense_solver_Solve(), unless \c jok indicates that CVODE
- * considers the previously cached values still good enough to reuse
- * (the standard SUNDIALS preconditioner-reuse contract: this lets
- * CVODE itself control how often the O(n_part) Jacobian is
- * recomputed, instead of recomputing it on every single
- * preconditioner solve).
+/** \brief Preconditioner setup routine. Recomputes the cached Jacobian
+ * unless \c jok is true.
  */
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
@@ -367,17 +360,8 @@ static int condense_psetup(realtype t, N_Vector y, N_Vector fy,
 }
 #pragma GCC diagnostic pop
 
-/** \brief Jacobian-times-vector setup routine.
- *
- * Refreshes the cached analytic Jacobian sensitivities so
- * condense_jtimes() can use them. Called once per Newton iteration
- * (SUNDIALS gives no staleness flag here, unlike the preconditioner
- * setup, since the Jacobian-vector product is meant to reflect the
- * current linearization point so the Krylov solve stays meaningful).
- * This still avoids the much larger cost of SUNDIALS' default
- * finite-difference Jacobian-vector product, which would otherwise
- * call the full ODE right-hand side once per Krylov iteration instead
- * of once per Newton iteration.
+/** \brief Jacobian-times-vector setup routine. Recomputes the cached
+ * Jacobian.
  */
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
@@ -402,10 +386,7 @@ static int condense_jtsetup(realtype t, N_Vector y, N_Vector fy,
 }
 #pragma GCC diagnostic pop
 
-/** \brief Compute the Jacobian-vector product \f$ Jv \f$ using the
- * analytic sensitivities cached by the most recent call to
- * condense_psetup() or condense_jtsetup(), instead of SUNDIALS'
- * default finite-difference approximation.
+/** \brief Jacobian-times-vector routine, using the cached Jacobian.
  */
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"

@@ -108,6 +108,13 @@ module pmc_condense
      real(kind=dp) :: dHdotenv_dH
   end type condense_rates_outputs_t
 
+  !> Internal-use structure for storing the quantities used by \c
+  !> condense_rates() that depend only on temperature and pressure.
+  type condense_rates_env_t
+     real(kind=dp) :: rho_w, M_w, P_0, dP0_dT_div_P0, rho_air
+     real(kind=dp) :: k_a, D_v, U, V, W, X, Y, Z
+  end type condense_rates_env_t
+
   !> Internal-use variable for storing the aerosol data during calls
   !> to the ODE solver.
   type(aero_data_t) :: condense_saved_aero_data
@@ -130,12 +137,41 @@ module pmc_condense
   !> concentrations during calls to the ODE solver.
   real(kind=dp), allocatable :: condense_saved_num_conc(:)
 
+  !> Internal-use variable for storing the cached Jacobian
+  !> sensitivities dDdot_i/dD_i during calls to the ODE solver.
+  real(kind=dp), allocatable :: condense_cached_dDdot_dD(:)
+  !> Cached dDdot_i/dH sensitivities.
+  real(kind=dp), allocatable :: condense_cached_dDdot_dH(:)
+  !> Cached dHdot/dD_i sensitivities.
+  real(kind=dp), allocatable :: condense_cached_dHdot_dD(:)
+  !> Cached scalar dHdot/dH sensitivity.
+  real(kind=dp) :: condense_cached_dHdot_dH
+
+  !> Internal-use variable for storing the Jacobian sensitivities
+  !> dDdot_i/dD_i from the most recent call to condense_vf_f().
+  real(kind=dp), allocatable :: condense_vf_dDdot_dD(:)
+  !> dDdot_i/dH from the most recent condense_vf_f() call.
+  real(kind=dp), allocatable :: condense_vf_dDdot_dH(:)
+  !> dHdot/dD_i from the most recent condense_vf_f() call.
+  real(kind=dp), allocatable :: condense_vf_dHdot_dD(:)
+  !> dHdot/dH from the most recent condense_vf_f() call.
+  real(kind=dp) :: condense_vf_dHdot_dH
+  !> State at which the condense_vf_* sensitivities were computed.
+  real(kind=dp), allocatable :: condense_vf_state(:)
+  !> Time at which the condense_vf_* sensitivities were computed.
+  real(kind=dp) :: condense_vf_time
+  !> Whether the condense_vf_* sensitivities are valid.
+  logical :: condense_vf_valid = .false.
+
   !> Internal-use variable for counting calls to the vector field
   !> subroutine.
   integer, save :: condense_count_vf
   !> Internal-use variable for counting calls to the Jacobian-solving
   !> subroutine.
   integer, save :: condense_count_solve
+  !> Internal-use variable for counting recomputations of the cached
+  !> Jacobian.
+  integer, save :: condense_count_jac_eval
 
 contains
 
@@ -216,6 +252,14 @@ contains
     allocate(condense_saved_kappa(aero_state_n_part(aero_state)))
     allocate(condense_saved_D_dry(aero_state_n_part(aero_state)))
     allocate(condense_saved_num_conc(aero_state_n_part(aero_state)))
+    allocate(condense_cached_dDdot_dD(aero_state_n_part(aero_state)))
+    allocate(condense_cached_dDdot_dH(aero_state_n_part(aero_state)))
+    allocate(condense_cached_dHdot_dD(aero_state_n_part(aero_state)))
+    allocate(condense_vf_dDdot_dD(aero_state_n_part(aero_state)))
+    allocate(condense_vf_dDdot_dH(aero_state_n_part(aero_state)))
+    allocate(condense_vf_dHdot_dD(aero_state_n_part(aero_state)))
+    allocate(condense_vf_state(aero_state_n_part(aero_state) + 1))
+    condense_vf_valid = .false.
     ! work backwards for consistency with the later number
     ! concentration adjustment, which has specific ordering
     ! requirements
@@ -252,12 +296,14 @@ contains
     abstol_f_p = c_loc(abstol_f)
     condense_count_vf = 0
     condense_count_solve = 0
+    condense_count_jac_eval = 0
     solver_stat = condense_solver(n_eqn_f, state_f_p, abstol_f_p, reltol_f, &
          t_initial_f, t_final_f)
     call condense_check_solve(solver_stat)
     if (CONDENSE_DO_TEST_COUNTS) then
        write(0,*) 'condense_count_vf ', condense_count_vf
        write(0,*) 'condense_count_solve ', condense_count_solve
+       write(0,*) 'condense_count_jac_eval ', condense_count_jac_eval
     end if
     do i_eqn = 1,n_eqn
        state(i_eqn) = real(state_f(i_eqn), kind=dp)
@@ -324,6 +370,14 @@ contains
     deallocate(condense_saved_kappa)
     deallocate(condense_saved_D_dry)
     deallocate(condense_saved_num_conc)
+    deallocate(condense_cached_dDdot_dD)
+    deallocate(condense_cached_dDdot_dH)
+    deallocate(condense_cached_dHdot_dD)
+    deallocate(condense_vf_dDdot_dD)
+    deallocate(condense_vf_dDdot_dH)
+    deallocate(condense_vf_dHdot_dD)
+    deallocate(condense_vf_state)
+    condense_vf_valid = .false.
 
   end subroutine condense_particles
 
@@ -368,46 +422,77 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Compute the rate of change of particle diameter and relative
-  !> humidity for a single particle, together with the derivatives of
-  !> the rates with respect to the input variables.
-  subroutine condense_rates(inputs, outputs)
+  !> Compute the quantities used by \c condense_rates() that depend
+  !> only on temperature and pressure.
+  subroutine condense_rates_env(inputs, env)
 
     !> Inputs to rates.
     type(condense_rates_inputs_t), intent(in) :: inputs
+    !> Temperature and pressure dependent quantities.
+    type(condense_rates_env_t), intent(out) :: env
+
+    env%rho_w = const%water_density
+    env%M_w = const%water_molec_weight
+    env%P_0 = const%water_eq_vap_press &
+         * 10d0**(7.45d0 * (inputs%T - const%water_freeze_temp) &
+         / (inputs%T - 38d0))
+    env%dP0_dT_div_P0 = 7.45d0 * log(10d0) &
+         * (const%water_freeze_temp - 38d0) / (inputs%T - 38d0)**2
+    env%rho_air = const%air_molec_weight * inputs%p &
+         / (const%univ_gas_const * inputs%T)
+
+    env%k_a = 1d-3 * (4.39d0 + 0.071d0 * inputs%T)
+    env%D_v = 0.211d-4 / (inputs%p / const%air_std_press) &
+         * (inputs%T / 273d0)**1.94d0
+    env%U = const%water_latent_heat * env%rho_w / (4d0 * inputs%T)
+    env%V = 4d0 * env%M_w * env%P_0 &
+         / (env%rho_w * const%univ_gas_const * inputs%T)
+    env%W = const%water_latent_heat * env%M_w &
+         / (const%univ_gas_const * inputs%T)
+    env%X = 4d0 * env%M_w * const%water_surf_eng &
+         / (const%univ_gas_const * inputs%T * env%rho_w)
+    env%Y = 2d0 * env%k_a / (const%accom_coeff * env%rho_air &
+         * const%air_spec_heat) &
+         * sqrt(2d0 * const%pi * const%air_molec_weight &
+         / (const%univ_gas_const * inputs%T))
+    env%Z = 2d0 * env%D_v / const%accom_coeff * sqrt(2d0 * const%pi &
+         * env%M_w / (const%univ_gas_const * inputs%T))
+
+  end subroutine condense_rates_env
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Compute the rate of change of particle diameter and relative
+  !> humidity for a single particle, together with the derivatives of
+  !> the rates with respect to the input variables.
+  subroutine condense_rates(inputs, env, outputs)
+
+    !> Inputs to rates.
+    type(condense_rates_inputs_t), intent(in) :: inputs
+    !> Temperature and pressure dependent quantities.
+    type(condense_rates_env_t), intent(in) :: env
     !> Outputs rates.
     type(condense_rates_outputs_t), intent(out) :: outputs
 
     real(kind=dp) :: rho_w, M_w, P_0, dP0_dT_div_P0, rho_air, k_a, D_v, U
     real(kind=dp) :: V, W, X, Y, Z, k_ap, dkap_dD, D_vp, dDvp_dD
     real(kind=dp) :: a_w, daw_dD, delta_star, h, dh_ddelta, dh_dD
-    real(kind=dp) :: dh_dH, ddeltastar_dD, ddeltastar_dH
+    real(kind=dp) :: dh_dH, ddeltastar_dD, ddeltastar_dH, exp_term
     integer :: newton_step
 
-    rho_w = const%water_density
-    M_w = const%water_molec_weight
-    P_0 = const%water_eq_vap_press &
-         * 10d0**(7.45d0 * (inputs%T - const%water_freeze_temp) &
-         / (inputs%T - 38d0))
-    dP0_dT_div_P0 = 7.45d0 * log(10d0) * (const%water_freeze_temp - 38d0) &
-         / (inputs%T - 38d0)**2
-    rho_air = const%air_molec_weight * inputs%p &
-         / (const%univ_gas_const * inputs%T)
-
-    k_a = 1d-3 * (4.39d0 + 0.071d0 * inputs%T)
-    D_v = 0.211d-4 / (inputs%p / const%air_std_press) &
-         * (inputs%T / 273d0)**1.94d0
-    U = const%water_latent_heat * rho_w / (4d0 * inputs%T)
-    V = 4d0 * M_w * P_0 / (rho_w * const%univ_gas_const * inputs%T)
-    W = const%water_latent_heat * M_w / (const%univ_gas_const * inputs%T)
-    X = 4d0 * M_w * const%water_surf_eng &
-         / (const%univ_gas_const * inputs%T * rho_w)
-    Y = 2d0 * k_a / (const%accom_coeff * rho_air &
-         * const%air_spec_heat) &
-         * sqrt(2d0 * const%pi * const%air_molec_weight &
-         / (const%univ_gas_const * inputs%T))
-    Z = 2d0 * D_v / const%accom_coeff * sqrt(2d0 * const%pi * M_w &
-         / (const%univ_gas_const * inputs%T))
+    rho_w = env%rho_w
+    M_w = env%M_w
+    P_0 = env%P_0
+    dP0_dT_div_P0 = env%dP0_dT_div_P0
+    rho_air = env%rho_air
+    k_a = env%k_a
+    D_v = env%D_v
+    U = env%U
+    V = env%V
+    W = env%W
+    X = env%X
+    Y = env%Y
+    Z = env%Z
 
     outputs%Hdot_env = - dP0_dT_div_P0 * inputs%Tdot * inputs%H &
          + inputs%H * inputs%pdot / inputs%p
@@ -462,16 +547,17 @@ contains
        ! update delta_star first so when the newton loop ends we have
        ! h and dh_ddelta evaluated at the final delta_star value
        delta_star = delta_star - h / dh_ddelta
+       ! one exp() per iteration; the last one is reused for dh_dD below
+       exp_term = exp(W * delta_star / (1d0 + delta_star) &
+            + (X / inputs%D) / (1d0 + delta_star))
        h = k_ap * delta_star - U * V * D_vp &
             * (inputs%H - a_w / (1d0 + delta_star) &
-            * exp(W * delta_star / (1d0 + delta_star) &
-            + (X / inputs%D) / (1d0 + delta_star)))
+            * exp_term)
        dh_ddelta = &
             k_ap - U * V * D_vp * a_w / (1d0 + delta_star)**2 &
             * (1d0 - W / (1d0 + delta_star) &
             + (X / inputs%D) / (1d0 + delta_star)) &
-            * exp(W * delta_star / (1d0 + delta_star) &
-            + (X / inputs%D) / (1d0 + delta_star))
+            * exp_term
     end do
     call warn_assert_msg(387362320, &
          abs(h) < 1d3 * epsilon(1d0) * abs(U * V * D_vp * inputs%H), &
@@ -486,8 +572,7 @@ contains
          * (a_w * dDvp_dD + D_vp * daw_dD &
          - D_vp * a_w * (X / inputs%D**2) / (1d0 + delta_star)) &
          * (1d0 / (1d0 + delta_star)) &
-         * exp((W * delta_star) / (1d0 + delta_star) &
-         + (X / inputs%D) / (1d0 + delta_star))
+         * exp_term
     dh_dH = - U * V * D_vp
 
     ddeltastar_dD = - dh_dD / dh_ddelta
@@ -525,6 +610,7 @@ contains
     real(kind=dp) :: Hdot
     integer :: i_part
     type(condense_rates_inputs_t) :: inputs
+    type(condense_rates_env_t) :: env
     type(condense_rates_outputs_t) :: outputs
 
     condense_count_vf = condense_count_vf + 1
@@ -540,7 +626,10 @@ contains
     inputs%pdot = condense_saved_pdot
     inputs%H = state(n_eqn)
 
+    call condense_rates_env(inputs, env)
+
     Hdot = 0d0
+    condense_vf_dHdot_dH = 0d0
     do i_part = 1,(n_eqn - 1)
        inputs%D = state(i_part)
        inputs%D_dry = condense_saved_D_dry(i_part)
@@ -549,13 +638,23 @@ contains
             / (condense_saved_env_state_initial%temp * inputs%p) &
             / condense_saved_num_conc(i_part)
        inputs%kappa = condense_saved_kappa(i_part)
-       call condense_rates(inputs, outputs)
+       call condense_rates(inputs, env, outputs)
        state_dot(i_part) = outputs%Ddot
        Hdot = Hdot + outputs%Hdot_i
+       ! same expressions, in the same order, as condense_jac()
+       condense_vf_dDdot_dD(i_part) = outputs%dDdot_dD
+       condense_vf_dDdot_dH(i_part) = outputs%dDdot_dH
+       condense_vf_dHdot_dD(i_part) = outputs%dHdoti_dD + outputs%dHdotenv_dD
+       condense_vf_dHdot_dH = condense_vf_dHdot_dH + outputs%dHdoti_dH
     end do
     Hdot = Hdot + outputs%Hdot_env
+    condense_vf_dHdot_dH = condense_vf_dHdot_dH + outputs%dHdotenv_dH
 
     state_dot(n_eqn) = Hdot
+
+    condense_vf_state = state
+    condense_vf_time = time
+    condense_vf_valid = .true.
 
   end subroutine condense_vf_f
 #endif
@@ -587,6 +686,7 @@ contains
     real(kind=c_double), pointer :: state(:)
     integer :: i_part
     type(condense_rates_inputs_t) :: inputs
+    type(condense_rates_env_t) :: env
     type(condense_rates_outputs_t) :: outputs
 
     call c_f_pointer(state_p, state, (/ n_eqn /))
@@ -599,6 +699,8 @@ contains
     inputs%pdot = condense_saved_pdot
     inputs%H = state(n_eqn)
 
+    call condense_rates_env(inputs, env)
+
     dHdot_dH = 0d0
     do i_part = 1,(n_eqn - 1)
        inputs%D = state(i_part)
@@ -608,7 +710,7 @@ contains
             / (condense_saved_env_state_initial%temp * inputs%p) &
             / condense_saved_num_conc(i_part)
        inputs%kappa = condense_saved_kappa(i_part)
-       call condense_rates(inputs, outputs)
+       call condense_rates(inputs, env, outputs)
        dDdot_dD(i_part) = outputs%dDdot_dD
        dDdot_dH(i_part) = outputs%dDdot_dH
        dHdot_dD(i_part) = outputs%dHdoti_dD + outputs%dHdotenv_dD
@@ -617,6 +719,70 @@ contains
     dHdot_dH = dHdot_dH + outputs%dHdotenv_dH
 
   end subroutine condense_jac
+#endif
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+#ifdef PMC_USE_SUNDIALS
+  !> Compute the Jacobian sensitivities and store them in the
+  !> module-level cache.
+  subroutine condense_jac_cache_f(n_eqn, time, state_p) bind(c)
+
+    !> Length of state vector.
+    integer(kind=c_int), value, intent(in) :: n_eqn
+    !> Current time (s).
+    real(kind=c_double), value, intent(in) :: time
+    !> Pointer to current state vector.
+    type(c_ptr), value, intent(in) :: state_p
+
+    real(kind=c_double), pointer :: state(:)
+
+    call c_f_pointer(state_p, state, (/ n_eqn /))
+    if (condense_vf_valid) then
+       if ((time == condense_vf_time) &
+            .and. all(state == condense_vf_state)) then
+          condense_cached_dDdot_dD = condense_vf_dDdot_dD
+          condense_cached_dDdot_dH = condense_vf_dDdot_dH
+          condense_cached_dHdot_dD = condense_vf_dHdot_dD
+          condense_cached_dHdot_dH = condense_vf_dHdot_dH
+          return
+       end if
+    end if
+
+    condense_count_jac_eval = condense_count_jac_eval + 1
+
+    call condense_jac(n_eqn, time, state_p, condense_cached_dDdot_dD, &
+         condense_cached_dDdot_dH, condense_cached_dHdot_dD, &
+         condense_cached_dHdot_dH)
+
+  end subroutine condense_jac_cache_f
+#endif
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+#ifdef PMC_USE_SUNDIALS
+  !> Compute the Jacobian-vector product \f$ Jv \f$ using the cached
+  !> Jacobian sensitivities.
+  subroutine condense_jac_times_vec_f(n_eqn, v_p, jv_p) bind(c)
+
+    !> Length of state vector.
+    integer(kind=c_int), value, intent(in) :: n_eqn
+    !> Pointer to the vector \c v being multiplied.
+    type(c_ptr), value, intent(in) :: v_p
+    !> Pointer to the output vector \c Jv.
+    type(c_ptr), value, intent(in) :: jv_p
+
+    real(kind=c_double), pointer :: v(:), jv(:)
+
+    call c_f_pointer(v_p, v, (/ n_eqn /))
+    call c_f_pointer(jv_p, jv, (/ n_eqn /))
+
+    jv(1:(n_eqn - 1)) = condense_cached_dDdot_dD * v(1:(n_eqn - 1)) &
+         + condense_cached_dDdot_dH * v(n_eqn)
+    jv(n_eqn) = sum(condense_cached_dHdot_dD * v(1:(n_eqn - 1))) &
+         + condense_cached_dHdot_dH * v(n_eqn)
+
+  end subroutine condense_jac_times_vec_f
 #endif
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -643,8 +809,6 @@ contains
 
     real(kind=c_double), pointer :: state(:), state_dot(:), rhs(:)
     real(kind=c_double) :: soln(n_eqn)
-    real(kind=dp) :: dDdot_dD(n_eqn - 1), dDdot_dH(n_eqn - 1)
-    real(kind=dp) :: dHdot_dD(n_eqn - 1), dHdot_dH
     real(kind=dp) :: lhs_n, rhs_n
     real(kind=c_double) :: residual(n_eqn)
     real(kind=dp) :: rhs_norm, soln_norm, residual_norm
@@ -652,38 +816,37 @@ contains
 
     condense_count_solve = condense_count_solve + 1
 
-    call condense_jac(n_eqn, time, state_p, dDdot_dD, dDdot_dH, &
-         dHdot_dD, dHdot_dH)
-
     call c_f_pointer(state_p, state, (/ n_eqn /))
     call c_f_pointer(state_dot_p, state_dot, (/ n_eqn /))
     call c_f_pointer(rhs_p, rhs, (/ n_eqn /))
 
     !FIXME: write this all in matrix-vector notation, no i_part looping
-    lhs_n = 1d0 - gamma * dHdot_dH
+    lhs_n = 1d0 - gamma * condense_cached_dHdot_dH
     rhs_n = rhs(n_eqn)
     do i_part = 1,(n_eqn - 1)
-       lhs_n = lhs_n - (- gamma * dDdot_dH(i_part)) &
-            * (- gamma * dHdot_dD(i_part)) / (1d0 - gamma * dDdot_dD(i_part))
-       rhs_n = rhs_n - (- gamma * dHdot_dD(i_part)) * rhs(i_part) &
-            / (1d0 - gamma * dDdot_dD(i_part))
+       lhs_n = lhs_n - (- gamma * condense_cached_dDdot_dH(i_part)) &
+            * (- gamma * condense_cached_dHdot_dD(i_part)) &
+            / (1d0 - gamma * condense_cached_dDdot_dD(i_part))
+       rhs_n = rhs_n &
+            - (- gamma * condense_cached_dHdot_dD(i_part)) * rhs(i_part) &
+            / (1d0 - gamma * condense_cached_dDdot_dD(i_part))
     end do
     soln(n_eqn) = rhs_n / lhs_n
 
     do i_part = 1,(n_eqn - 1)
        soln(i_part) = (rhs(i_part) &
-            - (- gamma * dDdot_dH(i_part)) * soln(n_eqn)) &
-            / (1d0 - gamma * dDdot_dD(i_part))
+            - (- gamma * condense_cached_dDdot_dH(i_part)) * soln(n_eqn)) &
+            / (1d0 - gamma * condense_cached_dDdot_dD(i_part))
     end do
 
     if (CONDENSE_DO_TEST_JAC_SOLVE) then
        ! (I - g J) soln = rhs
 
        ! residual = J soln
-       residual(n_eqn) = sum(dHdot_dD * soln(1:(n_eqn-1))) &
-            + dHdot_dH * soln(n_eqn)
-       residual(1:(n_eqn-1)) = dDdot_dD * soln(1:(n_eqn-1)) &
-            + dDdot_dH * soln(n_eqn)
+       residual(n_eqn) = sum(condense_cached_dHdot_dD * soln(1:(n_eqn-1))) &
+            + condense_cached_dHdot_dH * soln(n_eqn)
+       residual(1:(n_eqn-1)) = condense_cached_dDdot_dD * soln(1:(n_eqn-1)) &
+            + condense_cached_dDdot_dH * soln(n_eqn)
 
        residual = rhs - (soln - gamma * residual)
        rhs_norm = sqrt(sum(rhs**2))

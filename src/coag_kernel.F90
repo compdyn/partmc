@@ -400,7 +400,7 @@ contains
     real(kind=dp) :: i_r, j_r, ij_r, ij_nc_i, ij_nc_j
 
     i_r = bin_grid%centers(i_bin)
-    j_r = bin_grid%centers(i_bin)
+    j_r = bin_grid%centers(j_bin)
     ij_r = aero_data_vol2rad(aero_data, aero_data_rad2vol(aero_data, i_r) &
          + aero_data_rad2vol(aero_data, j_r))
     ij_nc_i = aero_weight_array_num_conc_at_radius(aero_weight_array, &

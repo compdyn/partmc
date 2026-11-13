@@ -449,7 +449,7 @@ $(function() {
 <div class="line"><a name="l00400"></a><span class="lineno">  400</span>&#160;<span class="keywordtype">    real</span>(kind=<a class="code" href="namespacepmc__constants.html#a396b7709ed4da67dac74cb46a1466ed6">dp</a>) :: i_r, j_r, ij_r, ij_nc_i, ij_nc_j</div>
 <div class="line"><a name="l00401"></a><span class="lineno">  401</span>&#160; </div>
 <div class="line"><a name="l00402"></a><span class="lineno">  402</span>&#160;    i_r = bin_grid%centers(i_bin)</div>
-<div class="line"><a name="l00403"></a><span class="lineno">  403</span>&#160;    j_r = bin_grid%centers(j_bin)</div>
+<div class="line"><a name="l00403"></a><span class="lineno">  403</span>&#160;    j_r = bin_grid%centers(i_bin)</div>
 <div class="line"><a name="l00404"></a><span class="lineno">  404</span>&#160;    ij_r = <a class="code" href="namespacepmc__aero__data.html#a807a9e4daf3a31625a1ddb3a179fb1e7">aero_data_vol2rad</a>(aero_data, <a class="code" href="namespacepmc__aero__data.html#a23092e214084d2b6ede337d0437c9358">aero_data_rad2vol</a>(aero_data, i_r) &amp;</div>
 <div class="line"><a name="l00405"></a><span class="lineno">  405</span>&#160;         + <a class="code" href="namespacepmc__aero__data.html#a23092e214084d2b6ede337d0437c9358">aero_data_rad2vol</a>(aero_data, j_r))</div>
 <div class="line"><a name="l00406"></a><span class="lineno">  406</span>&#160;    ij_nc_i = <a class="code" href="namespacepmc__aero__weight__array.html#a8a39b084f2952ba5f1068eadac2c48ed">aero_weight_array_num_conc_at_radius</a>(aero_weight_array, &amp;</div>

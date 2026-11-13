@@ -291,6 +291,9 @@ contains
        water_vol_conc_final = water_vol_conc_final &
             + aero_state%apa%particle(i_part)%vol(aero_data%i_water) * num_conc
     end do
+    ! particle sizes have changed, so the size bins are out of date
+    aero_state%valid_sort = .false.
+
     ! adjust particles to account for weight changes
     call aero_state_reweight(aero_state, aero_data, reweight_num_conc)
 

@@ -654,6 +654,7 @@ contains
           close(unit)
        end if
     end do
+    call free_unit(unit)
     n_index = index - 1
 
   end subroutine input_n_files

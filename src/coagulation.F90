@@ -413,6 +413,7 @@ contains
             aero_state%aero_sorted%size_class%inverse(bs, cs)) == 0) exit
        if ((n_samp > n_samp_remove) .and. (n_avg >= 2)) then
           vol_mean = source_particle%vol / real(n_avg, kind=dp)
+          vol_cv = 0d0
           where(vol_mean > 0d0) &
                vol_cv = sqrt(vol_sq / real(n_avg, kind=dp) - (vol_mean)**2) &
                / vol_mean

@@ -26,6 +26,7 @@ gas_background gas_back.dat     # background gas mixing ratios file
 aero_emissions aero_emit.dat    # aerosol emissions file
 aero_background aero_back.dat   # aerosol background file
 loss_function drydep            # loss function specification
+drydep_use_defaults yes         # whether to use default drydep parameters (yes/no)
 
 rel_humidity 0.999              # initial relative humidity (1)
 latitude 40                     # latitude (degrees, -90 to 90)

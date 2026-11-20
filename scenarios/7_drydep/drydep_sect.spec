@@ -26,6 +26,7 @@ gas_background gas_back.dat            # background gas concentrations file
 aero_emissions aero_emit.dat           # aerosol emissions file
 aero_background aero_back.dat          # aerosol background file
 loss_function drydep                   # loss function specification
+drydep_use_defaults no                 # whether to use default drydep parameters (yes/no)
 drydep_params drydep_params.dat        # dry deposition parameters
 
 rel_humidity 0.95                      # initial relative humidity (1)

@@ -1223,7 +1223,7 @@ contains
     character(len=PMC_MAX_FILENAME_LEN) :: sub_filename
     type(spec_file_t) :: sub_file
     character(len=SPEC_LINE_MAX_VAR_LEN) :: function_name
-    type(spec_line_t) :: line
+    logical :: drydep_use_defaults
 
     ! note that we have to hard-code the list for doxygen below
 
@@ -1258,12 +1258,14 @@ contains
     !!      to particle volume, \c drydep for particle loss proportional
     !!      to dry deposition velocity, or \c chamber for a chamber model.
     !!      Sectional and modal runs support only \c none and \c drydep.
-    !!      If \c loss_function is \c drydep, it may be followed by
-    !!      \b drydep_params (string), the name of the file from which to
-    !!      read the dry deposition parameters --- the file format should
-    !!      be \subpage input_format_drydep_params. If \c drydep_params is
-    !!      omitted, the default parameters are used and a warning is
-    !!      printed.
+    !!      If \c loss_function is \c drydep, then the following
+    !!      parameters must also be provided:
+    !!      - \b drydep_use_defaults (logical): whether to use the default
+    !!        dry deposition parameters. If \c drydep_use_defaults is
+    !!        \c no, then the following parameter must also be provided:
+    !!        - \b drydep_params (string): the name of the file from which
+    !!          to read the dry deposition parameters --- the file format
+    !!          should be \subpage input_format_drydep_params
     !!      If \c loss_function is \c chamber, then the following
     !!      parameters must also be provided:
     !!      - \subpage input_format_chamber
@@ -1335,11 +1337,9 @@ contains
        scenario%loss_function_type = SCENARIO_LOSS_FUNCTION_VOLUME
     else if (trim(function_name) == 'drydep') then
        scenario%loss_function_type = SCENARIO_LOSS_FUNCTION_DRYDEP
-       call spec_file_read_line_no_eof(file, line)
-       call spec_file_unread_line(file)
-       if (line%name /= 'drydep_params') then
-          call warn_msg(735291468, "using default dry deposition parameters")
-       else
+       call spec_file_read_logical(file, 'drydep_use_defaults', &
+            drydep_use_defaults)
+       if (.not. drydep_use_defaults) then
           call spec_file_read_string(file, 'drydep_params', sub_filename)
           call spec_file_open(sub_filename, sub_file)
           call spec_file_read_drydep_params(sub_file, scenario%drydep)

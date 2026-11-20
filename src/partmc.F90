@@ -732,9 +732,10 @@ contains
     !!   format should be \subpage input_format_aero_dist
     !! - \subpage input_format_scenario
     !! - \subpage input_format_env_state
-    !! - \b do_aero_dilution (logical, optional): whether to apply aerosol
-    !!   dilution (default \c yes). It may only be given when
-    !!   \c loss_function is \c drydep. If \c no, both the
+    !! - \b do_aero_dilution (logical): whether to apply aerosol
+    !!   dilution. It must be given when \c loss_function is \c drydep,
+    !!   and must be omitted otherwise (dilution is then always
+    !!   applied). If \c no, both the
     !!   background-exchange dilution and the mixing-layer-growth dilution
     !!   are skipped, so dry deposition can be studied in isolation with a
     !!   time-varying mixing height.
@@ -892,6 +893,7 @@ contains
     !! aero_emissions aero_emit.dat     # aerosol emissions file
     !! aero_background aero_back.dat    # aerosol background file
     !! loss_function drydep             # loss function specification
+    !! drydep_use_defaults no           # use default drydep params (yes/no)
     !! drydep_params drydep_params.dat  # dry deposition parameters
     !!
     !! rel_humidity 0.95  # initial relative humidity (1)

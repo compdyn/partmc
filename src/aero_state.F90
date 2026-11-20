@@ -1677,6 +1677,33 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Returns the critical relative humidity for all particles (1) using
+  !> the effective surface tension (EST).
+  function aero_state_crit_rel_humids_est(aero_state, aero_data, env_state)
+
+    !> Aerosol state.
+    type(aero_state_t), intent(in) :: aero_state
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+
+    !> Return value.
+    real(kind=dp) :: aero_state_crit_rel_humids_est(aero_state_n_part(aero_state))
+
+    integer :: i_part
+
+    do i_part = 1,aero_state_n_part(aero_state)
+       aero_state_crit_rel_humids_est(i_part) = &
+            aero_particle_crit_rel_humid_est( &
+            aero_state%apa%particle(i_part), aero_data, env_state)
+    end do
+
+  end function aero_state_crit_rel_humids_est
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
   !> Does the same thing as aero_state_to_bin() but based on dry radius.
   subroutine aero_state_to_binned_dry(bin_grid, aero_data, aero_state, &
        aero_binned)

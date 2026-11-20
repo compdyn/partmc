@@ -13,6 +13,7 @@ module pmc_aero_particle
   use pmc_aero_data
   use pmc_spec_file
   use pmc_env_state
+  use pmc_constants
   use pmc_mpi
 #ifdef PMC_USE_MPI
   use mpi
@@ -795,7 +796,10 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Returns the critical relative humidity (1).
+  !> Returns the critical relative humidity (1) using a constant water
+  !> surface tension. For the effective surface tension (EST) treatment
+  !> that accounts for organic surface films, use
+  !> aero_particle_crit_rel_humid_est instead.
   real(kind=dp) function aero_particle_crit_rel_humid(aero_particle, &
        aero_data, env_state)
 
@@ -824,6 +828,41 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Returns the critical relative humidity (1) using the effective
+  !> surface tension (EST), accounting for organic surface films via the
+  !> per-species sigma in aero_data. For the standard constant surface
+  !> tension treatment, use aero_particle_crit_rel_humid.
+  real(kind=dp) function aero_particle_crit_rel_humid_est(aero_particle, &
+       aero_data, env_state)
+
+    !> Aerosol particle.
+    type(aero_particle_t), intent(in) :: aero_particle
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+
+    real(kind=dp) :: A, dry_diam, kappa, d, eff_surf_eng
+
+    ! Kelvin A parameter without surface tension; the effective surface
+    ! tension (eff_surf_eng) is applied explicitly below.
+    A = 4d0 * const%water_molec_weight &
+         / (const%univ_gas_const * env_state%temp * const%water_density)
+    dry_diam = aero_particle_dry_diameter(aero_particle, aero_data)
+    kappa = aero_particle_solute_kappa(aero_particle, aero_data)
+    d = aero_particle_crit_diameter_est(aero_particle, aero_data, env_state, &
+         eff_surf_eng)
+
+    if (d == dry_diam) then
+       aero_particle_crit_rel_humid_est = exp(A * eff_surf_eng / dry_diam)
+    else
+       aero_particle_crit_rel_humid_est = (d**3 - dry_diam**3) &
+            / (d**3 - dry_diam**3 * (1d0 - kappa)) * exp(A * eff_surf_eng / d)
+    end if
+
+  end function aero_particle_crit_rel_humid_est
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Returns the critical diameter (m).
   !!
   !! The method is as follows. We need to solve the polynomial
@@ -909,7 +948,395 @@ contains
     aero_particle_crit_diameter = d
 
   end function aero_particle_crit_diameter
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Returns the critical diameter (m) using the effective surface
+  !> tension (EST). Also returns the effective surface tension at the
+  !> critical diameter through eff_surf_eng.
+  !!
+  !! With an organic surface film the effective surface tension varies
+  !! with wet diameter (it transitions from the organic value on a thick
+  !! film to the soluble-core value once the film is diluted). This can
+  !! give the equilibrium (Kohler) saturation curve S(D) two local
+  !! maxima. The critical supersaturation is the largest barrier the
+  !! droplet must cross, i.e. the *global* maximum of S(D) for D >
+  !! D_dry, and the critical diameter is the D at which it occurs.
+  !!
+  !! We locate the global maximum with a coarse logarithmic scan of S(D)
+  !! and then refine the corresponding stationary point (a root of the
+  !! equilibrium condition f(D) = 0, where f = 0 at every extremum of
+  !! S(D)) with a bracketed Newton iteration (rtsafe). Unlike an
+  !! unbracketed Newton started far from D_dry, this cannot run away to a
+  !! negative diameter or converge onto the wrong (outer) root, so it is
+  !! robust across the whole particle population.
+  real(kind=dp) function aero_particle_crit_diameter_est(&
+       aero_particle, aero_data, env_state, eff_surf_eng)
+
+    !> Aerosol particle.
+    type(aero_particle_t), intent(in) :: aero_particle
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+    !> Effective surface tension at the critical diameter (J m^-2).
+    real(kind=dp), intent(out) :: eff_surf_eng
+
+    integer, parameter :: CRIT_DIAM_MAX_ITER = 100
+    integer, parameter :: CRIT_DIAM_N_SCAN = 300
+    real(kind=dp), parameter :: CRIT_DIAM_SCAN_MAX_FACTOR = 1d4
+    real(kind=dp), parameter :: delta_min = 1.6d-10
+    integer :: i, i_newton, i_best
+    real(kind=dp) :: kappa, dry_diam, A, surf_eng_organic, v_solid, v_org
+    real(kind=dp) :: soluble_volume, sum_sol_sigma
+    real(kind=dp) :: r_solid, v_delta_solid, c_1, c_2, c_3, c_4
+    real(kind=dp) :: d, f, df, eff, s, s_best, d_best, log_fac
+    real(kind=dp) :: x_lo, x_hi, f_lo, f_hi, dd, dxold
+    logical :: valid
+
+    ! Kelvin A parameter without surface tension; the effective surface
+    ! tension is applied explicitly through the eff_surf_eng terms below.
+    A = 4d0 * const%water_molec_weight &
+         / (const%univ_gas_const * env_state%temp * const%water_density)
+    kappa = aero_particle_solute_kappa(aero_particle, aero_data)
+    dry_diam = aero_particle_dry_diameter(aero_particle, aero_data)
+    surf_eng_organic = aero_particle_surf_eng_organic(aero_particle, aero_data)
+    v_solid = aero_particle_solid_volume(aero_particle, aero_data)
+    v_org = aero_particle_organic_volume(aero_particle, aero_data)
+    ! These soluble sums are constant for the particle, so resolve them (and the
+    ! species-name lookups they need) once here rather than on every scan point.
+    call aero_particle_soluble_sums(aero_particle, aero_data, soluble_volume, &
+         sum_sol_sigma)
+
+    c_1 = 3d0 * dry_diam**3 * kappa / A
+    c_2 = (2d0 - kappa) * dry_diam**3
+    c_3 = (1d0 - kappa) * dry_diam**6
+    c_4 = 2d0 * const%pi * delta_min ! d_2_v_delta_d
+    if (v_solid > 0d0) then
+       r_solid = sphere_vol2rad(v_solid)
+       v_delta_solid = sphere_rad2vol(r_solid + delta_min) &
+            - sphere_rad2vol(r_solid)
+    end if
+
+    if (kappa < 1d-30) then
+       ! Hydrophobic particle: no soluble material, so there is no Köhler
+       ! activation barrier. Return the dry diameter; the effective surface
+       ! tension is undefined without a soluble core, so report it as zero
+       ! (the film model divides by a soluble volume that is zero at D_dry).
+       aero_particle_crit_diameter_est = dry_diam
+       eff_surf_eng = 0d0
+       return
+    end if
+
+    ! Coarse logarithmic scan for the global maximum of the Kohler curve.
+    log_fac = log(CRIT_DIAM_SCAN_MAX_FACTOR) &
+         / real(CRIT_DIAM_N_SCAN - 1, kind=dp)
+    d_best = dry_diam
+    s_best = - huge(1d0)
+    i_best = 0
+    do i = 1, CRIT_DIAM_N_SCAN
+       d = dry_diam * exp(log_fac * real(i - 1, kind=dp))
+       call est_residual(d, f, df, eff, valid)
+       if (.not. valid) cycle
+       s = (d**3 - dry_diam**3) / (d**3 - dry_diam**3 * (1d0 - kappa)) &
+            * exp(A * eff / d)
+       if (s > s_best) then
+          s_best = s
+          d_best = d
+          i_best = i
+       end if
+    end do
+
+    if (i_best <= 1) then
+       ! no activation barrier resolved above D_dry: treat as non-activating
+       aero_particle_crit_diameter_est = dry_diam
+       call est_residual(dry_diam, f, df, eff_surf_eng, valid)
+       return
+    end if
+
+    ! The one remaining failure mode: the global maximum lies beyond the top
+    ! of the scan range (i_best at the last node). The bracket expansion below
+    ! still tries to recover it, but flag it so it is not silently trusted.
+    call warn_assert_msg(408545686, i_best < CRIT_DIAM_N_SCAN, &
+         "critical diameter scan reached its upper bound; " &
+         // "the Köhler maximum may lie above CRIT_DIAM_SCAN_MAX_FACTOR * D_dry")
+
+    ! Bracket the stationary point around the coarse maximum: f < 0 while
+    ! S is still rising and f > 0 once S is falling.
+    x_lo = dry_diam * exp(log_fac * real(i_best - 2, kind=dp))
+    x_hi = dry_diam * exp(log_fac &
+         * real(min(i_best + 1, CRIT_DIAM_N_SCAN) - 1, kind=dp))
+    call est_residual(x_lo, f_lo, df, eff, valid)
+    call est_residual(x_hi, f_hi, df, eff, valid)
+    do i = 1, CRIT_DIAM_MAX_ITER
+       if (f_lo <= 0d0) exit
+       x_lo = x_lo / 1.1d0
+       call est_residual(x_lo, f_lo, df, eff, valid)
+    end do
+    do i = 1, CRIT_DIAM_MAX_ITER
+       if (f_hi >= 0d0) exit
+       x_hi = x_hi * 1.1d0
+       call est_residual(x_hi, f_hi, df, eff, valid)
+    end do
+
+    ! Safeguarded Newton (rtsafe) on f(D) = 0 within [x_lo, x_hi].
+    d = d_best
+    dxold = x_hi - x_lo
+    dd = dxold
+    do i_newton = 1, CRIT_DIAM_MAX_ITER
+       call est_residual(d, f, df, eff, valid)
+       if (f < 0d0) then
+          x_lo = d
+       else
+          x_hi = d
+       end if
+       if ((df == 0d0) &
+            .or. (((d - x_hi) * df - f) * ((d - x_lo) * df - f) > 0d0) &
+            .or. (abs(2d0 * f) > abs(dxold * df))) then
+          dxold = dd
+          dd = 0.5d0 * (x_hi - x_lo)
+          d = x_lo + dd
+       else
+          dxold = dd
+          dd = f / df
+          d = d - dd
+       end if
+       if (abs(dd) < 1d-13 * d) exit
+    end do
+
+    ! No convergence assert is needed here: the bracketed solver cannot leave
+    ! [x_lo, x_hi], and d >= dry_diam holds by construction (the scan starts at
+    ! D_dry). The only genuine failure mode is caught by the scan-range warning
+    ! above. (Warning 353290871 is retired for that reason.)
+
+    ! Report the effective surface tension at the critical diameter.
+    call est_residual(d, f, df, eff_surf_eng, valid)
+    aero_particle_crit_diameter_est = d
+
+  contains
+
+    !> Evaluates the equilibrium residual f(d) and its derivative df(d)
+    !> together with the effective surface tension eff(d) at wet diameter
+    !> d, for the host particle. valid is .false. in the degenerate
+    !> regime where an organic film cannot even coat the insoluble core,
+    !> in which case the particle is treated as non-activating.
+    subroutine est_residual(d, f, df, eff, valid)
+
+      !> Wet diameter (m).
+      real(kind=dp), intent(in) :: d
+      !> Equilibrium residual (zero at every extremum of S(d)).
+      real(kind=dp), intent(out) :: f
+      !> Derivative of the residual with respect to d.
+      real(kind=dp), intent(out) :: df
+      !> Effective surface tension at d (J m^-2).
+      real(kind=dp), intent(out) :: eff
+      !> Whether d is in the activating regime.
+      logical, intent(out) :: valid
+
+      real(kind=dp) :: surf_eng_soluble, c_5, v_sol, v_water, r_core, v_delta
+
+      v_sol = sphere_diam2vol(d) - v_solid - v_org
+      if (v_sol <= 0d0) then
+         ! Diameter below the dry soluble volume: not a physical wet state, and
+         ! below the activation barrier. Flag invalid (f < 0 so the bracketed
+         ! solver moves the search up out of it).
+         eff = const%water_surf_eng
+         f = -1d0
+         df = 0d0
+         valid = .false.
+         return
+      end if
+      valid = .true.
+      ! Volume-weighted surface tension of the soluble core, evaluated from the
+      ! per-particle sums precomputed in the caller (no per-call species lookup).
+      v_water = v_sol - soluble_volume
+      surf_eng_soluble = (sum_sol_sigma + v_water * const%water_surf_eng) / v_sol
+      c_5 = v_org * (surf_eng_organic - surf_eng_soluble)
+      if (v_solid == 0d0) then
+         r_core = sphere_vol2rad(v_sol)
+         v_delta = sphere_rad2vol(r_core + delta_min) - sphere_rad2vol(r_core)
+         call est_poly(d, surf_eng_soluble, c_5, v_delta, f, df, eff)
+      else
+         if (v_sol + v_org > v_delta_solid) then
+            r_core = sphere_vol2rad(v_sol + v_solid)
+            v_delta = sphere_rad2vol(r_core + delta_min) &
+                 - sphere_rad2vol(r_core)
+            call est_poly(d, surf_eng_soluble, c_5, v_delta, f, df, eff)
+         else
+            ! Film cannot form a delta-shell around the solid core: this
+            ! non-activating regime lies below the activation barrier, so
+            ! we return f < 0 (df = 0 forces the safeguarded solver to take
+            ! a bisection step that moves the search up out of it).
+            eff = (v_org * surf_eng_organic + v_sol * surf_eng_soluble) &
+                 / v_delta_solid
+            f = -1d0
+            df = 0d0
+            valid = .false.
+         end if
+      end if
+
+    end subroutine est_residual
+
+    !> Evaluates the equilibrium residual, its derivative and the
+    !> effective surface tension in the shell-forming regime, given the
+    !> soluble surface tension and delta-shell volume at diameter d.
+    subroutine est_poly(d, surf_eng_soluble, c_5, v_delta, f, df, eff)
+
+      real(kind=dp), intent(in) :: d, surf_eng_soluble, c_5, v_delta
+      real(kind=dp), intent(out) :: f, df, eff
+
+      real(kind=dp) :: d_v_delta, d_eff_surf_eng, d_2_eff_surf_eng, R, d_R
+
+      if (v_org > v_delta) then
+         eff = surf_eng_organic
+         f = d**6 - c_1 * d**4 / eff - c_2 * d**3 + c_3
+         df = 6d0 * d**5 - 4d0 * c_1 * d**3 / eff - 3d0 * c_2 * d**2
+      else if (v_org == 0d0) then
+         eff = surf_eng_soluble
+         f = d**6 - c_1 * d**4 / eff - c_2 * d**3 + c_3
+         df = 6d0 * d**5 - 4d0 * c_1 * d**3 / eff - 3d0 * c_2 * d**2
+      else
+         eff = surf_eng_soluble + c_5 / v_delta
+         d_v_delta = 2d0 * const%pi * delta_min * (d - delta_min)
+         d_eff_surf_eng = - c_5 * d_v_delta / v_delta**2
+         R = eff - d * d_eff_surf_eng
+         d_2_eff_surf_eng = (c_5 / v_delta**3) &
+              * (2d0 * d_v_delta**2 - v_delta * c_4)
+         d_R = - d * d_2_eff_surf_eng
+         f = R * (d**6 - c_2 * d**3 + c_3) - c_1 * d**4
+         df = d_R * (d**6 - c_2 * d**3 + c_3) &
+              + R * (6d0 * d**5 - 3d0 * c_2 * d**2) - 4d0 * c_1 * d**3
+      end if
+
+    end subroutine est_poly
+
+  end function aero_particle_crit_diameter_est
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Total organic volume in the particle (m^3).
+  real(kind=dp) function aero_particle_organic_volume(aero_particle, aero_data)
+
+    !> Particle.
+    type(aero_particle_t), intent(in) :: aero_particle
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    integer :: i_org_spec, i_spec
+    character(len=AERO_NAME_LEN), parameter, dimension(10) :: &
+    org_spec = ["MSA   ", "ARO1  ", "ARO2  ", "ALK1  ", "OLE1  ", &
+                "API1  ", "API2  ", "LIM1  ", "LIM2  ", "OC    "]
+
+    aero_particle_organic_volume = 0d0
+
+    do i_org_spec = 1, size(org_spec)
+       i_spec = aero_data_spec_by_name(aero_data, org_spec(i_org_spec))
+       ! aero_data_spec_by_name returns 0 for a name absent from aero_data;
+       ! skip it rather than indexing vol(0) out of bounds.
+       if (i_spec > 0) then
+          aero_particle_organic_volume = aero_particle_organic_volume &
+               + aero_particle%vol(i_spec)
+       end if
+    end do
+
+  end function aero_particle_organic_volume
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Total solid (insoluble) volume in the particle (m^3).
+  real(kind=dp) function aero_particle_solid_volume(aero_particle, aero_data)
+
+    !> Particle.
+    type(aero_particle_t), intent(in) :: aero_particle
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    integer :: i_solid_spec, i_spec
+    character(len=AERO_NAME_LEN), parameter, dimension(2) :: &
+    solid_spec = ["OIN   ", "BC    "]
+
+    aero_particle_solid_volume = 0d0
+
+    do i_solid_spec = 1, size(solid_spec)
+       i_spec = aero_data_spec_by_name(aero_data, solid_spec(i_solid_spec))
+       ! skip names absent from aero_data (spec_by_name returns 0)
+       if (i_spec > 0) then
+          aero_particle_solid_volume = aero_particle_solid_volume &
+               + aero_particle%vol(i_spec)
+       end if
+    end do
+
+  end function aero_particle_solid_volume
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Returns two diameter-independent per-particle sums over the soluble
+  !> inorganic species: the total soluble volume and the volume-weighted
+  !> surface-tension sum \f$\sum_i V_i \sigma_i\f$. The caller resolves these
+  !> once and then forms the soluble-core surface tension at any wet diameter
+  !> by cheap arithmetic, avoiding per-diameter species-name lookups.
+  subroutine aero_particle_soluble_sums(aero_particle, aero_data, &
+       soluble_volume, sum_sol_sigma)
+
+    !> Aerosol particle.
+    type(aero_particle_t), intent(in) :: aero_particle
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Total soluble inorganic volume (m^3).
+    real(kind=dp), intent(out) :: soluble_volume
+    !> Volume-weighted surface-tension sum \f$\sum_i V_i \sigma_i\f$ (m J m^-2).
+    real(kind=dp), intent(out) :: sum_sol_sigma
+
+    integer :: i_sol_spec, i_spec
+    character(len=AERO_NAME_LEN), parameter, dimension(7) :: &
+    sol_spec = ["SO4   ", "NO3   ", "Cl    ", "NH4   ", "CO3   ", &
+                "Na    ", "Ca    "]
+
+    soluble_volume = 0d0
+    sum_sol_sigma = 0d0
+    do i_sol_spec = 1, size(sol_spec)
+       i_spec = aero_data_spec_by_name(aero_data, sol_spec(i_sol_spec))
+       ! skip names absent from aero_data (spec_by_name returns 0)
+       if (i_spec > 0) then
+          soluble_volume = soluble_volume + aero_particle%vol(i_spec)
+          sum_sol_sigma = sum_sol_sigma &
+               + aero_particle%vol(i_spec) * aero_data%sigma(i_spec)
+       end if
+    end do
+
+  end subroutine aero_particle_soluble_sums
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+ 
+  !> Returns the volume-weighted surface tension of the organic film
+  !> (J m^-2).
+  real(kind=dp) function aero_particle_surf_eng_organic(aero_particle, aero_data)
+
+    !> Aerosol particle.
+    type(aero_particle_t), intent(in) :: aero_particle
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+
+    real(kind=dp) :: org_volume
+    integer :: i_org_spec, i_spec
+    character(len=AERO_NAME_LEN), parameter, dimension(10) :: &
+    org_spec = ["MSA   ", "ARO1  ", "ARO2  ", "ALK1  ", "OLE1  ", &
+                "API1  ", "API2  ", "LIM1  ", "LIM2  ", "OC    "]
+
+    org_volume = aero_particle_organic_volume(aero_particle, aero_data)
+    aero_particle_surf_eng_organic = 0d0
+
+    if (org_volume <= 0d0) then
+       ! No organic material: the film surface tension is undefined. Return
+       ! zero to avoid a 0/0; the caller only uses this through
+       ! c_5 = v_org * (sigma_org - sigma_sol), which is zero when v_org = 0.
+       return
+    end if
+
+    do i_org_spec = 1, size(org_spec)
+      i_spec = aero_data_spec_by_name(aero_data, org_spec(i_org_spec))
+      if (i_spec > 0) then
+        aero_particle_surf_eng_organic = aero_particle_surf_eng_organic &
+                + aero_particle%vol(i_spec) * &
+                aero_data%sigma(i_spec) / org_volume
+      end if
+    end do
+
+  end function aero_particle_surf_eng_organic
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Coagulate two particles together to make a new one. The new

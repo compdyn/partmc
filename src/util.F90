@@ -285,6 +285,19 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Convert diameter (m) to mass-equivalent volume \f$V\f$ (m^3) for
+  !> spherical particles.
+  real(kind=dp) elemental function sphere_diam2vol(d)
+
+    !> Diameter (m).
+    real(kind=dp), intent(in) :: d
+
+    sphere_diam2vol = const%pi / 6d0 * d**3
+
+  end function sphere_diam2vol
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Calculate air molecular mean free path \f$l\f$ (m).
   real(kind=dp) function air_mean_free_path(temp, pressure)
 
